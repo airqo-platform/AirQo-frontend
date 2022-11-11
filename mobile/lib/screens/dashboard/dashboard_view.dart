@@ -14,7 +14,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_title_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
@@ -45,10 +44,14 @@ class _DashboardViewState extends State<DashboardView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            BlocBuilder<DashboardBloc, DashboardState>(
+            BlocBuilder<AccountBloc, AccountState>(
               builder: (context, state) {
+                final profile = state.profile;
+                final greetings =
+                    profile == null ? 'Hello' : profile.greetings();
+
                 return AutoSizeText(
-                  state.greetings,
+                  greetings,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline7(context),
@@ -58,19 +61,18 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 16,
             ),
-            Row(
-              children: [
-                ValueListenableBuilder<Box<FavouritePlace>>(
-                  valueListenable:
-                      Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-                          .listenable(),
-                  builder: (context, box, widget) {
-                    final favouritePlaces =
-                        box.values.cast<FavouritePlace>().take(3).toList();
+            BlocBuilder<AccountBloc, AccountState>(
+              builder: (context, state) {
+                final favouritePlaces = favouritePlacesWidgets(
+                  state.favouritePlaces.take(3).toList(),
+                );
+                final kyaWidgets = completeKyaWidgets(
+                  state.kya.filterCompleteKya().take(3).toList(),
+                );
 
-                    final widgets = favouritePlacesWidgets(favouritePlaces);
-
-                    return DashboardTopCard(
+                return Row(
+                  children: [
+                    DashboardTopCard(
                       toolTipType: ToolTipType.favouritePlaces,
                       title: 'Favorites',
                       widgetKey: _favToolTipKey,
@@ -79,30 +81,17 @@ class _DashboardViewState extends State<DashboardView> {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return const FavouritePlaces();
+                              return const FavouritePlacesPage();
                             },
                           ),
                         );
                       },
-                      children: widgets,
-                    );
-                  },
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                ValueListenableBuilder<Box<Kya>>(
-                  valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-                  builder: (context, box, widget) {
-                    final completeKya = box.values
-                        .cast<Kya>()
-                        .where((element) => element.progress == -1)
-                        .take(3)
-                        .toList();
-
-                    final widgets = completeKyaWidgets(completeKya);
-
-                    return DashboardTopCard(
+                      children: favouritePlaces,
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    DashboardTopCard(
                       toolTipType: ToolTipType.forYou,
                       title: 'For You',
                       widgetKey: _kyaToolTipKey,
@@ -116,11 +105,11 @@ class _DashboardViewState extends State<DashboardView> {
                           ),
                         );
                       },
-                      children: widgets,
-                    );
-                  },
-                ),
-              ],
+                      children: kyaWidgets,
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(
               height: 24,
@@ -187,25 +176,23 @@ class _DashboardViewState extends State<DashboardView> {
                           return const SizedBox();
                         },
                       ),
-                      ValueListenableBuilder<Box<Kya>>(
-                        valueListenable:
-                            Hive.box<Kya>(HiveBox.kya).listenable(),
-                        builder: (context, box, widget) {
-                          final incompleteKya = box.values
-                              .toList()
-                              .cast<Kya>()
-                              .where((element) => element.progress != -1)
-                              .toList();
+                      BlocBuilder<AccountBloc, AccountState>(
+                        builder: (context, state) {
+                          final incompleteKya = state.kya.filterIncompleteKya();
                           if (incompleteKya.isEmpty) {
                             return const SizedBox();
                           }
 
+                          final Kya kya = incompleteKya.reduce(
+                            (value, element) =>
+                                value.progress > element.progress
+                                    ? value
+                                    : element,
+                          );
+
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: DashboardKyaCard(
-                              kyaClickCallBack: _handleKyaOnClick,
-                              kya: incompleteKya.first,
-                            ),
+                            child: DashboardKyaCard(kya),
                           );
                         },
                       ),
@@ -276,22 +263,6 @@ class _DashboardViewState extends State<DashboardView> {
       await _appService.refreshDashboard(context);
     });
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
-  }
-
-  Future<void> _handleKyaOnClick(Kya kya) async {
-    if (kya.progress >= kya.lessons.length) {
-      kya.progress = -1;
-      await kya.saveKya();
-    } else {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return KyaTitlePage(kya);
-          },
-        ),
-      );
-    }
   }
 
   Future<void> _refresh() async {

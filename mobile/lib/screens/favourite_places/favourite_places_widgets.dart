@@ -1,8 +1,9 @@
+import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../search/search_page.dart';
@@ -83,9 +84,9 @@ class EmptyFavouritePlace extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.all(
+            borderRadius: BorderRadius.all(
               Radius.circular(8.0),
             ),
             border: Border.fromBorderSide(
@@ -128,7 +129,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () async => _updateFavPlace(),
+                      onTap: () async => _updateFavPlace(context),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
@@ -161,7 +162,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.fromBorderSide(
+                        border: const Border.fromBorderSide(
                           BorderSide(color: Colors.transparent),
                         ),
                       ),
@@ -188,7 +189,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.fromBorderSide(
+                        border: const Border.fromBorderSide(
                           BorderSide(color: Colors.transparent),
                         ),
                       ),
@@ -212,8 +213,8 @@ class EmptyFavouritePlace extends StatelessWidget {
     );
   }
 
-  void _updateFavPlace() async {
-    await HiveService.updateFavouritePlaces(airQualityReading);
+  void _updateFavPlace(BuildContext context) {
+    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
   }
 
   void _navigateToInsights(BuildContext context) {

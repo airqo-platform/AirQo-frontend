@@ -348,7 +348,9 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: insights.chartAvatarContainerColor(pollutant),
-        border: Border.all(color: Colors.transparent),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1395,9 +1397,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
         border: Border.all(color: Colors.transparent),
@@ -1462,20 +1464,17 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     }
   }
 
-  void _updateFavPlace(AirQualityReading? airQualityReading) async {
-    if (airQualityReading == null) {
-      return;
-    }
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
-      Future.delayed(const Duration(seconds: 2), () {
+  void _updateFavPlace() {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
         setState(() => _showHeartAnimation = false);
-      });
-    }
+      }
+    });
 
-    await HiveService.updateFavouritePlaces(airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

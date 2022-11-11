@@ -1,4 +1,5 @@
 - [API](api/)
 - [Calibration](calibration/)
+- [Hardware](hardware/)
 - [Mobile App](mobile_app/)
 - [Platform](platform/)

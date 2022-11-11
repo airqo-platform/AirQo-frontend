@@ -230,7 +230,7 @@ class ProceedAsGuest extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        context.read<AuthCodeBloc>().add(const GuestUserEvent());
+        context.read<AuthCodeBloc>().add(GuestUserEvent(context));
         await Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {

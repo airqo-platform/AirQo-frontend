@@ -79,9 +79,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -181,9 +178,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -283,9 +277,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_next_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -374,9 +365,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:

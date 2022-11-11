@@ -52,20 +52,36 @@ enum InsightsStatus {
 enum AppPermission {
   notification,
   location,
+  photosStorage,
 }
 
 enum BlocStatus {
   initial,
   editing,
   processing,
+  updatingData,
   error,
   success,
-  accountPreDeletionSuccess,
+  accountDeletionCheckSuccess,
+}
+
+enum FeedbackStep {
+  channelStep,
+  typeStep,
+  formStep;
 }
 
 enum AuthenticationError {
   noInternetConnection(
     message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  invalidFirstName(
+    message: 'First name is required.',
+    snackBarDuration: 5,
+  ),
+  invalidLastName(
+    message: 'Last name is required.',
     snackBarDuration: 5,
   ),
   accountInvalid(
@@ -90,6 +106,10 @@ enum AuthenticationError {
   ),
   logInRequired(
     message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  logoutFailed(
+    message: 'Failed to logout. Try again later',
     snackBarDuration: 5,
   ),
   phoneNumberTaken(

@@ -44,14 +44,17 @@ class SplashScreenState extends State<SplashScreen> {
             child: child,
           );
         },
-        child: _widgetId == 0 ? LogoWidget() : TaglineWidget(visible: _visible),
+        child: _widgetId == 0
+            ? const LogoWidget()
+            : TaglineWidget(visible: _visible),
       ),
     );
   }
 
-  Future<void> initialize() async {
-    context.read<FeedbackBloc>().add(const ClearFeedback());
+  Future<void> _initialize() async {
+    context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    context.read<AccountBloc>().add(const LoadAccountInfo());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -101,7 +104,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
   }
 
   void _updateWidget() {

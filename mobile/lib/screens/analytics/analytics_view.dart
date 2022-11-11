@@ -1,9 +1,8 @@
-import 'dart:async';
-
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,95 +11,60 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'analytics_widgets.dart';
 
-class AnalyticsView extends StatefulWidget {
+class AnalyticsView extends StatelessWidget {
   const AnalyticsView({super.key});
 
   @override
-  State<AnalyticsView> createState() => _AnalyticsViewState();
-}
-
-class _AnalyticsViewState extends State<AnalyticsView> {
-  @override
   Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
+    return BlocBuilder<AccountBloc, AccountState>(
+      buildWhen: (previous, current) {
+        return previous.analytics != current.analytics;
+      },
+      builder: (context, state) {
+        if (state.analytics.isEmpty) {
+          context.read<AccountBloc>().add(const RefreshAnalytics());
+        }
 
-    return Container(
-      color: appColors.appBodyColor,
-      child: ValueListenableBuilder<Box<Analytics>>(
-        valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
-        builder: (context, box, widget) {
-          if (box.isNotEmpty) {
-            final analytics = box.values.toList().cast<Analytics>();
+        final analytics = state.analytics.sortByDateTime();
 
-            return AppRefreshIndicator(
-              sliverChildDelegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final airQualityReading =
-                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                          .get(analytics[index].site);
+        if (analytics.isEmpty) {
+          return Container(); // TODO replace with error page
+        }
 
-                  if (airQualityReading == null) {
-                    return Container();
-                  }
+        return AppRefreshIndicator(
+          sliverChildDelegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final airQualityReading =
+                  Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                      .get(analytics[index].site);
 
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: Config.refreshIndicatorPadding(
-                        index,
-                      ),
-                    ),
-                    child: MiniAnalyticsCard(
-                      airQualityReading,
-                      animateOnClick: true,
-                    ),
-                  );
-                },
-                childCount: analytics.length,
-              ),
-              onRefresh: _refresh,
-            );
-          }
-
-          return ValueListenableBuilder<Box<AirQualityReading>>(
-            valueListenable:
-                Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                    .listenable(),
-            builder: (context, box, widget) {
-              if (box.isNotEmpty) {
-                final airQualityReadings =
-                    box.values.toList().cast<AirQualityReading>();
-
-                return AppRefreshIndicator(
-                  sliverChildDelegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          top: Config.refreshIndicatorPadding(index),
-                        ),
-                        child: MiniAnalyticsCard(
-                          airQualityReadings[index],
-                          animateOnClick: true,
-                        ),
-                      );
-                    },
-                    childCount: airQualityReadings.length,
-                  ),
-                  onRefresh: _refresh,
-                );
+              if (airQualityReading == null) {
+                return Container();
               }
 
-              return const EmptyAnalytics();
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: Config.refreshIndicatorPadding(
+                    index,
+                  ),
+                ),
+                child: MiniAnalyticsCard(
+                  airQualityReading,
+                  animateOnClick: true,
+                ),
+              );
             },
-          );
-        },
-      ),
+            childCount: analytics.length,
+          ),
+          onRefresh: () async {
+            _refresh(context);
+          },
+        );
+      },
     );
   }
 
-  Future<void> _refresh() async {
-    await Future.wait([
-      AppService().refreshAirQualityReadings(),
-      AppService().refreshAnalytics(context),
-    ]);
+  void _refresh(BuildContext context) {
+    context.read<AccountBloc>().add(const RefreshAnalytics());
   }
 }

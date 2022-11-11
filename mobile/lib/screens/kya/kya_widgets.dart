@@ -90,36 +90,8 @@ class KyaMessage extends StatelessWidget {
   }
 }
 
-class KyaProgressBar extends StatelessWidget {
-  const KyaProgressBar({
-    super.key,
-    required this.kya,
-  });
-  final Kya kya;
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: getKyaMessage(kya: kya).toLowerCase() == 'continue',
-      child: Container(
-        height: 4,
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
-          ),
-        ),
-        child: LinearProgressIndicator(
-          color: CustomColors.appColorBlue,
-          value: kya.progress / kya.lessons.length,
-          backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
-        ),
-      ),
-    );
-  }
-}
-
 class KyaViewWidget extends StatelessWidget {
-  const KyaViewWidget({super.key, required this.kya});
+  const KyaViewWidget(this.kya, {super.key});
   final Kya kya;
 
   @override
@@ -178,13 +150,6 @@ class KyaViewWidget extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height:
-                          getKyaMessage(kya: kya).toLowerCase() == 'continue'
-                              ? 2
-                              : 0,
-                    ),
-                    KyaProgressBar(kya: kya),
                   ],
                 ),
               ),
@@ -226,8 +191,12 @@ class EmptyKya extends StatelessWidget {
     return Container(
       color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
-      child: const Center(
-        child: Text('No Lessons at the moment'),
+      child: Center(
+        child: Text(
+          'All your complete lessons will show up here',
+          textAlign: TextAlign.center,
+          style: CustomTextStyle.headline7(context),
+        ),
       ),
     );
   }
