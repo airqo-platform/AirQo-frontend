@@ -16,13 +16,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'  
 
-      - name: Install ruby for fastlane
-        uses: ruby/setup-ruby@v1.121.0
-        with:
-          ruby-version: "3.0"
-          bundler-cache: true
-          working-directory: mobile/android/
-
       - name: Install Flutter
         uses: subosito/flutter-action@v2.8.0
         with:
