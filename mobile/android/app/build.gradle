@@ -98,25 +98,11 @@ android {
 // Add start
     signingConfigs {
         release {
-            def tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
-            def allFilesFromDir = new File(tmpFilePath).listFiles()
-
-            if (allFilesFromDir != null) {
-                def keystoreFile = allFilesFromDir.first()
-                keystoreFile.renameTo("keystore/your_keystore.jks")
-            }
-
-            storeFile = file("keystore/upload-keystore.jks")
-            storePassword System.getenv("STORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            keyAlias releaseKeystoreProperties['keyAlias']
+            keyPassword releaseKeystoreProperties['keyPassword']
+            storeFile releaseKeystoreProperties['storeFile'] ? file(releaseKeystoreProperties['storeFile']) : null
+            storePassword releaseKeystoreProperties['storePassword']
         }
-        // release {
-        //     keyAlias releaseKeystoreProperties['keyAlias']
-        //     keyPassword releaseKeystoreProperties['keyPassword']
-        //     storeFile releaseKeystoreProperties['storeFile'] ? file(releaseKeystoreProperties['storeFile']) : null
-        //     storePassword releaseKeystoreProperties['storePassword']
-        // }
         debug {
             keyAlias debugKeystoreProperties['keyAlias']
             keyPassword debugKeystoreProperties['keyPassword']
