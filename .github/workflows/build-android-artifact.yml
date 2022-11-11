@@ -36,12 +36,14 @@ jobs:
       - name: Set up keystore files
         run: |
           cd mobile/android/
-          echo "$MOBILE_KEYSTORE_DEV" | base64 -di > app/airqo-dev-keystore.jks
-          echo "$MOBILE_KEYSTORE" | base64 -di > app/upload-keystore.jks
+          gcloud secrets versions access latest --secret="sta-env-mobile-airqo-dev-keystore-encrypted" | base64 -di > app/airqo-dev-keystore.jks
+          gcloud secrets versions access latest --secret="prod-env-mobile-upload_keystore_encrypted" | base64 -di > app/upload-keystore.jks
+          #echo "$MOBILE_KEYSTORE_DEV" | base64 -di > app/airqo-dev-keystore.jks
+          #echo "$MOBILE_KEYSTORE" | base64 -di > app/upload-keystore.jks
 
-        env: 
-          KEYSTORE: ${{ secrets.MOBILE_KEYSTORE }}
-          KEYSTORE_DEV: ${{ secrets.MOBILE_KEYSTORE_DEV }}
+        #env: 
+         # KEYSTORE: ${{ secrets.MOBILE_KEYSTORE }}
+          #KEYSTORE_DEV: ${{ secrets.MOBILE_KEYSTORE_DEV }}
 
       - name: Create key.properties files
         run: |
