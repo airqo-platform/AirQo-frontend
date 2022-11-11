@@ -102,7 +102,7 @@ Map<String, dynamic> _$AppNotificationToJson(AppNotification instance) =>
       'body': instance.body,
       'dateTime': instance.dateTime.toIso8601String(),
       'read': instance.read,
-      'type': _$AppNotificationTypeEnumMap[instance.type],
+      'type': _$AppNotificationTypeEnumMap[instance.type]!,
     };
 
 const _$AppNotificationTypeEnumMap = {

@@ -1,20 +1,17 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import '../services/firebase_service.dart';
-import '../services/hive_service.dart';
-import '../services/native_api.dart';
-import '../utils/network.dart';
 import 'enum_constants.dart';
 
 part 'profile.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 20, adapterName: 'ProfileAdapter')
-class Profile extends HiveObject {
+class Profile extends HiveObject with EquatableMixin {
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 
@@ -153,11 +150,7 @@ class Profile extends HiveObject {
       ..utcOffset = DateTime.now().getUtcOffset();
 
     final user = CustomAuth.getUser();
-    if (user != null) {
-      Sentry.configureScope(
-        (scope) =>
-            scope.setUser(SentryUser(id: user.uid, email: user.email ?? '')),
-      );
+    if (user != null && !CustomAuth.isGuestUser()) {
       this
         ..userId = user.uid
         ..phoneNumber = user.phoneNumber ?? ''
@@ -165,7 +158,7 @@ class Profile extends HiveObject {
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
-          .then((_) => CloudStore.updateCloudProfile());
+          .whenComplete(() => CloudStore.updateProfile(this));
     } else {
       await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
     }
@@ -184,6 +177,30 @@ class Profile extends HiveObject {
       default:
         return [namesArray.first, namesArray[1]];
     }
+  }
+
+  static Future<Profile> initializeGuestProfile() async {
+    final user = CustomAuth.getUser();
+    final userId = user != null ? user.uid : const Uuid().v4();
+
+    return Profile(
+      title: '',
+      firstName: '',
+      lastName: '',
+      userId: userId,
+      emailAddress: '',
+      phoneNumber: '',
+      device: await CloudMessaging.getDeviceToken() ?? '',
+      preferences: UserPreferences(
+        notifications:
+            await PermissionService.checkPermission(AppPermission.notification),
+        location:
+            await PermissionService.checkPermission(AppPermission.location),
+        aqShares: 0,
+      ),
+      utcOffset: DateTime.now().getUtcOffset(),
+      photoUrl: '',
+    );
   }
 
   static Future<Profile> _initialize() async {
@@ -210,11 +227,25 @@ class Profile extends HiveObject {
 
     return profile;
   }
+
+  @override
+  List<Object?> get props => [
+        title,
+        firstName,
+        userId,
+        lastName,
+        emailAddress,
+        photoUrl,
+        phoneNumber,
+        utcOffset,
+        device,
+        preferences,
+      ];
 }
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 120, adapterName: 'UserPreferencesTypeAdapter')
-class UserPreferences extends HiveObject {
+class UserPreferences extends HiveObject with EquatableMixin {
   UserPreferences({
     required this.notifications,
     required this.location,
@@ -244,4 +275,11 @@ class UserPreferences extends HiveObject {
       aqShares: 0,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        aqShares,
+        location,
+        notifications,
+      ];
 }

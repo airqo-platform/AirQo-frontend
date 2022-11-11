@@ -15,7 +15,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc()
       : super(const DashboardState(
           greetings: '',
-          incompleteKya: [],
           airQualityReadings: [],
           loading: false,
         )) {
@@ -29,7 +28,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
@@ -65,18 +63,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
 
     final greetings = await DateTime.now().getGreetings();
-    final incompleteKya = await Kya.getIncompleteKya();
     final airQualityReadings = await _getAirQualityReadings();
 
     return emit(DashboardState(
       greetings: greetings,
-      incompleteKya: incompleteKya,
       airQualityReadings: airQualityReadings,
       loading: false,
     ));
