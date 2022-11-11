@@ -1,20 +1,21 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/screens/analytics/error_page.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-import 'utils/utils.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp({super.key});
@@ -35,7 +36,7 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => NearbyLocationBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => SettingsBloc(),
+          create: (BuildContext context) => AccountBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => AuthCodeBloc(),
@@ -88,9 +89,20 @@ Future<void> initializeMainMethod() async {
 
   HttpOverrides.global = AppHttpOverrides();
 
+  EquatableConfig.stringify = true;
+
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
 
     return true;
+  };
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    logException(details, null);
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return kDebugMode ? ErrorWidget(details.exception) : const ErrorPage();
   };
 }

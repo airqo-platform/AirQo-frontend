@@ -197,9 +197,9 @@ class AnalyticsCardLoading extends StatelessWidget {
         maxHeight: 251,
         minHeight: 251,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(
             16.0,
           ),

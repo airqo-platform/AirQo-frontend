@@ -193,6 +193,9 @@ class PermissionService {
       case AppPermission.location:
         status = await Permission.location.status;
         break;
+      case AppPermission.photosStorage:
+        status = await Permission.photos.status;
+        break;
     }
 
     if (status != PermissionStatus.granted && request) {
@@ -205,6 +208,9 @@ class PermissionService {
                 PermissionStatus.granted;
           case AppPermission.location:
             return await Permission.location.request() ==
+                PermissionStatus.granted;
+          case AppPermission.photosStorage:
+            return await Permission.accessMediaLocation.request() ==
                 PermissionStatus.granted;
         }
       }

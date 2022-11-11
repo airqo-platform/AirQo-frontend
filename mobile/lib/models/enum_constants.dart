@@ -1,11 +1,10 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import '../themes/colors.dart';
 
 part 'enum_constants.g.dart';
 
@@ -45,15 +44,17 @@ enum AnalyticsEvent {
 enum AppPermission {
   notification,
   location,
+  photosStorage,
 }
 
 enum BlocStatus {
   initial,
   editing,
   processing,
+  updatingData,
   error,
   success,
-  accountPreDeletionSuccess,
+  accountDeletionCheckSuccess,
 }
 
 enum FeedbackStep {
@@ -65,6 +66,14 @@ enum FeedbackStep {
 enum AuthenticationError {
   noInternetConnection(
     message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  invalidFirstName(
+    message: 'First name is required.',
+    snackBarDuration: 5,
+  ),
+  invalidLastName(
+    message: 'Last name is required.',
     snackBarDuration: 5,
   ),
   accountInvalid(
@@ -89,6 +98,10 @@ enum AuthenticationError {
   ),
   logInRequired(
     message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  logoutFailed(
+    message: 'Failed to logout. Try again later',
     snackBarDuration: 5,
   ),
   phoneNumberTaken(

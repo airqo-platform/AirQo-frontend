@@ -1,3 +1,4 @@
+import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -5,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -38,117 +40,109 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          backgroundColor: CustomColors.appBodyColor,
-          centerTitle: false,
-          titleSpacing: 0,
-          title: Row(
-            children: [
-              InkWell(
-                onTap: () {
-                  updateProgress();
-                  Navigator.of(context).pop(true);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, right: 7),
-                  child: SvgPicture.asset(
-                    'assets/icon/close.svg',
-                    height: 20,
-                    width: 20,
-                  ),
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        elevation: 0,
+        backgroundColor: CustomColors.appBodyColor,
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                child: SvgPicture.asset(
+                  'assets/icon/close.svg',
+                  height: 20,
+                  width: 20,
                 ),
               ),
-              Expanded(
-                child: LinearProgressIndicator(
-                  color: CustomColors.appColorBlue,
-                  value: _tipsProgress,
-                  backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
-                ),
+            ),
+            Expanded(
+              child: LinearProgressIndicator(
+                color: CustomColors.appColorBlue,
+                value: _tipsProgress,
+                backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
               ),
-              InkWell(
-                onTap: () async => _share(),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 7, right: 24),
-                  child: _shareLoading
-                      ? const LoadingIcon(radius: 10)
-                      : SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
-                          height: 16,
-                          width: 16,
-                        ),
-                ),
+            ),
+            InkWell(
+              onTap: () async => _share(),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 7, right: 24),
+                child: _shareLoading
+                    ? const LoadingIcon(radius: 10)
+                    : SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        color: CustomColors.greyColor,
+                        height: 16,
+                        width: 16,
+                      ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        body: Container(
-          color: CustomColors.appBodyColor,
-          child: Column(
-            children: [
-              const Spacer(),
-              SizedBox(
-                height: 400,
-                child: ScrollablePositionedList.builder(
-                  padding: EdgeInsets.zero,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: kya.lessons.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 19,
-                        right: 19,
-                        bottom: 10,
-                      ),
-                      child: SizedBox(
-                        width: screenSize.width * 0.9,
-                        child: _kyaCard(kya.lessons[index], index),
-                      ),
-                    );
-                  },
-                  itemPositionsListener: itemPositionsListener,
-                  itemScrollController: itemScrollController,
-                ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Visibility(
-                      visible: currentIndex > 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          scrollToCard(direction: -1);
-                        },
-                        child: const CircularKyaButton(
-                          icon: 'assets/icon/previous_arrow.svg',
-                        ),
-                      ),
+      ),
+      body: Container(
+        color: CustomColors.appBodyColor,
+        child: Column(
+          children: [
+            const Spacer(),
+            SizedBox(
+              height: 400,
+              child: ScrollablePositionedList.builder(
+                padding: EdgeInsets.zero,
+                scrollDirection: Axis.horizontal,
+                itemCount: kya.lessons.length,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 19,
+                      right: 19,
+                      bottom: 10,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        scrollToCard(direction: 1);
-                      },
+                    child: SizedBox(
+                      width: screenSize.width * 0.9,
+                      child: _kyaCard(kya.lessons[index], index),
+                    ),
+                  );
+                },
+                itemPositionsListener: itemPositionsListener,
+                itemScrollController: itemScrollController,
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Visibility(
+                    visible: currentIndex > 0,
+                    child: GestureDetector(
+                      onTap: () => scrollToCard(-1),
                       child: const CircularKyaButton(
-                        icon: 'assets/icon/next_arrow.svg',
+                        icon: 'assets/icon/previous_arrow.svg',
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  GestureDetector(
+                    onTap: () => scrollToCard(1),
+                    child: const CircularKyaButton(
+                      icon: 'assets/icon/next_arrow.svg',
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(
-                height: 40,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+          ],
         ),
       ),
     );
@@ -197,9 +191,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     super.dispose();
   }
 
-  void scrollToCard({
-    required int direction,
-  }) {
+  void scrollToCard(int direction) {
     if (direction == -1) {
       setState(() => currentIndex = currentIndex - 1);
       itemScrollController.scrollTo(
@@ -221,31 +213,21 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           context,
           MaterialPageRoute(
             builder: (context) {
-              return KyaFinalPage(
-                kya: kya,
-              );
+              return KyaFinalPage(kya);
             },
           ),
         );
       }
     }
+    context
+        .read<AccountBloc>()
+        .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
   }
 
   void setTipsProgress() {
     if (mounted) {
       setState(() => _tipsProgress = (currentIndex + 1) / kya.lessons.length);
     }
-  }
-
-  Future<void> updateProgress() async {
-    if (widget.kya.progress == -1) {
-      return;
-    }
-    final kya = widget.kya..progress = currentIndex;
-    if (kya.progress > kya.lessons.length || kya.progress < 0) {
-      kya.progress = kya.lessons.length - 1;
-    }
-    await kya.saveKya();
   }
 
   Widget _kyaCard(KyaLesson kyaItem, int index) {
@@ -329,11 +311,5 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         ),
       ),
     );
-  }
-
-  Future<bool> _onWillPop() {
-    updateProgress();
-
-    return Future.value(true);
   }
 }

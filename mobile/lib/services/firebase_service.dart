@@ -23,6 +23,55 @@ class CloudAnalytics {
 
     return true;
   }
+
+  static Future<void> logNetworkProvider() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
+      if (carrier.toLowerCase().contains('airtel')) {
+        await logEvent(AnalyticsEvent.airtelUser);
+      } else if (carrier.toLowerCase().contains('mtn')) {
+        await logEvent(AnalyticsEvent.mtnUser);
+      } else {
+        await logEvent(
+          AnalyticsEvent.otherNetwork,
+        );
+      }
+    }
+  }
+
+  static Future<void> logPlatformType() async {
+    if (Platform.isAndroid) {
+      await logEvent(
+        AnalyticsEvent.androidUser,
+      );
+    } else if (Platform.isIOS) {
+      await logEvent(
+        AnalyticsEvent.iosUser,
+      );
+    } else {
+      debugPrint('Unknown Platform');
+    }
+  }
+
+  static Future<void> logGender() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      if (profile.getGender() == Gender.male) {
+        await logEvent(
+          AnalyticsEvent.maleUser,
+        );
+      } else if (profile.getGender() == Gender.female) {
+        await logEvent(
+          AnalyticsEvent.femaleUser,
+        );
+      } else {
+        await logEvent(
+          AnalyticsEvent.undefinedGender,
+        );
+      }
+    }
+  }
 }
 
 class CloudStore {
@@ -80,74 +129,48 @@ class CloudStore {
     return referenceKya;
   }
 
-  static Future<List<UserKya>> _getUserKya() async {
+  static Future<List<Kya>> _getUserKya() async {
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return [];
     }
 
-    final userOnGoingKya = <UserKya>[];
+    final kya = <Kya>[];
 
-    try {
-      final userKyaCollection = await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .get();
+    final userKyaCollection = await FirebaseFirestore.instance
+        .collection(Config.usersKyaCollection)
+        .doc(userId)
+        .collection(userId)
+        .get();
 
-      for (final userKyaDoc in userKyaCollection.docs) {
-        try {
-          if (userKyaDoc.data().isEmpty) {
-            continue;
-          }
-          try {
-            userOnGoingKya.add(
-              UserKya.fromJson(
-                userKyaDoc.data(),
-              ),
-            );
-          } catch (e) {
-            final userKyaData = userKyaDoc.data();
-            userKyaData['progress'] =
-                (userKyaData['progress'] as double).ceil();
-            userOnGoingKya.add(UserKya.fromJson(userKyaData));
-          }
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
+    for (final kyaDoc in userKyaCollection.docs) {
+      try {
+        kya.add(
+          Kya.fromJson(
+            kyaDoc.data(),
+          ),
+        );
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
 
-    return userOnGoingKya;
+    return kya;
   }
 
   static Future<List<Kya>> getKya() async {
-    final userKya = <Kya>[];
-    final userOnGoingKya = await _getUserKya();
     final referenceKya = await _getReferenceKya();
 
-    if (userOnGoingKya.isEmpty) {
-      for (final kya in referenceKya) {
-        kya.progress = 0;
-        userKya.add(kya);
-      }
-    } else {
-      for (final kya in referenceKya) {
-        try {
-          final onGoingKya = userOnGoingKya.firstWhere(
-            (element) => element.id == kya.id,
-            orElse: () => UserKya(kya.id, 0),
-          );
-
-          kya.progress = onGoingKya.progress;
-          userKya.add(kya);
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      }
+    if (CustomAuth.isGuestUser()) {
+      return referenceKya;
     }
+
+    final userKya = await _getUserKya();
+
+    final List<String> userKyaIds = userKya.map((kya) => kya.id).toList();
+    referenceKya.removeWhere((kya) => userKyaIds.contains(kya.id));
+
+    userKya.addAll(referenceKya);
 
     return userKya;
   }
@@ -206,7 +229,6 @@ class CloudStore {
           cloudAnalytics.add(analytics);
         }
       }
-      await Analytics.load(cloudAnalytics);
 
       return cloudAnalytics;
     } catch (exception, stackTrace) {
@@ -220,10 +242,6 @@ class CloudStore {
   }
 
   static Future<Profile> getProfile() async {
-    if (!CustomAuth.isLoggedIn()) {
-      return Profile.getProfile();
-    }
-
     try {
       final uuid = CustomAuth.getUserId();
 
@@ -336,38 +354,38 @@ class CloudStore {
     return true;
   }
 
-  static Future<void> updateCloudProfile() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
+  static Future<void> updateProfile(Profile profile) async {
+    final currentUser = CustomAuth.getUser();
+    if (currentUser == null || CustomAuth.isGuestUser()) {
+      return;
+    }
+    try {
       try {
-        final profile = await Profile.getProfile();
-        try {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .update(
-                  profile.toJson(),
-                ),
-          ]);
-        } catch (exception) {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .set(
-                  profile.toJson(),
-                ),
-          ]);
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
+        await Future.wait([
+          currentUser.updateDisplayName(profile.firstName),
+          FirebaseFirestore.instance
+              .collection(Config.usersCollection)
+              .doc(profile.userId)
+              .update(
+                profile.toJson(),
+              ),
+        ]);
+      } catch (exception) {
+        await Future.wait([
+          currentUser.updateDisplayName(profile.firstName),
+          FirebaseFirestore.instance
+              .collection(Config.usersCollection)
+              .doc(profile.userId)
+              .set(
+                profile.toJson(),
+              ),
+        ]);
       }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
@@ -441,13 +459,13 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateKyaProgress(Kya kya) async {
-    final userId = CustomAuth.getUserId();
-
-    if (userId.isEmpty) {
+  static Future<void> updateKya(Kya kya) async {
+    if (CustomAuth.isGuestUser()) {
       return;
     }
-    final userKya = UserKya(kya.id, kya.progress);
+
+    final userId = CustomAuth.getUserId();
+
     try {
       await FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
@@ -455,9 +473,10 @@ class CloudStore {
           .collection(userId)
           .doc(kya.id)
           .update(
-            userKya.toJson(),
+            kya.toJson(),
           );
     } on FirebaseException catch (exception, stackTrace) {
+      // TODO : Add to authentication decryption enum
       if (exception.code.contains('not-found')) {
         await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
@@ -465,7 +484,7 @@ class CloudStore {
             .collection(userId)
             .doc(kya.id)
             .set(
-              userKya.toJson(),
+              kya.toJson(),
             );
       } else {
         await logException(
@@ -565,6 +584,15 @@ class CustomAuth {
     return !user.isAnonymous;
   }
 
+  static bool isGuestUser() {
+    final user = getUser();
+    if (user == null) {
+      return true;
+    }
+
+    return user.isAnonymous;
+  }
+
   static Future<bool> logOut() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -632,8 +660,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -662,8 +690,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -685,8 +713,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -716,10 +744,9 @@ class CustomAuth {
                 ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionFailed(
-                  AuthenticationError.authFailure,
+            buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
+                  error: AuthenticationError.authFailure,
+                  passed: false,
                 ));
             break;
           case AuthProcedure.anonymousLogin:
@@ -742,8 +769,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
