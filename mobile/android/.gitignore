@@ -15,3 +15,4 @@ prod-key.properties
 *env*
 local.properties
 env.dart
+fastlane/
