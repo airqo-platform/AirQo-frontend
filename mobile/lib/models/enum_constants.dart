@@ -286,28 +286,38 @@ enum AuthMethod {
         'You will not be able to sign in with your previous phone number after changing it',
     codeVerificationText: 'Enter the 6 digits code sent to your number',
     editEntryText: 'Change your number',
+    invalidInputErrorMessage: 'Looks like you missed a digit.',
+    invalidInputMessage: 'Oops, Something’s wrong with your phone number',
   ),
   email(
     updateMessage:
         'You will not be able to sign in with your previous email address after changing it',
     codeVerificationText: 'Enter the 6 digits code sent to your email',
     editEntryText: 'Change your email',
+    invalidInputErrorMessage: 'Looks like you missed a letter',
+    invalidInputMessage: 'Oops, Something’s wrong with your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
     codeVerificationText: '',
     editEntryText: '',
+    invalidInputErrorMessage: '',
+    invalidInputMessage: '',
   );
 
   const AuthMethod({
     required this.updateMessage,
     required this.codeVerificationText,
     required this.editEntryText,
+    required this.invalidInputErrorMessage,
+    required this.invalidInputMessage,
   });
 
   final String updateMessage;
   final String codeVerificationText;
   final String editEntryText;
+  final String invalidInputErrorMessage;
+  final String invalidInputMessage;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {

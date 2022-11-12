@@ -194,6 +194,10 @@ class CustomColors {
 
   static Color get appColorBlue => const Color(0xff145DFF);
 
+  static Color get appColorValid => const Color(0xff007F5F);
+
+  static Color get appColorInvalid => const Color(0xffDE3617);
+
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
 
   static Color get appLoadingColor => const Color(0xffEBEAEF);

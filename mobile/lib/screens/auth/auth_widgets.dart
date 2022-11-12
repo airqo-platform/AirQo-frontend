@@ -3,11 +3,13 @@ import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'email_auth_widget.dart';
 
@@ -35,10 +37,45 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return true;
-      },
       builder: (context, state) {
+        Color formColor = state.phoneNumber.isValidPhoneNumber()
+            ? CustomColors.appColorValid
+            : CustomColors.appColorBlue;
+        Color fillColor = state.phoneNumber.isValidPhoneNumber()
+            ? formColor.withOpacity(0.05)
+            : Colors.transparent;
+        Color textColor = state.phoneNumber.isValidPhoneNumber()
+            ? formColor
+            : CustomColors.appColorBlack;
+        Color suffixIconColor = state.phoneNumber.isValidPhoneNumber()
+            ? formColor
+            : CustomColors.greyColor.withOpacity(0.7);
+
+        if (state.blocStatus == BlocStatus.error) {
+          formColor = CustomColors.appColorInvalid;
+          textColor = formColor;
+          suffixIconColor = formColor;
+          fillColor = formColor.withOpacity(0.05);
+        }
+
+        InputBorder inputBorder = OutlineInputBorder(
+          borderSide: BorderSide(color: formColor, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        );
+
+        Widget suffixIcon = state.phoneNumber.isValidEmail()
+            ? Padding(
+                padding: const EdgeInsets.all(14),
+                child: SvgPicture.asset(
+                  'assets/icon/valid_input_icon.svg',
+                  height: 1,
+                  width: 1,
+                ),
+              )
+            : TextInputCloseButton(
+                color: suffixIconColor,
+              );
+
         return TextFormField(
           controller: _phoneInputController,
           inputFormatters: [
@@ -60,36 +97,22 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
           onChanged: (value) {
             context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
           },
-          style: Theme.of(context).textTheme.bodyText1,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your phone number';
-            }
-
-            return null;
-          },
+          style:
+              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
           enableSuggestions: false,
           cursorWidth: 1,
           autofocus: false,
-          cursorColor: CustomColors.appColorBlue,
+          cursorColor: formColor,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-            focusedBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            border: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
+            iconColor: formColor,
+            fillColor: fillColor,
+            filled: true,
+            focusedBorder: inputBorder,
+            enabledBorder: inputBorder,
+            border: inputBorder,
+            suffixIconColor: formColor,
             hintText: '700 000 000',
             prefixIcon: Padding(
               padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
@@ -117,7 +140,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
                     .read<PhoneAuthBloc>()
                     .add(const ClearPhoneNumberEvent());
               },
-              child: const TextInputCloseButton(),
+              child: suffixIcon,
             ),
             errorStyle: const TextStyle(
               fontSize: 0,
@@ -157,6 +180,44 @@ class _EmailInputFieldState extends State<EmailInputField> {
         return true;
       },
       builder: (context, state) {
+        Color formColor = state.emailAddress.isValidEmail()
+            ? CustomColors.appColorValid
+            : CustomColors.appColorBlue;
+        Color fillColor = state.emailAddress.isValidEmail()
+            ? formColor.withOpacity(0.05)
+            : Colors.transparent;
+        Color textColor = state.emailAddress.isValidEmail()
+            ? formColor
+            : CustomColors.appColorBlack;
+        Color suffixIconColor = state.emailAddress.isValidEmail()
+            ? formColor
+            : CustomColors.greyColor.withOpacity(0.7);
+
+        if (state.blocStatus == BlocStatus.error) {
+          formColor = CustomColors.appColorInvalid;
+          textColor = formColor;
+          suffixIconColor = formColor;
+          fillColor = formColor.withOpacity(0.05);
+        }
+
+        InputBorder inputBorder = OutlineInputBorder(
+          borderSide: BorderSide(color: formColor, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        );
+
+        Widget suffixIcon = state.emailAddress.isValidEmail()
+            ? Padding(
+                padding: const EdgeInsets.all(14),
+                child: SvgPicture.asset(
+                  'assets/icon/valid_input_icon.svg',
+                  height: 1,
+                  width: 1,
+                ),
+              )
+            : TextInputCloseButton(
+                color: suffixIconColor,
+              );
+
         return TextFormField(
           controller: _emailInputController,
           onTap: () {
@@ -172,29 +233,22 @@ class _EmailInputFieldState extends State<EmailInputField> {
                 .read<EmailAuthBloc>()
                 .add(ValidateEmailAddress(context: context));
           },
-          style: Theme.of(context).textTheme.bodyText1,
+          style:
+              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
           enableSuggestions: true,
           cursorWidth: 1,
           autofocus: false,
-          cursorColor: CustomColors.appColorBlue,
+          cursorColor: formColor,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-            focusedBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            border: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
+            iconColor: formColor,
+            fillColor: fillColor,
+            filled: true,
+            focusedBorder: inputBorder,
+            enabledBorder: inputBorder,
+            border: inputBorder,
+            suffixIconColor: formColor,
             hintText: 'Enter your email',
             hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
@@ -211,7 +265,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
 
                 context.read<EmailAuthBloc>().add(const ClearEmailAddress());
               },
-              child: const TextInputCloseButton(),
+              child: suffixIcon,
             ),
             errorStyle: const TextStyle(
               fontSize: 0,
@@ -219,6 +273,69 @@ class _EmailInputFieldState extends State<EmailInputField> {
           ),
         );
       },
+    );
+  }
+}
+
+class InputValidationErrorMessage extends StatelessWidget {
+  const InputValidationErrorMessage(
+      {super.key, required this.visible, required this.message});
+
+  final bool visible;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: visible,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 9),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/icon/error_info_icon.svg',
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Center(
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                    color: CustomColors.appColorInvalid, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InputValidationCodeMessage extends StatelessWidget {
+  const InputValidationCodeMessage(this.visible, {super.key});
+
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: visible,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+        child: AutoSizeText(
+          'We’ll send you a verification code',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.6),
+              ),
+        ),
+      ),
     );
   }
 }

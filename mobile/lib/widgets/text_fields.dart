@@ -140,7 +140,9 @@ class OptField extends StatelessWidget {
 }
 
 class TextInputCloseButton extends StatelessWidget {
-  const TextInputCloseButton({super.key});
+  const TextInputCloseButton({super.key, this.color});
+
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +150,7 @@ class TextInputCloseButton extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Container(
         decoration: BoxDecoration(
-          color: CustomColors.greyColor.withOpacity(0.7),
+          color: color ?? CustomColors.greyColor.withOpacity(0.7),
           borderRadius: const BorderRadius.all(
             Radius.circular(5.0),
           ),
