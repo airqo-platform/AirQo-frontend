@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 2
 
@@ -91,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -105,9 +105,9 @@ jobs:
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: "12"
+          node-version: "16"
       - run: |
           cd netmanager/
           npm install
@@ -162,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to GCR
         uses: docker/login-action@v1
@@ -241,7 +241,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -255,9 +255,9 @@ jobs:
         run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: "12"
+          node-version: "16"
       - run: |
           cd calibrate/
           npm install
@@ -311,7 +311,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -372,7 +372,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to GCR
         uses: docker/login-action@v1
