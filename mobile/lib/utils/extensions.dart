@@ -411,6 +411,7 @@ extension StringExt on String {
     if (isNull()) {
       return false;
     }
+
     return trim().replaceAll(" ", "").length >= 7 &&
         trim().replaceAll(" ", "").length <= 15;
   }
@@ -427,6 +428,7 @@ extension StringExt on String {
     if (trim().replaceAll(" ", "").length > 15) {
       return 'Entered many digits.';
     }
+
     return '';
   }
 

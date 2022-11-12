@@ -138,7 +138,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         ),
                       ),
                       InputValidationCodeMessage(
-                          state.blocStatus != BlocStatus.error),
+                        state.blocStatus != BlocStatus.error,
+                      ),
                       const SizedBox(
                         height: 32,
                       ),
@@ -226,6 +227,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             context
                                 .read<PhoneAuthBloc>()
                                 .add(const InvalidPhoneNumber());
+
                             return;
                           }
 
@@ -266,7 +268,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                           child: state.authProcedure == AuthProcedure.login
                               ? const LoginOptions(authMethod: AuthMethod.phone)
                               : const SignUpOptions(
-                                  authMethod: AuthMethod.phone),
+                                  authMethod: AuthMethod.phone,
+                                ),
                         ),
                       ),
                     ],

@@ -138,7 +138,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         ),
                       ),
                       InputValidationCodeMessage(
-                          state.blocStatus != BlocStatus.error),
+                        state.blocStatus != BlocStatus.error,
+                      ),
                       const SizedBox(
                         height: 32,
                       ),
@@ -217,7 +218,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                           child: state.authProcedure == AuthProcedure.login
                               ? const LoginOptions(authMethod: AuthMethod.email)
                               : const SignUpOptions(
-                                  authMethod: AuthMethod.email),
+                                  authMethod: AuthMethod.email,
+                                ),
                         ),
                       ),
                     ],

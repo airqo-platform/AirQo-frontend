@@ -278,8 +278,11 @@ class _EmailInputFieldState extends State<EmailInputField> {
 }
 
 class InputValidationErrorMessage extends StatelessWidget {
-  const InputValidationErrorMessage(
-      {super.key, required this.visible, required this.message});
+  const InputValidationErrorMessage({
+    super.key,
+    required this.visible,
+    required this.message,
+  });
 
   final bool visible;
   final String message;
@@ -305,7 +308,9 @@ class InputValidationErrorMessage extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                    color: CustomColors.appColorInvalid, fontSize: 14),
+                      color: CustomColors.appColorInvalid,
+                      fontSize: 14,
+                    ),
               ),
             ),
           ],
