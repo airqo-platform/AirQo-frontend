@@ -19,9 +19,65 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     on<ClearInsightsTab>(_onClearInsights);
     on<SwitchInsightsPollutant>(_onSwitchPollutant);
     on<UpdateInsightsActiveIndex>(_onUpdateActiveIndex);
+    on<UpdateForecastInsightsActiveIndex>(_onUpdateForecastInsightsActiveIndex);
     on<UpdateSelectedInsight>(_onUpdateSelectedInsight);
     on<RefreshInsightsCharts>(_onRefreshInsights);
     on<SetScrolling>(_onSetScrolling);
+    on<ToggleForecastData>(_onShowForecastData);
+  }
+
+  Future<void> _onLoadForecastData(
+    Emitter<InsightsState> emit,
+  ) async {
+    emit(state.copyWith(insightsStatus: InsightsStatus.refreshing));
+
+    final forecastData =
+        await AirQoDatabase().getForecastInsights(state.siteId);
+
+    final chartData = forecastData
+        .map((event) => ChartData.fromForecastInsight(event))
+        .toList();
+
+    final forecastCharts = await _createCharts(chartData);
+
+    return emit(state.copyWith(forecastCharts: forecastCharts));
+  }
+
+  Future<void> _onShowForecastData(
+    ToggleForecastData _,
+    Emitter<InsightsState> emit,
+  ) async {
+    if (!state.showForecastData) {
+      return emit(state.copyWith(showForecastData: !state.showForecastData));
+    }
+
+    var selectedInsight =
+        state.forecastCharts[state.pollutant]?.first.first.data.first;
+    var chartIndex = state.forecastChartIndex;
+
+    for (final chart in state.forecastCharts[state.pollutant]!) {
+      for (final chart_2 in chart.toList()) {
+        for (final chart_3 in chart_2.data) {
+          if (chart_3.dateTime.isToday()) {
+            chartIndex = state.forecastCharts[state.pollutant]!.indexOf(chart);
+            selectedInsight = chart_3;
+            break;
+          }
+        }
+        if (chartIndex != state.chartIndex) {
+          break;
+        }
+      }
+      if (chartIndex != state.chartIndex) {
+        break;
+      }
+    }
+
+    return emit(state.copyWith(
+        selectedInsight: selectedInsight,
+        forecastChartIndex: chartIndex,
+        insightsStatus: InsightsStatus.loaded,
+        showForecastData: !state.showForecastData));
   }
 
   Future<void> _onSetScrolling(
@@ -44,7 +100,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   ) async {
     emit(state.copyWith(selectedInsight: event.selectedInsight));
 
-    if (state.frequency == Frequency.daily) {
+    if (state.frequency == Frequency.daily && !state.showForecastData) {
       return _updateMiniCharts(emit);
     }
 
@@ -60,6 +116,15 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ));
   }
 
+  Future<void> _onUpdateForecastInsightsActiveIndex(
+    UpdateForecastInsightsActiveIndex event,
+    Emitter<InsightsState> emit,
+  ) async {
+    return emit(state.copyWith(
+      forecastChartIndex: event.index,
+    ));
+  }
+
   Future<void> _onSwitchPollutant(
     SwitchInsightsPollutant event,
     Emitter<InsightsState> emit,
@@ -68,24 +133,28 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   }
 
   Future<void> _updateMiniCharts(Emitter<InsightsState> emit) async {
-    final day = state.selectedInsight?.time.day;
+    final day = state.selectedInsight?.dateTime.day;
     if (day == null) {
       return;
     }
 
-    final hourlyInsights =
+    final historicalData =
         await AirQoDatabase().getDailyMiniHourlyInsights(state.siteId, day);
 
-    if (hourlyInsights.isEmpty) {
+    final chartData = historicalData
+        .map((event) => ChartData.fromHistoricalInsight(event))
+        .toList();
+
+    if (chartData.isEmpty) {
       return;
     }
 
     final pm2_5ChartData = miniInsightsChartData(
-      hourlyInsights,
+      chartData,
       Pollutant.pm2_5,
     );
     final pm10ChartData = miniInsightsChartData(
-      hourlyInsights,
+      chartData,
       Pollutant.pm10,
     );
 
@@ -101,10 +170,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ));
   }
 
-  Future<Map<Pollutant, List<List<charts.Series<GraphInsightData, String>>>>>
-      _createCharts(
-    List<GraphInsightData> insightsData,
-  ) async {
+  Future<Map<Pollutant, List<List<charts.Series<ChartData, String>>>>>
+      _createCharts(List<ChartData> insightsData) async {
     final firstDay = state.frequency == Frequency.hourly
         ? DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay()
         : DateTime.now()
@@ -114,24 +181,19 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         ? DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay()
         : DateTime.now().getLastDateOfCalendarMonth().getDateOfLastHourOfDay();
 
-    final insights = insightsData.where(
-      (element) {
-        final date = element.time;
-        if (date == firstDay ||
-            date == lastDay ||
-            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
-          return true;
-        }
+    final insights = insightsData
+        .where((e) =>
+            e.dateTime.isAfterEqualTo(firstDay) &&
+            e.dateTime.isBeforeOrEqualTo(lastDay))
+        .toList();
 
-        return false;
-      },
-    ).toList();
-    final pm2_5ChartData = insightsChartData(
+    final pm2_5ChartData = createChartsList(
       insights,
       Pollutant.pm2_5,
       state.frequency,
     );
-    final pm10ChartData = insightsChartData(
+
+    final pm10ChartData = createChartsList(
       insights,
       Pollutant.pm10,
       state.frequency,
@@ -159,12 +221,16 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
           : InsightsStatus.refreshing,
     ));
 
-    final apiInsights = await AppService().fetchGraphInsights(
-      [state.siteId],
+    final insightsData = await AppService().fetchInsightsData(
+      state.siteId,
       frequency: state.frequency,
     );
 
-    if (apiInsights.isEmpty) {
+    final chartData = insightsData.historical
+        .map((event) => ChartData.fromHistoricalInsight(event))
+        .toList();
+
+    if (chartData.isEmpty) {
       return emit(state.copyWith(
         insightsStatus: state.insightsCharts.isEmpty
             ? InsightsStatus.failed
@@ -172,12 +238,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       ));
     }
 
-    return _updateCharts(emit, apiInsights);
+    await _onLoadForecastData(emit);
+    return _updateCharts(emit, chartData);
   }
 
   Future<void> _updateCharts(
     Emitter<InsightsState> emit,
-    List<GraphInsightData> insights,
+    List<ChartData> insights,
   ) async {
     final charts = await _createCharts(insights);
 
@@ -200,7 +267,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     for (final chart in charts[state.pollutant]!) {
       for (final chart_2 in chart.toList()) {
         for (final chart_3 in chart_2.data) {
-          if (chart_3.time.isToday()) {
+          if (chart_3.dateTime.isToday()) {
             chartIndex = charts[state.pollutant]!.indexOf(chart);
             selectedInsight = chart_3;
             break;
@@ -240,13 +307,18 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       insightsStatus: InsightsStatus.loading,
     ));
 
-    final dbInsights = await AirQoDatabase().getInsights(
-      siteId,
+    final dbInsights = await AirQoDatabase().getHistoricalInsights(
+      state.siteId,
       state.frequency,
     );
 
+    final chartData = dbInsights
+        .map((event) => ChartData.fromHistoricalInsight(event))
+        .toList();
+
     if (dbInsights.isNotEmpty) {
-      await _updateCharts(emit, dbInsights);
+      await _updateCharts(emit, chartData);
+      await _onLoadForecastData(emit);
     }
 
     return _refreshCharts(emit);

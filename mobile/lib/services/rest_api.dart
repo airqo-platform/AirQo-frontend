@@ -135,7 +135,7 @@ class AirqoApiClient {
     return json.decode(response.body)['status'] as bool;
   }
 
-  Future<List<GraphInsightData>> fetchGraphInsights(String siteIds) async {
+  Future<InsightData> fetchInsightsData(String siteId) async {
     try {
       final utcNow = DateTime.now().toUtc();
       final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
@@ -144,7 +144,8 @@ class AirqoApiClient {
       )}T23:59:59Z';
 
       final queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteIds)
+        ..putIfAbsent('siteId', () => siteId)
+        ..putIfAbsent('utcOffset', () => DateTime.now().getUtcOffset())
         ..putIfAbsent('startDateTime', () => startDateTime)
         ..putIfAbsent('endDateTime', () => endDateTime);
 
@@ -154,18 +155,25 @@ class AirqoApiClient {
       );
 
       if (body == null) {
-        return <GraphInsightData>[];
+        return const InsightData(forecast: [], historical: []);
       }
 
-      final data = <GraphInsightData>[];
+      final List<HistoricalInsight> historicalData = [];
+      final List<ForecastInsight> forecastData = [];
 
-      for (final e in body['data']) {
+      for (final e in body['data']['forecast']) {
         final json = e;
-        json['frequency'] = fromString(e['frequency'] as String);
-        data.add(GraphInsightData.fromJson(json));
+        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        forecastData.add(ForecastInsight.fromJson(json));
       }
 
-      return data;
+      for (final e in body['data']['historical']) {
+        final json = e;
+        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        historicalData.add(HistoricalInsight.fromJson(json));
+      }
+
+      return InsightData(forecast: forecastData, historical: historicalData);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -173,7 +181,7 @@ class AirqoApiClient {
       );
     }
 
-    return <GraphInsightData>[];
+    return const InsightData(forecast: [], historical: []);
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(

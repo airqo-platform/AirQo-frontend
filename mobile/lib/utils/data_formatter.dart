@@ -5,17 +5,13 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-charts.Color insightsChartBarColor(
-  GraphInsightData series,
+charts.Color historicalInsightsChartBarColor(
+  ChartData series,
   Pollutant pollutant,
 ) {
-  if (series.empty) {
+  if (series.available) {
     return charts.ColorUtil.fromDartColor(
       CustomColors.greyColor,
-    );
-  } else if (series.forecast) {
-    return charts.ColorUtil.fromDartColor(
-      CustomColors.appColorBlue.withOpacity(0.5),
     );
   } else {
     return pollutant.chartColor(series.chartValue(pollutant));
@@ -75,44 +71,44 @@ charts.NumericAxisSpec chartsXAxisScale() {
   );
 }
 
-List<GraphInsightData> formatData(
-  List<GraphInsightData> data,
+List<ChartData> formatData(
+  List<ChartData> data,
   Frequency frequency,
 ) {
   data.sort(
     (x, y) {
       if (frequency == Frequency.daily) {
-        return x.time.weekday.compareTo(y.time.weekday);
+        return x.dateTime.weekday.compareTo(y.dateTime.weekday);
       }
 
-      return x.time.compareTo(y.time);
+      return x.dateTime.compareTo(y.dateTime);
     },
   );
 
   return data;
 }
 
-List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
-  List<GraphInsightData> insights,
+List<List<charts.Series<ChartData, String>>> createChartsList(
+  List<ChartData> insights,
   Pollutant pollutant,
   Frequency frequency,
 ) {
-  final data = <GraphInsightData>[...insights];
+  final data = <ChartData>[...insights];
 
-  final insightsGraphs = <List<charts.Series<GraphInsightData, String>>>[];
+  final graphs = <List<charts.Series<ChartData, String>>>[];
 
   if (frequency == Frequency.hourly) {
     while (data.isNotEmpty) {
       final earliestDate = data.reduce((value, element) {
-        if (value.time.isBefore(element.time)) {
+        if (value.dateTime.isBefore(element.dateTime)) {
           return value;
         }
 
         return element;
-      }).time;
+      }).dateTime;
 
       var filteredDates = data
-          .where((element) => element.time.day == earliestDate.day)
+          .where((element) => element.dateTime.day == earliestDate.day)
           .toList();
 
       if (filteredDates.length < 24) {
@@ -121,17 +117,17 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
 
       filteredDates.take(24);
 
-      insightsGraphs.add([
-        charts.Series<GraphInsightData, String>(
+      graphs.add([
+        charts.Series<ChartData, String>(
           id: '${const Uuid().v4()}-${earliestDate.day}',
-          colorFn: (GraphInsightData series, _) =>
-              insightsChartBarColor(series, pollutant),
-          domainFn: (GraphInsightData data, _) {
-            final hour = data.time.hour;
+          colorFn: (ChartData series, _) =>
+              historicalInsightsChartBarColor(series, pollutant),
+          domainFn: (ChartData data, _) {
+            final hour = data.dateTime.hour;
 
             return hour.toString().length == 1 ? '0$hour' : '$hour';
           },
-          measureFn: (GraphInsightData data, _) => data.chartValue(pollutant),
+          measureFn: (ChartData data, _) => data.chartValue(pollutant),
           data: formatData(
             filteredDates,
             frequency,
@@ -139,21 +135,21 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
         ),
       ]);
       data.removeWhere(
-        (element) => element.time.day == earliestDate.day,
+        (element) => element.dateTime.day == earliestDate.day,
       );
     }
   } else {
     while (data.isNotEmpty) {
       var earliestDate = data.reduce((value, element) {
-        if (value.time.isBefore(element.time)) {
+        if (value.dateTime.isBefore(element.dateTime)) {
           return value;
         }
 
         return element;
-      }).time;
+      }).dateTime;
 
       final dateRanges = <DateTime>[];
-      var filteredDates = <GraphInsightData>[];
+      var filteredDates = <ChartData>[];
 
       while (dateRanges.length != 7) {
         dateRanges.add(earliestDate);
@@ -162,7 +158,9 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
 
       filteredDates
         ..addAll(
-          data.where((element) => dateRanges.contains(element.time)).toList(),
+          data
+              .where((element) => dateRanges.contains(element.dateTime))
+              .toList(),
         )
         ..take(7);
 
@@ -170,30 +168,30 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
         filteredDates = fillMissingData(filteredDates, frequency);
       }
 
-      data.removeWhere((element) => dateRanges.contains(element.time));
+      data.removeWhere((element) => dateRanges.contains(element.dateTime));
 
-      insightsGraphs.add([
-        charts.Series<GraphInsightData, String>(
+      graphs.add([
+        charts.Series<ChartData, String>(
           id: '${const Uuid().v4()}-${earliestDate.weekday}',
-          colorFn: (GraphInsightData series, _) =>
-              insightsChartBarColor(series, pollutant),
-          domainFn: (GraphInsightData data, _) =>
-              DateFormat('EEE').format(data.time),
-          measureFn: (GraphInsightData data, _) => data.chartValue(pollutant),
+          colorFn: (ChartData series, _) =>
+              historicalInsightsChartBarColor(series, pollutant),
+          domainFn: (ChartData data, _) =>
+              DateFormat('EEE').format(data.dateTime),
+          measureFn: (ChartData data, _) => data.chartValue(pollutant),
           data: formatData(filteredDates, frequency),
         ),
       ]);
     }
   }
 
-  return insightsGraphs;
+  return graphs;
 }
 
-List<charts.Series<GraphInsightData, String>> miniInsightsChartData(
-  List<GraphInsightData> insights,
+List<charts.Series<ChartData, String>> miniInsightsChartData(
+  List<ChartData> insights,
   Pollutant pollutant,
 ) {
-  var data = <GraphInsightData>[...insights];
+  var data = <ChartData>[...insights];
 
   if (data.length < 24) {
     data = fillMissingData(data, Frequency.hourly);
@@ -201,17 +199,17 @@ List<charts.Series<GraphInsightData, String>> miniInsightsChartData(
 
   data.take(24);
 
-  return <charts.Series<GraphInsightData, String>>[
-    charts.Series<GraphInsightData, String>(
-      id: '${const Uuid().v4()}-${data.first.time.day}',
-      colorFn: (GraphInsightData series, _) =>
-          insightsChartBarColor(series, pollutant),
-      domainFn: (GraphInsightData data, _) {
-        final hour = data.time.hour;
+  return <charts.Series<ChartData, String>>[
+    charts.Series<ChartData, String>(
+      id: '${const Uuid().v4()}-${data.first.dateTime.day}',
+      colorFn: (ChartData series, _) =>
+          historicalInsightsChartBarColor(series, pollutant),
+      domainFn: (ChartData data, _) {
+        final hour = data.dateTime.hour;
 
         return hour.toString().length == 1 ? '0$hour' : '$hour';
       },
-      measureFn: (GraphInsightData data, _) => data.chartValue(pollutant),
+      measureFn: (ChartData data, _) => data.chartValue(pollutant),
       data: formatData(
         data,
         Frequency.hourly,
@@ -220,11 +218,11 @@ List<charts.Series<GraphInsightData, String>> miniInsightsChartData(
   ];
 }
 
-List<GraphInsightData> fillMissingData(
-  List<GraphInsightData> data,
+List<ChartData> fillMissingData(
+  List<ChartData> data,
   Frequency frequency,
 ) {
-  final insights = <GraphInsightData>[...data];
+  final insights = <ChartData>[...data];
 
   switch (frequency) {
     case Frequency.daily:
@@ -237,19 +235,18 @@ List<GraphInsightData> fillMissingData(
         final checkDate = insights
             .where(
               (element) =>
-                  (element.time.day == startDate.day) &&
-                  (element.time.month == startDate.month),
+                  (element.dateTime.day == startDate.day) &&
+                  (element.dateTime.month == startDate.month),
             )
             .toList();
 
         if (checkDate.isEmpty) {
           insights.add(
-            GraphInsightData(
-              time: startDate,
+            ChartData(
+              dateTime: startDate,
               pm2_5: referenceInsight.pm2_5,
               pm10: referenceInsight.pm10,
-              empty: true,
-              forecast: false,
+              available: true,
               siteId: referenceInsight.siteId,
               frequency: referenceInsight.frequency,
             ),
@@ -264,28 +261,27 @@ List<GraphInsightData> fillMissingData(
     case Frequency.hourly:
       final referenceInsight = data.first;
 
-      var startDate = referenceInsight.time
+      var startDate = referenceInsight.dateTime
           .getDateOfFirstDayOfWeek()
           .getDateOfFirstHourOfDay();
-      final lastDayOfWeek = referenceInsight.time
+      final lastDayOfWeek = referenceInsight.dateTime
           .getDateOfLastDayOfWeek()
           .getDateOfLastHourOfDay();
 
       while (startDate.isBefore(lastDayOfWeek)) {
         final checkDate = insights
             .where((element) =>
-                (element.time.hour == startDate.hour) &&
-                (element.time.day == startDate.day))
+                (element.dateTime.hour == startDate.hour) &&
+                (element.dateTime.day == startDate.day))
             .toList();
 
         if (checkDate.isEmpty) {
           insights.add(
-            GraphInsightData(
-              time: startDate,
+            ChartData(
+              dateTime: startDate,
               pm2_5: referenceInsight.pm2_5,
               pm10: referenceInsight.pm10,
-              empty: true,
-              forecast: false,
+              available: true,
               siteId: referenceInsight.siteId,
               frequency: referenceInsight.frequency,
             ),

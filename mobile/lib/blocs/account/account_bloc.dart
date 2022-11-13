@@ -212,7 +212,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       ));
     }
     final AppService appService = AppService();
-    await appService.fetchFavPlacesInsights();
     await appService.updateFavouritePlacesReferenceSites();
   }
 
@@ -281,8 +280,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     final AppService appService = AppService();
     await appService.refreshAirQualityReadings();
-    await appService.fetchFavPlacesInsights();
-
     // TODO: update cloud Analytics
   }
 

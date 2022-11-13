@@ -5,10 +5,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';

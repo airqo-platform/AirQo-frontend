@@ -9,7 +9,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -175,7 +174,82 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                           context.read<HourlyInsightsBloc>().add(
                                 UpdateSelectedInsight(
                                   model.selectedSeries.first.data[value]
-                                      as GraphInsightData,
+                                      as ChartData,
+                                ),
+                              );
+                        }
+                      } catch (exception, stackTrace) {
+                        debugPrint(
+                          '${exception.toString()}\n${stackTrace.toString()}',
+                        );
+                      }
+                    },
+                  ),
+                ],
+                domainAxis: chartsYAxisScale(
+                  Frequency.hourly.staticTicks(),
+                ),
+                primaryMeasureAxis: chartsXAxisScale(),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class ForecastAnalyticsGraph extends StatelessWidget {
+  const ForecastAnalyticsGraph({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HourlyInsightsBloc, InsightsState>(
+      builder: (context, state) {
+        if (!state.forecastCharts.keys.toList().contains(state.pollutant)) {
+          return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
+        }
+
+        final data = state.forecastCharts[state.pollutant]![0];
+
+        return LayoutBuilder(
+          builder: (BuildContext buildContext, BoxConstraints constraints) {
+            return SizedBox(
+              width: MediaQuery.of(buildContext).size.width - 50,
+              height: 150,
+              child: charts.BarChart(
+                data,
+                animate: true,
+                defaultRenderer: charts.BarRendererConfig<String>(
+                  strokeWidthPx: 20,
+                  stackedBarPaddingPx: 0,
+                  cornerStrategy: const charts.ConstCornerStrategy(
+                    3,
+                  ),
+                ),
+                defaultInteractions: true,
+                behaviors: [
+                  charts.LinePointHighlighter(
+                    showHorizontalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.none,
+                    showVerticalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.nearest,
+                  ),
+                  charts.DomainHighlighter(),
+                  charts.SelectNearest(
+                    eventTrigger: charts.SelectionTrigger.tapAndDrag,
+                  ),
+                ],
+                selectionModels: [
+                  charts.SelectionModelConfig(
+                    changedListener: (charts.SelectionModel model) {
+                      try {
+                        final value = model.selectedDatum.first.index;
+                        if (value != null) {
+                          context.read<HourlyInsightsBloc>().add(
+                                UpdateSelectedInsight(
+                                  model.selectedSeries.first.data[value]
+                                      as ChartData,
                                 ),
                               );
                         }
@@ -304,7 +378,7 @@ class DailyAnalyticsGraph extends StatelessWidget {
                           context.read<DailyInsightsBloc>().add(
                                 UpdateSelectedInsight(
                                   model.selectedSeries.first.data[value]
-                                      as GraphInsightData,
+                                      as ChartData,
                                 ),
                               );
                         }
@@ -336,7 +410,7 @@ class InsightsAvatar extends StatelessWidget {
     required this.size,
     required this.pollutant,
   });
-  final GraphInsightData insights;
+  final ChartData insights;
   final double size;
   final Pollutant pollutant;
 
@@ -397,12 +471,18 @@ class HourlyInsightsGraph extends StatefulWidget {
 
 class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final GlobalKey _forecastToolTipKey = GlobalKey();
   bool scrollToToday = true;
 
   final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemScrollController _forecastScrollController = ItemScrollController();
 
   void _jumpToChart() {
+    final state = context.read<HourlyInsightsBloc>().state;
+
+    if (state.showForecastData) {
+      return;
+    }
+
     context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
 
     final chartIndex = context.read<HourlyInsightsBloc>().state.chartIndex;
@@ -416,6 +496,10 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
   Future<void> _scrollToChart({Duration? duration}) async {
     final state = context.read<HourlyInsightsBloc>().state;
+
+    if (state.showForecastData) {
+      return;
+    }
 
     final data = state
         .insightsCharts[context.read<HourlyInsightsBloc>().state.pollutant];
@@ -456,6 +540,38 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
     }
   }
 
+  Future<void> _scrollToForecastChart({Duration? duration}) async {
+    if (!context.read<HourlyInsightsBloc>().state.showForecastData) {
+      return;
+    }
+
+    context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
+
+    duration ??= const Duration(milliseconds: 500);
+
+    if (!_forecastScrollController.isAttached) {
+      await _scrollToForecastChart(duration: duration);
+
+      return;
+    }
+
+    if (_forecastScrollController.isAttached) {
+      await _forecastScrollController
+          .scrollTo(
+        index: context.read<HourlyInsightsBloc>().state.forecastChartIndex,
+        duration: duration,
+        curve: Curves.easeInToLinear,
+      )
+          .whenComplete(() {
+        context.read<HourlyInsightsBloc>().add(const SetScrolling(false));
+      });
+    } else {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollToForecastChart(duration: const Duration(milliseconds: 1));
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -489,6 +605,15 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       _scrollToChart();
                     },
                   ),
+                  BlocListener<HourlyInsightsBloc, InsightsState>(
+                    listenWhen: (previous, current) {
+                      return previous.forecastChartIndex !=
+                          current.forecastChartIndex;
+                    },
+                    listener: (context, listenerState) {
+                      _scrollToForecastChart();
+                    },
+                  ),
                 ],
                 child: Container(),
               ),
@@ -505,7 +630,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                             children: [
                               AutoSizeText(
                                 insightsChartTitleDateTimeToString(
-                                  state.selectedInsight?.time ?? DateTime.now(),
+                                  state.selectedInsight?.dateTime ??
+                                      DateTime.now(),
                                   state.frequency,
                                 ),
                                 maxLines: 1,
@@ -555,33 +681,69 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: 160,
-                      child: ScrollablePositionedList.builder(
-                        physics: const BouncingScrollPhysics(),
-                        scrollDirection: Axis.horizontal,
-                        itemCount:
-                            state.insightsCharts[state.pollutant]?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          return VisibilityDetector(
-                            key: Key(
-                              index.toString(),
-                            ),
-                            onVisibilityChanged:
-                                (VisibilityInfo visibilityInfo) {
-                              if (!state.scrollingGraphs &&
-                                  visibilityInfo.visibleFraction > 0.3 &&
-                                  state.chartIndex != index &&
-                                  !scrollToToday) {
-                                context
-                                    .read<HourlyInsightsBloc>()
-                                    .add(UpdateInsightsActiveIndex(index));
-                              }
-                            },
-                            child: const HourlyAnalyticsGraph(),
-                          );
-                        },
-                        itemScrollController: _itemScrollController,
+                    Visibility(
+                      visible: !state.showForecastData,
+                      child: SizedBox(
+                        height: 160,
+                        child: ScrollablePositionedList.builder(
+                          physics: const BouncingScrollPhysics(),
+                          scrollDirection: Axis.horizontal,
+                          itemCount:
+                              state.insightsCharts[state.pollutant]?.length ??
+                                  0,
+                          itemBuilder: (context, index) {
+                            return VisibilityDetector(
+                              key: Key(
+                                index.toString(),
+                              ),
+                              onVisibilityChanged:
+                                  (VisibilityInfo visibilityInfo) {
+                                if (!state.scrollingGraphs &&
+                                    visibilityInfo.visibleFraction > 0.3 &&
+                                    state.chartIndex != index &&
+                                    !scrollToToday) {
+                                  context
+                                      .read<HourlyInsightsBloc>()
+                                      .add(UpdateInsightsActiveIndex(index));
+                                }
+                              },
+                              child: const HourlyAnalyticsGraph(),
+                            );
+                          },
+                          itemScrollController: _itemScrollController,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: state.forecastCharts.isNotEmpty &&
+                          state.showForecastData,
+                      child: SizedBox(
+                        height: 160,
+                        child: ScrollablePositionedList.builder(
+                          physics: const BouncingScrollPhysics(),
+                          scrollDirection: Axis.horizontal,
+                          itemCount:
+                              state.forecastCharts[state.pollutant]?.length ??
+                                  0,
+                          itemBuilder: (context, index) {
+                            return VisibilityDetector(
+                              key: Key(
+                                index.toString(),
+                              ),
+                              onVisibilityChanged:
+                                  (VisibilityInfo visibilityInfo) {
+                                if (!state.scrollingGraphs &&
+                                    visibilityInfo.visibleFraction > 0.3 &&
+                                    state.forecastChartIndex != index) {
+                                  context.read<HourlyInsightsBloc>().add(
+                                      UpdateForecastInsightsActiveIndex(index));
+                                }
+                              },
+                              child: const ForecastAnalyticsGraph(),
+                            );
+                          },
+                          itemScrollController: _forecastScrollController,
+                        ),
                       ),
                     ),
                     Visibility(
@@ -625,21 +787,17 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                 ),
               ),
 
-              const SizedBox(
-                height: 8.0,
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(
+                  color: Color(0xffC4C4C4),
+                ),
               ),
 
-              const Divider(
-                color: Color(0xffC4C4C4),
-              ),
-
-              const SizedBox(
-                height: 8.0,
-              ),
               // footer
               Container(
                 width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -649,7 +807,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         );
                       },
                       child: Visibility(
-                        visible: !state.selectedInsight!.empty,
+                        visible: !state.selectedInsight!.available,
                         child: Container(
                           padding:
                               const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -711,7 +869,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       ),
                     ),
                     Visibility(
-                      visible: state.selectedInsight!.empty,
+                      visible: state.selectedInsight!.available,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10.0,
@@ -740,7 +898,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       width: 8,
                     ),
                     Visibility(
-                      visible: !state.selectedInsight!.empty,
+                      visible: !state.selectedInsight!.available,
                       child: GestureDetector(
                         onTap: () {
                           pmInfoDialog(
@@ -758,38 +916,38 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       ),
                     ),
                     const Spacer(),
-                    Row(
-                      children: [
-                        Container(
-                          height: 10,
-                          width: 10,
-                          key: _forecastToolTipKey,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: state.selectedInsight!.forecast
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorBlue.withOpacity(0.24),
-                            border: Border.all(color: Colors.transparent),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 8.0,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            ToolTip(context, ToolTipType.forecast).show(
-                              widgetKey: _forecastToolTipKey,
-                            );
-                          },
-                          child: Text(
-                            'Forecast',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: CustomColors.appColorBlue,
+                    Visibility(
+                      visible: state.forecastCharts.isNotEmpty,
+                      child: Row(
+                        children: [
+                          Container(
+                            height: 10,
+                            width: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: state.showForecastData
+                                  ? CustomColors.appColorBlue
+                                  : CustomColors.appColorBlue.withOpacity(0.24),
+                              border: Border.all(color: Colors.transparent),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(
+                            width: 8.0,
+                          ),
+                          GestureDetector(
+                            onTap: () => context
+                                .read<HourlyInsightsBloc>()
+                                .add(const ToggleForecastData()),
+                            child: Text(
+                              'Forecast',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: CustomColors.appColorBlue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -811,7 +969,6 @@ class DailyInsightsGraph extends StatefulWidget {
 
 class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final GlobalKey _forecastToolTipKey = GlobalKey();
   bool scrollToToday = true;
 
   final ItemScrollController _itemScrollController = ItemScrollController();
@@ -919,7 +1076,8 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                             children: [
                               AutoSizeText(
                                 insightsChartTitleDateTimeToString(
-                                  state.selectedInsight?.time ?? DateTime.now(),
+                                  state.selectedInsight?.dateTime ??
+                                      DateTime.now(),
                                   state.frequency,
                                 ),
                                 maxLines: 1,
@@ -1064,7 +1222,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         );
                       },
                       child: Visibility(
-                        visible: !state.selectedInsight!.empty,
+                        visible: !state.selectedInsight!.available,
                         child: Container(
                           padding:
                               const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -1126,7 +1284,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                       ),
                     ),
                     Visibility(
-                      visible: state.selectedInsight!.empty,
+                      visible: state.selectedInsight!.available,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10.0,
@@ -1155,7 +1313,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                       width: 8,
                     ),
                     Visibility(
-                      visible: !state.selectedInsight!.empty,
+                      visible: !state.selectedInsight!.available,
                       child: GestureDetector(
                         onTap: () {
                           pmInfoDialog(
@@ -1171,40 +1329,6 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                           key: _infoToolTipKey,
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Container(
-                          height: 10,
-                          width: 10,
-                          key: _forecastToolTipKey,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: state.selectedInsight!.forecast
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorBlue.withOpacity(0.24),
-                            border: Border.all(color: Colors.transparent),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 8.0,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            ToolTip(context, ToolTipType.forecast).show(
-                              widgetKey: _forecastToolTipKey,
-                            );
-                          },
-                          child: Text(
-                            'Forecast',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: CustomColors.appColorBlue,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -1223,7 +1347,7 @@ class InsightsHealthTips extends StatefulWidget {
     required this.insight,
     required this.pollutant,
   });
-  final GraphInsightData? insight;
+  final ChartData? insight;
   final Pollutant pollutant;
 
   @override
@@ -1242,7 +1366,7 @@ class _InsightsHealthTipsState extends State<InsightsHealthTips> {
         widget.insight!.pm2_5,
         widget.pollutant,
       );
-      title = widget.insight!.time.isToday()
+      title = widget.insight!.dateTime.isToday()
           ? 'Today’s health tips'
           : 'Tomorrow’s health tips';
     }
@@ -1320,12 +1444,12 @@ class InsightsToggleBar extends StatelessWidget {
               case Frequency.daily:
                 context
                     .read<DailyInsightsBloc>()
-                    .add(SwitchInsightsPollutant(pollutant as Pollutant));
+                    .add(SwitchInsightsPollutant(pollutant));
                 break;
               case Frequency.hourly:
                 context
                     .read<HourlyInsightsBloc>()
-                    .add(SwitchInsightsPollutant(pollutant as Pollutant));
+                    .add(SwitchInsightsPollutant(pollutant));
                 break;
             }
           },
@@ -1349,7 +1473,7 @@ class InsightsToggleBar extends StatelessWidget {
               width: 20,
             ),
           ),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<Pollutant>>[
             PopupMenuItem(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               value: Pollutant.pm2_5,
@@ -1397,9 +1521,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(8.0),
         ),
         border: Border.all(color: Colors.transparent),
@@ -1430,7 +1554,8 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
           Expanded(
             child: InkWell(
               onTap: () async {
-                _updateFavPlace(widget.airQualityReading);
+                // TODO favourite places bug
+                // _updateFavPlace(widget.airQualityReading);
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 21),
@@ -1472,9 +1597,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       }
     });
 
-    context
-        .read<AccountBloc>()
-        .add(UpdateFavouritePlace(widget.airQualityReading));
+    // TODO fix favourite places bug
+    // context
+    //     .read<AccountBloc>()
+    //     .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

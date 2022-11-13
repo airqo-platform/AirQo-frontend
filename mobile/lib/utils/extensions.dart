@@ -17,7 +17,7 @@ extension IntExt on int {
   }
 }
 
-extension GraphInsightDataExt on GraphInsightData {
+extension ChartDataExt on ChartData {
   double chartValue(Pollutant pollutant) {
     return pollutant == Pollutant.pm2_5
         ? double.parse(pm2_5.toStringAsFixed(2))
@@ -25,24 +25,24 @@ extension GraphInsightDataExt on GraphInsightData {
   }
 
   String lastUpdated(Frequency frequency) {
-    if (empty) {
+    if (available) {
       return 'Not available';
     }
 
-    if (time.isToday()) {
+    if (dateTime.isToday()) {
       return 'Updated Today';
     }
 
     switch (frequency) {
       case Frequency.daily:
-        return 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
+        return 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
       case Frequency.hourly:
-        return 'Updated ${DateFormat('hh:mm a').format(time)}';
+        return 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
     }
   }
 
   Color chartAvatarContainerColor(Pollutant pollutant) {
-    if (empty) {
+    if (available) {
       return CustomColors.greyColor;
     }
 
@@ -50,7 +50,7 @@ extension GraphInsightDataExt on GraphInsightData {
   }
 
   String chartAvatarValue(Pollutant pollutant) {
-    if (empty) {
+    if (available) {
       return '--';
     }
 
@@ -58,7 +58,7 @@ extension GraphInsightDataExt on GraphInsightData {
   }
 
   Color chartAvatarValueColor(Pollutant pollutant) {
-    if (empty) {
+    if (available) {
       return CustomColors.darkGreyColor;
     }
 
@@ -155,6 +155,14 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterEqualTo(DateTime dateTime) {
+    return isAfter(dateTime) || dateTime == this;
+  }
+
+  bool isBeforeOrEqualTo(DateTime dateTime) {
+    return isBefore(dateTime) || dateTime == this;
   }
 
   DateTime getDateOfLastDayOfWeek() {

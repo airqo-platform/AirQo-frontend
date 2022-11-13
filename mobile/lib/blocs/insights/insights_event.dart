@@ -41,6 +41,14 @@ class UpdateInsightsActiveIndex extends InsightsEvent {
   List<Object?> get props => [index];
 }
 
+class UpdateForecastInsightsActiveIndex extends InsightsEvent {
+  const UpdateForecastInsightsActiveIndex(this.index);
+  final int index;
+
+  @override
+  List<Object?> get props => [index];
+}
+
 class SetScrolling extends InsightsEvent {
   const SetScrolling(this.scrolling);
   final bool scrolling;
@@ -50,7 +58,7 @@ class SetScrolling extends InsightsEvent {
 
 class UpdateSelectedInsight extends InsightsEvent {
   const UpdateSelectedInsight(this.selectedInsight);
-  final GraphInsightData selectedInsight;
+  final ChartData selectedInsight;
 
   @override
   List<Object?> get props => [selectedInsight];
@@ -58,6 +66,13 @@ class UpdateSelectedInsight extends InsightsEvent {
 
 class ClearInsightsTab extends InsightsEvent {
   const ClearInsightsTab();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class ToggleForecastData extends InsightsEvent {
+  const ToggleForecastData();
 
   @override
   List<Object?> get props => [];

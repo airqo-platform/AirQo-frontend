@@ -109,59 +109,28 @@ class AppService {
         notifyUser: true,
       ),
       refreshAirQualityReadings(),
-      fetchFavPlacesInsights(),
       updateFavouritePlacesReferenceSites(),
       Profile.syncProfile(),
     ]);
   }
 
-  Future<void> fetchFavPlacesInsights() async {
-    try {
-      final favPlaces =
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-      final placeIds = <String>[];
-
-      for (final favPlace in favPlaces) {
-        placeIds.add(favPlace.referenceSite);
-      }
-      await fetchGraphInsights(placeIds);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  Future<List<GraphInsightData>> fetchGraphInsights(
-    List<String> siteIds, {
+  Future<InsightData> fetchInsightsData(
+    String siteId, {
     Frequency? frequency,
   }) async {
-    final insights = <GraphInsightData>[];
-    final futures = <Future<List<GraphInsightData>>>[];
+    final insights = await AirqoApiClient().fetchInsightsData(siteId);
 
-    for (var i = 0; i < siteIds.length; i = i + 2) {
-      final site1 = siteIds[i];
-      try {
-        final site2 = siteIds[i + 1];
-        futures.add(AirqoApiClient().fetchGraphInsights('$site1,$site2'));
-      } catch (e) {
-        futures.add(AirqoApiClient().fetchGraphInsights(site1));
-      }
-    }
-
-    final sitesInsights = await Future.wait(futures);
-
-    for (final result in sitesInsights) {
-      insights.addAll(result);
-    }
-
-    await AirQoDatabase().insertInsights(insights);
+    await AirQoDatabase().insertHistoricalInsights(insights.historical);
+    await AirQoDatabase().insertForecastInsights(insights.forecast);
 
     if (frequency != null) {
-      return insights
+      final historical = insights.historical
           .where((element) => element.frequency == frequency)
           .toList();
+      final forecast = insights.forecast
+          .where((element) => element.frequency == frequency)
+          .toList();
+      return InsightData(forecast: forecast, historical: historical);
     }
 
     return insights;

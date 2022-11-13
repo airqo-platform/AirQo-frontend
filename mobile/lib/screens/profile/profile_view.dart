@@ -5,17 +5,8 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/adapters.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import '../auth/phone_auth_widget.dart';
-import '../auth/phone_reauthenticate_screen.dart';
-import '../favourite_places/favourite_places_page.dart';
-import '../for_you_page.dart';
-import '../home_page.dart';
-import '../notification/notification_page.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'profile_edit_page.dart';
