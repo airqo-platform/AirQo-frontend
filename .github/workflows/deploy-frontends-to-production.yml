@@ -63,9 +63,9 @@ jobs:
         run: gcloud secrets versions access latest --secret="prod-env-netmanager" > netmanager/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "12"
       - run: |
           cd netmanager/
           npm install
@@ -216,9 +216,9 @@ jobs:
         run: gcloud secrets versions access latest --secret="prod-env-calibrate-app" > calibrate/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "12"
       - run: |
           cd calibrate/
           npm install
