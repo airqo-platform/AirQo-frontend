@@ -5,17 +5,15 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-charts.Color historicalInsightsChartBarColor(
+charts.Color chartBarColor(
   ChartData series,
   Pollutant pollutant,
 ) {
-  if (series.available) {
-    return charts.ColorUtil.fromDartColor(
-      CustomColors.greyColor,
-    );
-  } else {
-    return pollutant.chartColor(series.chartValue(pollutant));
-  }
+  return series.available
+      ? pollutant.chartColor(series.chartValue(pollutant))
+      : charts.ColorUtil.fromDartColor(
+          CustomColors.greyColor,
+        );
 }
 
 charts.OrdinalAxisSpec chartsYAxisScale(List<charts.TickSpec<String>> ticks) {
@@ -120,8 +118,7 @@ List<List<charts.Series<ChartData, String>>> createChartsList(
       graphs.add([
         charts.Series<ChartData, String>(
           id: '${const Uuid().v4()}-${earliestDate.day}',
-          colorFn: (ChartData series, _) =>
-              historicalInsightsChartBarColor(series, pollutant),
+          colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
           domainFn: (ChartData data, _) {
             final hour = data.dateTime.hour;
 
@@ -173,8 +170,7 @@ List<List<charts.Series<ChartData, String>>> createChartsList(
       graphs.add([
         charts.Series<ChartData, String>(
           id: '${const Uuid().v4()}-${earliestDate.weekday}',
-          colorFn: (ChartData series, _) =>
-              historicalInsightsChartBarColor(series, pollutant),
+          colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
           domainFn: (ChartData data, _) =>
               DateFormat('EEE').format(data.dateTime),
           measureFn: (ChartData data, _) => data.chartValue(pollutant),
@@ -202,8 +198,7 @@ List<charts.Series<ChartData, String>> miniInsightsChartData(
   return <charts.Series<ChartData, String>>[
     charts.Series<ChartData, String>(
       id: '${const Uuid().v4()}-${data.first.dateTime.day}',
-      colorFn: (ChartData series, _) =>
-          historicalInsightsChartBarColor(series, pollutant),
+      colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
       domainFn: (ChartData data, _) {
         final hour = data.dateTime.hour;
 

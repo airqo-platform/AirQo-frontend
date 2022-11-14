@@ -137,26 +137,24 @@ class AirqoApiClient {
 
   Future<InsightData> fetchInsightsData(String siteId) async {
     try {
-      final utcNow = DateTime.now().toUtc();
+      final now = DateTime.now();
+      final utcNow = now.toUtc();
       final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
       final endDateTime = '${DateFormat('yyyy-MM-dd').format(
         utcNow.getLastDateOfCalendarMonth(),
       )}T23:59:59Z';
 
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteId)
-        ..putIfAbsent('utcOffset', () => DateTime.now().getUtcOffset())
-        ..putIfAbsent('startDateTime', () => startDateTime)
-        ..putIfAbsent('endDateTime', () => endDateTime);
+      final queryParams = <String, dynamic>{
+        'siteId': siteId,
+        'utcOffset': now.getUtcOffset(),
+        'startDateTime': startDateTime,
+        'endDateTime': endDateTime,
+      };
 
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.insights,
       );
-
-      if (body == null) {
-        return const InsightData(forecast: [], historical: []);
-      }
 
       final List<HistoricalInsight> historicalData = [];
       final List<ForecastInsight> forecastData = [];
@@ -287,6 +285,8 @@ class AirqoApiClient {
   ) async {
     try {
       url = addQueryParameters(queryParams, url);
+
+      print(url);
 
       final response = await httpClient.get(
         Uri.parse(url),
