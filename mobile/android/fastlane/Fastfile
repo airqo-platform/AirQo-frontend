@@ -25,14 +25,24 @@ platform :android do
   lane :beta do
     gradle(task: "clean assembleRelease")
     crashlytics
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
   end
 
   desc "Deploy a new version to the Google Play"
   lane :deploy do
     gradle(task: "clean assembleRelease")
     upload_to_play_store
+  end
+
+  desc "Deploy to new version to Firebase App Distribution"
+  lane :distribute do
+    firebase_app_distribution(
+      app: ENV['MOBILE_ANDROID_ID'],
+      android_artifact_path:"/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
+      release_notes: "Bug fixes and Performance enhancements",
+      testers: ENV['TESTER'],
+      service_credentials_file: "/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/android/firebase_distributor.json",
+      android_artifact_type: "AAB",
+      testers_file: "/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/android/testers.txt"
+      )
   end
 end

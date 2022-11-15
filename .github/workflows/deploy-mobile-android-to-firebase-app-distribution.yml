@@ -1,8 +1,12 @@
-name: build-android-artifact
+name: deploy-mobile-android-to-firebase-app-distribution
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
 jobs:
-  
   build:
     name: android build
     runs-on: ubuntu-latest
@@ -38,11 +42,7 @@ jobs:
           cd mobile/android/
           gcloud secrets versions access latest --secret="sta-env-mobile-airqo-dev-keystore-encrypted" | base64 -di > app/airqo-dev-keystore.jks
           gcloud secrets versions access latest --secret="prod-env-mobile-upload_keystore_encrypted" | base64 -di > app/upload-keystore.jks
- 
 
-        #env: 
-         # KEYSTORE: ${{ secrets.MOBILE_KEYSTORE }}
-          #KEYSTORE_DEV: ${{ secrets.MOBILE_KEYSTORE_DEV }}
 
       - name: Create key.properties files
         run: |
@@ -73,14 +73,40 @@ jobs:
         with:
           name: app-bundle
           path: mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab
-          retention-days: 3
+          retention-days: 1
+      
+      - name: Add firebase app distribution service account
+        run: |
+          cd mobile/android/
+          gcloud secrets versions access latest --secret="prod-env-mobile-firebase-app-distribution" | base64 --decode > firebase_distributor.json
 
-      # TODO: Add fastlane
-      # - name: Setup fastlane
-      #   uses: maierj/fastlane-action@v2.3.0
-      #   with:
-      #     lane: 'upload_to_google_play_store'
-      #     subdirectory: mobile/android/
+      - name: Add app testers
+        run: |
+          cd mobile/android/
+          gcloud secrets versions access latest --secret="prod-env-mobile-testers-android"  > testers.txt
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1.123.0
+        with:
+          ruby-version: "2.6"
+          working-directory: mobile/android
+      
+      - name: Install bundle
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+        working-directory: mobile/android
+          
+      - name: Deploy to app distribution
+        run: 
+          bundle exec fastlane android distribute
+        env:
+          MOBILE_ANDROID_ID: ${{secrets.MOBILE_ANDROID_ID}}
+        working-directory: mobile/android
+        
+
+
+
 
 
 
