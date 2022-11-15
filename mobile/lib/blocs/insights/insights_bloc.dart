@@ -74,10 +74,11 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     return emit(state.copyWith(
-        selectedInsight: selectedInsight,
-        forecastChartIndex: chartIndex,
-        insightsStatus: InsightsStatus.loaded,
-        showForecastData: !state.showForecastData));
+      selectedInsight: selectedInsight,
+      forecastChartIndex: chartIndex,
+      insightsStatus: InsightsStatus.loaded,
+      showForecastData: !state.showForecastData,
+    ));
   }
 
   Future<void> _onSetScrolling(
@@ -239,6 +240,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     await _onLoadForecastData(emit);
+
     return _updateCharts(emit, chartData);
   }
 

@@ -130,6 +130,7 @@ class AppService {
       final forecast = insights.forecast
           .where((element) => element.frequency == frequency)
           .toList();
+
       return InsightData(forecast: forecast, historical: historical);
     }
 

@@ -49,14 +49,18 @@ class AirQoDatabase extends _$AirQoDatabase {
               return element.siteId.equals(siteId) &
                   element.frequency.equalsValue(Frequency.hourly) &
                   element.time.isBiggerOrEqualValue(
-                      DateTime.now().getDateOfFirstHourOfDay()) &
+                    DateTime.now().getDateOfFirstHourOfDay(),
+                  ) &
                   element.time.isSmallerOrEqualValue(
-                      DateTime.now().tomorrow().getDateOfLastHourOfDay());
+                    DateTime.now().tomorrow().getDateOfLastHourOfDay(),
+                  );
             }))
           .get();
 
   Future<List<HistoricalInsight>> getHistoricalInsights(
-          String siteId, Frequency frequency) =>
+    String siteId,
+    Frequency frequency,
+  ) =>
       (select(historicalInsights)
             ..where((x) {
               return x.siteId.equals(siteId) &
@@ -65,7 +69,9 @@ class AirQoDatabase extends _$AirQoDatabase {
           .get();
 
   Future<List<HistoricalInsight>> getDailyMiniHourlyInsights(
-          String siteId, int day) =>
+    String siteId,
+    int day,
+  ) =>
       (select(historicalInsights)
             ..where((x) {
               return x.siteId.equals(siteId) &

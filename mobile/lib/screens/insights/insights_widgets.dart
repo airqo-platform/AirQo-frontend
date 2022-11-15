@@ -206,11 +206,12 @@ class ForecastAnalyticsGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, InsightsState>(
       builder: (context, state) {
-        if (!state.forecastCharts.keys.toList().contains(state.pollutant)) {
+        if (!state.forecastCharts.keys.toList().contains(state.pollutant) ||
+            state.forecastCharts[state.pollutant]!.isEmpty) {
           return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
         }
 
-        final data = state.forecastCharts[state.pollutant]![0];
+        final data = state.forecastCharts[state.pollutant]!.first;
 
         return LayoutBuilder(
           builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -736,7 +737,9 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                     visibilityInfo.visibleFraction > 0.3 &&
                                     state.forecastChartIndex != index) {
                                   context.read<HourlyInsightsBloc>().add(
-                                      UpdateForecastInsightsActiveIndex(index));
+                                        UpdateForecastInsightsActiveIndex(
+                                            index),
+                                      );
                                 }
                               },
                               child: const ForecastAnalyticsGraph(),
