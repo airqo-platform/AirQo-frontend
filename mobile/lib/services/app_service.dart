@@ -1,22 +1,17 @@
-import 'dart:io';
-
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/hive_service.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
-import 'package:app/services/secure_storage.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../constants/config.dart';
-import '../utils/exception.dart';
+import 'firebase_service.dart';
+import 'hive_service.dart';
+import 'local_storage.dart';
 import 'location_service.dart';
+import 'rest_api.dart';
+import 'secure_storage.dart';
 
 class AppService {
   factory AppService() {
@@ -28,73 +23,41 @@ class AppService {
   static final AppService _instance = AppService._internal();
 
   Future<bool> authenticateUser({
-    required AuthMethod authMethod,
     required AuthProcedure authProcedure,
-    required BuildContext buildContext,
-    String? emailAddress,
-    String? emailAuthLink,
     AuthCredential? authCredential,
   }) async {
-    final hasConnection = await checkNetworkConnection(
-      buildContext,
-      notifyUser: true,
-    );
-    if (!hasConnection) {
-      return false;
-    }
-
-    bool authSuccessful;
+    late bool authSuccessful;
 
     switch (authProcedure) {
       case AuthProcedure.login:
       case AuthProcedure.signup:
-        switch (authMethod) {
-          case AuthMethod.phone:
-            authSuccessful = await CustomAuth.phoneNumberAuthentication(
-              authCredential!,
-              buildContext,
-            );
-            break;
-          case AuthMethod.email:
-            authSuccessful = await CustomAuth.emailAuthentication(
-              emailAddress!,
-              emailAuthLink!,
-              buildContext,
-            );
-            break;
-          case AuthMethod.none:
-            authSuccessful = false;
-            break;
-        }
+      case AuthProcedure.anonymousLogin:
+        authSuccessful = await CustomAuth.firebaseSignIn(authCredential);
         break;
 
       case AuthProcedure.deleteAccount:
-        await Future.wait([
-          CloudStore.deleteAccount(),
-          CloudAnalytics.logEvent(
-            AnalyticsEvent.deletedAccount,
-          ),
-          _clearUserLocalStorage(),
-        ]).then((value) => CustomAuth.deleteAccount());
-        authSuccessful = true;
+        final reAuthentication =
+            await CustomAuth.reAuthenticate(authCredential!);
+        if (reAuthentication) {
+          final cloudStoreDeletion = await CloudStore.deleteAccount();
+          final logging =
+              await CloudAnalytics.logEvent(AnalyticsEvent.deletedAccount);
+          final localStorageDeletion = await _clearUserLocalStorage();
+          if (cloudStoreDeletion && logging && localStorageDeletion) {
+            authSuccessful = await CustomAuth.deleteAccount();
+          }
+        } else {
+          authSuccessful = false;
+        }
         break;
 
       case AuthProcedure.logout:
-        authSuccessful = false;
-        break;
-
-      case AuthProcedure.anonymousLogin:
-        await Profile.getProfile();
+      case AuthProcedure.none:
         authSuccessful = true;
         break;
     }
 
     if (authSuccessful) {
-      await checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      );
-
       switch (authProcedure) {
         case AuthProcedure.login:
           await _postLoginActions();
@@ -102,11 +65,13 @@ class AppService {
         case AuthProcedure.signup:
           await _postSignUpActions();
           break;
+        case AuthProcedure.logout:
+          return _postLogOutActions();
         case AuthProcedure.anonymousLogin:
+          await _postAnonymousLoginActions();
           break;
         case AuthProcedure.deleteAccount:
-          break;
-        case AuthProcedure.logout:
+        case AuthProcedure.none:
           break;
       }
     }
@@ -117,7 +82,6 @@ class AppService {
   Future<bool> doesUserExist({
     String? phoneNumber,
     String? emailAddress,
-    required BuildContext buildContext,
   }) async {
     try {
       if (emailAddress != null) {
@@ -132,11 +96,7 @@ class AppService {
         emailAddress: emailAddress,
       );
     } catch (exception, stackTrace) {
-      debugPrint('$exception \n $stackTrace');
-      await Future.wait([
-        logException(exception, stackTrace),
-        showSnackBar(buildContext, 'Failed to perform action. Try again later'),
-      ]);
+      await logException(exception, stackTrace);
 
       return true;
     }
@@ -149,11 +109,8 @@ class AppService {
         notifyUser: true,
       ),
       refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _loadFavouritePlaces(),
       fetchFavPlacesInsights(),
-      _updateFavouritePlacesReferenceSites(),
+      updateFavouritePlacesReferenceSites(),
       Profile.syncProfile(),
     ]);
   }
@@ -185,7 +142,7 @@ class AppService {
     bool reloadDatabase = false,
   }) async {
     final insights = <Insights>[];
-    final futures = <Future>[];
+    final futures = <Future<List<Insights>>>[];
 
     for (var i = 0; i < siteIds.length; i = i + 2) {
       final site1 = siteIds[i];
@@ -217,34 +174,6 @@ class AppService {
     return insights;
   }
 
-  Future<void> _loadKya() async {
-    try {
-      final offlineKyas =
-          Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
-
-      final cloudKyas = await CloudStore.getKya();
-      var kyas = <Kya>[];
-      if (offlineKyas.isEmpty) {
-        kyas = cloudKyas;
-      } else {
-        for (final offlineKya in offlineKyas) {
-          try {
-            final kya = cloudKyas
-                .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
-                .first
-              ..progress = offlineKya.progress;
-            kyas.add(kya);
-          } catch (e) {
-            debugPrint(e.toString());
-          }
-        }
-      }
-      await Kya.load(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<void> refreshAirQualityReadings() async {
     try {
       final siteReadings = await AppRepository(
@@ -257,108 +186,27 @@ class AppService {
     }
   }
 
-  Future<void> _loadFavouritePlaces() async {
-    try {
-      final offlineFavPlaces =
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-      final cloudFavPlaces = await CloudStore.getFavouritePlaces();
-
-      for (final place in offlineFavPlaces) {
-        cloudFavPlaces.removeWhere(
-          (element) => element.placeId.equalsIgnoreCase(place.placeId),
-        );
-      }
-
-      final favPlaces = <FavouritePlace>[
-        ...offlineFavPlaces,
-        ...cloudFavPlaces,
-      ];
-
-      await HiveService.loadFavouritePlaces(favPlaces, reload: true);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> _loadNotifications() async {
-    try {
-      final offlineNotifications =
-          Hive.box<AppNotification>(HiveBox.appNotifications)
-              .values
-              .toList()
-              .cast<AppNotification>();
-
-      final cloudNotifications = await CloudStore.getNotifications();
-
-      for (final notification in cloudNotifications) {
-        offlineNotifications.removeWhere(
-          (element) => element.id.equalsIgnoreCase(notification.id),
-        );
-      }
-
-      final notifications = [
-        ...offlineNotifications,
-        ...cloudNotifications,
-      ];
-
-      await HiveService.loadNotifications(notifications);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<bool> logOut(buildContext) async {
-    final hasConnection = await checkNetworkConnection(
-      buildContext,
-      notifyUser: true,
-    );
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      final profile = await Profile.getProfile();
-
-      await Future.wait([
-        CloudStore.updateFavouritePlaces(),
-        profile.update(logout: true),
-        CloudStore.updateCloudAnalytics(),
-      ]).then(
-        (value) {
-          CustomAuth.logOut();
-          _clearUserLocalStorage();
-        },
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return false;
-    }
-
-    return true;
-  }
-
-  Future<void> _clearUserLocalStorage() async {
+  Future<bool> _clearUserLocalStorage() async {
     await Future.wait([
       SharedPreferencesHelper.clearPreferences(),
       HiveService.clearUserData(),
       SecureStorage().clearUserData(),
     ]);
+
+    return true;
+  }
+
+  Future<void> _postAnonymousLoginActions() async {
+    await Profile.getProfile();
   }
 
   Future<void> _postLoginActions() async {
     try {
       await Future.wait([
         Profile.syncProfile(),
-        _loadFavouritePlaces(),
-        _loadNotifications(),
         CloudStore.getCloudAnalytics(),
-        _logPlatformType(),
-        _loadKya(),
-        _updateFavouritePlacesReferenceSites(),
+        CloudAnalytics.logPlatformType(),
+        updateFavouritePlacesReferenceSites(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -372,26 +220,38 @@ class AppService {
         CloudAnalytics.logEvent(
           AnalyticsEvent.createUserProfile,
         ),
-        _logNetworkProvider(),
-        _logPlatformType(),
-        _logGender(),
+        CloudAnalytics.logNetworkProvider(),
+        CloudAnalytics.logPlatformType(),
+        CloudAnalytics.logGender(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  Future<void> refreshNotifications(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _updateFavouritePlacesReferenceSites(),
-    ]);
+  Future<bool> _postLogOutActions() async {
+    // TODO Login anonymously
+    try {
+      final profile = await Profile.getProfile();
+      final placesUpdated = await CloudStore.updateFavouritePlaces();
+      final analyticsUpdated = await CloudStore.updateCloudAnalytics();
+      final profileUpdated = await profile.update(logout: true);
+      final localStorageCleared = await _clearUserLocalStorage();
+
+      if (placesUpdated &&
+          analyticsUpdated &&
+          profileUpdated &&
+          localStorageCleared) {
+        return CustomAuth.logOut();
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
   }
 
   Future<void> refreshDashboard(BuildContext buildContext) async {
@@ -401,46 +261,11 @@ class AppService {
         notifyUser: true,
       ),
       refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _updateFavouritePlacesReferenceSites(),
+      updateFavouritePlacesReferenceSites(),
     ]);
   }
 
-  Future<void> refreshAnalytics(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      _loadKya(),
-      fetchFavPlacesInsights(),
-    ]);
-  }
-
-  Future<void> refreshKyaView(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      _loadKya(),
-    ]);
-  }
-
-  Future<void> refreshFavouritePlaces(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      fetchFavPlacesInsights(),
-      _updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
-  Future<void> _updateFavouritePlacesReferenceSites() async {
+  Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
@@ -457,54 +282,5 @@ class AppService {
       }
     }
     await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
-  }
-
-  Future<void> _logGender() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      if (profile.getGender() == Gender.male) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.maleUser,
-        );
-      } else if (profile.getGender() == Gender.female) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.femaleUser,
-        );
-      } else {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.undefinedGender,
-        );
-      }
-    }
-  }
-
-  Future<void> _logNetworkProvider() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
-      if (carrier.toLowerCase().contains('airtel')) {
-        await CloudAnalytics.logEvent(AnalyticsEvent.airtelUser);
-      } else if (carrier.toLowerCase().contains('mtn')) {
-        await CloudAnalytics.logEvent(AnalyticsEvent.mtnUser);
-      } else {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.otherNetwork,
-        );
-      }
-    }
-  }
-
-  Future<void> _logPlatformType() async {
-    if (Platform.isAndroid) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.androidUser,
-      );
-    } else if (Platform.isIOS) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.iosUser,
-      );
-    } else {
-      debugPrint('Unknown Platform');
-    }
   }
 }

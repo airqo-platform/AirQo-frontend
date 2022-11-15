@@ -1,8 +1,13 @@
 import 'dart:io';
 
-import 'package:app/app_config.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
+import 'package:app/screens/analytics/error_page.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,14 +15,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'themes/app_theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var config = AppConfig.of(context);
+    final config = AppConfig.of(context);
 
     return MultiProvider(
       providers: [
@@ -31,6 +36,18 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => NearbyLocationBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => AccountBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => AuthCodeBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => PhoneAuthBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => EmailAuthBloc(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => MapBloc(),
         ),
         BlocProvider(
@@ -39,7 +56,6 @@ class AirQoApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: kReleaseMode ? false : true,
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
             SentryNavigatorObserver(),
@@ -60,4 +76,33 @@ class AppHttpOverrides extends HttpOverrides {
       ..badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
   }
+}
+
+Future<void> initializeMainMethod() async {
+  await Future.wait([
+    SystemProperties.setDefault(),
+    dotenv.load(fileName: Config.environmentFile),
+    HiveService.initialize(),
+    // NotificationService.listenToNotifications(),
+    // initializeBackgroundServices()
+  ]);
+
+  HttpOverrides.global = AppHttpOverrides();
+
+  EquatableConfig.stringify = true;
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    logException(error, stack);
+
+    return true;
+  };
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    logException(details, null);
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return kDebugMode ? ErrorWidget(details.exception) : const ErrorPage();
+  };
 }

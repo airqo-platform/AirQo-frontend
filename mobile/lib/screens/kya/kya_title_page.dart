@@ -1,14 +1,12 @@
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
-import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';
 
 class KyaTitlePage extends StatefulWidget {
@@ -23,6 +21,17 @@ class KyaTitlePage extends StatefulWidget {
 }
 
 class _KyaTitlePageState extends State<KyaTitlePage> {
+  String buttonText = 'Begin';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.kya.progress > 0 &&
+        widget.kya.progress < widget.kya.lessons.length) {
+      buttonText = 'Resume';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +86,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                   );
                 },
                 child: NextButton(
-                  text: 'Begin',
+                  text: buttonText,
                   buttonColor: CustomColors.appColorBlue,
                 ),
               ),
@@ -87,7 +96,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
             child: Align(
               alignment: Alignment.center,
               child: Padding(
-                padding: const EdgeInsets.only(left: 24, right: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
                     const Spacer(),
@@ -173,7 +182,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
 
   @override
   void didChangeDependencies() {
-    final futures = <Future>[];
+    final futures = <Future<void>>[];
     for (final lesson in widget.kya.lessons) {
       futures.add(
         precacheImage(

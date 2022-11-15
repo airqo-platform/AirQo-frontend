@@ -1,6 +1,9 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/native_api.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +11,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../constants/config.dart';
-import '../../services/hive_service.dart';
-import '../../services/location_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/dialogs.dart';
 import '../insights/insights_page.dart';
 
 class SearchResultsWidget extends StatefulWidget {
@@ -87,7 +82,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
 
       // TODO: Substitute with widget
       if (nearestSite == null) {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Oops!!.. We don’t have air quality readings for'
           ' ${searchResultItem.name}',
@@ -116,7 +111,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
     } else {
       if (!mounted) return;
 
-      await showSnackBar(
+      showSnackBar(
         context,
         'Try again later',
       );
@@ -136,12 +131,14 @@ class SearchPlaceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0),
@@ -195,12 +192,14 @@ class SearchResultItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0),
@@ -397,12 +396,14 @@ class SearchLocationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0),
@@ -582,7 +583,7 @@ class NearbyLocations extends StatelessWidget {
         }
 
         if (state is NearbyLocationStateSuccess) {
-          return ValueListenableBuilder<Box>(
+          return ValueListenableBuilder<Box<AirQualityReading>>(
             valueListenable:
                 Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
                     .listenable(),

@@ -1,15 +1,31 @@
-name: deploy-frontends-to-production
+name: deploy-to-production
 
 on:
-  pull_request:
-    branches:
-      - master
-    types:
-      - closed
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Deploy [Legacy] Platform"
+        required: false
+        type: boolean
+      website:
+        description: "Deploy Website"
+        required: false
+        type: boolean
+      calibrate_app:
+        description: "Deploy Calibrate app"
+        required: false
+        type: boolean
+      next_platform:
+        description: "Deploy Analytics Platform"
+        required: false
+        type: boolean
+      docs:
+        description: "Deploy Docs"
+        required: false
+        type: boolean
 
 jobs:
   image-tag:
-    if: github.event.pull_request.merged == true
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
@@ -22,72 +38,14 @@ jobs:
           sha=${GITHUB_SHA::8}
           timestamp=$(date +%s)
           datetime=$(date)
-          echo "::set-output name=build_id::prod-${sha}-${timestamp}"
-          echo "::set-output name=datetime::${datetime}"
-
-  check:
-    # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true
-    name: check for changed frontends
-    outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
-      run_website: ${{ steps.check_files.outputs.run_website }} # website
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
-      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-
-      - name: check modified frontends
-        id: check_files
-        run: |
-          echo "=============== list modified files ==============="
-          git diff --name-only HEAD^ HEAD
-
-          echo "========== check paths of modified files =========="
-          git diff --name-only HEAD^ HEAD > files.txt
-
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_website::false"
-          echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"   
-          echo "::set-output name=run_docs::false"   
-
-          while IFS= read -r file
-          do
-            echo $file
-            if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
-            fi
-
-            if [[ $file == website/* ]]; then
-              echo "::set-output name=run_website::true"
-            fi
-
-            if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
-            fi
-
-            if [[ $file == platform/* ]]; then
-              echo "::set-output name=run_next_platform::true"
-            fi
-
-            if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::true"
-            fi
-
-          done < files.txt
+          echo "build_id=prod-${sha}-${timestamp}" >>$GITHUB_OUTPUT
+          echo "datetime=${datetime}" >>$GITHUB_OUTPUT
 
   ### deploy platform ###
   platform:
     name: build-push-deploy-netmanager
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_platform == 'true'
+    needs: [image-tag]
+    if: inputs.platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -128,6 +86,17 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/netmanager/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update netmanger production image tag to ${{ needs.image-tag.outputs.build_id }}"
+          createPR: false
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -146,8 +115,8 @@ jobs:
   ### deploy website ###
   website:
     name: build-push-deploy-website
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_website == 'true'
+    needs: [image-tag]
+    if: inputs.website == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -228,8 +197,8 @@ jobs:
   ### calibrate app ###
   calibrate-app:
     name: build-push-deploy-calibrate-app
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_calibrate_app == 'true'
+    needs: [image-tag]
+    if: inputs.calibrate_app == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -270,6 +239,16 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -288,8 +267,8 @@ jobs:
   ### deploy next platform ###
   next-platform:
     name: build-push-deploy-next-platform
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_next_platform == 'true'
+    needs: [image-tag]
+    if: inputs.next_platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -321,6 +300,16 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update next platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -339,8 +328,8 @@ jobs:
   ### deploy docs ###
   docs:
     name: build-push-deploy-docs
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_docs == 'true'
+    needs: [image-tag]
+    if: inputs.docs == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -361,11 +350,15 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
+          valueFile: "k8s/docs/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Deploy to K8S
         run: |

@@ -1,19 +1,14 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../services/hive_service.dart';
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../utils/pm.dart';
-import '../../widgets/buttons.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/recommendation.dart';
 
 class AnalyticsGraph extends StatelessWidget {
   const AnalyticsGraph({
@@ -62,12 +57,14 @@ class AnalyticsGraph extends StatelessWidget {
             ],
             selectionModels: [
               charts.SelectionModelConfig(
-                changedListener: (charts.SelectionModel model) {
+                changedListener: (charts.SelectionModel<String> model) {
                   if (model.hasDatumSelection) {
                     try {
-                      final value = model.selectedDatum[0].index;
+                      final value = model.selectedDatum.first.index;
                       if (value != null) {
-                        onBarSelection(model.selectedSeries[0].data[value]);
+                        onBarSelection(
+                          model.selectedSeries.first.data[value] as Insights,
+                        );
                       }
                     } catch (exception, stackTrace) {
                       debugPrint(
@@ -200,7 +197,9 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: containerColor,
-        border: Border.all(color: Colors.transparent),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -217,7 +216,6 @@ class InsightsAvatar extends StatelessWidget {
             value,
             maxLines: 1,
             style: CustomTextStyle.insightsAvatar(
-              context: context,
               pollutant: pollutant,
               value: measurement.chartValue(pollutant),
             )?.copyWith(
@@ -289,12 +287,14 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -356,17 +356,17 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     }
   }
 
-  void _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
-      Future.delayed(const Duration(seconds: 2), () {
+  void _updateFavPlace() {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
         setState(() => _showHeartAnimation = false);
-      });
-    }
+      }
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

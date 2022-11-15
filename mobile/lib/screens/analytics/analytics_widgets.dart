@@ -3,19 +3,15 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_page.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/tooltip.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar({
@@ -34,7 +30,9 @@ class AnalyticsAvatar extends StatelessWidget {
         color: Pollutant.pm2_5.color(
           airQualityReading.pm2_5,
         ),
-        border: Border.all(color: Colors.transparent),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -54,7 +52,6 @@ class AnalyticsAvatar extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
-              context: context,
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             ),
@@ -178,12 +175,14 @@ class AnalyticsShareCard extends StatelessWidget {
         vertical: 5,
         horizontal: 8,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(16.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         children: [
@@ -306,7 +305,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<AirQualityReading>>(
       valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
           .listenable(keys: [_airQualityReading.placeId]),
       builder: (context, box, widget) {
@@ -317,9 +316,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         var reading = _airQualityReading;
         if (airQualityReadings.isNotEmpty) {
           reading = _airQualityReading.copyWith(
-            dateTime: airQualityReadings[0].dateTime,
-            pm2_5: airQualityReadings[0].pm2_5,
-            pm10: airQualityReadings[0].pm10,
+            dateTime: airQualityReadings.first.dateTime,
+            pm2_5: airQualityReadings.first.pm2_5,
+            pm10: airQualityReadings.first.pm10,
           );
         }
 
@@ -330,15 +329,17 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             minWidth: 328,
             maxWidth: 328,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.all(
+            borderRadius: BorderRadius.all(
               Radius.circular(
                 16.0,
               ),
             ),
-            border: Border.all(
-              color: const Color(0xffC4C4C4),
+            border: Border.fromBorderSide(
+              BorderSide(
+                color: Color(0xffC4C4C4),
+              ),
             ),
           ),
           child: Stack(
@@ -771,7 +772,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           ),
         );
       },
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<AirQualityReading>>(
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .listenable(keys: [airQualityReading.placeId]),
         builder: (context, box, widget) {
@@ -786,12 +787,16 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(
+                borderRadius: BorderRadius.all(
                   Radius.circular(8.0),
                 ),
-                border: Border.all(color: Colors.transparent),
+                border: Border.fromBorderSide(
+                  BorderSide(
+                    color: Colors.transparent,
+                  ),
+                ),
               ),
               child: Column(
                 children: [
@@ -864,8 +869,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                             borderRadius: const BorderRadius.all(
                               Radius.circular(3.0),
                             ),
-                            border: Border.all(
-                              color: Colors.transparent,
+                            border: const Border.fromBorderSide(
+                              BorderSide(
+                                color: Colors.transparent,
+                              ),
                             ),
                           ),
                           child: const Icon(
@@ -891,7 +898,11 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                             borderRadius: const BorderRadius.all(
                               Radius.circular(3.0),
                             ),
-                            border: Border.all(color: Colors.transparent),
+                            border: const Border.fromBorderSide(
+                              BorderSide(
+                                color: Colors.transparent,
+                              ),
+                            ),
                           ),
                           child: SvgPicture.asset(
                             'assets/icon/more_arrow.svg',
@@ -915,19 +926,18 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     );
   }
 
-  void _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
+  void _updateFavPlace() {
+    setState(() => _showHeartAnimation = true);
 
-      if (!mounted) return;
-      Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
         setState(() => _showHeartAnimation = false);
-      });
-    }
+      }
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

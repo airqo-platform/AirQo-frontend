@@ -1,12 +1,10 @@
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({
@@ -248,19 +246,34 @@ class NotificationCard extends StatelessWidget {
 }
 
 class EmptyNotifications extends StatelessWidget {
-  const EmptyNotifications({
-    super.key,
-  });
+  const EmptyNotifications({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: CustomColors.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: Center(
-        child: Text(
-          'No Notifications',
-          style: Theme.of(context).textTheme.bodyText1,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 33),
+        child: Column(
+          children: [
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/empty_notifications.svg',
+              semanticsLabel: 'Empty notifications',
+            ),
+            const SizedBox(height: 53),
+            Text(
+              'No notifications',
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context),
+            ),
+            const SizedBox(height: 23),
+            Text(
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyText2,
+              'Here you’ll find all updates on our Air Quality network.',
+            ),
+            const Spacer(),
+          ],
         ),
       ),
     );

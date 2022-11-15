@@ -22,8 +22,8 @@ jobs:
           sha=${GITHUB_SHA::8}
           timestamp=$(date +%s)
           datetime=$(date)
-          echo "::set-output name=build_id::stage-${sha}-${timestamp}"
-          echo "::set-output name=datetime::${datetime}"
+          echo "build_id=stage-${sha}-${timestamp}" >>$GITHUB_OUTPUT
+          echo "datetime=${datetime}" >>$GITHUB_OUTPUT
 
   check:
     # this job will only run if the PR has been merged
@@ -52,33 +52,33 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_website::false" 
-          echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"  
-          echo "::set-output name=run_docs::false"  
+          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == website/* ]]; then
-              echo "::set-output name=run_website::true"
+              echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=run_next_platform::true"
+              echo "run_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::true"
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -127,6 +127,17 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/netmanager/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          createPR: false
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -267,6 +278,16 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -318,6 +339,16 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -358,11 +389,15 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+          valueFile: "k8s/docs/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Deploy to K8S
         run: |

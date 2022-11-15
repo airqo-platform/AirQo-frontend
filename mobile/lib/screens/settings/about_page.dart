@@ -1,12 +1,10 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/web_view_page.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({
@@ -30,12 +28,9 @@ class _AboutAirQoState extends State<AboutAirQo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('About'),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        child: Center(
+      body: AppSafeArea(
+        widget: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),
               SvgPicture.asset(
@@ -45,7 +40,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 semanticsLabel: 'Home',
               ),
               const SizedBox(
-                height: 21.32,
+                height: 22,
               ),
               Text(
                 _packageInfo.appName,
@@ -83,7 +78,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 ),
               ),
               const SizedBox(
-                height: 90,
+                height: 20,
               ),
             ],
           ),

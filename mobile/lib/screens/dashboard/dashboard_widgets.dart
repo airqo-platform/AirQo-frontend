@@ -1,17 +1,18 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/hive_service.dart';
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../utils/exception.dart';
-import '../../widgets/custom_shimmer.dart';
+import '../kya/kya_title_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 
@@ -104,9 +105,11 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: Pollutant.pm2_5.color(
             airQualityReading.pm2_5,
@@ -143,7 +146,7 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       right: rightPadding,
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<AirQualityReading>>(
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .listenable(keys: [favouritePlace.referenceSite]),
         builder: (context, box, widget) {
@@ -159,9 +162,11 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
             width: 32.0,
             padding: const EdgeInsets.all(2.0),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: CustomColors.appBodyColor,
-                width: 2,
+              border: Border.fromBorderSide(
+                BorderSide(
+                  color: CustomColors.appBodyColor,
+                  width: 2,
+                ),
               ),
               color: Pollutant.pm2_5.color(
                 airQualityReading.pm2_5,
@@ -204,9 +209,11 @@ class KyaDashboardAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: CustomColors.greyColor,
           shape: BoxShape.circle,
@@ -244,9 +251,11 @@ class DashboardEmptyAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: CustomColors.greyColor,
           shape: BoxShape.circle,
@@ -315,103 +324,160 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(72);
 }
 
-class DashboardKyaCard extends StatelessWidget {
-  const DashboardKyaCard({
-    super.key,
-    required this.kya,
-    required this.kyaClickCallBack,
-  });
+class DashboardKyaProgressBar extends StatefulWidget {
+  const DashboardKyaProgressBar(this.kya, {super.key});
   final Kya kya;
-  final Function(Kya) kyaClickCallBack;
+
+  @override
+  State<DashboardKyaProgressBar> createState() =>
+      _DashboardKyaProgressBarState();
+}
+
+class _DashboardKyaProgressBarState extends State<DashboardKyaProgressBar> {
+  double progress = 0.1;
+
+  @override
+  void initState() {
+    super.initState();
+    progress = widget.kya.progress == -1 ||
+            widget.kya.progress == widget.kya.lessons.length
+        ? 1
+        : widget.kya.progress / widget.kya.lessons.length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: progress != 1 && progress != 0,
+      child: SizedBox(
+        height: 4,
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: progress,
+          backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
+        ),
+      ),
+    );
+  }
+}
+
+class DashboardKyaCard extends StatelessWidget {
+  const DashboardKyaCard(this.kya, {super.key});
+  final Kya kya;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await kyaClickCallBack(kya);
+        if (kya.progress >= kya.lessons.length) {
+          context.read<AccountBloc>().add(UpdateKyaProgress(
+                kya: kya,
+                progress: -1,
+              ));
+        } else {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return KyaTitlePage(kya);
+              },
+            ),
+          );
+        }
       },
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(16.0),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 40,
-                    child: AutoSizeText(
-                      kya.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyle.headline8(context),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 28,
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
+      child: BlocBuilder<AccountBloc, AccountState>(
+        buildWhen: (previous, current) {
+          return previous.kya.totalProgress() != current.kya.totalProgress();
+        },
+        builder: (context, state) {
+          final viewKya =
+              state.kya.firstWhere((element) => element.id == kya.id);
+
+          return Container(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(16.0),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
                     children: [
-                      KyaMessage(
-                        kya: kya,
+                      SizedBox(
+                        height: 40,
+                        child: AutoSizeText(
+                          viewKya.title,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyle.headline8(context),
+                        ),
                       ),
                       const SizedBox(
-                        width: 6,
+                        height: 28,
                       ),
-                      SvgPicture.asset(
-                        'assets/icon/more_arrow.svg',
-                        semanticsLabel: 'more',
-                        height: 6.99,
-                        width: 4,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          KyaMessage(
+                            kya: viewKya,
+                          ),
+                          const SizedBox(
+                            width: 6,
+                          ),
+                          SvgPicture.asset(
+                            'assets/icon/more_arrow.svg',
+                            semanticsLabel: 'more',
+                            height: 6.99,
+                            width: 4,
+                          ),
+                        ],
                       ),
+                      SizedBox(
+                        height: getKyaMessage(kya: viewKya).toLowerCase() ==
+                                'continue'
+                            ? 2
+                            : 0,
+                      ),
+                      DashboardKyaProgressBar(viewKya),
                     ],
                   ),
-                  SizedBox(
-                    height: getKyaMessage(kya: kya).toLowerCase() == 'continue'
-                        ? 2
-                        : 0,
-                  ),
-                  KyaProgressBar(kya: kya),
-                ],
-              ),
-            ),
-            const SizedBox(
-              width: 16,
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: CachedNetworkImage(
-                fit: BoxFit.cover,
-                width: 104,
-                height: 104,
-                placeholder: (context, url) => const SizedBox(
-                  width: 104,
-                  height: 104,
-                  child: ContainerLoadingAnimation(height: 104, radius: 8),
                 ),
-                imageUrl: kya.imageUrl,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: CustomColors.aqiRed,
+                const SizedBox(
+                  width: 16,
                 ),
-                cacheKey: kya.imageUrlCacheKey(),
-                cacheManager: CacheManager(
-                  CacheService.cacheConfig(
-                    kya.imageUrlCacheKey(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    width: 104,
+                    height: 104,
+                    placeholder: (context, url) => const SizedBox(
+                      width: 104,
+                      height: 104,
+                      child: ContainerLoadingAnimation(height: 104, radius: 8),
+                    ),
+                    imageUrl: viewKya.imageUrl,
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.error_outline,
+                      color: CustomColors.aqiRed,
+                    ),
+                    cacheKey: kya.imageUrlCacheKey(),
+                    cacheManager: CacheManager(
+                      CacheService.cacheConfig(
+                        viewKya.imageUrlCacheKey(),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -431,12 +497,12 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
         break;
       case 1:
         widgets.add(
-          KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]),
+          KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first),
         );
         break;
       case 2:
         widgets
-          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
           ..add(
             KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]),
           );
@@ -444,7 +510,7 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
       default:
         if (completeKya.length >= 3) {
           widgets
-            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
             ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
             ..add(
               KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]),
@@ -475,7 +541,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
         widgets.add(
           FavouritePlaceDashboardAvatar(
             rightPadding: 0,
-            favouritePlace: favouritePlaces[0],
+            favouritePlace: favouritePlaces.first,
           ),
         );
         break;
@@ -483,7 +549,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
         widgets
           ..add(FavouritePlaceDashboardAvatar(
             rightPadding: 0,
-            favouritePlace: favouritePlaces[0],
+            favouritePlace: favouritePlaces.first,
           ))
           ..add(
             FavouritePlaceDashboardAvatar(
@@ -497,7 +563,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
           widgets
             ..add(FavouritePlaceDashboardAvatar(
               rightPadding: 0,
-              favouritePlace: favouritePlaces[0],
+              favouritePlace: favouritePlaces.first,
             ))
             ..add(FavouritePlaceDashboardAvatar(
               rightPadding: 7,

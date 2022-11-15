@@ -42,33 +42,33 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"
-          echo "::set-output name=run_docs::false"    
-          echo "::set-output name=run_website::false"    
+          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT    
+          echo "run_website=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=run_next_platform::true"
+              echo "run_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::true"
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == website/* ]]; then
-              echo "::set-output name=run_website::true"
+              echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -79,9 +79,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -136,6 +133,20 @@ jobs:
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/netmanager/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)netmanager image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |
@@ -143,7 +154,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
@@ -167,9 +178,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -224,6 +232,20 @@ jobs:
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)calibrate app image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |
@@ -231,7 +253,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   calibrate-app-pr-comment:
     name: calibrate-app-preview-link-comment
@@ -255,9 +277,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_next_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -301,6 +320,20 @@ jobs:
             --memory=256Mi \
             --allow-unauthenticated
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)next platform image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |
@@ -308,7 +341,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   next-platform-pr-comment:
     name: next-platform-preview-link-comment
@@ -332,9 +365,6 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -375,6 +405,20 @@ jobs:
             --memory=256Mi \
             --allow-unauthenticated
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/docs/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)docs app image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |
@@ -382,7 +426,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   docs-pr-comment:
     name: docs-preview-link-comment
