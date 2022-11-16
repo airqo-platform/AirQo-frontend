@@ -42,27 +42,19 @@ extension ChartDataExt on ChartData {
   }
 
   Color chartAvatarContainerColor(Pollutant pollutant) {
-    if (available) {
-      return CustomColors.greyColor;
-    }
-
-    return pollutant.color(chartValue(pollutant));
+    return available
+        ? pollutant.color(chartValue(pollutant))
+        : CustomColors.greyColor;
   }
 
   String chartAvatarValue(Pollutant pollutant) {
-    if (available) {
-      return '--';
-    }
-
-    return chartValue(pollutant).toStringAsFixed(0);
+    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
   }
 
   Color chartAvatarValueColor(Pollutant pollutant) {
-    if (available) {
-      return CustomColors.darkGreyColor;
-    }
-
-    return pollutant.textColor(value: chartValue(pollutant));
+    return available
+        ? pollutant.textColor(value: chartValue(pollutant))
+        : CustomColors.darkGreyColor;
   }
 }
 

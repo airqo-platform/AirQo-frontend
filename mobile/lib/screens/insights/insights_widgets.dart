@@ -798,11 +798,13 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
               ),
 
               // footer
-              Container(
+              SizedBox(
                 width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () {
                         ToolTip(context, ToolTipType.info).show(
@@ -810,7 +812,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         );
                       },
                       child: Visibility(
-                        visible: !state.selectedInsight!.available,
+                        visible: state.selectedInsight!.available,
                         child: Container(
                           padding:
                               const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -872,7 +874,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       ),
                     ),
                     Visibility(
-                      visible: state.selectedInsight!.available,
+                      visible: !state.selectedInsight!.available,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10.0,
@@ -901,7 +903,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       width: 8,
                     ),
                     Visibility(
-                      visible: !state.selectedInsight!.available,
+                      visible: state.selectedInsight!.available,
                       child: GestureDetector(
                         onTap: () {
                           pmInfoDialog(
@@ -921,35 +923,40 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                     const Spacer(),
                     Visibility(
                       visible: state.forecastCharts.isNotEmpty,
-                      child: Row(
-                        children: [
-                          Container(
-                            height: 10,
-                            width: 10,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: state.showForecastData
-                                  ? CustomColors.appColorBlue
-                                  : CustomColors.appColorBlue.withOpacity(0.24),
-                              border: Border.all(color: Colors.transparent),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 8.0,
-                          ),
-                          GestureDetector(
-                            onTap: () => context
-                                .read<HourlyInsightsBloc>()
-                                .add(const ToggleForecastData()),
-                            child: Text(
-                              'Forecast',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: CustomColors.appColorBlue,
+                      child: InkWell(
+                        onTap: () => context
+                            .read<HourlyInsightsBloc>()
+                            .add(const ToggleForecastData()),
+                        child: Ink(
+                          color: CustomColors.appColorBlue,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                height: 10,
+                                width: 10,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: state.showForecastData
+                                      ? CustomColors.appColorBlue
+                                      : CustomColors.appColorBlue
+                                          .withOpacity(0.24),
+                                  border: Border.all(color: Colors.transparent),
+                                ),
                               ),
-                            ),
+                              const SizedBox(
+                                width: 8.0,
+                              ),
+                              Text(
+                                'Forecast',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: CustomColors.appColorBlue,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -1225,7 +1232,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         );
                       },
                       child: Visibility(
-                        visible: !state.selectedInsight!.available,
+                        visible: state.selectedInsight!.available,
                         child: Container(
                           padding:
                               const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -1287,7 +1294,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                       ),
                     ),
                     Visibility(
-                      visible: state.selectedInsight!.available,
+                      visible: !state.selectedInsight!.available,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10.0,
