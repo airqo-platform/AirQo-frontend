@@ -35,8 +35,8 @@ class FeedbackStartButton extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Spacer(),
-                Text(
+                const Spacer(),
+                const Text(
                   'Next',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -53,7 +53,7 @@ class FeedbackStartButton extends StatelessWidget {
                   width: 10.9,
                   color: Colors.white,
                 ),
-                Spacer(),
+                const Spacer(),
               ],
             ),
           ),
@@ -316,9 +316,9 @@ class FeedbackForm extends StatelessWidget {
               height: 255,
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(
+                borderRadius: BorderRadius.all(
                   Radius.circular(8.0),
                 ),
                 border: Border.fromBorderSide(
@@ -532,9 +532,9 @@ class FeedbackChannelStep extends StatelessWidget {
           return Visibility(
             visible: state.feedbackChannel == FeedbackChannel.email,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(
+                borderRadius: BorderRadius.all(
                   Radius.circular(8.0),
                 ),
                 border: Border.fromBorderSide(

@@ -1,40 +1,30 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'favourite_places_widgets.dart';
 
-class FavouritePlaces extends StatefulWidget {
-  const FavouritePlaces({
-    super.key,
-  });
-
-  @override
-  State<FavouritePlaces> createState() => _FavouritePlacesState();
-}
-
-class _FavouritePlacesState extends State<FavouritePlaces> {
-  final AppService _appService = AppService();
+class FavouritePlacesPage extends StatelessWidget {
+  const FavouritePlacesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('Favorites'),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        child: ValueListenableBuilder<Box<FavouritePlace>>(
-          valueListenable:
-              Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
-          builder: (context, box, widget) {
-            final favouritePlaces = box.values.cast<FavouritePlace>().toList();
+      body: AppSafeArea(
+        horizontalPadding: 16,
+        widget: BlocBuilder<AccountBloc, AccountState>(
+          builder: (context, state) {
+            if (state.favouritePlaces.isEmpty) {
+              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
 
-            if (favouritePlaces.isEmpty) {
-              return const EmptyFavouritePlaces();
+              return const EmptyFavouritePlaces(); // TODO replace with error page
             }
 
             return AppRefreshIndicator(
@@ -42,8 +32,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                 (context, index) {
                   final airQualityReading =
                       Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                          .get(favouritePlaces[index].referenceSite);
-                  final favouritePlace = favouritePlaces[index];
+                          .get(state.favouritePlaces[index].referenceSite);
+                  final favouritePlace = state.favouritePlaces[index];
 
                   if (airQualityReading == null) {
                     return EmptyFavouritePlace(
@@ -53,11 +43,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                   }
 
                   return Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      Config.refreshIndicatorPadding(index),
-                      16,
-                      0,
+                    padding: EdgeInsets.only(
+                      top: Config.refreshIndicatorPadding(index),
                     ),
                     child: MiniAnalyticsCard(
                       airQualityReading.populateFavouritePlace(favouritePlace),
@@ -65,9 +52,11 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                     ),
                   );
                 },
-                childCount: favouritePlaces.length,
+                childCount: state.favouritePlaces.length,
               ),
-              onRefresh: _refreshPage,
+              onRefresh: () async {
+                _refresh(context);
+              },
             );
           },
         ),
@@ -75,7 +64,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     );
   }
 
-  Future<void> _refreshPage() async {
-    await _appService.refreshFavouritePlaces(context);
+  void _refresh(BuildContext context) {
+    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
   }
 }
