@@ -237,4 +237,6 @@ class CustomColors {
   static Color get aqiMaroon => const Color(0xffA51F3F);
 
   static Color get aqiMaroonTextColor => const Color(0xffDBA5B2);
+
+  static Color get emptyNotificationScreenTextColor => const Color(0xff6D7175);
 }
