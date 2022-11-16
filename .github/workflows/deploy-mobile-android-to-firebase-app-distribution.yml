@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     name: android build
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -101,7 +102,7 @@ jobs:
         run: 
           bundle exec fastlane android distribute
         env:
-          MOBILE_ANDROID_ID: ${{secrets.MOBILE_ANDROID_ID}}
+          MOBILE_ANDROID_ID: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}
         working-directory: mobile/android
         
 

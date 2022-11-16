@@ -83,7 +83,13 @@ flutter run --flavor airqo -t lib/main.dart
 ```bash
 flutter run --flavor airqo -t lib/main.dart --release
 ```
-  
+### **Running the application in Github Actions - Firebase App Distribution(CI/CD)**
+* Fastlane is triggered to update FirebaseApp app distribution every time a PR is merged
+* To modify the workflow, open the .github/workflows folder, and navigate to deploy-mobile-android-to-firebase-app-distribuion.yml
+* The uploaded artifact can also be downloaded from the summary of the workflow as a zip folder and tested. 
+* After making changes locally, increment the version number, and open a pull request, once merged.
+
+
 
 ## **Useful commands**
 
