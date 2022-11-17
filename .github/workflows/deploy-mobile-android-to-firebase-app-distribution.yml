@@ -104,7 +104,7 @@ jobs:
         run: 
           bundle exec fastlane android distribute
         env:
-          MOBILE_ANDROID_ID: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}
+          MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}
         working-directory: mobile/android
         
 
