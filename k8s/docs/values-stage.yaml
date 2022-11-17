@@ -1,39 +1,22 @@
 replicaCount: 1
-
 image:
   repository: gcr.io/airqo-250220/airqo-stage-docs
   pullPolicy: Always
-  tag: stage-090ad16f-1667922055
-
+  tag: stage-ea29e740-1668698846
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
+nameOverride: ''
+fullnameOverride: ''
 podAnnotations: {}
-
-podSecurityContext:
-  {}
-  # fsGroup: 2000
-
-securityContext:
-  {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
+podSecurityContext: {}
+securityContext: {}
 service:
   type: NodePort
   port: 3000
   protocol: TCP
   targetPort: 3000
   nodePort: 31104
-
 ingress:
   enabled: false
-
 resources:
   limits:
     cpu: 50m
@@ -41,16 +24,12 @@ resources:
   requests:
     cpu: 10m
     memory: 20Mi
-
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
 nodeSelector: {}
 tolerations: []
-
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -61,7 +40,6 @@ affinity:
               operator: In
               values:
                 - general-purpose
-
 app:
   name: airqo-stage-docs
   label: sta-docs
