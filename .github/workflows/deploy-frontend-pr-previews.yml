@@ -5,6 +5,10 @@ on:
     branches:
       - staging
 
+env:
+  REGISTRY_URL: gcr.io
+  PROJECT_ID: airqo-250220
+
 jobs:
   branch-name:
     name: Format branch name string
@@ -120,8 +124,8 @@ jobs:
           cd netmanager/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
-          docker tag gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:${{ github.sha }} gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:latest
-          docker push gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:latest
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -210,8 +214,8 @@ jobs:
           cd calibrate/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
-          docker tag gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:${{ github.sha }} gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:latest
-          docker push gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:latest
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -291,8 +295,8 @@ jobs:
           cd platform/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
-          docker tag gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:${{ github.sha }} gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:latest
-          docker push gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:latest
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -367,8 +371,8 @@ jobs:
           cd docs/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
-          docker tag gcr.io/airqo-250220/pr-previews/docs-pr-previews:${{ github.sha }} gcr.io/airqo-250220/pr-previews/docs-pr-previews:latest
-          docker push gcr.io/airqo-250220/pr-previews/docs-pr-previews:latest
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
