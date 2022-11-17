@@ -265,14 +265,27 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
     var selectedInsight = charts[state.pollutant]?.first.first.data.first;
     var chartIndex = state.chartIndex;
+    final airQualityReading = state.airQualityReading;
+    final DateTime comparisonTime =
+        airQualityReading == null ? DateTime.now() : airQualityReading.dateTime;
 
     for (final chart in charts[state.pollutant]!) {
       for (final chart_2 in chart.toList()) {
         for (final chart_3 in chart_2.data) {
-          if (chart_3.dateTime.isToday()) {
-            chartIndex = charts[state.pollutant]!.indexOf(chart);
-            selectedInsight = chart_3;
-            break;
+          if (state.frequency == Frequency.hourly) {
+            if (chart_3.dateTime.isToday() &&
+                chart_3.dateTime.hour == comparisonTime.hour) {
+              chartIndex = charts[state.pollutant]!.indexOf(chart);
+              selectedInsight = chart_3;
+              break;
+            }
+          } else if (state.frequency == Frequency.daily &&
+              chart_3.dateTime.day == comparisonTime.day) {
+            if (chart_3.dateTime.isToday()) {
+              chartIndex = charts[state.pollutant]!.indexOf(chart);
+              selectedInsight = chart_3;
+              break;
+            }
           }
         }
         if (chartIndex != state.chartIndex) {

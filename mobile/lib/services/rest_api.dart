@@ -286,8 +286,6 @@ class AirqoApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      print(url);
-
       final response = await httpClient.get(
         Uri.parse(url),
         headers: headers,

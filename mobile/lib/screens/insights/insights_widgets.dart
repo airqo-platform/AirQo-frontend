@@ -547,8 +547,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
       return;
     }
 
-    final data = state
-        .insightsCharts[context.read<HourlyInsightsBloc>().state.pollutant];
+    final data = state.insightsCharts[state.pollutant];
 
     if (data == null) {
       return;
@@ -556,7 +555,17 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
     context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
 
-    final selectedInsight = data[state.chartIndex].first.data.first;
+    ChartData selectedInsight = data[state.chartIndex].first.data.first;
+    final airQualityReading = state.airQualityReading;
+
+    if (airQualityReading != null) {
+      selectedInsight = data[state.chartIndex].first.data.firstWhere(
+            (element) =>
+                element.dateTime.hour == airQualityReading.dateTime.hour,
+            orElse: () => selectedInsight,
+          );
+    }
+
     context
         .read<HourlyInsightsBloc>()
         .add(UpdateSelectedInsight(selectedInsight));
@@ -1044,8 +1053,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
   Future<void> _scrollToChart({Duration? duration}) async {
     final state = context.read<DailyInsightsBloc>().state;
 
-    final data =
-        state.insightsCharts[context.read<DailyInsightsBloc>().state.pollutant];
+    final data = state.insightsCharts[state.pollutant];
 
     if (data == null) {
       return;
@@ -1053,7 +1061,16 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
 
     context.read<DailyInsightsBloc>().add(const SetScrolling(true));
 
-    final selectedInsight = data[state.chartIndex].first.data.first;
+    ChartData selectedInsight = data[state.chartIndex].first.data.first;
+    final airQualityReading = state.airQualityReading;
+
+    if (airQualityReading != null) {
+      selectedInsight = data[state.chartIndex].first.data.firstWhere(
+            (element) => element.dateTime.day == airQualityReading.dateTime.day,
+            orElse: () => selectedInsight,
+          );
+    }
+
     context
         .read<DailyInsightsBloc>()
         .add(UpdateSelectedInsight(selectedInsight));

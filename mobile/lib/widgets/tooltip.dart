@@ -119,7 +119,6 @@ class ToolTip {
     dismissCallback?.call();
   }
 
-  // TODO: change forecast wording
   RichText getToolTipText() {
     switch (_tipType) {
       case ToolTipType.favouritePlaces:
