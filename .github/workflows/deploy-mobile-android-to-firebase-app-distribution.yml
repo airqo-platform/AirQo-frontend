@@ -76,10 +76,12 @@ jobs:
           path: mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab
           retention-days: 1
       
-      - name: Add firebase app distribution service account
+      - name: Add firebase app distribution service and play store service account
         run: |
           cd mobile/android/
           gcloud secrets versions access latest --secret="prod-env-mobile-firebase-app-distribution" | base64 --decode > firebase_distributor.json
+          gcloud secrets versions access latest --secret="prod-env-mobile-play-store-service-account-encrypted" | base64 --decode > play_store_SA.json
+
 
       - name: Add app testers
         run: |
