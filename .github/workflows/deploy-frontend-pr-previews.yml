@@ -5,6 +5,10 @@ on:
     branches:
       - staging
 
+env:
+  REGISTRY_URL: gcr.io
+  PROJECT_ID: airqo-250220
+
 jobs:
   branch-name:
     name: Format branch name string
@@ -118,8 +122,8 @@ jobs:
       - name: Build and Push Image
         run: |
           cd netmanager/
-          docker build --tag gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
-          docker push gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |-
@@ -128,7 +132,7 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=gcr.io/airqo-250220/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
             --port=80 \
             --cpu=1000m \
             --memory=256Mi \
@@ -146,7 +150,7 @@ jobs:
           createPR: false
           changes: |
             {
-              "image.repository": "gcr.io/airqo-250220/pr-previews/netmanager-pr-previews",
+              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews",
               "image.tag": "${{ github.sha }}"
             }
 
@@ -220,8 +224,8 @@ jobs:
       - name: Build and Push Image
         run: |
           cd calibrate/
-          docker build --tag gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
-          docker push gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |-
@@ -230,7 +234,7 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} \
             --port=80 \
             --cpu=1000m \
             --memory=256Mi \
@@ -248,7 +252,7 @@ jobs:
           createPR: false
           changes: |
             {
-              "image.repository": "gcr.io/airqo-250220/pr-previews/calibrate-app-pr-previews",
+              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews",
               "image.tag": "${{ github.sha }}"
             }
 
@@ -313,8 +317,8 @@ jobs:
       - name: Build and Push Image
         run: |
           cd platform/
-          docker build --tag gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:${{ github.sha }} .
-          docker push gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |-
@@ -323,7 +327,7 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=gcr.io/airqo-250220/pr-previews/next-platform-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
@@ -339,7 +343,7 @@ jobs:
           createPR: false
           changes: |
             {
-              "image.repository": "gcr.io/airqo-250220/pr-previews/next-platform-pr-previews",
+              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews",
               "image.tag": "${{ github.sha }}"
             }
 
@@ -401,8 +405,8 @@ jobs:
       - name: Build and Push Image
         run: |
           cd docs/
-          docker build --tag gcr.io/airqo-250220/pr-previews/docs-pr-previews:${{ github.sha }} .
-          docker push gcr.io/airqo-250220/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |-
@@ -411,7 +415,7 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=gcr.io/airqo-250220/pr-previews/docs-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
@@ -427,7 +431,7 @@ jobs:
           createPR: false
           changes: |
             {
-              "image.repository": "gcr.io/airqo-250220/pr-previews/docs-pr-previews",
+              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews",
               "image.tag": "${{ github.sha }}"
             }
 
@@ -522,14 +526,14 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
-          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+            --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
