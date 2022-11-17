@@ -109,11 +109,11 @@ enum AuthenticationError {
     snackBarDuration: 5,
   ),
   invalidPhoneNumber(
-    message: 'Invalid phone number',
+    message: 'Invalid Phone number',
     snackBarDuration: 5,
   ),
   invalidEmailAddress(
-    message: 'Invalid email address',
+    message: 'Invalid Email address',
     snackBarDuration: 5,
   ),
   accountTaken(

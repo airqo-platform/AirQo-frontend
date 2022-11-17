@@ -429,7 +429,7 @@ extension StringExt on String {
       return 'Entered many digits.';
     }
 
-    return '';
+    return AuthenticationError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {
