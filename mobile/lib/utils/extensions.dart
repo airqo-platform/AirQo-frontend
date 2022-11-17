@@ -25,7 +25,7 @@ extension ChartDataExt on ChartData {
   }
 
   String lastUpdated(Frequency frequency) {
-    if (available) {
+    if (!available) {
       return 'Not available';
     }
 

@@ -89,6 +89,56 @@ class InsightsLoadingWidget extends StatelessWidget {
   }
 }
 
+class InsightsNoData extends StatelessWidget {
+  const InsightsNoData({super.key, required this.frequency});
+  final Frequency frequency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Failed to load insights.\nTry again later',
+            style: CustomTextStyle.headline7(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          OutlinedButton(
+            onPressed: () {
+              switch (frequency) {
+                case Frequency.daily:
+                  context
+                      .read<DailyInsightsBloc>()
+                      .add(LoadInsights(frequency: frequency));
+                  break;
+                case Frequency.hourly:
+                  context
+                      .read<HourlyInsightsBloc>()
+                      .add(LoadInsights(frequency: frequency));
+                  break;
+              }
+            },
+            style: OutlinedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(24),
+            ),
+            child: Text(
+              'Refresh',
+              style: TextStyle(color: CustomColors.appColorBlue),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class InsightsFailedWidget extends StatelessWidget {
   const InsightsFailedWidget({super.key, required this.frequency});
   final Frequency frequency;
@@ -167,7 +217,7 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                 ],
                 selectionModels: [
                   charts.SelectionModelConfig(
-                    changedListener: (charts.SelectionModel model) {
+                    changedListener: (charts.SelectionModel model) async {
                       try {
                         final value = model.selectedDatum.first.index;
                         if (value != null) {
@@ -179,9 +229,7 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                               );
                         }
                       } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
+                        await logException(exception, stackTrace);
                       }
                     },
                   ),
@@ -211,7 +259,8 @@ class ForecastAnalyticsGraph extends StatelessWidget {
           return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
         }
 
-        final data = state.forecastCharts[state.pollutant]!.first;
+        final data =
+            state.forecastCharts[state.pollutant]![state.forecastChartIndex];
 
         return LayoutBuilder(
           builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -243,7 +292,7 @@ class ForecastAnalyticsGraph extends StatelessWidget {
                 ],
                 selectionModels: [
                   charts.SelectionModelConfig(
-                    changedListener: (charts.SelectionModel model) {
+                    changedListener: (charts.SelectionModel model) async {
                       try {
                         final value = model.selectedDatum.first.index;
                         if (value != null) {
@@ -255,9 +304,7 @@ class ForecastAnalyticsGraph extends StatelessWidget {
                               );
                         }
                       } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
+                        await logException(exception, stackTrace);
                       }
                     },
                   ),
@@ -372,7 +419,7 @@ class DailyAnalyticsGraph extends StatelessWidget {
                 ],
                 selectionModels: [
                   charts.SelectionModelConfig(
-                    changedListener: (charts.SelectionModel model) {
+                    changedListener: (charts.SelectionModel model) async {
                       try {
                         final value = model.selectedDatum.first.index;
                         if (value != null) {
@@ -384,9 +431,7 @@ class DailyAnalyticsGraph extends StatelessWidget {
                               );
                         }
                       } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
+                        await logException(exception, stackTrace);
                       }
                     },
                   ),
@@ -738,7 +783,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                     state.forecastChartIndex != index) {
                                   context.read<HourlyInsightsBloc>().add(
                                         UpdateForecastInsightsActiveIndex(
-                                            index),
+                                          index,
+                                        ),
                                       );
                                 }
                               },

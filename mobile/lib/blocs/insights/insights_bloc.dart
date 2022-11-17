@@ -234,7 +234,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     if (chartData.isEmpty) {
       return emit(state.copyWith(
         insightsStatus: state.insightsCharts.isEmpty
-            ? InsightsStatus.failed
+            ? InsightsStatus.noData
             : state.insightsStatus,
       ));
     }

@@ -46,7 +46,8 @@ enum InsightsStatus {
   error,
   refreshing,
   loading,
-  failed;
+  failed,
+  noData;
 }
 
 enum AppPermission {

@@ -57,17 +57,13 @@ class _InsightsPageState extends State<InsightsPage>
                     onTap: (value) {
                       setState(() => _tabController.index = value);
                       if (value == 0) {
-                        context.read<HourlyInsightsBloc>().add(LoadInsights(
-                              siteId: widget.airQualityReading.referenceSite,
-                              airQualityReading: widget.airQualityReading,
-                              frequency: Frequency.hourly,
-                            ));
+                        context
+                            .read<HourlyInsightsBloc>()
+                            .add(const RefreshInsightsCharts());
                       } else {
-                        context.read<DailyInsightsBloc>().add(LoadInsights(
-                              siteId: widget.airQualityReading.referenceSite,
-                              airQualityReading: widget.airQualityReading,
-                              frequency: Frequency.daily,
-                            ));
+                        context
+                            .read<DailyInsightsBloc>()
+                            .add(const RefreshInsightsCharts());
                       }
                     },
                     tabs: <Widget>[

@@ -29,6 +29,8 @@ class HourlyInsightsTab extends StatelessWidget {
               return const InsightsLoadingWidget();
             case InsightsStatus.failed:
               return InsightsFailedWidget(frequency: state.frequency);
+            case InsightsStatus.noData:
+              return InsightsNoData(frequency: state.frequency);
             case InsightsStatus.loaded:
             case InsightsStatus.error:
             case InsightsStatus.refreshing:
