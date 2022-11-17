@@ -51,7 +51,7 @@ class _DashboardViewState extends State<DashboardView> {
         _forYouShowcaseKey,
         _kyaShowcaseKey,
         _analyticsShowcaseKey,
-        _nearestLocationShowcaseKey,
+        // _nearestLocationShowcaseKey,
       ]);
     });
   }
@@ -273,31 +273,30 @@ class _DashboardViewState extends State<DashboardView> {
                             itemBuilder: (BuildContext context, int index) {
                               return (index == 0)
                                   ? Padding(
-                                  padding: const EdgeInsets.only(top: 0),
-                                  child: Showcase(
-                                    key: _analyticsShowcaseKey,
-                                    description:
+                                      padding: const EdgeInsets.only(top: 0),
+                                      child: Showcase(
+                                        key: _analyticsShowcaseKey,
+                                        description:
                                             'Find the air quality of different locations across Africa here.',
-                                    child: AnalyticsCard(
-                                      AirQualityReading.duplicate(
-                                        airQualityReadings[index],
+                                        child: AnalyticsCard(
+                                          AirQualityReading.duplicate(
+                                            airQualityReadings[index],
+                                          ),
+                                          state.loading,
+                                          false,
+                                        ),
                                       ),
-                                      state.loading,
-                                      false,
-                                    ),
-                                  ),
                                     )
                                   : Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    AirQualityReading.duplicate(
-                                      airQualityReadings[index],
-                                    ),
-                                    state.loading,
-                                    false,
-                                  ),
-                                );
-                              
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: AnalyticsCard(
+                                        AirQualityReading.duplicate(
+                                          airQualityReadings[index],
+                                        ),
+                                        state.loading,
+                                        false,
+                                      ),
+                                    );
                             },
                           );
                         },
@@ -366,7 +365,12 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> showcasetoggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('showcase') == null) {
-      _startShowcase();
+      Future.delayed(Duration(seconds: 1), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          _startShowcase();
+          _appService.stopshowcase();
+        }
+      });
     }
   }
 }
