@@ -306,14 +306,15 @@ class AppService {
     await prefs.setBool('showcase', true);
   }
 
-  Future<void> stopshowcase() async {
+  Future<void> stopshowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showcase', false);
+    await prefs.setBool(key, false);
   }
 
   Future<void> clearshowcase() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('showcase');
+    await prefs.remove('homePageshowcase');
+    await prefs.remove('forYouPageShowcase');
   }
 
   Future<void> _postSignUpActions() async {

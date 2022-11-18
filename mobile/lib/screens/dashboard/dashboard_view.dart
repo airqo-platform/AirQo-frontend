@@ -38,6 +38,7 @@ class _DashboardViewState extends State<DashboardView> {
   final GlobalKey _analyticsShowcaseKey = GlobalKey();
   final GlobalKey _nearestLocationShowcaseKey = GlobalKey();
   BuildContext? myContext;
+  bool emptykya = false;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -46,13 +47,21 @@ class _DashboardViewState extends State<DashboardView> {
   late StreamSubscription _timeSubscription;
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ShowCaseWidget.of(context).startShowCase([
-        _favoritesShowcaseKey,
-        _forYouShowcaseKey,
-        _kyaShowcaseKey,
-        _analyticsShowcaseKey,
-        // _nearestLocationShowcaseKey,
-      ]);
+      if (!emptykya) {
+        ShowCaseWidget.of(context).startShowCase([
+          _favoritesShowcaseKey,
+          _forYouShowcaseKey,
+          _kyaShowcaseKey,
+          _analyticsShowcaseKey,
+          // _nearestLocationShowcaseKey,
+        ]);
+      } else {
+        ShowCaseWidget.of(context).startShowCase([
+          _favoritesShowcaseKey,
+          _forYouShowcaseKey,
+          _analyticsShowcaseKey,
+        ]);
+      }
     });
   }
 
@@ -236,6 +245,7 @@ class _DashboardViewState extends State<DashboardView> {
                               .cast<Kya>()
                               .where((element) => element.progress != -1)
                               .toList();
+                          emptykya = incompleteKya.isEmpty;
                           if (incompleteKya.isEmpty) {
                             return const SizedBox();
                           }
@@ -364,11 +374,11 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> showcasetoggle() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('showcase') == null) {
+    if (prefs.getBool('homePageshowcase') == null) {
       Future.delayed(Duration(seconds: 1), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           _startShowcase();
-          _appService.stopshowcase();
+          _appService.stopshowcase('homePageshowcase');
         }
       });
     }

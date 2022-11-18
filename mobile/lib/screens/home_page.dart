@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
@@ -84,6 +85,14 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         child: ShowCaseWidget(
+          onFinish: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ForYouPage(),
+              ),
+            );
+          },
           builder: Builder(
             builder: (context) {
               myContext = context;
