@@ -77,3 +77,10 @@ class ToggleForecastData extends InsightsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class DeleteOldInsights extends InsightsEvent {
+  const DeleteOldInsights();
+
+  @override
+  List<Object?> get props => [];
+}

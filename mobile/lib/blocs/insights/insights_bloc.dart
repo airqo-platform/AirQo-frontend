@@ -16,6 +16,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   InsightsBloc()
       : super(const InsightsState.initial(frequency: Frequency.hourly)) {
     on<LoadInsights>(_onLoadInsights);
+    on<DeleteOldInsights>(_onDeleteOldInsights);
     on<ClearInsightsTab>(_onClearInsights);
     on<SwitchInsightsPollutant>(_onSwitchPollutant);
     on<UpdateInsightsActiveIndex>(_onUpdateActiveIndex);
@@ -309,6 +310,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     return;
+  }
+
+  Future<void> _onDeleteOldInsights(
+    DeleteOldInsights _,
+    Emitter<InsightsState> emit,
+  ) async {
+    await AirQoDatabase().deleteOldInsights();
   }
 
   Future<void> _onLoadInsights(

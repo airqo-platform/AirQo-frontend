@@ -163,7 +163,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     final profile = await Profile.getProfile();
 
-    return emit(const AccountState.initial().copyWith(
+    emit(const AccountState.initial().copyWith(
       notifications: notifications,
       kya: kya,
       favouritePlaces: favouritePlaces,
@@ -171,6 +171,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       profile: profile,
       guestUser: CustomAuth.isGuestUser(),
     ));
+
+    await _onRefreshFavouritePlacesInsights();
+    return;
   }
 
   Future<void> _onRefreshNotifications(
@@ -200,6 +203,17 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     await HiveService.loadNotifications(notifications);
   }
 
+  Future<void> _onRefreshFavouritePlacesInsights() async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return;
+    }
+    final AppService appService = AppService();
+    for (final favouritePlace in state.favouritePlaces) {
+      await appService.fetchInsightsData(favouritePlace.referenceSite);
+    }
+  }
+
   Future<void> _onRefreshFavouritePlaces(
     RefreshFavouritePlaces _,
     Emitter<AccountState> emit,
@@ -213,6 +227,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
     final AppService appService = AppService();
     await appService.updateFavouritePlacesReferenceSites();
+    await _onRefreshFavouritePlacesInsights();
   }
 
   Future<void> _onRefreshProfile(

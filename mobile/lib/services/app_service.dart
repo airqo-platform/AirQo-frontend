@@ -110,7 +110,6 @@ class AppService {
       ),
       refreshAirQualityReadings(),
       updateFavouritePlacesReferenceSites(),
-      Profile.syncProfile(),
     ]);
   }
 

@@ -80,6 +80,17 @@ class AirQoDatabase extends _$AirQoDatabase {
             }))
           .get();
 
+  Future<void> deleteOldInsights() async {
+    DateTime deleteDate =
+        DateTime.now().getFirstDateOfCalendarMonth().getDateOfFirstHourOfDay();
+    (delete(historicalInsights)
+          ..where((i) => i.time.isSmallerThanValue(deleteDate)))
+        .go();
+    (delete(forecastInsights)
+          ..where((i) => i.time.isSmallerThanValue(deleteDate)))
+        .go();
+  }
+
   Future<void> insertForecastInsights(List<ForecastInsight> insights) =>
       batch((batch) {
         batch.insertAllOnConflictUpdate(forecastInsights, insights);
