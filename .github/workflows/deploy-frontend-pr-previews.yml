@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 2
 
@@ -83,14 +83,11 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -185,14 +182,11 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -287,14 +281,11 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_next_platform == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -378,14 +369,11 @@ jobs:
     needs: [check, branch-name]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Google login
         uses: google-github-actions/auth@v0
@@ -468,7 +456,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to GCR
         uses: docker/login-action@v1

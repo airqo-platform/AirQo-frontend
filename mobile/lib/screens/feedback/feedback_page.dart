@@ -67,7 +67,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 BlocListener<FeedbackBloc, FeedbackState>(
                   listener: (context, state) {
                     showSnackBar(context, 'Thanks for your feedback.');
-                    context.read<FeedbackBloc>().add(InitializeFeedback());
+                    context
+                        .read<FeedbackBloc>()
+                        .add(const InitializeFeedback());
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
@@ -111,7 +113,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   case FeedbackStep.formStep:
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: const [
                         FeedbackBackButton(),
                         FeedbackNextButton(),
                       ],

@@ -10,6 +10,7 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
 service:
   type: NodePort
   nodePort: 31101
@@ -17,6 +18,7 @@ service:
   port: 80
 ingress:
   enabled: false
+
 nodeSelector: {}
 torelations: {}
 
