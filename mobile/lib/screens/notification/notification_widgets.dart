@@ -264,12 +264,18 @@ class EmptyNotifications extends StatelessWidget {
             Text(
               'No notifications',
               textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context),
+              style: CustomTextStyle.headline7(context)?.copyWith(
+                fontSize: 21,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 23),
             Text(
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    fontSize: 15.0,
+                    color: CustomColors.emptyNotificationScreenTextColor,
+                  ),
               'Here you’ll find all updates on our Air Quality network.',
             ),
             const Spacer(),

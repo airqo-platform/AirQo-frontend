@@ -458,7 +458,28 @@ extension StringExt on String {
   }
 
   bool isValidPhoneNumber() {
-    return length >= 5;
+    if (isNull()) {
+      return false;
+    }
+
+    return trim().replaceAll(" ", "").length >= 7 &&
+        trim().replaceAll(" ", "").length <= 15;
+  }
+
+  String inValidPhoneNumberMessage() {
+    if (isNull()) {
+      return 'A phone number cannot be empty';
+    }
+
+    if (trim().replaceAll(" ", "").length < 7) {
+      return 'Looks like you missed a digit.';
+    }
+
+    if (trim().replaceAll(" ", "").length > 15) {
+      return 'Entered many digits.';
+    }
+
+    return AuthenticationError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {
