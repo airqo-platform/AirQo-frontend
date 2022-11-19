@@ -80,7 +80,7 @@ class AirQoDatabase extends _$AirQoDatabase {
             }))
           .get();
 
-  Future<void> deleteOldInsights() async {
+  void deleteOldInsights() {
     DateTime deleteDate =
         DateTime.now().getFirstDateOfCalendarMonth().getDateOfFirstHourOfDay();
     (delete(historicalInsights)

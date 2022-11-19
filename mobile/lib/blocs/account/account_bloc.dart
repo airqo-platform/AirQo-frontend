@@ -173,6 +173,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
 
     await _onRefreshFavouritePlacesInsights();
+
     return;
   }
 

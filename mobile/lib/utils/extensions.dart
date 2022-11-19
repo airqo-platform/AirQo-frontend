@@ -18,6 +18,17 @@ extension IntExt on int {
 }
 
 extension ChartDataExt on ChartData {
+  String chartDomainFn() {
+    switch (frequency) {
+      case Frequency.daily:
+        return DateFormat('EEE').format(dateTime);
+      case Frequency.hourly:
+        final hour = dateTime.hour;
+
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+    }
+  }
+
   double chartValue(Pollutant pollutant) {
     return pollutant == Pollutant.pm2_5
         ? double.parse(pm2_5.toStringAsFixed(2))
@@ -25,20 +36,24 @@ extension ChartDataExt on ChartData {
   }
 
   String lastUpdated(Frequency frequency) {
-    if (!available) {
-      return 'Not available';
-    }
+    String lastUpdated = '';
 
     if (dateTime.isToday()) {
-      return 'Updated Today';
+      lastUpdated = 'Updated Today';
+
+      return available ? lastUpdated : '$lastUpdated - Not Available';
     }
 
     switch (frequency) {
       case Frequency.daily:
-        return 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
+        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
+        break;
       case Frequency.hourly:
-        return 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
+        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
+        break;
     }
+
+    return available ? lastUpdated : '$lastUpdated - Not Available';
   }
 
   Color chartAvatarContainerColor(Pollutant pollutant) {
@@ -116,12 +131,9 @@ extension ProfileExt on Profile {
 
 extension DateTimeExt on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
-    var firstDate = this;
-    final weekday = firstDate.weekday;
-
-    if (weekday != 1) {
-      final offset = weekday - 1;
-      firstDate = firstDate.subtract(Duration(days: offset));
+    DateTime firstDate = this;
+    while (firstDate.weekday != 1) {
+      firstDate = firstDate.subtract(const Duration(days: 1));
     }
 
     return firstDate.getDateOfFirstHourOfDay();
@@ -149,12 +161,12 @@ extension DateTimeExt on DateTime {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
   }
 
-  bool isAfterEqualTo(DateTime dateTime) {
-    return isAfter(dateTime) || dateTime == this;
+  bool isAfterOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == 1 || compareTo(dateTime) == 0;
   }
 
   bool isBeforeOrEqualTo(DateTime dateTime) {
-    return isBefore(dateTime) || dateTime == this;
+    return compareTo(dateTime) == -1 || compareTo(dateTime) == 0;
   }
 
   DateTime getDateOfLastDayOfWeek() {
@@ -318,67 +330,50 @@ extension DateTimeExt on DateTime {
   }
 
   bool isInWeek(String referenceWeek) {
-    final now = DateTime.now();
-    DateTime referenceDay;
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay;
     DateTime lastDay;
     switch (referenceWeek.toLowerCase()) {
       case 'last':
-        referenceDay =
+        firstDay =
             now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay =
             now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       case 'next':
-        referenceDay =
-            now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       default:
-        referenceDay = now.getDateOfFirstDayOfWeek();
+        firstDay = now.getDateOfFirstDayOfWeek();
         lastDay = now.getDateOfLastDayOfWeek();
         break;
     }
 
-    while (referenceDay != lastDay) {
-      if (day == referenceDay.day &&
-          month == referenceDay.month &&
-          year == referenceDay.year) {
-        return true;
-      }
-      referenceDay = referenceDay.add(const Duration(days: 1));
-    }
-
-    return false;
+    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
-    if (day == DateTime.now().day &&
-        month == DateTime.now().month &&
-        year == DateTime.now().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
   }
 
   bool isTomorrow() {
-    if (day == tomorrow().day &&
-        month == tomorrow().month &&
-        year == tomorrow().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final tomorrowDate = formatter.parse(formatter.format(tomorrow()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(tomorrowDate) == 0;
   }
 
   bool isYesterday() {
-    if (day == yesterday().day &&
-        month == yesterday().month &&
-        year == yesterday().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final yesterdayDate = formatter.parse(formatter.format(yesterday()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(yesterdayDate) ==
+        0;
   }
 
   String notificationDisplayDate() {

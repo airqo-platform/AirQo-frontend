@@ -55,7 +55,7 @@ String getDateTime() {
       .toUpperCase();
 }
 
-String insightsChartTitleDateTimeToString(
+String chartTitleDateTimeTitle(
   DateTime dateTime,
   Frequency frequency,
 ) {

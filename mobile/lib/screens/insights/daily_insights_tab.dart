@@ -49,7 +49,7 @@ class DailyInsightsTab extends StatelessWidget {
                       children: [
                         InsightsToggleBar(
                           frequency: Frequency.daily,
-                          isEmpty: state.insightsCharts.isEmpty,
+                          isEmpty: state.historicalCharts.isEmpty,
                           pollutant: state.pollutant,
                         ),
                         const SizedBox(
