@@ -1,8 +1,9 @@
 import 'package:app/models/database.dart';
+import 'package:equatable/equatable.dart';
 
 import 'enum_constants.dart';
 
-class ChartData {
+class ChartData extends Equatable {
   const ChartData({
     required this.frequency,
     required this.available,
@@ -36,6 +37,9 @@ class ChartData {
   final bool available;
   final String siteId;
   final Frequency frequency;
+
+  @override
+  List<Object?> get props => [dateTime, frequency, siteId];
 }
 
 class InsightData {

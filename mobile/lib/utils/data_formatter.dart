@@ -2,7 +2,6 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 charts.Color chartBarColor(
@@ -86,98 +85,41 @@ List<ChartData> formatData(
   return data;
 }
 
-List<List<charts.Series<ChartData, String>>> createChartsList(
-  List<ChartData> insights,
-  Pollutant pollutant,
-  Frequency frequency,
-) {
+List<List<charts.Series<ChartData, String>>> createChartsList({
+  required List<ChartData> insights,
+  required Pollutant pollutant,
+  required Frequency frequency,
+}) {
   final data = <ChartData>[...insights];
 
   final graphs = <List<charts.Series<ChartData, String>>>[];
+  data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
 
-  if (frequency == Frequency.hourly) {
-    while (data.isNotEmpty) {
-      final earliestDate = data.reduce((value, element) {
-        if (value.dateTime.isBefore(element.dateTime)) {
-          return value;
-        }
+  int period;
 
-        return element;
-      }).dateTime;
+  switch (frequency) {
+    case Frequency.daily:
+      period = 7;
+      break;
+    case Frequency.hourly:
+      period = 24;
+      break;
+  }
 
-      var filteredDates = data
-          .where((element) => element.dateTime.day == earliestDate.day)
-          .toList();
+  while (data.isNotEmpty) {
+    List<ChartData> graphData = data.take(period).toList();
 
-      if (filteredDates.length < 24) {
-        filteredDates = fillMissingData(filteredDates, frequency);
-      }
+    data.removeWhere((element) => graphData.contains(element));
 
-      filteredDates.take(24);
-
-      graphs.add([
-        charts.Series<ChartData, String>(
-          id: '${const Uuid().v4()}-${earliestDate.day}',
-          colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
-          domainFn: (ChartData data, _) {
-            final hour = data.dateTime.hour;
-
-            return hour.toString().length == 1 ? '0$hour' : '$hour';
-          },
-          measureFn: (ChartData data, _) => data.chartValue(pollutant),
-          data: formatData(
-            filteredDates,
-            frequency,
-          ),
-        ),
-      ]);
-      data.removeWhere(
-        (element) => element.dateTime.day == earliestDate.day,
-      );
-    }
-  } else {
-    while (data.isNotEmpty) {
-      var earliestDate = data.reduce((value, element) {
-        if (value.dateTime.isBefore(element.dateTime)) {
-          return value;
-        }
-
-        return element;
-      }).dateTime;
-
-      final dateRanges = <DateTime>[];
-      var filteredDates = <ChartData>[];
-
-      while (dateRanges.length != 7) {
-        dateRanges.add(earliestDate);
-        earliestDate = earliestDate.add(const Duration(days: 1));
-      }
-
-      filteredDates
-        ..addAll(
-          data
-              .where((element) => dateRanges.contains(element.dateTime))
-              .toList(),
-        )
-        ..take(7);
-
-      if (filteredDates.length < 7) {
-        filteredDates = fillMissingData(filteredDates, frequency);
-      }
-
-      data.removeWhere((element) => dateRanges.contains(element.dateTime));
-
-      graphs.add([
-        charts.Series<ChartData, String>(
-          id: '${const Uuid().v4()}-${earliestDate.weekday}',
-          colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
-          domainFn: (ChartData data, _) =>
-              DateFormat('EEE').format(data.dateTime),
-          measureFn: (ChartData data, _) => data.chartValue(pollutant),
-          data: formatData(filteredDates, frequency),
-        ),
-      ]);
-    }
+    graphs.add([
+      charts.Series<ChartData, String>(
+        id: graphData.first.toString(),
+        colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
+        domainFn: (ChartData data, _) => data.chartDomainFn(),
+        measureFn: (ChartData data, _) => data.chartValue(pollutant),
+        data: graphData,
+      ),
+    ]);
   }
 
   return graphs;
