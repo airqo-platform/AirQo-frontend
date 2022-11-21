@@ -119,8 +119,10 @@ jobs:
       - name: Build and Push Image
         run: |
           cd netmanager/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -136,20 +138,6 @@ jobs:
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/netmanager/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)netmanager image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -218,8 +206,10 @@ jobs:
       - name: Build and Push Image
         run: |
           cd calibrate/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -235,20 +225,6 @@ jobs:
             --update-secrets=/etc/env/.env=sta-env-calibrate-app:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/calibrate/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)calibrate app image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -308,8 +284,10 @@ jobs:
       - name: Build and Push Image
         run: |
           cd platform/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -323,20 +301,6 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/platform/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)next platform image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -393,8 +357,10 @@ jobs:
       - name: Build and Push Image
         run: |
           cd docs/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -408,20 +374,6 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/docs/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)docs app image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
