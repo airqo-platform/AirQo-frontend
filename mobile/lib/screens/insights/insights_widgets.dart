@@ -255,13 +255,13 @@ class ForecastAnalyticsGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, InsightsState>(
       builder: (context, state) {
-        if (!state.forecastCharts.keys.toList().contains(state.pollutant) ||
-            state.forecastCharts[state.pollutant]!.isEmpty) {
+        if (!state.forecastCharts.keys.toList().contains(Pollutant.pm2_5) ||
+            state.forecastCharts[Pollutant.pm2_5]!.isEmpty) {
           return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
         }
 
         final data =
-            state.forecastCharts[state.pollutant]![state.forecastChartIndex];
+            state.forecastCharts[Pollutant.pm2_5]![state.forecastChartIndex];
 
         return LayoutBuilder(
           builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -576,12 +576,6 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
     duration ??= const Duration(milliseconds: 500);
 
-    if (!_itemScrollController.isAttached) {
-      await _scrollToChart(duration: duration);
-
-      return;
-    }
-
     if (_itemScrollController.isAttached) {
       await _itemScrollController
           .scrollTo(
@@ -600,11 +594,25 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   }
 
   Future<void> _scrollToForecastChart({Duration? duration}) async {
-    if (!context.read<HourlyInsightsBloc>().state.isShowingForecast) {
+    final state = context.read<HourlyInsightsBloc>().state;
+
+    if (!state.isShowingForecast) {
+      return;
+    }
+
+    final data = state.forecastCharts[state.pollutant];
+
+    if (data == null) {
       return;
     }
 
     context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
+
+    final ChartData selectedInsight =
+        data[state.forecastChartIndex].first.data.first;
+    context
+        .read<HourlyInsightsBloc>()
+        .add(UpdateSelectedInsight(selectedInsight));
 
     duration ??= const Duration(milliseconds: 500);
 
@@ -1365,10 +1373,12 @@ class InsightsToggleBar extends StatelessWidget {
     required this.frequency,
     required this.isEmpty,
     required this.pollutant,
+    this.disablePm10 = false,
   }) : super(key: key);
   final bool isEmpty;
   final Frequency frequency;
   final Pollutant pollutant;
+  final bool disablePm10;
 
   @override
   Widget build(BuildContext context) {
@@ -1396,9 +1406,11 @@ class InsightsToggleBar extends StatelessWidget {
                     .add(SwitchInsightsPollutant(pollutant));
                 break;
               case Frequency.hourly:
-                context
-                    .read<HourlyInsightsBloc>()
-                    .add(SwitchInsightsPollutant(pollutant));
+                if (!disablePm10) {
+                  context
+                      .read<HourlyInsightsBloc>()
+                      .add(SwitchInsightsPollutant(pollutant));
+                }
                 break;
             }
           },
@@ -1426,7 +1438,7 @@ class InsightsToggleBar extends StatelessWidget {
             PopupMenuItem(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               value: Pollutant.pm2_5,
-              child: ListOption(
+              child: PollutantToggleListOption(
                 pollutantName: '2.5',
                 pollutant: Pollutant.pm2_5,
                 varyingPollutant: pollutant,
@@ -1435,11 +1447,11 @@ class InsightsToggleBar extends StatelessWidget {
             PopupMenuItem(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               value: Pollutant.pm10,
-              child: ListOption(
-                pollutantName: '10',
-                pollutant: Pollutant.pm10,
-                varyingPollutant: pollutant,
-              ),
+              child: PollutantToggleListOption(
+                  pollutantName: '10',
+                  pollutant: Pollutant.pm10,
+                  varyingPollutant: pollutant,
+                  disablePm10: disablePm10),
             ),
           ],
         ),
@@ -1551,19 +1563,28 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   }
 }
 
-class ListOption extends StatelessWidget {
-  const ListOption({
+class PollutantToggleListOption extends StatelessWidget {
+  const PollutantToggleListOption({
     super.key,
     required this.pollutantName,
     required this.pollutant,
     required this.varyingPollutant,
+    this.disablePm10 = false,
   });
   final String pollutantName;
   final Pollutant pollutant;
   final Pollutant varyingPollutant;
+  final bool disablePm10;
 
   @override
   Widget build(BuildContext context) {
+    Color textColor = varyingPollutant == pollutant
+        ? CustomColors.appColorBlue
+        : CustomColors.appColorBlack;
+
+    if (disablePm10) {
+      textColor = CustomColors.greyColor;
+    }
     return ListTile(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
@@ -1575,9 +1596,7 @@ class ListOption extends StatelessWidget {
           : Colors.white,
       title: PollutantToggle(
         text: pollutantName,
-        textColor: varyingPollutant == pollutant
-            ? CustomColors.appColorBlue
-            : CustomColors.appColorBlack,
+        textColor: textColor,
       ),
     );
   }

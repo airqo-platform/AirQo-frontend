@@ -29,8 +29,6 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   Future<void> _updateForecastCharts(
     Emitter<InsightsState> emit,
   ) async {
-    emit(state.copyWith(insightsStatus: InsightsStatus.refreshing));
-
     final forecastData =
         await AirQoDatabase().getForecastInsights(state.siteId);
 
@@ -114,16 +112,17 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     Map<String, dynamic> data = _onGetChartIndex();
 
     return emit(state.copyWith(
-      selectedInsight: data["selectedInsight"] as ChartData,
-      forecastChartIndex: state.isShowingForecast
-          ? state.forecastChartIndex
-          : data["index"] as int,
-      historicalChartIndex: state.isShowingForecast
-          ? data["index"] as int
-          : state.historicalChartIndex,
-      insightsStatus: InsightsStatus.loaded,
-      isShowingForecast: !state.isShowingForecast,
-    ));
+        selectedInsight: data["selectedInsight"] as ChartData,
+        forecastChartIndex: state.isShowingForecast
+            ? state.forecastChartIndex
+            : data["index"] as int,
+        historicalChartIndex: state.isShowingForecast
+            ? data["index"] as int
+            : state.historicalChartIndex,
+        insightsStatus: InsightsStatus.loaded,
+        isShowingForecast: !state.isShowingForecast,
+        pollutant:
+            state.isShowingForecast ? state.pollutant : Pollutant.pm2_5));
   }
 
   Future<void> _onSetScrolling(

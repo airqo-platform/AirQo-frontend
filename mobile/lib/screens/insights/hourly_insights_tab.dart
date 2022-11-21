@@ -51,6 +51,7 @@ class HourlyInsightsTab extends StatelessWidget {
                           frequency: state.frequency,
                           isEmpty: state.historicalCharts.isEmpty,
                           pollutant: state.pollutant,
+                          disablePm10: state.isShowingForecast,
                         ),
                         const SizedBox(
                           height: 12,
