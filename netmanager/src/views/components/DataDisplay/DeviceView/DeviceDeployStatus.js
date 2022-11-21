@@ -135,7 +135,8 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
           color="primary"
           disabled={loading}
           onClick={onClick}
-          style={{ textTransform: 'lowercase' }}>
+          style={{ textTransform: 'lowercase' }}
+        >
           run
         </Button>{' '}
         to initiate the test
@@ -192,7 +193,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               justifyContent: 'center',
               width: '100%',
               marginBottom: '30px'
-            }}>
+            }}
+          >
             <span>
               Device last pushed data{' '}
               <span className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}>
@@ -208,7 +210,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               alignItems: 'center',
               margin: '10px 30px',
               color: elapsedDurationSeconds > elapseLimit ? 'grey' : 'inherit'
-            }}>
+            }}
+          >
             {feedKeys.map((key, index) => (
               <div style={senorListStyle} key={index}>
                 {isValidSensorValue(
@@ -248,7 +251,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             margin: '10px 30px',
             height: '70%',
             color: 'red'
-          }}>
+          }}
+        >
           <ErrorIcon className={classes.error} /> Device test has failed, please cross check the
           functionality of device
         </div>
@@ -444,20 +448,23 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           margin: '0 auto',
           alignItems: 'baseline',
           justifyContent: 'flex-end'
-        }}>
+        }}
+      >
         <span
           style={{
             display: 'flex',
             alignItems: 'bottom',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           <span
             style={{
               display: 'flex',
               alignItems: 'center',
               fontSize: '1.2rem',
               marginRight: '10px'
-            }}>
+            }}
+          >
             <span
               style={{
                 fontSize: '0.7rem',
@@ -466,14 +473,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 border: '1px solid #ffffff',
                 borderRadius: '5px',
                 padding: '0 5px'
-              }}>
+              }}
+            >
               Deploy status
             </span>{' '}
             <span
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           </span>
@@ -482,13 +491,15 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             title={'Device is not yet deployed'}
             disableTouchListener={deviceData.isActive}
             disableHoverListener={deviceData.isActive}
-            disableFocusListener={deviceData.isActive}>
+            disableFocusListener={deviceData.isActive}
+          >
             <span>
               <Button
                 variant="contained"
                 color="primary"
                 disabled={!deviceData.isActive}
-                onClick={() => setRecallOpen(!recallOpen)}>
+                onClick={() => setRecallOpen(!recallOpen)}
+              >
                 {' '}
                 Recall Device {recallLoading && <CircularProgress />}
               </Button>
@@ -510,7 +521,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           minHeight: '400px',
           padding: '20px 20px',
           maxWidth: '1500px'
-        }}>
+        }}
+      >
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
             <div style={{ marginBottom: '15px' }}>
@@ -530,7 +542,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                     color: 'red',
                     textAlign: 'left',
                     fontSize: '0.7rem'
-                  }}>
+                  }}
+                >
                   {errors.site_id}
                 </div>
               )}
@@ -573,7 +586,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              variant="outlined">
+              variant="outlined"
+            >
               <option value="" />
               <option value="Mains">Mains</option>
               <option value="Solar">Solar</option>
@@ -601,7 +615,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              fullWidth>
+              fullWidth
+            >
               <option value="" />
               <option value="Faceboard">Faceboard</option>
               <option value="Pole">Pole</option>
@@ -668,7 +683,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -679,7 +695,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -698,7 +715,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   justifyContent: 'center',
                   height: '100%',
                   color: 'red'
-                }}>
+                }}
+              >
                 Could not fetch device feeds
               </div>
             )}
@@ -720,17 +738,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               placement="top"
               disableFocusListener={runReport.successfulTestRun && !deviceData.isActive}
               disableHoverListener={runReport.successfulTestRun && !deviceData.isActive}
-              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}>
+              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}
+            >
               <span>
                 <Button
                   variant="contained"
                   color="primary"
-                  disabled={weightedBool(
-                    deployLoading,
-                    deviceData.isActive || !runReport.successfulTestRun || inputErrors
-                  )}
+                  disabled={weightedBool(deployLoading, deviceData.isActive || inputErrors)}
                   onClick={handleDeploySubmit}
-                  style={{ marginLeft: '10px' }}>
+                  style={{ marginLeft: '10px' }}
+                >
                   {deployLoading
                     ? 'Deploying' && <CircularProgress />
                     : !deployLoading

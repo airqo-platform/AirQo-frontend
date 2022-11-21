@@ -28,43 +28,6 @@ String frequencyFromJson(String frequency) {
   return frequency.toLowerCase();
 }
 
-// TODO utilise these methods
-// MeasurementValue measurementValueFromJson(dynamic json) {
-//   if (json == null) {
-//     return MeasurementValue(value: -0.1, calibratedValue: -0.1);
-//   }
-//
-//   return MeasurementValue.fromJson(json);
-// }
-//
-// List<Measurement> parseMeasurements(dynamic jsonBody) {
-//   final measurements = <Measurement>[];
-//
-//   final jsonArray = jsonBody['measurements'];
-//   final offSet = DateTime.now().timeZoneOffset.inHours;
-//   for (final jsonElement in jsonArray) {
-//     try {
-//       final measurement = Measurement.fromJson(jsonElement);
-//       final value = measurement.getPm2_5Value();
-//       if (value != -0.1 && value >= 0.00 && value <= 500.40) {
-//         final formattedDate =
-//             DateTime.parse(measurement.time).add(Duration(hours: offSet));
-//         measurement.time = formattedDate.toString();
-//         measurements.add(measurement);
-//       }
-//     } catch (exception, stackTrace) {
-//       logException(exception, stackTrace, remoteLogging: false);
-//     }
-//   }
-//   measurements.sort(
-//     (siteA, siteB) => siteA.site.name.toLowerCase().compareTo(
-//           siteB.site.name.toLowerCase(),
-//         ),
-//   );
-//
-//   return measurements;
-// }
-
 String regionFromJson(dynamic json) {
   if (json == null) {
     return 'Central Region';

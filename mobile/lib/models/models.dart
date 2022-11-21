@@ -10,4 +10,3 @@ export 'kya.dart';
 export 'notification.dart';
 export 'place_details.dart';
 export 'profile.dart';
-export 'suggestion.dart';

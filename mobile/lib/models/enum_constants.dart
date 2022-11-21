@@ -1,11 +1,10 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import '../themes/colors.dart';
 
 part 'enum_constants.g.dart';
 
@@ -45,6 +44,97 @@ enum AnalyticsEvent {
 enum AppPermission {
   notification,
   location,
+  photosStorage,
+}
+
+enum BlocStatus {
+  initial,
+  editing,
+  processing,
+  updatingData,
+  error,
+  success,
+  accountDeletionCheckSuccess,
+}
+
+enum FeedbackStep {
+  channelStep,
+  typeStep,
+  formStep;
+}
+
+enum AuthenticationError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  invalidFirstName(
+    message: 'First name is required.',
+    snackBarDuration: 5,
+  ),
+  invalidLastName(
+    message: 'Last name is required.',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    message: 'Invalid Account',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    message: 'Invalid code',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    message: 'Session time out. Sending another verification code',
+    snackBarDuration: 5,
+  ),
+  none(
+    message: '',
+    snackBarDuration: 0,
+  ),
+  authFailure(
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  logInRequired(
+    message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  logoutFailed(
+    message: 'Failed to logout. Try again later',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+    snackBarDuration: 5,
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid Phone number',
+    snackBarDuration: 5,
+  ),
+  invalidEmailAddress(
+    message: 'Invalid Email address',
+    snackBarDuration: 5,
+  ),
+  accountTaken(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    message: 'Email Taken',
+    snackBarDuration: 5,
+  );
+
+  const AuthenticationError({
+    required this.message,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
 }
 
 enum NearbyAirQualityError {
@@ -193,19 +283,41 @@ enum FeedbackChannel {
 enum AuthMethod {
   phone(
     updateMessage:
-        'You shall not be able to sign in with your previous phone number after changing it',
+        'You will not be able to sign in with your previous phone number after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to',
+    editEntryText: 'Change your number',
+    invalidInputErrorMessage: 'Looks like you missed a digit.',
+    invalidInputMessage: 'Oops, Something’s wrong with your phone number',
   ),
   email(
     updateMessage:
-        'You shall not be able to sign in with your previous email address after changing it',
+        'You will not be able to sign in with your previous email address after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to',
+    editEntryText: 'Change your email',
+    invalidInputErrorMessage: 'Looks like you missed a letter',
+    invalidInputMessage: 'Oops, Something’s wrong with your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
+    codeVerificationText: '',
+    editEntryText: '',
+    invalidInputErrorMessage: '',
+    invalidInputMessage: '',
   );
 
-  const AuthMethod({required this.updateMessage});
+  const AuthMethod({
+    required this.updateMessage,
+    required this.codeVerificationText,
+    required this.editEntryText,
+    required this.invalidInputErrorMessage,
+    required this.invalidInputMessage,
+  });
 
   final String updateMessage;
+  final String codeVerificationText;
+  final String editEntryText;
+  final String invalidInputErrorMessage;
+  final String invalidInputMessage;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {
@@ -218,9 +330,7 @@ enum AuthMethod {
             ? 'Login with your email or mobile number'
             : 'Sign up with your email or mobile number';
       default:
-        throw UnimplementedError(
-          '$name does’nt have options text implementation',
-        );
+        return '';
     }
   }
 
@@ -266,6 +376,12 @@ enum AuthProcedure {
     confirmationBody: 'You will lose all your saved places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
+  ),
+  none(
+    confirmationTitle: '',
+    confirmationBody: '',
+    confirmationOkayText: '',
+    confirmationCancelText: '',
   ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',

@@ -1,7 +1,11 @@
+import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'custom_widgets.dart';
 
@@ -78,74 +82,124 @@ class CountryCodePickerField extends StatelessWidget {
   }
 }
 
-class OptField extends StatelessWidget {
+class OptField extends StatefulWidget {
   const OptField({
     super.key,
-    required this.codeSent,
     required this.callbackFn,
-    required this.position,
   });
-  final bool codeSent;
-  final Function(String value, int position) callbackFn;
-  final int position;
+  final Function(String value) callbackFn;
+
+  @override
+  State<OptField> createState() => _OptFieldState();
+}
+
+class _OptFieldState extends State<OptField> {
+  late FocusNode focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 64,
-      child: TextFormField(
-        onChanged: (value) {
-          callbackFn(value, position);
+      child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
+        listener: (context, state) {
+          switch (state.blocStatus) {
+            case BlocStatus.editing:
+            case BlocStatus.updatingData:
+              break;
+            case BlocStatus.initial:
+            case BlocStatus.error:
+              focusNode.requestFocus();
+              break;
+            case BlocStatus.success:
+            case BlocStatus.processing:
+            case BlocStatus.accountDeletionCheckSuccess:
+              focusNode.unfocus();
+              break;
+          }
         },
-        showCursor: codeSent,
-        textAlign: TextAlign.center,
-        maxLength: 6,
-        enableSuggestions: false,
-        cursorWidth: 1,
-        autofocus: true,
-        cursorColor: CustomColors.appColorBlue,
-        keyboardType: TextInputType.number,
-        style: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w500,
-          color: CustomColors.appColorBlue,
-          letterSpacing: 16 * 0.41,
-          height: 40 / 32,
-        ),
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 0,
-          ),
-          counter: const Offstage(),
-          fillColor: codeSent
-              ? Colors.white
-              : const Color(0xff8D8D8D).withOpacity(0.1),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: CustomColors.appColorBlue,
-              width: 1.0,
-            ),
+        builder: (context, state) {
+          Color fillColor = Colors.transparent;
+          Color textColor = CustomColors.appColorBlue;
+          bool codeSent = state.codeCountDown <= 0;
+
+          if (!codeSent) {
+            fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
+            textColor = Colors.transparent;
+          }
+
+          if (state.blocStatus == BlocStatus.error) {
+            textColor = CustomColors.appColorInvalid;
+            fillColor = textColor.withOpacity(0.05);
+          } else if (state.blocStatus == BlocStatus.success) {
+            textColor = CustomColors.appColorValid;
+            fillColor = textColor.withOpacity(0.05);
+          }
+
+          InputBorder inputBorder = OutlineInputBorder(
+            borderSide: BorderSide(color: textColor, width: 1.0),
             borderRadius: BorderRadius.circular(8.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: CustomColors.appColorBlue,
-              width: 1.0,
+          );
+
+          return TextFormField(
+            onChanged: widget.callbackFn,
+            focusNode: focusNode,
+            showCursor: codeSent,
+            enabled: codeSent,
+            textAlign: TextAlign.center,
+            maxLength: 6,
+            enableSuggestions: false,
+            cursorWidth: 1,
+            autofocus: true,
+            cursorColor: textColor,
+            keyboardType: TextInputType.number,
+            style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
+                  letterSpacing: 16 * 0.41,
+                  height: 40 / 32,
+                ),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 0,
+              ),
+              iconColor: textColor,
+              fillColor: fillColor,
+              filled: true,
+              focusedBorder: inputBorder,
+              enabledBorder: inputBorder,
+              disabledBorder: inputBorder,
+              errorBorder: inputBorder,
+              border: inputBorder,
+              counter: const Offstage(),
+              errorStyle: const TextStyle(
+                fontSize: 0,
+              ),
             ),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          errorStyle: const TextStyle(
-            fontSize: 0,
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
 class TextInputCloseButton extends StatelessWidget {
-  const TextInputCloseButton({super.key});
+  const TextInputCloseButton({super.key, this.color});
+
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +207,7 @@ class TextInputCloseButton extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Container(
         decoration: BoxDecoration(
-          color: CustomColors.greyColor.withOpacity(0.7),
+          color: color ?? CustomColors.greyColor.withOpacity(0.7),
           borderRadius: const BorderRadius.all(
             Radius.circular(5.0),
           ),

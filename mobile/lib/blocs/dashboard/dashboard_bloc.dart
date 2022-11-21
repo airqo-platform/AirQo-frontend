@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../services/hive_service.dart';
-import '../../utils/dashboard.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
@@ -17,7 +15,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc()
       : super(const DashboardState(
           greetings: '',
-          incompleteKya: [],
           airQualityReadings: [],
           loading: false,
         )) {
@@ -31,7 +28,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
@@ -67,18 +63,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
 
     final greetings = await DateTime.now().getGreetings();
-    final incompleteKya = await Kya.getIncompleteKya();
     final airQualityReadings = await _getAirQualityReadings();
 
     return emit(DashboardState(
       greetings: greetings,
-      incompleteKya: incompleteKya,
       airQualityReadings: airQualityReadings,
       loading: false,
     ));

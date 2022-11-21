@@ -16,7 +16,63 @@ extension IntExt on int {
   }
 }
 
-extension DateTimeExtension on DateTime {
+extension KyaListExt on List<Kya> {
+  int totalProgress() {
+    final List<int> progressList = map((element) => element.progress).toList();
+    var sum = 0;
+    for (final element in progressList) {
+      sum = sum + element;
+    }
+
+    return sum;
+  }
+
+  List<Kya> filterIncompleteKya() {
+    return where((element) {
+      return element.progress != -1;
+    }).toList();
+  }
+
+  List<Kya> filterCompleteKya() {
+    return where((element) {
+      return element.progress == -1;
+    }).toList();
+  }
+}
+
+extension AnalyticsListExt on List<Analytics> {
+  List<Analytics> sortByDateTime() {
+    sort(
+      (x, y) {
+        return -(x.createdAt.compareTo(y.createdAt));
+      },
+    );
+
+    return this;
+  }
+}
+
+extension ProfileExt on Profile {
+  String greetings() {
+    final hour = DateTime.now().hour;
+
+    if (00 <= hour && hour < 12) {
+      return 'Good morning $firstName'.trim();
+    }
+
+    if (12 <= hour && hour < 16) {
+      return 'Good afternoon $firstName'.trim();
+    }
+
+    if (16 <= hour && hour <= 23) {
+      return 'Good evening $firstName'.trim();
+    }
+
+    return 'Hello $firstName'.trim();
+  }
+}
+
+extension DateTimeExt on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
     var firstDate = this;
     final weekday = firstDate.weekday;
@@ -302,13 +358,13 @@ extension DateTimeExtension on DateTime {
   }
 }
 
-extension FileExtenion on File {
+extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
   }
 }
 
-extension StringCasingExtension on String {
+extension StringExt on String {
   bool inStatement(String statement) {
     final terms = toLowerCase().split(' ');
     final words = statement.toLowerCase().split(' ');
@@ -321,6 +377,14 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidName() {
+    if (trim().isNull()) {
+      return false;
+    }
+
+    return true;
   }
 
   bool equalsIgnoreCase(String value) {
@@ -341,6 +405,31 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidPhoneNumber() {
+    if (isNull()) {
+      return false;
+    }
+
+    return trim().replaceAll(" ", "").length >= 7 &&
+        trim().replaceAll(" ", "").length <= 15;
+  }
+
+  String inValidPhoneNumberMessage() {
+    if (isNull()) {
+      return 'A phone number cannot be empty';
+    }
+
+    if (trim().replaceAll(" ", "").length < 7) {
+      return 'Looks like you missed a digit.';
+    }
+
+    if (trim().replaceAll(" ", "").length > 15) {
+      return 'Entered many digits.';
+    }
+
+    return AuthenticationError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {
