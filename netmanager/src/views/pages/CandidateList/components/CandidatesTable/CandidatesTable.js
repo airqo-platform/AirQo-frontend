@@ -13,7 +13,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  TextField,
+  CircularProgress
 } from '@material-ui/core';
 
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -25,9 +27,13 @@ import CandidateEditForm from 'views/pages/UserList/components/UserEditForm';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
-import { confirmCandidateApi, deleteCandidateApi } from 'views/apis/authService';
+import {
+  confirmCandidateApi,
+  deleteCandidateApi,
+  updateCandidateApi,
+  sendUserFeedbackApi
+} from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { updateCandidateApi } from 'views/apis/authService';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -54,7 +60,10 @@ const CandidatesTable = (props) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
+  const [openMessagePopup, setOpenMessagePopup] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
+  const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
+  const [isLoading, setLoading] = useState(false);
 
   const users = mappeduserState.candidates;
   const editCandidate = mappeduserState.userToEdit;
@@ -108,7 +117,7 @@ const CandidatesTable = (props) => {
 
   const onDenyBtnClick = (candidate) => () => {
     setCurrentCandidate(candidate);
-    setOpenDel(true);
+    setOpenMessagePopup(true);
   };
 
   const confirmCandidate = () => {
@@ -160,7 +169,6 @@ const CandidatesTable = (props) => {
   };
 
   const modifyCandidate = (id, data) => {
-    setOpenDel(false);
     return updateCandidateApi(id, data)
       .then((res) => {
         props.fetchCandidates();
@@ -174,6 +182,34 @@ const CandidatesTable = (props) => {
       })
       .catch((err) => {
         dispatch(
+          updateMainAlert({
+            show: true,
+            message: err.response.data.message,
+            severity: 'error'
+          })
+        );
+      });
+  };
+
+  const sendUserFeedBack = async (id, email, subject, data) => {
+    setOpenDel(false);
+    setLoading(true);
+    const body = {
+      email: email,
+      subject: subject,
+      message: userFeedbackMessage
+    };
+
+    sendUserFeedbackApi(body)
+      .then((res) => {
+        setUserFeedbackMessage('');
+        modifyCandidate(id, data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setUserFeedbackMessage('');
+        setLoading(false);
+        return dispatch(
           updateMainAlert({
             show: true,
             message: err.response.data.message,
@@ -273,7 +309,11 @@ const CandidatesTable = (props) => {
                     Revert
                   </Button>
                 ) : (
-                  <Button style={{ color: 'red' }} onClick={onDenyBtnClick(candidate)}>
+                  <Button
+                    disabled={isLoading}
+                    style={{ color: 'red' }}
+                    onClick={onDenyBtnClick(candidate)}
+                  >
                     Reject
                   </Button>
                 )}
@@ -301,7 +341,14 @@ const CandidatesTable = (props) => {
         open={openDel}
         close={() => setOpenDel(false)}
         confirmBtnMsg={'Reject'}
-        confirm={() => modifyCandidate(currentCandidate._id, { status: 'rejected' })}
+        confirm={() =>
+          sendUserFeedBack(
+            currentCandidate._id,
+            currentCandidate.email,
+            'Your data access request has been denied',
+            { status: 'rejected' }
+          )
+        }
         title={'Reject candidate'}
         message={
           'Are you sure you want to deny access to this candidate? This process can be reverted'
@@ -402,6 +449,41 @@ const CandidatesTable = (props) => {
           {mappeduserState.successMsg && !mappeduserState.isFetching && (
             <Button onClick={hideConfirmDialog}>Close</Button>
           )}
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        fullWidth
+        maxWidth={'sm'}
+        open={openMessagePopup}
+        onClose={() => setOpenMessagePopup(false)}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogContent>
+          <TextField
+            autoFocus
+            id="message"
+            onChange={(e) => setUserFeedbackMessage(e.target.value)}
+            label="Describe the reason for data access denial"
+            type="text"
+            multiline
+            rows={8}
+            variant="outlined"
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenMessagePopup(false)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenMessagePopup(false);
+              setOpenDel(true);
+            }}
+            color="primary"
+          >
+            Finish
+          </Button>
         </DialogActions>
       </Dialog>
     </Card>
