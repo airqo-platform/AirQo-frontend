@@ -112,17 +112,17 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     Map<String, dynamic> data = _onGetChartIndex();
 
     return emit(state.copyWith(
-        selectedInsight: data["selectedInsight"] as ChartData,
-        forecastChartIndex: state.isShowingForecast
-            ? state.forecastChartIndex
-            : data["index"] as int,
-        historicalChartIndex: state.isShowingForecast
-            ? data["index"] as int
-            : state.historicalChartIndex,
-        insightsStatus: InsightsStatus.loaded,
-        isShowingForecast: !state.isShowingForecast,
-        pollutant:
-            state.isShowingForecast ? state.pollutant : Pollutant.pm2_5));
+      selectedInsight: data["selectedInsight"] as ChartData,
+      forecastChartIndex: state.isShowingForecast
+          ? state.forecastChartIndex
+          : data["index"] as int,
+      historicalChartIndex: state.isShowingForecast
+          ? data["index"] as int
+          : state.historicalChartIndex,
+      insightsStatus: InsightsStatus.loaded,
+      isShowingForecast: !state.isShowingForecast,
+      pollutant: state.isShowingForecast ? state.pollutant : Pollutant.pm2_5,
+    ));
   }
 
   Future<void> _onSetScrolling(
@@ -335,11 +335,10 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       state.frequency,
     );
 
-    final chartData = dbInsights
-        .map((event) => ChartData.fromHistoricalInsight(event))
-        .toList();
-
     if (dbInsights.isNotEmpty) {
+      final chartData = dbInsights
+          .map((event) => ChartData.fromHistoricalInsight(event))
+          .toList();
       await _updateHistoricalCharts(emit, chartData);
       await _updateForecastCharts(emit);
     }

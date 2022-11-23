@@ -1448,10 +1448,11 @@ class InsightsToggleBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               value: Pollutant.pm10,
               child: PollutantToggleListOption(
-                  pollutantName: '10',
-                  pollutant: Pollutant.pm10,
-                  varyingPollutant: pollutant,
-                  disablePm10: disablePm10),
+                pollutantName: '10',
+                pollutant: Pollutant.pm10,
+                varyingPollutant: pollutant,
+                disablePm10: disablePm10,
+              ),
             ),
           ],
         ),
@@ -1585,6 +1586,7 @@ class PollutantToggleListOption extends StatelessWidget {
     if (disablePm10) {
       textColor = CustomColors.greyColor;
     }
+
     return ListTile(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
