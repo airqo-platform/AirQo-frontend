@@ -57,16 +57,38 @@ class AirQoDatabase extends _$AirQoDatabase {
             }))
           .get();
 
-  Future<List<HistoricalInsight>> getHistoricalInsights(
-    String siteId,
-    Frequency frequency,
-  ) =>
-      (select(historicalInsights)
-            ..where((x) {
-              return x.siteId.equals(siteId) &
-                  x.frequency.equalsValue(frequency);
-            }))
-          .get();
+  Future<List<HistoricalInsight>> getHistoricalInsights({
+    required String siteId,
+    required Frequency frequency,
+  }) {
+    DateTime startDateTime;
+    DateTime endDateTime;
+    switch (frequency) {
+      case Frequency.daily:
+        startDateTime = DateTime.now()
+            .getFirstDateOfCalendarMonth()
+            .getDateOfFirstHourOfDay();
+        endDateTime = DateTime.now()
+            .getLastDateOfCalendarMonth()
+            .getDateOfLastHourOfDay();
+        break;
+      case Frequency.hourly:
+        startDateTime =
+            DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
+        endDateTime =
+            DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
+        break;
+    }
+
+    return (select(historicalInsights)
+          ..where((element) {
+            return element.siteId.equals(siteId) &
+                element.frequency.equalsValue(frequency) &
+                element.time.isBiggerOrEqualValue(startDateTime) &
+                element.time.isSmallerOrEqualValue(endDateTime);
+          }))
+        .get();
+  }
 
   Future<List<HistoricalInsight>> getDailyMiniHourlyInsights(
     String siteId,

@@ -36,10 +36,15 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         .map((event) => ChartData.fromForecastInsight(event))
         .toList();
 
-    final forecastCharts =
-        await _createCharts(chartData, frequency: Frequency.hourly);
+    final charts = await _createCharts(chartData, frequency: Frequency.hourly);
 
-    return emit(state.copyWith(forecastCharts: forecastCharts));
+    Map<String, dynamic> data = _onGetChartIndex(insightCharts: charts);
+
+    return emit(state.copyWith(
+      forecastCharts: charts,
+      featuredForecastInsight: data["selectedInsight"] as ChartData,
+      forecastChartIndex: data["index"] as int,
+    ));
   }
 
   Map<String, dynamic> _onGetChartIndex({
@@ -105,21 +110,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ToggleForecastData _,
     Emitter<InsightsState> emit,
   ) {
-    if (state.forecastCharts.isEmpty) {
-      return;
-    }
-
-    Map<String, dynamic> data = _onGetChartIndex();
-
     return emit(state.copyWith(
-      selectedInsight: data["selectedInsight"] as ChartData,
-      forecastChartIndex: state.isShowingForecast
-          ? state.forecastChartIndex
-          : data["index"] as int,
-      historicalChartIndex: state.isShowingForecast
-          ? data["index"] as int
-          : state.historicalChartIndex,
-      insightsStatus: InsightsStatus.loaded,
       isShowingForecast: !state.isShowingForecast,
       pollutant: state.isShowingForecast ? state.pollutant : Pollutant.pm2_5,
     ));
@@ -143,9 +134,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     UpdateSelectedInsight event,
     Emitter<InsightsState> emit,
   ) async {
-    emit(state.copyWith(selectedInsight: event.selectedInsight));
+    if (state.isShowingForecast) {
+      emit(state.copyWith(featuredForecastInsight: event.selectedInsight));
+    } else {
+      emit(state.copyWith(featuredHistoricalInsight: event.selectedInsight));
+    }
 
-    if (state.frequency == Frequency.daily && !state.isShowingForecast) {
+    if (state.frequency == Frequency.daily) {
       return _updateMiniCharts(emit);
     }
 
@@ -178,7 +173,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   }
 
   Future<void> _updateMiniCharts(Emitter<InsightsState> emit) async {
-    final day = state.selectedInsight?.dateTime.day;
+    final day = state.featuredHistoricalInsight?.dateTime.day;
     if (day == null) {
       return;
     }
@@ -243,7 +238,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       return emit(state.copyWith(
         errorMessage: Config.connectionErrorMessage,
         insightsStatus: state.historicalCharts.isEmpty
-            ? InsightsStatus.failed
+            ? InsightsStatus.noInternetConnection
             : InsightsStatus.error,
       ));
     }
@@ -259,11 +254,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       frequency: state.frequency,
     );
 
-    final chartData = insightsData.historical
-        .map((event) => ChartData.fromHistoricalInsight(event))
-        .toList();
-
-    if (chartData.isEmpty) {
+    if (insightsData.historical.isEmpty) {
       return emit(state.copyWith(
         insightsStatus: state.historicalCharts.isEmpty
             ? InsightsStatus.noData
@@ -271,9 +262,18 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       ));
     }
 
+    final historicalInsights = await AirQoDatabase().getHistoricalInsights(
+      siteId: state.siteId,
+      frequency: state.frequency,
+    );
+
+    final historicalCharts = historicalInsights
+        .map((event) => ChartData.fromHistoricalInsight(event))
+        .toList();
+
     await _updateForecastCharts(emit);
 
-    return _updateHistoricalCharts(emit, chartData);
+    return _updateHistoricalCharts(emit, historicalCharts);
   }
 
   Future<void> _updateHistoricalCharts(
@@ -282,7 +282,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   ) async {
     final charts = await _createCharts(insights);
 
-    if (state.selectedInsight != null) {
+    if (state.featuredHistoricalInsight != null) {
       emit(state.copyWith(
         historicalCharts: charts,
         insightsStatus: InsightsStatus.loaded,
@@ -299,7 +299,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
     emit(state.copyWith(
       historicalCharts: charts,
-      selectedInsight: data["selectedInsight"] as ChartData,
+      featuredHistoricalInsight: data["selectedInsight"] as ChartData,
       historicalChartIndex: data["index"] as int,
       insightsStatus: InsightsStatus.loaded,
     ));
@@ -331,8 +331,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ));
 
     final dbInsights = await AirQoDatabase().getHistoricalInsights(
-      state.siteId,
-      state.frequency,
+      siteId: state.siteId,
+      frequency: state.frequency,
     );
 
     if (dbInsights.isNotEmpty) {

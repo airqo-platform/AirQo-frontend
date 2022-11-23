@@ -7,7 +7,8 @@ class InsightsState extends Equatable {
     this.forecastCharts = const {},
     this.airQualityReading,
     this.pollutant = Pollutant.pm2_5,
-    this.selectedInsight,
+    this.featuredHistoricalInsight,
+    this.featuredForecastInsight,
     this.historicalChartIndex = 0,
     this.forecastChartIndex = 0,
     this.insightsStatus = InsightsStatus.loading,
@@ -28,7 +29,7 @@ class InsightsState extends Equatable {
     required this.miniInsightsCharts,
     required this.airQualityReading,
     required this.pollutant,
-    required this.selectedInsight,
+    required this.featuredHistoricalInsight,
     required this.historicalChartIndex,
     required this.forecastChartIndex,
     required this.insightsStatus,
@@ -36,6 +37,7 @@ class InsightsState extends Equatable {
     required this.frequency,
     required this.scrollingGraphs,
     required this.isShowingForecast,
+    required this.featuredForecastInsight,
   });
 
   InsightsState copyWith({
@@ -48,7 +50,8 @@ class InsightsState extends Equatable {
     int? historicalChartIndex,
     int? forecastChartIndex,
     Pollutant? pollutant,
-    ChartData? selectedInsight,
+    ChartData? featuredHistoricalInsight,
+    ChartData? featuredForecastInsight,
     AirQualityReading? airQualityReading,
     InsightsStatus? insightsStatus,
     String? errorMessage,
@@ -63,7 +66,8 @@ class InsightsState extends Equatable {
       miniInsightsCharts: miniInsightsCharts ?? this.miniInsightsCharts,
       airQualityReading: airQualityReading ?? this.airQualityReading,
       pollutant: pollutant ?? this.pollutant,
-      selectedInsight: selectedInsight ?? this.selectedInsight,
+      featuredHistoricalInsight:
+          featuredHistoricalInsight ?? this.featuredHistoricalInsight,
       historicalChartIndex: historicalChartIndex ?? this.historicalChartIndex,
       forecastChartIndex: forecastChartIndex ?? this.forecastChartIndex,
       insightsStatus: insightsStatus ?? this.insightsStatus,
@@ -71,6 +75,8 @@ class InsightsState extends Equatable {
       frequency: frequency ?? this.frequency,
       scrollingGraphs: scrollingGraphs ?? this.scrollingGraphs,
       isShowingForecast: isShowingForecast ?? this.isShowingForecast,
+      featuredForecastInsight:
+          featuredForecastInsight ?? this.featuredForecastInsight,
     );
   }
 
@@ -84,7 +90,8 @@ class InsightsState extends Equatable {
   final int historicalChartIndex;
   final int forecastChartIndex;
   final Pollutant pollutant;
-  final ChartData? selectedInsight;
+  final ChartData? featuredHistoricalInsight;
+  final ChartData? featuredForecastInsight;
   final AirQualityReading? airQualityReading;
   final InsightsStatus insightsStatus;
   final String errorMessage;
@@ -98,7 +105,7 @@ class InsightsState extends Equatable {
         historicalCharts,
         airQualityReading,
         pollutant,
-        selectedInsight,
+        featuredHistoricalInsight,
         historicalChartIndex,
         insightsStatus,
         errorMessage,
@@ -108,5 +115,6 @@ class InsightsState extends Equatable {
         isShowingForecast,
         forecastCharts,
         forecastChartIndex,
+        featuredForecastInsight,
       ];
 }

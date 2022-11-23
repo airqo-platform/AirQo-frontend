@@ -581,6 +581,25 @@ class CustomTextStyle {
         );
   }
 
+  static TextStyle? errorTitle(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 21.0,
+          fontWeight: FontWeight.w700,
+          fontStyle: FontStyle.normal,
+          height: 26.0 / 21.0,
+        );
+  }
+
+  static TextStyle? errorSubTitle(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 15.0,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          height: 18.0 / 15.0,
+          color: CustomColors.appColorBlack.withOpacity(0.6),
+        );
+  }
+
   static TextStyle? headline8(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
           fontSize: 16.0,

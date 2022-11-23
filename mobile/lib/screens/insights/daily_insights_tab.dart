@@ -16,8 +16,7 @@ class DailyInsightsTab extends StatelessWidget {
     return AppSafeArea(
       widget: BlocConsumer<DailyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
-          return (current.insightsStatus == InsightsStatus.error ||
-                  current.insightsStatus == InsightsStatus.failed) &&
+          return (current.insightsStatus == InsightsStatus.error) &&
               current.errorMessage != '';
         },
         listener: (context, state) {
@@ -27,10 +26,18 @@ class DailyInsightsTab extends StatelessWidget {
           switch (state.insightsStatus) {
             case InsightsStatus.loading:
               return const InsightsLoadingWidget();
-            case InsightsStatus.failed:
-              return InsightsFailedWidget(frequency: state.frequency);
+            case InsightsStatus.noInternetConnection:
+              return NoInternetConnectionWidget(callBack: () {
+                context
+                    .read<DailyInsightsBloc>()
+                    .add(LoadInsights(frequency: state.frequency));
+              });
             case InsightsStatus.noData:
-              return InsightsNoData(frequency: state.frequency);
+              return NoAirQualityDataWidget(callBack: () {
+                context
+                    .read<DailyInsightsBloc>()
+                    .add(LoadInsights(frequency: state.frequency));
+              });
             case InsightsStatus.loaded:
             case InsightsStatus.error:
             case InsightsStatus.refreshing:
@@ -74,7 +81,7 @@ class DailyInsightsTab extends StatelessWidget {
                   ),
                   InsightsHealthTips(
                     pollutant: state.pollutant,
-                    insight: state.selectedInsight,
+                    insight: state.featuredHistoricalInsight,
                   ),
                 ];
 

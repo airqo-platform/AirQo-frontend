@@ -89,91 +89,6 @@ class InsightsLoadingWidget extends StatelessWidget {
   }
 }
 
-class InsightsNoData extends StatelessWidget {
-  const InsightsNoData({super.key, required this.frequency});
-  final Frequency frequency;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Failed to load insights.\nTry again later',
-            style: CustomTextStyle.headline7(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          OutlinedButton(
-            onPressed: () {
-              switch (frequency) {
-                case Frequency.daily:
-                  context
-                      .read<DailyInsightsBloc>()
-                      .add(LoadInsights(frequency: frequency));
-                  break;
-                case Frequency.hourly:
-                  context
-                      .read<HourlyInsightsBloc>()
-                      .add(LoadInsights(frequency: frequency));
-                  break;
-              }
-            },
-            style: OutlinedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(24),
-            ),
-            child: Text(
-              'Refresh',
-              style: TextStyle(color: CustomColors.appColorBlue),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class InsightsFailedWidget extends StatelessWidget {
-  const InsightsFailedWidget({super.key, required this.frequency});
-  final Frequency frequency;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: OutlinedButton(
-        onPressed: () {
-          switch (frequency) {
-            case Frequency.daily:
-              context
-                  .read<DailyInsightsBloc>()
-                  .add(LoadInsights(frequency: frequency));
-              break;
-            case Frequency.hourly:
-              context
-                  .read<HourlyInsightsBloc>()
-                  .add(LoadInsights(frequency: frequency));
-              break;
-          }
-        },
-        style: OutlinedButton.styleFrom(
-          shape: const CircleBorder(),
-          padding: const EdgeInsets.all(24),
-        ),
-        child: Text(
-          'Refresh',
-          style: TextStyle(color: CustomColors.appColorBlue),
-        ),
-      ),
-    );
-  }
-}
-
 class HourlyAnalyticsGraph extends StatelessWidget {
   const HourlyAnalyticsGraph({super.key});
 
@@ -651,6 +566,10 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, InsightsState>(
       builder: (context, state) {
+        final ChartData? featuredInsight = state.isShowingForecast
+            ? state.featuredForecastInsight
+            : state.featuredHistoricalInsight;
+
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -698,9 +617,10 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                             children: [
                               AutoSizeText(
                                 chartTitleDateTimeTitle(
-                                  state.selectedInsight?.dateTime ??
+                                  dateTime: featuredInsight?.dateTime ??
                                       DateTime.now(),
-                                  state.frequency,
+                                  frequency: state.frequency,
+                                  showingForecast: state.isShowingForecast,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -742,7 +662,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                             );
                           },
                           child: InsightsAvatar(
-                            insights: state.selectedInsight!,
+                            insights: featuredInsight!,
                             size: 64,
                             pollutant: state.pollutant,
                           ),
@@ -818,10 +738,9 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       ),
                     ),
                     Visibility(
-                      visible: state.selectedInsight
-                              ?.lastUpdated(state.frequency)
-                              .isNotEmpty ??
-                          true,
+                      visible: featuredInsight
+                          .lastUpdated(state.frequency)
+                          .isNotEmpty,
                       child: const SizedBox(
                         height: 13.0,
                       ),
@@ -834,9 +753,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                             maxWidth: MediaQuery.of(context).size.width / 2,
                           ),
                           child: Text(
-                            state.selectedInsight
-                                    ?.lastUpdated(state.frequency) ??
-                                '',
+                            featuredInsight.lastUpdated(state.frequency),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -871,7 +788,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GraphAQILabel(
-                    selectedInsight: state.selectedInsight,
+                    selectedInsight: featuredInsight,
                     pollutant: state.pollutant,
                   ),
                   Visibility(
@@ -1048,9 +965,10 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                             children: [
                               AutoSizeText(
                                 chartTitleDateTimeTitle(
-                                  state.selectedInsight?.dateTime ??
+                                  dateTime: state.featuredHistoricalInsight
+                                          ?.dateTime ??
                                       DateTime.now(),
-                                  state.frequency,
+                                  frequency: state.frequency,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1092,7 +1010,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                             );
                           },
                           child: InsightsAvatar(
-                            insights: state.selectedInsight!,
+                            insights: state.featuredHistoricalInsight!,
                             size: 64,
                             pollutant: state.pollutant,
                           ),
@@ -1131,7 +1049,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                     ),
                     const MiniHourlyAnalyticsGraph(),
                     Visibility(
-                      visible: state.selectedInsight
+                      visible: state.featuredHistoricalInsight
                               ?.lastUpdated(state.frequency)
                               .isNotEmpty ??
                           true,
@@ -1147,7 +1065,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                             maxWidth: MediaQuery.of(context).size.width / 2,
                           ),
                           child: Text(
-                            state.selectedInsight
+                            state.featuredHistoricalInsight
                                     ?.lastUpdated(state.frequency) ??
                                 '',
                             maxLines: 1,
@@ -1177,7 +1095,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                 ),
               ),
               GraphAQILabel(
-                selectedInsight: state.selectedInsight,
+                selectedInsight: state.featuredHistoricalInsight,
                 pollutant: state.pollutant,
               ),
             ],

@@ -154,6 +154,7 @@ class AirqoApiClient {
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.insights,
+        timeout: const Duration(seconds: 15),
       );
 
       final List<HistoricalInsight> historicalData = [];
@@ -281,15 +282,18 @@ class AirqoApiClient {
 
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
-    String url,
-  ) async {
+    String url, {
+    Duration? timeout,
+  }) async {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await httpClient.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await httpClient
+          .get(
+            Uri.parse(url),
+            headers: headers,
+          )
+          .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }

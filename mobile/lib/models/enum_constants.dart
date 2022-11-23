@@ -46,7 +46,7 @@ enum InsightsStatus {
   error,
   refreshing,
   loading,
-  failed,
+  noInternetConnection,
   noData;
 }
 

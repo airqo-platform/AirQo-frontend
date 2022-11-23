@@ -55,44 +55,55 @@ String getDateTime() {
       .toUpperCase();
 }
 
-String chartTitleDateTimeTitle(
-  DateTime dateTime,
-  Frequency frequency,
-) {
-  try {
-    if (frequency == Frequency.daily) {
-      var prefix = '';
-      final suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
-          ' - '
-          '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
-
-      if (dateTime.isInWeek('last')) {
-        prefix = 'Last Week';
-      } else if (dateTime.isInWeek('this')) {
-        prefix = 'This Week';
-      } else if (dateTime.isInWeek('next')) {
-        prefix = 'Next Week';
-      } else {
-        prefix = '';
-      }
-
-      return prefix == '' ? suffix : '$prefix, $suffix';
+String chartTitleDateTimeTitle({
+  required DateTime dateTime,
+  required Frequency frequency,
+  bool showingForecast = false,
+}) {
+  if (showingForecast) {
+    if (dateTime.isToday()) {
+      return 'Today’s forecast';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s forecast';
     } else {
-      var prefix = '';
-      final suffix = dateTime.getLongDate();
-
-      if (dateTime.isToday()) {
-        prefix = 'Today';
-      } else if (dateTime.isYesterday()) {
-        prefix = 'Yesterday';
-      } else if (dateTime.isTomorrow()) {
-        prefix = 'Tomorrow';
-      } else {
-        prefix = '';
-      }
-
-      return prefix == '' ? suffix : '$prefix, $suffix';
+      return dateTime.getLongDate();
     }
+  }
+  try {
+    String prefix = '';
+    String suffix = '';
+    switch (frequency) {
+      case Frequency.daily:
+        suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+            ' - '
+            '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+
+        if (dateTime.isInWeek('last')) {
+          prefix = 'Last Week';
+        } else if (dateTime.isInWeek('this')) {
+          prefix = 'This Week';
+        } else if (dateTime.isInWeek('next')) {
+          prefix = 'Next Week';
+        } else {
+          prefix = '';
+        }
+        break;
+      case Frequency.hourly:
+        suffix = dateTime.getLongDate();
+
+        if (dateTime.isToday()) {
+          prefix = 'Today';
+        } else if (dateTime.isYesterday()) {
+          prefix = 'Yesterday';
+        } else if (dateTime.isTomorrow()) {
+          prefix = 'Tomorrow';
+        } else {
+          prefix = dateTime.getWeekday().toTitleCase();
+        }
+        break;
+    }
+
+    return prefix == '' ? suffix : '$prefix, $suffix';
   } catch (exception, stackTrace) {
     logException(exception, stackTrace);
 
