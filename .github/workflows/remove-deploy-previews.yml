@@ -22,9 +22,9 @@ jobs:
   check:
     name: check for available deploy previews
     outputs:
-      remove_platform_preview: ${{ steps.check_files.outputs.remove_platform_preview }} # remove platform preview
+      remove_netmanager_preview: ${{ steps.check_files.outputs.remove_netmanager_preview }} # remove netmanager preview
       remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }} # remove calibrate app preview
-      remove_next_platform: ${{ steps.check_files.outputs.remove_next_platform }} # next platform
+      remove_analytics_platform: ${{ steps.check_files.outputs.remove_analytics_platform }} # analytics platform
       remove_docs: ${{ steps.check_files.outputs.remove_docs }} # docs
 
     runs-on: ubuntu-latest
@@ -43,16 +43,16 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "remove_platform_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_netmanager_preview=false" >>$GITHUB_OUTPUT
           echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
-          echo "remove_next_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "remove_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "remove_platform_preview=true" >>$GITHUB_OUTPUT
+              echo "remove_netmanager_preview=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
@@ -60,7 +60,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "remove_next_platform=true" >>$GITHUB_OUTPUT
+              echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -73,7 +73,7 @@ jobs:
   remove-netmanager-preview:
     name: remove-netmanager-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.remove_platform_preview == 'true'
+    if: needs.check.outputs.remove_netmanager_preview == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Google login
@@ -111,11 +111,11 @@ jobs:
             --region=${{ secrets.REGION }} \
             --quiet
 
-  ### remove next-platform deploy preview ###
-  remove-next-platform-preview:
-    name: remove-next-platform-preview
+  ### remove analytics platform deploy preview ###
+  remove-analytics-platform-preview:
+    name: remove-analytics-platform-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.remove_next_platform == 'true'
+    if: needs.check.outputs.remove_analytics_platform == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Google login

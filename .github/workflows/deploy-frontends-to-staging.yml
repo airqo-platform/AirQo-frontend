@@ -37,7 +37,7 @@ jobs:
       run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # netmanager
       run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
           echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
@@ -78,7 +78,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -233,9 +233,9 @@ jobs:
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
-  ### calibrate app ###
+  ### build and push calibrate app image ###
   calibrate-app:
-    name: build-push-deploy-calibrate-app
+    name: build-push-calibrate-app-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
@@ -299,11 +299,11 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
 
-  ### deploy next platform ###
-  next-platform:
-    name: build-push-deploy-next-platform
+  ### build and push analytics platform image ###
+  analytics-platform:
+    name: build-push-analytics-platform-image
     needs: [check, image-tag]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -356,9 +356,9 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
 
-  ### deploy docs ###
+  ### build and push docs image ###
   docs:
-    name: build-push-deploy-docs
+    name: build-push-docs-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest

@@ -26,7 +26,7 @@ jobs:
     outputs:
       run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # next platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # next platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
 
@@ -48,7 +48,7 @@ jobs:
 
           echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
           echo "run_website=false" >>$GITHUB_OUTPUT    
 
@@ -64,7 +64,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -255,7 +255,7 @@ jobs:
   next-platform:
     name: build-push-deploy-next-platform-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -313,7 +313,7 @@ jobs:
 
   next-platform-pr-comment:
     name: next-platform-preview-link-comment
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     needs: [next-platform]
     runs-on: ubuntu-latest
     steps:
