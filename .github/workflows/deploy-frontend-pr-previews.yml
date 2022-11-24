@@ -24,9 +24,9 @@ jobs:
   check:
     name: check for changed frontends
     outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_platform: ${{ steps.check_files.outputs.run_platform }} # next platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
 
@@ -46,9 +46,9 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
           echo "run_website=false" >>$GITHUB_OUTPUT    
 
@@ -56,7 +56,7 @@ jobs:
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
@@ -64,7 +64,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -81,7 +81,7 @@ jobs:
   netmanager:
     name: build-push-deploy-netmanager-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -150,7 +150,7 @@ jobs:
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     needs: [netmanager]
     runs-on: ubuntu-latest
     steps:
@@ -255,7 +255,7 @@ jobs:
   next-platform:
     name: build-push-deploy-next-platform-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -313,7 +313,7 @@ jobs:
 
   next-platform-pr-comment:
     name: next-platform-preview-link-comment
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_platform == 'true'
     needs: [next-platform]
     runs-on: ubuntu-latest
     steps:

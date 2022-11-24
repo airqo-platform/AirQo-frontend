@@ -9,7 +9,7 @@ jobs:
   check:
     name: check for changed frontends
     outputs:
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_platform: ${{ steps.check_files.outputs.run_platform }} # next platform
 
     runs-on: ubuntu-latest
     steps:
@@ -27,12 +27,12 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_platform=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -41,7 +41,7 @@ jobs:
   next-platform:
     name: test-next-platform
     needs: [check]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     container: cypress/browsers:node16.14.0-chrome99-ff97
     steps:
