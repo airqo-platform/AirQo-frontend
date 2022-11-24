@@ -26,7 +26,7 @@ jobs:
     outputs:
       run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
-      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # next platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
 
@@ -251,9 +251,9 @@ jobs:
               body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
 
-  ### deploy next-platform preview ###
-  next-platform:
-    name: build-push-deploy-next-platform-preview
+  ### deploy analytics platform preview ###
+  analytics-platform:
+    name: build-push-deploy-analytics-platform-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
@@ -284,19 +284,19 @@ jobs:
       - name: Build and Push Image
         run: |
           cd platform/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
@@ -305,16 +305,16 @@ jobs:
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  next-platform-pr-comment:
-    name: next-platform-preview-link-comment
+  analytics-platform-pr-comment:
+    name: analytics-platform-preview-link-comment
     if: needs.check.outputs.run_analytics_platform == 'true'
-    needs: [next-platform]
+    needs: [analytics-platform]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -324,7 +324,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New next-platform changes available for preview [here](${{ needs.next-platform.outputs.url }})'
+              body: 'New next-platform changes available for preview [here](${{ needs.analytics-platform.outputs.url }})'
             })
 
   ### deploy docs preview ###

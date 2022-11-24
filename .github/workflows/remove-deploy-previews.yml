@@ -128,7 +128,7 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --region=${{ secrets.REGION }} \
             --quiet
 

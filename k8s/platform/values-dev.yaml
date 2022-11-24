@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/airqo-250220/pr-previews/next-platform-pr-previews
+  repository: gcr.io/airqo-250220/pr-previews/analytics-platform-pr-previews
   pullPolicy: Always
   tag: latest
 
