@@ -60,9 +60,13 @@ const CandidatesTable = (props) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
-  const [openMessagePopup, setOpenMessagePopup] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
+
+  const [openRejectFeedbackPopup, setOpenRejectFeedbackPopup] = useState(false);
+  const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
+
   const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
+  const [messageSubject, setMessageSubject] = useState('');
   const [isLoading, setLoading] = useState(false);
 
   const users = mappeduserState.candidates;
@@ -117,7 +121,7 @@ const CandidatesTable = (props) => {
 
   const onDenyBtnClick = (candidate) => () => {
     setCurrentCandidate(candidate);
-    setOpenMessagePopup(true);
+    setOpenRejectFeedbackPopup(true);
   };
 
   const confirmCandidate = () => {
@@ -217,6 +221,41 @@ const CandidatesTable = (props) => {
           })
         );
       });
+  };
+
+  const sendUserNewMessage = async (candidate) => {
+    setLoading(true);
+    if (messageSubject && userFeedbackMessage) {
+      const body = {
+        email: candidate.email,
+        subject: messageSubject,
+        message: userFeedbackMessage
+      };
+
+      sendUserFeedbackApi(body)
+        .then((res) => {
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((err) => {
+          return dispatch(
+            updateMainAlert({
+              show: true,
+              message: err.response.data.message,
+              severity: 'error'
+            })
+          );
+        });
+
+      setUserFeedbackMessage('');
+      setOpenNewMessagePopup(false);
+      setLoading(false);
+    }
   };
 
   return (
@@ -319,6 +358,22 @@ const CandidatesTable = (props) => {
                 )}
               </div>
             )
+          },
+          {
+            title: 'Message',
+            render: (candidate) => (
+              <div>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setOpenNewMessagePopup(true);
+                    setCurrentCandidate(candidate);
+                  }}
+                >
+                  Send message
+                </Button>
+              </div>
+            )
           }
         ]}
         options={{
@@ -345,7 +400,7 @@ const CandidatesTable = (props) => {
           sendUserFeedBack(
             currentCandidate._id,
             currentCandidate.email,
-            'Your data access request has been denied',
+            'Thank you for your interest in our Air Quality data',
             { status: 'rejected' }
           )
         }
@@ -454,8 +509,8 @@ const CandidatesTable = (props) => {
       <Dialog
         fullWidth
         maxWidth={'sm'}
-        open={openMessagePopup}
-        onClose={() => setOpenMessagePopup(false)}
+        open={openRejectFeedbackPopup}
+        onClose={() => setOpenRejectFeedbackPopup(false)}
         aria-labelledby="form-dialog-title"
       >
         <DialogContent>
@@ -472,14 +527,65 @@ const CandidatesTable = (props) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenMessagePopup(false)} color="primary">
+          <Button onClick={() => setOpenRejectFeedbackPopup(false)} color="primary">
             Cancel
           </Button>
           <Button
             onClick={() => {
-              setOpenMessagePopup(false);
+              setOpenRejectFeedbackPopup(false);
               setOpenDel(true);
             }}
+            color="primary"
+          >
+            Finish
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        fullWidth
+        maxWidth={'sm'}
+        open={openNewMessagePopup}
+        onClose={() => setOpenNewMessagePopup(false)}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogContent>
+          <DialogContentText>Message Candidate</DialogContentText>
+          <div style={{ marginBottom: '16px' }}>
+            <TextField
+              autoFocus
+              id="subject"
+              onChange={(e) => setMessageSubject(e.target.value)}
+              label="Subject"
+              type="text"
+              variant="outlined"
+              fullWidth
+            />
+          </div>
+          <div>
+            <TextField
+              autoFocus
+              id="message"
+              onChange={(e) => setUserFeedbackMessage(e.target.value)}
+              label="Message Body"
+              type="text"
+              multiline
+              rows={8}
+              variant="outlined"
+              fullWidth
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            disabled={isLoading}
+            onClick={() => setOpenNewMessagePopup(false)}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={isLoading}
+            onClick={() => sendUserNewMessage(currentCandidate)}
             color="primary"
           >
             Finish
