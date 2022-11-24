@@ -15,7 +15,7 @@ Available version numbers:
 
 # Authentication
 
-For each HTTP request, you will need to add the `Authorization` HEADER with it's respective token value. To get a token, you follow the [Login](../api/users.md#login) guide.
+For each HTTP request, you will need to add the `Authorization` HEADER with it's respective token value. To get a token, you follow the [Login](api/users.md#login) guide.
 
 ```curl
 curl --location --request GET 'api.airqo.net/api/v1/devices/sites?tenant=airqo' \
