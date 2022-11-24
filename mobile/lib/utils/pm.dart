@@ -13,65 +13,35 @@ List<Recommendation> getHealthRecommendations(
   final recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
-    recommendations
-      ..add(
-        Recommendation(
-          'For everyone',
-          'Great air here today! Zero air pollution Zero worries',
-          'assets/images/family.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For children',
-          'Perfect time to let your kids enjoy the park',
-          'assets/images/child.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For pregnant women',
-          'Great time to enjoy a bleeze outdoor with caution',
-          'assets/images/pregnant_woman.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For elderly people',
-          'Great time to enjoy a bleeze outdoor with caution',
-          'assets/images/old_man.png',
-        ),
-      );
+    recommendations.add(
+      Recommendation(
+        'For everyone',
+        'It\'s a terrific day to go outside and exercise,'
+            ' Reduce the number of car trips you make.',
+        'assets/images/family.png',
+      ),
+    );
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
+    // moderate
     recommendations
       ..add(
         Recommendation(
           'For everyone',
-          'Reduce the intensity of your outdoor activities,'
-              ' If possible stay indoor',
+          'Today is a great day for outdoor activity.',
           'assets/images/family.png',
         ),
       )
       ..add(
         Recommendation(
-          'For children',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/child.png',
-        ),
-      )
-      ..add(
-        Recommendation(
           'For pregnant women',
-          'To keep you and your baby healthy, reduce'
-              ' the intensity of your outdoor activities',
+          'Reduce the intensity of your outdoor activities to keep you and your baby healthy.',
           'assets/images/pregnant_woman.png',
         ),
       )
       ..add(
         Recommendation(
           'For elderly people',
-          'Reduce the intensity of your outdoor activities',
+          'Reduce the intensity of your outdoor activities.',
           'assets/images/old_man.png',
         ),
       );
@@ -80,9 +50,9 @@ List<Recommendation> getHealthRecommendations(
     recommendations
       ..add(
         Recommendation(
-          'For everyone',
-          'Reduce the intensity of your outdoor activities,'
-              ' If possible stay indoor',
+          'For people with respiratory issues',
+          'Reduce strenuous exercise,'
+              'Take it easy if you experience signs like coughing',
           'assets/images/family.png',
         ),
       )
@@ -96,116 +66,45 @@ List<Recommendation> getHealthRecommendations(
       ..add(
         Recommendation(
           'For pregnant women',
-          'To keep you and your baby healthy, reduce'
-              ' the intensity of your outdoor activities',
+          'Reduce the intensity of your outdoor activities to keep you and your baby healthy',
           'assets/images/pregnant_woman.png',
         ),
       )
       ..add(
         Recommendation(
           'For elderly people',
-          'Reduce the intensity of your outdoor activities',
+          'Reduce the intensity of your outdoor activities.',
           'assets/images/old_man.png',
         ),
       );
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    recommendations
-      ..add(
-        Recommendation(
-          'For everyone',
-          'Reduce the intensity of your outdoor activities,'
-              ' If possible stay indoor',
-          'assets/images/family.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For children',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/child.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For pregnant women',
-          'To keep you and your baby healthy, reduce'
-              ' the intensity of your outdoor activities',
-          'assets/images/pregnant_woman.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For elderly people',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/old_man.png',
-        ),
-      );
+    recommendations.add(
+      Recommendation(
+        'For everyone',
+        'Avoid activities that make you breathe more rapidly,'
+            ' Today is the perfect day to spend indoors reading.',
+        'assets/images/family.png',
+      ),
+    );
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    recommendations
-      ..add(
-        Recommendation(
-          'For everyone',
-          'Reduce the intensity of your outdoor activities,'
-              ' If possible stay indoor',
-          'assets/images/family.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For children',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/child.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For pregnant women',
-          'To keep you and your baby healthy, reduce'
-              ' the intensity of your outdoor activities',
-          'assets/images/pregnant_woman.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For elderly people',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/old_man.png',
-        ),
-      );
+    recommendations.add(
+      Recommendation(
+        'For everyone',
+        'Reduce the intensity of your outdoor activities,'
+            ' Try to stay indoors until the air quality improves.',
+        'assets/images/family.png',
+      ),
+    );
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    recommendations
-      ..add(
-        Recommendation(
+    recommendations.add(
+      Recommendation(
           'For everyone',
-          'Reduce the intensity of your outdoor activities,'
-              ' If possible stay indoor',
+        'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
           'assets/images/family.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For children',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/child.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For pregnant women',
-          'To keep you and your baby healthy, reduce'
-              ' the intensity of your outdoor activities',
-          'assets/images/pregnant_woman.png',
-        ),
-      )
-      ..add(
-        Recommendation(
-          'For elderly people',
-          'Reduce the intensity of your outdoor activities',
-          'assets/images/old_man.png',
-        ),
+      ),
       );
   }
 
