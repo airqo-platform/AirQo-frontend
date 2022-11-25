@@ -194,6 +194,10 @@ class CustomColors {
 
   static Color get appColorBlue => const Color(0xff145DFF);
 
+  static Color get appColorValid => const Color(0xff007F5F);
+
+  static Color get appColorInvalid => const Color(0xffDE3617);
+
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
 
   static Color get appLoadingColor => const Color(0xffEBEAEF);
@@ -237,4 +241,6 @@ class CustomColors {
   static Color get aqiMaroon => const Color(0xffA51F3F);
 
   static Color get aqiMaroonTextColor => const Color(0xffDBA5B2);
+
+  static Color get emptyNotificationScreenTextColor => const Color(0xff6D7175);
 }

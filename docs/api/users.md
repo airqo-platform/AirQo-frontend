@@ -2,7 +2,7 @@
 
 This is a post request that returns an authentication token that can be used by the user to access other parts of the platform accordingly.
 
-Note that to login, **you need to have a registered account**, if you don't follow the [Request Access](../platform/join.md#request-access) guide to request and get one.
+Note that to login, **you need to have a registered account**, if you don't follow the [Request Access](platform/join.md#request-access) guide to request and get one.
 
 **Parameters**
 

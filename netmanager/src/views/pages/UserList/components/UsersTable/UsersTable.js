@@ -1,8 +1,8 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
-import clsx from "clsx";
-import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/styles";
+import React, { useState, useEffect } from 'react';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/styles';
 import {
   Card,
   Avatar,
@@ -14,54 +14,53 @@ import {
   TextField,
   DialogActions,
   ListItemText,
-  Divider,
-} from "@material-ui/core";
+  Divider
+} from '@material-ui/core';
 import { RemoveRedEye } from '@material-ui/icons';
 
-import { getInitials } from "utils/users";
-import { formatDateString } from "utils/dateTime";
-import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
-import usersStateConnector from "views/stateConnectors/usersStateConnector";
-import ConfirmDialog from "views/containers/ConfirmDialog";
-
+import { getInitials } from 'utils/users';
+import { formatDateString } from 'utils/dateTime';
+import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import ConfirmDialog from 'views/containers/ConfirmDialog';
 
 const roles = [
   {
-    value: "user",
-    label: "user",
+    value: 'user',
+    label: 'user'
   },
   {
-    value: "collaborator",
-    label: "collaborator",
+    value: 'collaborator',
+    label: 'collaborator'
   },
   {
-    value: "netmanager",
-    label: "netmanager",
+    value: 'netmanager',
+    label: 'netmanager'
   },
   {
-    value: "admin",
-    label: "admin",
-  },
+    value: 'admin',
+    label: 'admin'
+  }
 ];
 
 const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
-    padding: 0,
+    padding: 0
   },
   inner: {
-    minWidth: 1050,
+    minWidth: 1050
   },
   nameContainer: {
-    display: "flex",
-    alignItems: "center",
+    display: 'flex',
+    alignItems: 'center'
   },
   avatar: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(2)
   },
   actions: {
-    justifyContent: "flex-end",
-  },
+    justifyContent: 'flex-end'
+  }
 }));
 
 function withMyHook(Component) {
@@ -80,7 +79,7 @@ const UsersTable = (props) => {
    */
 
   const { className, mappeduserState, ...rest } = props;
-  const [userDelState, setUserDelState] = useState({open: false, user: {}})
+  const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
   const users = mappeduserState.users;
   const collaborators = mappeduserState.collaborators;
@@ -95,7 +94,7 @@ const UsersTable = (props) => {
   const handleUpdateUserChange = (field) => (event) => {
     event.preventDefault();
     setUpdatedUser({ ...updatedUser, [field]: event.target.value });
-  }
+  };
 
   const showMoreDetails = (user) => {
     props.mappedshowEditDialog(user);
@@ -104,7 +103,7 @@ const UsersTable = (props) => {
 
   const hideMoreDetailsDialog = () => {
     props.mappedhideEditDialog();
-    setShowMoreDetailsPopup(false)
+    setShowMoreDetailsPopup(false);
   };
 
   const showEditDialog = (userToEdit) => {
@@ -115,29 +114,29 @@ const UsersTable = (props) => {
   const hideEditDialog = () => {
     props.mappedhideEditDialog();
     setUpdatedUser({});
-    setShowEditPopup(false)
+    setShowEditPopup(false);
   };
 
   const submitEditUser = (e) => {
     e.preventDefault();
-    if (updatedUser.userName !== "") {
+    if (updatedUser.userName !== '') {
       const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
-      hideEditDialog()
+      hideEditDialog();
       props.mappedEditUser(data);
     }
   };
 
   const showDeleteDialog = (user) => {
-    setUserDelState({open: true, user})
+    setUserDelState({ open: true, user });
   };
 
   const hideDeleteDialog = () => {
-    setUserDelState({open: false, user: {}})
+    setUserDelState({ open: false, user: {} });
   };
 
   const deleteUser = () => {
     props.mappedConfirmDeleteUser(userDelState.user);
-    setUserDelState({open: false, user: {}})
+    setUserDelState({ open: false, user: {} });
   };
 
   const classes = useStyles();
@@ -148,225 +147,213 @@ const UsersTable = (props) => {
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
-        <CustomMaterialTable
-            title={"Users"}
-            userPreferencePaginationKey={"users"}
-            data={users}
-            columns={[
-              {
-                title: "Full Name",
-                render: (rowData) => {
-                  return (
-                      <div className={classes.nameContainer}>
-                        <Avatar className={classes.avatar} src={rowData.profilePicture}>
-                          {getInitials(
-                            `${rowData.firstName + " " + rowData.lastName}`
-                          )}
-                        </Avatar>
-                        <Typography variant="body1">
-                          {" "}
-                          {rowData.firstName + " " + rowData.lastName}
-                        </Typography>
-                      </div>
-                  )
-                }
-              },
-              {
-                title: "Email",
-                field: "email",
-              },
-              {
-                title: "Username",
-                field: "userName",
-              },
-              {
-                title: "Role",
-                field: "privilege",
-              },
-              {
-                title: "Joined",
-                field: "createdAt",
-                render: (candidate) => <span>{formatDateString(candidate.createdAt)}</span>
-              },
-              {
-                title: "More Details",                
-                render: (user) => <RemoveRedEye style={{color: "green"}} onClick={() => showMoreDetails(user)} />
-              },
-              {
-                title: "Action",
-                render: (user) => {
-                  return (
-                      <div>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}
-                      >
-                        Update
-                      </Button>
+      <CustomMaterialTable
+        title={'Users'}
+        userPreferencePaginationKey={'users'}
+        data={users}
+        columns={[
+          {
+            title: 'Full Name',
+            render: (rowData) => {
+              return (
+                <div className={classes.nameContainer}>
+                  <Avatar className={classes.avatar} src={rowData.profilePicture}>
+                    {getInitials(`${rowData.firstName + ' ' + rowData.lastName}`)}
+                  </Avatar>
+                  <Typography variant="body1">
+                    {' '}
+                    {rowData.firstName + ' ' + rowData.lastName}
+                  </Typography>
+                </div>
+              );
+            }
+          },
+          {
+            title: 'Email',
+            field: 'email'
+          },
+          {
+            title: 'Username',
+            field: 'userName'
+          },
+          {
+            title: 'Role',
+            field: 'privilege'
+          },
+          {
+            title: 'Joined',
+            field: 'createdAt',
+            render: (candidate) => (
+              <span>{candidate.createdAt ? formatDateString(candidate.createdAt) : '---'}</span>
+            )
+          },
+          {
+            title: 'More Details',
+            render: (user) => (
+              <RemoveRedEye style={{ color: 'green' }} onClick={() => showMoreDetails(user)} />
+            )
+          },
+          {
+            title: 'Action',
+            render: (user) => {
+              return (
+                <div>
+                  <Button color="primary" onClick={() => showEditDialog(user)}>
+                    Update
+                  </Button>
 
-                      <Button  style={{color: "red"}} onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>
-                      </div>
-                  )
-                }
-              }
-            ]}
-            options={{
-              search: true,
-              searchFieldAlignment: "left",
-              showTitle: false,
-            }}
-        />
+                  <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(user)}>
+                    Delete
+                  </Button>
+                </div>
+              );
+            }
+          }
+        ]}
+        options={{
+          search: true,
+          searchFieldAlignment: 'left',
+          showTitle: false
+        }}
+      />
 
       {/*************************** the more details dialog **********************************************/}
-      {editUser &&
-      <Dialog
+      {editUser && (
+        <Dialog
           open={showMoreDetailsPopup}
           onClose={hideMoreDetailsDialog}
           aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle>User request details</DialogTitle>
-        <DialogContent>
-            <div style={{ minWidth: 500 }} >
-                <ListItemText primary="Job Title" secondary={editUser.jobTitle || 'Not provided'} />
-                <Divider />
-                <ListItemText primary="Category" secondary={editUser.category || 'Not provided'} />
-                <Divider />
-                <ListItemText primary="Website" secondary={editUser.website || 'Not provided'} />
-                <Divider />
-                <ListItemText primary="Description" secondary={editUser.description || 'Not provided'} />
+        >
+          <DialogTitle>User request details</DialogTitle>
+          <DialogContent>
+            <div style={{ minWidth: 500 }}>
+              <ListItemText primary="Job Title" secondary={editUser.jobTitle || 'Not provided'} />
+              <Divider />
+              <ListItemText primary="Category" secondary={editUser.category || 'Not provided'} />
+              <Divider />
+              <ListItemText primary="Website" secondary={editUser.website || 'Not provided'} />
+              <Divider />
+              <ListItemText
+                primary="Description"
+                secondary={editUser.description || 'Not provided'}
+              />
             </div>
-        </DialogContent>
-        <DialogActions>
-          <div>
-            <Button
-                color="primary"
-                variant="outlined"
-                onClick={hideMoreDetailsDialog}
-            >
-              Close
-            </Button>
-          </div>
-        </DialogActions>
-      </Dialog>
-      }
-      
+          </DialogContent>
+          <DialogActions>
+            <div>
+              <Button color="primary" variant="outlined" onClick={hideMoreDetailsDialog}>
+                Close
+              </Button>
+            </div>
+          </DialogActions>
+        </Dialog>
+      )}
+
       {/*************************** the edit dialog **********************************************/}
-      {editUser &&
-      <Dialog
-          open={showEditPopup}
-          onClose={hideEditDialog}
-          aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <div>
-            <TextField
+      {editUser && (
+        <Dialog open={showEditPopup} onClose={hideEditDialog} aria-labelledby="form-dialog-title">
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogContent>
+            <div>
+              <TextField
                 margin="dense"
                 id="email"
                 name="Email Address"
                 type="text"
                 label="email"
                 variant="outlined"
-                value={updatedUser && updatedUser.email || editUser.email}
-                onChange={handleUpdateUserChange("email")}
+                value={(updatedUser && updatedUser.email) || editUser.email}
+                onChange={handleUpdateUserChange('email')}
                 fullWidth
-            />
-            <TextField
+              />
+              <TextField
                 margin="dense"
                 id="firstName"
                 name="firstName"
                 label="first name"
                 type="text"
-                value={updatedUser && updatedUser.firstName || editUser.firstName}
-                onChange={handleUpdateUserChange("firstName")}
+                value={(updatedUser && updatedUser.firstName) || editUser.firstName}
+                onChange={handleUpdateUserChange('firstName')}
                 variant="outlined"
                 fullWidth
-            />
-            <TextField
+              />
+              <TextField
                 margin="dense"
                 id="lastName"
                 label="last name"
                 name="lastName"
                 type="text"
-                value={updatedUser && updatedUser.lastName || editUser.lastName}
-                onChange={handleUpdateUserChange("lastName")}
+                value={(updatedUser && updatedUser.lastName) || editUser.lastName}
+                onChange={handleUpdateUserChange('lastName')}
                 variant="outlined"
                 fullWidth
-            />
-            <TextField
+              />
+              <TextField
                 margin="dense"
                 id="userName"
                 name="userName"
                 label="user name"
                 type="text"
-                value={updatedUser && updatedUser.userName || editUser.userName}
-                onChange={handleUpdateUserChange("userName")}
+                value={(updatedUser && updatedUser.userName) || editUser.userName}
+                onChange={handleUpdateUserChange('userName')}
                 variant="outlined"
                 fullWidth
-            />
-            <TextField
+              />
+              <TextField
                 id="privilege"
                 select
                 fullWidth
                 label="Role"
-                style={{marginTop: "15px"}}
-                value={updatedUser && updatedUser.privilege || editUser.privilege}
-                onChange={handleUpdateUserChange("privilege")}
+                style={{ marginTop: '15px' }}
+                value={(updatedUser && updatedUser.privilege) || editUser.privilege}
+                onChange={handleUpdateUserChange('privilege')}
                 SelectProps={{
                   native: true,
-                  style: {width: "100%", height: "50px"},
+                  style: { width: '100%', height: '50px' },
                   MenuProps: {
-                    className: classes.menu,
-                  },
+                    className: classes.menu
+                  }
                 }}
-
                 variant="outlined"
-            >
-              {roles.map((option) => (
+              >
+                {roles.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
-              ))}
-            </TextField>
-          </div>
-
-        </DialogContent>
-        <DialogActions>
-          <div>
-            <Button
-                color="primary"
-                variant="outlined"
-                onClick={hideEditDialog}
-            >
-              Cancel
-            </Button>
-            <Button
-                style={{margin: "0 15px"}}
+                ))}
+              </TextField>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <div>
+              <Button color="primary" variant="outlined" onClick={hideEditDialog}>
+                Cancel
+              </Button>
+              <Button
+                style={{ margin: '0 15px' }}
                 onClick={submitEditUser}
                 color="primary"
-                variant="contained">
-              Submit
-            </Button>
-          </div>
-
-        </DialogActions>
-      </Dialog>
-      }
+                variant="contained"
+              >
+                Submit
+              </Button>
+            </div>
+          </DialogActions>
+        </Dialog>
+      )}
       {/***************************************** deleting a user ***********************************/}
       <ConfirmDialog
-          title={"Delete User"}
-          open={userDelState.open}
-          message={
-            <span>
-              Are you sure you want to delete this user —
-              <strong>{userDelState.user.firstName}</strong>?
-            </span>
-          }
-          confirm={deleteUser}
-          close={hideDeleteDialog}
-          error
+        title={'Delete User'}
+        open={userDelState.open}
+        message={
+          <span>
+            Are you sure you want to delete this user —
+            <strong>{userDelState.user.firstName}</strong>?
+          </span>
+        }
+        confirm={deleteUser}
+        close={hideDeleteDialog}
+        error
       />
     </Card>
   );
@@ -376,7 +363,7 @@ UsersTable.propTypes = {
   className: PropTypes.string,
   users: PropTypes.array.isRequired,
   auth: PropTypes.object.isRequired,
-  fetchUsers: PropTypes.func.isRequired,
+  fetchUsers: PropTypes.func.isRequired
 };
 
 export default usersStateConnector(UsersTable);

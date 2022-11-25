@@ -31,6 +31,7 @@ class PhoneAuthWidget extends StatefulWidget {
 class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   DateTime? _exitTime;
   late BuildContext _loadingContext;
+  bool _keyboardVisible = false;
 
   @override
   void initState() {
@@ -44,6 +45,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
       body: WillPopScope(
@@ -54,11 +57,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           widget: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
             listener: (context, state) {
               return;
-            },
-            buildWhen: (previous, current) {
-              return current.blocStatus != BlocStatus.error &&
-                  current.blocStatus != BlocStatus.success &&
-                  current.blocStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               return Center(
@@ -94,7 +92,9 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                             listenWhen: (previous, current) {
                               return current.blocStatus == BlocStatus.error &&
-                                  current.error != AuthenticationError.none;
+                                  current.error != AuthenticationError.none &&
+                                  current.error !=
+                                      AuthenticationError.invalidPhoneNumber;
                             },
                           ),
                           BlocListener<PhoneAuthBloc, PhoneAuthState>(
@@ -125,31 +125,20 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: AutoSizeText(
-                          AuthMethod.phone.optionsText(state.authProcedure),
+                          state.blocStatus == BlocStatus.error &&
+                                  state.error ==
+                                      AuthenticationError.invalidPhoneNumber
+                              ? AuthMethod.phone.invalidInputMessage
+                              : AuthMethod.phone
+                                  .optionsText(state.authProcedure),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: CustomTextStyle.headline7(context),
                         ),
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          'We’ll send you a verification code',
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText2
-                              ?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.6),
-                              ),
-                        ),
+                      InputValidationCodeMessage(
+                        state.blocStatus != BlocStatus.error,
                       ),
                       const SizedBox(
                         height: 32,
@@ -179,6 +168,12 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             ),
                           ],
                         ),
+                      ),
+                      InputValidationErrorMessage(
+                        message: state.phoneNumber.inValidPhoneNumberMessage(),
+                        visible: state.blocStatus == BlocStatus.error &&
+                            state.error ==
+                                AuthenticationError.invalidPhoneNumber,
                       ),
                       const SizedBox(
                         height: 32,
@@ -228,31 +223,37 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () async {
-                          if (state.phoneNumber.isValidPhoneNumber()) {
-                            await showDialog<ConfirmationAction>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) {
-                                return AuthMethodDialog(
-                                  credentials:
-                                      '${state.countryCode} ${state.phoneNumber}',
-                                  authMethod: AuthMethod.phone,
-                                );
-                              },
-                            ).then(
-                              (action) => {
-                                if (action != null ||
-                                    action == ConfirmationAction.ok)
-                                  {
-                                    context.read<PhoneAuthBloc>().add(
-                                          InitiatePhoneNumberVerification(
-                                            context: context,
-                                          ),
-                                        ),
-                                  },
-                              },
-                            );
+                          if (!state.phoneNumber.isValidPhoneNumber()) {
+                            context
+                                .read<PhoneAuthBloc>()
+                                .add(const InvalidPhoneNumber());
+
+                            return;
                           }
+
+                          await showDialog<ConfirmationAction>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return AuthMethodDialog(
+                                credentials:
+                                    '${state.countryCode} ${state.phoneNumber}',
+                                authMethod: AuthMethod.phone,
+                              );
+                            },
+                          ).then(
+                            (action) => {
+                              if (action != null ||
+                                  action == ConfirmationAction.ok)
+                                {
+                                  context.read<PhoneAuthBloc>().add(
+                                        InitiatePhoneNumberVerification(
+                                          context: context,
+                                        ),
+                                      ),
+                                },
+                            },
+                          );
                         },
                         child: NextButton(
                           buttonColor: state.phoneNumber.isValidPhoneNumber()
@@ -261,19 +262,15 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         ),
                       ),
                       Visibility(
-                        visible: state.blocStatus != BlocStatus.editing,
-                        child: const SizedBox(
-                          height: 16,
+                        visible: !_keyboardVisible,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16, bottom: 12),
+                          child: state.authProcedure == AuthProcedure.login
+                              ? const LoginOptions(authMethod: AuthMethod.phone)
+                              : const SignUpOptions(
+                                  authMethod: AuthMethod.phone,
+                                ),
                         ),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus != BlocStatus.editing,
-                        child: state.authProcedure == AuthProcedure.login
-                            ? const LoginOptions(authMethod: AuthMethod.phone)
-                            : const SignUpOptions(authMethod: AuthMethod.phone),
-                      ),
-                      SizedBox(
-                        height: state.blocStatus == BlocStatus.editing ? 12 : 0,
                       ),
                     ],
                   ),

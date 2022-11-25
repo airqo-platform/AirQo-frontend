@@ -1,4 +1,4 @@
-import { stripTrailingSlash } from "../utils";
+import { stripTrailingSlash } from '../utils';
 
 const BASE_AUTH_SERVICE_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_AUTH_SERVICE_URL || process.env.REACT_APP_BASE_URL
@@ -35,3 +35,5 @@ export const CHART_DEFAULTS_URI = `${BASE_AUTH_SERVICE_URL}/users/defaults`;
 export const CONFIRM_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/confirm`;
 
 export const DELETE_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
+
+export const USER_FEEDBACK_URI = `${BASE_AUTH_SERVICE_URL}/users/feedback`;

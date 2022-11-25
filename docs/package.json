@@ -43,6 +43,7 @@
     "connect-livereload": "^0.6.1",
     "cp-file": "^7.0.0",
     "crypto-random-string": "^2.0.0",
+    "cypress": "^11.2.0",
     "debug": "^2.6.9",
     "decamelize": "^1.2.0",
     "decompress-response": "^3.3.0",

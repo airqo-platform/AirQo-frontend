@@ -4,7 +4,7 @@
 
 The AirQo Outdoor Air Monitor, also known as the Binos Outdoor Air monitor, is a low-cost air quality monitor that measures Particulate Matter PM2.5 and PM10, as well as ambient meteorological conditions such as humidity and atmospheric pressure. The monitor is locally built and uniquely designed to withstand environmental and physical conditions such as dust and extreme weather. Powered by either mains or solar, the monitor is optimised to work in settings characterised by unreliable power. It runs on a 2G GSM network configuration for IoT simards.
 
-![monitor image](../_media/monitor_1.png)
+<img src='_media/monitor_1.png' alt='monitor_image' />
 
 ## Technical Specifications
 
@@ -98,21 +98,6 @@ mounting. Before installation, take note of the following pre-installation preca
 - Mount the monitor at normal human breathing height (about 1.5-2m above the
   ground)
 
-### Scoping Considerations
-
-Air quality monitoring location selection often requires several site scoping
-considerations to be undertaken. These include;
-
-| Considerations                                | Description                                                                                                                                                                                                |
-| :-------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Local needs assessment                        | Planning, environmental priorities                                                                                                                                                                         |
-| Population distribution and density           | To ensure monitoring exposure assessment & other epidemiological studies can be carried out and large number of people have access to air quality data                                                     |
-| Location and nature of pollution sources      | Proximity to pollutions sources is vital in case one of the objective of monitoring is understanding the emission contributors e.g nature of economic activities, transportation setup & volume of traffic |
-| Land-use characteristics                      | Critical for understanding the air quality variations across the various land-use patterns, Commercial, background, residential, Industrial, slums,reserved areas, etc.                                    |
-| Terrain and Landforms                         | The nature of topography, terrain and landforms should be considered i.e. hill, mountain, vallies, green spaces, water bodies etc                                                                          |
-| Legal framework and monitoring infrastructure | Number of existing air quality monitors in the city/area, Types pollutants measured/monitored, Existing legal framework                                                                                    |
-| Weather and climate                           | Wind direction & speed, Temperature, rainfall, humidity levels                                                                                                                                             |
-
 ### Installation site guidelines
 
 The process of finding an appropriate place to site and install the AirQo outdoor air
@@ -141,7 +126,7 @@ sensor.
 
 ## Installation setup procedure
 
-![monitor installation procedure](../_media/monitor_2.png)
+<img src='_media/monitor_2.png' alt='monitor_installation_procedure' />
 
 ## Post-installation of the monitor
 
@@ -199,13 +184,13 @@ Optional tools: spare sensors
 - Check whether the cable from the panels is clearly plugged in the monitor.
 - Replace the batteries if issue is not resolved
 
-![Fixing power issues](../_media/monitor_3.png)
+<img src='_media/monitor_3.png' alt='fixing_power_issues' />
 
 #### Replacing the Sensors and battery
 
-![Replacing the sensors and battery](../_media/monitor_3.png)
+<img src='_media/monitor_3.png' alt='replacing_the_sensors_and_battery' />
 
 # Data Access
 
-To access the monitor data, you need to join the platform. Refer to the [join the platform guide](../platform/join.md#joining-the-platform).
-For analytics and data visualization, refer to the [analytics guide](../platform/analytics.md).
+To access the monitor data, you need to join the platform. Refer to the [join the platform guide](platform/join.md#joining-the-platform).
+For analytics and data visualization, refer to the [analytics guide](platform/analytics.md).
