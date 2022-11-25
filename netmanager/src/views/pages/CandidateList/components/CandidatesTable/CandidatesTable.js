@@ -62,7 +62,6 @@ const CandidatesTable = (props) => {
   const [openDel, setOpenDel] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
 
-  const [openRejectFeedbackPopup, setOpenRejectFeedbackPopup] = useState(false);
   const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
 
   const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
@@ -121,7 +120,7 @@ const CandidatesTable = (props) => {
 
   const onDenyBtnClick = (candidate) => () => {
     setCurrentCandidate(candidate);
-    setOpenRejectFeedbackPopup(true);
+    setOpenDel(true);
   };
 
   const confirmCandidate = () => {
@@ -173,6 +172,7 @@ const CandidatesTable = (props) => {
   };
 
   const modifyCandidate = (id, data) => {
+    setOpenDel(false);
     return updateCandidateApi(id, data)
       .then((res) => {
         props.fetchCandidates();
@@ -186,34 +186,6 @@ const CandidatesTable = (props) => {
       })
       .catch((err) => {
         dispatch(
-          updateMainAlert({
-            show: true,
-            message: err.response.data.message,
-            severity: 'error'
-          })
-        );
-      });
-  };
-
-  const sendUserFeedBack = async (id, email, subject, data) => {
-    setOpenDel(false);
-    setLoading(true);
-    const body = {
-      email: email,
-      subject: subject,
-      message: userFeedbackMessage
-    };
-
-    sendUserFeedbackApi(body)
-      .then((res) => {
-        setUserFeedbackMessage('');
-        modifyCandidate(id, data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setUserFeedbackMessage('');
-        setLoading(false);
-        return dispatch(
           updateMainAlert({
             show: true,
             message: err.response.data.message,
@@ -396,14 +368,7 @@ const CandidatesTable = (props) => {
         open={openDel}
         close={() => setOpenDel(false)}
         confirmBtnMsg={'Reject'}
-        confirm={() =>
-          sendUserFeedBack(
-            currentCandidate._id,
-            currentCandidate.email,
-            'Thank you for your interest in our Air Quality data',
-            { status: 'rejected' }
-          )
-        }
+        confirm={() => modifyCandidate(currentCandidate._id, { status: 'rejected' })}
         title={'Reject candidate'}
         message={
           'Are you sure you want to deny access to this candidate? This process can be reverted'
@@ -504,41 +469,6 @@ const CandidatesTable = (props) => {
           {mappeduserState.successMsg && !mappeduserState.isFetching && (
             <Button onClick={hideConfirmDialog}>Close</Button>
           )}
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        fullWidth
-        maxWidth={'sm'}
-        open={openRejectFeedbackPopup}
-        onClose={() => setOpenRejectFeedbackPopup(false)}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogContent>
-          <TextField
-            autoFocus
-            id="message"
-            onChange={(e) => setUserFeedbackMessage(e.target.value)}
-            label="Describe the reason for data access denial"
-            type="text"
-            multiline
-            rows={8}
-            variant="outlined"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenRejectFeedbackPopup(false)} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              setOpenRejectFeedbackPopup(false);
-              setOpenDel(true);
-            }}
-            color="primary"
-          >
-            Finish
-          </Button>
         </DialogActions>
       </Dialog>
       <Dialog
