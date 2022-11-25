@@ -5,16 +5,16 @@ import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<Recommendation> getHealthRecommendations(
+List<HealthTip> getHealthTips(
   double pm2_5,
   Pollutant _,
 ) {
-  // TODO add recommendations for pm10
-  final recommendations = <Recommendation>[];
+  // TODO add healthtips for pm10
+  final healthtips = <HealthTip>[];
   if (pm2_5 <= 12.09) {
     //good
-    recommendations.add(
-      Recommendation(
+    healthtips.add(
+      HealthTip(
         'For everyone',
         'It\'s a terrific day to go outside and exercise,'
             ' Reduce the number of car trips you make.',
@@ -23,23 +23,23 @@ List<Recommendation> getHealthRecommendations(
     );
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     // moderate
-    recommendations
+    healthtips
       ..add(
-        Recommendation(
+        HealthTip(
           'For everyone',
           'Today is a great day for outdoor activity.',
           'assets/images/family.png',
         ),
       )
       ..add(
-        Recommendation(
+        HealthTip(
           'For pregnant women',
           'Reduce the intensity of your outdoor activities to keep you and your baby healthy.',
           'assets/images/pregnant_woman.png',
         ),
       )
       ..add(
-        Recommendation(
+        HealthTip(
           'For elderly people',
           'Reduce the intensity of your outdoor activities.',
           'assets/images/old_man.png',
@@ -47,9 +47,9 @@ List<Recommendation> getHealthRecommendations(
       );
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    recommendations
+    healthtips
       ..add(
-        Recommendation(
+        HealthTip(
           'For people with respiratory issues',
           'Reduce strenuous exercise,'
               'Take it easy if you experience signs like coughing',
@@ -57,21 +57,21 @@ List<Recommendation> getHealthRecommendations(
         ),
       )
       ..add(
-        Recommendation(
+        HealthTip(
           'For children',
           'Reduce the intensity of your outdoor activities',
           'assets/images/child.png',
         ),
       )
       ..add(
-        Recommendation(
+        HealthTip(
           'For pregnant women',
           'Reduce the intensity of your outdoor activities to keep you and your baby healthy',
           'assets/images/pregnant_woman.png',
         ),
       )
       ..add(
-        Recommendation(
+        HealthTip(
           'For elderly people',
           'Reduce the intensity of your outdoor activities.',
           'assets/images/old_man.png',
@@ -79,8 +79,8 @@ List<Recommendation> getHealthRecommendations(
       );
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    recommendations.add(
-      Recommendation(
+    healthtips.add(
+      HealthTip(
         'For everyone',
         'Avoid activities that make you breathe more rapidly,'
             ' Today is the perfect day to spend indoors reading.',
@@ -89,8 +89,8 @@ List<Recommendation> getHealthRecommendations(
     );
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    recommendations.add(
-      Recommendation(
+    healthtips.add(
+      HealthTip(
         'For everyone',
         'Reduce the intensity of your outdoor activities,'
             ' Try to stay indoors until the air quality improves.',
@@ -99,8 +99,8 @@ List<Recommendation> getHealthRecommendations(
     );
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    recommendations.add(
-      Recommendation(
+    healthtips.add(
+      HealthTip(
           'For everyone',
         'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
           'assets/images/family.png',
@@ -108,7 +108,7 @@ List<Recommendation> getHealthRecommendations(
       );
   }
 
-  return recommendations;
+  return healthtips;
 }
 
 String pmToInfoDialog(double pm2_5) {
@@ -250,8 +250,8 @@ Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
   return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
-class Recommendation {
-  Recommendation(
+class HealthTip {
+  HealthTip(
     this.title,
     this.body,
     this.imageUrl,

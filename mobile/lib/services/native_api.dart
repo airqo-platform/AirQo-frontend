@@ -143,17 +143,17 @@ class ShareService {
   }
 
   static void shareMeasurementText(AirQualityReading airQualityReading) {
-    final recommendationList =
-        getHealthRecommendations(airQualityReading.pm2_5, Pollutant.pm2_5);
-    var recommendations = '';
-    for (final value in recommendationList) {
-      recommendations = '$recommendations\n- ${value.body}';
+    final healthTipList =
+        getHealthTips(airQualityReading.pm2_5, Pollutant.pm2_5);
+    var healthtips = '';
+    for (final value in healthTipList) {
+      healthtips = '$healthtips\n- ${value.body}';
     }
     Share.share(
       '${airQualityReading.name}, Current Air Quality.\n\n'
       'PM2.5 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 (${Pollutant.pm2_5.stringValue(airQualityReading.pm2_5)}) \n'
       'PM10 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 \n'
-      '$recommendations\n\n'
+      '$healthtips\n\n'
       'Source: AirQo App',
       subject: 'AirQo, ${airQualityReading.name}!',
     ).then(

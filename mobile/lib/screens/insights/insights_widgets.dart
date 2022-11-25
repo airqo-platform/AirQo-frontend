@@ -240,27 +240,27 @@ class InsightsAvatar extends StatelessWidget {
 class HealthTipsSection extends StatelessWidget {
   const HealthTipsSection({
     super.key,
-    required this.recommendations,
+    required this.healthtips,
   });
 
-  final List<Recommendation> recommendations;
+  final List<HealthTip> healthtips;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: recommendations.isEmpty ? 0 : 128,
+      height: healthtips.isEmpty ? 0 : 128,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           return Padding(
             padding: EdgeInsets.only(
               left: index == 0 ? 12.0 : 6.0,
-              right: index == (recommendations.length - 1) ? 12.0 : 6.0,
+              right: index == (healthtips.length - 1) ? 12.0 : 6.0,
             ),
-            child: RecommendationContainer(recommendations[index]),
+            child: HealthTipContainer(healthtips[index]),
           );
         },
-        itemCount: recommendations.length,
+        itemCount: healthtips.length,
       ),
     );
   }

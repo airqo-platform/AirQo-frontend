@@ -85,7 +85,7 @@ class SignUpSection extends StatelessWidget {
             padding: const EdgeInsets.only(left: 55.0, right: 55.0),
             child: AutoSizeText(
               'Create your account today and enjoy air quality'
-              ' updates and recommendations.',
+              ' updates and healthtips.',
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
