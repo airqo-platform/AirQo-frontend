@@ -32,11 +32,11 @@ jobs:
 
           while IFS= read -r file
           do
-            if [[ $file == docs/* ]]; then
+            if [[ $file == platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == platform/* ]]; then
+            if [[ $file == docs/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
@@ -75,7 +75,7 @@ jobs:
           browser: chrome
           record: true
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          CYPRESS_RECORD_KEY: ${{ secrets.ANALYTICS_PLATFORM_CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: code-coverage
 
@@ -104,7 +104,7 @@ jobs:
           browser: chrome
           record: true
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          CYPRESS_RECORD_KEY: ${{ secrets.DOCS_CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: code-coverage
 
