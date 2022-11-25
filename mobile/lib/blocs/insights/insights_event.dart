@@ -33,16 +33,16 @@ class SwitchInsightsPollutant extends InsightsEvent {
   List<Object?> get props => [pollutant];
 }
 
-class UpdateInsightsActiveIndex extends InsightsEvent {
-  const UpdateInsightsActiveIndex(this.index);
+class UpdateHistoricalChartIndex extends InsightsEvent {
+  const UpdateHistoricalChartIndex(this.index);
   final int index;
 
   @override
   List<Object?> get props => [index];
 }
 
-class UpdateForecastInsightsActiveIndex extends InsightsEvent {
-  const UpdateForecastInsightsActiveIndex(this.index);
+class UpdateForecastChartIndex extends InsightsEvent {
+  const UpdateForecastChartIndex(this.index);
   final int index;
 
   @override

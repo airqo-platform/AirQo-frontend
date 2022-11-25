@@ -47,47 +47,39 @@ class DailyInsightsTab extends StatelessWidget {
           return AppRefreshIndicator(
             sliverChildDelegate: SliverChildBuilderDelegate(
               (context, index) {
-                final items = [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        InsightsToggleBar(
-                          frequency: Frequency.daily,
-                          isEmpty: state.historicalCharts.isEmpty,
-                          pollutant: state.pollutant,
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RepaintBoundary(
-                          key: _globalKey,
-                          child: const DailyInsightsGraph(),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        InsightsActionBar(
-                          shareKey: _globalKey,
-                          airQualityReading: state.airQualityReading,
-                        ),
-                        const SizedBox(
-                          height: 32,
-                        ),
-                      ],
-                    ),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ListView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      InsightsToggleBar(
+                        frequency: Frequency.daily,
+                        isEmpty: state.historicalCharts.isEmpty,
+                        pollutant: state.pollutant,
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      RepaintBoundary(
+                        key: _globalKey,
+                        child: const DailyInsightsGraph(),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      InsightsActionBar(
+                        shareKey: _globalKey,
+                        airQualityReading: state.airQualityReading,
+                      ),
+                      const SizedBox(
+                        height: 32,
+                      ),
+                    ],
                   ),
-                  InsightsHealthTips(
-                    pollutant: state.pollutant,
-                    insight: state.featuredHistoricalInsight,
-                  ),
-                ];
-
-                return items[index];
+                );
               },
-              childCount: 2,
+              childCount: 1,
             ),
             onRefresh: () async {
               context

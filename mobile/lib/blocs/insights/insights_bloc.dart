@@ -18,8 +18,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     on<DeleteOldInsights>(_onDeleteOldInsights);
     on<ClearInsightsTab>(_onClearInsights);
     on<SwitchInsightsPollutant>(_onSwitchPollutant);
-    on<UpdateInsightsActiveIndex>(_onUpdateActiveIndex);
-    on<UpdateForecastInsightsActiveIndex>(_onUpdateForecastInsightsActiveIndex);
+    on<UpdateHistoricalChartIndex>(_onUpdateHistoricalChartIndex);
+    on<UpdateForecastChartIndex>(_onUpdateForecastChartIndex);
     on<UpdateSelectedInsight>(_onUpdateSelectedInsight);
     on<RefreshInsightsCharts>(_onRefreshInsights);
     on<SetScrolling>(_onSetScrolling);
@@ -37,6 +37,10 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         .toList();
 
     final charts = await _createCharts(chartData, frequency: Frequency.hourly);
+
+    if (charts.isEmpty) {
+      return;
+    }
 
     Map<String, dynamic> data = _onGetChartIndex(insightCharts: charts);
 
@@ -110,10 +114,12 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ToggleForecastData _,
     Emitter<InsightsState> emit,
   ) {
-    return emit(state.copyWith(
+    emit(state.copyWith(
       isShowingForecast: !state.isShowingForecast,
       pollutant: state.isShowingForecast ? state.pollutant : Pollutant.pm2_5,
     ));
+
+    return _updateHealthTips(emit);
   }
 
   Future<void> _onSetScrolling(
@@ -147,21 +153,70 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     return;
   }
 
-  Future<void> _onUpdateActiveIndex(
-    UpdateInsightsActiveIndex event,
+  void _onUpdateHistoricalChartIndex(
+    UpdateHistoricalChartIndex event,
     Emitter<InsightsState> emit,
-  ) async {
-    return emit(state.copyWith(
+  ) {
+    emit(state.copyWith(
       historicalChartIndex: event.index,
     ));
+
+    return _updateHealthTips(emit);
   }
 
-  Future<void> _onUpdateForecastInsightsActiveIndex(
-    UpdateForecastInsightsActiveIndex event,
+  void _onUpdateForecastChartIndex(
+    UpdateForecastChartIndex event,
     Emitter<InsightsState> emit,
-  ) async {
-    return emit(state.copyWith(
+  ) {
+    emit(state.copyWith(
       forecastChartIndex: event.index,
+    ));
+
+    return _updateHealthTips(emit);
+  }
+
+  void _updateHealthTips(Emitter<InsightsState> emit) {
+    if (state.frequency != Frequency.hourly) {
+      return;
+    }
+
+    int chartIndex;
+
+    Map<Pollutant, List<List<charts.Series<ChartData, String>>>> chart;
+
+    if (state.isShowingForecast) {
+      chartIndex = state.forecastChartIndex;
+      chart = state.forecastCharts;
+    } else {
+      chartIndex = state.historicalChartIndex;
+      chart = state.historicalCharts;
+    }
+
+    List<Recommendation> healthTips = [];
+    String healthTipsTitle = '';
+
+    ChartData chartData = chart[state.pollutant]![chartIndex].first.data.first;
+
+    chartData = chart[state.pollutant]![chartIndex]
+        .first
+        .data
+        .firstWhere((element) => element.available, orElse: () => chartData);
+
+    if (state.frequency == Frequency.hourly &&
+        chartData.available &&
+        (chartData.dateTime.isToday() || chartData.dateTime.isTomorrow())) {
+      healthTips = getHealthRecommendations(
+        chartData.pm2_5,
+        state.pollutant,
+      );
+      healthTipsTitle = chartData.dateTime.isToday()
+          ? 'Today’s health tips'
+          : 'Tomorrow’s health tips';
+    }
+
+    return emit(state.copyWith(
+      healthTips: healthTips,
+      healthTipsTitle: healthTipsTitle,
     ));
   }
 

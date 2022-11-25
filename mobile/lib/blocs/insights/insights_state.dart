@@ -17,6 +17,8 @@ class InsightsState extends Equatable {
     this.miniInsightsCharts = const {},
     this.scrollingGraphs = false,
     this.isShowingForecast = false,
+    this.healthTips = const [],
+    this.healthTipsTitle = '',
   });
 
   const InsightsState.initial({required Frequency frequency})
@@ -38,6 +40,8 @@ class InsightsState extends Equatable {
     required this.scrollingGraphs,
     required this.isShowingForecast,
     required this.featuredForecastInsight,
+    required this.healthTips,
+    required this.healthTipsTitle,
   });
 
   InsightsState copyWith({
@@ -55,13 +59,17 @@ class InsightsState extends Equatable {
     AirQualityReading? airQualityReading,
     InsightsStatus? insightsStatus,
     String? errorMessage,
+    String? healthTipsTitle,
     Frequency? frequency,
     bool? scrollingGraphs,
     bool? isShowingForecast,
+    List<Recommendation>? healthTips,
   }) {
     return InsightsState(
       siteId: siteId ?? this.siteId,
       historicalCharts: historicalCharts ?? this.historicalCharts,
+      healthTips: healthTips ?? this.healthTips,
+      healthTipsTitle: healthTipsTitle ?? this.healthTipsTitle,
       forecastCharts: forecastCharts ?? this.forecastCharts,
       miniInsightsCharts: miniInsightsCharts ?? this.miniInsightsCharts,
       airQualityReading: airQualityReading ?? this.airQualityReading,
@@ -98,6 +106,8 @@ class InsightsState extends Equatable {
   final Frequency frequency;
   final bool scrollingGraphs;
   final bool isShowingForecast;
+  final List<Recommendation> healthTips;
+  final String healthTipsTitle;
 
   @override
   List<Object?> get props => [
@@ -116,5 +126,7 @@ class InsightsState extends Equatable {
         forecastCharts,
         forecastChartIndex,
         featuredForecastInsight,
+        healthTips,
+        healthTipsTitle,
       ];
 }

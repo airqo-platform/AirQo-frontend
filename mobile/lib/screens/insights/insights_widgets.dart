@@ -692,7 +692,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                     !scrollToToday) {
                                   context
                                       .read<HourlyInsightsBloc>()
-                                      .add(UpdateInsightsActiveIndex(index));
+                                      .add(UpdateHistoricalChartIndex(index));
                                 }
                               },
                               child: const HourlyAnalyticsGraph(),
@@ -724,7 +724,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                     visibilityInfo.visibleFraction > 0.3 &&
                                     state.forecastChartIndex != index) {
                                   context.read<HourlyInsightsBloc>().add(
-                                        UpdateForecastInsightsActiveIndex(
+                                        UpdateForecastChartIndex(
                                           index,
                                         ),
                                       );
@@ -1038,7 +1038,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                                   !scrollToToday) {
                                 context
                                     .read<DailyInsightsBloc>()
-                                    .add(UpdateInsightsActiveIndex(index));
+                                    .add(UpdateHistoricalChartIndex(index));
                               }
                             },
                             child: const DailyAnalyticsGraph(),
@@ -1216,6 +1216,56 @@ class GraphAQILabel extends StatelessWidget {
   }
 }
 
+class HealthTipsWidget extends StatelessWidget {
+  const HealthTipsWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HourlyInsightsBloc, InsightsState>(
+      builder: (context, state) {
+        if (state.healthTips.isEmpty) {
+          return Container();
+        }
+
+        return ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                state.healthTipsTitle,
+                textAlign: TextAlign.left,
+                style: CustomTextStyle.headline7(context),
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            SizedBox(
+              height: 128,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: index == 0 ? 12.0 : 6.0,
+                      right:
+                          index == (state.healthTips.length - 1) ? 12.0 : 6.0,
+                    ),
+                    child: RecommendationContainer(state.healthTips[index]),
+                  );
+                },
+                itemCount: state.healthTips.length,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class InsightsHealthTips extends StatefulWidget {
   const InsightsHealthTips({
     super.key,
@@ -1236,51 +1286,59 @@ class _InsightsHealthTipsState extends State<InsightsHealthTips> {
   @override
   void initState() {
     super.initState();
-    if (widget.insight != null) {
+    final ChartData? chartData = widget.insight;
+    if (chartData != null &&
+        chartData.available &&
+        (chartData.dateTime.isToday() || chartData.dateTime.isTomorrow())) {
       recommendations = getHealthRecommendations(
-        widget.insight!.pm2_5,
+        chartData.pm2_5,
         widget.pollutant,
       );
-      title = widget.insight!.dateTime.isToday()
+      title = chartData.dateTime.isToday()
           ? 'Today’s health tips'
           : 'Tomorrow’s health tips';
+    } else {
+      recommendations = [];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            title,
-            textAlign: TextAlign.left,
-            style: CustomTextStyle.headline7(context),
+    return Visibility(
+      visible: recommendations.isNotEmpty,
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              title,
+              textAlign: TextAlign.left,
+              style: CustomTextStyle.headline7(context),
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 12.0 : 6.0,
-                  right: index == (recommendations.length - 1) ? 12.0 : 6.0,
-                ),
-                child: RecommendationContainer(recommendations[index]),
-              );
-            },
-            itemCount: recommendations.length,
+          const SizedBox(
+            height: 16,
           ),
-        ),
-      ],
+          SizedBox(
+            height: 128,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == 0 ? 12.0 : 6.0,
+                    right: index == (recommendations.length - 1) ? 12.0 : 6.0,
+                  ),
+                  child: RecommendationContainer(recommendations[index]),
+                );
+              },
+              itemCount: recommendations.length,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

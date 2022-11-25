@@ -80,10 +80,7 @@ class HourlyInsightsTab extends StatelessWidget {
                       ],
                     ),
                   ),
-                  InsightsHealthTips(
-                    pollutant: state.pollutant,
-                    insight: state.featuredHistoricalInsight,
-                  ),
+                  const HealthTipsWidget(),
                 ];
 
                 return items[index];
