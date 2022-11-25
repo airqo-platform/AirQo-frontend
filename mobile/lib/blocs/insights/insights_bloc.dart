@@ -23,85 +23,126 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     on<UpdateSelectedInsight>(_onUpdateSelectedInsight);
     on<RefreshInsightsCharts>(_onRefreshInsights);
     on<SetScrolling>(_onSetScrolling);
-    on<ToggleForecastData>(_onToggleForecast);
+    on<ToggleForecast>(_onToggleForecast);
   }
 
   Future<void> _updateForecastCharts(
     Emitter<InsightsState> emit,
   ) async {
-    final forecastData =
-        await AirQoDatabase().getForecastInsights(state.siteId);
-
-    final chartData = forecastData
-        .map((event) => ChartData.fromForecastInsight(event))
-        .toList();
-
-    final charts = await _createCharts(chartData, frequency: Frequency.hourly);
-
-    if (charts.isEmpty) {
+    if (state.frequency != Frequency.hourly) {
       return;
     }
 
-    Map<String, dynamic> data = _onGetChartIndex(insightCharts: charts);
+    final forecastData =
+        await AirQoDatabase().getForecastInsights(state.siteId);
+
+    if (forecastData.isEmpty) {
+      return;
+    }
+
+    DateTime now = DateTime.now();
+
+    List<ChartData> chartData = forecastData.map((event) {
+      ChartData data = ChartData.fromForecastInsight(event);
+      if (event.time.isBefore(now) ||
+          (event.time.isToday() && event.time.hour <= now.hour)) {
+        return ChartData.fromForecastInsight(event).copyWith(available: false);
+      }
+
+      return data;
+    }).toList();
+
+    final chartsData =
+        await _createCharts(chartData, frequency: Frequency.hourly);
+
+    Map<String, dynamic> data =
+        _getChartIndex(insightCharts: chartsData, forecastCharts: true);
 
     return emit(state.copyWith(
-      forecastCharts: charts,
+      forecastCharts: chartsData,
       featuredForecastInsight: data["selectedInsight"] as ChartData,
       forecastChartIndex: data["index"] as int,
     ));
   }
 
-  Map<String, dynamic> _onGetChartIndex({
+  Map<String, dynamic> _getChartIndex({
     Map<Pollutant, List<List<charts.Series<ChartData, String>>>>? insightCharts,
+    bool forecastCharts = false,
   }) {
     ChartData? selectedInsight;
-    int chartIndex;
-    int referenceChartIndex;
-    final airQualityReading = state.airQualityReading;
-    final DateTime comparisonTime =
-        airQualityReading == null ? DateTime.now() : airQualityReading.dateTime;
+    int? chartIndex;
 
-    if (state.frequency == Frequency.daily ||
-        (state.frequency == Frequency.hourly && state.isShowingForecast)) {
-      selectedInsight =
-          state.historicalCharts[state.pollutant]?.first.first.data.first;
-      chartIndex = state.historicalChartIndex;
-      referenceChartIndex = state.historicalChartIndex;
-      insightCharts = insightCharts ?? state.historicalCharts;
-    } else {
-      selectedInsight =
-          state.forecastCharts[state.pollutant]?.first.first.data.first;
-      chartIndex = state.forecastChartIndex;
-      referenceChartIndex = state.forecastChartIndex;
+    if (forecastCharts) {
+      Pollutant pollutant = Pollutant.pm2_5;
       insightCharts = insightCharts ?? state.forecastCharts;
-    }
 
-    for (final chart in insightCharts[state.pollutant]!) {
-      for (final chart_2 in chart.toList()) {
-        for (final chart_3 in chart_2.data) {
-          if (state.frequency == Frequency.hourly) {
-            if (chart_3.dateTime.isToday() &&
-                chart_3.dateTime.hour == comparisonTime.hour) {
-              chartIndex = insightCharts[state.pollutant]!.indexOf(chart);
-              selectedInsight = chart_3;
-              break;
-            }
-          } else if (state.frequency == Frequency.daily &&
-              chart_3.dateTime.day == comparisonTime.day) {
-            if (chart_3.dateTime.isToday()) {
-              chartIndex = insightCharts[state.pollutant]!.indexOf(chart);
-              selectedInsight = chart_3;
+      for (final pollutantChart in insightCharts[pollutant]!) {
+        for (final chart in pollutantChart.toList()) {
+          for (final chartData in chart.data) {
+            if (chartData.available) {
+              chartIndex = insightCharts[pollutant]!.indexOf(pollutantChart);
+              selectedInsight = chartData;
               break;
             }
           }
+          if (chartIndex != null) {
+            break;
+          }
         }
-        if (chartIndex != referenceChartIndex) {
+        if (chartIndex != null) {
           break;
         }
       }
-      if (chartIndex != referenceChartIndex) {
-        break;
+
+      chartIndex = chartIndex ?? state.forecastChartIndex;
+      selectedInsight =
+          selectedInsight ?? insightCharts[pollutant]?.first.first.data.first;
+    } else {
+      insightCharts = insightCharts ?? state.historicalCharts;
+
+      final airQualityReading = state.airQualityReading;
+      final DateTime comparisonTime = airQualityReading == null
+          ? DateTime.now()
+          : airQualityReading.dateTime;
+
+      for (final pollutantChart in insightCharts[state.pollutant]!) {
+        for (final chart in pollutantChart.toList()) {
+          for (final chartData in chart.data) {
+            bool matchesDate = false;
+
+            switch (state.frequency) {
+              case Frequency.daily:
+                if (chartData.dateTime.day == comparisonTime.day &&
+                    chartData.dateTime.month == comparisonTime.month) {
+                  matchesDate = true;
+                }
+                break;
+              case Frequency.hourly:
+                if (chartData.dateTime == comparisonTime) {
+                  matchesDate = true;
+                }
+                break;
+            }
+
+            if (matchesDate) {
+              chartIndex =
+                  insightCharts[state.pollutant]!.indexOf(pollutantChart);
+              selectedInsight = chartData;
+              break;
+            }
+          }
+          if (chartIndex != null) {
+            break;
+          }
+        }
+        if (chartIndex != null) {
+          break;
+        }
       }
+
+      chartIndex = chartIndex ?? state.historicalChartIndex;
+      selectedInsight = selectedInsight ??
+          insightCharts[state.pollutant]?.first.first.data.first;
     }
 
     return {
@@ -111,12 +152,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   }
 
   void _onToggleForecast(
-    ToggleForecastData _,
+    ToggleForecast _,
     Emitter<InsightsState> emit,
   ) {
+    final bool isShowingForecast = !state.isShowingForecast;
     emit(state.copyWith(
-      isShowingForecast: !state.isShowingForecast,
-      pollutant: state.isShowingForecast ? state.pollutant : Pollutant.pm2_5,
+      isShowingForecast: isShowingForecast,
+      pollutant: isShowingForecast ? Pollutant.pm2_5 : state.pollutant,
     ));
 
     return _updateHealthTips(emit);
@@ -350,7 +392,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       return;
     }
 
-    Map<String, dynamic> data = _onGetChartIndex(insightCharts: charts);
+    Map<String, dynamic> data = _getChartIndex(insightCharts: charts);
 
     emit(state.copyWith(
       historicalCharts: charts,

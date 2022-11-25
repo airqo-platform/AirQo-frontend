@@ -154,7 +154,6 @@ class AirqoApiClient {
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.insights,
-        timeout: const Duration(seconds: 15),
       );
 
       final List<HistoricalInsight> historicalData = [];
@@ -295,6 +294,7 @@ class AirqoApiClient {
           )
           .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
+        // TODO : use advanced decoding
         return json.decode(response.body);
       }
     } catch (exception, stackTrace) {

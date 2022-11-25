@@ -151,7 +151,7 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                   ),
                 ],
                 domainAxis: chartsYAxisScale(
-                  Frequency.hourly.staticTicks(),
+                  state.frequency.staticTicks(),
                 ),
                 primaryMeasureAxis: chartsXAxisScale(),
               ),
@@ -176,7 +176,7 @@ class ForecastAnalyticsGraph extends StatelessWidget {
         }
 
         final data =
-            state.forecastCharts[Pollutant.pm2_5]![state.forecastChartIndex];
+            state.forecastCharts[state.pollutant]![state.forecastChartIndex];
 
         return LayoutBuilder(
           builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -226,7 +226,7 @@ class ForecastAnalyticsGraph extends StatelessWidget {
                   ),
                 ],
                 domainAxis: chartsYAxisScale(
-                  Frequency.hourly.staticTicks(),
+                  state.frequency.staticTicks(),
                 ),
                 primaryMeasureAxis: chartsXAxisScale(),
               ),
@@ -436,7 +436,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   final GlobalKey _infoToolTipKey = GlobalKey();
   bool scrollToToday = true;
 
-  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemScrollController _historicalScrollController =
+      ItemScrollController();
   final ItemScrollController _forecastScrollController = ItemScrollController();
 
   void _jumpToChart() {
@@ -451,14 +452,14 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
     final chartIndex =
         context.read<HourlyInsightsBloc>().state.historicalChartIndex;
 
-    _itemScrollController.jumpTo(
+    _historicalScrollController.jumpTo(
       index: chartIndex,
     );
     setState(() => scrollToToday = false);
     context.read<HourlyInsightsBloc>().add(const SetScrolling(false));
   }
 
-  Future<void> _scrollToChart({Duration? duration}) async {
+  Future<void> _scrollToHistoricalChart({Duration? duration}) async {
     final state = context.read<HourlyInsightsBloc>().state;
 
     if (state.isShowingForecast) {
@@ -491,8 +492,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
     duration ??= const Duration(milliseconds: 500);
 
-    if (_itemScrollController.isAttached) {
-      await _itemScrollController
+    if (_historicalScrollController.isAttached) {
+      await _historicalScrollController
           .scrollTo(
         index: state.historicalChartIndex,
         duration: duration,
@@ -503,7 +504,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
       });
     } else {
       Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollToChart(duration: const Duration(milliseconds: 1));
+        _scrollToHistoricalChart(duration: const Duration(milliseconds: 1));
       });
     }
   }
@@ -523,11 +524,25 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
     context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
 
-    final ChartData selectedInsight =
-        data[state.forecastChartIndex].first.data.first;
-    context
-        .read<HourlyInsightsBloc>()
-        .add(UpdateSelectedInsight(selectedInsight));
+    ChartData? selectedInsight;
+
+    for (final pollutantChart
+        in state.forecastCharts[Pollutant.pm2_5]![state.forecastChartIndex]) {
+      for (final chartData in pollutantChart.data) {
+        if (chartData.available) {
+          selectedInsight = chartData;
+          break;
+        }
+      }
+      if (selectedInsight != null) {
+        break;
+      }
+    }
+
+    context.read<HourlyInsightsBloc>().add(
+          UpdateSelectedInsight(selectedInsight ??
+              data[state.forecastChartIndex].first.data.first),
+        );
 
     duration ??= const Duration(milliseconds: 500);
 
@@ -589,7 +604,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                           current.historicalChartIndex;
                     },
                     listener: (context, listenerState) {
-                      _scrollToChart();
+                      _scrollToHistoricalChart();
                     },
                   ),
                   BlocListener<HourlyInsightsBloc, InsightsState>(
@@ -604,7 +619,6 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                 ],
                 child: Container(),
               ),
-
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -698,7 +712,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                               child: const HourlyAnalyticsGraph(),
                             );
                           },
-                          itemScrollController: _itemScrollController,
+                          itemScrollController: _historicalScrollController,
                         ),
                       ),
                     ),
@@ -765,7 +779,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         const SizedBox(
                           width: 8.0,
                         ),
-                        MiniLoadingIndicator(
+                        CircularLoadingIndicator(
                           loading:
                               state.insightsStatus == InsightsStatus.refreshing,
                         ),
@@ -774,15 +788,12 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                   ],
                 ),
               ),
-
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Divider(
                   color: Color(0xffC4C4C4),
                 ),
               ),
-
-              // footer
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -796,7 +807,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                     child: InkWell(
                       onTap: () => context
                           .read<HourlyInsightsBloc>()
-                          .add(const ToggleForecastData()),
+                          .add(const ToggleForecast()),
                       child: Ink(
                         color: CustomColors.appColorBlue,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1079,7 +1090,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         const SizedBox(
                           width: 8.0,
                         ),
-                        MiniLoadingIndicator(
+                        CircularLoadingIndicator(
                           loading:
                               state.insightsStatus == InsightsStatus.refreshing,
                         ),
@@ -1266,83 +1277,6 @@ class HealthTipsWidget extends StatelessWidget {
   }
 }
 
-class InsightsHealthTips extends StatefulWidget {
-  const InsightsHealthTips({
-    super.key,
-    required this.insight,
-    required this.pollutant,
-  });
-  final ChartData? insight;
-  final Pollutant pollutant;
-
-  @override
-  State<InsightsHealthTips> createState() => _InsightsHealthTipsState();
-}
-
-class _InsightsHealthTipsState extends State<InsightsHealthTips> {
-  List<Recommendation> recommendations = [];
-  String title = '';
-
-  @override
-  void initState() {
-    super.initState();
-    final ChartData? chartData = widget.insight;
-    if (chartData != null &&
-        chartData.available &&
-        (chartData.dateTime.isToday() || chartData.dateTime.isTomorrow())) {
-      recommendations = getHealthRecommendations(
-        chartData.pm2_5,
-        widget.pollutant,
-      );
-      title = chartData.dateTime.isToday()
-          ? 'Today’s health tips'
-          : 'Tomorrow’s health tips';
-    } else {
-      recommendations = [];
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: recommendations.isNotEmpty,
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              title,
-              textAlign: TextAlign.left,
-              style: CustomTextStyle.headline7(context),
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          SizedBox(
-            height: 128,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    left: index == 0 ? 12.0 : 6.0,
-                    right: index == (recommendations.length - 1) ? 12.0 : 6.0,
-                  ),
-                  child: RecommendationContainer(recommendations[index]),
-                );
-              },
-              itemCount: recommendations.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class InsightsToggleBar extends StatelessWidget {
   const InsightsToggleBar({
     Key? key,
@@ -1367,7 +1301,7 @@ class InsightsToggleBar extends StatelessWidget {
               ),
         ),
         const Spacer(),
-        PopupMenuButton(
+        PopupMenuButton<Pollutant>(
           padding: EdgeInsets.zero,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
@@ -1572,46 +1506,28 @@ class PollutantToggleListOption extends StatelessWidget {
       tileColor: varyingPollutant == pollutant
           ? CustomColors.pollutantToggleBgColor
           : Colors.white,
-      title: PollutantToggle(
-        text: pollutantName,
-        textColor: textColor,
-      ),
-    );
-  }
-}
-
-class PollutantToggle extends StatelessWidget {
-  const PollutantToggle({
-    super.key,
-    required this.text,
-    required this.textColor,
-  });
-  final String text;
-  final Color textColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        children: <TextSpan>[
-          TextSpan(
-            text: 'PM',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: textColor,
-              height: 14 / 10,
+      title: RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+              text: 'PM',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+                height: 14 / 10,
+              ),
             ),
-          ),
-          TextSpan(
-            text: text,
-            style: TextStyle(
-              fontSize: 7,
-              fontWeight: FontWeight.w800,
-              color: textColor,
+            TextSpan(
+              text: pollutantName,
+              style: TextStyle(
+                fontSize: 7,
+                fontWeight: FontWeight.w800,
+                color: textColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

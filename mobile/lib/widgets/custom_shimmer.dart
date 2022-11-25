@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-class MiniLoadingIndicator extends StatelessWidget {
-  const MiniLoadingIndicator({
+class CircularLoadingIndicator extends StatelessWidget {
+  const CircularLoadingIndicator({
     super.key,
     required this.loading,
   });

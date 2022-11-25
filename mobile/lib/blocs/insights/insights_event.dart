@@ -71,8 +71,8 @@ class ClearInsightsTab extends InsightsEvent {
   List<Object?> get props => [];
 }
 
-class ToggleForecastData extends InsightsEvent {
-  const ToggleForecastData();
+class ToggleForecast extends InsightsEvent {
+  const ToggleForecast();
 
   @override
   List<Object?> get props => [];

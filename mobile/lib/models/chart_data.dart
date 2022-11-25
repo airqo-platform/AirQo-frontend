@@ -38,6 +38,17 @@ class ChartData extends Equatable {
   final String siteId;
   final Frequency frequency;
 
+  ChartData copyWith({bool? available}) {
+    return ChartData(
+      frequency: frequency,
+      available: available ?? this.available,
+      dateTime: dateTime,
+      siteId: siteId,
+      pm2_5: pm2_5,
+      pm10: pm10,
+    );
+  }
+
   @override
   List<Object?> get props => [dateTime, frequency, siteId];
 }
