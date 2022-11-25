@@ -1,4 +1,4 @@
-name: test-changes-made
+name: test-changes
 
 on:
   pull_request:
