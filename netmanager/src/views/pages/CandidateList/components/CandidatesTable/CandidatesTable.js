@@ -60,9 +60,12 @@ const CandidatesTable = (props) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
-  const [openMessagePopup, setOpenMessagePopup] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
+
+  const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
+
   const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
+  const [messageSubject, setMessageSubject] = useState('');
   const [isLoading, setLoading] = useState(false);
 
   const users = mappeduserState.candidates;
@@ -117,7 +120,7 @@ const CandidatesTable = (props) => {
 
   const onDenyBtnClick = (candidate) => () => {
     setCurrentCandidate(candidate);
-    setOpenMessagePopup(true);
+    setOpenDel(true);
   };
 
   const confirmCandidate = () => {
@@ -169,6 +172,7 @@ const CandidatesTable = (props) => {
   };
 
   const modifyCandidate = (id, data) => {
+    setOpenDel(false);
     return updateCandidateApi(id, data)
       .then((res) => {
         props.fetchCandidates();
@@ -191,32 +195,39 @@ const CandidatesTable = (props) => {
       });
   };
 
-  const sendUserFeedBack = async (id, email, subject, data) => {
-    setOpenDel(false);
+  const sendUserNewMessage = async (candidate) => {
     setLoading(true);
-    const body = {
-      email: email,
-      subject: subject,
-      message: userFeedbackMessage
-    };
+    if (messageSubject && userFeedbackMessage) {
+      const body = {
+        email: candidate.email,
+        subject: messageSubject,
+        message: userFeedbackMessage
+      };
 
-    sendUserFeedbackApi(body)
-      .then((res) => {
-        setUserFeedbackMessage('');
-        modifyCandidate(id, data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setUserFeedbackMessage('');
-        setLoading(false);
-        return dispatch(
-          updateMainAlert({
-            show: true,
-            message: err.response.data.message,
-            severity: 'error'
-          })
-        );
-      });
+      sendUserFeedbackApi(body)
+        .then((res) => {
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((err) => {
+          return dispatch(
+            updateMainAlert({
+              show: true,
+              message: err.response.data.message,
+              severity: 'error'
+            })
+          );
+        });
+
+      setUserFeedbackMessage('');
+      setOpenNewMessagePopup(false);
+      setLoading(false);
+    }
   };
 
   return (
@@ -321,6 +332,22 @@ const CandidatesTable = (props) => {
                 )}
               </div>
             )
+          },
+          {
+            title: 'Message',
+            render: (candidate) => (
+              <div>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setOpenNewMessagePopup(true);
+                    setCurrentCandidate(candidate);
+                  }}
+                >
+                  Send message
+                </Button>
+              </div>
+            )
           }
         ]}
         options={{
@@ -343,14 +370,7 @@ const CandidatesTable = (props) => {
         open={openDel}
         close={() => setOpenDel(false)}
         confirmBtnMsg={'Reject'}
-        confirm={() =>
-          sendUserFeedBack(
-            currentCandidate._id,
-            currentCandidate.email,
-            'Your data access request has been denied',
-            { status: 'rejected' }
-          )
-        }
+        confirm={() => modifyCandidate(currentCandidate._id, { status: 'rejected' })}
         title={'Reject candidate'}
         message={
           'Are you sure you want to deny access to this candidate? This process can be reverted'
@@ -456,32 +476,48 @@ const CandidatesTable = (props) => {
       <Dialog
         fullWidth
         maxWidth={'sm'}
-        open={openMessagePopup}
-        onClose={() => setOpenMessagePopup(false)}
+        open={openNewMessagePopup}
+        onClose={() => setOpenNewMessagePopup(false)}
         aria-labelledby="form-dialog-title"
       >
         <DialogContent>
-          <TextField
-            autoFocus
-            id="message"
-            onChange={(e) => setUserFeedbackMessage(e.target.value)}
-            label="Describe the reason for data access denial"
-            type="text"
-            multiline
-            rows={8}
-            variant="outlined"
-            fullWidth
-          />
+          <DialogContentText>Message Candidate</DialogContentText>
+          <div style={{ marginBottom: '16px' }}>
+            <TextField
+              autoFocus
+              id="subject"
+              onChange={(e) => setMessageSubject(e.target.value)}
+              label="Subject"
+              type="text"
+              variant="outlined"
+              fullWidth
+            />
+          </div>
+          <div>
+            <TextField
+              autoFocus
+              id="message"
+              onChange={(e) => setUserFeedbackMessage(e.target.value)}
+              label="Message Body"
+              type="text"
+              multiline
+              rows={8}
+              variant="outlined"
+              fullWidth
+            />
+          </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenMessagePopup(false)} color="primary">
+          <Button
+            disabled={isLoading}
+            onClick={() => setOpenNewMessagePopup(false)}
+            variant="outlined"
+          >
             Cancel
           </Button>
           <Button
-            onClick={() => {
-              setOpenMessagePopup(false);
-              setOpenDel(true);
-            }}
+            disabled={isLoading}
+            onClick={() => sendUserNewMessage(currentCandidate)}
             color="primary"
           >
             Finish
