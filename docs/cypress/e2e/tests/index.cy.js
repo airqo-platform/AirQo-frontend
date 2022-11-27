@@ -5,4 +5,8 @@ describe("hello world test", () => {
     it("test home", ()=>{
         cy.visit("https://staging-docs.airqo.net/#/")
     })
+
+    it("Verify ability to Search", ()=>{
+        cy.get(".input-wrap  > input").type("AirQo")
+    })
 });
