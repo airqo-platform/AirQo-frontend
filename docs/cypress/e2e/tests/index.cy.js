@@ -11,7 +11,10 @@ describe("Verify AirQo Documentation Home Page", () => {
   });
 
   it("Verify Header is present", () => {
-    cy.get("blockquote").first().should("be.exist");
+    cy.get("blockquote")
+      .first()
+      .should("be.exist")
+      .contains("Clean Air for all African Cities");
   });
 
   it("Verify Side Bar menu sections exist", () => {
