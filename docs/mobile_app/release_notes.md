@@ -2,6 +2,23 @@
 
 ---
 
+### iOS 2.0.13 & Android 2.0.11
+
+**What's new**
+
+- Terms and Privacy Policy.
+- Hotfix search feature.
+- Compressed images.
+- Error screens in the authentication process.
+
+**Changes**
+
+- Enhancement text color on notifications page.
+- Enhanced feedback feature.
+- Enhanced authentication and onboarding screens.
+
+---
+
 ### iOS 2.0.10 & Android 2.0.9
 
 **What's new**
