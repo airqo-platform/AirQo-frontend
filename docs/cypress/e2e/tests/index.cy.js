@@ -13,4 +13,12 @@ describe("hello world test", () => {
   it("Verify Header is present", () => {
     cy.get("blockquote").first().should("be.exist");
   });
+
+  it("Verify Side Bar menu sections exist", () => {
+    cy.get(".sidebar > .search").should("be.exist");
+
+    cy.get(".sidebar > .app-name").should("be.exist");
+
+    cy.get(".sidebar > .sidebar-nav").should("be.exist");
+  });
 });
