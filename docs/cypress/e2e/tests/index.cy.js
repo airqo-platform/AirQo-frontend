@@ -12,5 +12,11 @@ describe("hello world test", () => {
 
   it("Verify Destination of Edit On Github button", () => {
     cy.get("article[id=main]>p>a").invoke("removeAttr", "target").click();
+
+    cy.on("url:changed", (newUrl) => {
+      expect(newUrl).to.contain(
+        "https://github.com/airqo-platform/AirQo-frontend/blob/staging/docs"
+      );
+    });
   });
 });
