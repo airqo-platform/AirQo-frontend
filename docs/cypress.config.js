@@ -5,5 +5,6 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
+    chromeWebSecurity: false, //Skip Same Origin Policy to support tests that span multiple domains
   },
 });
