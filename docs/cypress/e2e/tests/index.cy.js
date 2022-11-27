@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
-describe("Verify AirQo Documentation Stack Home Page", () => {
+describe("Verify AirQo Documentation Home Page", () => {
   //block of tests
-  it("Verify AirQo Documentation Stack Home Page Loads successfully", () => {
+  it("Verify AirQo Documentation Home Page Loads successfully", () => {
     cy.visit("https://staging-docs.airqo.net/#/");
   });
 
