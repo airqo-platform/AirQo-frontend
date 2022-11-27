@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
-describe("hello world test", () => {
-    //block of tests
+describe("Verify AirQo Documentation Home Page", () => {
+
     it("test home", ()=>{
         cy.visit("https://staging-docs.airqo.net/#/")
     })
