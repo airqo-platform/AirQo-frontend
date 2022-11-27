@@ -2,7 +2,7 @@
 
 describe("Verify AirQo Documentation Stack Home Page", () => {
   //block of tests
-  it("test home", () => {
+  it("Verify AirQo Documentation Stack Home Page Loads successfully", () => {
     cy.visit("https://staging-docs.airqo.net/#/");
   });
 
