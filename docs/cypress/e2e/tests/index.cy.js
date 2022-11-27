@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-import { ReplaceUrl } from "../../../utils/index";
 
 describe("hello world test", () => {
   //block of tests
