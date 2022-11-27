@@ -52,6 +52,12 @@ extension AnalyticsListExt on List<Analytics> {
   }
 }
 
+extension AirQualityReadingListExt on List<AirQualityReading> {
+  sortByAirQuality() {
+    sort((a, b) => a.pm2_5.compareTo(b.pm2_5));
+  }
+}
+
 extension ProfileExt on Profile {
   String greetings() {
     final hour = DateTime.now().hour;

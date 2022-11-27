@@ -37,7 +37,7 @@ class AirQualityReading extends HiveObject {
       country: siteReading.country,
       name: siteReading.name,
       location: siteReading.location,
-      region: Region.fromString(siteReading.region),
+      region: siteReading.region,
       source: siteReading.source,
       dateTime: siteReading.dateTime,
       pm2_5: siteReading.pm2_5,
@@ -55,7 +55,7 @@ class AirQualityReading extends HiveObject {
       country: favouritePlace.location,
       name: favouritePlace.name,
       location: favouritePlace.location,
-      region: Region.fromString(''),
+      region: '',
       source: favouritePlace.location,
       dateTime: DateTime.now(),
       pm2_5: 0.0,
@@ -133,56 +133,60 @@ class AirQualityReading extends HiveObject {
     );
   }
 
-  @HiveField(0)
+  @HiveField(0, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String referenceSite;
 
-  @HiveField(1)
+  @HiveField(1, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double latitude;
 
-  @HiveField(2)
+  @HiveField(2, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double longitude;
 
-  @HiveField(3)
+  @HiveField(3, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String country;
 
-  @HiveField(4)
+  @HiveField(4, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String name;
 
-  @HiveField(5)
+  @HiveField(5, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String source;
 
-  @HiveField(6)
+  @HiveField(6, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String location;
 
-  @HiveField(7)
-  @RegionConverter()
-  final Region region;
+  // @HiveField(7)
+  // @RegionConverter()
+  // final Region region;
 
   @HiveField(8)
   final DateTime dateTime;
 
-  @HiveField(9)
+  @HiveField(9, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double pm2_5;
 
-  @HiveField(10)
+  @HiveField(10, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double pm10;
 
-  @HiveField(11)
+  @HiveField(11, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double distanceToReferenceSite;
 
-  @HiveField(12)
+  @HiveField(12, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String placeId;
+
+  @HiveField(13, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String region;
 
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
 }

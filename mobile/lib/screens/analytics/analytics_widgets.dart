@@ -265,8 +265,8 @@ class AnalyticsShareCard extends StatelessWidget {
   }
 }
 
-class AnalyticsCard extends StatefulWidget {
-  const AnalyticsCard(
+class AnalyticsCard extends StatelessWidget {
+  AnalyticsCard(
     this.airQualityReading,
     this.isRefreshing,
     this.showHelpTip, {
@@ -275,249 +275,6 @@ class AnalyticsCard extends StatefulWidget {
   final AirQualityReading airQualityReading;
   final bool isRefreshing;
   final bool showHelpTip;
-
-  @override
-  State<AnalyticsCard> createState() => _AnalyticsCardState();
-}
-
-class MapAnalyticsCard extends StatefulWidget {
-  const MapAnalyticsCard({
-    super.key,
-    required this.airQualityReading,
-  });
-  final AirQualityReading airQualityReading;
-
-  @override
-  State<MapAnalyticsCard> createState() => _MapAnalyticsCardState();
-}
-
-class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  final GlobalKey _shareWidgetKey = GlobalKey();
-  late final AirQualityReading _airQualityReading;
-
-  @override
-  void initState() {
-    super.initState();
-    _airQualityReading = widget.airQualityReading;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return ValueListenableBuilder<Box<AirQualityReading>>(
-      valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-          .listenable(keys: [_airQualityReading.placeId]),
-      builder: (context, box, widget) {
-        final airQualityReadings = box.values
-            .cast<AirQualityReading>()
-            .where((element) => element.placeId == _airQualityReading.placeId)
-            .toList();
-        var reading = _airQualityReading;
-        if (airQualityReadings.isNotEmpty) {
-          reading = _airQualityReading.copyWith(
-            dateTime: airQualityReadings.first.dateTime,
-            pm2_5: airQualityReadings.first.pm2_5,
-            pm10: airQualityReadings.first.pm10,
-          );
-        }
-
-        return Container(
-          constraints: const BoxConstraints(
-            maxHeight: 251,
-            minHeight: 251,
-            minWidth: 328,
-            maxWidth: 328,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(
-              Radius.circular(
-                16.0,
-              ),
-            ),
-            border: Border.fromBorderSide(
-              BorderSide(
-                color: Color(0xffC4C4C4),
-              ),
-            ),
-          ),
-          child: Stack(
-            children: [
-              RepaintBoundary(
-                key: _shareWidgetKey,
-                child: AnalyticsShareCard(airQualityReading: reading),
-              ),
-              InkWell(
-                onTap: () async => _goToInsights(),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(16.0),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Spacer(),
-                          InkWell(
-                            onTap: () {
-                              context
-                                  .read<MapBloc>()
-                                  .add(ShowRegionSites(region: reading.region));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                right: 12,
-                                top: 12,
-                                left: 20,
-                              ),
-                              child: SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: SvgPicture.asset(
-                                  'assets/icon/close.svg',
-                                  height: 20,
-                                  width: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          SizedBox(
-                            height: 104,
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                left: 24,
-                                right: 24,
-                              ),
-                              child: Row(
-                                children: [
-                                  AnalyticsAvatar(
-                                    airQualityReading: reading,
-                                  ),
-                                  const SizedBox(
-                                    width: 16.0,
-                                  ),
-                                  // TODO : investigate ellipsis
-                                  Flexible(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          reading.name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: CustomTextStyle.headline9(
-                                            context,
-                                          ),
-                                        ),
-                                        Text(
-                                          reading.location,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style:
-                                              CustomTextStyle.bodyText4(context)
-                                                  ?.copyWith(
-                                            color: appColors.appColorBlack
-                                                .withOpacity(0.3),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          height: 12,
-                                        ),
-                                        AqiStringContainer(
-                                          airQualityReading: reading,
-                                        ),
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                              constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width /
-                                                    3.2,
-                                              ),
-                                              child: Text(
-                                                dateToString(
-                                                  reading.dateTime,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 8,
-                                                  color: Colors.black
-                                                      .withOpacity(0.3),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(
-                              left: 24,
-                              right: 24,
-                            ),
-                            child: AnalyticsMoreInsights(),
-                          ),
-                          const SizedBox(height: 12),
-                          const Divider(
-                            color: Color(0xffC4C4C4),
-                            height: 1.0,
-                          ),
-                        ],
-                      ),
-                      Expanded(
-                        child: AnalyticsCardFooter(
-                          shareKey: _shareWidgetKey,
-                          airQualityReading: reading,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _goToInsights() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(_airQualityReading);
-        },
-      ),
-    );
-  }
-}
-
-class _AnalyticsCardState extends State<AnalyticsCard> {
   final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
 
@@ -537,11 +294,11 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           RepaintBoundary(
             key: _shareWidgetKey,
             child: AnalyticsShareCard(
-              airQualityReading: widget.airQualityReading,
+              airQualityReading: airQualityReading,
             ),
           ),
           InkWell(
-            onTap: () async => _goToInsights(),
+            onTap: () async => _goToInsights(context),
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -558,7 +315,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         onTap: () {
                           pmInfoDialog(
                             context,
-                            widget.airQualityReading.pm2_5,
+                            airQualityReading.pm2_5,
                           );
                         },
                         child: Padding(
@@ -593,7 +350,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             children: [
                               GestureDetector(
                                 child: AnalyticsAvatar(
-                                  airQualityReading: widget.airQualityReading,
+                                  airQualityReading: airQualityReading,
                                 ),
                                 onTap: () {
                                   ToolTip(context, ToolTipType.info).show(
@@ -610,13 +367,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.airQualityReading.name,
+                                      airQualityReading.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.headline9(context),
                                     ),
                                     Text(
-                                      widget.airQualityReading.location,
+                                      airQualityReading.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
@@ -630,8 +387,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     ),
                                     GestureDetector(
                                       child: AqiStringContainer(
-                                        airQualityReading:
-                                            widget.airQualityReading,
+                                        airQualityReading: airQualityReading,
                                       ),
                                       onTap: () {
                                         ToolTip(
@@ -658,7 +414,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           ),
                                           child: Text(
                                             dateToString(
-                                              widget.airQualityReading.dateTime,
+                                              airQualityReading.dateTime,
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -673,7 +429,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           width: 4.0,
                                         ),
                                         Visibility(
-                                          visible: widget.isRefreshing,
+                                          visible: isRefreshing,
                                           child: SvgPicture.asset(
                                             'assets/icon/loader.svg',
                                             semanticsLabel: 'loader',
@@ -710,7 +466,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                   Expanded(
                     child: AnalyticsCardFooter(
                       shareKey: _shareWidgetKey,
-                      airQualityReading: widget.airQualityReading,
+                      airQualityReading: airQualityReading,
                     ),
                   ),
                 ],
@@ -722,12 +478,12 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     );
   }
 
-  Future<void> _goToInsights() async {
+  Future<void> _goToInsights(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) {
-          return InsightsPage(widget.airQualityReading);
+          return InsightsPage(airQualityReading);
         },
       ),
     );

@@ -12,15 +12,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'map_view_widgets.dart';
 
-class MapView extends StatefulWidget {
+class MapView extends StatelessWidget {
   const MapView({super.key});
-
-  @override
-  State<MapView> createState() => _MapViewState();
-}
-
-class _MapViewState extends State<MapView> {
-  final double _bottomPadding = 0.15;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +21,7 @@ class _MapViewState extends State<MapView> {
       children: [
         Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * _bottomPadding,
+            bottom: MediaQuery.of(context).size.height * 0.15,
           ),
           child: const MapLandscape(),
         ),
@@ -47,8 +40,9 @@ class MapLandscape extends StatefulWidget {
 class _MapLandscapeState extends State<MapLandscape> {
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
+  final double zoom = 6;
   final _defaultCameraPosition =
-      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
+      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6);
 
   @override
   Widget build(BuildContext context) {
@@ -82,41 +76,43 @@ class _MapLandscapeState extends State<MapLandscape> {
     await _loadTheme();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = BlocProvider.of<MapBloc>(context).state;
-      _updateMapState(state);
-      _listenToAirQualityReadingChanges();
+      _loadMapState(state);
+      _listenToMarkerChanges();
     });
   }
 
-  LatLngBounds _getBounds(List<Marker> markers) {
-    final latitudes =
-        markers.map<double>((marker) => marker.position.latitude).toList();
-    final longitudes =
-        markers.map<double>((marker) => marker.position.longitude).toList();
-
-    final topMostMarker = longitudes.reduce(max);
-    final rightMostMarker = latitudes.reduce(max);
-    final leftMostMarker = latitudes.reduce(min);
-    final bottomMostMarker = longitudes.reduce(min);
-
-    return LatLngBounds(
-      northeast: LatLng(rightMostMarker, topMostMarker),
-      southwest: LatLng(leftMostMarker, bottomMostMarker),
-    );
+  void _listenToMarkerChanges() {
+    context.read<MapBloc>().stream.listen(_loadMapState);
   }
 
-  void _listenToAirQualityReadingChanges() {
-    context.read<MapBloc>().stream.listen(_updateMapState);
-  }
-
-  Future<void> _updateMapState(MapState state) async {
-    if (state is AllSitesState) {
-      await _setMarkers(state.airQualityReadings);
-    } else if (state is RegionSitesState) {
-      await _setMarkers(state.airQualityReadings);
-    } else if (state is SingleSiteState) {
-      await _setMarkers([state.airQualityReading]);
-    } else if (state is SearchSitesState) {
-      await _setMarkers(state.airQualityReadings);
+  Future<void> _loadMapState(MapState mapState) async {
+    switch (mapState.mapStatus) {
+      case MapStatus.initial:
+        // TODO: Handle this case.
+        break;
+      case MapStatus.error:
+        // TODO: Handle this case.
+        break;
+      case MapStatus.noAirQuality:
+        // TODO: Handle this case.
+        break;
+      case MapStatus.showingFeaturedSite:
+        final AirQualityReading? airQualityReading =
+            mapState.featuredSiteReading;
+        if (airQualityReading == null) {
+          context.read<MapBloc>().add(const InitializeMapState());
+          break;
+        }
+        await _setMarkers([airQualityReading]);
+        break;
+      case MapStatus.showingCountries:
+      case MapStatus.showingRegions:
+      case MapStatus.showingRegionSites:
+        await _setMarkers(mapState.featuredAirQualityReadings);
+        break;
+      case MapStatus.searching:
+        // TODO: Handle this case.
+        break;
     }
   }
 
@@ -156,10 +152,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         ),
         onTap: () {
           if (!mounted) return;
-
-          context
-              .read<MapBloc>()
-              .add(ShowSite(airQualityReading: airQualityReading));
+          context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
         },
       );
       markers[airQualityReading.placeId] = marker;
@@ -174,7 +167,7 @@ class _MapLandscapeState extends State<MapLandscape> {
 
         final cameraPosition = CameraPosition(
           target: latLng,
-          zoom: 100,
+          zoom: zoom,
         );
 
         await controller.animateCamera(
@@ -186,12 +179,29 @@ class _MapLandscapeState extends State<MapLandscape> {
         );
 
         await controller.animateCamera(
-          CameraUpdate.newLatLngBounds(latLngBounds, 40.0),
+          CameraUpdate.newLatLngBounds(latLngBounds, 80.0),
         );
       }
 
       setState(() => _markers = markers);
     }
+  }
+
+  LatLngBounds _getBounds(List<Marker> markers) {
+    final latitudes =
+        markers.map<double>((marker) => marker.position.latitude).toList();
+    final longitudes =
+        markers.map<double>((marker) => marker.position.longitude).toList();
+
+    final topMostMarker = longitudes.reduce(max);
+    final rightMostMarker = latitudes.reduce(max);
+    final leftMostMarker = latitudes.reduce(min);
+    final bottomMostMarker = longitudes.reduce(min);
+
+    return LatLngBounds(
+      northeast: LatLng(rightMostMarker, topMostMarker),
+      southwest: LatLng(leftMostMarker, bottomMostMarker),
+    );
   }
 }
 
@@ -220,40 +230,53 @@ class MapDragSheet extends StatelessWidget {
                 SearchWidget(),
                 BlocBuilder<MapBloc, MapState>(
                   builder: (context, state) {
-                    if (state is MapLoadingState) {
-                      return const SearchLoadingWidget();
+                    switch (state.mapStatus) {
+                      case MapStatus.initial:
+                        // TODO replace with initialize button
+                        break;
+                      case MapStatus.error:
+                        // TODO: Handle this case.
+                        break;
+                      case MapStatus.noAirQuality:
+                        // TODO replace with error no air quality reading
+                        break;
+                      case MapStatus.showingCountries:
+                        return const AllCountries();
+                      case MapStatus.showingRegions:
+                        return const CountryRegions();
+                      case MapStatus.showingFeaturedSite:
+                        final AirQualityReading? airQualityReading =
+                            state.featuredSiteReading;
+                        if (airQualityReading == null) {
+                          context
+                              .read<MapBloc>()
+                              .add(const InitializeMapState());
+                          break;
+                        }
+                        // TODO replace with error no air quality reading
+
+                        return FeaturedSiteReading(airQualityReading);
+                      case MapStatus.showingRegionSites:
+                        return const RegionSites();
                     }
 
-                    if (state is MapSearchCompleteState) {
-                      return SearchResults(
-                        searchResults: state.searchResults,
-                      );
-                    }
+                    // if (state is MapLoadingState) {
+                    //   return const SearchLoadingWidget();
+                    // }
+                    //
+                    // if (state is MapSearchCompleteState) {
+                    //   return SearchResults(
+                    //     searchResults: state.searchResults,
+                    //   );
+                    // }
+                    //
+                    // if (state is SearchSitesState) {
+                    //   return SearchSites(
+                    //     airQualityReadings: state.airQualityReadings,
+                    //   );
+                    // }
 
-                    if (state is AllSitesState) {
-                      return const AllSites();
-                    }
-
-                    if (state is RegionSitesState) {
-                      return RegionSites(
-                        airQualityReadings: state.airQualityReadings,
-                        region: state.region,
-                      );
-                    }
-
-                    if (state is SingleSiteState) {
-                      return SingleSite(
-                        airQualityReading: state.airQualityReading,
-                      );
-                    }
-
-                    if (state is SearchSitesState) {
-                      return SearchSites(
-                        airQualityReadings: state.airQualityReadings,
-                      );
-                    }
-
-                    return const AllSites();
+                    return const AllCountries();
                   },
                 ),
               ],

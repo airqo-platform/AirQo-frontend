@@ -1,66 +1,79 @@
 part of 'map_bloc.dart';
 
-abstract class MapState extends Equatable {
-  const MapState();
+enum MapStatus {
+  initial,
+  error,
+  noAirQuality,
+  showingCountries,
+  showingRegions,
+  showingFeaturedSite,
+  showingRegionSites,
+  searching,
 }
 
-class AllSitesState extends MapState {
-  const AllSitesState({required this.airQualityReadings});
-
-  final List<AirQualityReading> airQualityReadings;
-  @override
-  List<Object?> get props => [];
-}
-
-class MapLoadingState extends MapState {
-  @override
-  List<Object?> get props => [];
-}
-
-class MapSearchCompleteState extends MapState {
-  const MapSearchCompleteState({
-    required this.searchResults,
+class MapState extends Equatable {
+  const MapState._({
+    this.countries = const [],
+    this.regions = const [],
+    this.featuredAirQualityReadings = const [],
+    this.airQualityReadings = const [],
+    this.featuredSiteReading,
+    this.mapStatus = MapStatus.initial,
+    this.featuredRegion = '',
+    this.featuredCountry = '',
   });
 
-  final List<SearchResultItem> searchResults;
-
-  @override
-  List<Object?> get props => [];
-}
-
-class RegionSitesState extends MapState {
-  const RegionSitesState({
-    required this.airQualityReadings,
-    required this.region,
+  const MapState({
+    this.countries = const [],
+    this.regions = const [],
+    this.featuredAirQualityReadings = const [],
+    this.airQualityReadings = const [],
+    this.featuredSiteReading,
+    this.mapStatus = MapStatus.initial,
+    this.featuredRegion = '',
+    this.featuredCountry = '',
   });
 
+  const MapState.initial() : this._();
+
+  MapState copyWith(
+      {MapStatus? mapStatus,
+      List<String>? countries,
+      List<String>? regions,
+      List<AirQualityReading>? featuredAirQualityReadings,
+      AirQualityReading? featuredSiteReading,
+      String? featuredRegion,
+      String? featuredCountry,
+      List<AirQualityReading>? airQualityReadings}) {
+    return MapState(
+      featuredSiteReading: featuredSiteReading ?? this.featuredSiteReading,
+      featuredAirQualityReadings:
+          featuredAirQualityReadings ?? this.featuredAirQualityReadings,
+      mapStatus: mapStatus ?? this.mapStatus,
+      featuredRegion: featuredRegion ?? this.featuredRegion,
+      regions: regions ?? this.regions,
+      featuredCountry: featuredCountry ?? this.featuredCountry,
+      countries: countries ?? this.countries,
+      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+    );
+  }
+
+  final MapStatus mapStatus;
+  final List<String> countries;
+  final List<String> regions;
+  final List<AirQualityReading> featuredAirQualityReadings;
+  final String featuredCountry;
+  final String featuredRegion;
+  final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
-  final Region region;
 
   @override
-  List<Object?> get props => [];
-}
-
-class SingleSiteState extends MapState {
-  const SingleSiteState({required this.airQualityReading});
-
-  final AirQualityReading airQualityReading;
-  @override
-  List<Object?> get props => [];
-}
-
-class SearchSitesState extends MapState {
-  const SearchSitesState({required this.airQualityReadings});
-
-  final List<AirQualityReading> airQualityReadings;
-  @override
-  List<Object?> get props => [];
-}
-
-class NoAirQualityState extends MapState {
-  const NoAirQualityState({required this.message});
-
-  final String message;
-  @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+        featuredSiteReading,
+        featuredAirQualityReadings,
+        regions,
+        countries,
+        mapStatus,
+        airQualityReadings,
+      ];
 }

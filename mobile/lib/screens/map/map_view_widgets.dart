@@ -6,6 +6,7 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -16,9 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import '../insights/insights_page.dart';
 
 class DraggingHandle extends StatelessWidget {
-  const DraggingHandle({
-    super.key,
-  });
+  const DraggingHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +33,7 @@ class DraggingHandle extends StatelessWidget {
 }
 
 class RegionAvatar extends StatelessWidget {
-  const RegionAvatar({
-    super.key,
-  });
+  const RegionAvatar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +92,7 @@ class SiteTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       onTap: () {
-        context
-            .read<MapBloc>()
-            .add(ShowSite(airQualityReading: airQualityReading));
+        context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
       },
       title: AutoSizeText(
         airQualityReading.name,
@@ -304,12 +299,9 @@ class EmptyView extends StatelessWidget {
   }
 }
 
-class RegionTile extends StatelessWidget {
-  const RegionTile({
-    super.key,
-    required this.region,
-  });
-  final Region region;
+class CountryTile extends StatelessWidget {
+  const CountryTile(this.country, {super.key});
+  final String country;
 
   @override
   Widget build(BuildContext context) {
@@ -317,16 +309,175 @@ class RegionTile extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
       onTap: () {
-        context.read<MapBloc>().add(ShowRegionSites(region: region));
+        context.read<MapBloc>().add(ShowCountryRegions(country));
       },
       title: AutoSizeText(
-        region.toString(),
+        country.toTitleCase(),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.headline8(context),
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
+      ),
+    );
+  }
+}
+
+class AllCountries extends StatelessWidget {
+  const AllCountries({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                padding: index == 0
+                    ? const EdgeInsets.only(top: 5)
+                    : EdgeInsets.zero,
+                child: CountryTile(state.countries[index]),
+              );
+            },
+            itemCount: state.countries.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CountryRegions extends StatelessWidget {
+  const CountryRegions({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                padding: index == 0
+                    ? const EdgeInsets.only(top: 5)
+                    : EdgeInsets.zero,
+                child: RegionTile(
+                  region: state.regions[index],
+                  country: state.featuredCountry,
+                ),
+              );
+            },
+            itemCount: state.regions.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RegionSites extends StatelessWidget {
+  const RegionSites({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return MediaQuery.removePadding(
+            removeTop: true,
+            context: context,
+            child: ListView(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                const SizedBox(
+                  height: 10,
+                ),
+                Visibility(
+                  visible: state.featuredAirQualityReadings.isNotEmpty,
+                  child: Text(
+                    state.featuredRegion.toTitleCase(),
+                    style: CustomTextStyle.overline1(context)?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.32),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: state.featuredAirQualityReadings.isNotEmpty,
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      controller: ScrollController(),
+                      itemBuilder: (context, index) => SiteTile(
+                        airQualityReading:
+                            state.featuredAirQualityReadings[index],
+                      ),
+                      itemCount: state.featuredAirQualityReadings.length,
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: state.featuredAirQualityReadings.isEmpty,
+                  child: EmptyView(
+                    title: state.featuredRegion.toTitleCase(),
+                    topBars: false,
+                    bodyInnerText: 'region',
+                    showRegions: () {
+                      context.read<MapBloc>().add(const InitializeMapState());
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RegionTile extends StatelessWidget {
+  const RegionTile({
+    super.key,
+    required this.region,
+    required this.country,
+  });
+  final String region;
+  final String country;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: const RegionAvatar(),
+      onTap: () {
+        context.read<MapBloc>().add(ShowRegionSites(region));
+      },
+      title: AutoSizeText(
+        region.toTitleCase(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        'Uganda',
+        country.toTitleCase(),
         style: CustomTextStyle.bodyText4(context)?.copyWith(
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
@@ -341,104 +492,8 @@ class RegionTile extends StatelessWidget {
   }
 }
 
-class AllSites extends StatelessWidget {
-  const AllSites({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: const <Widget>[
-          SizedBox(
-            height: 5,
-          ),
-          RegionTile(
-            region: Region.central,
-          ),
-          RegionTile(
-            region: Region.western,
-          ),
-          RegionTile(
-            region: Region.eastern,
-          ),
-          RegionTile(
-            region: Region.northern,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RegionSites extends StatelessWidget {
-  const RegionSites({
-    super.key,
-    required this.airQualityReadings,
-    required this.region,
-  });
-
-  final List<AirQualityReading> airQualityReadings;
-  final Region region;
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-          Visibility(
-            visible: airQualityReadings.isNotEmpty,
-            child: Text(
-              region.toString(),
-              style: CustomTextStyle.overline1(context)?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.32),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: airQualityReadings.isNotEmpty,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: ListView.builder(
-                shrinkWrap: true,
-                controller: ScrollController(),
-                itemBuilder: (context, index) => SiteTile(
-                  airQualityReading: airQualityReadings[index],
-                ),
-                itemCount: airQualityReadings.length,
-              ),
-            ),
-          ),
-          Visibility(
-            visible: airQualityReadings.isEmpty,
-            child: EmptyView(
-              title: region.toString(),
-              topBars: false,
-              bodyInnerText: 'region',
-              showRegions: () {
-                context.read<MapBloc>().add(const ShowAllSites());
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SingleSite extends StatelessWidget {
-  const SingleSite({super.key, required this.airQualityReading});
+class FeaturedSiteReading extends StatelessWidget {
+  const FeaturedSiteReading(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
 
@@ -454,10 +509,189 @@ class SingleSite extends StatelessWidget {
         physics: const ScrollPhysics(),
         controller: ScrollController(),
         children: <Widget>[
-          MapAnalyticsCard(
-            airQualityReading: airQualityReading,
+          MapAnalyticsCard(airQualityReading),
+        ],
+      ),
+    );
+  }
+}
+
+class MapAnalyticsCard extends StatelessWidget {
+  MapAnalyticsCard(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+  final GlobalKey _shareWidgetKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
+    return Container(
+      constraints: const BoxConstraints(
+        maxHeight: 251,
+        minHeight: 251,
+      ),
+      color: Colors.white,
+      child: Stack(
+        children: [
+          RepaintBoundary(
+            key: _shareWidgetKey,
+            child: AnalyticsShareCard(airQualityReading: airQualityReading),
+          ),
+          InkWell(
+            onTap: () async => _goToInsights(context),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(16.0),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          context
+                              .read<MapBloc>()
+                              .add(ShowRegionSites(airQualityReading.region));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            right: 12,
+                            top: 12,
+                            left: 20,
+                          ),
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: SvgPicture.asset(
+                              'assets/icon/close.svg',
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 104,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            children: [
+                              AnalyticsAvatar(
+                                airQualityReading: airQualityReading,
+                              ),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              // TODO : investigate ellipsis
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      airQualityReading.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.headline9(
+                                        context,
+                                      ),
+                                    ),
+                                    Text(
+                                      airQualityReading.location,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.bodyText4(context)
+                                          ?.copyWith(
+                                        color: appColors.appColorBlack
+                                            .withOpacity(0.3),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    AqiStringContainer(
+                                      airQualityReading: airQualityReading,
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                3.2,
+                                          ),
+                                          child: Text(
+                                            dateToString(
+                                              airQualityReading.dateTime,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              color:
+                                                  Colors.black.withOpacity(0.3),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: AnalyticsMoreInsights(),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(
+                        color: Color(0xffC4C4C4),
+                        height: 1.0,
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: AnalyticsCardFooter(
+                      shareKey: _shareWidgetKey,
+                      airQualityReading: airQualityReading,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _goToInsights(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return InsightsPage(airQualityReading);
+        },
       ),
     );
   }
@@ -665,7 +899,7 @@ class SearchWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MapBloc, MapState>(
       builder: (context, state) {
-        if (state is SingleSiteState) {
+        if (state.mapStatus == MapStatus.showingFeaturedSite) {
           return const SizedBox();
         }
 
@@ -690,7 +924,7 @@ class SearchWidget extends StatelessWidget {
                         .add(MapSearchTermChanged(searchTerm: value));
                   },
                   onTap: () {
-                    context.read<MapBloc>().add(const MapSearchReset());
+                    context.read<MapBloc>().add(const InitializeSearch());
                   },
                   style: Theme.of(context).textTheme.caption?.copyWith(
                         fontSize: 16,
@@ -756,7 +990,10 @@ class SearchWidget extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           _searchController.text = '';
-                          context.read<MapBloc>().add(const ShowAllSites());
+
+                          context
+                              .read<MapBloc>()
+                              .add(const InitializeMapState());
                         },
                         child: Container(
                           height: 32,
