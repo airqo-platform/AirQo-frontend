@@ -72,10 +72,7 @@ class MapCardWidget extends StatelessWidget {
           topRight: Radius.circular(16),
         ),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: widget,
-      ),
+      child: widget,
     );
   }
 }
@@ -548,41 +545,47 @@ class MapAnalyticsCard extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          context
-                              .read<MapBloc>()
-                              .add(ShowRegionSites(airQualityReading.region));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            right: 12,
-                            top: 12,
-                            left: 20,
-                          ),
-                          child: SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/close.svg',
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            context
+                                .read<MapBloc>()
+                                .add(const InitializeMapState());
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: 12,
+                              top: 12,
+                              left: 20,
+                            ),
+                            child: SizedBox(
                               height: 20,
                               width: 20,
+                              child: SvgPicture.asset(
+                                'assets/icon/close.svg',
+                                height: 20,
+                                width: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
                   ),
                   Column(
                     children: [
                       SizedBox(
                         height: 104,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Row(
                             children: [
                               AnalyticsAvatar(
@@ -660,7 +663,7 @@ class MapAnalyticsCard extends StatelessWidget {
                         height: 30,
                       ),
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        padding: EdgeInsets.symmetric(horizontal: 32),
                         child: AnalyticsMoreInsights(),
                       ),
                       const SizedBox(height: 12),
@@ -788,90 +791,125 @@ class SearchSites extends StatelessWidget {
   }
 }
 
-class SearchResults extends StatelessWidget {
-  const SearchResults({super.key, required this.searchResults});
+class NoSearchResultsWidget extends StatelessWidget {
+  const NoSearchResultsWidget({super.key});
 
-  final List<SearchResultItem> searchResults;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 33),
+        child: Column(
+          children: [
+            SvgPicture.asset(
+              'assets/icon/no_search_results.svg',
+              semanticsLabel: 'Empty search results',
+            ),
+            const SizedBox(height: 53),
+            Text(
+              'No results found',
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context)?.copyWith(
+                fontSize: 21,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 23),
+            Text(
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    fontSize: 15.0,
+                    color: CustomColors.emptyNotificationScreenTextColor,
+                  ),
+              'Try adjusting your search to find what you’re looking for.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SearchMapDefaultView extends StatelessWidget {
+  const SearchMapDefaultView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          Visibility(
-            visible: searchResults.isEmpty,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Stack(
-                    children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                ],
-              ),
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            controller: ScrollController(),
+            itemBuilder: (context, index) => SiteTile(
+              airQualityReading: state.airQualityReadings[index],
             ),
-          ),
-          Visibility(
-            visible: searchResults.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                removeLeft: true,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => SearchTile(
-                    searchResult: searchResults[index],
-                  ),
-                  itemCount: searchResults.length,
+            itemCount: state.airQualityReadings.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class MapSearchWidget extends StatelessWidget {
+  const MapSearchWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          if (state.searchTerm.isEmpty) {
+            return const SearchMapDefaultView();
+          }
+
+          if (state.mapStatus == MapStatus.error) {
+            return const NoSearchResultsWidget();
+          }
+
+          return const SearchResults();
+        },
+      ),
+    );
+  }
+}
+
+class SearchResults extends StatelessWidget {
+  const SearchResults({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          if (state.searchResults.isEmpty && state.searchTerm.isNotEmpty) {
+            return const NoSearchResultsWidget();
+          }
+
+          return Center(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              removeLeft: true,
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) => SearchTile(
+                  searchResult: state.searchResults[index],
                 ),
+                itemCount: state.searchResults.length,
               ),
             ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -903,6 +941,14 @@ class SearchWidget extends StatelessWidget {
           return const SizedBox();
         }
 
+        final OutlineInputBorder outlineInputBorder = OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Colors.transparent,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(8.0),
+        );
+
         return Row(
           children: [
             Expanded(
@@ -920,11 +966,12 @@ class SearchWidget extends StatelessWidget {
                   controller: _searchController,
                   onChanged: (String value) {
                     context
-                        .read<MapBloc>()
+                        .read<MapSearchBloc>()
                         .add(MapSearchTermChanged(searchTerm: value));
                   },
                   onTap: () {
                     context.read<MapBloc>().add(const InitializeSearch());
+                    context.read<MapSearchBloc>().add(const InitializeSearch());
                   },
                   style: Theme.of(context).textTheme.caption?.copyWith(
                         fontSize: 16,
@@ -936,39 +983,19 @@ class SearchWidget extends StatelessWidget {
                   decoration: InputDecoration(
                     fillColor: Colors.white,
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.only(
-                        right: 0,
-                        top: 7,
-                        bottom: 7,
-                        left: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 0,
+                        vertical: 7,
                       ),
                       child: SvgPicture.asset(
                         'assets/icon/search.svg',
                         semanticsLabel: 'Search',
                       ),
                     ),
-                    contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    contentPadding: EdgeInsets.zero,
+                    focusedBorder: outlineInputBorder,
+                    enabledBorder: outlineInputBorder,
+                    border: outlineInputBorder,
                     hintStyle: Theme.of(context).textTheme.caption?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.32),
                           fontSize: 14,
@@ -980,7 +1007,7 @@ class SearchWidget extends StatelessWidget {
             ),
             BlocBuilder<MapBloc, MapState>(
               builder: (context, state) {
-                if (state is! AllSitesState) {
+                if (state.mapStatus != MapStatus.showingCountries) {
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

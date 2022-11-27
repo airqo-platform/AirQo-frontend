@@ -21,6 +21,7 @@ class MapState extends Equatable {
     this.mapStatus = MapStatus.initial,
     this.featuredRegion = '',
     this.featuredCountry = '',
+    this.searchResults = const [],
   });
 
   const MapState({
@@ -32,19 +33,22 @@ class MapState extends Equatable {
     this.mapStatus = MapStatus.initial,
     this.featuredRegion = '',
     this.featuredCountry = '',
+    this.searchResults = const [],
   });
 
   const MapState.initial() : this._();
 
-  MapState copyWith(
-      {MapStatus? mapStatus,
-      List<String>? countries,
-      List<String>? regions,
-      List<AirQualityReading>? featuredAirQualityReadings,
-      AirQualityReading? featuredSiteReading,
-      String? featuredRegion,
-      String? featuredCountry,
-      List<AirQualityReading>? airQualityReadings}) {
+  MapState copyWith({
+    MapStatus? mapStatus,
+    List<String>? countries,
+    List<String>? regions,
+    List<AirQualityReading>? featuredAirQualityReadings,
+    AirQualityReading? featuredSiteReading,
+    String? featuredRegion,
+    String? featuredCountry,
+    List<AirQualityReading>? airQualityReadings,
+    List<SearchResultItem>? searchResults,
+  }) {
     return MapState(
       featuredSiteReading: featuredSiteReading ?? this.featuredSiteReading,
       featuredAirQualityReadings:
@@ -55,6 +59,7 @@ class MapState extends Equatable {
       featuredCountry: featuredCountry ?? this.featuredCountry,
       countries: countries ?? this.countries,
       airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      searchResults: searchResults ?? this.searchResults,
     );
   }
 
@@ -66,6 +71,7 @@ class MapState extends Equatable {
   final String featuredRegion;
   final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
+  final List<SearchResultItem> searchResults;
 
   @override
   List<Object?> get props => [
@@ -75,5 +81,51 @@ class MapState extends Equatable {
         countries,
         mapStatus,
         airQualityReadings,
+        searchResults,
+      ];
+}
+
+class MapSearchState extends Equatable {
+  const MapSearchState._({
+    this.airQualityReadings = const [],
+    this.mapStatus = MapStatus.initial,
+    this.searchResults = const [],
+    this.searchTerm = '',
+  });
+
+  const MapSearchState({
+    this.airQualityReadings = const [],
+    this.mapStatus = MapStatus.initial,
+    this.searchResults = const [],
+    this.searchTerm = '',
+  });
+
+  const MapSearchState.initial() : this._();
+
+  MapSearchState copyWith({
+    MapStatus? mapStatus,
+    List<AirQualityReading>? airQualityReadings,
+    List<SearchResultItem>? searchResults,
+    String? searchTerm,
+  }) {
+    return MapSearchState(
+      mapStatus: mapStatus ?? this.mapStatus,
+      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      searchResults: searchResults ?? this.searchResults,
+      searchTerm: searchTerm ?? this.searchTerm,
+    );
+  }
+
+  final MapStatus mapStatus;
+  final List<AirQualityReading> airQualityReadings;
+  final List<SearchResultItem> searchResults;
+  final String searchTerm;
+
+  @override
+  List<Object?> get props => [
+        mapStatus,
+        airQualityReadings,
+        searchResults,
+        searchTerm,
       ];
 }

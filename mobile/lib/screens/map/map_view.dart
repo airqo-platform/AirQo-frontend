@@ -167,7 +167,7 @@ class _MapLandscapeState extends State<MapLandscape> {
 
         final cameraPosition = CameraPosition(
           target: latLng,
-          zoom: zoom,
+          zoom: 10,
         );
 
         await controller.animateCamera(
@@ -179,7 +179,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         );
 
         await controller.animateCamera(
-          CameraUpdate.newLatLngBounds(latLngBounds, 80.0),
+          CameraUpdate.newLatLngBounds(latLngBounds, 100),
         );
       }
 
@@ -205,19 +205,37 @@ class _MapLandscapeState extends State<MapLandscape> {
   }
 }
 
-class MapDragSheet extends StatelessWidget {
+class MapDragSheet extends StatefulWidget {
   const MapDragSheet({super.key});
+
+  @override
+  State<MapDragSheet> createState() => _MapDragSheetState();
+}
+
+class _MapDragSheetState extends State<MapDragSheet> {
+  final DraggableScrollableController controller =
+      DraggableScrollableController();
+  final analyticsCardSize = 0.4;
+  final maximumCardSize = 0.92;
+
+  void resizeScrollSheet() {
+    controller.animateTo(
+      analyticsCardSize,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.easeOutBack,
+    );
+
+    DraggableScrollableActuator.reset(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+      controller: controller,
       initialChildSize: 0.3,
       minChildSize: 0.18,
-      maxChildSize: 0.92,
-      builder: (
-        BuildContext context,
-        ScrollController scrollController,
-      ) {
+      maxChildSize: maximumCardSize,
+      builder: (BuildContext context, ScrollController scrollController) {
         return MapCardWidget(
           widget: SingleChildScrollView(
             controller: scrollController,
@@ -227,7 +245,10 @@ class MapDragSheet extends StatelessWidget {
                 const SizedBox(height: 8),
                 const DraggingHandle(),
                 const SizedBox(height: 16),
-                SearchWidget(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SearchWidget(),
+                ),
                 BlocBuilder<MapBloc, MapState>(
                   builder: (context, state) {
                     switch (state.mapStatus) {
@@ -241,9 +262,15 @@ class MapDragSheet extends StatelessWidget {
                         // TODO replace with error no air quality reading
                         break;
                       case MapStatus.showingCountries:
-                        return const AllCountries();
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: AllCountries(),
+                        );
                       case MapStatus.showingRegions:
-                        return const CountryRegions();
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: CountryRegions(),
+                        );
                       case MapStatus.showingFeaturedSite:
                         final AirQualityReading? airQualityReading =
                             state.featuredSiteReading;
@@ -254,27 +281,19 @@ class MapDragSheet extends StatelessWidget {
                           break;
                         }
                         // TODO replace with error no air quality reading
-
+                        resizeScrollSheet();
                         return FeaturedSiteReading(airQualityReading);
                       case MapStatus.showingRegionSites:
-                        return const RegionSites();
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: RegionSites(),
+                        );
+                      case MapStatus.searching:
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: MapSearchWidget(),
+                        );
                     }
-
-                    // if (state is MapLoadingState) {
-                    //   return const SearchLoadingWidget();
-                    // }
-                    //
-                    // if (state is MapSearchCompleteState) {
-                    //   return SearchResults(
-                    //     searchResults: state.searchResults,
-                    //   );
-                    // }
-                    //
-                    // if (state is SearchSitesState) {
-                    //   return SearchSites(
-                    //     airQualityReadings: state.airQualityReadings,
-                    //   );
-                    // }
 
                     return const AllCountries();
                   },

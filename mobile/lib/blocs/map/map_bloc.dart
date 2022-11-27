@@ -17,8 +17,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<ShowRegionSites>(_onShowRegionSites);
     on<ShowSiteReading>(_onShowSiteReading);
     on<InitializeSearch>(_onInitializeSearch);
-    on<MapSearchTermChanged>(_onMapSearchTermChanged);
-    searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
 
   late final SearchRepository searchRepository;
@@ -33,6 +31,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         airQualityReadings.map((e) => e.country.toTitleCase()).toSet().toList();
 
     countries.removeWhere((element) => element.isEmpty);
+    countries.sort();
     airQualityReadings.sortByAirQuality();
 
     return emit(const MapState.initial().copyWith(
@@ -59,6 +58,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     final airQualityReadings = state.airQualityReadings
         .where((e) => e.country.equalsIgnoreCase(event.country))
         .toList();
+
+    regions.sort();
     airQualityReadings.sortByAirQuality();
 
     return emit(state.copyWith(
@@ -104,6 +105,26 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     InitializeSearch _,
     Emitter<MapState> emit,
   ) {
+    return emit(state.copyWith(mapStatus: MapStatus.searching));
+  }
+}
+
+class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
+  MapSearchBloc() : super(const MapSearchState.initial()) {
+    on<InitializeSearch>(_onInitializeSearch);
+    on<MapSearchTermChanged>(
+      _onMapSearchTermChanged,
+      transformer: debounce(const Duration(milliseconds: 300)),
+    );
+    searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
+  }
+
+  late final SearchRepository searchRepository;
+
+  void _onInitializeSearch(
+    InitializeSearch _,
+    Emitter<MapSearchState> emit,
+  ) {
     var airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
             .values
@@ -112,58 +133,29 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     airQualityReadings = airQualityReadings.isEmpty
         ? state.airQualityReadings
         : airQualityReadings;
+
     airQualityReadings.sortByAirQuality();
 
-    return emit(state.copyWith(
-      featuredAirQualityReadings: airQualityReadings,
-      mapStatus: MapStatus.searching,
-    ));
+    return emit(state.copyWith(airQualityReadings: airQualityReadings));
   }
 
   void _onMapSearchTermChanged(
     MapSearchTermChanged event,
-    Emitter<MapState> emit,
+    Emitter<MapSearchState> emit,
   ) async {
     final searchTerm = event.searchTerm;
+    emit(state.copyWith(searchTerm: searchTerm));
 
     if (searchTerm.isEmpty) {
-      var nearestAirQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-              .values
-              .toList();
-
-      if (nearestAirQualityReadings.isEmpty) {
-        nearestAirQualityReadings =
-            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                .values
-                .toList();
-      }
-
-      return emit(
-        SearchSitesState(airQualityReadings: nearestAirQualityReadings),
-      );
+      return;
     }
-
-    emit(MapLoadingState());
 
     try {
       final results = await searchRepository.search(searchTerm);
 
-      return emit(MapSearchCompleteState(searchResults: results.items));
+      return emit(state.copyWith(searchResults: results.items));
     } catch (error) {
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      final airQualitySearch = airQualityReadings.where((airQualityReading) {
-        return airQualityReading.name.contains(searchTerm) ||
-            airQualityReading.location.contains(searchTerm);
-      }).toList();
-
-      return emit(
-        SearchSitesState(airQualityReadings: airQualitySearch),
-      );
+      return;
     }
   }
 }
