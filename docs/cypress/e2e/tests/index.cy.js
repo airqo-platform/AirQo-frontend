@@ -17,6 +17,14 @@ describe("Verify AirQo Documentation Home Page", () => {
       .contains("Clean Air for all African Cities");
   });
 
+  it("Verify GitHub Call-To-Action is functional", () => {
+    cy.get("a[title='GitHub']").invoke("removeAttr", "target").click();
+
+    cy.on("url:changed", (newUrl) => {
+      expect(newUrl).to.contain("https://github.com/airqo-platform");
+    });
+  });
+
   it("Verify Side Bar menu sections exist", () => {
     cy.get(".sidebar > .search").should("be.exist");
     cy.get(".sidebar > .app-name").should("be.exist");
