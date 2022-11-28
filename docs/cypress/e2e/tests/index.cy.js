@@ -21,6 +21,10 @@ describe("Verify AirQo Documentation Home Page", () => {
     cy.get('[href="https://github.com/airqo-platform"]').click();
   });
 
+  it("Verify Explore Data Call-To-Action is functional", () => {
+    cy.get('[href="https://airqo.net/explore-data"]').click();
+  });
+
   it("Verify Side Bar menu sections exist", () => {
     cy.get(".sidebar > .search").should("be.exist");
     cy.get(".sidebar > .app-name").should("be.exist");
