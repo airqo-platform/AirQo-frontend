@@ -18,7 +18,7 @@ describe("Verify AirQo Documentation Home Page", () => {
   });
 
   it("Verify GitHub Call-To-Action is functional", () => {
-    cy.get("a[title='GitHub']").invoke("removeAttr", "target").click();
+    cy.get('[href="https://github.com/airqo-platform"]').invoke("removeAttr", "target").click();
 
     cy.on("url:changed", (newUrl) => {
       expect(newUrl).to.contain("https://github.com/airqo-platform");
