@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -39,13 +40,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   Future<List<AirQualityReading>> _getAirQualityReadings() async {
     final airQualityCards = <AirQualityReading>[];
 
-    final preferences = await SharedPreferences.getInstance();
-    final region = getNextDashboardRegion(preferences);
     final regionAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .values
-            .where((element) => element.region == region)
-            .toList()
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList()
           ..shuffle();
 
     for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {

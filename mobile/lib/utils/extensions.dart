@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
@@ -53,8 +54,17 @@ extension AnalyticsListExt on List<Analytics> {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  sortByAirQuality() {
-    sort((a, b) => a.pm2_5.compareTo(b.pm2_5));
+  List<AirQualityReading> sortByAirQuality() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort((a, b) {
+      if (a.country.compareTo(b.country) != 0) {
+        return a.country.compareTo(b.country);
+      }
+
+      return a.pm2_5.compareTo(b.pm2_5);
+    });
+
+    return data;
   }
 }
 

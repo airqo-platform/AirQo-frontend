@@ -25,14 +25,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     InitializeMapState _,
     Emitter<MapState> emit,
   ) {
-    final airQualityReadings =
+    List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
     final List<String> countries =
         airQualityReadings.map((e) => e.country.toTitleCase()).toSet().toList();
 
     countries.removeWhere((element) => element.isEmpty);
     countries.sort();
-    airQualityReadings.sortByAirQuality();
+    airQualityReadings = airQualityReadings.sortByAirQuality();
 
     return emit(const MapState.initial().copyWith(
       airQualityReadings: airQualityReadings,
@@ -60,13 +60,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         .toList();
 
     regions.sort();
-    airQualityReadings.sortByAirQuality();
 
     return emit(state.copyWith(
       regions: regions,
       featuredCountry: event.country.toTitleCase(),
       mapStatus: MapStatus.showingRegions,
-      featuredAirQualityReadings: airQualityReadings,
+      featuredAirQualityReadings: airQualityReadings.sortByAirQuality(),
     ));
   }
 
@@ -79,10 +78,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
             e.country.equalsIgnoreCase(state.featuredCountry) &&
             e.region.equalsIgnoreCase(event.region))
         .toList();
-    airQualityReadings.sortByAirQuality();
 
     return emit(state.copyWith(
-      featuredAirQualityReadings: airQualityReadings,
+      featuredAirQualityReadings: airQualityReadings.sortByAirQuality(),
       featuredRegion: event.region.toTitleCase(),
       mapStatus: MapStatus.showingRegionSites,
     ));
@@ -92,8 +90,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     ShowSiteReading event,
     Emitter<MapState> emit,
   ) {
-    final AirQualityReading site = state.airQualityReadings.firstWhere(
-        (e) => e.placeId.equalsIgnoreCase(event.airQualityReading.placeId));
+    final AirQualityReading site =
+        state.airQualityReadings.firstWhere((e) => e.placeId.equalsIgnoreCase(
+              event.airQualityReading.placeId,
+            ));
 
     return emit(state.copyWith(
       featuredSiteReading: site,
@@ -121,22 +121,31 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
 
   late final SearchRepository searchRepository;
 
-  void _onInitializeSearch(
-    InitializeSearch _,
+  void _onLoadDefaults(
     Emitter<MapSearchState> emit,
   ) {
-    var airQualityReadings =
+    List<AirQualityReading> nearbyAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
             .values
             .toList();
 
-    airQualityReadings = airQualityReadings.isEmpty
-        ? state.airQualityReadings
-        : airQualityReadings;
+    List<AirQualityReading> airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    airQualityReadings.sortByAirQuality();
+    airQualityReadings = nearbyAirQualityReadings.isEmpty
+        ? airQualityReadings
+        : nearbyAirQualityReadings;
 
-    return emit(state.copyWith(airQualityReadings: airQualityReadings));
+    return emit(state.copyWith(
+      airQualityReadings: airQualityReadings.sortByAirQuality(),
+    ));
+  }
+
+  void _onInitializeSearch(
+    InitializeSearch _,
+    Emitter<MapSearchState> emit,
+  ) {
+    return _onLoadDefaults(emit);
   }
 
   void _onMapSearchTermChanged(
@@ -147,7 +156,7 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     emit(state.copyWith(searchTerm: searchTerm));
 
     if (searchTerm.isEmpty) {
-      return;
+      return _onLoadDefaults(emit);
     }
 
     try {

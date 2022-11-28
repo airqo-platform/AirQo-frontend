@@ -965,9 +965,16 @@ class SearchWidget extends StatelessWidget {
                 child: TextFormField(
                   controller: _searchController,
                   onChanged: (String value) {
-                    context
-                        .read<MapSearchBloc>()
-                        .add(MapSearchTermChanged(searchTerm: value));
+                    if (state.mapStatus != MapStatus.searching) {
+                      context.read<MapBloc>().add(const InitializeSearch());
+                      context
+                          .read<MapSearchBloc>()
+                          .add(const InitializeSearch());
+                    } else {
+                      context
+                          .read<MapSearchBloc>()
+                          .add(MapSearchTermChanged(searchTerm: value));
+                    }
                   },
                   onTap: () {
                     context.read<MapBloc>().add(const InitializeSearch());

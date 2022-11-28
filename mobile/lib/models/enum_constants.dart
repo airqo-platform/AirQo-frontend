@@ -4,7 +4,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -181,59 +180,6 @@ enum AppNotificationType {
   reminder,
   @HiveField(2)
   welcomeMessage,
-}
-
-@HiveType(typeId: 140, adapterName: 'RegionAdapter')
-enum Region {
-  @HiveField(1)
-  central('Central Region'),
-  @HiveField(2)
-  eastern('Eastern Region'),
-  @HiveField(3)
-  northern('Northern Region'),
-  @HiveField(4)
-  western('Western Region'),
-  @HiveField(5)
-  southern('Southern Region'),
-  @HiveField(0)
-  none('');
-
-  factory Region.fromString(String string) {
-    if (string.toLowerCase().contains('central')) {
-      return Region.central;
-    } else if (string.toLowerCase().contains('east')) {
-      return Region.eastern;
-    } else if (string.toLowerCase().contains('west')) {
-      return Region.western;
-    } else if (string.toLowerCase().contains('north')) {
-      return Region.northern;
-    } else if (string.toLowerCase().contains('south')) {
-      return Region.southern;
-    } else {
-      return Region.none;
-    }
-  }
-
-  const Region(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-}
-
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
 }
 
 enum AirQuality {

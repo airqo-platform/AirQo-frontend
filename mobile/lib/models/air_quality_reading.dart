@@ -1,14 +1,15 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../constants/config.dart';
+import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
 @JsonSerializable()
-@HiveType(typeId: 50, adapterName: 'AirQualityReadingAdapter')
+@HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject {
   AirQualityReading({
     required this.referenceSite,
@@ -160,10 +161,6 @@ class AirQualityReading extends HiveObject {
   @HiveField(6, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String location;
-
-  // @HiveField(7)
-  // @RegionConverter()
-  // final Region region;
 
   @HiveField(8)
   final DateTime dateTime;

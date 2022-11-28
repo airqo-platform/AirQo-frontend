@@ -8,7 +8,7 @@ part of 'air_quality_reading.dart';
 
 class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
   @override
-  final int typeId = 50;
+  final int typeId = 51;
 
   @override
   AirQualityReading read(BinaryReader reader) {
@@ -89,7 +89,7 @@ AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
       country: json['country'] as String? ?? '',
       name: json['name'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      region: json['region'] as String,
+      region: json['region'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
       pm2_5: (json['pm2_5'] as num?)?.toDouble() ?? 0.0,
       pm10: (json['pm10'] as num?)?.toDouble() ?? 0.0,
