@@ -16,7 +16,8 @@
 - Enhancement text color on notifications page.
 - Enhanced feedback feature.
 - Enhanced authentication and onboarding screens.
-
+- Bug fixes for failure on startup.
+- Nearest Location Functionality.
 ---
 
 ### iOS 2.0.10 & Android 2.0.9
