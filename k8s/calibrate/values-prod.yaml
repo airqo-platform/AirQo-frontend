@@ -2,7 +2,7 @@ replicaCount: 2
 image:
   repository: gcr.io/airqo-250220/airqo-calibrate-app
   pullPolicy: Always
-  tag: prod-e1a37dea-1669728880
+  tag: prod-238ff349-1669730733
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
