@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: gcr.io/airqo-250220/airqo-stage-platform-frontend
-  tag: stage-17cbaacf-1669375081
+  tag: stage-04e28d1a-1669728816
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
