@@ -286,7 +286,7 @@ jobs:
           value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
