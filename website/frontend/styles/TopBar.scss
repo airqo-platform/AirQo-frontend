@@ -42,10 +42,10 @@ h3, h4 {
         position: relative;
         .dropdown {
           display: none;
-          margin-top: 3px;
+          margin-top: 0px;
           position: absolute;
-          right: 0;
-          width: 674px;
+          left:36px;
+          width: 590px;
           height: 274px;
           border-radius: 8px;
           background-color: $aq-white-0;
@@ -58,20 +58,20 @@ h3, h4 {
             font-weight: 400;
             color: $aq-blue-2;
             padding-bottom: 20px;
-            padding-top: 44px;
-            padding-left: 40px;
+            padding-top: 34px;
+            padding-left: 30px;
             opacity: 0.4;
           }
 
           .dropdown-list {
             display: flex;
             flex-wrap: wrap;
-            margin-left: 24px;
+            margin-left: 16px;
             
             .dropdown-list-item {
               margin-bottom: 22px;
               margin-right: 20px;
-              width: 281px;
+              width: 260px;
               padding: 8px 16px;
               cursor: pointer;
 
