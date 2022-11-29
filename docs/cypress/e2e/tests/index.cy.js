@@ -3,7 +3,7 @@
 describe("Verify AirQo Documentation Home Page", () => {
   //block of tests
   it("Verify AirQo Documentation Home Page Loads successfully", () => {
-    cy.visit("https://staging-docs.airqo.net/#/");
+    cy.visit("http://localhost:3000/#/");
   });
 
   it("Verify AirQo logo is present and visible", () => {
