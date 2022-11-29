@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
-describe("Verify AirQo Documentation Home Page is functional", () => {
-  it("test home", () => {
+describe("Verify AirQo Documentation Home Page", () => {
+  it("Verify page is reachable", () => {
     cy.visit("http://localhost:3000/#/");
   });
 
