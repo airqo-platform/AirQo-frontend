@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
-describe("Verify AirQo Documentation Home Page", () => {
+describe("Verify AirQo Documentation Home Page is functional", () => {
   it("test home", () => {
-    cy.visit("https://staging-docs.airqo.net/");
+    cy.visit("http://localhost:3000/#/");
   });
 
   it("Verify Side Menu Button is functional", () => {
