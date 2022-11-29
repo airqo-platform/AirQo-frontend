@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - staging
-    types:
-      - closed
 
 env:
   REGISTRY_URL: gcr.io
@@ -13,7 +11,7 @@ env:
 
 jobs:
   image-tag:
-    if: github.event.pull_request.merged == true
+#     if: github.event.pull_request.merged == true
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
@@ -31,7 +29,7 @@ jobs:
 
   check:
     # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true
+#     if: github.event.pull_request.merged == true
     name: check for changed frontends
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
