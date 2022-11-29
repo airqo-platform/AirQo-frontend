@@ -103,9 +103,8 @@ dist
 # TernJS port file
 .tern-port
 
-# Cypress files
-cypress/videos
-cypress/screenshots
+# Cypress folder
+cypress/
 
 # Yarn add output
 .pnp.cjs

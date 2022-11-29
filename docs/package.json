@@ -16,7 +16,9 @@
   "scripts": {
     "docker:build": "docker build -f Dockerfile -t docsify-test:local .",
     "docker:clean": "docker rmi docsify-test:local",
-    "docker:cli": "docker run --rm -it -p 3000:3000 docsify-test:local"
+    "docker:cli": "docker run --rm -it -p 3000:3000 docsify-test:local",
+    "preview": "docsify serve .",
+    "test": "cypress open"
   },
   "dependencies": {
     "ansi-align": "^3.0.1",
