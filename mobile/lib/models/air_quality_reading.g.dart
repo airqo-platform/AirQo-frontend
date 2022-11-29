@@ -19,8 +19,8 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
     return AirQualityReading(
       referenceSite: fields[0] == null ? '' : fields[0] as String,
       source: fields[5] == null ? '' : fields[5] as String,
-      latitude: fields[1] == null ? 0.0 : fields[1] as double,
-      longitude: fields[2] == null ? 0.0 : fields[2] as double,
+      latitude: fields[1] as double,
+      longitude: fields[2] as double,
       country: fields[3] == null ? '' : fields[3] as String,
       name: fields[4] == null ? '' : fields[4] as String,
       location: fields[6] == null ? '' : fields[6] as String,

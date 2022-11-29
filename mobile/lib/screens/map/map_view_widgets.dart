@@ -869,7 +869,7 @@ class MapSearchWidget extends StatelessWidget {
             return const SearchMapDefaultView();
           }
 
-          if (state.mapStatus == MapStatus.error) {
+          if (state.mapStatus == MapSearchStatus.error) {
             return const NoSearchResultsWidget();
           }
 

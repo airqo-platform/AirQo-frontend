@@ -11,6 +11,11 @@ enum MapStatus {
   searching,
 }
 
+enum MapSearchStatus {
+  initial,
+  error,
+}
+
 class MapState extends Equatable {
   const MapState._({
     this.countries = const [],
@@ -88,14 +93,14 @@ class MapState extends Equatable {
 class MapSearchState extends Equatable {
   const MapSearchState._({
     this.airQualityReadings = const [],
-    this.mapStatus = MapStatus.initial,
+    this.mapStatus = MapSearchStatus.initial,
     this.searchResults = const [],
     this.searchTerm = '',
   });
 
   const MapSearchState({
     this.airQualityReadings = const [],
-    this.mapStatus = MapStatus.initial,
+    this.mapStatus = MapSearchStatus.initial,
     this.searchResults = const [],
     this.searchTerm = '',
   });
@@ -103,7 +108,7 @@ class MapSearchState extends Equatable {
   const MapSearchState.initial() : this._();
 
   MapSearchState copyWith({
-    MapStatus? mapStatus,
+    MapSearchStatus? mapStatus,
     List<AirQualityReading>? airQualityReadings,
     List<SearchResultItem>? searchResults,
     String? searchTerm,
@@ -116,7 +121,7 @@ class MapSearchState extends Equatable {
     );
   }
 
-  final MapStatus mapStatus;
+  final MapSearchStatus mapStatus;
   final List<AirQualityReading> airQualityReadings;
   final List<SearchResultItem> searchResults;
   final String searchTerm;

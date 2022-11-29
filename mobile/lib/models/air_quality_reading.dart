@@ -138,11 +138,11 @@ class AirQualityReading extends HiveObject {
   @JsonKey(defaultValue: '')
   final String referenceSite;
 
-  @HiveField(1, defaultValue: 0.0)
+  @HiveField(1)
   @JsonKey(defaultValue: 0.0)
   final double latitude;
 
-  @HiveField(2, defaultValue: 0.0)
+  @HiveField(2)
   @JsonKey(defaultValue: 0.0)
   final double longitude;
 

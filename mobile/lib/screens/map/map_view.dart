@@ -8,6 +8,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'map_view_widgets.dart';
@@ -17,16 +18,72 @@ class MapView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.15,
-          ),
-          child: const MapLandscape(),
+    return BlocBuilder<MapBloc, MapState>(
+      builder: (context, state) {
+        switch (state.mapStatus) {
+          case MapStatus.error:
+          case MapStatus.initial:
+          case MapStatus.noAirQuality:
+            return const MapEmptyWidget();
+          case MapStatus.showingCountries:
+          case MapStatus.showingRegions:
+          case MapStatus.showingFeaturedSite:
+          case MapStatus.showingRegionSites:
+          case MapStatus.searching:
+            return Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height * 0.15,
+                  ),
+                  child: const MapLandscape(),
+                ),
+                const MapDragSheet(),
+              ],
+            );
+        }
+      },
+    );
+  }
+}
+
+class MapEmptyWidget extends StatelessWidget {
+  const MapEmptyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 33),
+        child: Column(
+          children: [
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/no_air_quality.svg',
+              semanticsLabel: 'Error',
+            ),
+            const SizedBox(height: 53),
+            Text(
+              'No Air Quality data',
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context)?.copyWith(
+                fontSize: 21,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 23),
+            Text(
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    fontSize: 15.0,
+                    color: CustomColors.emptyNotificationScreenTextColor,
+                  ),
+              'We’re having issues with our network no worries, we’ll be back up soon.',
+            ),
+            const Spacer(),
+          ],
         ),
-        const MapDragSheet(),
-      ],
+      ),
     );
   }
 }
@@ -88,13 +145,10 @@ class _MapLandscapeState extends State<MapLandscape> {
   Future<void> _loadMapState(MapState mapState) async {
     switch (mapState.mapStatus) {
       case MapStatus.initial:
-        // TODO: Handle this case.
-        break;
       case MapStatus.error:
-        // TODO: Handle this case.
-        break;
       case MapStatus.noAirQuality:
-        // TODO: Handle this case.
+      case MapStatus.searching:
+        // TODO: Handle these case.
         break;
       case MapStatus.showingFeaturedSite:
         final AirQualityReading? airQualityReading =
@@ -109,9 +163,6 @@ class _MapLandscapeState extends State<MapLandscape> {
       case MapStatus.showingRegions:
       case MapStatus.showingRegionSites:
         await _setMarkers(mapState.featuredAirQualityReadings);
-        break;
-      case MapStatus.searching:
-        // TODO: Handle this case.
         break;
     }
   }
