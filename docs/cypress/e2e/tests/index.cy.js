@@ -1,8 +1,7 @@
 /// <reference types="cypress" />
 
-describe("hello world test", () => {
-    //block of tests
-    it("test home", ()=>{
-        cy.visit("https://staging-docs.airqo.net/#/")
-    })
+describe("Landing page", () => {
+  it("Reachability test", () => {
+    cy.visit("http://localhost:3000/#/");
+  });
 });
