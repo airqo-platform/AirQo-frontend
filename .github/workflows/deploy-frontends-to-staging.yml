@@ -89,7 +89,7 @@ jobs:
   platform:
     name: build-push-deploy-netmanager
     needs: [check, image-tag]
-#     if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -239,7 +239,7 @@ jobs:
   calibrate-app:
     name: build-push-deploy-calibrate-app
     needs: [check, image-tag]
-#     if: needs.check.outputs.run_calibrate_app == 'true'
+    if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -344,12 +344,12 @@ jobs:
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: "k8s/platform/values-stage.yaml"
+          valueFile: "k8s/platform/values-prod.yaml"
           propertyPath: "image.tag"
           value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -370,7 +370,7 @@ jobs:
   docs:
     name: build-push-deploy-docs
     needs: [check, image-tag]
-#     if: needs.check.outputs.run_docs == 'true'
+    if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
