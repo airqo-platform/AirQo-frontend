@@ -1,9 +1,8 @@
 /// <reference types="cypress" />
 
-describe("hello world test", () => {
-  //block of tests
-  it("test home", () => {
-    cy.visit("https://staging-docs.airqo.net/#/");
+describe("Verify AirQo Documentation Home Page", () => {
+  it("Verify page is reachable", () => {
+    cy.visit("http://localhost:3000/#/");
   });
 
   it("Verify ability to Search", () => {
