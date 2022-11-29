@@ -49,7 +49,7 @@ jobs:
   platform:
     name: build-push-deploy-netmanager
     needs: [image-tag]
-    if: inputs.platform == true
+#     if: inputs.platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -202,7 +202,7 @@ jobs:
   calibrate-app:
     name: build-push-deploy-calibrate-app
     needs: [image-tag]
-    if: inputs.calibrate_app == true
+#     if: inputs.calibrate_app == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -272,7 +272,7 @@ jobs:
   next-platform:
     name: build-push-deploy-next-platform
     needs: [image-tag]
-    if: inputs.next_platform == true
+#     if: inputs.next_platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -333,7 +333,7 @@ jobs:
   docs:
     name: build-push-deploy-docs
     needs: [image-tag]
-    if: inputs.docs == true
+#     if: inputs.docs == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
