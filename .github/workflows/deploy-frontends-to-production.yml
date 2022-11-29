@@ -1,28 +1,9 @@
 name: deploy-to-production
 
 on:
-  workflow_dispatch:
-    inputs:
-      platform:
-        description: "Deploy [Legacy] Platform"
-        required: false
-        type: boolean
-      website:
-        description: "Deploy Website"
-        required: false
-        type: boolean
-      calibrate_app:
-        description: "Deploy Calibrate app"
-        required: false
-        type: boolean
-      next_platform:
-        description: "Deploy Analytics Platform"
-        required: false
-        type: boolean
-      docs:
-        description: "Deploy Docs"
-        required: false
-        type: boolean
+  pull_request:
+    branches:
+      - staging
 
 env:
   REGISTRY_URL: gcr.io
