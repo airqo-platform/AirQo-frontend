@@ -29,7 +29,7 @@ class InsightsTab extends StatefulWidget {
 class _InsightsTabState extends State<InsightsTab> {
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
-  List<Recommendation> _recommendations = [];
+  List<HealthTip> _healthtTips = [];
 
   final GlobalKey _globalKey = GlobalKey();
   int _currentItem = 0;
@@ -517,11 +517,11 @@ class _InsightsTabState extends State<InsightsTab> {
         .where((element) => !element.empty && !element.forecast)
         .toList();
 
-    /// Recommendations
+    /// HealthTips
     if (insights.isEmpty) {
       setState(
         () {
-          _recommendations = [];
+          _healthtTips = [];
           _selectedMeasurement = data.first.data.first;
         },
       );
@@ -543,20 +543,18 @@ class _InsightsTabState extends State<InsightsTab> {
       setState(
         () {
           _isTodayHealthTips = true;
-          _recommendations =
-              getHealthRecommendations(lastAvailableInsight.pm2_5, _pollutant);
+          _healthtTips = getHealthTips(lastAvailableInsight.pm2_5, _pollutant);
         },
       );
     } else if (dateTime.isTomorrow()) {
       setState(
         () {
           _isTodayHealthTips = false;
-          _recommendations =
-              getHealthRecommendations(lastAvailableInsight.pm2_5, _pollutant);
+          _healthtTips = getHealthTips(lastAvailableInsight.pm2_5, _pollutant);
         },
       );
     } else {
-      setState(() => _recommendations = []);
+      setState(() => _healthtTips = []);
     }
 
     /// Auto select measurement
@@ -707,7 +705,7 @@ class _InsightsTabState extends State<InsightsTab> {
         height: 32,
       ),
       Visibility(
-        visible: _recommendations.isNotEmpty,
+        visible: _healthtTips.isNotEmpty,
         child: Padding(
           padding: const EdgeInsets.only(right: 16, left: 16),
           child: Text(
@@ -722,7 +720,7 @@ class _InsightsTabState extends State<InsightsTab> {
       const SizedBox(
         height: 16,
       ),
-      HealthTipsSection(recommendations: _recommendations),
+      HealthTipsSection(healthtips: _healthtTips),
       const SizedBox(
         height: 24,
       ),
