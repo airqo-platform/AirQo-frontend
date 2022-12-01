@@ -64,9 +64,7 @@ class FeedbackStartButton extends StatelessWidget {
 }
 
 class FeedbackBackButton extends StatelessWidget {
-  const FeedbackBackButton({
-    super.key,
-  });
+  const FeedbackBackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -171,9 +169,7 @@ class FeedbackNextButton extends StatelessWidget {
 }
 
 class FeedbackProgressBar extends StatelessWidget {
-  const FeedbackProgressBar({
-    super.key,
-  });
+  const FeedbackProgressBar({super.key});
 
   @override
   Widget build(BuildContext context) {

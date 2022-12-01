@@ -17,9 +17,7 @@ import '../for_you_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
-  const DashboardView({
-    super.key,
-  });
+  const DashboardView({super.key});
 
   @override
   State<DashboardView> createState() => _DashboardViewState();

@@ -495,9 +495,7 @@ class SignUpOptions extends StatelessWidget {
 }
 
 class CancelOption extends StatelessWidget {
-  const CancelOption({
-    super.key,
-  });
+  const CancelOption({super.key});
 
   @override
   Widget build(BuildContext context) {

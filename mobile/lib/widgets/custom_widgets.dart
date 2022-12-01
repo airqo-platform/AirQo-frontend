@@ -260,7 +260,7 @@ class HeartIcon extends StatelessWidget {
   });
 
   final bool showAnimation;
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -284,8 +284,11 @@ class HeartIcon extends StatelessWidget {
       builder: (context, box, widget) {
         final placesIds = box.keys.toList();
 
+        final placeId =
+            airQualityReading == null ? '' : airQualityReading?.placeId;
+
         return SvgPicture.asset(
-          placesIds.contains(airQualityReading.placeId)
+          placesIds.contains(placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',
@@ -395,6 +398,7 @@ class AppSafeArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
       color: backgroundColor ?? CustomColors.appBodyColor,
       child: SafeArea(
         minimum: EdgeInsets.symmetric(
@@ -402,6 +406,100 @@ class AppSafeArea extends StatelessWidget {
           horizontal: horizontalPadding ?? 0,
         ),
         child: widget,
+      ),
+    );
+  }
+}
+
+class NoAirQualityDataWidget extends StatelessWidget {
+  const NoAirQualityDataWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset('assets/icon/no_air_quality_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No Air Quality data',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'We’re having issues with our network no worries, we’ll be back up soon.',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Reload',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NoInternetConnectionWidget extends StatelessWidget {
+  const NoInternetConnectionWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset('assets/icon/no_internet_connection_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No internet connection',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'Connect to the internet to see results',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Refresh',
+            ),
+          ),
+        ],
       ),
     );
   }
