@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +7,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_shimmer.dart';
 import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
@@ -92,36 +90,8 @@ class KyaMessage extends StatelessWidget {
   }
 }
 
-class KyaProgressBar extends StatelessWidget {
-  const KyaProgressBar({
-    super.key,
-    required this.kya,
-  });
-  final Kya kya;
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: getKyaMessage(kya: kya).toLowerCase() == 'continue',
-      child: Container(
-        height: 4,
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
-          ),
-        ),
-        child: LinearProgressIndicator(
-          color: CustomColors.appColorBlue,
-          value: kya.progress / kya.lessons.length,
-          backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
-        ),
-      ),
-    );
-  }
-}
-
 class KyaViewWidget extends StatelessWidget {
-  const KyaViewWidget({super.key, required this.kya});
+  const KyaViewWidget(this.kya, {super.key});
   final Kya kya;
 
   @override
@@ -180,13 +150,6 @@ class KyaViewWidget extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height:
-                          getKyaMessage(kya: kya).toLowerCase() == 'continue'
-                              ? 2
-                              : 0,
-                    ),
-                    KyaProgressBar(kya: kya),
                   ],
                 ),
               ),
@@ -228,8 +191,12 @@ class EmptyKya extends StatelessWidget {
     return Container(
       color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
-      child: const Center(
-        child: Text('No Lessons at the moment'),
+      child: Center(
+        child: Text(
+          'All your complete lessons will show up here',
+          textAlign: TextAlign.center,
+          style: CustomTextStyle.headline7(context),
+        ),
       ),
     );
   }

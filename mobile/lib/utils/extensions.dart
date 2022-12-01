@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../models/profile.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -17,14 +17,123 @@ extension IntExt on int {
   }
 }
 
-extension DateTimeExtension on DateTime {
-  DateTime getDateOfFirstDayOfWeek() {
-    var firstDate = this;
-    final weekday = firstDate.weekday;
+extension ChartDataExt on ChartData {
+  String chartDomainFn() {
+    switch (frequency) {
+      case Frequency.daily:
+        return DateFormat('EEE').format(dateTime);
+      case Frequency.hourly:
+        final hour = dateTime.hour;
 
-    if (weekday != 1) {
-      final offset = weekday - 1;
-      firstDate = firstDate.subtract(Duration(days: offset));
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+    }
+  }
+
+  double chartValue(Pollutant pollutant) {
+    return pollutant == Pollutant.pm2_5
+        ? double.parse(pm2_5.toStringAsFixed(2))
+        : double.parse(pm10.toStringAsFixed(2));
+  }
+
+  String lastUpdated(Frequency frequency) {
+    String lastUpdated = '';
+
+    if (dateTime.isToday()) {
+      lastUpdated = 'Updated Today';
+
+      return available ? lastUpdated : '$lastUpdated - Not Available';
+    }
+
+    switch (frequency) {
+      case Frequency.daily:
+        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
+        break;
+      case Frequency.hourly:
+        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
+        break;
+    }
+
+    return available ? lastUpdated : '$lastUpdated - Not Available';
+  }
+
+  Color chartAvatarContainerColor(Pollutant pollutant) {
+    return available
+        ? pollutant.color(chartValue(pollutant))
+        : CustomColors.greyColor;
+  }
+
+  String chartAvatarValue(Pollutant pollutant) {
+    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
+  }
+
+  Color chartAvatarValueColor(Pollutant pollutant) {
+    return available
+        ? pollutant.textColor(value: chartValue(pollutant))
+        : CustomColors.darkGreyColor;
+  }
+}
+
+extension KyaListExt on List<Kya> {
+  int totalProgress() {
+    final List<int> progressList = map((element) => element.progress).toList();
+    var sum = 0;
+    for (final element in progressList) {
+      sum = sum + element;
+    }
+
+    return sum;
+  }
+
+  List<Kya> filterIncompleteKya() {
+    return where((element) {
+      return element.progress != -1;
+    }).toList();
+  }
+
+  List<Kya> filterCompleteKya() {
+    return where((element) {
+      return element.progress == -1;
+    }).toList();
+  }
+}
+
+extension AnalyticsListExt on List<Analytics> {
+  List<Analytics> sortByDateTime() {
+    sort(
+      (x, y) {
+        return -(x.createdAt.compareTo(y.createdAt));
+      },
+    );
+
+    return this;
+  }
+}
+
+extension ProfileExt on Profile {
+  String greetings() {
+    final hour = DateTime.now().hour;
+
+    if (00 <= hour && hour < 12) {
+      return 'Good morning $firstName'.trim();
+    }
+
+    if (12 <= hour && hour < 16) {
+      return 'Good afternoon $firstName'.trim();
+    }
+
+    if (16 <= hour && hour <= 23) {
+      return 'Good evening $firstName'.trim();
+    }
+
+    return 'Hello $firstName'.trim();
+  }
+}
+
+extension DateTimeExt on DateTime {
+  DateTime getDateOfFirstDayOfWeek() {
+    DateTime firstDate = this;
+    while (firstDate.weekday != 1) {
+      firstDate = firstDate.subtract(const Duration(days: 1));
     }
 
     return firstDate.getDateOfFirstHourOfDay();
@@ -50,6 +159,14 @@ extension DateTimeExtension on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == 1 || compareTo(dateTime) == 0;
+  }
+
+  bool isBeforeOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == -1 || compareTo(dateTime) == 0;
   }
 
   DateTime getDateOfLastDayOfWeek() {
@@ -213,67 +330,50 @@ extension DateTimeExtension on DateTime {
   }
 
   bool isInWeek(String referenceWeek) {
-    final now = DateTime.now();
-    DateTime referenceDay;
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay;
     DateTime lastDay;
     switch (referenceWeek.toLowerCase()) {
       case 'last':
-        referenceDay =
+        firstDay =
             now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay =
             now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       case 'next':
-        referenceDay =
-            now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       default:
-        referenceDay = now.getDateOfFirstDayOfWeek();
+        firstDay = now.getDateOfFirstDayOfWeek();
         lastDay = now.getDateOfLastDayOfWeek();
         break;
     }
 
-    while (referenceDay != lastDay) {
-      if (day == referenceDay.day &&
-          month == referenceDay.month &&
-          year == referenceDay.year) {
-        return true;
-      }
-      referenceDay = referenceDay.add(const Duration(days: 1));
-    }
-
-    return false;
+    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
-    if (day == DateTime.now().day &&
-        month == DateTime.now().month &&
-        year == DateTime.now().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
   }
 
   bool isTomorrow() {
-    if (day == tomorrow().day &&
-        month == tomorrow().month &&
-        year == tomorrow().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final tomorrowDate = formatter.parse(formatter.format(tomorrow()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(tomorrowDate) == 0;
   }
 
   bool isYesterday() {
-    if (day == yesterday().day &&
-        month == yesterday().month &&
-        year == yesterday().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final yesterdayDate = formatter.parse(formatter.format(yesterday()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(yesterdayDate) ==
+        0;
   }
 
   String notificationDisplayDate() {
@@ -303,13 +403,13 @@ extension DateTimeExtension on DateTime {
   }
 }
 
-extension FileExtenion on File {
+extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
   }
 }
 
-extension StringCasingExtension on String {
+extension StringExt on String {
   bool inStatement(String statement) {
     final terms = toLowerCase().split(' ');
     final words = statement.toLowerCase().split(' ');
@@ -322,6 +422,14 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidName() {
+    if (trim().isNull()) {
+      return false;
+    }
+
+    return true;
   }
 
   bool equalsIgnoreCase(String value) {
@@ -342,6 +450,31 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidPhoneNumber() {
+    if (isNull()) {
+      return false;
+    }
+
+    return trim().replaceAll(" ", "").length >= 7 &&
+        trim().replaceAll(" ", "").length <= 15;
+  }
+
+  String inValidPhoneNumberMessage() {
+    if (isNull()) {
+      return 'A phone number cannot be empty';
+    }
+
+    if (trim().replaceAll(" ", "").length < 7) {
+      return 'Looks like you missed a digit.';
+    }
+
+    if (trim().replaceAll(" ", "").length > 15) {
+      return 'Entered many digits.';
+    }
+
+    return AuthenticationError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {

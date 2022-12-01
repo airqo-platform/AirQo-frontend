@@ -10,7 +10,7 @@ Example:
 For an organisation whose assigned acronym is acw, their forgot password page will be:
 https://platform.airqo.net/request-access/acw_**
 
-![request_access](../_media/join_request_access.png)
+<img src='_media/join_request_access.png' alt='request_access' />
 
 ---
 
@@ -49,4 +49,4 @@ Example:
 For an organisation whose assigned acronym is acw, their forgot password page will be:
 https://platform.airqo.net/forgot/acw_**
 
-![join_forgot_password](../_media/join_forgot_password.png)
+<img src='_media/join_forgot_password.png' alt='join_forgot_password' />

@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../themes/colors.dart';
-import '../widgets/custom_widgets.dart';
+class LoadingCubit extends Cubit<int> {
+  LoadingCubit() : super(0);
+
+  void setProgress(int progress) => emit(progress);
+}
 
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({
@@ -23,57 +28,50 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
-  final controller = Completer<WebViewController>();
-  int loadingPercentage = 0;
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppTopBar(
-        widget.title.trimEllipsis(),
-        actions: [
-          NavigationControls(
-            controller: controller,
-          ),
-        ],
-        centerTitle: false,
-      ),
-      body: Stack(
-        children: [
-          WebView(
-            backgroundColor: CustomColors.appBodyColor,
-            initialUrl: widget.url,
-            onWebViewCreated: controller.complete,
-            javascriptMode: JavascriptMode.unrestricted,
-            onPageStarted: (url) {
-              setState(
-                () {
-                  loadingPercentage = 0;
-                },
-              );
-            },
-            onProgress: (progress) {
-              setState(
-                () {
-                  loadingPercentage = progress;
-                },
-              );
-            },
-            onPageFinished: (url) {
-              setState(
-                () {
-                  loadingPercentage = 100;
-                },
-              );
-            },
-          ),
-          if (loadingPercentage < 100)
-            LinearProgressIndicator(
-              value: loadingPercentage / 100.0,
-              color: CustomColors.appColorBlue,
-              backgroundColor: CustomColors.appColorDisabled,
+    return BlocProvider(
+      create: (_) => LoadingCubit(),
+      child: Scaffold(
+        appBar: AppTopBar(
+          widget.title.trimEllipsis(),
+          actions: [
+            NavigationControls(
+              controller: _controller,
             ),
-        ],
+          ],
+          centerTitle: false,
+        ),
+        body: BlocBuilder<LoadingCubit, int>(
+          builder: (context, progress) => Stack(
+            children: [
+              WebView(
+                backgroundColor: CustomColors.appBodyColor,
+                initialUrl: widget.url,
+                onWebViewCreated: _controller.complete,
+                javascriptMode: JavascriptMode.unrestricted,
+                onPageStarted: (_) =>
+                    context.read<LoadingCubit>().setProgress(0),
+                onProgress: (progress) {
+                  context.read<LoadingCubit>().setProgress(progress);
+                },
+                onPageFinished: (_) =>
+                    context.read<LoadingCubit>().setProgress(100),
+              ),
+              Visibility(
+                visible: progress < 100,
+                child: LinearProgressIndicator(
+                  value: progress / 100.0,
+                  color: CustomColors.appColorBlue,
+                  backgroundColor: CustomColors.appColorDisabled,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -81,6 +79,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
+    if (Platform.isAndroid) {
+      WebView.platform = SurfaceAndroidWebView();
+    }
     checkNetworkConnection(context, notifyUser: true);
   }
 }
@@ -101,22 +102,7 @@ class NavigationControls extends StatelessWidget {
         final controller = snapshot.data;
         if (snapshot.connectionState != ConnectionState.done ||
             controller == null) {
-          return Row(
-            children: <Widget>[
-              Icon(
-                Icons.arrow_back_ios,
-                color: CustomColors.appColorBlue,
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: CustomColors.appColorBlue,
-              ),
-              Icon(
-                Icons.replay,
-                color: CustomColors.appColorBlue,
-              ),
-            ],
-          );
+          return Container();
         }
 
         return Row(
@@ -130,9 +116,9 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoBack()) {
                   await controller.goBack();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
-                    'No back history item',
+                    'No back history',
                   );
 
                   return;
@@ -148,9 +134,9 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoForward()) {
                   await controller.goForward();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
-                    'No forward history item',
+                    'No forward history',
                   );
 
                   return;

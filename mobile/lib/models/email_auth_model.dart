@@ -1,6 +1,5 @@
+import 'package:app/utils/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import '../utils/exception.dart';
 
 part 'email_auth_model.g.dart';
 
@@ -30,7 +29,7 @@ class EmailAuthModel {
 
   Map<String, dynamic> toJson() => _$EmailAuthModelToJson(this);
 
-  static EmailAuthModel? parseEmailAuthModel(dynamic jsonBody) {
+  static EmailAuthModel? parseEmailAuthModel(jsonBody) {
     try {
       return EmailAuthModel.fromJson(jsonBody);
     } catch (exception, stackTrace) {

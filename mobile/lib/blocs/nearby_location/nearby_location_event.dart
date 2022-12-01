@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+part of 'nearby_location_bloc.dart';
 
 abstract class NearbyLocationEvent extends Equatable {
   const NearbyLocationEvent();

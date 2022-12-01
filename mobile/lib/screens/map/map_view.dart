@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../models/air_quality_reading.dart';
-import '../../themes/app_theme.dart';
-import '../../utils/pm.dart';
 import 'map_view_widgets.dart';
 
 class MapView extends StatefulWidget {
@@ -98,15 +98,13 @@ class _MapLandscapeState extends State<MapLandscape> {
     final leftMostMarker = latitudes.reduce(min);
     final bottomMostMarker = longitudes.reduce(min);
 
-    final bounds = LatLngBounds(
+    return LatLngBounds(
       northeast: LatLng(rightMostMarker, topMostMarker),
       southwest: LatLng(leftMostMarker, bottomMostMarker),
     );
-
-    return bounds;
   }
 
-  Future<void> _listenToAirQualityReadingChanges() async {
+  void _listenToAirQualityReadingChanges() {
     context.read<MapBloc>().stream.listen(_updateMapState);
   }
 
@@ -203,7 +201,7 @@ class MapDragSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.30,
+      initialChildSize: 0.3,
       minChildSize: 0.18,
       maxChildSize: 0.92,
       builder: (
