@@ -1,9 +1,12 @@
 /// <reference types="cypress" />
 
 describe("Verify AirQo Documentation Home Page", () => {
-  //block of tests
-  it("Verify AirQo Documentation Home Page Loads successfully", () => {
+  it("Verify page is reachable", () => {
     cy.visit("http://localhost:3000/#/");
+  });
+  
+  it("Verify Side Menu Button is functional", () => {
+    cy.get(".sidebar-toggle").click();
   });
 
   it("Verify AirQo logo is present and visible", () => {
