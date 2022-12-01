@@ -234,7 +234,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       chart = state.historicalCharts;
     }
 
-    List<Recommendation> healthTips = [];
+    List<HealthTip> healthTips = [];
     String healthTipsTitle = '';
 
     ChartData chartData = chart[state.pollutant]![chartIndex].first.data.first;
@@ -247,7 +247,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     if (state.frequency == Frequency.hourly &&
         chartData.available &&
         (chartData.dateTime.isToday() || chartData.dateTime.isTomorrow())) {
-      healthTips = getHealthRecommendations(
+      healthTips = getHealthTips(
         chartData.pm2_5,
         state.pollutant,
       );

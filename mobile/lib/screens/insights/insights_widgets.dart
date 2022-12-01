@@ -1264,7 +1264,7 @@ class HealthTipsWidget extends StatelessWidget {
                       right:
                           index == (state.healthTips.length - 1) ? 12.0 : 6.0,
                     ),
-                    child: RecommendationContainer(state.healthTips[index]),
+                    child: HealthTipContainer(state.healthTips[index]),
                   );
                 },
                 itemCount: state.healthTips.length,
@@ -1279,12 +1279,12 @@ class HealthTipsWidget extends StatelessWidget {
 
 class InsightsToggleBar extends StatelessWidget {
   const InsightsToggleBar({
-    Key? key,
+    super.key,
     required this.frequency,
     required this.isEmpty,
     required this.pollutant,
     this.disablePm10 = false,
-  }) : super(key: key);
+  });
   final bool isEmpty;
   final Frequency frequency;
   final Pollutant pollutant;

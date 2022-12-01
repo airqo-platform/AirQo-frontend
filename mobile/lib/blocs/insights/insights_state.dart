@@ -63,7 +63,7 @@ class InsightsState extends Equatable {
     Frequency? frequency,
     bool? scrollingGraphs,
     bool? isShowingForecast,
-    List<Recommendation>? healthTips,
+    List<HealthTip>? healthTips,
   }) {
     return InsightsState(
       siteId: siteId ?? this.siteId,
@@ -106,7 +106,7 @@ class InsightsState extends Equatable {
   final Frequency frequency;
   final bool scrollingGraphs;
   final bool isShowingForecast;
-  final List<Recommendation> healthTips;
+  final List<HealthTip> healthTips;
   final String healthTipsTitle;
 
   @override
