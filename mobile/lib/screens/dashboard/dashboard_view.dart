@@ -34,7 +34,6 @@ class _DashboardViewState extends State<DashboardView> {
   final GlobalKey _kyaShowcaseKey = GlobalKey();
   final GlobalKey _analyticsShowcaseKey = GlobalKey();
   final GlobalKey _nearestLocationShowcaseKey = GlobalKey();
-  BuildContext? myContext;
   bool emptykya = false;
 
   final Stream<int> _timeStream =
@@ -97,7 +96,7 @@ class _DashboardViewState extends State<DashboardView> {
                 final kyaWidgets = completeKyaWidgets(
                   state.kya.filterCompleteKya().take(3).toList(),
                 );
-                
+
                 return Row(
                   children: [
                     Showcase(
@@ -234,6 +233,7 @@ class _DashboardViewState extends State<DashboardView> {
                           );
                           
                           emptykya = incompleteKya.isEmpty;
+
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
                             child: Showcase(
