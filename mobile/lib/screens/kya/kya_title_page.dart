@@ -21,6 +21,17 @@ class KyaTitlePage extends StatefulWidget {
 }
 
 class _KyaTitlePageState extends State<KyaTitlePage> {
+  String buttonText = 'Begin';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.kya.progress > 0 &&
+        widget.kya.progress < widget.kya.lessons.length) {
+      buttonText = 'Resume';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,7 +86,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                   );
                 },
                 child: NextButton(
-                  text: 'Begin',
+                  text: buttonText,
                   buttonColor: CustomColors.appColorBlue,
                 ),
               ),
@@ -85,7 +96,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
             child: Align(
               alignment: Alignment.center,
               child: Padding(
-                padding: const EdgeInsets.only(left: 24, right: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
                     const Spacer(),

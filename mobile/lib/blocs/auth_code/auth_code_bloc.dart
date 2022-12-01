@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -185,7 +186,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   }
 
   Future<void> _onGuestUserEvent(
-    GuestUserEvent _,
+    GuestUserEvent event,
     Emitter<AuthCodeState> emit,
   ) async {
     try {
@@ -194,9 +195,10 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       );
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
+    } finally {
+      event.context.read<AccountBloc>().add(const FetchAccountInfo());
+      emit(const AuthCodeState.initial());
     }
-
-    return emit(const AuthCodeState.initial());
   }
 
   void _onUpdateAuthCode(

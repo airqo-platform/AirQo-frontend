@@ -4,74 +4,72 @@ abstract class FeedbackEvent extends Equatable {
   const FeedbackEvent();
 }
 
-class ClearFeedback extends FeedbackEvent {
-  const ClearFeedback();
+class InitializeFeedback extends FeedbackEvent {
+  const InitializeFeedback();
 
   @override
-  List<Object?> get props => ['clear feedback'];
+  List<Object?> get props => [];
 }
 
 class SetFeedbackType extends FeedbackEvent {
-  const SetFeedbackType({required this.feedbackType});
+  const SetFeedbackType(this.feedbackType);
 
   final FeedbackType feedbackType;
 
   @override
-  List<Object?> get props => ['set feedback type'];
-}
-
-class GoToChannelStep extends FeedbackEvent {
-  const GoToChannelStep();
-
-  @override
-  List<Object?> get props => ['go to channel'];
+  List<Object?> get props => [];
 }
 
 class GoToTypeStep extends FeedbackEvent {
   const GoToTypeStep();
 
   @override
-  List<Object?> get props => ['go to type'];
+  List<Object?> get props => [];
 }
 
 class GoToFormStep extends FeedbackEvent {
   const GoToFormStep();
 
   @override
-  List<Object?> get props => ['go to form'];
+  List<Object?> get props => [];
 }
 
-class FeedbackFormError extends FeedbackEvent {
-  const FeedbackFormError(this.error);
-  final String error;
+class SubmitFeedback extends FeedbackEvent {
+  const SubmitFeedback();
 
   @override
-  List<Object?> get props => ['feedback error'];
+  List<Object?> get props => [];
 }
 
-class SetFeedbackChannel extends FeedbackEvent {
-  const SetFeedbackChannel({required this.feedbackChannel});
-
-  final FeedbackChannel feedbackChannel;
+class GoToChannelStep extends FeedbackEvent {
+  const GoToChannelStep();
 
   @override
-  List<Object?> get props => ['feedback channel'];
+  List<Object?> get props => [];
 }
 
 class SetFeedbackContact extends FeedbackEvent {
-  const SetFeedbackContact({required this.contact});
+  const SetFeedbackContact(this.contact);
 
   final String contact;
 
   @override
-  List<Object?> get props => ['feedback contact'];
+  List<Object?> get props => [];
 }
 
 class SetFeedback extends FeedbackEvent {
-  const SetFeedback({required this.feedback});
-
+  const SetFeedback(this.feedback);
   final String feedback;
 
   @override
-  List<Object?> get props => ['set feedback'];
+  List<Object?> get props => [];
+}
+
+class SetFeedbackChannel extends FeedbackEvent {
+  const SetFeedbackChannel(this.feedbackChannel);
+
+  final FeedbackChannel feedbackChannel;
+
+  @override
+  List<Object?> get props => [];
 }

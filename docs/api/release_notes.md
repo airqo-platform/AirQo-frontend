@@ -5,7 +5,7 @@ The AirQo API is regularly updated with new features, bug fixes, and performance
 ---
 
 This changelog lists releases by date and version number, along with associated changes.
-Find the API reference [here](../api/README.md#api-reference).
+Find the API reference [here](api/README.md#api-reference).
 
 ---
 

@@ -5,7 +5,9 @@ abstract class AuthCodeEvent extends Equatable {
 }
 
 class GuestUserEvent extends AuthCodeEvent {
-  const GuestUserEvent();
+  const GuestUserEvent(this.context);
+
+  final BuildContext context;
   @override
   List<Object?> get props => [];
 }

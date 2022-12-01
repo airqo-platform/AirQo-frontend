@@ -16,13 +16,10 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_title_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
-  const DashboardView({
-    super.key,
-  });
+  const DashboardView({super.key});
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -75,10 +72,14 @@ class _DashboardViewState extends State<DashboardView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            BlocBuilder<DashboardBloc, DashboardState>(
+            BlocBuilder<AccountBloc, AccountState>(
               builder: (context, state) {
+                final profile = state.profile;
+                final greetings =
+                    profile == null ? 'Hello' : profile.greetings();
+
                 return AutoSizeText(
-                  state.greetings,
+                  greetings,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline7(context),
@@ -88,83 +89,64 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 16,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: ValueListenableBuilder<Box<FavouritePlace>>(
-                    valueListenable:
-                        Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-                            .listenable(),
-                    builder: (context, box, widget) {
-                      final favouritePlaces =
-                          box.values.cast<FavouritePlace>().take(3).toList();
-
-                      final widgets = favouritePlacesWidgets(favouritePlaces);
-
-                      return Showcase(
-                        key: _favoritesShowcaseKey,
-                        description:
-                            'Find the latest air quality from your favorite locations',
-                        child: DashboardTopCard(
-                          toolTipType: ToolTipType.favouritePlaces,
-                          title: 'Favorites',
-                          widgetKey: _favToolTipKey,
-                          nextScreenClickHandler: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const FavouritePlaces();
-                                },
-                              ),
-                            );
-                          },
-                          children: widgets,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: ValueListenableBuilder<Box<Kya>>(
-                    valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-                    builder: (context, box, widget) {
-                      final completeKya = box.values
-                          .cast<Kya>()
-                          .where((element) => element.progress == -1)
-                          .take(3)
-                          .toList();
-
-                      final widgets = completeKyaWidgets(completeKya);
-
-                      return Showcase(
-                        key: _forYouShowcaseKey,
-                        description:
-                            'Find amazing content specifically designed for you here.',
-                        child: DashboardTopCard(
-                          toolTipType: ToolTipType.forYou,
-                          title: 'For You',
-                          widgetKey: _kyaToolTipKey,
-                          nextScreenClickHandler: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const ForYouPage(analytics: false);
-                                },
-                              ),
-                            );
-                          },
-                          children: widgets,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            BlocBuilder<AccountBloc, AccountState>(
+              builder: (context, state) {
+                final favouritePlaces = favouritePlacesWidgets(
+                  state.favouritePlaces.take(3).toList(),
+                );
+                final kyaWidgets = completeKyaWidgets(
+                  state.kya.filterCompleteKya().take(3).toList(),
+                );
+                return Row(
+                  children: [
+                    Showcase(
+                      key: _favoritesShowcaseKey,
+                      description:
+                          'Find the latest air quality from your favorite locations',
+                      child: DashboardTopCard(
+                        toolTipType: ToolTipType.favouritePlaces,
+                        title: 'Favorites',
+                        widgetKey: _favToolTipKey,
+                        nextScreenClickHandler: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const FavouritePlacesPage();
+                              },
+                            ),
+                          );
+                        },
+                        children: favouritePlaces,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Showcase(
+                      key: _forYouShowcaseKey,
+                      description:
+                          'Find amazing content specifically designed for you here.',
+                      child: DashboardTopCard(
+                        toolTipType: ToolTipType.forYou,
+                        title: 'For You',
+                        widgetKey: _kyaToolTipKey,
+                        nextScreenClickHandler: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const ForYouPage(analytics: false);
+                              },
+                            ),
+                          );
+                        },
+                        children: kyaWidgets,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(
               height: 24,
@@ -236,19 +218,19 @@ class _DashboardViewState extends State<DashboardView> {
                           return const SizedBox();
                         },
                       ),
-                      ValueListenableBuilder<Box<Kya>>(
-                        valueListenable:
-                            Hive.box<Kya>(HiveBox.kya).listenable(),
-                        builder: (context, box, widget) {
-                          final incompleteKya = box.values
-                              .toList()
-                              .cast<Kya>()
-                              .where((element) => element.progress != -1)
-                              .toList();
-                          emptykya = incompleteKya.isEmpty;
+                      BlocBuilder<AccountBloc, AccountState>(
+                        builder: (context, state) {
+                          final incompleteKya = state.kya.filterIncompleteKya();
                           if (incompleteKya.isEmpty) {
                             return const SizedBox();
                           }
+
+                          final Kya kya = incompleteKya.reduce(
+                            (value, element) =>
+                                value.progress > element.progress
+                                    ? value
+                                    : element,
+                          );
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
@@ -256,10 +238,7 @@ class _DashboardViewState extends State<DashboardView> {
                               key: _kyaShowcaseKey,
                               description:
                                   'Do you want to know more about air quality? Know your air in this section',
-                              child: DashboardKyaCard(
-                                kyaClickCallBack: _handleKyaOnClick,
-                                kya: incompleteKya.first,
-                              ),
+                              child: DashboardKyaCard(kya),
                             ),
                           );
                         },
@@ -347,22 +326,6 @@ class _DashboardViewState extends State<DashboardView> {
       await _appService.refreshDashboard(context);
     });
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
-  }
-
-  Future<void> _handleKyaOnClick(Kya kya) async {
-    if (kya.progress >= kya.lessons.length) {
-      kya.progress = -1;
-      await kya.saveKya();
-    } else {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return KyaTitlePage(kya);
-          },
-        ),
-      );
-    }
   }
 
   Future<void> _refresh() async {

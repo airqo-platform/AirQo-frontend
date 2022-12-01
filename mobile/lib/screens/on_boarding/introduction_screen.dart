@@ -45,7 +45,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
               const SizedBox(
                 height: 21,
               ),
-              WelcomeSection(
+              const WelcomeSection(
                 header: 'Save your favorite places',
                 body:
                     'Keep track of air quality in locations that matter to you',
@@ -54,7 +54,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
               const SizedBox(
                 height: 24,
               ),
-              WelcomeSection(
+              const WelcomeSection(
                 header: 'New experiences for You',
                 body: 'Access analytics and content curated just for you',
                 svg: 'assets/icon/onboarding_hash_tag.svg',
@@ -62,7 +62,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
               const SizedBox(
                 height: 24,
               ),
-              WelcomeSection(
+              const WelcomeSection(
                 header: 'Know your air on the go',
                 body: 'An easy way to plan your outdoor activities to minimise'
                     ' excessive exposure to bad air quality ',

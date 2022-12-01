@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -8,6 +9,7 @@ import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
@@ -138,7 +140,7 @@ class AqiStringContainer extends StatelessWidget {
               airQualityReading.pm2_5,
             )
             .withOpacity(0.4),
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -209,7 +211,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         color: Pollutant.pm2_5.color(
           airQualityReading.pm2_5,
         ),
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -258,7 +260,7 @@ class HeartIcon extends StatelessWidget {
   });
 
   final bool showAnimation;
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -282,8 +284,11 @@ class HeartIcon extends StatelessWidget {
       builder: (context, box, widget) {
         final placesIds = box.keys.toList();
 
+        final placeId =
+            airQualityReading == null ? '' : airQualityReading?.placeId;
+
         return SvgPicture.asset(
-          placesIds.contains(airQualityReading.placeId)
+          placesIds.contains(placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',
@@ -338,7 +343,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         ),
         Expanded(
           child: InkWell(
-            onTap: () async => _updateFavPlace(),
+            onTap: () async => _updateFavPlace(context),
             child: IconTextButton(
               iconWidget: HeartIcon(
                 showAnimation: _showHeartAnimation,
@@ -363,17 +368,17 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     }
   }
 
-  Future<void> _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
-      Future.delayed(const Duration(seconds: 2), () {
+  void _updateFavPlace(BuildContext context) {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
         setState(() => _showHeartAnimation = false);
-      });
-    }
+      }
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 
@@ -393,6 +398,7 @@ class AppSafeArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
       color: backgroundColor ?? CustomColors.appBodyColor,
       child: SafeArea(
         minimum: EdgeInsets.symmetric(
@@ -441,6 +447,100 @@ class CustomBottomNavBarItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class NoAirQualityDataWidget extends StatelessWidget {
+  const NoAirQualityDataWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset('assets/icon/no_air_quality_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No Air Quality data',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'We’re having issues with our network no worries, we’ll be back up soon.',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Reload',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NoInternetConnectionWidget extends StatelessWidget {
+  const NoInternetConnectionWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset('assets/icon/no_internet_connection_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No internet connection',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'Connect to the internet to see results',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Refresh',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

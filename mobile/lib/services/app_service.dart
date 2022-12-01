@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
@@ -99,7 +97,6 @@ class AppService {
         emailAddress: emailAddress,
       );
     } catch (exception, stackTrace) {
-      debugPrint('$exception \n $stackTrace');
       await logException(exception, stackTrace);
 
       return true;
@@ -113,100 +110,31 @@ class AppService {
         notifyUser: true,
       ),
       refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _loadFavouritePlaces(),
-      fetchFavPlacesInsights(),
-      _updateFavouritePlacesReferenceSites(),
-      Profile.syncProfile(),
+      updateFavouritePlacesReferenceSites(),
     ]);
   }
 
-  Future<void> fetchFavPlacesInsights() async {
-    try {
-      final favPlaces =
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-      final placeIds = <String>[];
-
-      for (final favPlace in favPlaces) {
-        placeIds.add(favPlace.referenceSite);
-      }
-      await fetchInsights(
-        placeIds,
-        reloadDatabase: true,
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  Future<List<Insights>> fetchInsights(
-    List<String> siteIds, {
+  Future<InsightData> fetchInsightsData(
+    String siteId, {
     Frequency? frequency,
-    bool reloadDatabase = false,
   }) async {
-    final insights = <Insights>[];
-    final futures = <Future<List<Insights>>>[];
+    final insights = await AirqoApiClient().fetchInsightsData(siteId);
 
-    for (var i = 0; i < siteIds.length; i = i + 2) {
-      final site1 = siteIds[i];
-      try {
-        final site2 = siteIds[i + 1];
-        futures.add(AirqoApiClient().fetchSitesInsights('$site1,$site2'));
-      } catch (e) {
-        futures.add(AirqoApiClient().fetchSitesInsights(site1));
-      }
-    }
-
-    final sitesInsights = await Future.wait(futures);
-    for (final result in sitesInsights) {
-      insights.addAll(result);
-    }
-
-    await DBHelper().insertInsights(
-      insights,
-      siteIds,
-      reloadDatabase: reloadDatabase,
-    );
+    await AirQoDatabase().insertHistoricalInsights(insights.historical);
+    await AirQoDatabase().insertForecastInsights(insights.forecast);
 
     if (frequency != null) {
-      return insights
-          .where((element) => element.frequency == frequency.toString())
+      final historical = insights.historical
+          .where((element) => element.frequency == frequency)
           .toList();
+      final forecast = insights.forecast
+          .where((element) => element.frequency == frequency)
+          .toList();
+
+      return InsightData(forecast: forecast, historical: historical);
     }
 
     return insights;
-  }
-
-  Future<void> _loadKya() async {
-    try {
-      final offlineKyas =
-          Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
-
-      final cloudKyas = await CloudStore.getKya();
-      var kyas = <Kya>[];
-      if (offlineKyas.isEmpty) {
-        kyas = cloudKyas;
-      } else {
-        for (final offlineKya in offlineKyas) {
-          try {
-            final kya = cloudKyas
-                .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
-                .first
-              ..progress = offlineKya.progress;
-            kyas.add(kya);
-          } catch (e) {
-            debugPrint(e.toString());
-          }
-        }
-      }
-      await Kya.load(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
   }
 
   Future<void> refreshAirQualityReadings() async {
@@ -216,56 +144,6 @@ class AppService {
         baseUrl: Config.airqoApiUrl,
       ).getSitesReadings();
       await HiveService.updateAirQualityReadings(siteReadings);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> _loadFavouritePlaces() async {
-    try {
-      final offlineFavPlaces =
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-      final cloudFavPlaces = await CloudStore.getFavouritePlaces();
-
-      for (final place in offlineFavPlaces) {
-        cloudFavPlaces.removeWhere(
-          (element) => element.placeId.equalsIgnoreCase(place.placeId),
-        );
-      }
-
-      final favPlaces = <FavouritePlace>[
-        ...offlineFavPlaces,
-        ...cloudFavPlaces,
-      ];
-
-      await HiveService.loadFavouritePlaces(favPlaces, reload: true);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> _loadNotifications() async {
-    try {
-      final offlineNotifications =
-          Hive.box<AppNotification>(HiveBox.appNotifications)
-              .values
-              .toList()
-              .cast<AppNotification>();
-
-      final cloudNotifications = await CloudStore.getNotifications();
-
-      for (final notification in cloudNotifications) {
-        offlineNotifications.removeWhere(
-          (element) => element.id.equalsIgnoreCase(notification.id),
-        );
-      }
-
-      final notifications = [
-        ...offlineNotifications,
-        ...cloudNotifications,
-      ];
-
-      await HiveService.loadNotifications(notifications);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -289,12 +167,9 @@ class AppService {
     try {
       await Future.wait([
         Profile.syncProfile(),
-        _loadFavouritePlaces(),
-        _loadNotifications(),
         CloudStore.getCloudAnalytics(),
-        _logPlatformType(),
-        _loadKya(),
-        _updateFavouritePlacesReferenceSites(),
+        CloudAnalytics.logPlatformType(),
+        updateFavouritePlacesReferenceSites(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -324,9 +199,9 @@ class AppService {
         CloudAnalytics.logEvent(
           AnalyticsEvent.createUserProfile,
         ),
-        _logNetworkProvider(),
-        _logPlatformType(),
-        _logGender(),
+        CloudAnalytics.logNetworkProvider(),
+        CloudAnalytics.logPlatformType(),
+        CloudAnalytics.logGender(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -334,6 +209,7 @@ class AppService {
   }
 
   Future<bool> _postLogOutActions() async {
+    // TODO Login anonymously
     try {
       final profile = await Profile.getProfile();
       final placesUpdated = await CloudStore.updateFavouritePlaces();
@@ -357,19 +233,6 @@ class AppService {
     return false;
   }
 
-  Future<void> refreshNotifications(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(
@@ -377,46 +240,11 @@ class AppService {
         notifyUser: true,
       ),
       refreshAirQualityReadings(),
-      _loadKya(),
-      _loadNotifications(),
-      _updateFavouritePlacesReferenceSites(),
+      updateFavouritePlacesReferenceSites(),
     ]);
   }
 
-  Future<void> refreshAnalytics(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      _loadKya(),
-      fetchFavPlacesInsights(),
-    ]);
-  }
-
-  Future<void> refreshKyaView(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      _loadKya(),
-    ]);
-  }
-
-  Future<void> refreshFavouritePlaces(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      fetchFavPlacesInsights(),
-      _updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
-  Future<void> _updateFavouritePlacesReferenceSites() async {
+  Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
@@ -433,54 +261,5 @@ class AppService {
       }
     }
     await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
-  }
-
-  Future<void> _logGender() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      if (profile.getGender() == Gender.male) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.maleUser,
-        );
-      } else if (profile.getGender() == Gender.female) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.femaleUser,
-        );
-      } else {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.undefinedGender,
-        );
-      }
-    }
-  }
-
-  Future<void> _logNetworkProvider() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
-      if (carrier.toLowerCase().contains('airtel')) {
-        await CloudAnalytics.logEvent(AnalyticsEvent.airtelUser);
-      } else if (carrier.toLowerCase().contains('mtn')) {
-        await CloudAnalytics.logEvent(AnalyticsEvent.mtnUser);
-      } else {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.otherNetwork,
-        );
-      }
-    }
-  }
-
-  Future<void> _logPlatformType() async {
-    if (Platform.isAndroid) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.androidUser,
-      );
-    } else if (Platform.isIOS) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.iosUser,
-      );
-    } else {
-      debugPrint('Unknown Platform');
-    }
   }
 }

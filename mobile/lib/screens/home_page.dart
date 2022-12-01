@@ -13,6 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'for_you_page.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
