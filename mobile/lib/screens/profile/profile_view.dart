@@ -6,15 +6,14 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'profile_edit_page.dart';
 import 'profile_widgets.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({
-    super.key,
-  });
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();

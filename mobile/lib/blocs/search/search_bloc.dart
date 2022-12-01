@@ -3,11 +3,12 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'search_event.dart';
-import 'search_state.dart';
+part 'search_event.dart';
+part 'search_state.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc()

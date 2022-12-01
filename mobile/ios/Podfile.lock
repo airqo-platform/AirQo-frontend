@@ -909,6 +909,21 @@ PODS:
   - sqflite (0.0.2):
     - Flutter
     - FMDB (>= 2.7.5)
+  - sqlite3 (3.39.3):
+    - sqlite3/common (= 3.39.3)
+  - sqlite3/common (3.39.3)
+  - sqlite3/fts5 (3.39.3):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.39.3):
+    - sqlite3/common
+  - sqlite3/rtree (3.39.3):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - Flutter
+    - sqlite3 (~> 3.39.3)
+    - sqlite3/fts5
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
   - url_launcher_ios (0.0.1):
     - Flutter
   - webview_flutter_wkwebview (0.0.1):
@@ -941,6 +956,7 @@ DEPENDENCIES:
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_ios (from `.symlinks/plugins/shared_preferences_ios/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
+  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
   - workmanager (from `.symlinks/plugins/workmanager/ios`)
@@ -980,6 +996,7 @@ SPEC REPOS:
     - nanopb
     - PromisesObjC
     - Sentry
+    - sqlite3
 
 EXTERNAL SOURCES:
   cloud_firestore:
@@ -1030,6 +1047,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_ios/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
+  sqlite3_flutter_libs:
+    :path: ".symlinks/plugins/sqlite3_flutter_libs/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   webview_flutter_wkwebview:
@@ -1095,6 +1114,8 @@ SPEC CHECKSUMS:
   share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
+  sqlite3: 50117e9e063a9ef2b865f7bdf2f2601e5d368e9a
+  sqlite3_flutter_libs: c6ab7f23670a98fef45a137159452004bc552168
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
   webview_flutter_wkwebview: b7e70ef1ddded7e69c796c7390ee74180182971f
   workmanager: 0afdcf5628bbde6924c21af7836fed07b42e30e6

@@ -40,6 +40,15 @@ enum AnalyticsEvent {
   }
 }
 
+enum InsightsStatus {
+  loaded,
+  error,
+  refreshing,
+  loading,
+  noInternetConnection,
+  noData;
+}
+
 enum AppPermission {
   notification,
   location,
