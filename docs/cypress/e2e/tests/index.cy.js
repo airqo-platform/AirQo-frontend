@@ -39,6 +39,12 @@ describe("Verify AirQo Documentation Home Page", () => {
     cy.get("a[title='Calibration']").first().should("be.exist");
     cy.get("a[title='Hardware']").first().should("be.exist");
     cy.get("a[title='Mobile App']").first().should("be.exist");
-    cy.get("a[title='Platform']").first().should("be.exist");
+    cy.get("a[title='Platform']").first().should("be.exist");    
+  });
+it("Verify ability to Search", () => {
+    cy.get(".input-wrap  > input").type("AirQo");
+    cy.get(".results-panel").should(($lis) => {
+      expect($lis.eq(0), "first item").to.contain("AirQo");
+    });
   });
 });
