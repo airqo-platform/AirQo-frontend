@@ -4,7 +4,7 @@
 
 The AirQo Outdoor Air Monitor, also known as the Binos Outdoor Air monitor, is a low-cost air quality monitor that measures Particulate Matter PM2.5 and PM10, as well as ambient meteorological conditions such as humidity and atmospheric pressure. The monitor is locally built and uniquely designed to withstand environmental and physical conditions such as dust and extreme weather. Powered by either mains or solar, the monitor is optimised to work in settings characterised by unreliable power. It runs on a 2G GSM network configuration for IoT simards.
 
-![monitor image](../_media/monitor_1.png)
+<img src='_media/monitor_1.png' alt='monitor_image' />
 
 ## Technical Specifications
 
@@ -126,7 +126,7 @@ sensor.
 
 ## Installation setup procedure
 
-![monitor installation procedure](../_media/monitor_2.png)
+<img src='_media/monitor_2.png' alt='monitor_installation_procedure' />
 
 ## Post-installation of the monitor
 
@@ -184,13 +184,13 @@ Optional tools: spare sensors
 - Check whether the cable from the panels is clearly plugged in the monitor.
 - Replace the batteries if issue is not resolved
 
-![Fixing power issues](../_media/monitor_3.png)
+<img src='_media/monitor_3.png' alt='fixing_power_issues' />
 
 #### Replacing the Sensors and battery
 
-![Replacing the sensors and battery](../_media/monitor_3.png)
+<img src='_media/monitor_3.png' alt='replacing_the_sensors_and_battery' />
 
 # Data Access
 
-To access the monitor data, you need to join the platform. Refer to the [join the platform guide](../platform/join.md#joining-the-platform).
-For analytics and data visualization, refer to the [analytics guide](../platform/analytics.md).
+To access the monitor data, you need to join the platform. Refer to the [join the platform guide](platform/join.md#joining-the-platform).
+For analytics and data visualization, refer to the [analytics guide](platform/analytics.md).
