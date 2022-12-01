@@ -190,9 +190,11 @@ const Footer = () => {
             <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
             <div className="terms-section">
               <span className="text-terms mr-24">
-                <Link to="/terms">Terms of service</Link>
+                <Link to="/legal">Terms of Service</Link>
               </span>
-              {/* <span className="text-terms mr-24">Privacy policy</span> */}
+              <span className="text-terms mr-24">
+                <Link to="/legal">Privacy Policy</Link>
+              </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
           </div>
