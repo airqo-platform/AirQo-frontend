@@ -9,9 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import '../search/search_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
-  const EmptyFavouritePlaces({
-    super.key,
-  });
+  const EmptyFavouritePlaces({super.key});
 
   @override
   Widget build(BuildContext context) {

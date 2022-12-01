@@ -16,9 +16,7 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-  });
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => SplashScreenState();
@@ -57,6 +55,7 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
+    context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 

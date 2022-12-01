@@ -9,9 +9,7 @@ import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
-  const NotificationsSetupScreen({
-    super.key,
-  });
+  const NotificationsSetupScreen({super.key});
 
   @override
   NotificationsSetupScreenState createState() =>

@@ -1,8 +1,13 @@
 /// <reference types="cypress" />
 
 describe("Verify AirQo Documentation Home Page", () => {
+
   it("Verify page is reachable", () => {
     cy.visit("http://localhost:3000/#/");
+  });
+  
+  it("Verify Side Menu Button is functional", () => {
+    cy.get(".sidebar-toggle").click();
   });
 
   it("Verify AirQo logo is present and visible", () => {
@@ -35,7 +40,13 @@ describe("Verify AirQo Documentation Home Page", () => {
     cy.get("a[title='Calibration']").first().should("be.exist");
     cy.get("a[title='Hardware']").first().should("be.exist");
     cy.get("a[title='Mobile App']").first().should("be.exist");
-    cy.get("a[title='Platform']").first().should("be.exist");
+    cy.get("a[title='Platform']").first().should("be.exist");    
+  });
+it("Verify ability to Search", () => {
+    cy.get(".input-wrap  > input").type("AirQo");
+    cy.get(".results-panel").should(($lis) => {
+      expect($lis.eq(0), "first item").to.contain("AirQo");
+    });
   });
   
   it("Verify Edit On GitHub Button is clickable", () => {
