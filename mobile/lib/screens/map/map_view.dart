@@ -6,9 +6,10 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'map_view_widgets.dart';
@@ -16,15 +17,43 @@ import 'map_view_widgets.dart';
 class MapView extends StatelessWidget {
   const MapView({super.key});
 
+  void _reloadMap(BuildContext context) {
+    context.read<MapBloc>().add(const InitializeMapState());
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MapBloc, MapState>(
       builder: (context, state) {
         switch (state.mapStatus) {
           case MapStatus.error:
+            if (state.blocError == AuthenticationError.noInternetConnection) {
+              return NoInternetConnectionWidget(callBack: () {
+                _reloadMap(context);
+              });
+            }
+            return AppErrorWidget(callBack: () {
+              _reloadMap(context);
+            });
           case MapStatus.initial:
           case MapStatus.noAirQuality:
-            return const MapEmptyWidget();
+            return NoAirQualityDataWidget(callBack: () {
+              _reloadMap(context);
+            });
+          case MapStatus.loading:
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                const MapLandscape(),
+                Align(
+                  alignment: Alignment.center,
+                  child: CupertinoActivityIndicator(
+                    radius: 40,
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+              ],
+            );
           case MapStatus.showingCountries:
           case MapStatus.showingRegions:
           case MapStatus.showingFeaturedSite:
@@ -43,47 +72,6 @@ class MapView extends StatelessWidget {
             );
         }
       },
-    );
-  }
-}
-
-class MapEmptyWidget extends StatelessWidget {
-  const MapEmptyWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 33),
-        child: Column(
-          children: [
-            const Spacer(),
-            SvgPicture.asset(
-              'assets/icon/no_air_quality.svg',
-              semanticsLabel: 'Error',
-            ),
-            const SizedBox(height: 53),
-            Text(
-              'No Air Quality data',
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context)?.copyWith(
-                fontSize: 21,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 23),
-            Text(
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                    fontSize: 15.0,
-                    color: CustomColors.emptyNotificationScreenTextColor,
-                  ),
-              'We’re having issues with our network no worries, we’ll be back up soon.',
-            ),
-            const Spacer(),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -122,6 +110,43 @@ class _MapLandscapeState extends State<MapLandscape> {
     );
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return BlocBuilder<MapBloc, MapState>(
+  //     buildWhen: (previous, current){
+  //       return previous.mapStatus == MapStatus.loading || current.mapStatus == MapStatus.loading;
+  //     },
+  //     builder: (context, state) {
+  //
+  //       if(state.mapStatus == MapStatus.loading){
+  //         Future.delayed(Duration.zero, () => loadingScreen(context));
+  //       }
+  //       else {
+  //         Navigator.pop(context);
+  //       }
+  //
+  //       return SizedBox(
+  //         width: MediaQuery.of(context).size.width,
+  //         height: MediaQuery.of(context).size.height,
+  //         child: GoogleMap(
+  //           compassEnabled: false,
+  //           onMapCreated: _onMapCreated,
+  //           mapType: MapType.normal,
+  //           myLocationButtonEnabled: false,
+  //           myLocationEnabled: false,
+  //           rotateGesturesEnabled: false,
+  //           tiltGesturesEnabled: false,
+  //           mapToolbarEnabled: false,
+  //           zoomControlsEnabled: true,
+  //           initialCameraPosition: _defaultCameraPosition,
+  //           markers: _markers.values.toSet(),
+  //         ),
+  //       );
+  //     },
+  //   );
+  //
+  // }
+
   Future<void> _loadTheme() async {
     await _mapController.setMapStyle(
       jsonEncode(googleMapsTheme),
@@ -148,7 +173,10 @@ class _MapLandscapeState extends State<MapLandscape> {
       case MapStatus.error:
       case MapStatus.noAirQuality:
       case MapStatus.searching:
-        // TODO: Handle these case.
+        // Already captured by parent widget
+        break;
+      case MapStatus.loading:
+        await _setMarkers([]);
         break;
       case MapStatus.showingFeaturedSite:
         final AirQualityReading? airQualityReading =
@@ -304,14 +332,12 @@ class _MapDragSheetState extends State<MapDragSheet> {
                   builder: (context, state) {
                     switch (state.mapStatus) {
                       case MapStatus.initial:
-                        // TODO replace with initialize button
-                        break;
                       case MapStatus.error:
-                        // TODO: Handle this case.
-                        break;
                       case MapStatus.noAirQuality:
-                        // TODO replace with error no air quality reading
+                        // Already captured by parent widget
                         break;
+                      case MapStatus.loading:
+                        return Container();
                       case MapStatus.showingCountries:
                         return const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 32),
@@ -326,12 +352,17 @@ class _MapDragSheetState extends State<MapDragSheet> {
                         final AirQualityReading? airQualityReading =
                             state.featuredSiteReading;
                         if (airQualityReading == null) {
-                          context
-                              .read<MapBloc>()
-                              .add(const InitializeMapState());
-                          break;
+                          return NoAirQualityDataWidget(
+                            callBack: () {
+                              final String region =
+                                  context.read<MapBloc>().state.featuredRegion;
+                              context
+                                  .read<MapBloc>()
+                                  .add(ShowRegionSites(region));
+                            },
+                            actionButtonText: 'Back to regions',
+                          );
                         }
-                        // TODO replace with error no air quality reading
                         resizeScrollSheet();
                         return FeaturedSiteReading(airQualityReading);
                       case MapStatus.showingRegionSites:

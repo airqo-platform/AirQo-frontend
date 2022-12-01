@@ -21,12 +21,32 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   late final SearchRepository searchRepository;
 
-  void _onInitializeMapState(
-    InitializeMapState _,
-    Emitter<MapState> emit,
-  ) {
+  Future<void> _onPopulateMapState(Emitter<MapState> emit) async {
     List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+
+    if (airQualityReadings.isEmpty) {
+      final hasConnection = await hasNetworkConnection();
+      if (!hasConnection) {
+        return emit(state.copyWith(
+          mapStatus: MapStatus.error,
+          blocError: AuthenticationError.noInternetConnection,
+        ));
+      }
+
+      emit(state.copyWith(mapStatus: MapStatus.loading));
+
+      await AppService().refreshAirQualityReadings().then((value) {
+        airQualityReadings =
+            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                .values
+                .toList();
+        if (airQualityReadings.isEmpty) {
+          emit(state.copyWith(mapStatus: MapStatus.noAirQuality));
+        }
+      });
+    }
+
     final List<String> countries =
         airQualityReadings.map((e) => e.country.toTitleCase()).toSet().toList();
 
@@ -40,6 +60,13 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       mapStatus: MapStatus.showingCountries,
       featuredAirQualityReadings: airQualityReadings,
     ));
+  }
+
+  Future<void> _onInitializeMapState(
+    InitializeMapState _,
+    Emitter<MapState> emit,
+  ) async {
+    await _onPopulateMapState(emit);
   }
 
   void _onShowCountryRegions(

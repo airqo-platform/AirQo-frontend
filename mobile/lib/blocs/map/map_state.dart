@@ -9,6 +9,7 @@ enum MapStatus {
   showingFeaturedSite,
   showingRegionSites,
   searching,
+  loading,
 }
 
 enum MapSearchStatus {
@@ -27,6 +28,7 @@ class MapState extends Equatable {
     this.featuredRegion = '',
     this.featuredCountry = '',
     this.searchResults = const [],
+    this.blocError = AuthenticationError.none,
   });
 
   const MapState({
@@ -39,6 +41,7 @@ class MapState extends Equatable {
     this.featuredRegion = '',
     this.featuredCountry = '',
     this.searchResults = const [],
+    this.blocError = AuthenticationError.none,
   });
 
   const MapState.initial() : this._();
@@ -53,6 +56,7 @@ class MapState extends Equatable {
     String? featuredCountry,
     List<AirQualityReading>? airQualityReadings,
     List<SearchResultItem>? searchResults,
+    AuthenticationError? blocError,
   }) {
     return MapState(
       featuredSiteReading: featuredSiteReading ?? this.featuredSiteReading,
@@ -65,6 +69,7 @@ class MapState extends Equatable {
       countries: countries ?? this.countries,
       airQualityReadings: airQualityReadings ?? this.airQualityReadings,
       searchResults: searchResults ?? this.searchResults,
+      blocError: blocError ?? this.blocError,
     );
   }
 
@@ -77,6 +82,7 @@ class MapState extends Equatable {
   final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
   final List<SearchResultItem> searchResults;
+  final AuthenticationError blocError;
 
   @override
   List<Object?> get props => [
@@ -87,6 +93,7 @@ class MapState extends Equatable {
         mapStatus,
         airQualityReadings,
         searchResults,
+        blocError,
       ];
 }
 
