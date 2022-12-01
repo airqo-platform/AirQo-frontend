@@ -555,9 +555,10 @@ class MapAnalyticsCard extends StatelessWidget {
                           onTap: () {
                             final String region =
                                 context.read<MapBloc>().state.featuredRegion;
-                            context
-                                .read<MapBloc>()
-                                .add(ShowRegionSites(region));
+
+                            context.read<MapBloc>().add(region.isEmpty
+                                ? const InitializeMapState()
+                                : ShowRegionSites(region));
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -788,45 +789,6 @@ class SearchSites extends StatelessWidget {
             height: 8,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class NoSearchResultsWidget extends StatelessWidget {
-  const NoSearchResultsWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 33),
-        child: Column(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/no_search_results.svg',
-              semanticsLabel: 'Empty search results',
-            ),
-            const SizedBox(height: 53),
-            Text(
-              'No results found',
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context)?.copyWith(
-                fontSize: 21,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 23),
-            Text(
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                    fontSize: 15.0,
-                    color: CustomColors.emptyNotificationScreenTextColor,
-                  ),
-              'Try adjusting your search to find what you’re looking for.',
-            ),
-          ],
-        ),
       ),
     );
   }

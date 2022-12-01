@@ -48,7 +48,7 @@ class AnalyticsAvatar extends StatelessWidget {
             ),
           ),
           Text(
-            airQualityReading.pm2_5.toStringAsFixed(0),
+            airQualityReading.pm2_5.toInt().toString(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(

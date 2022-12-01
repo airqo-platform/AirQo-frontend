@@ -8,7 +8,6 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -110,43 +109,6 @@ class _MapLandscapeState extends State<MapLandscape> {
     );
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return BlocBuilder<MapBloc, MapState>(
-  //     buildWhen: (previous, current){
-  //       return previous.mapStatus == MapStatus.loading || current.mapStatus == MapStatus.loading;
-  //     },
-  //     builder: (context, state) {
-  //
-  //       if(state.mapStatus == MapStatus.loading){
-  //         Future.delayed(Duration.zero, () => loadingScreen(context));
-  //       }
-  //       else {
-  //         Navigator.pop(context);
-  //       }
-  //
-  //       return SizedBox(
-  //         width: MediaQuery.of(context).size.width,
-  //         height: MediaQuery.of(context).size.height,
-  //         child: GoogleMap(
-  //           compassEnabled: false,
-  //           onMapCreated: _onMapCreated,
-  //           mapType: MapType.normal,
-  //           myLocationButtonEnabled: false,
-  //           myLocationEnabled: false,
-  //           rotateGesturesEnabled: false,
-  //           tiltGesturesEnabled: false,
-  //           mapToolbarEnabled: false,
-  //           zoomControlsEnabled: true,
-  //           initialCameraPosition: _defaultCameraPosition,
-  //           markers: _markers.values.toSet(),
-  //         ),
-  //       );
-  //     },
-  //   );
-  //
-  // }
-
   Future<void> _loadTheme() async {
     await _mapController.setMapStyle(
       jsonEncode(googleMapsTheme),
@@ -214,19 +176,16 @@ class _MapLandscapeState extends State<MapLandscape> {
     final markers = <String, Marker>{};
 
     for (final airQualityReading in airQualityReadings) {
-      final bitmapDescriptor = airQualityReadings.length == 1
-          ? await pmToMarker(
-              airQualityReading.pm2_5,
-            )
-          : await pmToSmallMarker(
-              airQualityReading.pm2_5,
-            );
+      final BitmapDescriptor bitmapDescriptor = await pmToMarker(
+        pm2_5: airQualityReading.pm2_5,
+        itemsSize: airQualityReadings.length,
+      );
 
       final marker = Marker(
         markerId: MarkerId(airQualityReading.referenceSite),
         icon: bitmapDescriptor,
         position: LatLng(
-          (airQualityReading.latitude),
+          airQualityReading.latitude,
           airQualityReading.longitude,
         ),
         onTap: () {
