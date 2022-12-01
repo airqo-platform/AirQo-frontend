@@ -43,7 +43,7 @@ class _DashboardViewState extends State<DashboardView> {
   late StreamSubscription _timeSubscription;
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (emptykya) {
+      if (!emptykya) {
         ShowCaseWidget.of(context).startShowCase([
           _favoritesShowcaseKey,
           _forYouShowcaseKey,
@@ -222,6 +222,7 @@ class _DashboardViewState extends State<DashboardView> {
                         builder: (context, state) {
                           final incompleteKya = state.kya.filterIncompleteKya();
                           if (incompleteKya.isEmpty) {
+                            emptykya = true;
                             return const SizedBox();
                           }
 
@@ -231,8 +232,6 @@ class _DashboardViewState extends State<DashboardView> {
                                     ? value
                                     : element,
                           );
-                          
-                          emptykya = incompleteKya.isEmpty;
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
