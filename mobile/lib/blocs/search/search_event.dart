@@ -4,6 +4,21 @@ abstract class SearchEvent extends Equatable {
   const SearchEvent();
 }
 
+class InitializeSearchPage extends SearchEvent {
+  const InitializeSearchPage();
+
+  @override
+  List<Object> get props => [];
+}
+
+class FilterSearchAirQuality extends SearchEvent {
+  const FilterSearchAirQuality(this.airQuality);
+  final AirQuality airQuality;
+
+  @override
+  List<Object> get props => [airQuality];
+}
+
 class ResetSearch extends SearchEvent {
   const ResetSearch();
 

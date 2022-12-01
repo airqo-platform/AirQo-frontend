@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -6,115 +7,252 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'search_widgets.dart';
 
-class SearchPage extends StatelessWidget {
+class AirQualitySheetCubit extends Cubit<bool> {
+  AirQualitySheetCubit() : super(false);
+
+  void setShow(bool show) => emit(show);
+}
+
+class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Scaffold(
-      appBar: _SearchBar(),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        height: double.infinity,
-        width: double.infinity,
-        color: appColors.appBodyColor,
-        child: _SearchBody(),
-      ),
-    );
-  }
+  State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchBar extends StatefulWidget implements PreferredSizeWidget {
-  @override
-  State<_SearchBar> createState() => _SearchBarState();
-
-  @override
-  Size get preferredSize => const Size.fromHeight(60);
-}
-
-class _SearchBarState extends State<_SearchBar> {
+class _SearchPageState extends State<SearchPage> {
   final _textController = TextEditingController();
-  late SearchBloc _searchBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchBloc = context.read<SearchBloc>();
-  }
 
   @override
   void dispose() {
     super.dispose();
     _textController.dispose();
-    _clearSearch();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      toolbarHeight: 72,
-      elevation: 0,
-      backgroundColor: CustomColors.appBodyColor,
-      automaticallyImplyLeading: false,
-      leading: const Padding(
-        padding: EdgeInsets.only(
-          top: 5,
-          bottom: 6.5,
-          left: 16,
+    return BlocProvider(
+      create: (_) => AirQualitySheetCubit(),
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 72,
+          elevation: 0,
+          backgroundColor: CustomColors.appBodyColor,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Row(
+            children: [
+              const AppBackButton(),
+              const SizedBox(
+                width: 6,
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: SearchInputField(
+                    textEditingController: _textController,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 6,
+              ),
+              BlocBuilder<AirQualitySheetCubit, bool>(
+                builder: (context, progress) => InkWell(
+                  onTap: () {
+                    final value = context.read<AirQualitySheetCubit>().state;
+                    context.read<AirQualitySheetCubit>().setShow(!value);
+                    // _bottomSheet(context);
+                  },
+                  child: Container(
+                    height: 30,
+                    width: 30,
+                    decoration: BoxDecoration(
+                      color: CustomColors.appColorBlue.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.filter_list,
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        child: AppBackButton(),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.only(top: 0),
-        child: SearchInputField(
-          textEditingController: _textController,
-          searchChanged: _searchChanged,
+        body: AppSafeArea(
+          widget: BlocBuilder<SearchBloc, SearchState>(
+            builder: (context, state) {
+              if (state.featuredAirQuality != null) {
+                return Stack(
+                  children: [
+                    Visibility(
+                      visible: state.nearbyAirQualityLocations.isEmpty &&
+                          state.otherAirQualityLocations.isEmpty,
+                      child: BlocBuilder<AirQualitySheetCubit, bool>(
+                        builder: (context, progress) =>
+                            NoAirQualityDataWidget(callBack: () {
+                          final value =
+                              context.read<AirQualitySheetCubit>().state;
+                          context.read<AirQualitySheetCubit>().setShow(!value);
+                        }),
+                      ),
+                    ),
+                    ListView(
+                      children: [
+                        SearchSection(
+                          maximumElements: 3,
+                          title: 'Good Quality Air around you',
+                          airQualityReadings: state.nearbyAirQualityLocations,
+                        ),
+                        SearchSection(
+                          title: state.nearbyAirQualityLocations.isEmpty
+                              ? 'Locations with Good Quality Air'
+                              : 'Other locations',
+                          airQualityReadings: state.otherAirQualityLocations,
+                        ),
+                      ],
+                    ),
+                    const AirQualitySheet(),
+                  ],
+                );
+              }
+
+              return Stack(
+                children: [
+                  ListView(
+                    children: [
+                      SearchSection(
+                        maximumElements: 3,
+                        title: 'Recent Searches',
+                        airQualityReadings: state.recentSearches,
+                      ),
+                      const ExploreAfricanCitiesSection(),
+                    ],
+                  ),
+                  const AirQualitySheet(),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
-  }
-
-  void _searchChanged(String text) {
-    _searchBloc.add(
-      SearchTermChanged(text: text),
-    );
-  }
-
-  void _clearSearch() {
-    _searchBloc.add(const SearchTermChanged(text: ''));
   }
 }
 
-class _SearchBody extends StatelessWidget {
+class AirQualitySheet extends StatefulWidget {
+  const AirQualitySheet({super.key});
+
+  @override
+  State<AirQualitySheet> createState() => _AirQualitySheetState();
+}
+
+class _AirQualitySheetState extends State<AirQualitySheet> {
+  final DraggableScrollableController controller =
+      DraggableScrollableController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void resizeScrollSheet(double value, {Curve? curve}) {
+    controller.animateTo(
+      value,
+      duration: const Duration(milliseconds: 500),
+      curve: curve ?? Curves.easeOutBack,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SearchBloc, SearchState>(
-      builder: (context, state) {
-        if (state is SearchStateLoading) {
-          return const LoadingWidget();
+    return BlocBuilder<AirQualitySheetCubit, bool>(
+      buildWhen: (previous, current) {
+        return true;
+      },
+      builder: (context, progress) {
+        if (!progress) {
+          return Container();
         }
 
-        if (state is SearchStateNearestLocations) {
-          return const NearbyLocations();
-        }
+        Future.delayed(const Duration(milliseconds: 100), () {
+          resizeScrollSheet(0.95);
+        });
 
-        if (state is SearchStateLocationNotSupported) {
-          return const AirQualityNotAvailable();
-        }
-
-        if (state is SearchStateError) {
-          return SearchError(error: state.error);
-        }
-
-        if (state is SearchStateSuccess) {
-          return state.items.isEmpty
-              ? const SearchError(error: 'No Results')
-              : SearchResultsWidget(searchResultItems: state.items);
-        }
-
-        return const NearbyLocations();
+        return DraggableScrollableSheet(
+          controller: controller,
+          initialChildSize: 0,
+          minChildSize: 0,
+          maxChildSize: 1,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Card(
+              margin: EdgeInsets.zero,
+              color: CustomColors.appBodyColor,
+              elevation: 0.0,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                controller: scrollController,
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      height: 27,
+                    ),
+                    Text(
+                      'Filter by Air Quality Range',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline8(context)?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.3),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemBuilder: (_, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: InkWell(
+                            onTap: () {
+                              resizeScrollSheet(0, curve: Curves.easeInOut);
+                              context
+                                  .read<AirQualitySheetCubit>()
+                                  .setShow(false);
+                              context.read<SearchBloc>().add(
+                                  FilterSearchAirQuality(
+                                      AirQuality.values[index]));
+                            },
+                            child:
+                                SearchPageFilterTile(AirQuality.values[index]),
+                          ),
+                        );
+                      },
+                      itemCount: AirQuality.values.length,
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }

@@ -1,8 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -12,6 +14,475 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../insights/insights_page.dart';
+
+class SearchAvatar extends StatelessWidget {
+  const SearchAvatar(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 54,
+      width: 54,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Pollutant.pm2_5.color(
+          airQualityReading.pm2_5,
+        ),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            Pollutant.pm2_5.svg,
+            semanticsLabel: 'Pm2.5',
+            height: 7,
+            width: 16,
+            color: Pollutant.pm2_5.textColor(
+              value: airQualityReading.pm2_5,
+            ),
+          ),
+          Text(
+            airQualityReading.pm2_5.toStringAsFixed(0),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.insightsAvatar(
+              pollutant: Pollutant.pm2_5,
+              value: airQualityReading.pm2_5,
+            )?.copyWith(
+              fontSize: 22,
+              height: 25 / 22,
+              letterSpacing: 16 * -0.022,
+            ),
+          ),
+          SvgPicture.asset(
+            'assets/icon/unit.svg',
+            semanticsLabel: 'Unit',
+            height: 7,
+            width: 16,
+            color: Pollutant.pm2_5.textColor(
+              value: airQualityReading.pm2_5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchPageAirQualityTile extends StatelessWidget {
+  const SearchPageAirQualityTile(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: Colors.white,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          SearchAvatar(airQualityReading),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  airQualityReading.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline8(context),
+                ),
+                Text(
+                  airQualityReading.location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.bodyText4(context)?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 18),
+          Container(
+              height: 24,
+              width: 24,
+              decoration: BoxDecoration(
+                color: CustomColors.appBodyColor,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(4.0),
+                ),
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios,
+                size: 10,
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchAirQualityAvatar extends StatelessWidget {
+  const SearchAirQualityAvatar(this.airQuality, {super.key});
+  final AirQuality airQuality;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 54,
+      width: 54,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: airQuality.color(),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            Pollutant.pm2_5.svg,
+            semanticsLabel: 'Pm2.5',
+            height: 8,
+            width: 16,
+            color: Pollutant.pm2_5.textColor(
+              value: airQuality.value,
+            ),
+          ),
+          AutoSizeText(
+            '${airQuality.minimumValue.toInt()}-${airQuality.maximumValue.toInt()}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.insightsAvatar(
+              pollutant: Pollutant.pm2_5,
+              value: airQuality.value,
+            )?.copyWith(
+              fontSize: 17,
+              height: 21 / 17,
+              letterSpacing: 16 * -0.022,
+            ),
+          ),
+          SvgPicture.asset(
+            'assets/icon/unit.svg',
+            semanticsLabel: 'Unit',
+            height: 10,
+            width: 16,
+            color: Pollutant.pm2_5.textColor(
+              value: airQuality.value,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchPageFilterTile extends StatelessWidget {
+  const SearchPageFilterTile(this.airQuality, {super.key});
+  final AirQuality airQuality;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: Colors.white,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          SearchAirQualityAvatar(airQuality),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  airQuality.string.toTitleCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline8(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 2),
+          Container(
+            height: 24,
+            width: 24,
+            decoration: BoxDecoration(
+              color: CustomColors.appBodyColor,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(4.0),
+              ),
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios,
+              size: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchSection extends StatelessWidget {
+  const SearchSection({
+    super.key,
+    required this.title,
+    required this.airQualityReadings,
+    this.maximumElements,
+  });
+  final String title;
+  final int? maximumElements;
+  final List<AirQualityReading> airQualityReadings;
+
+  @override
+  Widget build(BuildContext context) {
+    List<AirQualityReading> data = airQualityReadings
+        .take(maximumElements ?? airQualityReadings.length)
+        .toList();
+    if (data.isEmpty) {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.headline8(context)?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.3),
+            ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (_, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return InsightsPage(data[index]);
+                        },
+                      ),
+                    );
+                  },
+                  child: SearchPageAirQualityTile(data[index]),
+                ),
+              );
+            },
+            itemCount: data.length,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ExploreAfricanCityCard extends StatelessWidget {
+  const ExploreAfricanCityCard(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.white),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            airQualityReading.name.toTitleCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: CustomTextStyle.headline8(context),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          Text(
+            airQualityReading.country.toTitleCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: CustomTextStyle.bodyText4(context)?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.3),
+            ),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          AnalyticsAvatar(airQualityReading: airQualityReading),
+        ],
+      ),
+    );
+  }
+
+  Widget builds(BuildContext context) {
+    return ListTile(
+      leading: AnalyticsAvatar(airQualityReading: airQualityReading),
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            airQualityReading.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.headline8(context),
+          ),
+          Text(
+            airQualityReading.location,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.bodyText4(context)?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.3),
+            ),
+          ),
+        ],
+      ),
+      trailing: Container(
+        height: 16,
+        width: 16,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: CustomColors.appColorBlue.withOpacity(0.24),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(3.0),
+          ),
+          border: const Border.fromBorderSide(
+            BorderSide(
+              color: Colors.transparent,
+            ),
+          ),
+        ),
+        child: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+      ),
+    );
+  }
+}
+
+class ExploreAfricanCitiesSection extends StatelessWidget {
+  const ExploreAfricanCitiesSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        if (state.africanCities.isEmpty) {
+          return Container();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            // mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Explore African Cities',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: CustomTextStyle.headline8(context)?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.3),
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: state.africanCities.length,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemBuilder: (_, index) {
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return InsightsPage(state.africanCities[index]);
+                          },
+                        ),
+                      );
+                    },
+                    child: ExploreAfricanCityCard(state.africanCities[index]),
+                  );
+                },
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 1 / 1.2),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
 
 class SearchResultsWidget extends StatefulWidget {
   const SearchResultsWidget({
@@ -184,75 +655,48 @@ class SearchInputField extends StatelessWidget {
   const SearchInputField({
     super.key,
     required this.textEditingController,
-    required this.searchChanged,
   });
 
   final TextEditingController textEditingController;
-  final Function(String) searchChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      constraints: const BoxConstraints(minWidth: double.maxFinite),
-      decoration: const BoxDecoration(
+    const OutlineInputBorder border = OutlineInputBorder(
+      borderSide: BorderSide(
         color: Colors.white,
-        shape: BoxShape.rectangle,
-        borderRadius: BorderRadius.all(
-          Radius.circular(10.0),
-        ),
+        width: 1.0,
       ),
-      child: TextFormField(
-        controller: textEditingController,
-        onChanged: searchChanged,
-        style: Theme.of(context).textTheme.caption?.copyWith(
-              fontSize: 16,
-            ),
-        enableSuggestions: true,
-        cursorWidth: 1,
-        autofocus: false,
-        cursorColor: CustomColors.appColorBlack,
-        decoration: InputDecoration(
-          fillColor: Colors.white,
-          prefixIcon: Padding(
-            padding:
-                const EdgeInsets.only(right: 7, top: 7, bottom: 7, left: 7),
-            child: SvgPicture.asset(
-              'assets/icon/search.svg',
-              height: 14.38,
-              width: 14.38,
-              semanticsLabel: 'Search',
-            ),
+      borderRadius: BorderRadius.all(
+        Radius.circular(10.0),
+      ),
+    );
+
+    return TextFormField(
+      controller: textEditingController,
+      onChanged: (value) {
+        context.read<SearchBloc>().add(SearchTermChanged(text: value));
+      },
+      style: Theme.of(context).textTheme.caption?.copyWith(
+            fontSize: 16,
           ),
-          contentPadding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Colors.transparent,
-              width: 1.0,
+      enableSuggestions: true,
+      cursorWidth: 1,
+      autofocus: false,
+      cursorColor: CustomColors.appColorBlack,
+      decoration: InputDecoration(
+        fillColor: Colors.white,
+        filled: true,
+        prefixIcon: const Icon(Icons.search),
+        contentPadding: const EdgeInsets.all(10),
+        focusedBorder: border,
+        enabledBorder: border,
+        border: border,
+        hintText: 'Search for Air Quality by location',
+        hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.32),
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
             ),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Colors.transparent,
-              width: 1.0,
-            ),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          border: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Colors.transparent,
-              width: 1.0,
-            ),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          hintText: 'Search locations',
-          hintStyle: Theme.of(context).textTheme.caption?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.32),
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-        ),
       ),
     );
   }

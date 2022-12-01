@@ -246,16 +246,71 @@ class RegionConverter implements JsonConverter<Region, String> {
 }
 
 enum AirQuality {
-  good('Good'),
-  moderate('Moderate'),
-  ufsgs('Unhealthy For Sensitive Groups'),
-  unhealthy('Unhealthy'),
-  veryUnhealthy('Very Unhealthy'),
-  hazardous('Hazardous');
+  good(
+    string: 'Good',
+    value: 6,
+    minimumValue: 0,
+    maximumValue: 12.09,
+  ),
+  moderate(
+    string: 'Moderate',
+    value: 23.80,
+    minimumValue: 12.1,
+    maximumValue: 35.49,
+  ),
+  ufsgs(
+    string: 'Unhealthy For Sensitive Groups',
+    value: 101,
+    minimumValue: 35.5,
+    maximumValue: 55.49,
+  ),
+  unhealthy(
+    string: 'Unhealthy',
+    value: 103,
+    minimumValue: 55.5,
+    maximumValue: 150.49,
+  ),
+  veryUnhealthy(
+    string: 'Very Unhealthy',
+    value: 200.5,
+    minimumValue: 150.5,
+    maximumValue: 250.49,
+  ),
+  hazardous(
+    string: 'Hazardous',
+    value: 300,
+    minimumValue: 250.5,
+    maximumValue: 500,
+  );
 
-  const AirQuality(this.string);
+  const AirQuality({
+    required this.string,
+    required this.value,
+    required this.minimumValue,
+    required this.maximumValue,
+  });
 
   final String string;
+  final double value;
+  final double minimumValue;
+  final double maximumValue;
+
+  Color color() {
+    switch (this) {
+      case AirQuality.good:
+        return CustomColors.aqiGreen;
+      case AirQuality.moderate:
+        return CustomColors.aqiYellow;
+      case AirQuality.ufsgs:
+        return CustomColors.aqiOrange;
+      case AirQuality.unhealthy:
+        return CustomColors.aqiRed;
+      case AirQuality.veryUnhealthy:
+        return CustomColors.aqiPurple;
+      case AirQuality.hazardous:
+        return CustomColors.aqiMaroon;
+    }
+  }
 
   @override
   String toString() => string;

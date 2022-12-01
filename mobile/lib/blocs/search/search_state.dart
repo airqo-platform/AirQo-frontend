@@ -1,50 +1,100 @@
 part of 'search_bloc.dart';
 
-abstract class SearchState extends Equatable {
-  const SearchState();
+enum SearchError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  none(
+    message: '',
+    snackBarDuration: 0,
+  );
 
-  @override
-  List<Object> get props => [];
-}
-
-class SearchStateNearestLocations extends SearchState {
-  const SearchStateNearestLocations({
-    required this.airQualityReadings,
-    required this.nearbyLocations,
+  const SearchError({
+    required this.message,
+    required this.snackBarDuration,
   });
 
-  final List<AirQualityReading> airQualityReadings;
-  final bool nearbyLocations;
+  final String message;
+  final int snackBarDuration;
 
   @override
-  List<Object> get props => [airQualityReadings];
-
-  @override
-  String toString() =>
-      'Search page nearest locations: ${airQualityReadings.length}';
+  String toString() => message;
 }
 
-class SearchStateLocationNotSupported extends SearchState {}
+class SearchState extends Equatable {
+  const SearchState._({
+    this.featuredAirQuality,
+    this.recentSearches = const [],
+    this.nearbyAirQualityLocations = const [],
+    this.otherAirQualityLocations = const [],
+    this.africanCities = const [],
+    this.searchResults = const [],
+    this.searchTerm = '',
+    this.blocStatus = BlocStatus.initial,
+    this.searchError = SearchError.none,
+  });
 
-class SearchStateLoading extends SearchState {}
+  const SearchState({
+    this.featuredAirQuality,
+    this.recentSearches = const [],
+    this.nearbyAirQualityLocations = const [],
+    this.otherAirQualityLocations = const [],
+    this.africanCities = const [],
+    this.searchResults = const [],
+    this.searchTerm = '',
+    this.blocStatus = BlocStatus.initial,
+    this.searchError = SearchError.none,
+  });
 
-class SearchStateSuccess extends SearchState {
-  const SearchStateSuccess(this.items);
+  const SearchState.initial() : this._();
 
-  final List<SearchResultItem> items;
+  SearchState copyWith({
+    List<AirQualityReading>? recentSearches,
+    List<AirQualityReading>? nearbyAirQualityLocations,
+    List<AirQualityReading>? otherAirQualityLocations,
+    List<AirQualityReading>? africanCities,
+    String? searchTerm,
+    List<SearchResultItem>? searchResults,
+    AirQuality? featuredAirQuality,
+    BlocStatus? blocStatus,
+    SearchError? searchError,
+  }) {
+    return SearchState(
+      recentSearches: recentSearches ?? this.recentSearches,
+      nearbyAirQualityLocations:
+          nearbyAirQualityLocations ?? this.nearbyAirQualityLocations,
+      otherAirQualityLocations:
+          otherAirQualityLocations ?? this.otherAirQualityLocations,
+      africanCities: africanCities ?? this.africanCities,
+      searchTerm: searchTerm ?? this.searchTerm,
+      searchResults: searchResults ?? this.searchResults,
+      featuredAirQuality: featuredAirQuality ?? this.featuredAirQuality,
+      blocStatus: blocStatus ?? this.blocStatus,
+      searchError: searchError ?? this.searchError,
+    );
+  }
+
+  final List<AirQualityReading> recentSearches;
+  final List<AirQualityReading> nearbyAirQualityLocations;
+  final List<AirQualityReading> otherAirQualityLocations;
+  final List<AirQualityReading> africanCities;
+  final String searchTerm;
+  final List<SearchResultItem> searchResults;
+  final AirQuality? featuredAirQuality;
+  final BlocStatus blocStatus;
+  final SearchError searchError;
 
   @override
-  List<Object> get props => [items];
-
-  @override
-  String toString() => 'SearchStateSuccess { items: ${items.length} }';
-}
-
-class SearchStateError extends SearchState {
-  const SearchStateError(this.error);
-
-  final String error;
-
-  @override
-  List<Object> get props => [error];
+  List<Object?> get props => [
+        recentSearches,
+        nearbyAirQualityLocations,
+        otherAirQualityLocations,
+        africanCities,
+        searchTerm,
+        searchResults,
+        featuredAirQuality,
+        searchError,
+        blocStatus,
+      ];
 }

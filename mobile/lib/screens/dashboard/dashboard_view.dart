@@ -10,10 +10,12 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
+import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
@@ -37,9 +39,20 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const DashboardTopBar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: SvgPicture.asset(
+          'assets/icon/airqo_logo.svg',
+          height: 40,
+          width: 58,
+          semanticsLabel: 'AirQo',
+        ),
+        elevation: 0,
+        backgroundColor: CustomColors.appBodyColor,
+      ),
       body: Container(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         color: CustomColors.appBodyColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,6 +252,20 @@ class _DashboardViewState extends State<DashboardView> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const SearchPage();
+              },
+            ),
+          );
+        },
+        backgroundColor: CustomColors.appColorBlue,
+        child: const Icon(Icons.search),
       ),
     );
   }
