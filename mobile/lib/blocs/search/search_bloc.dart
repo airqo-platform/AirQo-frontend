@@ -66,7 +66,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     emit(SearchStateLoading());
 
     try {
-      final results = await searchRepository.search(searchTerm);
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+      final List<String> countries =
+          airQualityReadings.map((e) => e.country).toSet().toList();
+
+      final results = await searchRepository.search(
+        searchTerm,
+        countries: countries,
+      );
 
       return emit(SearchStateSuccess(results.items));
     } catch (error) {

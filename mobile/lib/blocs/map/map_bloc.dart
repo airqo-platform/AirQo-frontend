@@ -187,7 +187,13 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     }
 
     try {
-      final results = await searchRepository.search(searchTerm);
+      final List<String> countries =
+          state.airQualityReadings.map((e) => e.country).toSet().toList();
+
+      final results = await searchRepository.search(
+        searchTerm,
+        countries: countries,
+      );
 
       return emit(state.copyWith(searchResults: results.items));
     } catch (error) {
