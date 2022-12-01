@@ -4,6 +4,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'search_widgets.dart';
 
@@ -21,12 +22,10 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  final _textController = TextEditingController();
-
   @override
-  void dispose() {
-    super.dispose();
-    _textController.dispose();
+  void initState() {
+    super.initState();
+    context.read<SearchBloc>().add(const InitializeSearchPage());
   }
 
   @override
@@ -46,39 +45,44 @@ class _SearchPageState extends State<SearchPage> {
               const SizedBox(
                 width: 6,
               ),
-              Expanded(
+              const Expanded(
                 child: SizedBox(
                   height: 40,
-                  child: SearchInputField(
-                    textEditingController: _textController,
-                  ),
+                  child: SearchInputField(),
                 ),
               ),
-              const SizedBox(
-                width: 6,
-              ),
-              BlocBuilder<AirQualitySheetCubit, bool>(
-                builder: (context, progress) => InkWell(
-                  onTap: () {
-                    final value = context.read<AirQualitySheetCubit>().state;
-                    context.read<AirQualitySheetCubit>().setShow(!value);
-                    // _bottomSheet(context);
-                  },
-                  child: Container(
-                    height: 30,
-                    width: 30,
-                    decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.filter_list,
-                        color: CustomColors.appColorBlue,
+              BlocBuilder<SearchBloc, SearchState>(
+                builder: (context, state) {
+                  return Visibility(
+                    visible: state.searchTerm.isEmpty,
+                    child: BlocBuilder<AirQualitySheetCubit, bool>(
+                      builder: (context, progress) => InkWell(
+                        onTap: () {
+                          final value =
+                              context.read<AirQualitySheetCubit>().state;
+                          context.read<AirQualitySheetCubit>().setShow(!value);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: Container(
+                            height: 35,
+                            width: 35,
+                            decoration: BoxDecoration(
+                              color: CustomColors.appColorBlue.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.filter_list,
+                                color: CustomColors.appColorBlue,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -86,6 +90,31 @@ class _SearchPageState extends State<SearchPage> {
         body: AppSafeArea(
           widget: BlocBuilder<SearchBloc, SearchState>(
             builder: (context, state) {
+              switch (state.blocStatus) {
+                case SearchStatus.initial:
+                  break;
+                case SearchStatus.searchSuccess:
+                  return const SearchResultsWidget();
+                case SearchStatus.searching:
+                  return const SearchLoadingWidget();
+                case SearchStatus.error:
+                  switch (state.searchError) {
+                    case SearchError.noInternetConnection:
+                      return NoInternetConnectionWidget(
+                        callBack: () {},
+                      );
+                    // TODO implement callback
+                    case SearchError.searchFailed:
+                      // TODO: Handle this case.
+                      return NoAirQualityDataWidget(
+                        callBack: () {},
+                      );
+                    case SearchError.none:
+                      break;
+                  }
+                  break;
+              }
+
               if (state.featuredAirQuality != null) {
                 return Stack(
                   children: [
@@ -211,13 +240,27 @@ class _AirQualitySheetState extends State<AirQualitySheet> {
                     const SizedBox(
                       height: 27,
                     ),
-                    Text(
-                      'Filter by Air Quality Range',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyle.headline8(context)?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.3),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Filter By Air Quality Range',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyle.headline8(context)?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.3),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            resizeScrollSheet(0, curve: Curves.easeInOut);
+                            context.read<AirQualitySheetCubit>().setShow(false);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close_search_filter.svg',
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(
                       height: 15,
@@ -229,13 +272,10 @@ class _AirQualitySheetState extends State<AirQualitySheet> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: InkWell(
                             onTap: () {
-                              resizeScrollSheet(0, curve: Curves.easeInOut);
-                              context
-                                  .read<AirQualitySheetCubit>()
-                                  .setShow(false);
                               context.read<SearchBloc>().add(
-                                  FilterSearchAirQuality(
-                                      AirQuality.values[index]));
+                                    FilterSearchAirQuality(
+                                        AirQuality.values[index]),
+                                  );
                             },
                             child:
                                 SearchPageFilterTile(AirQuality.values[index]),

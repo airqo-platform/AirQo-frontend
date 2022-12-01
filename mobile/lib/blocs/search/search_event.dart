@@ -19,24 +19,11 @@ class FilterSearchAirQuality extends SearchEvent {
   List<Object> get props => [airQuality];
 }
 
-class ResetSearch extends SearchEvent {
-  const ResetSearch();
-
-  @override
-  List<Object> get props => ['reset'];
-
-  @override
-  String toString() => 'Search has been reset';
-}
-
 class SearchTermChanged extends SearchEvent {
-  const SearchTermChanged({required this.text});
+  const SearchTermChanged(this.text);
 
   final String text;
 
   @override
   List<Object> get props => [text];
-
-  @override
-  String toString() => 'Search text changed to : $text }';
 }

@@ -618,6 +618,15 @@ class CustomTextStyle {
         );
   }
 
+  static TextStyle? airQualityBadge(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 7.0,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          height: 9.0 / 7.0,
+        );
+  }
+
   static TextStyle? insightsAvatar({
     required Pollutant pollutant,
     required double value,

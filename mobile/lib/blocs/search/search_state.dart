@@ -5,6 +5,10 @@ enum SearchError {
     message: 'Check your internet connection',
     snackBarDuration: 5,
   ),
+  searchFailed(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
   none(
     message: '',
     snackBarDuration: 0,
@@ -22,6 +26,13 @@ enum SearchError {
   String toString() => message;
 }
 
+enum SearchStatus {
+  initial,
+  searching,
+  error,
+  searchSuccess;
+}
+
 class SearchState extends Equatable {
   const SearchState._({
     this.featuredAirQuality,
@@ -31,7 +42,7 @@ class SearchState extends Equatable {
     this.africanCities = const [],
     this.searchResults = const [],
     this.searchTerm = '',
-    this.blocStatus = BlocStatus.initial,
+    this.blocStatus = SearchStatus.initial,
     this.searchError = SearchError.none,
   });
 
@@ -43,7 +54,7 @@ class SearchState extends Equatable {
     this.africanCities = const [],
     this.searchResults = const [],
     this.searchTerm = '',
-    this.blocStatus = BlocStatus.initial,
+    this.blocStatus = SearchStatus.initial,
     this.searchError = SearchError.none,
   });
 
@@ -57,7 +68,7 @@ class SearchState extends Equatable {
     String? searchTerm,
     List<SearchResultItem>? searchResults,
     AirQuality? featuredAirQuality,
-    BlocStatus? blocStatus,
+    SearchStatus? blocStatus,
     SearchError? searchError,
   }) {
     return SearchState(
@@ -82,7 +93,7 @@ class SearchState extends Equatable {
   final String searchTerm;
   final List<SearchResultItem> searchResults;
   final AirQuality? featuredAirQuality;
-  final BlocStatus blocStatus;
+  final SearchStatus blocStatus;
   final SearchError searchError;
 
   @override

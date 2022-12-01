@@ -8,10 +8,10 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../insights/insights_page.dart';
 
@@ -109,31 +109,42 @@ class SearchPageAirQualityTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
                 ),
+                const SizedBox(
+                  height: 2,
+                ),
                 Text(
                   airQualityReading.location,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.bodyText4(context)?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.3),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
+                const SizedBox(
+                  height: 2,
+                ),
+                AirQualityBadge(
+                    Pollutant.pm2_5.airQuality(airQualityReading.pm2_5)),
               ],
             ),
           ),
           const SizedBox(width: 18),
           Container(
-              height: 24,
-              width: 24,
-              decoration: BoxDecoration(
-                color: CustomColors.appBodyColor,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(4.0),
-                ),
+            height: 24,
+            width: 24,
+            decoration: BoxDecoration(
+              color: CustomColors.appBodyColor,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(4.0),
               ),
-              child: const Icon(
-                Icons.arrow_forward_ios,
-                size: 10,
-              )),
+            ),
+            child: Icon(
+              Icons.arrow_forward_ios,
+              size: 10,
+              color: CustomColors.appColorBlack,
+            ),
+          ),
         ],
       ),
     );
@@ -197,6 +208,49 @@ class SearchAirQualityAvatar extends StatelessWidget {
   }
 }
 
+class AirQualityBadge extends StatelessWidget {
+  const AirQualityBadge(this.airQuality, {super.key});
+  final AirQuality airQuality;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 11,
+      padding: const EdgeInsets.fromLTRB(1.5, 1.5, 2, 1.5),
+      decoration: BoxDecoration(
+        color: airQuality.color().withOpacity(0.4),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 8,
+            width: 8,
+            decoration: BoxDecoration(
+              color: airQuality.color(),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(
+            width: 4,
+          ),
+          Center(
+            child: Text(
+              airQuality.string,
+              style: CustomTextStyle.airQualityBadge(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class SearchPageFilterTile extends StatelessWidget {
   const SearchPageFilterTile(this.airQuality, {super.key});
   final AirQuality airQuality;
@@ -232,23 +286,41 @@ class SearchPageFilterTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
                 ),
+                const SizedBox(
+                  height: 2,
+                ),
+                AirQualityBadge(airQuality),
               ],
             ),
           ),
           const SizedBox(width: 2),
-          Container(
-            height: 24,
-            width: 24,
-            decoration: BoxDecoration(
-              color: CustomColors.appBodyColor,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(4.0),
-              ),
-            ),
-            child: const Icon(
-              Icons.arrow_forward_ios,
-              size: 10,
-            ),
+          BlocBuilder<SearchBloc, SearchState>(
+            builder: (context, state) {
+              return Container(
+                height: 24,
+                width: 24,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.fromBorderSide(
+                    BorderSide(
+                      color: CustomColors.greyColor,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                child: Container(
+                  height: 12,
+                  width: 12,
+                  decoration: BoxDecoration(
+                    color: state.featuredAirQuality == airQuality
+                        ? CustomColors.appColorBlue
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -354,7 +426,7 @@ class ExploreAfricanCityCard extends StatelessWidget {
             style: CustomTextStyle.headline8(context),
           ),
           const SizedBox(
-            height: 4,
+            height: 5,
           ),
           Text(
             airQualityReading.country.toTitleCase(),
@@ -366,9 +438,13 @@ class ExploreAfricanCityCard extends StatelessWidget {
             ),
           ),
           const SizedBox(
-            height: 4,
+            height: 5,
           ),
           AnalyticsAvatar(airQualityReading: airQualityReading),
+          const SizedBox(
+            height: 4,
+          ),
+          AirQualityBadge(Pollutant.pm2_5.airQuality(airQualityReading.pm2_5)),
         ],
       ),
     );
@@ -485,53 +561,41 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
 }
 
 class SearchResultsWidget extends StatefulWidget {
-  const SearchResultsWidget({
-    super.key,
-    required this.searchResultItems,
-  });
-  final List<SearchResultItem> searchResultItems;
+  const SearchResultsWidget({super.key});
 
   @override
   State<SearchResultsWidget> createState() => _SearchResultsWidgetState();
 }
 
 class _SearchResultsWidgetState extends State<SearchResultsWidget> {
-  late SearchBloc _searchBloc;
   final SearchRepository _searchRepository =
       SearchRepository(searchApiKey: Config.searchApiKey);
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.searchResultItems.length,
-      itemBuilder: (BuildContext context, int index) {
-        return GestureDetector(
-          onTap: () => _showPlaceDetails(widget.searchResultItems[index]),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: SearchResultItemTile(
-              searchResultItem: widget.searchResultItems[index],
-            ),
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        if (state.searchResults.isEmpty) {
+          // TODO replace is correct search widget
+          return NoAirQualityDataWidget(callBack: () {});
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ListView.builder(
+            itemCount: state.searchResults.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () => _showPlaceDetails(state.searchResults[index]),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SearchResultItemTile(state.searchResults[index]),
+                ),
+              );
+            },
           ),
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _searchBloc = context.read<SearchBloc>();
-  }
-
-  @override
-  void dispose() {
-    _clearSearch();
-    super.dispose();
-  }
-
-  void _clearSearch() {
-    _searchBloc.add(const ResetSearch());
   }
 
   Future<void> _showPlaceDetails(SearchResultItem searchResultItem) async {
@@ -591,10 +655,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
 }
 
 class SearchResultItemTile extends StatelessWidget {
-  const SearchResultItemTile({
-    Key? key,
-    required this.searchResultItem,
-  }) : super(key: key);
+  const SearchResultItemTile(this.searchResultItem, {super.key});
   final SearchResultItem searchResultItem;
 
   @override
@@ -652,12 +713,7 @@ class SearchResultItemTile extends StatelessWidget {
 }
 
 class SearchInputField extends StatelessWidget {
-  const SearchInputField({
-    super.key,
-    required this.textEditingController,
-  });
-
-  final TextEditingController textEditingController;
+  const SearchInputField({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -672,9 +728,8 @@ class SearchInputField extends StatelessWidget {
     );
 
     return TextFormField(
-      controller: textEditingController,
       onChanged: (value) {
-        context.read<SearchBloc>().add(SearchTermChanged(text: value));
+        context.read<SearchBloc>().add(SearchTermChanged(value));
       },
       style: Theme.of(context).textTheme.caption?.copyWith(
             fontSize: 16,
@@ -686,7 +741,10 @@ class SearchInputField extends StatelessWidget {
       decoration: InputDecoration(
         fillColor: Colors.white,
         filled: true,
-        prefixIcon: const Icon(Icons.search),
+        prefixIcon: Icon(
+          Icons.search,
+          color: CustomColors.appColorBlack,
+        ),
         contentPadding: const EdgeInsets.all(10),
         focusedBorder: border,
         enabledBorder: border,
@@ -702,400 +760,17 @@ class SearchInputField extends StatelessWidget {
   }
 }
 
-class NoNearbyLocations extends StatelessWidget {
-  const NoNearbyLocations({super.key});
+class SearchLoadingWidget extends StatelessWidget {
+  const SearchLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Container(
-        padding: const EdgeInsets.all(40.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(
-            Radius.circular(10.0),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 84,
-            ),
-            Stack(
-              children: [
-                Image.asset(
-                  'assets/images/world-map.png',
-                  height: 130,
-                  width: 130,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: CustomColors.appColorBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Icon(
-                      Icons.map_outlined,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 52,
-            ),
-            const Text(
-              'You don’t have nearby air quality stations',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SearchLocationTile extends StatelessWidget {
-  const SearchLocationTile({
-    super.key,
-    required this.airQualityReading,
-  });
-
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.fromBorderSide(
-          BorderSide(color: Colors.transparent),
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 0.0),
-        title: AutoSizeText(
-          airQualityReading.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.headline8(context),
-        ),
-        subtitle: AutoSizeText(
-          airQualityReading.location,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.bodyText4(context)?.copyWith(
-            color: CustomColors.appColorBlack.withOpacity(0.3),
-          ),
-        ),
-        trailing: SvgPicture.asset(
-          'assets/icon/more_arrow.svg',
-          semanticsLabel: 'more',
-          height: 6.99,
-          width: 4,
-        ),
-        leading: MiniAnalyticsAvatar(
-          airQualityReading: airQualityReading,
-        ),
-      ),
-    );
-  }
-}
-
-class RequestLocationAccess extends StatelessWidget {
-  const RequestLocationAccess({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(40.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(16.0),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 23),
-                  child: Image.asset(
-                    'assets/images/world-map.png',
-                    height: 119,
-                    width: 119,
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  top: 22,
-                  child: Container(
-                    height: 56,
-                    width: 56,
-                    decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset(
-                        'assets/icon/location.svg',
-                        color: Colors.white,
-                        semanticsLabel: 'AirQo Map',
-                        height: 29,
-                        width: 25,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Text(
-              'Enable locations',
-              textAlign: TextAlign.start,
-              style: CustomTextStyle.headline7(context),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Text(
-              'Allow AirQo to show you location air '
-              'quality update near you.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                    color: CustomColors.appColorBlack.withOpacity(0.4),
-                  ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            GestureDetector(
-              onTap: () => _getUserLocation(context),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: CustomColors.appColorBlue,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 12, bottom: 14),
-                  child: Center(
-                    child: Text(
-                      'Allow location',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14,
-                        height: 22 / 14,
-                        letterSpacing: 16 * -0.022,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _getUserLocation(BuildContext context) {
-    PermissionService.checkPermission(AppPermission.location, request: true)
-        .then((value) => context
-            .read<NearbyLocationBloc>()
-            .add(const SearchNearbyLocations()));
-  }
-}
-
-class NearbyLocations extends StatelessWidget {
-  const NearbyLocations({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
-      builder: (context, state) {
-        if (state is SearchingNearbyLocationsState) {
-          return const LoadingWidget();
-        }
-
-        if (state is NearbyLocationStateError) {
-          switch (state.error) {
-            case NearbyAirQualityError.locationDenied:
-              return const RequestLocationAccess();
-            case NearbyAirQualityError.noNearbyAirQualityReadings:
-              return const AirQualityNotAvailable();
-            case NearbyAirQualityError.locationNotAllowed:
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showSnackBar(context, state.error.message);
-              });
-              break;
-            case NearbyAirQualityError.locationDisabled:
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showSnackBar(context, state.error.message);
-              });
-              break;
-          }
-        }
-
-        if (state is NearbyLocationStateSuccess) {
-          return ValueListenableBuilder<Box<AirQualityReading>>(
-            valueListenable:
-                Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-                    .listenable(),
-            builder: (context, box, widget) {
-              final airQualityReadings = filterNearestLocations(
-                box.values.cast<AirQualityReading>().toList(),
-              );
-
-              return ListView(
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  Text(
-                    'Locations near me',
-                    style: CustomTextStyle.overline1(context)?.copyWith(
-                      color: appColors.appColorBlack.withOpacity(0.32),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return InsightsPage(airQualityReadings[index]);
-                            },
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SearchLocationTile(
-                          airQualityReading: airQualityReadings[index],
-                        ),
-                      ),
-                    ),
-                    itemCount: airQualityReadings.length,
-                  ),
-                ],
-              );
-            },
-          );
-        }
-
-        return const LoadingWidget();
-      },
-    );
-  }
-}
-
-class SearchError extends StatelessWidget {
-  const SearchError({super.key, this.error});
-
-  final String? error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(error ?? 'Search not available'),
-    );
-  }
-}
-
-class AirQualityNotAvailable extends StatelessWidget {
-  const AirQualityNotAvailable({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(16.0),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Stack(
-                children: [
-                  Image.asset(
-                    'assets/images/world-map.png',
-                    height: 130,
-                    width: 130,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Coming soon on the network',
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Text(
-              'We currently do not support air quality '
-              'monitoring in this area, but we’re working on it.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .subtitle2
-                  ?.copyWith(color: appColors.appColorBlack.withOpacity(0.4)),
-            ),
-          ],
+      child: Align(
+        alignment: Alignment.center,
+        child: CupertinoActivityIndicator(
+          radius: 40,
+          color: CustomColors.appColorBlue,
         ),
       ),
     );

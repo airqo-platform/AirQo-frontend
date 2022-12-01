@@ -19,13 +19,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
     on<InitializeSearchPage>(_onInitializeSearchPage);
     on<FilterSearchAirQuality>(_onFilterSearchAirQuality);
-
-    // on<SearchTermChanged>(
-    //   _onSearchTermChanged,
-    //   transformer: debounce(const Duration(milliseconds: 300)),
-    // );
-    // on<ResetSearch>(_onResetSearch);
-
+    on<SearchTermChanged>(
+      _onSearchTermChanged,
+      transformer: debounce(const Duration(milliseconds: 300)),
+    );
     searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
 
@@ -47,12 +44,15 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     final List<String> countries =
         airQualityReadings.map((e) => e.country).toSet().toList();
-    countries.shuffle();
     for (String country in countries) {
-      AirQualityReading airQualityReading = airQualityReadings
-          .firstWhere((element) => element.country.equalsIgnoreCase(country));
-      africanCities.add(airQualityReading);
+      List<AirQualityReading> readings = airQualityReadings
+          .where((element) => element.country.equalsIgnoreCase(country))
+          .take(2)
+          .toList();
+      africanCities.addAll(readings);
     }
+
+    africanCities.shuffle();
 
     return emit(const SearchState.initial().copyWith(
       nearbyAirQualityLocations: nearestAirQualityReadings,
@@ -79,6 +79,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
         .toList();
 
+    // TODO : add ordering
     return emit(state.copyWith(
       nearbyAirQualityLocations: nearbyAirQualityLocations,
       otherAirQualityLocations: otherAirQualityLocations,
@@ -86,53 +87,30 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     ));
   }
 
-  // void _onResetSearch(
-  //   ResetSearch _,
-  //   Emitter<SearchState> emit,
-  // ) {
-  //   final nearestAirQualityReadings =
-  //       Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-  //           .values
-  //           .toList();
-  //
-  //   return emit(
-  //     SearchStateNearestLocations(
-  //       airQualityReadings: nearestAirQualityReadings,
-  //       nearbyAirQualityLocations: true,
-  //     ),
-  //   );
-  // }
-  //
-  // void _onSearchTermChanged(
-  //   SearchTermChanged event,
-  //   Emitter<SearchState> emit,
-  // ) async {
-  //   final searchTerm = event.text;
-  //
-  //   if (searchTerm.isEmpty) {
-  //     final nearestAirQualityReadings =
-  //         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-  //             .values
-  //             .toList();
-  //
-  //     return emit(
-  //       SearchStateNearestLocations(
-  //         airQualityReadings: nearestAirQualityReadings,
-  //         nearbyAirQualityLocations: true,
-  //       ),
-  //     );
-  //   }
-  //
-  //   emit(SearchStateLoading());
-  //
-  //   try {
-  //     final results = await searchRepository.search(searchTerm);
-  //
-  //     return emit(SearchStateSuccess(results.items));
-  //   } catch (error) {
-  //     return emit(error is SearchResultError
-  //         ? SearchStateError(error.message)
-  //         : const SearchStateError('something went wrong'));
-  //   }
-  // }
+  void _onSearchTermChanged(
+    SearchTermChanged event,
+    Emitter<SearchState> emit,
+  ) async {
+    final searchTerm = event.text;
+    emit(state.copyWith(searchTerm: searchTerm));
+
+    if (searchTerm.isEmpty) {
+      return;
+    }
+
+    emit(state.copyWith(blocStatus: SearchStatus.searching));
+
+    try {
+      final results = await searchRepository.search(searchTerm);
+      return emit(state.copyWith(
+        searchResults: results.items,
+        blocStatus: SearchStatus.searchSuccess,
+      ));
+    } catch (error) {
+      return emit(state.copyWith(
+        searchError: SearchError.searchFailed,
+        blocStatus: SearchStatus.error,
+      ));
+    }
+  }
 }
