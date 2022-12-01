@@ -9,11 +9,11 @@ List<HealthTip> getHealthTips(
   double pm2_5,
   Pollutant _,
 ) {
-  // TODO add healthtips for pm10
-  final healthtips = <HealthTip>[];
+  // TODO add healthTips for pm10
+  final healthTips = <HealthTip>[];
   if (pm2_5 <= 12.09) {
     //good
-    healthtips.add(
+    healthTips.add(
       HealthTip(
         'For everyone',
         'It\'s a terrific day to go outside and exercise,'
@@ -23,7 +23,7 @@ List<HealthTip> getHealthTips(
     );
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     // moderate
-    healthtips
+    healthTips
       ..add(
         HealthTip(
           'For everyone',
@@ -47,7 +47,7 @@ List<HealthTip> getHealthTips(
       );
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    healthtips
+    healthTips
       ..add(
         HealthTip(
           'For people with respiratory issues',
@@ -79,7 +79,7 @@ List<HealthTip> getHealthTips(
       );
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    healthtips.add(
+    healthTips.add(
       HealthTip(
         'For everyone',
         'Avoid activities that make you breathe more rapidly,'
@@ -89,7 +89,7 @@ List<HealthTip> getHealthTips(
     );
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    healthtips.add(
+    healthTips.add(
       HealthTip(
         'For everyone',
         'Reduce the intensity of your outdoor activities,'
@@ -99,16 +99,16 @@ List<HealthTip> getHealthTips(
     );
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    healthtips.add(
+    healthTips.add(
       HealthTip(
-          'For everyone',
+        'For everyone',
         'If you have to spend a lot of time outside, disposable masks like the N95 are helpful.',
-          'assets/images/family.png',
+        'assets/images/family.png',
       ),
-      );
+    );
   }
 
-  return healthtips;
+  return healthTips;
 }
 
 String pmToInfoDialog(double pm2_5) {

@@ -3,6 +3,30 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+class CircularLoadingIndicator extends StatelessWidget {
+  const CircularLoadingIndicator({
+    super.key,
+    required this.loading,
+  });
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loading) {
+      return Container();
+    }
+
+    return SizedBox(
+      height: 8,
+      width: 8,
+      child: CupertinoActivityIndicator(
+        radius: 7,
+        color: CustomColors.appColorBlue,
+      ),
+    );
+  }
+}
+
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
     super.key,
