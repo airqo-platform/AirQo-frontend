@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
@@ -143,42 +142,26 @@ class _SettingsPageState extends State<SettingsPage> {
                               child: const SettingsCard(
                                 text: 'Rate the AirQo App',
                               ),
+                            ),
+                            Divider(
+                              color: CustomColors.appBodyColor,
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                await AppService().clearshowcase();
+                                await Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const HomePage();
+                                    },
+                                  ),
+                                  (r) => false,
+                                );
+                              },
+                              child: const SettingsCard(
+                                text: 'Take a tour of the App',
                               ),
-                              GestureDetector(
-                                onTap: () async {
-                                  await AppService().clearshowcase();
-                                  await Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const HomePage();
-                                      },
-                                    ),
-                                    (r) => false,
-                                  );
-                                },
-                                child: const SettingsCard(
-                                  text: 'Take a tour of the App',
-                                ),
-                              ),
-                              Divider(
-                                color: CustomColors.appBodyColor,
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const AboutAirQo();
-                                      },
-                                    ),
-                                  );
-                                },
-                                child: const SettingsCard(text: 'About'),
-                              ),
-                            ],
-                          ),
                             ),
                             Divider(
                               color: CustomColors.appBodyColor,

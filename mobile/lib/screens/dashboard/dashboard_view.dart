@@ -44,7 +44,7 @@ class _DashboardViewState extends State<DashboardView> {
   late StreamSubscription _timeSubscription;
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!emptykya) {
+      if (emptykya) {
         ShowCaseWidget.of(context).startShowCase([
           _favoritesShowcaseKey,
           _forYouShowcaseKey,
@@ -97,6 +97,7 @@ class _DashboardViewState extends State<DashboardView> {
                 final kyaWidgets = completeKyaWidgets(
                   state.kya.filterCompleteKya().take(3).toList(),
                 );
+                
                 return Row(
                   children: [
                     Showcase(
@@ -231,7 +232,8 @@ class _DashboardViewState extends State<DashboardView> {
                                     ? value
                                     : element,
                           );
-
+                          
+                          emptykya = incompleteKya.isEmpty;
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
                             child: Showcase(
@@ -338,7 +340,7 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> showcasetoggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('homePageshowcase') == null) {
-      Future.delayed(Duration(seconds: 1), () {
+      Future.delayed(const Duration(microseconds: 10), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           _startShowcase();
           _appService.stopshowcase('homePageshowcase');

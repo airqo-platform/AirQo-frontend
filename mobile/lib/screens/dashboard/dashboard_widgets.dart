@@ -51,6 +51,7 @@ class DashboardTopCard extends StatelessWidget {
       key: widgetKey,
       child: Container(
         height: 56,
+        width: 162,
         padding: const EdgeInsets.all(12.0),
         decoration: const BoxDecoration(
           color: Colors.white,

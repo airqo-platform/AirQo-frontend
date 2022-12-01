@@ -46,11 +46,13 @@ class _ForYouPageState extends State<ForYouPage>
                   onStart: (index, key) {
                     if (key == _kyaTabShowcaseKey) {
                       _tabController.animateTo(1);
+                      setState(() => _analytics = false);
                     }
                   },
                   builder: Builder(
                     builder: (context) {
                       myContext = context;
+                      
                       return TabBar(
                         controller: _tabController,
                         indicatorColor: Colors.transparent,
@@ -60,7 +62,8 @@ class _ForYouPageState extends State<ForYouPage>
                         physics: const NeverScrollableScrollPhysics(),
                         onTap: (value) {
                           setState(
-                              () => _analytics = value == 0 ? true : false);
+                            () => _analytics = value == 0 ? true : false,
+                          );
                         },
                         tabs: <Widget>[
                           Showcase(
