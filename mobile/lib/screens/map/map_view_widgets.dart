@@ -553,9 +553,11 @@ class MapAnalyticsCard extends StatelessWidget {
                       children: [
                         InkWell(
                           onTap: () {
+                            final String region =
+                                context.read<MapBloc>().state.featuredRegion;
                             context
                                 .read<MapBloc>()
-                                .add(const InitializeMapState());
+                                .add(ShowRegionSites(region));
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(
