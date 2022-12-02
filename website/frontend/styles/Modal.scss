@@ -1,0 +1,158 @@
+@import "lib/variables";
+
+.modal-wrapper{
+    z-index: 999;
+    overflow-x: hidden;
+
+    align-items: center;
+    justify-content: center;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 auto;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(12, 30, 68, 0.39);
+    transition: opacity 250ms 750ms ease;
+    .modal-container {
+        position: relative;
+        top: 120px;
+        right: 0;
+        left: 0;
+        width: 55vw;
+        height: auto;
+        margin: 0 auto;
+        background-color: #f7f7f7;
+        padding: 20px;
+        .modal-content{
+            border: none;
+            background-color: inherit;
+            font-family: 'Inter';
+            font-weight: 400;
+            line-height: 20px;
+            font-size: 15.5px;
+            padding:30px 30px 15px 30px;
+        }
+    }
+    .bio-header-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .bio-header{
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-content: center;
+        .name{
+            font-weight: 700;
+            font-size: 36px;
+            line-height: 28px;
+            padding:0 0 10px 0;
+        }
+        .title{
+            font-size: 15px;
+            padding:0 0 10px 0;
+        }
+        .social-container{
+            display: flex;
+            width:26%;
+            justify-content: space-between;
+            padding:0 0 10px 0;
+            svg{
+                background: #145DFF1A;
+                color:#145DFF;
+                height:32px;
+                width:32px;
+                border-radius: 50%;
+            }
+        }
+    }
+    .biography{
+        display: flex;
+        flex-direction: row wrap;
+        justify-content: space-between;
+        img{
+            height:44vh;
+            object-fit: cover;
+            aspect-ratio: 4 / 5;
+        }
+        .bio-text{
+            width: 60%;
+            max-height:350px;
+            padding-right:28px;
+            padding-left:20px;
+            text-align: justify;
+            overflow-y:scroll;
+            overflow-x: hidden;
+            .description{
+                font-weight: 400;
+                line-height: 20px;
+                font-size: 15.5px;  
+            }
+        }
+        ::-webkit-scrollbar{
+                width:10px;
+            }
+            ::-webkit-scrollbar-button{
+                display:none;
+            }
+            ::-webkit-scrollbar-track{
+                background: $aq-white-3;
+                opacity:0.2;
+            }
+            ::-webkit-scrollbar-thumb{
+                background: $aq-blue-0;
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-corner{
+                border-radius: 10px;
+            }
+    }
+}
+
+@media(max-width: 850px){
+    .modal-wrapper{
+        .bio-header{
+            .name{
+                font-size: 30px;
+            }
+        }
+        .biography{
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            .bio-text{
+                width:100%;
+                max-height: none;
+                padding: 0px;
+                .description{
+                    padding: 0px;
+                    margin: 0px;
+                    width: 100%;
+                    margin-top: 20px;
+                }
+            }
+            img{
+                height:40vh;
+            }
+            ::-webkit-scrollbar{
+                display:none
+            }
+        }
+    }
+}
+
+@media(max-width: $mainBreakPoint){
+    .modal-wrapper{
+        .modal-container{
+            width: 86vw;
+        }
+        .biography{
+            img{
+                height: 36vh
+            }
+        }
+    }
+}
