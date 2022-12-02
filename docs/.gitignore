@@ -112,3 +112,5 @@ cypress/screenshots
 .pnp.loader.mjs
 .yarn/
 .yarnrc.yml
+
+trigger
