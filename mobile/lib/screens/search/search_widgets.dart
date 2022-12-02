@@ -124,8 +124,9 @@ class SearchPageAirQualityTile extends StatelessWidget {
                 const SizedBox(
                   height: 2,
                 ),
-                AirQualityBadge(
-                    Pollutant.pm2_5.airQuality(airQualityReading.pm2_5)),
+                AirQualityBadge(Pollutant.pm2_5.airQuality(
+                  airQualityReading.pm2_5,
+                )),
               ],
             ),
           ),
@@ -347,6 +348,7 @@ class SearchSection extends StatelessWidget {
     if (data.isEmpty) {
       return Container();
     }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -547,10 +549,11 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                   );
                 },
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 1 / 1.2),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  childAspectRatio: 1 / 1.2,
+                ),
               ),
             ],
           ),
@@ -579,6 +582,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
           // TODO replace is correct search widget
           return NoAirQualityDataWidget(callBack: () {});
         }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ListView.builder(

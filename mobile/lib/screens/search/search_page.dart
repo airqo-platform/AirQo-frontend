@@ -274,7 +274,8 @@ class _AirQualitySheetState extends State<AirQualitySheet> {
                             onTap: () {
                               context.read<SearchBloc>().add(
                                     FilterSearchAirQuality(
-                                        AirQuality.values[index]),
+                                      AirQuality.values[index],
+                                    ),
                                   );
                             },
                             child:

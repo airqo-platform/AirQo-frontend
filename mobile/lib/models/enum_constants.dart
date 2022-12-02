@@ -254,7 +254,7 @@ enum AirQuality {
   ),
   moderate(
     string: 'Moderate',
-    value: 23.80,
+    value: 23.8,
     minimumValue: 12.1,
     maximumValue: 35.49,
   ),

@@ -102,6 +102,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     try {
       final results = await searchRepository.search(searchTerm);
+
       return emit(state.copyWith(
         searchResults: results.items,
         blocStatus: SearchStatus.searchSuccess,
