@@ -147,11 +147,12 @@
 @media(max-width: $mainBreakPoint){
     .modal-wrapper{
         .modal-container{
-            width: 86vw;
+            width: 90vw;
+            padding: 5px;
         }
         .biography{
             img{
-                height: 36vh
+                height: 45vh
             }
         }
     }
