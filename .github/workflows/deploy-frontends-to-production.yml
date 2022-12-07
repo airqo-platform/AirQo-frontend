@@ -32,7 +32,7 @@ jobs:
   image-tag:
     # This job will only run if the triggering GitHub user is listed in REPO_ADMINS
     # REPO_ADMINS is a list of comma seperated values
-    if: contains(${{ secrets.REPO_ADMINS }}, github.triggering_actor)
+    if: contains('${{ secrets.REPO_ADMINS }}', github.triggering_actor)
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
