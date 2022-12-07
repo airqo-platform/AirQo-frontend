@@ -209,26 +209,6 @@ class SearchAirQualityAvatar extends StatelessWidget {
   }
 }
 
-class AirQualityChip extends StatelessWidget {
-  const AirQualityChip(this.airQuality, {super.key});
-  final AirQuality airQuality;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      backgroundColor: airQuality.color().withOpacity(0.3),
-      label: Text(airQuality.string),
-      labelStyle: CustomTextStyle.airQualityChip(context),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: const EdgeInsets.all(2),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
-      avatar: CircleAvatar(
-        backgroundColor: airQuality.color(),
-      ),
-    );
-  }
-}
-
 class SearchPageFilterTile extends StatelessWidget {
   const SearchPageFilterTile(this.airQuality, {super.key});
   final AirQuality airQuality;
