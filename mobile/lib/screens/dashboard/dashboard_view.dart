@@ -341,8 +341,11 @@ class _DashboardViewState extends State<DashboardView> {
     if (prefs.getBool('homePageshowcase') == null) {
       Future.delayed(const Duration(microseconds: 10), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          _startShowcase();
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            _startShowcase();
           _appService.stopshowcase('homePageshowcase');
+          });
+        
         }
       });
     }
