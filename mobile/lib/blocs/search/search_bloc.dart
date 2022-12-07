@@ -23,10 +23,20 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   late final SearchRepository searchRepository;
 
-  void _onInitializeSearchPage(
-    InitializeSearchPage _,
+  Future<void> _onLoadSearchHistory(Emitter<SearchState> emit) async {
+    List<SearchHistory> searchHistory =
+        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+    searchHistory = searchHistory.sortByDateTime().take(3).toList();
+    List<AirQualityReading> recentSearches =
+        await searchHistory.attachedAirQualityReadings();
+
+    return emit(state.copyWith(recentSearches: recentSearches));
+  }
+
+  Future<void> _onInitializeSearchPage(
+    InitializeSearchPage event,
     Emitter<SearchState> emit,
-  ) {
+  ) async {
     List<AirQualityReading> africanCities = [];
     final nearestAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
@@ -49,11 +59,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     africanCities.shuffle();
 
-    return emit(const SearchState.initial().copyWith(
+    emit(const SearchState.initial().copyWith(
       nearbyAirQualityLocations: nearestAirQualityReadings.sortByAirQuality(),
-      recentSearches: nearestAirQualityReadings.sortByAirQuality(),
       africanCities: africanCities,
     ));
+
+    await _onLoadSearchHistory(emit);
+
+    return;
   }
 
   void _onFilterByAirQuality(

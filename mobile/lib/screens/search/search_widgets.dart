@@ -587,22 +587,24 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
         return;
       }
 
+      AirQualityReading airQualityReading = nearestSite.copyWith(
+        name: searchResultItem.name,
+        location: searchResultItem.location,
+        placeId: searchResultItem.id,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+      );
+
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) {
-            return InsightsPage(
-              nearestSite.copyWith(
-                name: searchResultItem.name,
-                location: searchResultItem.location,
-                placeId: searchResultItem.id,
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
-              ),
-            );
+            return InsightsPage(airQualityReading);
           },
         ),
       );
+
+      await HiveService.updateSearchHistory(airQualityReading);
     } else {
       if (!mounted) return;
 

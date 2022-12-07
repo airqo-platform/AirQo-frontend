@@ -20,6 +20,7 @@ class HiveService {
       ..registerAdapter(KyaLessonAdapter())
       ..registerAdapter(UserPreferencesTypeAdapter())
       ..registerAdapter(FavouritePlaceAdapter())
+      ..registerAdapter(SearchHistoryAdapter())
       ..registerAdapter(AirQualityReadingAdapter());
 
     final encryptionKey = await getEncryptionKey();
@@ -27,6 +28,7 @@ class HiveService {
     await Future.wait(
       [
         Hive.openBox<AppNotification>(HiveBox.appNotifications),
+        Hive.openBox<SearchHistory>(HiveBox.searchHistory),
         Hive.openBox<Kya>(HiveBox.kya),
         Hive.openBox<Analytics>(HiveBox.analytics),
         Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
@@ -67,6 +69,7 @@ class HiveService {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
+      Hive.box<Kya>(HiveBox.searchHistory).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
@@ -87,6 +90,26 @@ class HiveService {
     }
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .putAll(airQualityReadings);
+  }
+
+  static Future<void> updateSearchHistory(
+    AirQualityReading airQualityReading,
+  ) async {
+    List<SearchHistory> searchHistoryList =
+        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+    final searchHistoryMap = <dynamic, SearchHistory>{};
+
+    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
+    searchHistoryList
+        .add(SearchHistory.fromAirQualityReading(airQualityReading));
+
+    for (final searchHistory in searchHistoryList) {
+      searchHistoryMap[searchHistory.placeId] = searchHistory;
+    }
+
+    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
+    await Hive.box<SearchHistory>(HiveBox.searchHistory)
+        .putAll(searchHistoryMap);
   }
 
   static Future<void> updateNearbyAirQualityReadings(
@@ -182,6 +205,7 @@ class HiveService {
 
 class HiveBox {
   static String get appNotifications => 'appNotifications';
+  static String get searchHistory => 'searchHistory';
   static String get kya => 'kya';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -107,6 +108,42 @@ extension AnalyticsListExt on List<Analytics> {
     );
 
     return this;
+  }
+}
+
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSiteAirQualityReading(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+    return airQualityReadings;
   }
 }
 
