@@ -6,14 +6,9 @@ import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
-
-EventTransformer<Event> debounce<Event>(Duration duration) {
-  return (events, mapper) => events.debounce(duration).switchMap(mapper);
-}
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
@@ -101,7 +96,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     emit(state.copyWith(blocStatus: SearchStatus.searching));
 
     try {
-      final results = await searchRepository.search(searchTerm);
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+      final List<String> countries =
+          airQualityReadings.map((e) => e.country).toSet().toList();
+
+      final results = await searchRepository.search(
+        searchTerm,
+        countries: countries,
+      );
 
       return emit(state.copyWith(
         searchResults: results.items,

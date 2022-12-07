@@ -6,7 +6,7 @@ import Loadspinner from './src/components/LoadSpinner';
 
 const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
-const Terms = React.lazy(() => import('src/pages/Legal/Terms'));
+const LegalPage = React.lazy(() => import('src/pages/Legal'));
 const ResearchPage = React.lazy(() => import('src/pages/OurSolutions/ResearchPage'));
 const CommunityPage = React.lazy(() => import('src/pages/OurSolutions/CommunityPage'));
 const AfricanCitiesPage = React.lazy(() => import('src/pages/OurSolutions/AfricanCitiesPage'));
@@ -55,7 +55,7 @@ const App = () => {
                         <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
                         <Route path="/about-us" element={<AboutUsPage />} />
                         <Route path="/press" element={<Press />} />
-                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/legal" element={<LegalPage />} />
                         <Route path="/contact" element={<ContactUsPage />} />
                         <Route path="/contact/form" element={<ContactForm />} />
                         <Route path="/contact/sent" element={<Feedback />} />

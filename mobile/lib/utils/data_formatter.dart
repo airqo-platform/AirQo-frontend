@@ -2,7 +2,10 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 charts.Color chartBarColor(
   ChartData series,
@@ -233,4 +236,8 @@ List<ChartData> fillMissingData(
   }
 
   return formatData(insights, frequency);
+}
+
+EventTransformer<Event> debounce<Event>(Duration duration) {
+  return (events, mapper) => events.debounce(duration).switchMap(mapper);
 }

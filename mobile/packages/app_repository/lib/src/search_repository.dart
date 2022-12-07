@@ -13,13 +13,13 @@ class SearchRepository {
   final SearchApiClient _client;
   final String searchApiKey;
 
-  Future<SearchResult> search(String term) async {
+  Future<SearchResult> search(String term, {List<String>? countries}) async {
     final cachedResult = _cache.getSearchResult(term);
     if (cachedResult != null) {
       return cachedResult;
     }
     final result =
-        SearchResult.fromPredictions(await _client.fetchPredictions(term));
+        SearchResult.fromPredictions(await _client.fetchPredictions(term), countries: countries,);
     _cache.setSearchResult(term, result);
     return result;
   }

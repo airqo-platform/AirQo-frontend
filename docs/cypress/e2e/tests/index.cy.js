@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
-describe("Verify AirQo Documentation Home Page", () => {
+describe("Verify AirQo Documentation Home Page", () => {
+
   it("Verify page is reachable", () => {
     cy.visit("http://localhost:3000/#/");
   });
@@ -45,6 +46,20 @@ it("Verify ability to Search", () => {
     cy.get(".input-wrap  > input").type("AirQo");
     cy.get(".results-panel").should(($lis) => {
       expect($lis.eq(0), "first item").to.contain("AirQo");
+    });
+  });
+  
+  it("Verify Edit On GitHub Button is clickable", () => {
+    cy.contains("Edit On GitHub").click();
+  });
+
+  it("Verify Destination of Edit On Github button", () => {
+    cy.get("article[id=main]>p>a").invoke("removeAttr", "target").click();
+
+    cy.on("url:changed", (newUrl) => {
+      expect(newUrl).to.contain(
+        "https://github.com/airqo-platform/AirQo-frontend/blob/staging/docs"
+      );
     });
   });
 });
