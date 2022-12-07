@@ -618,7 +618,7 @@ class CustomTextStyle {
         );
   }
 
-  static TextStyle? airQualityBadge(BuildContext context) {
+  static TextStyle? airQualityChip(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
           fontSize: 7.0,
           fontWeight: FontWeight.w400,

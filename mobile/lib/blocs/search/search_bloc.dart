@@ -18,7 +18,7 @@ EventTransformer<Event> debounce<Event>(Duration duration) {
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
     on<InitializeSearchPage>(_onInitializeSearchPage);
-    on<FilterSearchAirQuality>(_onFilterSearchAirQuality);
+    on<FilterByAirQuality>(_onFilterSearchAirQuality);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
@@ -62,7 +62,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   void _onFilterSearchAirQuality(
-    FilterSearchAirQuality event,
+    FilterByAirQuality event,
     Emitter<SearchState> emit,
   ) {
     final List<AirQualityReading> airQualityReadings =

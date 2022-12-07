@@ -11,8 +11,8 @@ class InitializeSearchPage extends SearchEvent {
   List<Object> get props => [];
 }
 
-class FilterSearchAirQuality extends SearchEvent {
-  const FilterSearchAirQuality(this.airQuality);
+class FilterByAirQuality extends SearchEvent {
+  const FilterByAirQuality(this.airQuality);
   final AirQuality airQuality;
 
   @override

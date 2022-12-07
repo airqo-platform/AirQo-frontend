@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -134,13 +135,20 @@ class _SearchPageState extends State<SearchPage> {
                       children: [
                         SearchSection(
                           maximumElements: 3,
-                          title: 'Good Quality Air around you',
+                          title: state
+                                  .featuredAirQuality?.searchNearbyLocationsText
+                                  .toTitleCase() ??
+                              '',
                           airQualityReadings: state.nearbyAirQualityLocations,
                         ),
                         SearchSection(
                           title: state.nearbyAirQualityLocations.isEmpty
-                              ? 'Locations with Good Quality Air'
-                              : 'Other locations',
+                              ? state.featuredAirQuality
+                                      ?.searchOtherLocationsText
+                                      .toTitleCase() ??
+                                  ''
+                              : 'Other ${state.featuredAirQuality?.searchOtherLocationsText}'
+                                  .toTitleCase(),
                           airQualityReadings: state.otherAirQualityLocations,
                         ),
                       ],
@@ -191,6 +199,10 @@ class _AirQualitySheetState extends State<AirQualitySheet> {
   }
 
   void resizeScrollSheet(double value, {Curve? curve}) {
+    if (!controller.isAttached) {
+      return;
+    }
+
     controller.animateTo(
       value,
       duration: const Duration(milliseconds: 500),
@@ -273,7 +285,7 @@ class _AirQualitySheetState extends State<AirQualitySheet> {
                           child: InkWell(
                             onTap: () {
                               context.read<SearchBloc>().add(
-                                    FilterSearchAirQuality(
+                                    FilterByAirQuality(
                                       AirQuality.values[index],
                                     ),
                                   );

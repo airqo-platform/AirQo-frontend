@@ -121,12 +121,12 @@ class SearchPageAirQualityTile extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(
-                  height: 2,
+                const SizedBox(height: 2),
+                AirQualityChip(
+                  Pollutant.pm2_5.airQuality(
+                    airQualityReading.pm2_5,
+                  ),
                 ),
-                AirQualityBadge(Pollutant.pm2_5.airQuality(
-                  airQualityReading.pm2_5,
-                )),
               ],
             ),
           ),
@@ -209,44 +209,21 @@ class SearchAirQualityAvatar extends StatelessWidget {
   }
 }
 
-class AirQualityBadge extends StatelessWidget {
-  const AirQualityBadge(this.airQuality, {super.key});
+class AirQualityChip extends StatelessWidget {
+  const AirQualityChip(this.airQuality, {super.key});
   final AirQuality airQuality;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 11,
-      padding: const EdgeInsets.fromLTRB(1.5, 1.5, 2, 1.5),
-      decoration: BoxDecoration(
-        color: airQuality.color().withOpacity(0.4),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            height: 8,
-            width: 8,
-            decoration: BoxDecoration(
-              color: airQuality.color(),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(
-            width: 4,
-          ),
-          Center(
-            child: Text(
-              airQuality.string,
-              style: CustomTextStyle.airQualityBadge(context),
-            ),
-          ),
-        ],
+    return Chip(
+      backgroundColor: airQuality.color().withOpacity(0.3),
+      label: Text(airQuality.string),
+      labelStyle: CustomTextStyle.airQualityChip(context),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.all(2),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
+      avatar: CircleAvatar(
+        backgroundColor: airQuality.color(),
       ),
     );
   }
@@ -290,7 +267,7 @@ class SearchPageFilterTile extends StatelessWidget {
                 const SizedBox(
                   height: 2,
                 ),
-                AirQualityBadge(airQuality),
+                AirQualityChip(airQuality),
               ],
             ),
           ),
@@ -358,7 +335,7 @@ class SearchSection extends StatelessWidget {
         children: [
           Text(
             title,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.headline8(context)?.copyWith(
               color: CustomColors.appColorBlack.withOpacity(0.3),
@@ -446,7 +423,7 @@ class ExploreAfricanCityCard extends StatelessWidget {
           const SizedBox(
             height: 4,
           ),
-          AirQualityBadge(Pollutant.pm2_5.airQuality(airQualityReading.pm2_5)),
+          AirQualityChip(Pollutant.pm2_5.airQuality(airQualityReading.pm2_5)),
         ],
       ),
     );
