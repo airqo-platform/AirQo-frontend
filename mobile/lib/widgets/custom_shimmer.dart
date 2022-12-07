@@ -109,7 +109,7 @@ void loadingScreen(BuildContext context) async {
     context: context,
     barrierDismissible: false,
     builder: (ctx) => CupertinoActivityIndicator(
-      radius: 20,
+      radius: 40,
       color: CustomColors.appColorBlue,
     ),
   );
