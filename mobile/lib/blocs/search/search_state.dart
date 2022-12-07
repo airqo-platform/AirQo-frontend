@@ -1,29 +1,9 @@
 part of 'search_bloc.dart';
 
 enum SearchError {
-  noInternetConnection(
-    message: 'Check your internet connection',
-    snackBarDuration: 5,
-  ),
-  searchFailed(
-    message: 'Check your internet connection',
-    snackBarDuration: 5,
-  ),
-  none(
-    message: '',
-    snackBarDuration: 0,
-  );
-
-  const SearchError({
-    required this.message,
-    required this.snackBarDuration,
-  });
-
-  final String message;
-  final int snackBarDuration;
-
-  @override
-  String toString() => message;
+  noInternetConnection,
+  searchFailed,
+  none;
 }
 
 enum SearchStatus {

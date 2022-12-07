@@ -13,7 +13,7 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
     on<InitializeSearchPage>(_onInitializeSearchPage);
-    on<FilterByAirQuality>(_onFilterSearchAirQuality);
+    on<FilterByAirQuality>(_onFilterByAirQuality);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
@@ -50,13 +50,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     africanCities.shuffle();
 
     return emit(const SearchState.initial().copyWith(
-      nearbyAirQualityLocations: nearestAirQualityReadings,
-      recentSearches: nearestAirQualityReadings,
+      nearbyAirQualityLocations: nearestAirQualityReadings.sortByAirQuality(),
+      recentSearches: nearestAirQualityReadings.sortByAirQuality(),
       africanCities: africanCities,
     ));
   }
 
-  void _onFilterSearchAirQuality(
+  void _onFilterByAirQuality(
     FilterByAirQuality event,
     Emitter<SearchState> emit,
   ) {
@@ -74,10 +74,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
         .toList();
 
-    // TODO : add ordering
     return emit(state.copyWith(
-      nearbyAirQualityLocations: nearbyAirQualityLocations,
-      otherAirQualityLocations: otherAirQualityLocations,
+      nearbyAirQualityLocations: nearbyAirQualityLocations.sortByAirQuality(),
+      otherAirQualityLocations: otherAirQualityLocations.sortByAirQuality(),
       featuredAirQuality: event.airQuality,
     ));
   }

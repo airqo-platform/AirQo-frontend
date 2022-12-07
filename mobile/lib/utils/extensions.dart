@@ -111,10 +111,10 @@ extension AnalyticsListExt on List<Analytics> {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> sortByAirQuality() {
+  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
     List<AirQualityReading> data = List.of(this);
     data.sort((a, b) {
-      if (a.country.compareTo(b.country) != 0) {
+      if (sortCountries && a.country.compareTo(b.country) != 0) {
         return a.country.compareTo(b.country);
       }
 

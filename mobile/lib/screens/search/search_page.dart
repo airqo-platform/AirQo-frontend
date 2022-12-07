@@ -98,6 +98,7 @@ class SearchPage extends StatelessWidget {
     Future.delayed(Duration.zero, () {
       context.read<SearchBloc>().add(const InitializeSearchPage());
     });
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 72,
@@ -163,13 +164,19 @@ class SearchPage extends StatelessWidget {
                 switch (state.searchError) {
                   case SearchError.noInternetConnection:
                     return NoInternetConnectionWidget(
-                      callBack: () {},
+                      callBack: () {
+                        context
+                            .read<SearchBloc>()
+                            .add(const InitializeSearchPage());
+                      },
                     );
-                  // TODO implement callback
                   case SearchError.searchFailed:
-                    // TODO: Handle this case.
                     return NoAirQualityDataWidget(
-                      callBack: () {},
+                      callBack: () {
+                        context
+                            .read<SearchBloc>()
+                            .add(const InitializeSearchPage());
+                      },
                     );
                   case SearchError.none:
                     break;
@@ -180,9 +187,7 @@ class SearchPage extends StatelessWidget {
             if (state.featuredAirQuality != null) {
               if (state.nearbyAirQualityLocations.isEmpty &&
                   state.otherAirQualityLocations.isEmpty) {
-                return NoAirQualityDataWidget(callBack: () {
-                  _openAirQualityFilters(context);
-                });
+                return const NoSearchResultsWidget();
               }
 
               return ListView(
