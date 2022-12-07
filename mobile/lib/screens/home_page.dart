@@ -232,6 +232,8 @@ class _HomePageState extends State<HomePage> {
           case MapStatus.showingRegions:
           case MapStatus.showingFeaturedSite:
           case MapStatus.showingRegionSites:
+          case MapStatus.searching:
+          case MapStatus.loading:
             break;
         }
         break;

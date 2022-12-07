@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:flutter/foundation.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -122,6 +122,28 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     });
 
     return data;
+  }
+
+  List<AirQualityReading> filterNearestLocations() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings = airQualityReadings
+        .where(
+          (element) => element.distanceToReferenceSite <= Config.searchRadius,
+        )
+        .toList();
+
+    return airQualityReadings.sortByDistance();
+  }
+
+  List<AirQualityReading> sortByDistance() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
+
+    return airQualityReadings;
   }
 }
 

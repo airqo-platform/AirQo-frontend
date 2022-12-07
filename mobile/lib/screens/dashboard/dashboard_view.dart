@@ -166,15 +166,14 @@ class _DashboardViewState extends State<DashboardView> {
                           HiveBox.nearByAirQualityReadings,
                         ).listenable(),
                         builder: (context, box, widget) {
-                          final airQualityReadings = filterNearestLocations(
-                            box.values.cast<AirQualityReading>().toList(),
-                          );
+                          final airQualityReadings =
+                              box.values.toList().filterNearestLocations();
 
                           if (airQualityReadings.isNotEmpty) {
-                            final sortedReadings =
-                                sortAirQualityReadingsByDistance(
-                              airQualityReadings,
-                            ).take(1).toList();
+                            final sortedReadings = airQualityReadings
+                                .sortByDistance()
+                                .take(1)
+                                .toList();
 
                             return Padding(
                               padding: const EdgeInsets.only(top: 16),

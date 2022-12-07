@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -93,8 +94,7 @@ class HiveService {
   ) async {
     final nearByAirQualityReadings = <dynamic, AirQualityReading>{};
 
-    nearbyAirQualityReadings =
-        sortAirQualityReadingsByDistance(nearbyAirQualityReadings).toList();
+    nearbyAirQualityReadings = nearbyAirQualityReadings.sortByDistance();
 
     for (final airQualityReading in nearbyAirQualityReadings) {
       nearByAirQualityReadings[airQualityReading.placeId] = airQualityReading;

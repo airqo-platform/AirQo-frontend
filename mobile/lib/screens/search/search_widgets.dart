@@ -536,8 +536,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) {
         if (state.searchResults.isEmpty) {
-          // TODO replace is correct search widget
-          return NoAirQualityDataWidget(callBack: () {});
+          return const NoSearchResultsWidget();
         }
 
         return Padding(
