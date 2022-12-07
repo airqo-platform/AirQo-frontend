@@ -118,6 +118,7 @@ extension SearchHistoryListExt on List<SearchHistory> {
       if (latestFirst) {
         return -(a.dateTime.compareTo(b.dateTime));
       }
+
       return a.dateTime.compareTo(b.dateTime);
     });
 
@@ -143,6 +144,7 @@ extension SearchHistoryListExt on List<SearchHistory> {
         ));
       }
     }
+
     return airQualityReadings;
   }
 }

@@ -2,12 +2,13 @@ part of 'search_bloc.dart';
 
 enum SearchError {
   noInternetConnection,
-  searchFailed,
+  noAirQualityData,
   none;
 }
 
 enum SearchStatus {
   initial,
+  loading,
   searching,
   error,
   searchSuccess;
@@ -22,7 +23,7 @@ class SearchState extends Equatable {
     this.africanCities = const [],
     this.searchResults = const [],
     this.searchTerm = '',
-    this.blocStatus = SearchStatus.initial,
+    this.searchStatus = SearchStatus.initial,
     this.searchError = SearchError.none,
   });
 
@@ -34,7 +35,7 @@ class SearchState extends Equatable {
     this.africanCities = const [],
     this.searchResults = const [],
     this.searchTerm = '',
-    this.blocStatus = SearchStatus.initial,
+    this.searchStatus = SearchStatus.initial,
     this.searchError = SearchError.none,
   });
 
@@ -48,7 +49,7 @@ class SearchState extends Equatable {
     String? searchTerm,
     List<SearchResultItem>? searchResults,
     AirQuality? featuredAirQuality,
-    SearchStatus? blocStatus,
+    SearchStatus? searchStatus,
     SearchError? searchError,
   }) {
     return SearchState(
@@ -61,7 +62,7 @@ class SearchState extends Equatable {
       searchTerm: searchTerm ?? this.searchTerm,
       searchResults: searchResults ?? this.searchResults,
       featuredAirQuality: featuredAirQuality ?? this.featuredAirQuality,
-      blocStatus: blocStatus ?? this.blocStatus,
+      searchStatus: searchStatus ?? this.searchStatus,
       searchError: searchError ?? this.searchError,
     );
   }
@@ -73,7 +74,7 @@ class SearchState extends Equatable {
   final String searchTerm;
   final List<SearchResultItem> searchResults;
   final AirQuality? featuredAirQuality;
-  final SearchStatus blocStatus;
+  final SearchStatus searchStatus;
   final SearchError searchError;
 
   @override
@@ -86,6 +87,6 @@ class SearchState extends Equatable {
         searchResults,
         featuredAirQuality,
         searchError,
-        blocStatus,
+        searchStatus,
       ];
 }

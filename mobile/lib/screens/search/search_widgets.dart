@@ -286,6 +286,59 @@ class SearchPageFilterTile extends StatelessWidget {
   }
 }
 
+class SearchPageLoadingWidget extends StatelessWidget {
+  const SearchPageLoadingWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 46,
+            ),
+            const ContainerLoadingAnimation(
+              height: 80,
+              radius: 8.0,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            const ContainerLoadingAnimation(
+              height: 80,
+              radius: 8.0,
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+            GridView.builder(
+              shrinkWrap: true,
+              itemCount: 4,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemBuilder: (_, index) {
+                return const ContainerLoadingAnimation(
+                  radius: 10.0,
+                  height: 100,
+                );
+              },
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 1 / 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SearchSection extends StatelessWidget {
   const SearchSection({
     super.key,
@@ -511,6 +564,9 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                   mainAxisSpacing: 15,
                   childAspectRatio: 1 / 1.2,
                 ),
+              ),
+              const SizedBox(
+                height: 8,
               ),
             ],
           ),

@@ -11,6 +11,13 @@ class InitializeSearchPage extends SearchEvent {
   List<Object> get props => [];
 }
 
+class ReloadSearchPage extends SearchEvent {
+  const ReloadSearchPage();
+
+  @override
+  List<Object> get props => [];
+}
+
 class FilterByAirQuality extends SearchEvent {
   const FilterByAirQuality(this.airQuality);
   final AirQuality airQuality;

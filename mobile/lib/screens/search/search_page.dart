@@ -153,7 +153,7 @@ class SearchPage extends StatelessWidget {
       body: AppSafeArea(
         widget: BlocBuilder<SearchBloc, SearchState>(
           builder: (context, state) {
-            switch (state.blocStatus) {
+            switch (state.searchStatus) {
               case SearchStatus.initial:
                 break;
               case SearchStatus.searchSuccess:
@@ -170,18 +170,20 @@ class SearchPage extends StatelessWidget {
                             .add(const InitializeSearchPage());
                       },
                     );
-                  case SearchError.searchFailed:
+                  case SearchError.noAirQualityData:
                     return NoAirQualityDataWidget(
                       callBack: () {
                         context
                             .read<SearchBloc>()
-                            .add(const InitializeSearchPage());
+                            .add(const ReloadSearchPage());
                       },
                     );
                   case SearchError.none:
                     break;
                 }
                 break;
+              case SearchStatus.loading:
+                return const SearchPageLoadingWidget();
             }
 
             if (state.featuredAirQuality != null) {

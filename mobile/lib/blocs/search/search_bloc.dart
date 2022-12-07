@@ -13,6 +13,8 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
     on<InitializeSearchPage>(_onInitializeSearchPage);
+    on<ReloadSearchPage>(_onReloadSearchPage);
+
     on<FilterByAirQuality>(_onFilterByAirQuality);
     on<SearchTermChanged>(
       _onSearchTermChanged,
@@ -33,8 +35,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return emit(state.copyWith(recentSearches: recentSearches));
   }
 
-  Future<void> _onInitializeSearchPage(
-    InitializeSearchPage event,
+  Future<void> _initialize(
     Emitter<SearchState> emit,
   ) async {
     List<AirQualityReading> africanCities = [];
@@ -59,14 +60,58 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     africanCities.shuffle();
 
+    if (africanCities.isEmpty && nearestAirQualityReadings.isEmpty) {
+      return emit(const SearchState.initial().copyWith(
+        searchStatus: SearchStatus.error,
+        searchError: SearchError.noAirQualityData,
+      ));
+    }
+
     emit(const SearchState.initial().copyWith(
       nearbyAirQualityLocations: nearestAirQualityReadings.sortByAirQuality(),
       africanCities: africanCities,
+      searchStatus: SearchStatus.initial,
+      searchError: SearchError.none,
     ));
 
     await _onLoadSearchHistory(emit);
 
     return;
+  }
+
+  Future<void> _onInitializeSearchPage(
+    InitializeSearchPage _,
+    Emitter<SearchState> emit,
+  ) async {
+    await _initialize(emit);
+  }
+
+  Future<void> _onReloadSearchPage(
+    ReloadSearchPage _,
+    Emitter<SearchState> emit,
+  ) async {
+    emit(state.copyWith(
+      searchStatus: SearchStatus.loading,
+      searchError: SearchError.none,
+    ));
+
+    bool success = await AppService().refreshAirQualityReadings();
+    if (success) {
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+      if (airQualityReadings.isNotEmpty) {
+        await _initialize(emit);
+
+        return;
+      }
+    }
+
+    return emit(const SearchState.initial().copyWith(
+      searchStatus: SearchStatus.error,
+      searchError: SearchError.noAirQualityData,
+    ));
   }
 
   void _onFilterByAirQuality(
@@ -91,6 +136,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       nearbyAirQualityLocations: nearbyAirQualityLocations.sortByAirQuality(),
       otherAirQualityLocations: otherAirQualityLocations.sortByAirQuality(),
       featuredAirQuality: event.airQuality,
+      searchError: SearchError.none,
+      searchStatus: SearchStatus.initial,
     ));
   }
 
@@ -105,7 +152,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       return;
     }
 
-    emit(state.copyWith(blocStatus: SearchStatus.searching));
+    emit(state.copyWith(searchStatus: SearchStatus.searching));
 
     try {
       final airQualityReadings =
@@ -122,12 +169,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
       return emit(state.copyWith(
         searchResults: results.items,
-        blocStatus: SearchStatus.searchSuccess,
+        searchStatus: SearchStatus.searchSuccess,
+        searchError: SearchError.none,
       ));
     } catch (error) {
       return emit(state.copyWith(
-        searchError: SearchError.searchFailed,
-        blocStatus: SearchStatus.error,
+        searchError: SearchError.noAirQualityData,
+        searchStatus: SearchStatus.error,
       ));
     }
   }
