@@ -186,7 +186,7 @@ const AboutUsPage = () => {
           </div>
           <hr />
           <div className="AboutUsPage__team" id="team">
-            <div className='header'>
+            <div className="header">
               <h3 className="section-title">Meet the team</h3>
               <div>
                 <p className="section-info">
@@ -202,13 +202,17 @@ const AboutUsPage = () => {
             </div>
             <div className="AboutUsPage__pictorial">
               {teamData.map((member) => (
-                <Profile
-                  ImgPath={member.picture}
-                  name={member.name}
-                  title={member.title}
-                  twitter={member.twitter}
-                  linkedin={member.linked_in}
-                />
+                <div key={member.id}>
+                  <Profile
+                    ImgPath={member.picture}
+                    name={member.name}
+                    title={member.title}
+                    twitter={member.twitter}
+                    linkedin={member.linked_in}
+                    biography={member.descriptions}
+                    about = {member.about}
+                  />
+                </div>
               ))}
             </div>
           </div>

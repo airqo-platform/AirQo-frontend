@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/models/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -106,6 +107,21 @@ extension AnalyticsListExt on List<Analytics> {
     );
 
     return this;
+  }
+}
+
+extension AirQualityReadingListExt on List<AirQualityReading> {
+  List<AirQualityReading> sortByAirQuality() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort((a, b) {
+      if (a.country.compareTo(b.country) != 0) {
+        return a.country.compareTo(b.country);
+      }
+
+      return a.pm2_5.compareTo(b.pm2_5);
+    });
+
+    return data;
   }
 }
 

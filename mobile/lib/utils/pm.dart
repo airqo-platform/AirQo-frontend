@@ -146,18 +146,20 @@ String pmToInfoDialog(double pm2_5) {
   }
 }
 
-Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
-  const width = 80;
-  final value = pm2_5;
-  final bgColor = Pollutant.pm2_5.color(pm2_5);
-  final textColor = Pollutant.pm2_5.textColor(value: pm2_5);
+Future<BitmapDescriptor> pmToMarker({
+  required double pm2_5,
+  required int itemsSize,
+}) async {
+  final int width = itemsSize > 1 ? 80 : 160;
+  final Color bgColor = Pollutant.pm2_5.color(pm2_5);
+  final Color textColor = Pollutant.pm2_5.textColor(value: pm2_5);
 
-  final pictureRecorder = PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()..color = bgColor;
-  const radius = width / 2;
+  final PictureRecorder pictureRecorder = PictureRecorder();
+  final Canvas canvas = Canvas(pictureRecorder);
+  final Paint paint = Paint()..color = bgColor;
+  final double radius = width / 2;
   canvas.drawCircle(
-    const Offset(radius, radius),
+    Offset(radius, radius),
     radius,
     paint,
   );
@@ -165,9 +167,9 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   final textPainter = TextPainter(
     textDirection: TextDirection.ltr,
     text: TextSpan(
-      text: value.toStringAsFixed(2),
+      text: pm2_5.toStringAsFixed(2),
       style: TextStyle(
-        fontSize: 20,
+        fontSize: itemsSize > 1 ? 20 : 40,
         fontWeight: FontWeight.bold,
         color: textColor,
       ),
@@ -225,29 +227,6 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5, AqiColors aqiColors) {
   } else {
     return BitmapDescriptor.defaultMarker;
   }
-}
-
-Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
-  const width = 20;
-  final bgColor = Pollutant.pm2_5.color(pm2_5);
-
-  final pictureRecorder = PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()..color = bgColor;
-  const radius = width / 2;
-  canvas.drawCircle(
-    const Offset(radius, radius),
-    radius,
-    paint,
-  );
-
-  final image = await pictureRecorder.endRecording().toImage(
-        radius.toInt() * 2,
-        radius.toInt() * 2,
-      );
-  final data = await image.toByteData(format: ImageByteFormat.png);
-
-  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
 class HealthTip {

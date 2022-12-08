@@ -3,7 +3,7 @@ name: deploy-to-production
 on:
   workflow_dispatch:
     inputs:
-      platform:
+      netmanager:
         description: "Deploy [Legacy] Platform"
         required: false
         type: boolean
@@ -15,7 +15,7 @@ on:
         description: "Deploy Calibrate app"
         required: false
         type: boolean
-      next_platform:
+      analytics_platform:
         description: "Deploy Analytics Platform"
         required: false
         type: boolean
@@ -45,11 +45,11 @@ jobs:
           echo "build_id=prod-${sha}-${timestamp}" >>$GITHUB_OUTPUT
           echo "datetime=${datetime}" >>$GITHUB_OUTPUT
 
-  ### deploy platform ###
-  platform:
-    name: build-push-deploy-netmanager
+  ### build and push netmanager image ###
+  netmanager:
+    name: build-push-netmanager-image
     needs: [image-tag]
-    if: inputs.platform == true
+    if: inputs.netmanager == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -107,14 +107,10 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-production | kubectl replace -f - -n production
-          echo "=============== Deploy the application ==============="
-          kubectl apply -f k8s/netmanager/prod-airqo-platform-frontend.yaml
-          kubectl set image deployment/airqo-platform-frontend airqo-platform=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-platform-frontend kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=netmanager/.env env-platform-production | kubectl replace -f - -n production
 
   ### deploy website ###
   website:
@@ -198,9 +194,9 @@ jobs:
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
-  ### calibrate app ###
+  ### build and push calibrate app image ###
   calibrate-app:
-    name: build-push-deploy-calibrate-app
+    name: build-push-calibrate-app-image
     needs: [image-tag]
     if: inputs.calibrate_app == true
     runs-on: ubuntu-latest
@@ -259,20 +255,16 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-prod | kubectl replace -f - -n production
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/calibrate/prod-airqo-calibrate-app.yaml
-          kubectl set image deployment/airqo-calibrate-app prod-calibrate-app=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-calibrate-app kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=calibrate/.env env-calibrate-prod | kubectl replace -f - -n production
 
-  ### deploy next platform ###
-  next-platform:
-    name: build-push-deploy-next-platform
+  ### build and push analytics platform image ###
+  analytics-platform:
+    name: build-push-analytics-platform-image
     needs: [image-tag]
-    if: inputs.next_platform == true
+    if: inputs.analytics_platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -312,7 +304,7 @@ jobs:
           value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          message: "Update next platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -320,18 +312,14 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-production | kubectl replace -f - -n production
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/platform/prod-airqo-next-platform.yaml
-          kubectl set image deployment/airqo-next-platform airqo-next-platform=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-next-platform kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=platform/.env env-next-platform-production | kubectl replace -f - -n production
 
-  ### deploy docs ###
+  ### build and push docs image ###
   docs:
-    name: build-push-deploy-docs
+    name: build-push-docs-image
     needs: [image-tag]
     if: inputs.docs == true
     runs-on: ubuntu-latest
@@ -363,9 +351,3 @@ jobs:
           updateFile: true
           branch: deployment/argocd
           message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
-
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/docs/prod-airqo-docs.yaml
-          kubectl set image deployment/airqo-prod-docs airqo-prod-docs=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production

@@ -1,10 +1,16 @@
 from django.contrib import admin
-from .models import Member
-
+from .models import Member, MemberBiography
+import nested_admin
 
 # Register your models here.
+class MemberBiographyInline(nested_admin.NestedTabularInline):
+    fields = ('description', 'author', 'order')
+    readonly_fields = ('author', )
+    model = MemberBiography
+    extra = 0
+
 @admin.register(Member)
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(nested_admin.NestedModelAdmin):
     list_display = ("name", "title", "image_tag")
     readonly_fields = (
         "id",
@@ -31,6 +37,7 @@ class MemberAdmin(admin.ModelAdmin):
     )
     list_per_page = 10
     search_fields = ("name", "title")
+    inlines = (MemberBiographyInline,)
 
     def image_tag(self, obj):
         width, height = 100, 200

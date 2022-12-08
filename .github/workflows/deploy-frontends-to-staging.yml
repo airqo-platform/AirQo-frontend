@@ -34,10 +34,10 @@ jobs:
     if: github.event.pull_request.merged == true
     name: check for changed frontends
     outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # netmanager
       run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
@@ -56,17 +56,17 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == website/* ]]; then
@@ -78,7 +78,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -87,11 +87,11 @@ jobs:
 
           done < files.txt
 
-  ### deploy platform ###
-  platform:
-    name: build-push-deploy-netmanager
+  ### build and push netmanager image ###
+  netmanager:
+    name: build-push-netmanager-image
     needs: [check, image-tag]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -149,14 +149,10 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="
-          kubectl apply -f k8s/netmanager/stage-airqo-platform-frontend.yaml
-          kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=netmanager/.env env-platform-staging | kubectl replace -f - -n staging
 
   ### deploy website ###
   website:
@@ -237,9 +233,9 @@ jobs:
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
-  ### calibrate app ###
+  ### build and push calibrate app image ###
   calibrate-app:
-    name: build-push-deploy-calibrate-app
+    name: build-push-calibrate-app-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
@@ -290,7 +286,7 @@ jobs:
           value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -298,20 +294,16 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="
-          kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
-          kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
 
-  ### deploy next platform ###
-  next-platform:
-    name: build-push-deploy-next-platform
+  ### build and push analytics platform image ###
+  analytics-platform:
+    name: build-push-analytics-platform-image
     needs: [check, image-tag]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -359,18 +351,14 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/platform/stage-airqo-next-platform.yaml
-          kubectl set image deployment/airqo-stage-next-platform sta-next-platform=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-next-platform kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
 
-  ### deploy docs ###
+  ### build and push docs image ###
   docs:
-    name: build-push-deploy-docs
+    name: build-push-docs-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
@@ -402,9 +390,3 @@ jobs:
           updateFile: true
           branch: deployment/argocd
           message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
-
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/docs/stage-airqo-docs.yaml
-          kubectl set image deployment/airqo-stage-docs sta-docs=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-docs kubernetes.io/change-cause="Image updated to ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
