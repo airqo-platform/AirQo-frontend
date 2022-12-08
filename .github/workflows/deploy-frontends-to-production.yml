@@ -35,6 +35,8 @@ jobs:
     outputs:
       build_id: ${{ steps.prep.outputs.build_id }} # build id
       datetime: ${{ steps.prep.outputs.datetime }} # build date
+    # This job will only run if triggered by Baalmart
+    if: github.triggering_actor == 'Baalmart'
     steps:
       - name: generate build ID
         id: prep
