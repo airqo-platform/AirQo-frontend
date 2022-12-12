@@ -9,14 +9,17 @@ enum SearchError {
 enum SearchStatus {
   initial,
   loading,
-  searching,
+  searchingAirQuality,
+  airQualitySearchFailed,
+  autoCompleteSearching,
   error,
-  searchSuccess;
+  autoCompleteSearchSuccess;
 }
 
 class SearchState extends Equatable {
   const SearchState._({
     this.featuredAirQuality,
+    this.searchAirQuality,
     this.recentSearches = const [],
     this.nearbyAirQualityLocations = const [],
     this.otherAirQualityLocations = const [],
@@ -29,6 +32,7 @@ class SearchState extends Equatable {
 
   const SearchState({
     this.featuredAirQuality,
+    this.searchAirQuality,
     this.recentSearches = const [],
     this.nearbyAirQualityLocations = const [],
     this.otherAirQualityLocations = const [],
@@ -49,9 +53,18 @@ class SearchState extends Equatable {
     String? searchTerm,
     List<SearchResultItem>? searchResults,
     AirQuality? featuredAirQuality,
+    AirQualityReading? searchAirQuality,
     SearchStatus? searchStatus,
     SearchError? searchError,
+    bool nullFeaturedAirQuality = false,
+    bool nullSearchAirQuality = false,
   }) {
+    featuredAirQuality = nullFeaturedAirQuality
+        ? null
+        : featuredAirQuality ?? this.featuredAirQuality;
+    searchAirQuality =
+        nullSearchAirQuality ? null : searchAirQuality ?? this.searchAirQuality;
+
     return SearchState(
       recentSearches: recentSearches ?? this.recentSearches,
       nearbyAirQualityLocations:
@@ -61,7 +74,8 @@ class SearchState extends Equatable {
       africanCities: africanCities ?? this.africanCities,
       searchTerm: searchTerm ?? this.searchTerm,
       searchResults: searchResults ?? this.searchResults,
-      featuredAirQuality: featuredAirQuality ?? this.featuredAirQuality,
+      featuredAirQuality: featuredAirQuality,
+      searchAirQuality: searchAirQuality,
       searchStatus: searchStatus ?? this.searchStatus,
       searchError: searchError ?? this.searchError,
     );
@@ -74,6 +88,7 @@ class SearchState extends Equatable {
   final String searchTerm;
   final List<SearchResultItem> searchResults;
   final AirQuality? featuredAirQuality;
+  final AirQualityReading? searchAirQuality;
   final SearchStatus searchStatus;
   final SearchError searchError;
 
@@ -88,5 +103,6 @@ class SearchState extends Equatable {
         featuredAirQuality,
         searchError,
         searchStatus,
+        searchAirQuality,
       ];
 }

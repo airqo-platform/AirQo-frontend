@@ -20,10 +20,10 @@ class ReloadSearchPage extends SearchEvent {
 
 class FilterByAirQuality extends SearchEvent {
   const FilterByAirQuality(this.airQuality);
-  final AirQuality airQuality;
+  final AirQuality? airQuality;
 
   @override
-  List<Object> get props => [airQuality];
+  List<Object?> get props => [airQuality];
 }
 
 class SearchTermChanged extends SearchEvent {
@@ -33,4 +33,12 @@ class SearchTermChanged extends SearchEvent {
 
   @override
   List<Object> get props => [text];
+}
+
+class SearchAirQuality extends SearchEvent {
+  const SearchAirQuality(this.searchResultItem);
+  final SearchResultItem searchResultItem;
+
+  @override
+  List<Object> get props => [searchResultItem];
 }

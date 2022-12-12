@@ -120,11 +120,27 @@ class SearchPage extends StatelessWidget {
             ),
             BlocBuilder<SearchBloc, SearchState>(
               builder: (context, state) {
+                Color foregroundColor = Colors.white;
+                Color backgroundColor = CustomColors.appColorBlue;
+                if (state.featuredAirQuality == null) {
+                  foregroundColor = CustomColors.appColorBlue;
+                  backgroundColor = CustomColors.appColorBlue.withOpacity(0.1);
+                }
+
                 return Visibility(
                   visible: state.searchTerm.isEmpty,
                   child: InkWell(
                     onTap: () {
-                      _openAirQualityFilters(context);
+                      FocusScope.of(context).requestFocus(
+                        FocusNode(),
+                      );
+                      if (state.featuredAirQuality == null) {
+                        _openAirQualityFilters(context);
+                      } else {
+                        context
+                            .read<SearchBloc>()
+                            .add(const FilterByAirQuality(null));
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left: 6),
@@ -132,13 +148,13 @@ class SearchPage extends StatelessWidget {
                         height: 35,
                         width: 35,
                         decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue.withOpacity(0.1),
+                          color: backgroundColor,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Icon(
                             Icons.filter_list,
-                            color: CustomColors.appColorBlue,
+                            color: foregroundColor,
                           ),
                         ),
                       ),
@@ -156,10 +172,12 @@ class SearchPage extends StatelessWidget {
             switch (state.searchStatus) {
               case SearchStatus.initial:
                 break;
-              case SearchStatus.searchSuccess:
-                return const SearchResultsWidget();
-              case SearchStatus.searching:
-                return const SearchLoadingWidget();
+              case SearchStatus.autoCompleteSearchSuccess:
+              case SearchStatus.searchingAirQuality:
+              case SearchStatus.airQualitySearchFailed:
+                return const AutoCompleteResultsWidget();
+              case SearchStatus.autoCompleteSearching:
+                return const AutoCompleteLoadingWidget();
               case SearchStatus.error:
                 switch (state.searchError) {
                   case SearchError.noInternetConnection:
@@ -186,22 +204,27 @@ class SearchPage extends StatelessWidget {
                 return const SearchPageLoadingWidget();
             }
 
-            if (state.featuredAirQuality != null) {
-              if (state.nearbyAirQualityLocations.isEmpty &&
-                  state.otherAirQualityLocations.isEmpty) {
-                return const NoSearchResultsWidget();
-              }
+            if (state.featuredAirQuality != null &&
+                state.nearbyAirQualityLocations.isEmpty &&
+                state.otherAirQualityLocations.isEmpty) {
+              return const NoSearchResultsWidget();
+            }
 
-              return ListView(
-                children: [
-                  SearchSection(
+            return ListView(
+              children: [
+                Visibility(
+                  visible: state.featuredAirQuality != null,
+                  child: SearchSection(
                     maximumElements: 3,
                     title: state.featuredAirQuality?.searchNearbyLocationsText
                             .toTitleCase() ??
                         '',
                     airQualityReadings: state.nearbyAirQualityLocations,
                   ),
-                  SearchSection(
+                ),
+                Visibility(
+                  visible: state.featuredAirQuality != null,
+                  child: SearchSection(
                     title: state.nearbyAirQualityLocations.isEmpty
                         ? state.featuredAirQuality?.searchOtherLocationsText
                                 .toTitleCase() ??
@@ -210,18 +233,19 @@ class SearchPage extends StatelessWidget {
                             .toTitleCase(),
                     airQualityReadings: state.otherAirQualityLocations,
                   ),
-                ],
-              );
-            }
-
-            return ListView(
-              children: [
-                SearchSection(
-                  maximumElements: 3,
-                  title: 'Recent Searches',
-                  airQualityReadings: state.recentSearches,
                 ),
-                const ExploreAfricanCitiesSection(),
+                Visibility(
+                  visible: state.featuredAirQuality == null,
+                  child: SearchSection(
+                    maximumElements: 3,
+                    title: 'Recent Searches',
+                    airQualityReadings: state.recentSearches,
+                  ),
+                ),
+                Visibility(
+                  visible: state.featuredAirQuality == null,
+                  child: const ExploreAfricanCitiesSection(),
+                ),
               ],
             );
           },

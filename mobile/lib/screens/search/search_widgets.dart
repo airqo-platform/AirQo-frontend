@@ -1,14 +1,11 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -576,16 +573,8 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
   }
 }
 
-class SearchResultsWidget extends StatefulWidget {
-  const SearchResultsWidget({super.key});
-
-  @override
-  State<SearchResultsWidget> createState() => _SearchResultsWidgetState();
-}
-
-class _SearchResultsWidgetState extends State<SearchResultsWidget> {
-  final SearchRepository _searchRepository =
-      SearchRepository(searchApiKey: Config.searchApiKey);
+class AutoCompleteResultsWidget extends StatelessWidget {
+  const AutoCompleteResultsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -595,16 +584,75 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
           return const NoSearchResultsWidget();
         }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<SearchBloc, SearchState>(
+              listener: (context, state) {
+                loadingScreen(context);
+              },
+              listenWhen: (previous, current) {
+                return current.searchStatus == SearchStatus.searchingAirQuality;
+              },
+            ),
+            BlocListener<SearchBloc, SearchState>(
+              listener: (context, state) {
+                Navigator.pop(context);
+              },
+              listenWhen: (previous, current) {
+                return previous.searchStatus ==
+                    SearchStatus.searchingAirQuality;
+              },
+            ),
+            BlocListener<SearchBloc, SearchState>(
+              listener: (context, state) {
+                showSnackBar(
+                  context,
+                  'Oops!!.. Failed to retrieve air quality readings.',
+                  durationInSeconds: 3,
+                );
+              },
+              listenWhen: (previous, current) {
+                return current.searchStatus ==
+                    SearchStatus.airQualitySearchFailed;
+              },
+            ),
+            BlocListener<SearchBloc, SearchState>(
+              listener: (context, state) async {
+                AirQualityReading? airQualityReading = state.searchAirQuality;
+                if (airQualityReading != null) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return InsightsPage(airQualityReading);
+                      },
+                    ),
+                  );
+                }
+              },
+              listenWhen: (previous, current) {
+                return (previous.searchStatus ==
+                            SearchStatus.airQualitySearchFailed ||
+                        previous.searchStatus ==
+                            SearchStatus.searchingAirQuality) &&
+                    current.searchStatus ==
+                        SearchStatus.autoCompleteSearching &&
+                    current.searchAirQuality != null;
+              },
+            ),
+          ],
           child: ListView.builder(
             itemCount: state.searchResults.length,
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(
-                onTap: () => _showPlaceDetails(state.searchResults[index]),
+                onTap: () {
+                  context
+                      .read<SearchBloc>()
+                      .add(SearchAirQuality(state.searchResults[index]));
+                },
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: SearchResultItemTile(state.searchResults[index]),
+                  child: AutoCompleteResultTile(state.searchResults[index]),
                 ),
               );
             },
@@ -613,67 +661,10 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
       },
     );
   }
-
-  Future<void> _showPlaceDetails(SearchResultItem searchResultItem) async {
-    if (!mounted) return;
-
-    loadingScreen(context);
-
-    final place = await _searchRepository.placeDetails(searchResultItem.id);
-
-    if (place != null) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
-        place.geometry.location.lat,
-        place.geometry.location.lng,
-      );
-
-      if (!mounted) return;
-
-      Navigator.pop(context);
-
-      // TODO: Substitute with widget
-      if (nearestSite == null) {
-        showSnackBar(
-          context,
-          'Oops!!.. We don’t have air quality readings for'
-          ' ${searchResultItem.name}',
-          durationInSeconds: 3,
-        );
-
-        return;
-      }
-
-      AirQualityReading airQualityReading = nearestSite.copyWith(
-        name: searchResultItem.name,
-        location: searchResultItem.location,
-        placeId: searchResultItem.id,
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-      );
-
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return InsightsPage(airQualityReading);
-          },
-        ),
-      );
-
-      await HiveService.updateSearchHistory(airQualityReading);
-    } else {
-      if (!mounted) return;
-
-      showSnackBar(
-        context,
-        'Try again later',
-      );
-    }
-  }
 }
 
-class SearchResultItemTile extends StatelessWidget {
-  const SearchResultItemTile(this.searchResultItem, {super.key});
+class AutoCompleteResultTile extends StatelessWidget {
+  const AutoCompleteResultTile(this.searchResultItem, {super.key});
   final SearchResultItem searchResultItem;
 
   @override
@@ -778,19 +769,22 @@ class SearchInputField extends StatelessWidget {
   }
 }
 
-class SearchLoadingWidget extends StatelessWidget {
-  const SearchLoadingWidget({super.key});
+class AutoCompleteLoadingWidget extends StatelessWidget {
+  const AutoCompleteLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Align(
-        alignment: Alignment.center,
-        child: CupertinoActivityIndicator(
-          radius: 40,
-          color: CustomColors.appColorBlue,
-        ),
-      ),
+    return ListView.builder(
+      itemCount: 12,
+      itemBuilder: (_, index) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: ContainerLoadingAnimation(
+            height: 80,
+            radius: 8.0,
+          ),
+        );
+      },
     );
   }
 }
