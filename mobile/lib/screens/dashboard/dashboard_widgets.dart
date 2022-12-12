@@ -10,11 +10,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../kya/kya_title_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
+
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton(this.error, {super.key});
+  final NearbyAirQualityError error;
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () async {
+        if (error == NearbyAirQualityError.locationDenied) {
+          await Geolocator.openAppSettings();
+        } else if (error == NearbyAirQualityError.locationDisabled) {
+          await Geolocator.openLocationSettings();
+        }
+      },
+      style: OutlinedButton.styleFrom(
+        elevation: 2,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8))),
+        backgroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.only(top: 12, bottom: 14),
+      ),
+      child: const Text(
+        'Enable location',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          height: 22 / 14,
+          letterSpacing: 16 * -0.022,
+        ),
+      ),
+    );
+  }
+}
 
 class DashboardTopCard extends StatelessWidget {
   const DashboardTopCard({

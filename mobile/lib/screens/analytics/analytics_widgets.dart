@@ -69,50 +69,6 @@ class AnalyticsAvatar extends StatelessWidget {
   }
 }
 
-class MapAnalyticsMoreInsights extends StatelessWidget {
-  const MapAnalyticsMoreInsights({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return SizedBox(
-      height: 16,
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(
-          left: 20,
-          right: 30,
-        ),
-        title: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/chart.svg',
-              semanticsLabel: 'chart',
-              height: 16,
-              width: 16,
-            ),
-            const SizedBox(width: 8.0),
-            Text(
-              'View More Insights',
-              style: TextStyle(
-                fontSize: 12,
-                color: appColors.appColorBlue,
-              ),
-            ),
-            const Spacer(),
-            SvgPicture.asset(
-              'assets/icon/more_arrow.svg',
-              semanticsLabel: 'more',
-              height: 6.99,
-              width: 4,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class AnalyticsMoreInsights extends StatelessWidget {
   const AnalyticsMoreInsights({super.key});
 
@@ -285,11 +241,6 @@ class AnalyticsCard extends StatelessWidget {
         borderRadius: BorderRadius.all(
           Radius.circular(
             16.0,
-          ),
-        ),
-        border: Border.fromBorderSide(
-          BorderSide(
-            color: Color(0xffC4C4C4),
           ),
         ),
       ),
@@ -701,22 +652,5 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     context
         .read<AccountBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
-  }
-}
-
-class EmptyAnalytics extends StatelessWidget {
-  const EmptyAnalytics({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Container(
-      color: appColors.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: const Center(
-        child: Text('No Analytics'),
-      ),
-    );
   }
 }

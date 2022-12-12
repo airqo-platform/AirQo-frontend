@@ -23,8 +23,7 @@ class LocationService {
       String? address = '';
       final landMark = landMarks.first;
 
-      address = landMark.name ?? landMark.thoroughfare;
-      address = address ?? landMark.subLocality;
+      address = landMark.thoroughfare ?? landMark.subLocality;
       address = address ?? landMark.locality;
 
       return address ?? '';
@@ -41,9 +40,9 @@ class LocationService {
   static Future<Position?> getCurrentPosition() async {
     try {
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+        desiredAccuracy: LocationAccuracy.medium,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 10),
+        timeLimit: const Duration(seconds: 20),
       );
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
@@ -53,17 +52,17 @@ class LocationService {
         exception,
         stackTrace,
       );
+    }
 
-      try {
-        return await Geolocator.getLastKnownPosition(
-          forceAndroidLocationManager: true,
-        );
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+    try {
+      return await Geolocator.getLastKnownPosition(
+        forceAndroidLocationManager: true,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return null;
@@ -187,6 +186,18 @@ class LocationService {
         accuracy: LocationAccuracy.high,
         distanceFilter: 100,
       );
+    }
+
+    final permissionGranted =
+        await PermissionService.checkPermission(AppPermission.location);
+
+    if (!permissionGranted) {
+      return;
+    }
+
+    bool? serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return;
     }
 
     Geolocator.getPositionStream(locationSettings: locationSettings).listen(

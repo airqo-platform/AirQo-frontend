@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -30,6 +32,7 @@ class _DashboardViewState extends State<DashboardView> {
     return count;
   });
   late StreamSubscription<int> _timeSubscription;
+  late StreamSubscription<ServiceStatus> _locationStatusStream;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +92,7 @@ class _DashboardViewState extends State<DashboardView> {
                       final kyaWidgets = completeKyaWidgets(
                         state.kya.filterCompleteKya().take(3).toList(),
                       );
+
                       return Row(
                         children: [
                           DashboardTopCard(
@@ -133,19 +137,6 @@ class _DashboardViewState extends State<DashboardView> {
                   const SizedBox(
                     height: 24,
                   ),
-                  BlocListener<NearbyLocationBloc, NearbyLocationState>(
-                    listener: (context, state) async {
-                      if (state.blocStatus == NearbyLocationStatus.error) {
-                        await showLocationErrorSnackBar(
-                          context,
-                          state.error,
-                        ).whenComplete(() => context
-                            .read<NearbyLocationBloc>()
-                            .add(const SearchLocationAirQuality()));
-                      }
-                    },
-                    child: Container(),
-                  ),
                   Expanded(
                     child: AppRefreshIndicator(
                       sliverChildDelegate: SliverChildBuilderDelegate(
@@ -168,6 +159,28 @@ class _DashboardViewState extends State<DashboardView> {
                             BlocBuilder<NearbyLocationBloc,
                                 NearbyLocationState>(
                               builder: (context, state) {
+                                if (state.blocStatus ==
+                                    NearbyLocationStatus.error) {
+                                  switch (state.error) {
+                                    case NearbyAirQualityError.locationDenied:
+                                      return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 16),
+                                          child: DashboardLocationButton(
+                                              state.error));
+                                    case NearbyAirQualityError.locationDisabled:
+                                      return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 16),
+                                          child: DashboardLocationButton(
+                                              state.error));
+                                    case NearbyAirQualityError.none:
+                                    case NearbyAirQualityError
+                                        .noNearbyAirQualityReadings:
+                                      return Container();
+                                  }
+                                }
+
                                 if (state.airQualityReadings.isEmpty) {
                                   return Container();
                                 }
@@ -180,6 +193,7 @@ class _DashboardViewState extends State<DashboardView> {
                                       0) {
                                     return value;
                                   }
+
                                   return element;
                                 });
 
@@ -228,23 +242,10 @@ class _DashboardViewState extends State<DashboardView> {
                               },
                             ),
                           ];
-                          final i = [ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: state.airQualityReadings.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: AnalyticsCard(
-                                  state.airQualityReadings[index],
-                                  false,
-                                ),
-                              );
-                            },
-                          )];
-                          return i[index];
+
+                          return items[index];
                         },
-                        childCount: 1,
+                        childCount: 6,
                       ),
                       onRefresh: _refresh,
                     ),
@@ -261,6 +262,7 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void dispose() {
     _timeSubscription.cancel();
+    _locationStatusStream.cancel();
     super.dispose();
   }
 
@@ -273,7 +275,19 @@ class _DashboardViewState extends State<DashboardView> {
   void _listenToStream() {
     _timeSubscription = _timeStream.listen((_) async {
       context.read<DashboardBloc>().add(const RefreshDashboard());
-      context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
+    });
+    _locationStatusStream =
+        Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
+      switch (status) {
+        case ServiceStatus.disabled:
+          break;
+        case ServiceStatus.enabled:
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          LocationService.listenToLocationUpdates();
+          break;
+      }
     });
   }
 

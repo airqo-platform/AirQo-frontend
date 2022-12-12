@@ -161,11 +161,6 @@ enum NearbyAirQualityError {
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),
-  locationNotAllowed(
-    message: 'Enable location in your settings.',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
-  ),
   noNearbyAirQualityReadings(
     message: 'Cannot get nearby air quality readings',
     snackBarActionLabel: 'Close',

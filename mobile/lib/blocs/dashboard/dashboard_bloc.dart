@@ -22,9 +22,20 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   void _getAirQualityReadings(Emitter<DashboardState> emit) {
-    final airQualityCards = <AirQualityReading>[];
+    List<AirQualityReading> airQualityCards = <AirQualityReading>[];
+
+    List<AirQualityReading> nearbyAirQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+            .values
+            .toList();
+    nearbyAirQualityReadings.sort((x, y) {
+      return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+    });
+    airQualityCards.addAll(nearbyAirQualityReadings.take(2).toList());
+
     List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    airQualityReadings.shuffle();
 
     final List<String> countries =
         airQualityReadings.map((e) => e.country).toList();
@@ -33,15 +44,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       List<AirQualityReading> countryReadings = airQualityReadings
           .where((element) => element.country.equalsIgnoreCase(country))
           .toList();
-      airQualityCards.addAll(countryReadings);
+      countryReadings.removeWhere((element) => airQualityCards
+          .map((e) => e.placeId)
+          .toList()
+          .contains(element.placeId));
+      airQualityCards.addAll(countryReadings.take(2));
     }
 
     return emit(state.copyWith(
       airQualityReadings: airQualityCards,
-      blocStatus:
-          airQualityCards.isEmpty ? DashboardStatus.error : state.blocStatus,
-      error:
-          airQualityCards.isEmpty ? DashboardError.noAirQuality : state.error,
+      blocStatus: airQualityCards.isEmpty
+          ? DashboardStatus.error
+          : DashboardStatus.loaded,
+      error: airQualityCards.isEmpty
+          ? DashboardError.noAirQuality
+          : DashboardError.none,
     ));
   }
 

@@ -3,6 +3,7 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 
 part 'nearby_location_event.dart';
 part 'nearby_location_state.dart';
@@ -20,13 +21,21 @@ class NearbyLocationBloc
     try {
       emit(state.copyWith(blocStatus: NearbyLocationStatus.searching));
 
-      final locationEnabled =
+      final permissionGranted =
           await PermissionService.checkPermission(AppPermission.location);
 
-      if (!locationEnabled) {
+      if (!permissionGranted) {
         return emit(state.copyWith(
           blocStatus: NearbyLocationStatus.error,
           error: NearbyAirQualityError.locationDenied,
+        ));
+      }
+
+      bool? serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return emit(state.copyWith(
+          blocStatus: NearbyLocationStatus.error,
+          error: NearbyAirQualityError.locationDisabled,
         ));
       }
 
