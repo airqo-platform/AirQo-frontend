@@ -311,6 +311,7 @@ Future<void> showLocationErrorSnackBar(
               ),
             );
             break;
+          case NearbyAirQualityError.none:
           case NearbyAirQualityError.noNearbyAirQualityReadings:
             break;
         }

@@ -53,9 +53,10 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
-    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
+    context.read<DashboardBloc>().add(const InitializeDashboard());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -86,7 +87,7 @@ class SplashScreenState extends State<SplashScreen> {
                 case OnBoardingPage.complete:
                   return const SetUpCompleteScreen();
                 case OnBoardingPage.home:
-                  return const HomePage(refresh: false);
+                  return const HomePage();
                 default:
                   return const IntroductionScreen();
               }

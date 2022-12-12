@@ -1,31 +1,47 @@
 part of 'nearby_location_bloc.dart';
 
-abstract class NearbyLocationState extends Equatable {
-  const NearbyLocationState();
-
-  @override
-  List<Object> get props => [];
+enum NearbyLocationStatus {
+  initial,
+  loaded,
+  searching,
+  error,
 }
 
-class SearchingNearbyLocationsState extends NearbyLocationState {}
+class NearbyLocationState extends Equatable {
+  const NearbyLocationState._({
+    this.airQualityReadings = const [],
+    this.blocStatus = NearbyLocationStatus.initial,
+    this.error = NearbyAirQualityError.none,
+  });
 
-class NearbyLocationStateSuccess extends NearbyLocationState {
-  const NearbyLocationStateSuccess({required this.airQualityReadings});
+  const NearbyLocationState({
+    this.airQualityReadings = const [],
+    this.blocStatus = NearbyLocationStatus.initial,
+    this.error = NearbyAirQualityError.none,
+  });
+
+  NearbyLocationState copyWith({
+    List<AirQualityReading>? airQualityReadings,
+    NearbyLocationStatus? blocStatus,
+    NearbyAirQualityError? error,
+  }) {
+    return NearbyLocationState(
+      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      blocStatus: blocStatus ?? this.blocStatus,
+      error: error ?? this.error,
+    );
+  }
+
+  const NearbyLocationState.initial() : this._();
 
   final List<AirQualityReading> airQualityReadings;
-
-  @override
-  List<Object> get props => [airQualityReadings];
-
-  @override
-  String toString() => ' items: ${airQualityReadings.length}';
-}
-
-class NearbyLocationStateError extends NearbyLocationState {
-  const NearbyLocationStateError({required this.error});
-
+  final NearbyLocationStatus blocStatus;
   final NearbyAirQualityError error;
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [
+        error,
+        airQualityReadings,
+        blocStatus,
+      ];
 }

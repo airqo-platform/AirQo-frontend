@@ -4,22 +4,9 @@ abstract class NearbyLocationEvent extends Equatable {
   const NearbyLocationEvent();
 }
 
-class SearchNearbyLocations extends NearbyLocationEvent {
-  const SearchNearbyLocations();
+class SearchLocationAirQuality extends NearbyLocationEvent {
+  const SearchLocationAirQuality();
 
   @override
-  List<Object> get props => ['reset'];
-
-  @override
-  String toString() => 'Search nearby locations';
-}
-
-class CheckNearbyLocations extends NearbyLocationEvent {
-  const CheckNearbyLocations();
-
-  @override
-  List<Object> get props => ['reset'];
-
-  @override
-  String toString() => 'Check nearby locations';
+  List<Object> get props => [];
 }

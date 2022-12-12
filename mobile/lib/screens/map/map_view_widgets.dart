@@ -591,9 +591,7 @@ class MapAnalyticsCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Row(
                             children: [
-                              AnalyticsAvatar(
-                                airQualityReading: airQualityReading,
-                              ),
+                              AnalyticsAvatar(airQualityReading),
                               const SizedBox(
                                 width: 16.0,
                               ),
@@ -623,9 +621,7 @@ class MapAnalyticsCard extends StatelessWidget {
                                     const SizedBox(
                                       height: 12,
                                     ),
-                                    AqiStringContainer(
-                                      airQualityReading: airQualityReading,
-                                    ),
+                                    AqiStringContainer(airQualityReading),
                                     const SizedBox(
                                       height: 8,
                                     ),

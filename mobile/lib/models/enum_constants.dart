@@ -146,6 +146,11 @@ enum AuthenticationError {
 }
 
 enum NearbyAirQualityError {
+  none(
+    message: '',
+    snackBarActionLabel: '',
+    snackBarDuration: 5,
+  ),
   locationDenied(
     message: 'Grant location access in your phone settings',
     snackBarActionLabel: 'Open Settings',

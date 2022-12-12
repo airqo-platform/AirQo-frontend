@@ -87,51 +87,6 @@ class DashboardTopCard extends StatelessWidget {
   }
 }
 
-class DashboardFavPlaceAvatar extends StatelessWidget {
-  const DashboardFavPlaceAvatar({
-    super.key,
-    required this.rightPadding,
-    required this.airQualityReading,
-  });
-  final double rightPadding;
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            '${airQualityReading.pm2_5}',
-            style: TextStyle(
-              fontSize: 7,
-              color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class FavouritePlaceDashboardAvatar extends StatelessWidget {
   const FavouritePlaceDashboardAvatar({
     super.key,
@@ -229,36 +184,6 @@ class KyaDashboardAvatar extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class DashboardEmptyAvatar extends StatelessWidget {
-  const DashboardEmptyAvatar({
-    super.key,
-    required this.rightPadding,
-  });
-  final double rightPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: CustomColors.greyColor,
-          shape: BoxShape.circle,
         ),
       ),
     );

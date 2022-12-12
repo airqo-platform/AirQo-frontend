@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,17 @@ class CircularLoadingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!loading) {
       return Container();
+    }
+
+    if (Platform.isAndroid) {
+      return SizedBox(
+        height: 8,
+        width: 8,
+        child: CircularProgressIndicator(
+          strokeWidth: 1,
+          color: CustomColors.appColorBlue,
+        ),
+      );
     }
 
     return SizedBox(

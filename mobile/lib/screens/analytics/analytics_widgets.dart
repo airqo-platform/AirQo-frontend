@@ -14,10 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
-  const AnalyticsAvatar({
-    super.key,
-    required this.airQualityReading,
-  });
+  const AnalyticsAvatar(this.airQualityReading, {super.key});
   final AirQualityReading airQualityReading;
 
   @override
@@ -188,7 +185,7 @@ class AnalyticsShareCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnalyticsAvatar(airQualityReading: airQualityReading),
+              AnalyticsAvatar(airQualityReading),
               const SizedBox(width: 10.0),
               Flexible(
                 child: Column(
@@ -213,9 +210,7 @@ class AnalyticsShareCard extends StatelessWidget {
                     const SizedBox(
                       height: 12,
                     ),
-                    AqiStringContainer(
-                      airQualityReading: airQualityReading,
-                    ),
+                    AqiStringContainer(airQualityReading),
                     const SizedBox(
                       height: 8,
                     ),
@@ -266,12 +261,10 @@ class AnalyticsShareCard extends StatelessWidget {
 class AnalyticsCard extends StatelessWidget {
   AnalyticsCard(
     this.airQualityReading,
-    this.isRefreshing,
     this.showHelpTip, {
     super.key,
   });
   final AirQualityReading airQualityReading;
-  final bool isRefreshing;
   final bool showHelpTip;
   final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
@@ -286,6 +279,19 @@ class AnalyticsCard extends StatelessWidget {
         minHeight: 251,
         minWidth: 328,
         maxWidth: 328,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(
+            16.0,
+          ),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: Color(0xffC4C4C4),
+          ),
+        ),
       ),
       child: Stack(
         children: [
@@ -326,9 +332,9 @@ class AnalyticsCard extends StatelessWidget {
                             height: 20,
                             width: 20,
                             child: SvgPicture.asset(
-                              'assets/icon/info_icon.svg',
-                              semanticsLabel: 'Pm2.5',
-                              key: _infoToolTipKey,
+                              'assets/icon/close.svg',
+                              height: 20,
+                              width: 20,
                             ),
                           ),
                         ),
@@ -347,9 +353,7 @@ class AnalyticsCard extends StatelessWidget {
                           child: Row(
                             children: [
                               GestureDetector(
-                                child: AnalyticsAvatar(
-                                  airQualityReading: airQualityReading,
-                                ),
+                                child: AnalyticsAvatar(airQualityReading),
                                 onTap: () {
                                   ToolTip(context, ToolTipType.info).show(
                                     widgetKey: _infoToolTipKey,
@@ -368,7 +372,9 @@ class AnalyticsCard extends StatelessWidget {
                                       airQualityReading.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.headline9(context),
+                                      style: CustomTextStyle.headline9(
+                                        context,
+                                      ),
                                     ),
                                     Text(
                                       airQualityReading.location,
@@ -384,9 +390,8 @@ class AnalyticsCard extends StatelessWidget {
                                       height: 12,
                                     ),
                                     GestureDetector(
-                                      child: AqiStringContainer(
-                                        airQualityReading: airQualityReading,
-                                      ),
+                                      child:
+                                          AqiStringContainer(airQualityReading),
                                       onTap: () {
                                         ToolTip(
                                           context,
@@ -426,14 +431,18 @@ class AnalyticsCard extends StatelessWidget {
                                         const SizedBox(
                                           width: 4.0,
                                         ),
-                                        Visibility(
-                                          visible: isRefreshing,
-                                          child: SvgPicture.asset(
-                                            'assets/icon/loader.svg',
-                                            semanticsLabel: 'loader',
-                                            height: 8.0,
-                                            width: 8.0,
-                                          ),
+                                        BlocBuilder<DashboardBloc,
+                                            DashboardState>(
+                                          buildWhen: (previous, current) {
+                                            return previous.blocStatus !=
+                                                current.blocStatus;
+                                          },
+                                          builder: (context, state) {
+                                            return CircularLoadingIndicator(
+                                              loading: state.blocStatus ==
+                                                  DashboardStatus.processing,
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),

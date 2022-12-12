@@ -9,103 +9,44 @@ part 'nearby_location_state.dart';
 
 class NearbyLocationBloc
     extends Bloc<NearbyLocationEvent, NearbyLocationState> {
-  NearbyLocationBloc()
-      : super(const NearbyLocationStateSuccess(airQualityReadings: [])) {
-    on<SearchNearbyLocations>(_onSearch);
-    on<CheckNearbyLocations>(_onCheckNearbyLocations);
+  NearbyLocationBloc() : super(const NearbyLocationState.initial()) {
+    on<SearchLocationAirQuality>(_onSearchLocationAirQuality);
   }
 
-  Future<void> _onSearch(
-    SearchNearbyLocations _,
+  Future<void> _onSearchLocationAirQuality(
+    SearchLocationAirQuality _,
     Emitter<NearbyLocationState> emit,
   ) async {
     try {
-      emit(SearchingNearbyLocationsState());
+      emit(state.copyWith(blocStatus: NearbyLocationStatus.searching));
 
       final locationEnabled =
           await PermissionService.checkPermission(AppPermission.location);
 
       if (!locationEnabled) {
-        return emit(
-          const NearbyLocationStateError(
-            error: NearbyAirQualityError.locationDenied,
-          ),
-        );
-      }
-
-      final profile = await Profile.getProfile();
-      if (!profile.preferences.location) {
-        return emit(
-          const NearbyLocationStateError(
-            error: NearbyAirQualityError.locationNotAllowed,
-          ),
-        );
-      }
-
-      final nearbyAirQualityReadings =
-          await LocationService.getNearbyAirQualityReadings(top: 8);
-
-      await HiveService.updateNearbyAirQualityReadings(
-        nearbyAirQualityReadings,
-      );
-
-      if (nearbyAirQualityReadings.isEmpty) {
-        return emit(
-          const NearbyLocationStateError(
-            error: NearbyAirQualityError.noNearbyAirQualityReadings,
-          ),
-        );
-      }
-
-      return emit(
-        NearbyLocationStateSuccess(
-          airQualityReadings: nearbyAirQualityReadings,
-        ),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return emit(
-        const NearbyLocationStateError(
+        return emit(state.copyWith(
+          blocStatus: NearbyLocationStatus.error,
           error: NearbyAirQualityError.locationDenied,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onCheckNearbyLocations(
-    CheckNearbyLocations _,
-    Emitter<NearbyLocationState> emit,
-  ) async {
-    try {
-      final locationEnabled =
-          await PermissionService.checkPermission(AppPermission.location);
-      final profile = await Profile.getProfile();
-
-      if (!locationEnabled || !profile.preferences.location) {
-        return;
+        ));
       }
 
-      final nearbyAirQualityReadings =
+      final airQualityReadings =
           await LocationService.getNearbyAirQualityReadings(top: 8);
 
-      if (nearbyAirQualityReadings.isNotEmpty) {
-        await HiveService.updateNearbyAirQualityReadings(
-          nearbyAirQualityReadings,
-        );
-        emit(SearchingNearbyLocationsState());
+      await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
 
-        return emit(
-          NearbyLocationStateSuccess(
-            airQualityReadings: nearbyAirQualityReadings,
-          ),
-        );
+      if (airQualityReadings.isEmpty) {
+        return emit(state.copyWith(
+          blocStatus: NearbyLocationStatus.error,
+          error: NearbyAirQualityError.noNearbyAirQualityReadings,
+        ));
       }
 
-      return;
+      return emit(state.copyWith(
+        blocStatus: NearbyLocationStatus.loaded,
+        error: NearbyAirQualityError.none,
+        airQualityReadings: airQualityReadings,
+      ));
     } catch (exception, stackTrace) {
       await logException(
         exception,

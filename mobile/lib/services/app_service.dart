@@ -216,17 +216,6 @@ class AppService {
     return false;
   }
 
-  Future<void> refreshDashboard(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
