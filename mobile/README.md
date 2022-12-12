@@ -35,6 +35,16 @@
 - Change `storeFile` variable in `key.properties` file to point to where you put `airqo-dev-keystore.jks`.
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
+- Remember to add an `.env file`, which contain credentials in key-value format for services used by the app. 
+  - For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
+  - Here's what a sample .env file would look like;
+    ```bash
+    ENVIRONMENT_VARIABLE_1= value
+    ENVIRONMENT_VARIABLE_2= value
+    GOOGLE_ANDROID_API_KEY_= googlekey
+    EMAIL_API_KEY = abcdef12345
+    ```
+
 ### **Complete Setup**
 
 Your project  structure should be similar the the following after adding all the required configuration files.
