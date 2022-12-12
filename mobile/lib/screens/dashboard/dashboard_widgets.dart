@@ -35,11 +35,15 @@ class DashboardLocationButton extends StatelessWidget {
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(8))),
         backgroundColor: CustomColors.appColorBlue,
-        padding: const EdgeInsets.only(top: 12, bottom: 14),
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 14,
+        ),
       ),
-      child: const Text(
-        'Enable location',
-        style: TextStyle(
+      child: Text(
+        error.message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 14,
           height: 22 / 14,

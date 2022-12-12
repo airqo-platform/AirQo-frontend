@@ -19,7 +19,10 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     try {
-      emit(state.copyWith(blocStatus: NearbyLocationStatus.searching));
+      emit(state.copyWith(
+        blocStatus: NearbyLocationStatus.searching,
+        error: NearbyAirQualityError.none,
+      ));
 
       final permissionGranted =
           await PermissionService.checkPermission(AppPermission.location);

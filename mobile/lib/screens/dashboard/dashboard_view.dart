@@ -23,7 +23,8 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> {
+class _DashboardViewState extends State<DashboardView>
+    with WidgetsBindingObserver {
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
 
@@ -247,7 +248,9 @@ class _DashboardViewState extends State<DashboardView> {
                         },
                         childCount: 6,
                       ),
-                      onRefresh: _refresh,
+                      onRefresh: () async {
+                        _refresh();
+                      },
                     ),
                   ),
                 ],
@@ -263,16 +266,32 @@ class _DashboardViewState extends State<DashboardView> {
   void dispose() {
     _timeSubscription.cancel();
     _locationStatusStream.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    _listenToStream();
+    WidgetsBinding.instance.addObserver(this);
+    _listenToStreams();
   }
 
-  void _listenToStream() {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _refresh();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
+
+  void _listenToStreams() {
     _timeSubscription = _timeStream.listen((_) async {
       context.read<DashboardBloc>().add(const RefreshDashboard());
     });
@@ -291,7 +310,7 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  Future<void> _refresh() async {
+  void _refresh() {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());

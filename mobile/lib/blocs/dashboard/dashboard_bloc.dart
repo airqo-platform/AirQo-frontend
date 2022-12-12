@@ -31,6 +31,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     nearbyAirQualityReadings.sort((x, y) {
       return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
     });
+
+    if (nearbyAirQualityReadings.isNotEmpty) {
+      nearbyAirQualityReadings.removeAt(0);
+    }
+
     airQualityCards.addAll(nearbyAirQualityReadings.take(2).toList());
 
     List<AirQualityReading> airQualityReadings =
@@ -38,7 +43,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     airQualityReadings.shuffle();
 
     final List<String> countries =
-        airQualityReadings.map((e) => e.country).toList();
+        airQualityReadings.map((e) => e.country).toSet().toList();
 
     for (final country in countries) {
       List<AirQualityReading> countryReadings = airQualityReadings
@@ -50,6 +55,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           .contains(element.placeId));
       airQualityCards.addAll(countryReadings.take(2));
     }
+
+    airQualityCards.shuffle();
 
     return emit(state.copyWith(
       airQualityReadings: airQualityCards,
