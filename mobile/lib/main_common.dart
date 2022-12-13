@@ -10,6 +10,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,9 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AirQoApp extends StatelessWidget {
-  const AirQoApp({super.key});
+  const AirQoApp({super.key, this.initialLink});
+
+  final PendingDynamicLinkData? initialLink;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +74,7 @@ class AirQoApp extends StatelessWidget {
           ],
           title: config.appTitle,
           theme: customTheme(),
-          home: const SplashScreen(),
+          home: SplashScreen(initialLink: initialLink),
         );
       },
     );

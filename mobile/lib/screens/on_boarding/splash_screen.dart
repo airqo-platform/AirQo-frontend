@@ -3,7 +3,10 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
+import 'package:app/screens/on_boarding/welcome_screen.dart';
+import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/services/services.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,7 +19,12 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({
+    super.key,
+    this.initialLink,
+  });
+
+  final PendingDynamicLinkData? initialLink;
 
   @override
   State<SplashScreen> createState() => SplashScreenState();
@@ -56,6 +64,18 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+      print('listening link  : ${dynamicLinkData.link}');
+      print('listening utmParameters : ${dynamicLinkData.utmParameters}');
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) {
+          return const SettingsPage();
+        }),
+      );
+    }).onError((error) {
+      print('Error: \n\n\n\n$error\n\n\n\n');
+    });
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -64,6 +84,18 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
+
+    if (widget.initialLink != null) {
+      print('am here\n\n\n');
+      print('link  : ${widget.initialLink?.link}');
+      print('utmParameters : ${widget.initialLink?.utmParameters}');
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) {
+          return const SettingsPage();
+        }),
+      );
+    }
 
     Future.delayed(
       const Duration(seconds: 5),
