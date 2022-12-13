@@ -20,7 +20,8 @@
 | [.env.dev]()      | App root directory (this directory) |
 | **.env.prod**     | App root directory (this directory). Create an empty file named `.env.prod`. |
 | [airqo-dev-keystore.jks]()      | Place it in any secure directory on your computer |
-| [GoogleService-Info.plist]()      | `Runner` directory under `ios` folder (`ios/Runner/`)
+| [GoogleService-Info.plist]()      | `airqo` directory `ios/config` folder (`ios/config/`)
+| [GoogleService-Info.plist]()      | `airqodev` directory under `ios/config` folder (`ios/config/`)(For the staging environment)
 
 ### **Update variables in configuration files**
 

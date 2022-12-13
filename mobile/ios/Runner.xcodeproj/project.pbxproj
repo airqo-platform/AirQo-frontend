@@ -35,6 +35,7 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		49C74A1387C3A96A12E67493 /* Pods-Runner.debug-airqodev.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-airqodev.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-airqodev.xcconfig"; sourceTree = "<group>"; };
 		4FA977D3278C6357003B7171 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		4FF782B026E3A93A00CFA384 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		519906002FFF5D1C808AB054 /* Pods-Runner.debug-airqo.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-airqo.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-airqo.xcconfig"; sourceTree = "<group>"; };
@@ -50,11 +51,13 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		995CA13DCF8047431D91DB80 /* Pods-Runner.release-airqo-dev.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-airqo-dev.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-airqo-dev.xcconfig"; sourceTree = "<group>"; };
 		BA197CB0A72CEA4A9E31B892 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBC4A0B5347414652EFBEC49 /* Pods-Runner.release-airqodev.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-airqodev.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-airqodev.xcconfig"; sourceTree = "<group>"; };
 		BCB7AD8A5D2982CC296875C4 /* Pods-Runner.debug-airqo-dev.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug-airqo-dev.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug-airqo-dev.xcconfig"; sourceTree = "<group>"; };
 		C9541D960B14CFD59E355D73 /* Pods-Runner.release-airqo.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release-airqo.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release-airqo.xcconfig"; sourceTree = "<group>"; };
 		D0E000453F83C58759875287 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		D7CF7854290E3849008D5022 /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; path = config; sourceTree = "<group>"; };
 		E44B3E337C0F86326B87EC36 /* Pods-Runner.profile-airqo.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile-airqo.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile-airqo.xcconfig"; sourceTree = "<group>"; };
+		F32942A706501F0E811DF12B /* Pods-Runner.profile-airqodev.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile-airqodev.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile-airqodev.xcconfig"; sourceTree = "<group>"; };
 		F9A6B186239EF540DE21BAC8 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		FBED29F8F82C780EDD6935BB /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -83,6 +86,9 @@
 				995CA13DCF8047431D91DB80 /* Pods-Runner.release-airqo-dev.xcconfig */,
 				E44B3E337C0F86326B87EC36 /* Pods-Runner.profile-airqo.xcconfig */,
 				0E05F60D500701C109C07803 /* Pods-Runner.profile-airqo-dev.xcconfig */,
+				49C74A1387C3A96A12E67493 /* Pods-Runner.debug-airqodev.xcconfig */,
+				BBC4A0B5347414652EFBEC49 /* Pods-Runner.release-airqodev.xcconfig */,
+				F32942A706501F0E811DF12B /* Pods-Runner.profile-airqodev.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -467,7 +473,7 @@
 			};
 			name = "Debug-airqo";
 		};
-		D7CF7847290E2C92008D5022 /* Debug-airqo-dev */ = {
+		D7CF7847290E2C92008D5022 /* Debug-airqodev */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -523,9 +529,9 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = "Debug-airqo-dev";
+			name = "Debug-airqodev";
 		};
-		D7CF7848290E2C92008D5022 /* Debug-airqo-dev */ = {
+		D7CF7848290E2C92008D5022 /* Debug-airqodev */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
 			buildSettings = {
@@ -556,7 +562,7 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Debug-airqo-dev";
+			name = "Debug-airqodev";
 		};
 		D7CF7849290E2CA5008D5022 /* Release-airqo */ = {
 			isa = XCBuildConfiguration;
@@ -645,7 +651,7 @@
 			};
 			name = "Release-airqo";
 		};
-		D7CF784B290E2CB2008D5022 /* Release-airqo-dev */ = {
+		D7CF784B290E2CB2008D5022 /* Release-airqodev */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -698,9 +704,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
-			name = "Release-airqo-dev";
+			name = "Release-airqodev";
 		};
-		D7CF784C290E2CB2008D5022 /* Release-airqo-dev */ = {
+		D7CF784C290E2CB2008D5022 /* Release-airqodev */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
@@ -730,7 +736,7 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Release-airqo-dev";
+			name = "Release-airqodev";
 		};
 		D7CF784D290E2CC1008D5022 /* Profile-airqo */ = {
 			isa = XCBuildConfiguration;
@@ -817,7 +823,7 @@
 			};
 			name = "Profile-airqo";
 		};
-		D7CF784F290E2CCA008D5022 /* Profile-airqo-dev */ = {
+		D7CF784F290E2CCA008D5022 /* Profile-airqodev */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -868,9 +874,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
-			name = "Profile-airqo-dev";
+			name = "Profile-airqodev";
 		};
-		D7CF7850290E2CCA008D5022 /* Profile-airqo-dev */ = {
+		D7CF7850290E2CCA008D5022 /* Profile-airqodev */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
@@ -900,7 +906,7 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Profile-airqo-dev";
+			name = "Profile-airqodev";
 		};
 /* End XCBuildConfiguration section */
 
@@ -908,28 +914,28 @@
 		97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D7CF7847290E2C92008D5022 /* Debug-airqo-dev */,
+				D7CF7847290E2C92008D5022 /* Debug-airqodev */,
 				D7CF7845290E2C8B008D5022 /* Debug-airqo */,
 				D7CF7849290E2CA5008D5022 /* Release-airqo */,
-				D7CF784B290E2CB2008D5022 /* Release-airqo-dev */,
+				D7CF784B290E2CB2008D5022 /* Release-airqodev */,
 				D7CF784D290E2CC1008D5022 /* Profile-airqo */,
-				D7CF784F290E2CCA008D5022 /* Profile-airqo-dev */,
+				D7CF784F290E2CCA008D5022 /* Profile-airqodev */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Release-airqo";
+			defaultConfigurationName = "Release-airqodev";
 		};
 		97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D7CF7848290E2C92008D5022 /* Debug-airqo-dev */,
+				D7CF7848290E2C92008D5022 /* Debug-airqodev */,
 				D7CF7846290E2C8B008D5022 /* Debug-airqo */,
 				D7CF784A290E2CA5008D5022 /* Release-airqo */,
-				D7CF784C290E2CB2008D5022 /* Release-airqo-dev */,
+				D7CF784C290E2CB2008D5022 /* Release-airqodev */,
 				D7CF784E290E2CC1008D5022 /* Profile-airqo */,
-				D7CF7850290E2CCA008D5022 /* Profile-airqo-dev */,
+				D7CF7850290E2CCA008D5022 /* Profile-airqodev */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Release-airqo";
+			defaultConfigurationName = "Release-airqodev";
 		};
 /* End XCConfigurationList section */
 	};
