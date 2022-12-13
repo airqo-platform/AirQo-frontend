@@ -9,9 +9,7 @@ import 'package:flutter/material.dart';
 import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
-  const LocationSetupScreen({
-    super.key,
-  });
+  const LocationSetupScreen({super.key});
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();

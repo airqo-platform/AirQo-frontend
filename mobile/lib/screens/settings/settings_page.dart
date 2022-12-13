@@ -13,9 +13,7 @@ import 'about_page.dart';
 import 'settings_page_widgets.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({
-    super.key,
-  });
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();

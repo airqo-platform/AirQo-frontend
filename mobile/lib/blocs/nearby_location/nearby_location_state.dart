@@ -1,5 +1,4 @@
-import 'package:app/models/models.dart';
-import 'package:equatable/equatable.dart';
+part of 'nearby_location_bloc.dart';
 
 abstract class NearbyLocationState extends Equatable {
   const NearbyLocationState();

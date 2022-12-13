@@ -278,6 +278,10 @@
                 object-fit: cover;
             }
 
+            .profile-image:hover{
+                cursor: pointer;
+            }
+
             .profile-image-thumb {
                 filter: blur(20px);
                 transform: scale(1.1);

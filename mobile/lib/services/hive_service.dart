@@ -19,8 +19,7 @@ class HiveService {
       ..registerAdapter(KyaLessonAdapter())
       ..registerAdapter(UserPreferencesTypeAdapter())
       ..registerAdapter(FavouritePlaceAdapter())
-      ..registerAdapter(AirQualityReadingAdapter())
-      ..registerAdapter(RegionAdapter());
+      ..registerAdapter(AirQualityReadingAdapter());
 
     final encryptionKey = await getEncryptionKey();
 
@@ -187,7 +186,7 @@ class HiveBox {
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get analytics => 'analytics';
-  static String get airQualityReadings => 'airQualityReadings';
+  static String get airQualityReadings => 'airQualityReadingsBox';
   static String get nearByAirQualityReadings => 'nearByAirQualityReadings';
   static String get favouritePlaces => 'favouritePlaces';
 }

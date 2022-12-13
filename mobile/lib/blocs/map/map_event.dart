@@ -4,46 +4,44 @@ abstract class MapEvent extends Equatable {
   const MapEvent();
 }
 
+class InitializeMapState extends MapEvent {
+  const InitializeMapState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class ShowCountryRegions extends MapEvent {
+  const ShowCountryRegions(this.country);
+  final String country;
+
+  @override
+  List<Object?> get props => [country];
+}
+
 class ShowRegionSites extends MapEvent {
-  const ShowRegionSites({required this.region});
+  const ShowRegionSites(this.region);
 
-  final Region region;
-
-  @override
-  List<Object?> get props => ['show region sites'];
+  final String region;
 
   @override
-  String toString() => 'show region sites';
+  List<Object?> get props => [region];
 }
 
-class ShowAllSites extends MapEvent {
-  const ShowAllSites();
-
-  @override
-  List<Object?> get props => ['show all sites'];
-}
-
-class ShowSite extends MapEvent {
-  const ShowSite({required this.airQualityReading});
+class ShowSiteReading extends MapEvent {
+  const ShowSiteReading(this.airQualityReading);
 
   final AirQualityReading airQualityReading;
 
   @override
-  List<Object?> get props => ['show site'];
+  List<Object?> get props => [airQualityReading];
 }
 
-class SearchSite extends MapEvent {
-  const SearchSite();
+class InitializeSearch extends MapEvent {
+  const InitializeSearch();
 
   @override
-  List<Object?> get props => ['search site'];
-}
-
-class MapSearchReset extends MapEvent {
-  const MapSearchReset();
-
-  @override
-  List<Object?> get props => ['search site'];
+  List<Object?> get props => [];
 }
 
 class MapSearchTermChanged extends MapEvent {
@@ -52,5 +50,5 @@ class MapSearchTermChanged extends MapEvent {
   final String searchTerm;
 
   @override
-  List<Object?> get props => ['search site'];
+  List<Object?> get props => [searchTerm];
 }
