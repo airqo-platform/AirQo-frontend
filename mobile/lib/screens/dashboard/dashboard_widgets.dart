@@ -31,9 +31,13 @@ class DashboardLocationButton extends StatelessWidget {
         }
       },
       style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(40),
         elevation: 2,
         shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8))),
+          borderRadius: BorderRadius.all(
+            Radius.circular(8),
+          ),
+        ),
         backgroundColor: CustomColors.appColorBlue,
         padding: const EdgeInsets.symmetric(
           vertical: 12,
@@ -43,6 +47,8 @@ class DashboardLocationButton extends StatelessWidget {
       child: Text(
         error.message,
         textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 14,
