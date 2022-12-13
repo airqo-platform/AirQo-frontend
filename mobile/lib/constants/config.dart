@@ -5,18 +5,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
+  static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
-  static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? '';
-
-  static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
+  static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
-
-  static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
