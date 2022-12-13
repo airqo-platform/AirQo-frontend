@@ -1,8 +1,31 @@
+import 'package:app/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../themes/colors.dart';
+class CircularLoadingIndicator extends StatelessWidget {
+  const CircularLoadingIndicator({
+    super.key,
+    required this.loading,
+  });
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loading) {
+      return Container();
+    }
+
+    return SizedBox(
+      height: 8,
+      width: 8,
+      child: CupertinoActivityIndicator(
+        radius: 7,
+        color: CustomColors.appColorBlue,
+      ),
+    );
+  }
+}
 
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
@@ -86,7 +109,7 @@ void loadingScreen(BuildContext context) async {
     context: context,
     barrierDismissible: false,
     builder: (ctx) => CupertinoActivityIndicator(
-      radius: 20,
+      radius: 40,
       color: CustomColors.appColorBlue,
     ),
   );
@@ -198,14 +221,16 @@ class AnalyticsCardLoading extends StatelessWidget {
         maxHeight: 251,
         minHeight: 251,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(
             16.0,
           ),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         children: [

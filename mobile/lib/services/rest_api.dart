@@ -2,23 +2,19 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:app/constants/api.dart';
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../utils/exception.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
     url = '$url?';
     queryParams.forEach(
       (key, value) {
-        url = queryParams.keys.elementAt(0).compareTo(key) == 0
+        url = queryParams.keys.first.compareTo(key) == 0
             ? '$url$key=$value'
             : '$url&$key=$value';
       },
@@ -57,7 +53,7 @@ class AirqoApiClient {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
       );
-      ipAddress = json.decode(ipResponse.body)['ip'];
+      ipAddress = json.decode(ipResponse.body)['ip'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -66,13 +62,13 @@ class AirqoApiClient {
     }
 
     try {
-      var params = ipAddress.isNotEmpty
+      final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
-          : {} as Map<String, dynamic>;
+          : <String, dynamic>{};
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
-      return response['data'];
+      return response['data'] as Map<String, dynamic>;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -91,7 +87,7 @@ class AirqoApiClient {
         headers: headers,
       );
 
-      return json.decode(response.body)['data']['carrier'];
+      return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -136,28 +132,46 @@ class AirqoApiClient {
       throw Exception('Failed to perform action. Try again later');
     }
 
-    return json.decode(response.body)['status'];
+    return json.decode(response.body)['status'] as bool;
   }
 
-  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
+  Future<InsightData> fetchInsightsData(String siteId) async {
     try {
-      final utcNow = DateTime.now().toUtc();
+      final now = DateTime.now();
+      final utcNow = now.toUtc();
       final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
       final endDateTime = '${DateFormat('yyyy-MM-dd').format(
         utcNow.getLastDateOfCalendarMonth(),
       )}T23:59:59Z';
 
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteIds)
-        ..putIfAbsent('startDateTime', () => startDateTime)
-        ..putIfAbsent('endDateTime', () => endDateTime);
+      final queryParams = <String, dynamic>{
+        'siteId': siteId,
+        'utcOffset': now.getUtcOffset(),
+        'startDateTime': startDateTime,
+        'endDateTime': endDateTime,
+      };
 
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.insights,
       );
 
-      return body != null ? Insights.parseInsights(body['data']) : <Insights>[];
+      final List<HistoricalInsight> historicalData = [];
+      final List<ForecastInsight> forecastData = [];
+
+      for (final e in body['data']['forecast']) {
+        final json = e;
+        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        forecastData.add(ForecastInsight.fromJson(json));
+      }
+
+      for (final e in body['data']['historical']) {
+        final json = e;
+        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        historicalData.add(HistoricalInsight.fromJson(json));
+      }
+
+      return InsightData(forecast: forecastData, historical: historicalData);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -165,7 +179,7 @@ class AirqoApiClient {
       );
     }
 
-    return <Insights>[];
+    return const InsightData(forecast: [], historical: []);
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
@@ -193,11 +207,8 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return compute(
-        EmailAuthModel.parseEmailAuthModel,
-        json.decode(
-          response.body,
-        ),
+      return EmailAuthModel.parseEmailAuthModel(
+        json.decode(response.body),
       );
     } catch (exception, stackTrace) {
       await logException(
@@ -228,7 +239,7 @@ class AirqoApiClient {
         body: body,
       );
 
-      if (response.statusCode == 200 ) {
+      if (response.statusCode == 200) {
         return true;
       }
     } catch (exception, stackTrace) {
@@ -270,16 +281,20 @@ class AirqoApiClient {
 
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
-    String url,
-  ) async {
+    String url, {
+    Duration? timeout,
+  }) async {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await httpClient.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await httpClient
+          .get(
+            Uri.parse(url),
+            headers: headers,
+          )
+          .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
+        // TODO : use advanced decoding
         return json.decode(response.body);
       }
     } catch (exception, stackTrace) {

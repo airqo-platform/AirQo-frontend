@@ -1,8 +1,6 @@
-import 'package:app/themes/colors.dart';
+import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({
@@ -140,6 +138,52 @@ class TabButton extends StatelessWidget {
                 : CustomColors.appColorBlue,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ActionButton extends StatelessWidget {
+  const ActionButton({
+    super.key,
+    required this.icon,
+    required this.text,
+  });
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      width: 197,
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              letterSpacing: 16 * -0.022,
+            ),
+          ),
+          const SizedBox(
+            width: 6,
+          ),
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 21,
+          ),
+        ],
       ),
     );
   }

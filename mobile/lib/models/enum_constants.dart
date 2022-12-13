@@ -1,13 +1,13 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
-
-import '../themes/colors.dart';
 
 part 'enum_constants.g.dart';
+
+enum Environment { dev, prod }
 
 enum AnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
@@ -40,9 +40,109 @@ enum AnalyticsEvent {
   }
 }
 
+enum InsightsStatus {
+  loaded,
+  error,
+  refreshing,
+  loading,
+  noInternetConnection,
+  noData;
+}
+
 enum AppPermission {
   notification,
   location,
+  photosStorage,
+}
+
+enum BlocStatus {
+  initial,
+  editing,
+  processing,
+  updatingData,
+  error,
+  success,
+  accountDeletionCheckSuccess,
+}
+
+enum FeedbackStep {
+  channelStep,
+  typeStep,
+  formStep;
+}
+
+enum AuthenticationError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  invalidFirstName(
+    message: 'First name is required.',
+    snackBarDuration: 5,
+  ),
+  invalidLastName(
+    message: 'Last name is required.',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    message: 'Invalid Account',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    message: 'Invalid code',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    message: 'Session time out. Sending another verification code',
+    snackBarDuration: 5,
+  ),
+  none(
+    message: '',
+    snackBarDuration: 0,
+  ),
+  authFailure(
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  logInRequired(
+    message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  logoutFailed(
+    message: 'Failed to logout. Try again later',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+    snackBarDuration: 5,
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid Phone number',
+    snackBarDuration: 5,
+  ),
+  invalidEmailAddress(
+    message: 'Invalid Email address',
+    snackBarDuration: 5,
+  ),
+  accountTaken(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    message: 'Email Taken',
+    snackBarDuration: 5,
+  );
+
+  const AuthenticationError({
+    required this.message,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
 }
 
 enum NearbyAirQualityError {
@@ -89,59 +189,6 @@ enum AppNotificationType {
   reminder,
   @HiveField(2)
   welcomeMessage,
-}
-
-@HiveType(typeId: 140, adapterName: 'RegionAdapter')
-enum Region {
-  @HiveField(1)
-  central('Central Region'),
-  @HiveField(2)
-  eastern('Eastern Region'),
-  @HiveField(3)
-  northern('Northern Region'),
-  @HiveField(4)
-  western('Western Region'),
-  @HiveField(5)
-  southern('Southern Region'),
-  @HiveField(0)
-  none('');
-
-  factory Region.fromString(String string) {
-    if (string.toLowerCase().contains('central')) {
-      return Region.central;
-    } else if (string.toLowerCase().contains('east')) {
-      return Region.eastern;
-    } else if (string.toLowerCase().contains('west')) {
-      return Region.western;
-    } else if (string.toLowerCase().contains('north')) {
-      return Region.northern;
-    } else if (string.toLowerCase().contains('south')) {
-      return Region.southern;
-    } else {
-      return Region.none;
-    }
-  }
-
-  const Region(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-}
-
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
 }
 
 enum AirQuality {
@@ -191,19 +238,41 @@ enum FeedbackChannel {
 enum AuthMethod {
   phone(
     updateMessage:
-        'You shall not be able to sign in with your previous phone number after changing it',
+        'You will not be able to sign in with your previous phone number after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to',
+    editEntryText: 'Change your number',
+    invalidInputErrorMessage: 'Looks like you missed a digit.',
+    invalidInputMessage: 'Oops, Something’s wrong with your phone number',
   ),
   email(
     updateMessage:
-        'You shall not be able to sign in with your previous email address after changing it',
+        'You will not be able to sign in with your previous email address after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to',
+    editEntryText: 'Change your email',
+    invalidInputErrorMessage: 'Looks like you missed a letter',
+    invalidInputMessage: 'Oops, Something’s wrong with your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
+    codeVerificationText: '',
+    editEntryText: '',
+    invalidInputErrorMessage: '',
+    invalidInputMessage: '',
   );
 
-  const AuthMethod({required this.updateMessage});
+  const AuthMethod({
+    required this.updateMessage,
+    required this.codeVerificationText,
+    required this.editEntryText,
+    required this.invalidInputErrorMessage,
+    required this.invalidInputMessage,
+  });
 
   final String updateMessage;
+  final String codeVerificationText;
+  final String editEntryText;
+  final String invalidInputErrorMessage;
+  final String invalidInputMessage;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {
@@ -216,9 +285,7 @@ enum AuthMethod {
             ? 'Login with your email or mobile number'
             : 'Sign up with your email or mobile number';
       default:
-        throw UnimplementedError(
-          '$name does’nt have options text implementation',
-        );
+        return '';
     }
   }
 
@@ -265,6 +332,12 @@ enum AuthProcedure {
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
+  none(
+    confirmationTitle: '',
+    confirmationBody: '',
+    confirmationOkayText: '',
+    confirmationCancelText: '',
+  ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
@@ -300,56 +373,46 @@ enum Frequency {
   List<charts.TickSpec<String>> staticTicks() {
     switch (this) {
       case Frequency.daily:
-        final dailyTicks = <charts.TickSpec<String>>[];
-        for (final day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) {
-          dailyTicks.add(
-            charts.TickSpec(
-              day,
-              label: day,
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  CustomColors.greyColor,
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            .map(
+              (day) => charts.TickSpec(
+                day,
+                label: day,
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
                 ),
               ),
-            ),
-          );
-        }
-
-        return dailyTicks;
+            )
+            .toList();
 
       case Frequency.hourly:
-        final hourlyTicks = <charts.TickSpec<String>>[];
         final labels = <int>[0, 6, 12, 18];
         final hours = List<int>.generate(24, (index) => index + 1)
           ..removeWhere(labels.contains);
 
-        for (final hour in labels) {
-          hourlyTicks.add(
-            charts.TickSpec(
-              hour.toStringLength(),
-              label: hour.toStringLength(),
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  CustomColors.greyColor,
+        final List<charts.TickSpec<String>> hourlyTicks = labels
+            .map(
+              (hour) => charts.TickSpec(
+                hour.toStringLength(),
+                label: hour.toStringLength(),
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
                 ),
               ),
-            ),
-          );
-        }
+            )
+            .toList();
 
-        for (final hour in hours) {
-          hourlyTicks.add(
-            charts.TickSpec(
-              hour.toStringLength(),
-              label: hour.toStringLength(),
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  Colors.transparent,
+        hourlyTicks.addAll(hours
+            .map(
+              (hour) => charts.TickSpec(
+                hour.toStringLength(),
+                label: hour.toStringLength(),
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Colors.transparent),
                 ),
               ),
-            ),
-          );
-        }
+            )
+            .toList());
 
         return hourlyTicks;
     }
@@ -425,15 +488,15 @@ enum Pollutant {
       case Pollutant.pm10:
         if (value <= 50.99) {
           return AirQuality.good;
-        } else if (value.isWithin(51.00, 100.99)) {
+        } else if (value.isWithin(51, 100.99)) {
           return AirQuality.moderate;
-        } else if (value.isWithin(101.00, 250.99)) {
+        } else if (value.isWithin(101, 250.99)) {
           return AirQuality.ufsgs;
-        } else if (value.isWithin(251.00, 350.99)) {
+        } else if (value.isWithin(251, 350.99)) {
           return AirQuality.unhealthy;
-        } else if (value.isWithin(351.00, 430.99)) {
+        } else if (value.isWithin(351, 430.99)) {
           return AirQuality.veryUnhealthy;
-        } else if (value >= 431.00) {
+        } else if (value >= 431) {
           return AirQuality.hazardous;
         } else {
           return AirQuality.good;

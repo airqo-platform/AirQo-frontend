@@ -1,8 +1,6 @@
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../themes/colors.dart';
-import '../widgets/buttons.dart';
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
@@ -26,13 +24,12 @@ class _ForYouPageState extends State<ForYouPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('For You'),
-      body: Container(
-        padding: const EdgeInsets.only(right: 16, left: 16),
-        color: CustomColors.appBodyColor,
-        child: Column(
+      body: AppSafeArea(
+        horizontalPadding: 16,
+        widget: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Material(
                 color: Colors.white,
                 borderRadius: const BorderRadius.all(
@@ -46,11 +43,7 @@ class _ForYouPageState extends State<ForYouPage>
                   labelPadding: const EdgeInsets.all(3.0),
                   physics: const NeverScrollableScrollPhysics(),
                   onTap: (value) {
-                    if (value == 0) {
-                      setState(() => _analytics = true);
-                    } else {
-                      setState(() => _analytics = false);
-                    }
+                    setState(() => _analytics = value == 0 ? true : false);
                   },
                   tabs: <Widget>[
                     TabButton(

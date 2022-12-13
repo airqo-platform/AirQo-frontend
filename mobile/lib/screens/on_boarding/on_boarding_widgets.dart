@@ -1,9 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../../themes/colors.dart';
-import '../../widgets/text_fields.dart';
 
 OnBoardingPage getOnBoardingPageConstant(String value) {
   switch (value) {
@@ -27,9 +26,7 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 }
 
 class OnBoardingLocationIcon extends StatelessWidget {
-  const OnBoardingLocationIcon({
-    super.key,
-  });
+  const OnBoardingLocationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +48,7 @@ class OnBoardingLocationIcon extends StatelessWidget {
 }
 
 class OnBoardingNotificationIcon extends StatelessWidget {
-  const OnBoardingNotificationIcon({
-    super.key,
-  });
+  const OnBoardingNotificationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -180,9 +175,7 @@ class TitleDropDown extends StatelessWidget {
 }
 
 class LogoWidget extends StatelessWidget {
-  const LogoWidget({
-    super.key,
-  });
+  const LogoWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -234,13 +227,14 @@ class TaglineWidget extends StatelessWidget {
 }
 
 class OnBoardingTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingTopBar({super.key});
+  const OnBoardingTopBar({super.key, this.backgroundColor});
+  final Color? backgroundColor;
 
   @override
   PreferredSizeWidget build(BuildContext context) {
     return AppBar(
       toolbarHeight: 0,
-      backgroundColor: CustomColors.appBodyColor,
+      backgroundColor: backgroundColor ?? CustomColors.appBodyColor,
     );
   }
 

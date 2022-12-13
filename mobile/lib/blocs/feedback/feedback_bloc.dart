@@ -1,174 +1,135 @@
-import 'package:bloc/bloc.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
-
-import '../../models/enum_constants.dart';
-import '../../models/profile.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
-  FeedbackBloc()
-      : super(
-          const FeedbackState(
-            feedbackType: FeedbackType.none,
-            feedbackChannel: FeedbackChannel.none,
-            contact: '',
-            feedback: '',
-            loading: false,
-          ),
-        ) {
+  FeedbackBloc() : super(const FeedbackState.initial()) {
+    on<InitializeFeedback>(_onInitializeFeedback);
     on<SetFeedbackType>(_onSetFeedbackType);
-    on<SetFeedbackContact>(_onSetFeedbackContact);
-    on<GoToTypeStep>(_onGoToTypeStep);
     on<GoToChannelStep>(_onGoToChannelStep);
     on<GoToFormStep>(_onGoToFormStep);
-    on<SetFeedbackChannel>(_onSetFeedbackChannel);
-    on<FeedbackFormError>(_onFeedbackFormError);
+    on<SubmitFeedback>(_onSubmitFeedback);
+    on<GoToTypeStep>(_onGoToTypeStep);
+    on<SetFeedbackContact>(_onSetFeedbackContact);
     on<SetFeedback>(_onSetFeedback);
-    on<ClearFeedback>(_onClearFeedback);
+    on<SetFeedbackChannel>(_onSetFeedbackChannel);
   }
 
-  void _onFeedbackFormError(
-    FeedbackFormError event,
-    Emitter<FeedbackState> emit,
-  ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
-
-    return emit(
-      FeedbackErrorState(
-        event.error,
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
-    );
-  }
-
-  void _onGoToTypeStep(
-    GoToTypeStep event,
-    Emitter<FeedbackState> emit,
-  ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
-
-    return emit(
-      FeedbackTypeState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
-    );
-  }
-
-  void _onGoToChannelStep(
-    GoToChannelStep event,
-    Emitter<FeedbackState> emit,
-  ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
-
-    return emit(
-      FeedbackChannelState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
-    );
-  }
-
-  void _onGoToFormStep(
-    GoToFormStep event,
-    Emitter<FeedbackState> emit,
-  ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
-
-    return emit(
-      FeedbackFormState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
-    );
-  }
-
-  Future<void> _onClearFeedback(
-    ClearFeedback event,
+  Future<void> _onInitializeFeedback(
+    InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
     final profile = await Profile.getProfile();
 
+    if (profile.emailAddress.isEmpty) {
+      return;
+    }
+
+    if (state.blocStatus == BlocStatus.success) {
+      return emit(
+        const FeedbackState.initial().copyWith(
+          emailAddress: profile.emailAddress,
+          feedbackChannel: FeedbackChannel.email,
+        ),
+      );
+    }
+
     return emit(
-      FeedbackTypeState(
-        feedbackType: FeedbackType.none,
-        feedbackChannel: FeedbackChannel.none,
-        contact: profile.emailAddress,
-        feedback: '',
-        loading: false,
+      state.copyWith(
+        emailAddress: profile.emailAddress,
+        feedbackChannel: FeedbackChannel.email,
       ),
     );
   }
 
-  void _onSetFeedback(
-    SetFeedback event,
+  Future<void> _onSubmitFeedback(
+    SubmitFeedback _,
+    Emitter<FeedbackState> emit,
+  ) async {
+    _onClearErrors(emit);
+
+    if (state.feedback.isEmpty) {
+      return (emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        errorMessage: 'Please type your message.',
+      )));
+    }
+
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        errorMessage: AuthenticationError.noInternetConnection.message,
+      ));
+    }
+
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
+
+    final bool success = await AirqoApiClient().sendFeedback(UserFeedback(
+      contactDetails: state.emailAddress,
+      message: state.feedback,
+      feedbackType: state.feedbackType,
+    ));
+
+    return (emit(state.copyWith(
+      blocStatus: success ? BlocStatus.success : BlocStatus.error,
+      errorMessage:
+          success ? '' : 'Failed to submit feedback. Try again later.',
+    )));
+  }
+
+  void _onGoToChannelStep(
+    GoToChannelStep _,
     Emitter<FeedbackState> emit,
   ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
+    _onClearErrors(emit);
+
+    if (state.feedbackType == FeedbackType.none) {
+      return (emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        errorMessage: 'Please select a feedback type.',
+      )));
+    }
+
+    return emit(state.copyWith(step: FeedbackStep.channelStep));
+  }
+
+  void _onGoToFormStep(
+    GoToFormStep _,
+    Emitter<FeedbackState> emit,
+  ) {
+    _onClearErrors(emit);
+
+    if (state.feedbackChannel == FeedbackChannel.none) {
+      return (emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        errorMessage: 'Please select a communication channel.',
+      )));
+    }
+
+    if (!state.emailAddress.isValidEmail()) {
+      return (emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        errorMessage: AuthenticationError.invalidEmailAddress.message,
+      )));
+    }
+
+    return emit(state.copyWith(step: FeedbackStep.formStep));
+  }
+
+  void _onGoToTypeStep(
+    GoToTypeStep _,
+    Emitter<FeedbackState> emit,
+  ) {
+    _onClearErrors(emit);
 
     return emit(
-      FeedbackFormState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: event.feedback,
-        loading: false,
-      ),
+      state.copyWith(step: FeedbackStep.typeStep),
     );
   }
 
@@ -176,24 +137,10 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     SetFeedbackContact event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
+    _onClearErrors(emit);
 
     return emit(
-      FeedbackChannelState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: event.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
+      state.copyWith(emailAddress: event.contact),
     );
   }
 
@@ -201,23 +148,29 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     SetFeedbackType event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
+    _onClearErrors(emit);
+
+    return emit(state.copyWith(feedbackType: event.feedbackType));
+  }
+
+  void _onSetFeedback(
+    SetFeedback event,
+    Emitter<FeedbackState> emit,
+  ) {
+    _onClearErrors(emit);
 
     return emit(
-      FeedbackTypeState(
-        feedbackType: event.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
+      state.copyWith(feedback: event.feedback),
+    );
+  }
+
+  void _onClearErrors(
+    Emitter<FeedbackState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        blocStatus: BlocStatus.initial,
+        errorMessage: '',
       ),
     );
   }
@@ -226,24 +179,10 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     SetFeedbackChannel event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(
-      FeedbackLoadingState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: state.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: true,
-      ),
-    );
+    _onClearErrors(emit);
 
     return emit(
-      FeedbackChannelState(
-        feedbackType: state.feedbackType,
-        feedbackChannel: event.feedbackChannel,
-        contact: state.contact,
-        feedback: state.feedback,
-        loading: false,
-      ),
+      state.copyWith(feedbackChannel: event.feedbackChannel),
     );
   }
 }

@@ -1,14 +1,13 @@
 import 'dart:async';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:bloc/bloc.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../services/hive_service.dart';
-import '../../utils/dashboard.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
@@ -17,7 +16,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc()
       : super(const DashboardState(
           greetings: '',
-          incompleteKya: [],
           airQualityReadings: [],
           loading: false,
         )) {
@@ -26,12 +24,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onUpdateGreetings(
-    UpdateGreetings event,
+    UpdateGreetings _,
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
@@ -43,13 +40,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   Future<List<AirQualityReading>> _getAirQualityReadings() async {
     final airQualityCards = <AirQualityReading>[];
 
-    final preferences = await SharedPreferences.getInstance();
-    final region = getNextDashboardRegion(preferences);
     final regionAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .values
-            .where((element) => element.region == region)
-            .toList()
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList()
           ..shuffle();
 
     for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {
@@ -62,23 +54,20 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onInitializeDashboard(
-    InitializeDashboard event,
+    InitializeDashboard _,
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(
       greetings: state.greetings,
-      incompleteKya: state.incompleteKya,
       airQualityReadings: state.airQualityReadings,
       loading: true,
     ));
 
     final greetings = await DateTime.now().getGreetings();
-    final incompleteKya = await Kya.getIncompleteKya();
     final airQualityReadings = await _getAirQualityReadings();
 
     return emit(DashboardState(
       greetings: greetings,
-      incompleteKya: incompleteKya,
       airQualityReadings: airQualityReadings,
       loading: false,
     ));

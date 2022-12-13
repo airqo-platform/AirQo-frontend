@@ -1,14 +1,11 @@
-# values for platform frontend.
-env:
-  deployment_name: airqo-dev-platform-frontend
-  service_name: airqo-dev-platform-ui-svc
-  labels: dev-platform-ui
-  secret: env-platform-development
+# Default values for platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
-replicaCount: 2
+replicaCount: 1
 
 image:
-  repository: airqo-dev-platform-frontend
+  repository: gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
   tag: latest
   pullPolicy: Always
 
@@ -26,10 +23,43 @@ ingress:
   enabled: false
 
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
 
+resources:
+  requests:
+    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
 
-## Application level settings  
-appMode: development
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  # targetCPUUtilizationPercentage: 90
+  targetMemoryUtilizationPercentage: 90
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+
+app:
+  name: airqo-dev-platform-frontend
+  label: dev-platform-ui
+  namespace: development
+  configmap: env-platform-development

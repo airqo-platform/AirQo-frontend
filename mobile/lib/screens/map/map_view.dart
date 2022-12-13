@@ -3,37 +3,74 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
-import 'package:flutter/material.dart';
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../models/air_quality_reading.dart';
-import '../../themes/app_theme.dart';
-import '../../utils/pm.dart';
 import 'map_view_widgets.dart';
 
-class MapView extends StatefulWidget {
+class MapView extends StatelessWidget {
   const MapView({super.key});
 
-  @override
-  State<MapView> createState() => _MapViewState();
-}
-
-class _MapViewState extends State<MapView> {
-  final double _bottomPadding = 0.15;
+  void _reloadMap(BuildContext context) {
+    context.read<MapBloc>().add(const InitializeMapState());
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * _bottomPadding,
-          ),
-          child: const MapLandscape(),
-        ),
-        const MapDragSheet(),
-      ],
+    return BlocBuilder<MapBloc, MapState>(
+      builder: (context, state) {
+        switch (state.mapStatus) {
+          case MapStatus.error:
+            if (state.blocError == AuthenticationError.noInternetConnection) {
+              return NoInternetConnectionWidget(callBack: () {
+                _reloadMap(context);
+              });
+            }
+            return AppErrorWidget(callBack: () {
+              _reloadMap(context);
+            });
+          case MapStatus.initial:
+          case MapStatus.noAirQuality:
+            return NoAirQualityDataWidget(callBack: () {
+              _reloadMap(context);
+            });
+          case MapStatus.loading:
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                const MapLandscape(),
+                Align(
+                  alignment: Alignment.center,
+                  child: CupertinoActivityIndicator(
+                    radius: 40,
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+              ],
+            );
+          case MapStatus.showingCountries:
+          case MapStatus.showingRegions:
+          case MapStatus.showingFeaturedSite:
+          case MapStatus.showingRegionSites:
+          case MapStatus.searching:
+            return Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height * 0.15,
+                  ),
+                  child: const MapLandscape(),
+                ),
+                const MapDragSheet(),
+              ],
+            );
+        }
+      },
     );
   }
 }
@@ -47,8 +84,9 @@ class MapLandscape extends StatefulWidget {
 class _MapLandscapeState extends State<MapLandscape> {
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
+  final double zoom = 6;
   final _defaultCameraPosition =
-      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
+      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6);
 
   @override
   Widget build(BuildContext context) {
@@ -82,43 +120,40 @@ class _MapLandscapeState extends State<MapLandscape> {
     await _loadTheme();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = BlocProvider.of<MapBloc>(context).state;
-      _updateMapState(state);
-      _listenToAirQualityReadingChanges();
+      _loadMapState(state);
+      _listenToMarkerChanges();
     });
   }
 
-  LatLngBounds _getBounds(List<Marker> markers) {
-    final latitudes =
-        markers.map<double>((marker) => marker.position.latitude).toList();
-    final longitudes =
-        markers.map<double>((marker) => marker.position.longitude).toList();
-
-    final topMostMarker = longitudes.reduce(max);
-    final rightMostMarker = latitudes.reduce(max);
-    final leftMostMarker = latitudes.reduce(min);
-    final bottomMostMarker = longitudes.reduce(min);
-
-    final bounds = LatLngBounds(
-      northeast: LatLng(rightMostMarker, topMostMarker),
-      southwest: LatLng(leftMostMarker, bottomMostMarker),
-    );
-
-    return bounds;
+  void _listenToMarkerChanges() {
+    context.read<MapBloc>().stream.listen(_loadMapState);
   }
 
-  Future<void> _listenToAirQualityReadingChanges() async {
-    context.read<MapBloc>().stream.listen(_updateMapState);
-  }
-
-  Future<void> _updateMapState(MapState state) async {
-    if (state is AllSitesState) {
-      await _setMarkers(state.airQualityReadings);
-    } else if (state is RegionSitesState) {
-      await _setMarkers(state.airQualityReadings);
-    } else if (state is SingleSiteState) {
-      await _setMarkers([state.airQualityReading]);
-    } else if (state is SearchSitesState) {
-      await _setMarkers(state.airQualityReadings);
+  Future<void> _loadMapState(MapState mapState) async {
+    switch (mapState.mapStatus) {
+      case MapStatus.initial:
+      case MapStatus.error:
+      case MapStatus.noAirQuality:
+      case MapStatus.searching:
+        // Already captured by parent widget
+        break;
+      case MapStatus.loading:
+        await _setMarkers([]);
+        break;
+      case MapStatus.showingFeaturedSite:
+        final AirQualityReading? airQualityReading =
+            mapState.featuredSiteReading;
+        if (airQualityReading == null) {
+          context.read<MapBloc>().add(const InitializeMapState());
+          break;
+        }
+        await _setMarkers([airQualityReading]);
+        break;
+      case MapStatus.showingCountries:
+      case MapStatus.showingRegions:
+      case MapStatus.showingRegionSites:
+        await _setMarkers(mapState.featuredAirQualityReadings);
+        break;
     }
   }
 
@@ -141,27 +176,21 @@ class _MapLandscapeState extends State<MapLandscape> {
     final markers = <String, Marker>{};
 
     for (final airQualityReading in airQualityReadings) {
-      final bitmapDescriptor = airQualityReadings.length == 1
-          ? await pmToMarker(
-              airQualityReading.pm2_5,
-            )
-          : await pmToSmallMarker(
-              airQualityReading.pm2_5,
-            );
+      final BitmapDescriptor bitmapDescriptor = await pmToMarker(
+        pm2_5: airQualityReading.pm2_5,
+        itemsSize: airQualityReadings.length,
+      );
 
       final marker = Marker(
         markerId: MarkerId(airQualityReading.referenceSite),
         icon: bitmapDescriptor,
         position: LatLng(
-          (airQualityReading.latitude),
+          airQualityReading.latitude,
           airQualityReading.longitude,
         ),
         onTap: () {
           if (!mounted) return;
-
-          context
-              .read<MapBloc>()
-              .add(ShowSite(airQualityReading: airQualityReading));
+          context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
         },
       );
       markers[airQualityReading.placeId] = marker;
@@ -176,7 +205,7 @@ class _MapLandscapeState extends State<MapLandscape> {
 
         final cameraPosition = CameraPosition(
           target: latLng,
-          zoom: 100,
+          zoom: 10,
         );
 
         await controller.animateCamera(
@@ -188,28 +217,63 @@ class _MapLandscapeState extends State<MapLandscape> {
         );
 
         await controller.animateCamera(
-          CameraUpdate.newLatLngBounds(latLngBounds, 40.0),
+          CameraUpdate.newLatLngBounds(latLngBounds, 100),
         );
       }
 
       setState(() => _markers = markers);
     }
   }
+
+  LatLngBounds _getBounds(List<Marker> markers) {
+    final latitudes =
+        markers.map<double>((marker) => marker.position.latitude).toList();
+    final longitudes =
+        markers.map<double>((marker) => marker.position.longitude).toList();
+
+    final topMostMarker = longitudes.reduce(max);
+    final rightMostMarker = latitudes.reduce(max);
+    final leftMostMarker = latitudes.reduce(min);
+    final bottomMostMarker = longitudes.reduce(min);
+
+    return LatLngBounds(
+      northeast: LatLng(rightMostMarker, topMostMarker),
+      southwest: LatLng(leftMostMarker, bottomMostMarker),
+    );
+  }
 }
 
-class MapDragSheet extends StatelessWidget {
+class MapDragSheet extends StatefulWidget {
   const MapDragSheet({super.key});
+
+  @override
+  State<MapDragSheet> createState() => _MapDragSheetState();
+}
+
+class _MapDragSheetState extends State<MapDragSheet> {
+  final DraggableScrollableController controller =
+      DraggableScrollableController();
+  final analyticsCardSize = 0.4;
+  final maximumCardSize = 0.92;
+
+  void resizeScrollSheet() {
+    controller.animateTo(
+      analyticsCardSize,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.easeOutBack,
+    );
+
+    DraggableScrollableActuator.reset(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.30,
+      controller: controller,
+      initialChildSize: 0.3,
       minChildSize: 0.18,
-      maxChildSize: 0.92,
-      builder: (
-        BuildContext context,
-        ScrollController scrollController,
-      ) {
+      maxChildSize: maximumCardSize,
+      builder: (BuildContext context, ScrollController scrollController) {
         return MapCardWidget(
           widget: SingleChildScrollView(
             controller: scrollController,
@@ -219,43 +283,60 @@ class MapDragSheet extends StatelessWidget {
                 const SizedBox(height: 8),
                 const DraggingHandle(),
                 const SizedBox(height: 16),
-                SearchWidget(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SearchWidget(),
+                ),
                 BlocBuilder<MapBloc, MapState>(
                   builder: (context, state) {
-                    if (state is MapLoadingState) {
-                      return const SearchLoadingWidget();
+                    switch (state.mapStatus) {
+                      case MapStatus.initial:
+                      case MapStatus.error:
+                      case MapStatus.noAirQuality:
+                        // Already captured by parent widget
+                        break;
+                      case MapStatus.loading:
+                        return Container();
+                      case MapStatus.showingCountries:
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: AllCountries(),
+                        );
+                      case MapStatus.showingRegions:
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: CountryRegions(),
+                        );
+                      case MapStatus.showingFeaturedSite:
+                        final AirQualityReading? airQualityReading =
+                            state.featuredSiteReading;
+                        if (airQualityReading == null) {
+                          return NoAirQualityDataWidget(
+                            callBack: () {
+                              final String region =
+                                  context.read<MapBloc>().state.featuredRegion;
+                              context
+                                  .read<MapBloc>()
+                                  .add(ShowRegionSites(region));
+                            },
+                            actionButtonText: 'Back to regions',
+                          );
+                        }
+                        resizeScrollSheet();
+                        return FeaturedSiteReading(airQualityReading);
+                      case MapStatus.showingRegionSites:
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: RegionSites(),
+                        );
+                      case MapStatus.searching:
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: MapSearchWidget(),
+                        );
                     }
 
-                    if (state is MapSearchCompleteState) {
-                      return SearchResults(
-                        searchResults: state.searchResults,
-                      );
-                    }
-
-                    if (state is AllSitesState) {
-                      return const AllSites();
-                    }
-
-                    if (state is RegionSitesState) {
-                      return RegionSites(
-                        airQualityReadings: state.airQualityReadings,
-                        region: state.region,
-                      );
-                    }
-
-                    if (state is SingleSiteState) {
-                      return SingleSite(
-                        airQualityReading: state.airQualityReading,
-                      );
-                    }
-
-                    if (state is SearchSitesState) {
-                      return SearchSites(
-                        airQualityReadings: state.airQualityReadings,
-                      );
-                    }
-
-                    return const AllSites();
+                    return const AllCountries();
                   },
                 ),
               ],

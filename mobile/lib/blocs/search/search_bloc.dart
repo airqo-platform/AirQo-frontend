@@ -1,17 +1,14 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
-import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:stream_transform/stream_transform.dart';
 
-import '../../constants/config.dart';
-import '../../services/hive_service.dart';
-import 'search_event.dart';
-import 'search_state.dart';
-
-EventTransformer<Event> debounce<Event>(Duration duration) {
-  return (events, mapper) => events.debounce(duration).switchMap(mapper);
-}
+part 'search_event.dart';
+part 'search_state.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc()
@@ -30,7 +27,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   late final SearchRepository searchRepository;
 
   void _onResetSearch(
-    ResetSearch event,
+    ResetSearch _,
     Emitter<SearchState> emit,
   ) {
     final nearestAirQualityReadings =
@@ -69,7 +66,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     emit(SearchStateLoading());
 
     try {
-      final results = await searchRepository.search(searchTerm);
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+      final List<String> countries =
+          airQualityReadings.map((e) => e.country).toSet().toList();
+
+      final results = await searchRepository.search(
+        searchTerm,
+        countries: countries,
+      );
 
       return emit(SearchStateSuccess(results.items));
     } catch (error) {

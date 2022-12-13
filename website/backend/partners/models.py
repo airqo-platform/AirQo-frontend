@@ -12,6 +12,8 @@ class Partner(BaseModel):
         Partnership = "partnership", "Partnership"
         Collaboration = "collaboration", "Collaboration"
         Policy = "policy", "Policy"
+        Funder = "funder", "Funder"
+        Research = "research", "Research"
 
     partner_image = CloudinaryField("PartnerImage", overwrite=True, resource_type="image", null=True, blank=True)
     partner_logo = CloudinaryField("PartnerLogo", overwrite=True, resource_type="image")
