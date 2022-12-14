@@ -17,12 +17,15 @@ import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import { usePartnersData } from '../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../reduxStore/Partners/operations';
 import { useNavigate } from 'react-router-dom';
+import { useBoardData } from '../../reduxStore/Board/selectors';
+import { loadBoardData } from '../../reduxStore/Board/operations';
 
 const AboutUsPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const teamData = useTeamData();
   const partnersData = usePartnersData();
+  const boardData = useBoardData()
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
 
@@ -47,10 +50,12 @@ const AboutUsPage = () => {
     event.preventDefault();
     navigate(`/partners/${uniqueTitle}/`);
   };
+  console.log(boardData)
 
   useEffect(() => {
     if (isEmpty(teamData)) dispatch(loadTeamData());
     if (isEmpty(partnersData)) dispatch(loadPartnersData());
+    if (isEmpty(boardData)) dispatch(loadBoardData());
   }, []);
   return (
     <Page>
@@ -210,13 +215,38 @@ const AboutUsPage = () => {
                     twitter={member.twitter}
                     linkedin={member.linked_in}
                     biography={member.descriptions}
-                    about = {member.about}
+                    about={member.about}
                   />
                 </div>
               ))}
             </div>
           </div>
           <hr />
+          <div className="AboutUsPage__team" id="board">
+            <div className="header">
+              <h3 className="section-title">Meet the Board</h3>
+              <div>
+                <p className="section-info">
+                  
+                </p>
+              </div>
+            </div>
+            <div className="AboutUsPage__pictorial">
+              {boardData.map((member) => (
+                <div key={member.id}>
+                  <Profile
+                    ImgPath={member.picture}
+                    name={member.name}
+                    title={member.title}
+                    twitter={member.twitter}
+                    linkedin={member.linked_in}
+                    biography={member.descriptions}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <hr/>
           <div className="AboutUsPage__partners">
             <h3 className="section-title">Our partners</h3>
             <div>
