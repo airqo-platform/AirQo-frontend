@@ -40,7 +40,7 @@ class _DashboardViewState extends State<DashboardView> {
       Stream.periodic(const Duration(minutes: 5), (int count) {
     return count;
   });
-  late StreamSubscription _timeSubscription;
+  late StreamSubscription<int> _timeSubscription;
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!emptykya) {
