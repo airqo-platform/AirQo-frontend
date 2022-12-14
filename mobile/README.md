@@ -35,15 +35,24 @@
 - Change `storeFile` variable in `key.properties` file to point to where you put `airqo-dev-keystore.jks`.
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
-- Remember to add an `.env file`, which contain credentials in key-value format for services used by the app. 
-  - For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
-  - Here's what a sample .env file would look like;
-    ```bash
-    ENVIRONMENT_VARIABLE_1= value
-    ENVIRONMENT_VARIABLE_2= value
-    GOOGLE_ANDROID_API_KEY_= googlekey
-    EMAIL_API_KEY = abcdef12345
-    ```
+- **For Contributors:**
+  - It's important to first read our guidelines [here](/../CONTRIBUTING.md).
+  - Thereafter, proceed to create your own necessary configuration files. These include;
+    - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
+      - Here's what your .env file would look like;
+        ```bash
+        AIRQO_API_URL= https://platform.airqo.net/api/v1/
+        AIRQO_API_URL_V2= https://platform.airqo.net/api/v2/
+        AIRQO_API_TOKEN = Get this token by following the respective guide below.
+        GOOGLE_ANDROID_API_KEY_= Get this by following the respective guide below.
+        GOOGLE_IOS_API_KEY_v1 = Get this key by following the respective guide below.
+        SEARCH_API_KEY=
+        ```
+      - Get the following keys by following documentaion from the respectice sources;
+        - [AIRQO_API_TOKEN](https://staging-docs.airqo.net/#/../api/users?id=login),
+        - [GOOGLE_ANDROID_API_KEY](https://support.google.com/googleapi/answer/6158862),
+        - [GOOGLE_IOS_API_KEY_v1](https://developers.google.com/maps/documentation/ios-sdk/get-api-key)
+
 
 ### **Complete Setup**
 
