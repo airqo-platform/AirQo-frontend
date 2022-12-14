@@ -146,25 +146,25 @@ class _SettingsPageState extends State<SettingsPage> {
                             Divider(
                               color: CustomColors.appBodyColor,
                             ),
-                            GestureDetector(
-                              onTap: () async {
-                                await AppService().clearshowcase();
-                                await Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const HomePage();
-                                    },
-                                  ),
-                                  (r) => false,
-                                );
-                              },
-                              child: const SettingsCard(
-                                text: 'Take a tour of the App',
+                            Visibility(
+                              visible: false,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  await AppService().clearshowcase();
+                                  await Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return const HomePage();
+                                      },
+                                    ),
+                                    (r) => false,
+                                  );
+                                },
+                                child: const SettingsCard(
+                                  text: 'Take a tour of the App',
+                                ),
                               ),
-                            ),
-                            Divider(
-                              color: CustomColors.appBodyColor,
                             ),
                             GestureDetector(
                               onTap: () async {
