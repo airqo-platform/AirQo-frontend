@@ -10,9 +10,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'analytics_widgets.dart';
 
-class AnalyticsView extends StatelessWidget {
-  const AnalyticsView({super.key});
+class AnalyticsView extends StatefulWidget {
+  const AnalyticsView({Key? key}) : super(key: key);
 
+  @override
+  State<AnalyticsView> createState() => _AnalyticsViewState();
+}
+
+class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
@@ -24,7 +29,7 @@ class AnalyticsView extends StatelessWidget {
           context.read<AccountBloc>().add(const RefreshAnalytics());
         }
 
-        final analytics = state.analytics.sortByDateTime();
+        List<Analytics> analytics = state.analytics.sortByDateTime();
 
         if (analytics.isEmpty) {
           return Container(); // TODO replace with error page

@@ -267,7 +267,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    final kya = state.kya;
+    List<Kya> kya = state.kya;
     final cloudKya = await CloudStore.getKya();
 
     final List<String> kyaIds = kya.map((kya) => kya.id).toList();
