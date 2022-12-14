@@ -26,9 +26,7 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 }
 
 class OnBoardingLocationIcon extends StatelessWidget {
-  const OnBoardingLocationIcon({
-    super.key,
-  });
+  const OnBoardingLocationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +48,7 @@ class OnBoardingLocationIcon extends StatelessWidget {
 }
 
 class OnBoardingNotificationIcon extends StatelessWidget {
-  const OnBoardingNotificationIcon({
-    super.key,
-  });
+  const OnBoardingNotificationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -179,9 +175,7 @@ class TitleDropDown extends StatelessWidget {
 }
 
 class LogoWidget extends StatelessWidget {
-  const LogoWidget({
-    super.key,
-  });
+  const LogoWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

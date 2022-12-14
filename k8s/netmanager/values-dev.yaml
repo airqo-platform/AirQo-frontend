@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: airqo-dev-platform-frontend
+  repository: gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
   tag: latest
   pullPolicy: Always
 

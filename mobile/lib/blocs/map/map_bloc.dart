@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,127 +11,193 @@ part 'map_event.dart';
 part 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
-  MapBloc() : super(const AllSitesState(airQualityReadings: [])) {
+  MapBloc() : super(const MapState.initial()) {
+    on<InitializeMapState>(_onInitializeMapState);
+    on<ShowCountryRegions>(_onShowCountryRegions);
     on<ShowRegionSites>(_onShowRegionSites);
-    on<ShowAllSites>(_onShowAllSites);
-    on<ShowSite>(_showSite);
-    on<SearchSite>(_searchSite);
-    on<MapSearchReset>(_onMapSearchReset);
-    on<MapSearchTermChanged>(_onMapSearchTermChanged);
+    on<ShowSiteReading>(_onShowSiteReading);
+    on<InitializeSearch>(_onInitializeSearch);
+  }
+
+  late final SearchRepository searchRepository;
+
+  Future<void> _onPopulateMapState(Emitter<MapState> emit) async {
+    List<AirQualityReading> airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+
+    if (airQualityReadings.isEmpty) {
+      final hasConnection = await hasNetworkConnection();
+      if (!hasConnection) {
+        return emit(state.copyWith(
+          mapStatus: MapStatus.error,
+          blocError: AuthenticationError.noInternetConnection,
+        ));
+      }
+
+      emit(state.copyWith(mapStatus: MapStatus.loading));
+
+      await AppService().refreshAirQualityReadings().then((value) {
+        airQualityReadings =
+            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                .values
+                .toList();
+        if (airQualityReadings.isEmpty) {
+          emit(state.copyWith(mapStatus: MapStatus.noAirQuality));
+        }
+      });
+    }
+
+    final List<String> countries =
+        airQualityReadings.map((e) => e.country.toTitleCase()).toSet().toList();
+
+    countries.removeWhere((element) => element.isEmpty);
+    countries.sort();
+    airQualityReadings = airQualityReadings.sortByAirQuality();
+
+    return emit(const MapState.initial().copyWith(
+      airQualityReadings: airQualityReadings,
+      countries: countries,
+      mapStatus: MapStatus.showingCountries,
+      featuredAirQualityReadings: airQualityReadings,
+    ));
+  }
+
+  Future<void> _onInitializeMapState(
+    InitializeMapState _,
+    Emitter<MapState> emit,
+  ) async {
+    await _onPopulateMapState(emit);
+  }
+
+  void _onShowCountryRegions(
+    ShowCountryRegions event,
+    Emitter<MapState> emit,
+  ) {
+    final List<String> regions = state.airQualityReadings
+        .where((e) => e.country.equalsIgnoreCase(event.country))
+        .toList()
+        .map((e) => e.region.toTitleCase())
+        .toSet()
+        .toList();
+
+    regions.removeWhere((element) => element.isEmpty);
+
+    final airQualityReadings = state.airQualityReadings
+        .where((e) => e.country.equalsIgnoreCase(event.country))
+        .toList();
+
+    regions.sort();
+
+    return emit(state.copyWith(
+      regions: regions,
+      featuredCountry: event.country.toTitleCase(),
+      mapStatus: MapStatus.showingRegions,
+      featuredAirQualityReadings: airQualityReadings.sortByAirQuality(),
+    ));
+  }
+
+  void _onShowRegionSites(
+    ShowRegionSites event,
+    Emitter<MapState> emit,
+  ) {
+    final List<AirQualityReading> airQualityReadings = state.airQualityReadings
+        .where((e) =>
+            e.country.equalsIgnoreCase(state.featuredCountry) &&
+            e.region.equalsIgnoreCase(event.region))
+        .toList();
+
+    return emit(state.copyWith(
+      featuredAirQualityReadings: airQualityReadings.sortByAirQuality(),
+      featuredRegion: event.region.toTitleCase(),
+      mapStatus: MapStatus.showingRegionSites,
+    ));
+  }
+
+  void _onShowSiteReading(
+    ShowSiteReading event,
+    Emitter<MapState> emit,
+  ) {
+    final AirQualityReading site =
+        state.airQualityReadings.firstWhere((e) => e.placeId.equalsIgnoreCase(
+              event.airQualityReading.placeId,
+            ));
+
+    return emit(state.copyWith(
+      featuredSiteReading: site,
+      mapStatus: MapStatus.showingFeaturedSite,
+    ));
+  }
+
+  void _onInitializeSearch(
+    InitializeSearch _,
+    Emitter<MapState> emit,
+  ) {
+    return emit(state.copyWith(mapStatus: MapStatus.searching));
+  }
+}
+
+class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
+  MapSearchBloc() : super(const MapSearchState.initial()) {
+    on<InitializeSearch>(_onInitializeSearch);
+    on<MapSearchTermChanged>(
+      _onMapSearchTermChanged,
+      transformer: debounce(const Duration(milliseconds: 300)),
+    );
     searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
 
   late final SearchRepository searchRepository;
 
-  Future<void> _onShowAllSites(
-    ShowAllSites _,
-    Emitter<MapState> emit,
-  ) async {
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
-
-    return emit(AllSitesState(airQualityReadings: airQualityReadings));
-  }
-
-  Future<void> _onShowRegionSites(
-    ShowRegionSites event,
-    Emitter<MapState> emit,
-  ) async {
-    final airQualityReadings = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    )
-        .values
-        .where((airQualityReading) => airQualityReading.region == event.region)
-        .toList();
-
-    return emit(RegionSitesState(
-      airQualityReadings: airQualityReadings,
-      region: event.region,
-    ));
-  }
-
-  Future<void> _showSite(
-    ShowSite event,
-    Emitter<MapState> emit,
-  ) async {
-    return emit(SingleSiteState(airQualityReading: event.airQualityReading));
-  }
-
-  Future<void> _searchSite(
-    SearchSite _,
-    Emitter<MapState> emit,
-  ) async {
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
-
-    return emit(SearchSitesState(airQualityReadings: airQualityReadings));
-  }
-
-  void _onMapSearchReset(
-    MapSearchReset _,
-    Emitter<MapState> emit,
+  void _onLoadDefaults(
+    Emitter<MapSearchState> emit,
   ) {
-    var nearestAirQualityReadings =
+    List<AirQualityReading> nearbyAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
             .values
             .toList();
 
-    if (nearestAirQualityReadings.isEmpty) {
-      nearestAirQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-    }
+    List<AirQualityReading> airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    return emit(
-      SearchSitesState(airQualityReadings: nearestAirQualityReadings),
-    );
+    airQualityReadings = nearbyAirQualityReadings.isEmpty
+        ? airQualityReadings
+        : nearbyAirQualityReadings;
+
+    return emit(state.copyWith(
+      airQualityReadings: airQualityReadings.sortByAirQuality(),
+    ));
+  }
+
+  void _onInitializeSearch(
+    InitializeSearch _,
+    Emitter<MapSearchState> emit,
+  ) {
+    return _onLoadDefaults(emit);
   }
 
   void _onMapSearchTermChanged(
     MapSearchTermChanged event,
-    Emitter<MapState> emit,
+    Emitter<MapSearchState> emit,
   ) async {
     final searchTerm = event.searchTerm;
+    emit(state.copyWith(searchTerm: searchTerm));
 
     if (searchTerm.isEmpty) {
-      var nearestAirQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-              .values
-              .toList();
-
-      if (nearestAirQualityReadings.isEmpty) {
-        nearestAirQualityReadings =
-            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                .values
-                .toList();
-      }
-
-      return emit(
-        SearchSitesState(airQualityReadings: nearestAirQualityReadings),
-      );
+      return _onLoadDefaults(emit);
     }
 
-    emit(MapLoadingState());
-
     try {
-      final results = await searchRepository.search(searchTerm);
+      final List<String> countries =
+          state.airQualityReadings.map((e) => e.country).toSet().toList();
 
-      return emit(MapSearchCompleteState(searchResults: results.items));
-    } catch (error) {
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      final airQualitySearch = airQualityReadings.where((airQualityReading) {
-        return airQualityReading.name.contains(searchTerm) ||
-            airQualityReading.location.contains(searchTerm);
-      }).toList();
-
-      return emit(
-        SearchSitesState(airQualityReadings: airQualitySearch),
+      final results = await searchRepository.search(
+        searchTerm,
+        countries: countries,
       );
+
+      return emit(state.copyWith(searchResults: results.items));
+    } catch (error) {
+      return;
     }
   }
 }

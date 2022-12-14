@@ -17,9 +17,7 @@ import '../for_you_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
-  const DashboardView({
-    super.key,
-  });
+  const DashboardView({super.key});
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -269,7 +267,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _refresh() async {
     context.read<DashboardBloc>().add(const InitializeDashboard());
-    context.read<MapBloc>().add(const ShowAllSites());
+    context.read<MapBloc>().add(const InitializeMapState());
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
     await _appService.refreshDashboard(context);
   }

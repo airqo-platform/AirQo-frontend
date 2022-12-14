@@ -32,6 +32,7 @@ class EmailAuthWidget extends StatefulWidget {
 class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   DateTime? _exitTime;
   late BuildContext _loadingContext;
+  bool _keyboardVisible = false;
 
   @override
   void initState() {
@@ -45,6 +46,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
       body: WillPopScope(
@@ -55,11 +58,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
             listener: (context, state) {
               return;
-            },
-            buildWhen: (previous, current) {
-              return current.blocStatus != BlocStatus.error &&
-                  current.blocStatus != BlocStatus.success &&
-                  current.blocStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               return Center(
@@ -95,7 +93,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                             },
                             listenWhen: (previous, current) {
                               return current.blocStatus == BlocStatus.error &&
-                                  current.error != AuthenticationError.none;
+                                  current.error != AuthenticationError.none &&
+                                  current.error !=
+                                      AuthenticationError.invalidEmailAddress;
                             },
                           ),
                           BlocListener<EmailAuthBloc, EmailAuthState>(
@@ -125,31 +125,20 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: AutoSizeText(
-                          AuthMethod.email.optionsText(state.authProcedure),
+                          state.blocStatus == BlocStatus.error &&
+                                  state.error ==
+                                      AuthenticationError.invalidEmailAddress
+                              ? AuthMethod.email.invalidInputMessage
+                              : AuthMethod.email
+                                  .optionsText(state.authProcedure),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: CustomTextStyle.headline7(context),
                         ),
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          'We’ll send you a verification code',
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText2
-                              ?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.6),
-                              ),
-                        ),
+                      InputValidationCodeMessage(
+                        state.blocStatus != BlocStatus.error,
                       ),
                       const SizedBox(
                         height: 32,
@@ -157,6 +146,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       const SizedBox(
                         height: 48,
                         child: EmailInputField(),
+                      ),
+                      InputValidationErrorMessage(
+                        message: AuthMethod.email.invalidInputErrorMessage,
+                        visible: state.blocStatus == BlocStatus.error &&
+                            state.error ==
+                                AuthenticationError.invalidEmailAddress,
                       ),
                       const SizedBox(
                         height: 32,
@@ -206,11 +201,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () async {
-                          if (state.emailAddress.isValidEmail()) {
-                            context
-                                .read<EmailAuthBloc>()
-                                .add(ValidateEmailAddress(context: context));
-                          }
+                          context
+                              .read<EmailAuthBloc>()
+                              .add(ValidateEmailAddress(context: context));
                         },
                         child: NextButton(
                           buttonColor: state.emailAddress.isValidEmail()
@@ -219,19 +212,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         ),
                       ),
                       Visibility(
-                        visible: state.blocStatus != BlocStatus.editing,
-                        child: const SizedBox(
-                          height: 16,
+                        visible: !_keyboardVisible,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16, bottom: 12),
+                          child: state.authProcedure == AuthProcedure.login
+                              ? const LoginOptions(authMethod: AuthMethod.email)
+                              : const SignUpOptions(
+                                  authMethod: AuthMethod.email,
+                                ),
                         ),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus != BlocStatus.editing,
-                        child: state.authProcedure == AuthProcedure.login
-                            ? const LoginOptions(authMethod: AuthMethod.email)
-                            : const SignUpOptions(authMethod: AuthMethod.email),
-                      ),
-                      SizedBox(
-                        height: state.blocStatus == BlocStatus.editing ? 12 : 0,
                       ),
                     ],
                   ),

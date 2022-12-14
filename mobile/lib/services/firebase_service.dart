@@ -674,6 +674,26 @@ class CustomAuth {
             .add(VerifyAuthCode(credential: credential));
       },
       verificationFailed: (FirebaseAuthException exception) async {
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext.read<PhoneAuthBloc>().add(UpdateStatus(
+                  BlocStatus.error,
+                  error: getFirebaseErrorCodeMessage(exception.code),
+                ));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext.read<AccountBloc>().add(AccountDeletionCheck(
+                  passed: false,
+                  error: getFirebaseErrorCodeMessage(exception.code),
+                ));
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
+
         throw exception;
       },
       codeSent: (String verificationId, int? resendToken) async {

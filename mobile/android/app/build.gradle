@@ -109,6 +109,7 @@ android {
             storeFile debugKeystoreProperties['storeFile'] ? file(debugKeystoreProperties['storeFile']) : null
             storePassword debugKeystoreProperties['storePassword']
         }
+        
     }
     buildTypes {
         release {

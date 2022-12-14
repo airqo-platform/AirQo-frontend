@@ -3,9 +3,9 @@ import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-class RecommendationContainer extends StatelessWidget {
-  const RecommendationContainer(this.recommendation, {super.key});
-  final Recommendation recommendation;
+class HealthTipContainer extends StatelessWidget {
+  const HealthTipContainer(this.healthTip, {super.key});
+  final HealthTip healthTip;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class RecommendationContainer extends StatelessWidget {
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: AssetImage(
-                  recommendation.imageUrl,
+                  healthTip.imageUrl,
                 ),
               ),
             ),
@@ -57,7 +57,7 @@ class RecommendationContainer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    recommendation.title,
+                    healthTip.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),
@@ -66,7 +66,7 @@ class RecommendationContainer extends StatelessWidget {
                     height: 4,
                   ),
                   AutoSizeText(
-                    recommendation.body,
+                    healthTip.body,
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.subtitle2?.copyWith(

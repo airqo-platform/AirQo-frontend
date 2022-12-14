@@ -4,7 +4,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -39,6 +38,15 @@ enum AnalyticsEvent {
   String snakeCase() {
     return '${kReleaseMode ? 'prod_' : 'stage_'}$snakeCaseValue';
   }
+}
+
+enum InsightsStatus {
+  loaded,
+  error,
+  refreshing,
+  loading,
+  noInternetConnection,
+  noData;
 }
 
 enum AppPermission {
@@ -109,11 +117,11 @@ enum AuthenticationError {
     snackBarDuration: 5,
   ),
   invalidPhoneNumber(
-    message: 'Invalid phone number',
+    message: 'Invalid Phone number',
     snackBarDuration: 5,
   ),
   invalidEmailAddress(
-    message: 'Invalid email address',
+    message: 'Invalid Email address',
     snackBarDuration: 5,
   ),
   accountTaken(
@@ -183,59 +191,6 @@ enum AppNotificationType {
   welcomeMessage,
 }
 
-@HiveType(typeId: 140, adapterName: 'RegionAdapter')
-enum Region {
-  @HiveField(1)
-  central('Central Region'),
-  @HiveField(2)
-  eastern('Eastern Region'),
-  @HiveField(3)
-  northern('Northern Region'),
-  @HiveField(4)
-  western('Western Region'),
-  @HiveField(5)
-  southern('Southern Region'),
-  @HiveField(0)
-  none('');
-
-  factory Region.fromString(String string) {
-    if (string.toLowerCase().contains('central')) {
-      return Region.central;
-    } else if (string.toLowerCase().contains('east')) {
-      return Region.eastern;
-    } else if (string.toLowerCase().contains('west')) {
-      return Region.western;
-    } else if (string.toLowerCase().contains('north')) {
-      return Region.northern;
-    } else if (string.toLowerCase().contains('south')) {
-      return Region.southern;
-    } else {
-      return Region.none;
-    }
-  }
-
-  const Region(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-}
-
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
-}
-
 enum AirQuality {
   good('Good'),
   moderate('Moderate'),
@@ -284,30 +239,40 @@ enum AuthMethod {
   phone(
     updateMessage:
         'You will not be able to sign in with your previous phone number after changing it',
-    codeVerificationText: 'Enter the 6 digits code sent to your number',
+    codeVerificationText: 'Enter the 6 digits code sent to',
     editEntryText: 'Change your number',
+    invalidInputErrorMessage: 'Looks like you missed a digit.',
+    invalidInputMessage: 'Oops, Something’s wrong with your phone number',
   ),
   email(
     updateMessage:
         'You will not be able to sign in with your previous email address after changing it',
-    codeVerificationText: 'Enter the 6 digits code sent to your email',
+    codeVerificationText: 'Enter the 6 digits code sent to',
     editEntryText: 'Change your email',
+    invalidInputErrorMessage: 'Looks like you missed a letter',
+    invalidInputMessage: 'Oops, Something’s wrong with your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
     codeVerificationText: '',
     editEntryText: '',
+    invalidInputErrorMessage: '',
+    invalidInputMessage: '',
   );
 
   const AuthMethod({
     required this.updateMessage,
     required this.codeVerificationText,
     required this.editEntryText,
+    required this.invalidInputErrorMessage,
+    required this.invalidInputMessage,
   });
 
   final String updateMessage;
   final String codeVerificationText;
   final String editEntryText;
+  final String invalidInputErrorMessage;
+  final String invalidInputMessage;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {

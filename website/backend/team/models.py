@@ -19,3 +19,21 @@ class Member(BaseModel):
 
     def __str__(self):
         return self.name
+
+@with_author
+class MemberBiography(BaseModel):
+    description = models.TextField(null=True, blank=True)
+    order = models.IntegerField(default=1)
+    member = models.ForeignKey(
+        Member,
+        null=True,
+        blank=True,
+        related_name="descriptions",
+        on_delete=models.deletion.SET_NULL,
+    )
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"Description {self.id}"

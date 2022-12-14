@@ -35,11 +35,11 @@ The UI of the calibration tool allows a user to upload CSV containing air qualit
 
 - Reference Data Pollutant Type: Select the pollutant measured by your reference monitor from the dropdown menu. This should be the same as the pollutant measured by your corresponding low-cost monitor.
 
-|                    ![When the user selects No](../_media/airqalibrate_1.png)                    |
+|               <img src='_media/airqalibrate_1.png' alt='when_user_selects_no' />                |
 | :---------------------------------------------------------------------------------------------: |
 | <b>AirQalibrate UI when the user selects **No** under the “Reference Monitor Data” section.</b> |
 
-|                    ![When the user selects Yes](../_media/airqalibrate_2.png)                    |
+|               <img src='_media/airqalibrate_2.png' alt='when_user_selects_yes' />                |
 | :----------------------------------------------------------------------------------------------: |
 | <b>AirQalibrate UI when the user selects **Yes** under the “Reference Monitor Data” section.</b> |
 
@@ -56,7 +56,7 @@ To open AirQualibrate, follow these steps:
 1. Login to the [analytics platform](https://platform.airqo.net/dashboard).
 2. From the top banner, open the AirQo Apps menu.
 3. From the Apps menu, click on calibrate App icon to open the calibrate UI
-   ![Calibrate App icon to open the calibrate U](../_media/airqalibrate_3.png)
+   <img src='_media/airqalibrate_3.png' alt='calibrate_app_icon_that_opens_the_calibrate_ui' />
 
 4. Upload a CSV containing your raw low-cost sensor’s data and assign each field on the UI a corresponding column in the CSV.
 

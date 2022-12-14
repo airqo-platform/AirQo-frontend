@@ -5,6 +5,10 @@ on:
     branches:
       - staging
 
+env:
+  REGISTRY_URL: gcr.io
+  PROJECT_ID: airqo-250220
+
 jobs:
   branch-name:
     name: Format branch name string
@@ -20,9 +24,9 @@ jobs:
   check:
     name: check for changed frontends
     outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
 
@@ -42,9 +46,9 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
           echo "run_website=false" >>$GITHUB_OUTPUT    
 
@@ -52,7 +56,7 @@ jobs:
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
@@ -60,7 +64,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -77,7 +81,7 @@ jobs:
   netmanager:
     name: build-push-deploy-netmanager-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -117,6 +121,8 @@ jobs:
           cd netmanager/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -125,27 +131,13 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
             --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/netmanager/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)netmanager image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -158,7 +150,7 @@ jobs:
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     needs: [netmanager]
     runs-on: ubuntu-latest
     steps:
@@ -216,6 +208,8 @@ jobs:
           cd calibrate/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -224,27 +218,13 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} \
             --port=80 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-calibrate-app:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/calibrate/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)calibrate app image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -271,11 +251,11 @@ jobs:
               body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
 
-  ### deploy next-platform preview ###
-  next-platform:
-    name: build-push-deploy-next-platform-preview
+  ### deploy analytics platform preview ###
+  analytics-platform:
+    name: build-push-deploy-analytics-platform-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -304,49 +284,37 @@ jobs:
       - name: Build and Push Image
         run: |
           cd platform/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated
 
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/platform/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)next platform image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
-
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  next-platform-pr-comment:
-    name: next-platform-preview-link-comment
-    if: needs.check.outputs.run_next_platform == 'true'
-    needs: [next-platform]
+  analytics-platform-pr-comment:
+    name: analytics-platform-preview-link-comment
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    needs: [analytics-platform]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -356,7 +324,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New next-platform changes available for preview [here](${{ needs.next-platform.outputs.url }})'
+              body: 'New next-platform changes available for preview [here](${{ needs.analytics-platform.outputs.url }})'
             })
 
   ### deploy docs preview ###
@@ -391,6 +359,8 @@ jobs:
           cd docs/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
@@ -399,25 +369,11 @@ jobs:
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
             --allow-unauthenticated
-
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: "k8s/docs/values-dev.yaml"
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update (dev)docs app image for PR:${{ needs.branch-name.outputs.lowercase }}"
-          createPR: false
-          changes: |
-            {
-              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews",
-              "image.tag": "${{ github.sha }}"
-            }
 
       - name: Get preview service url
         id: preview-url
@@ -510,14 +466,14 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+            --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 

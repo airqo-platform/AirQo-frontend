@@ -31,10 +31,11 @@ class InitiatePhoneNumberVerification extends PhoneAuthEvent {
 }
 
 class UpdateStatus extends PhoneAuthEvent {
-  const UpdateStatus(this.authStatus);
+  const UpdateStatus(this.authStatus, {this.error});
   final BlocStatus authStatus;
+  final AuthenticationError? error;
   @override
-  List<Object?> get props => [authStatus];
+  List<Object?> get props => [authStatus, error];
 }
 
 class UpdateCountryCode extends PhoneAuthEvent {

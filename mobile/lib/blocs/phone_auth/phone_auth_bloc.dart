@@ -33,6 +33,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   ) async {
     return emit(state.copyWith(
       blocStatus: event.authStatus,
+      error: event.error ?? state.error,
     ));
   }
 

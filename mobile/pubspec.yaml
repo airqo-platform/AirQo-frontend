@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.10+20021
+version: 2.0.12+20024
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -30,7 +30,6 @@ dependencies:
   google_maps_flutter: ^2.2.1
   json_annotation: ^4.7.0
   http: ^0.13.5
-  sqflite: ^2.2.0+3
   cached_network_image: ^3.2.2
   geolocator: ^9.0.2
   flutter_local_notifications: ^12.0.3
@@ -75,6 +74,8 @@ dependencies:
   path: ^1.8.2
   flutter_bloc: ^8.1.1
   equatable: ^2.0.5
+  drift: ^2.2.0
+  sqlite3_flutter_libs: ^0.5.0
   app_repository:
     path: packages/app_repository
 
@@ -89,12 +90,9 @@ dev_dependencies:
   json_serializable: ^6.5.4
   dart_code_metrics: ^5.0.0
   hive_generator: ^2.0.0
+  drift_dev: ^2.2.0+1
 
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
   assets:

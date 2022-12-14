@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _initialize() async {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
-    context.read<MapBloc>().add(const ShowAllSites());
+    context.read<MapBloc>().add(const InitializeMapState());
 
     if (refresh) {
       await _appService.fetchData(context);
@@ -216,10 +216,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 1) context.read<MapBloc>().add(const ShowAllSites());
-    if (index == 0) {
-      context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    switch (index) {
+      case 0:
+        context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+        break;
+      case 1:
+        switch (context.read<MapBloc>().state.mapStatus) {
+          case MapStatus.initial:
+          case MapStatus.error:
+          case MapStatus.noAirQuality:
+            context.read<MapBloc>().add(const InitializeMapState());
+            break;
+          case MapStatus.showingCountries:
+          case MapStatus.showingRegions:
+          case MapStatus.showingFeaturedSite:
+          case MapStatus.showingRegionSites:
+            break;
+        }
+        break;
     }
+
     setState(() => _selectedIndex = index);
   }
 }

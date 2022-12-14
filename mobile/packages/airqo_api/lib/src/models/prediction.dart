@@ -35,8 +35,7 @@ class Prediction {
   static List<Prediction> parsePredictions(Map<String, dynamic> jsonBody) {
     final suggestions = <Prediction>[];
 
-    final jsonArray = jsonBody['predictions'];
-    for (final jsonElement in jsonArray as List<Map<String, dynamic>>) {
+    for (final jsonElement in jsonBody['predictions']) {
       try {
         final measurement = Prediction.fromJson(jsonElement);
         suggestions.add(measurement);

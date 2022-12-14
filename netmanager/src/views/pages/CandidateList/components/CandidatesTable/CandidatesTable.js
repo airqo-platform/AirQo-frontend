@@ -13,7 +13,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  TextField,
+  CircularProgress
 } from '@material-ui/core';
 
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -25,9 +27,13 @@ import CandidateEditForm from 'views/pages/UserList/components/UserEditForm';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
-import { confirmCandidateApi, deleteCandidateApi } from 'views/apis/authService';
+import {
+  confirmCandidateApi,
+  deleteCandidateApi,
+  updateCandidateApi,
+  sendUserFeedbackApi
+} from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { updateCandidateApi } from 'views/apis/authService';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -55,6 +61,12 @@ const CandidatesTable = (props) => {
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
+
+  const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
+
+  const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
+  const [messageSubject, setMessageSubject] = useState('');
+  const [isLoading, setLoading] = useState(false);
 
   const users = mappeduserState.candidates;
   const editCandidate = mappeduserState.userToEdit;
@@ -183,6 +195,41 @@ const CandidatesTable = (props) => {
       });
   };
 
+  const sendUserNewMessage = async (candidate) => {
+    setLoading(true);
+    if (messageSubject && userFeedbackMessage) {
+      const body = {
+        email: candidate.email,
+        subject: messageSubject,
+        message: userFeedbackMessage
+      };
+
+      sendUserFeedbackApi(body)
+        .then((res) => {
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((err) => {
+          return dispatch(
+            updateMainAlert({
+              show: true,
+              message: err.response.data.message,
+              severity: 'error'
+            })
+          );
+        });
+
+      setUserFeedbackMessage('');
+      setOpenNewMessagePopup(false);
+      setLoading(false);
+    }
+  };
+
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
       <CustomMaterialTable
@@ -226,7 +273,9 @@ const CandidatesTable = (props) => {
           {
             title: 'Submitted',
             field: 'createdAt',
-            render: (candidate) => <span>{formatDateString(candidate.createdAt)}</span>
+            render: (candidate) => (
+              <span>{candidate.createdAt ? formatDateString(candidate.createdAt) : '---'}</span>
+            )
           },
           {
             title: 'Rejected',
@@ -273,10 +322,30 @@ const CandidatesTable = (props) => {
                     Revert
                   </Button>
                 ) : (
-                  <Button style={{ color: 'red' }} onClick={onDenyBtnClick(candidate)}>
+                  <Button
+                    disabled={isLoading}
+                    style={{ color: 'red' }}
+                    onClick={onDenyBtnClick(candidate)}
+                  >
                     Reject
                   </Button>
                 )}
+              </div>
+            )
+          },
+          {
+            title: 'Message',
+            render: (candidate) => (
+              <div>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setOpenNewMessagePopup(true);
+                    setCurrentCandidate(candidate);
+                  }}
+                >
+                  Send message
+                </Button>
               </div>
             )
           }
@@ -402,6 +471,57 @@ const CandidatesTable = (props) => {
           {mappeduserState.successMsg && !mappeduserState.isFetching && (
             <Button onClick={hideConfirmDialog}>Close</Button>
           )}
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        fullWidth
+        maxWidth={'sm'}
+        open={openNewMessagePopup}
+        onClose={() => setOpenNewMessagePopup(false)}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogContent>
+          <DialogContentText>Message Candidate</DialogContentText>
+          <div style={{ marginBottom: '16px' }}>
+            <TextField
+              autoFocus
+              id="subject"
+              onChange={(e) => setMessageSubject(e.target.value)}
+              label="Subject"
+              type="text"
+              variant="outlined"
+              fullWidth
+            />
+          </div>
+          <div>
+            <TextField
+              autoFocus
+              id="message"
+              onChange={(e) => setUserFeedbackMessage(e.target.value)}
+              label="Message Body"
+              type="text"
+              multiline
+              rows={8}
+              variant="outlined"
+              fullWidth
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            disabled={isLoading}
+            onClick={() => setOpenNewMessagePopup(false)}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={isLoading}
+            onClick={() => sendUserNewMessage(currentCandidate)}
+            color="primary"
+          >
+            Finish
+          </Button>
         </DialogActions>
       </Dialog>
     </Card>

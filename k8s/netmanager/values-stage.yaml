@@ -3,25 +3,20 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 2
-
 image:
   repository: gcr.io/airqo-250220/airqo-stage-platform-frontend
-  tag: latest
+  tag: stage-45ddd0db-1667922355
   pullPolicy: Always
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
 service:
   type: NodePort
   nodePort: 31101
   targetPort: 80
   port: 80
-
 ingress:
   enabled: false
-
 nodeSelector: {}
 torelations: {}
 
