@@ -35,7 +35,7 @@
 - Change `storeFile` variable in `key.properties` file to point to where you put `airqo-dev-keystore.jks`.
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
-- **For Contributors:**
+### **For Contributors:**
   - It's important to first read our guidelines [here](/../CONTRIBUTING.md).
   - Thereafter, proceed to create your own necessary configuration files. These include;
     - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
@@ -43,16 +43,25 @@ For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then 
         ```bash
         AIRQO_API_URL= https://platform.airqo.net/api/v1/
         AIRQO_API_URL_V2= https://platform.airqo.net/api/v2/
-        AIRQO_API_TOKEN = Get this token by following the respective guide below.
-        GOOGLE_ANDROID_API_KEY_= Get this by following the respective guide below.
-        GOOGLE_IOS_API_KEY_v1 = Get this key by following the respective guide below.
-        SEARCH_API_KEY=
-        ```
-      - Get the following keys by following documentaion from the respectice sources;
-        - [AIRQO_API_TOKEN](https://staging-docs.airqo.net/#/../api/users?id=login),
-        - [GOOGLE_ANDROID_API_KEY](https://support.google.com/googleapi/answer/6158862),
-        - [GOOGLE_IOS_API_KEY_v1](https://developers.google.com/maps/documentation/ios-sdk/get-api-key)
+        AIRQO_API_TOKEN = Get this token by following the respective links below.
+        SEARCH_API_KEY = 
+        AIRQO_API_USER_EXISTS_URL = https://europe-west1-airqo-250220.cloudfunctions.net/airqo-app-check-user
 
+        FAV_PLACES_COLLECTION =
+        KYA_COLLECTION =
+        USERS_NOTIFICATION_COLLECTION =
+        USERS_ANALYTICS_COLLECTION =
+        USERS_COLLECTION =
+        USERS_KYA_COLLECTION =
+        USERS_PROFILE_PICTURE_COLLECTION =
+
+        PREF_ON_BOARDING_PAGE =
+        SENTRY_DSN =
+        ```
+      - Get the following keys by following documentation from the respective sources;
+        - [AIRQO_API_TOKEN](https://staging-docs.airqo.net/#/../api/users?id=login)
+      - Use the corresponding database collection names for the collection variables.
+        - You can create a collection using the following [guide.](https://firebase.google.com/docs/firestore/data-model#collections)
 
 ### **Complete Setup**
 
