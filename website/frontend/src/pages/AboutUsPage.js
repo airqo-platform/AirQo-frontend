@@ -227,7 +227,8 @@ const AboutUsPage = () => {
               <h3 className="section-title">Meet the Board</h3>
               <div>
                 <p className="section-info">
-                  
+                  A team of enthusiastic experts that offer guidance to enhance our growth and
+                  realisation of our goals.
                 </p>
               </div>
             </div>
@@ -246,7 +247,7 @@ const AboutUsPage = () => {
               ))}
             </div>
           </div>
-          <hr/>
+          <hr />
           <div className="AboutUsPage__partners">
             <h3 className="section-title">Our partners</h3>
             <div>
