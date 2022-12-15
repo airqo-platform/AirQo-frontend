@@ -50,7 +50,6 @@ const AboutUsPage = () => {
     event.preventDefault();
     navigate(`/partners/${uniqueTitle}/`);
   };
-  console.log(boardData)
 
   useEffect(() => {
     if (isEmpty(teamData)) dispatch(loadTeamData());
