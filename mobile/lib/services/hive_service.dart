@@ -12,37 +12,49 @@ class HiveService {
     await Hive.initFlutter();
 
     Hive
-      ..registerAdapter(AppNotificationAdapter())
-      ..registerAdapter(ProfileAdapter())
-      ..registerAdapter(KyaAdapter())
-      ..registerAdapter(AnalyticsAdapter())
-      ..registerAdapter(AppNotificationTypeAdapter())
-      ..registerAdapter(KyaLessonAdapter())
-      ..registerAdapter(UserPreferencesTypeAdapter())
-      ..registerAdapter(FavouritePlaceAdapter())
-      ..registerAdapter(SearchHistoryAdapter())
-      ..registerAdapter(AirQualityReadingAdapter());
+      ..registerAdapter<AppNotification>(AppNotificationAdapter())
+      ..registerAdapter<Profile>(ProfileAdapter())
+      ..registerAdapter<Kya>(KyaAdapter())
+      ..registerAdapter<Analytics>(AnalyticsAdapter())
+      ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
+      ..registerAdapter<KyaLesson>(KyaLessonAdapter())
+      ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
+      ..registerAdapter<FavouritePlace>(FavouritePlaceAdapter())
+      ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+      ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
+
+    await Hive.openBox<AppNotification>(HiveBox.appNotifications);
+    await Hive.openBox<SearchHistory>(HiveBox.searchHistory);
+    await Hive.openBox<Kya>(HiveBox.kya);
+    await Hive.openBox<Analytics>(HiveBox.analytics);
+    await Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces);
+    try {
+      await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
+    } catch (e) {
+      Hive.box<AirQualityReading>(HiveBox.airQualityReadings).deleteFromDisk();
+      Hive.registerAdapter<AirQualityReading>(
+        AirQualityReadingAdapter(),
+        override: true,
+        internal: true,
+      );
+      await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
+    }
+    try {
+      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
+    } catch (e) {
+      Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+          .deleteFromDisk();
+      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
+    }
 
     final encryptionKey = await getEncryptionKey();
-
-    await Future.wait(
-      [
-        Hive.openBox<AppNotification>(HiveBox.appNotifications),
-        Hive.openBox<SearchHistory>(HiveBox.searchHistory),
-        Hive.openBox<Kya>(HiveBox.kya),
-        Hive.openBox<Analytics>(HiveBox.analytics),
-        Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
-        Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
-        Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
-        Hive.openBox<Profile>(
-          HiveBox.profile,
-          encryptionCipher: encryptionKey == null
-              ? null
-              : HiveAesCipher(
-                  encryptionKey,
-                ),
-        ),
-      ],
+    await Hive.openBox<Profile>(
+      HiveBox.profile,
+      encryptionCipher: encryptionKey == null
+          ? null
+          : HiveAesCipher(
+              encryptionKey,
+            ),
     );
   }
 
