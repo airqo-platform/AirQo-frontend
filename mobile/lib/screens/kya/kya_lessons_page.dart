@@ -88,23 +88,34 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         color: CustomColors.appBodyColor,
         child: Column(
           children: [
-            Expanded(
-              flex: 0,
-              child: AutoSizeText(
-                'Swipe Left Or Right to Move to Next Card',
-                style: CustomTextStyle.headline7(context)?.copyWith(
-                  color: CustomColors.appColorBlue,
+            Visibility(
+              visible: currentIndex == 9,
+              replacement: const SizedBox(
+                height: 100,
+                width: double.infinity,
+              ),
+              child: Container(
+                height: 100,
+                width: double.infinity,
+                child: AutoSizeText(
+                  'Swipe Left Or Right to Move to Next Card',
+                  style: CustomTextStyle.headline7(context)?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.6,
               child: AppinioSwiper(
                 cards: kyaCards,
+                unlimitedUnswipe: true,
                 controller: swipeController,
-                // onSwipe: () => print('Hello'), TODO: Implement
+                onSwipe: _swipe,
+                duration: const Duration(milliseconds: 300),
                 onEnd: () {
+                  kya.progress = currentIndex;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -122,15 +133,20 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _tipsProgress -= 0.1;
-                      });
-                      swipeController.unswipe();
-                    },
-                    child: const CircularKyaButton(
-                      icon: 'assets/icon/previous_arrow.svg',
+                  Visibility(
+                    visible: currentIndex != 9,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _tipsProgress -= 0.1;
+                          currentIndex--;
+                          print('currentIndex: $currentIndex');
+                        });
+                        swipeController.unswipe();
+                      },
+                      child: const CircularKyaButton(
+                        icon: 'assets/icon/previous_arrow.svg',
+                      ),
                     ),
                   ),
                   GestureDetector(
@@ -138,6 +154,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       setState(() {
                         _tipsProgress += 0.1;
                         swipeController.swipeRight();
+                        currentIndex++;
                       });
                     },
                     child: const CircularKyaButton(
@@ -157,14 +174,23 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   @override
+  initState() {
+    super.initState();
+    currentIndex = widget.kya.lessons.length;
+    for (int i = 0; i < widget.kya.lessons.length; i++) {
+      _globalKeys.add(GlobalKey());
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     kya = widget.kya;
-    currentIndex = 0;
     for (KyaLesson lesson in widget.kya.lessons) {
       Card card = _kyaCard(lesson, widget.kya.lessons.indexOf(lesson));
       kyaCards.add(card);
     }
+    print('currentIndex: $currentIndex');
   }
 
   Future<void> _share() async {
@@ -177,62 +203,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       globalKey: _globalKeys[currentIndex],
       imageName: 'airqo_know_your_air',
     );
-    // if (complete && mounted) {
-    //   setState(() => _shareLoading = false);
-    // }
+    if (complete && mounted) {
+      setState(() => _shareLoading = false);
+    }
   }
 
-  // void scrollListener() {
-  //   Future.delayed(
-  //     const Duration(milliseconds: 500),
-  //     setTipsProgress,
-  //   );
-  // }
-
-  // @override
-  // void dispose() {
-  //   itemPositionsListener.itemPositions.removeListener(scrollListener);
-  //   super.dispose();
-  // }
-
-  // void scrollToCard(int direction) {
-  //   if (direction == -1) {
-  //     setState(() => currentIndex = currentIndex - 1);
-  //     itemScrollController.scrollTo(
-  //       index: currentIndex,
-  //       duration: const Duration(milliseconds: 500),
-  //       curve: Curves.easeInOutCubic,
-  //     );
-  //   } else {
-  //     setState(() => currentIndex = currentIndex + 1);
-  //     if (currentIndex < kya.lessons.length) {
-  //       itemScrollController.scrollTo(
-  //         index: currentIndex,
-  //         duration: const Duration(milliseconds: 500),
-  //         curve: Curves.easeInOutCubic,
-  //       );
-  //     } else {
-  //       kya.progress = currentIndex;
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) {
-  //             return KyaFinalPage(kya);
-  //           },
-  //         ),
-  //       );
-  //     }
-  //   }
-  //   context
-  //       .read<AccountBloc>()
-  //       .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
-  // }
-
-  // void setTipsProgress() {
-  //   if (mounted) {
-  //     setState(() => _tipsProgress = (currentIndex + 1) / kya.lessons.length);
-  //   }
-  // }
+  void _swipe(int index, AppinioSwiperDirection direction) {
+    setState(() {
+      currentIndex = index;
+      if (direction == AppinioSwiperDirection.left) {
+        _tipsProgress -= 0.1;
+      } else if (direction == AppinioSwiperDirection.right) {
+        _tipsProgress += 0.1;
+      }
+    });
+    // context
+        // .read<AccountBloc>()
+        // .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
+  }
 
   Card _kyaCard(KyaLesson kyaItem, int index) {
     return Card(
