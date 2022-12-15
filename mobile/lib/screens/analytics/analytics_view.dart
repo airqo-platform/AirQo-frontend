@@ -10,14 +10,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'analytics_widgets.dart';
 
-class AnalyticsView extends StatefulWidget {
-  const AnalyticsView({Key? key}) : super(key: key);
+class AnalyticsView extends StatelessWidget {
+  const AnalyticsView({super.key});
 
-  @override
-  State<AnalyticsView> createState() => _AnalyticsViewState();
-}
-
-class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
