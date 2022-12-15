@@ -41,8 +41,7 @@ For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then 
     - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
       - Here's what your .env file would look like;
         ```bash
-        AIRQO_API_URL= https://platform.airqo.net/api/v1/
-        AIRQO_API_URL_V2= https://platform.airqo.net/api/v2/
+        AIRQO_API_URL= https://api.airqo.net/api/v1/
         AIRQO_API_TOKEN = Get this token by following the respective links below.
         SEARCH_API_KEY = 
         AIRQO_API_USER_EXISTS_URL = https://europe-west1-airqo-250220.cloudfunctions.net/airqo-app-check-user
@@ -62,6 +61,7 @@ For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then 
         - [AIRQO_API_TOKEN](https://staging-docs.airqo.net/#/../api/users?id=login)
       - Use the corresponding database collection names for the collection variables.
         - You can create a collection using the following [guide.](https://firebase.google.com/docs/firestore/data-model#collections)
+      - We restricted the search API to only call 3 other APIs, the Geocoding API, GeoLocation API, and the Places API. It should therefore have access to those above APIs. You can then get the api key from the GCP [credentials page.](https://console.cloud.google.com/apis/credentials)
 
 ### **Complete Setup**
 
