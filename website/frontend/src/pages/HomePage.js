@@ -11,6 +11,7 @@ import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 import HighlightsSection from '../components/HighlightsSection';
 import SEO from 'utils/seo';
+import TweetsComponent from '../components/Tweets';
 
 const HomePage = () => {
     useInitScrollTop();
@@ -31,6 +32,7 @@ const HomePage = () => {
                 <MapSection />
                 <GetApp />
                 <HighlightsSection />
+                <TweetsComponent/>
             </div>
         </Page>
     );
