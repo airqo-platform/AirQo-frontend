@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
-import 'package:path/path.dart' as path;
+// import 'package:path/path.dart' as path;
 
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
@@ -114,6 +114,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 controller: swipeController,
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
+                unswipe: _unswipe,
                 onEnd: () {
                   kya.progress = currentIndex;
                   Navigator.pushReplacement(
@@ -136,27 +137,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   Visibility(
                     visible: currentIndex != 9,
                     child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _tipsProgress -= 0.1;
-                          currentIndex--;
-                          print('currentIndex: $currentIndex');
-                        });
-                        swipeController.unswipe();
-                      },
+                      onTap: () => swipeController.unswipe(),
                       child: const CircularKyaButton(
                         icon: 'assets/icon/previous_arrow.svg',
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _tipsProgress += 0.1;
-                        swipeController.swipeRight();
-                        currentIndex++;
-                      });
-                    },
+                    onTap: () => swipeController.swipe(),
                     child: const CircularKyaButton(
                       icon: 'assets/icon/next_arrow.svg',
                     ),
@@ -190,7 +178,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       Card card = _kyaCard(lesson, widget.kya.lessons.indexOf(lesson));
       kyaCards.add(card);
     }
-    print('currentIndex: $currentIndex');
   }
 
   Future<void> _share() async {
@@ -211,15 +198,21 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   void _swipe(int index, AppinioSwiperDirection direction) {
     setState(() {
       currentIndex = index;
-      if (direction == AppinioSwiperDirection.left) {
+      _tipsProgress += 0.1;
+    });
+    // TODO: Add account updates
+    // context
+    // .read<AccountBloc>()
+    // .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
+  }
+
+  void _unswipe(bool unswiped) {
+    setState(() {
+      if (unswiped) {
+        currentIndex++;
         _tipsProgress -= 0.1;
-      } else if (direction == AppinioSwiperDirection.right) {
-        _tipsProgress += 0.1;
       }
     });
-    // context
-        // .read<AccountBloc>()
-        // .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
   }
 
   Card _kyaCard(KyaLesson kyaItem, int index) {
@@ -232,6 +225,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: RepaintBoundary(
+        key: _globalKeys[index],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
