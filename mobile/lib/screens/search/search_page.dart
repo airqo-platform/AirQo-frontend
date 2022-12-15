@@ -134,13 +134,12 @@ class SearchPage extends StatelessWidget {
                       FocusScope.of(context).requestFocus(
                         FocusNode(),
                       );
-                      if (state.featuredAirQuality == null) {
-                        _openAirQualityFilters(context);
-                      } else {
+                      if (state.featuredAirQuality != null) {
                         context
                             .read<SearchBloc>()
                             .add(const FilterByAirQuality(null));
                       }
+                      _openAirQualityFilters(context);
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left: 6),
