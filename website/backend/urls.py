@@ -25,6 +25,7 @@ from .team import views as team_views
 from .highlights import views as highlight_views
 from .highlights import views as tag_views
 from .partners import views as partner_views
+from .board import views as board_views
 
 # Config Admin Panel
 admin.site.site_header = "AirQo Website Administration"
@@ -42,6 +43,7 @@ api_router.register(r'highlights', highlight_views.HighlightViewSet)
 api_router.register(r'departments', career_views.DepartmentViewSet)
 api_router.register(r'tags', tag_views.TagViewSet)
 api_router.register(r'partner', partner_views.PartnerViewSet)
+api_router.register(r'board', board_views.BoardViewSet)
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(

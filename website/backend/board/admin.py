@@ -1,16 +1,16 @@
 from django.contrib import admin
-from .models import Member, MemberBiography
+from .models import BoardMember, BoardMemberBiography
 import nested_admin
 
 # Register your models here.
-class MemberBiographyInline(nested_admin.NestedTabularInline):
+class BoardMemberBiographyInline(nested_admin.NestedTabularInline):
     fields = ('description', 'author', 'order')
     readonly_fields = ('author', )
-    model = MemberBiography
+    model = BoardMemberBiography
     extra = 0
 
-@admin.register(Member)
-class MemberAdmin(nested_admin.NestedModelAdmin):
+@admin.register(BoardMember)
+class BoardMemberAdmin(nested_admin.NestedModelAdmin):
     list_display = ("name", "title", "image_tag")
     readonly_fields = (
         "id",
@@ -24,7 +24,6 @@ class MemberAdmin(nested_admin.NestedModelAdmin):
         "id",
         "name",
         "title",
-        "about",
         "picture",
         "image_tag",
         "twitter",
@@ -37,7 +36,7 @@ class MemberAdmin(nested_admin.NestedModelAdmin):
     )
     list_per_page = 10
     search_fields = ("name", "title")
-    inlines = (MemberBiographyInline,)
+    inlines = (BoardMemberBiographyInline,)
 
     def image_tag(self, obj):
         width, height = 100, 200

@@ -5,10 +5,9 @@ from backend.utils.models import BaseModel
 
 
 @with_author
-class Member(BaseModel):
+class BoardMember(BaseModel):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
-    about = models.TextField(blank=True)
     picture = CloudinaryField("Image", overwrite=True, resource_type="image")
     twitter = models.URLField(max_length=255, null=True, blank=True)
     linked_in = models.URLField(max_length=255, null=True, blank=True)
@@ -21,11 +20,11 @@ class Member(BaseModel):
         return self.name
 
 @with_author
-class MemberBiography(BaseModel):
+class BoardMemberBiography(BaseModel):
     description = models.TextField(null=True, blank=True)
     order = models.IntegerField(default=1)
     member = models.ForeignKey(
-        Member,
+        BoardMember,
         null=True,
         blank=True,
         related_name="descriptions",
