@@ -7,7 +7,8 @@ class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
-  static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
+  static String get airqoApiUrl =>
+      dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';

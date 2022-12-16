@@ -5,7 +5,6 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'search_widgets.dart';
 
@@ -52,9 +51,7 @@ class SearchPage extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                     },
-                    child: SvgPicture.asset(
-                      'assets/icon/close_search_filter.svg',
-                    ),
+                    child: MaterialIcons.closeSearchFilter(),
                   ),
                   const SizedBox(
                     width: 10,
@@ -76,6 +73,7 @@ class SearchPage extends StatelessWidget {
                                 AirQuality.values[index],
                               ),
                             );
+                        Navigator.pop(context);
                       },
                       child: SearchPageFilterTile(AirQuality.values[index]),
                     ),
@@ -143,19 +141,9 @@ class SearchPage extends StatelessWidget {
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left: 6),
-                      child: Container(
-                        height: 35,
-                        width: 35,
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.filter_list,
-                            color: foregroundColor,
-                          ),
-                        ),
+                      child: MaterialIcons.searchFilter(
+                        foregroundColor: foregroundColor,
+                        backgroundColor: backgroundColor,
                       ),
                     ),
                   ),
@@ -166,6 +154,7 @@ class SearchPage extends StatelessWidget {
         ),
       ),
       body: AppSafeArea(
+        horizontalPadding: 16,
         widget: BlocBuilder<SearchBloc, SearchState>(
           builder: (context, state) {
             switch (state.searchStatus) {
