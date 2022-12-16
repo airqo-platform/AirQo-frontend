@@ -78,6 +78,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.0
   app_repository:
     path: packages/app_repository
+  firebase_dynamic_links: ^5.0.3
 
   # https://pub.dev/packages/retry
 

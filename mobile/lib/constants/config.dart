@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,7 +8,8 @@ class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
-  static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
+  static String get airqoApiUrl =>
+      dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
@@ -89,12 +91,14 @@ class AppConfig extends InheritedWidget {
     required Widget child,
     required this.environment,
     required this.appTitle,
+    this.initialLink,
   }) : super(
           key: key,
           child: child,
         );
   final Environment environment;
   final String appTitle;
+  final PendingDynamicLinkData? initialLink;
 
   static AppConfig of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;

@@ -18,14 +18,15 @@ void main() async {
   );
 
   await initializeMainMethod();
-final PendingDynamicLinkData? initialLink =
+
+  final PendingDynamicLinkData? initialLink =
       await FirebaseDynamicLinks.instance.getInitialLink();
-      
+
   final configuredApp = AppConfig(
       appTitle: 'AirQo Dev',
       environment: Environment.dev,
-      child: AirQoApp(initialLink: initialLink),
-      initialLink: initialLink);
+      initialLink: initialLink,
+      child: AirQoApp(initialLink: initialLink));
 
   if (kReleaseMode) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

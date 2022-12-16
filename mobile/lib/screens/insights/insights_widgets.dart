@@ -6,6 +6,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -1387,7 +1388,6 @@ class InsightsActionBar extends StatefulWidget {
 
 class _InsightsActionBarState extends State<InsightsActionBar> {
   bool _showHeartAnimation = false;
-  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1403,24 +1403,35 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-            child: _shareLoading
-                ? const LoadingIcon(
-                    radius: 10,
-                  )
-                : InkWell(
-                    onTap: () async => _share(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 21),
-                      child: IconTextButton(
-                        iconWidget: SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
-                          semanticsLabel: 'Share',
-                        ),
-                        text: 'Share',
+            child: FutureBuilder<ShortDynamicLink>(
+              future: ShareService.createShareLink(
+                airQualityReading: widget.airQualityReading,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return InkWell(
+                    onTap: () async {
+                      ShortDynamicLink? link = snapshot.data;
+                      if (link != null) {
+                        await ShareService.shareLink(
+                          link: link,
+                          subject: widget.airQualityReading?.name ?? '',
+                        );
+                      }
+                    },
+                    child: IconTextButton(
+                      iconWidget: SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        color: CustomColors.greyColor,
+                        semanticsLabel: 'Share',
                       ),
+                      text: 'Share',
                     ),
-                  ),
+                  );
+                }
+                return const LoadingIcon(radius: 14);
+              },
+            ),
           ),
           Expanded(
             child: InkWell(
@@ -1440,21 +1451,6 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         ],
       ),
     );
-  }
-
-  Future<void> _share() async {
-    if (_shareLoading) {
-      return;
-    }
-    setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: widget.shareKey,
-      imageName: 'airqo_air_quality_graph',
-    );
-    if (complete && mounted) {
-      setState(() => _shareLoading = false);
-    }
   }
 
   Future<void> _updateFavPlace() async {

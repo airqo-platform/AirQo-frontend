@@ -6,11 +6,14 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'dashboard/dashboard_view.dart';
+import 'insights/insights_page.dart';
+import 'kya/kya_title_page.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -170,7 +173,36 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<MapBloc>().add(const InitializeMapState());
+    FirebaseDynamicLinks.instance.onLink.listen((linkData) {
+      // TODO Add error handling
 
+      final destination = linkData.link.queryParameters['destination'] ?? '';
+
+      if (destination.equalsIgnoreCase('insights')) {
+        AirQualityReading airQualityReading =
+            AirQualityReading.fromDynamicLink(linkData);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return InsightsPage(airQualityReading);
+          }),
+        );
+        return;
+      }
+
+      if (destination.equalsIgnoreCase('kya')) {
+        Kya kya = Kya.fromDynamicLink(linkData);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return KyaTitlePage(kya);
+          }),
+        );
+        return;
+      }
+    }).onError((error) {
+      debugPrint('Error: \n\n\n\n$error\n\n\n\n');
+    });
     if (refresh) {
       await _appService.fetchData(context);
     } else {

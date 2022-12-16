@@ -1,6 +1,8 @@
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/hive_service.dart';
 import 'package:app_repository/app_repository.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -29,6 +31,26 @@ class AirQualityReading extends HiveObject {
 
   factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
       _$AirQualityReadingFromJson(json);
+
+  factory AirQualityReading.fromDynamicLink(
+    PendingDynamicLinkData dynamicLinkData,
+  ) {
+    final referenceSite =
+        dynamicLinkData.link.queryParameters['referenceSite'] ?? '';
+    final placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
+    final name = dynamicLinkData.link.queryParameters['name'] ?? '';
+    final location = dynamicLinkData.link.queryParameters['location'] ?? '';
+
+    AirQualityReading airQualityReading =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .values
+            .firstWhere((element) => element.referenceSite == referenceSite);
+    return airQualityReading.copyWith(
+      placeId: placeId,
+      name: name,
+      location: location,
+    );
+  }
 
   factory AirQualityReading.fromSiteReading(SiteReading siteReading) {
     return AirQualityReading(
@@ -82,6 +104,19 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite: airQualityReading.distanceToReferenceSite,
       placeId: airQualityReading.placeId,
     );
+  }
+
+  String shareLinkParams() {
+    return 'placeId=$placeId'
+        '&referenceSite=$referenceSite'
+        '&name=$name'
+        '&location=$location'
+        '&latitude=$latitude'
+        '&longitude=$longitude'
+        '&country=$country'
+        '&source=$source'
+        '&distanceToReferenceSite=$distanceToReferenceSite'
+        '&region=$region';
   }
 
   AirQualityReading copyWith({

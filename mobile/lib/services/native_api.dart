@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
@@ -88,115 +87,71 @@ class RateService {
 }
 
 class ShareService {
-  static String getShareMessage() {
-    return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
-  }
-
-  static Future<bool> shareWidget({
-    required BuildContext buildContext,
-    required GlobalKey globalKey,
-    String? imageName,
+  static Future<ShortDynamicLink> createShareLink({
+    Kya? kya,
+    AirQualityReading? airQualityReading,
   }) async {
-    await shareInsights();
-    // try {
-    //   final boundary =
-    //       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    //   final image = await boundary.toImage(
-    //     pixelRatio: 10.0,
-    //   );
-    //   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    //   final pngBytes = byteData!.buffer.asUint8List();
-    //
-    //   final directory = (await getApplicationDocumentsDirectory()).path;
-    //   final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
-    //   await imgFile.writeAsBytes(pngBytes);
-    //
-    //   final result = await Share.shareFilesWithResult([imgFile.path]);
-    //
-    //   if (result.status == ShareResultStatus.success) {
-    //     await updateUserShares();
-    //   }
-    // } catch (exception, stackTrace) {
-    //   await shareFailed(
-    //     exception,
-    //     stackTrace,
-    //     buildContext,
-    //   );
-    // }
-
-    return true;
-  }
-
-  static Future<void> shareFailed(
-    exception,
-    StackTrace stackTrace,
-    BuildContext context,
-  ) async {
-    await logException(
-      exception,
-      stackTrace,
-    );
-    showSnackBar(
-      context,
-      Config.shareFailedMessage,
-    );
-  }
-
-  static Future<void> shareInsights() async {
-
     final packageInfo = await PackageInfo.fromPlatform();
     const uriPrefix = 'https://airqo.page.link';
+    String params = '';
+    String? title;
+    String? description;
+
+    if (airQualityReading != null) {
+      params = '${airQualityReading.shareLinkParams()}&destination=insights';
+      title = airQualityReading.name;
+      description = airQualityReading.location;
+    }
+
+    if (kya != null) {
+      params = '${kya.shareLinkParams()}&destination=kya';
+      title = kya.title;
+      description = 'Breathe Clean';
+    }
 
     final dynamicLinkParams = DynamicLinkParameters(
-      link: Uri.parse('https://airqo.net/explore-data/download-apps'),
+      link: Uri.parse('https://airqo.net/?$params'),
       uriPrefix: uriPrefix,
       androidParameters: AndroidParameters(
         packageName: packageInfo.packageName,
         minimumVersion: 30,
-        fallbackUrl: Uri.parse('https://play.google.com/store/apps/details?id=com.airqo.app'),
+        fallbackUrl: Uri.parse(
+            'https://play.google.com/store/apps/details?id=com.airqo.app'),
       ),
       iosParameters: IOSParameters(
         bundleId: packageInfo.packageName,
-        fallbackUrl: Uri.parse('https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091'),
-        appStoreId: '1337573091',
+        fallbackUrl: Uri.parse(
+            'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091'),
+        appStoreId: Config.iosStoreId,
         minimumVersion: packageInfo.version,
       ),
       googleAnalyticsParameters: const GoogleAnalyticsParameters(
-        source: 'twitter',
+        source: 'airqo-app',
         medium: 'social',
-        campaign: 'example-promo',
-        content: '',
-        term: '',
+        campaign: 'sharing-air-quality',
+        content: 'air-quality',
+        term: 'air-quality',
       ),
       socialMetaTagParameters: SocialMetaTagParameters(
-        title: 'Example of a Dynamic Link',
-        description: 'This link works whether app is installed or not!',
-        imageUrl: Uri.parse('https://firebasestorage.googleapis.com/v0/b/airqo-250220.appspot.com/o/FIAMImages%2Fairqo_logo.png?alt=media&token=ce6e59cd-512a-4ea4-8886-ff13bf18c571'),
+        title: title,
+        description: description,
+        imageUrl: Uri.parse(
+            'https://storage.googleapis.com/airqo_open_data/test_share_image.png'),
       ),
     );
 
-    final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-    print(dynamicLink.shortUrl);
+    final ShortDynamicLink dynamicLink =
+        await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
 
+    return dynamicLink;
   }
 
-  static void shareMeasurementText(AirQualityReading airQualityReading) {
-    final healthTipList =
-        getHealthTips(airQualityReading.pm2_5, Pollutant.pm2_5);
-    var healthtips = '';
-    for (final value in healthTipList) {
-      healthtips = '$healthtips\n- ${value.body}';
-    }
-    Share.share(
-      '${airQualityReading.name}, Current Air Quality.\n\n'
-      'PM2.5 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 (${Pollutant.pm2_5.stringValue(airQualityReading.pm2_5)}) \n'
-      'PM10 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 \n'
-      '$healthtips\n\n'
-      'Source: AirQo App',
-      subject: 'AirQo, ${airQualityReading.name}!',
-    ).then(
-      (value) => {updateUserShares()},
-    );
+  static Future<void> shareLink(
+      {required ShortDynamicLink link, required String subject}) async {
+    await Share.share(
+      '${link.shortUrl}',
+      subject: subject,
+    ).then((value) => {updateUserShares()});
   }
 
   static Future<void> updateUserShares() async {

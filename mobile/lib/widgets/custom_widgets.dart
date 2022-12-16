@@ -7,6 +7,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -305,12 +306,10 @@ class AnalyticsCardFooter extends StatefulWidget {
     super.key,
     required this.airQualityReading,
     required this.shareKey,
-    this.loadingRadius,
   });
 
   final AirQualityReading airQualityReading;
   final GlobalKey shareKey;
-  final double? loadingRadius;
 
   @override
   State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
@@ -318,19 +317,27 @@ class AnalyticsCardFooter extends StatefulWidget {
 
 class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
   bool _showHeartAnimation = false;
-  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: _shareLoading
-              ? LoadingIcon(
-                  radius: widget.loadingRadius ?? 14,
-                )
-              : InkWell(
-                  onTap: () async => _share(),
+          child: FutureBuilder<ShortDynamicLink>(
+            future: ShareService.createShareLink(
+                airQualityReading: widget.airQualityReading),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return InkWell(
+                  onTap: () async {
+                    ShortDynamicLink? link = snapshot.data;
+                    if (link != null) {
+                      await ShareService.shareLink(
+                        link: link,
+                        subject: widget.airQualityReading.name,
+                      );
+                    }
+                  },
                   child: IconTextButton(
                     iconWidget: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
@@ -339,7 +346,11 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                     ),
                     text: 'Share',
                   ),
-                ),
+                );
+              }
+              return const LoadingIcon(radius: 14);
+            },
+          ),
         ),
         Expanded(
           child: InkWell(
@@ -355,17 +366,6 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         ),
       ],
     );
-  }
-
-  Future<void> _share() async {
-    setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: widget.shareKey,
-    );
-    if (complete && mounted) {
-      setState(() => _shareLoading = false);
-    }
   }
 
   void _updateFavPlace(BuildContext context) {

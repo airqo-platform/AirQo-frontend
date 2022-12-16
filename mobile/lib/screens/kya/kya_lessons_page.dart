@@ -5,6 +5,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -34,7 +35,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   int currentIndex = 0;
   late Kya kya;
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
-  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -69,19 +69,33 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
               ),
             ),
-            InkWell(
-              onTap: () async => _share(),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 7, right: 24),
-                child: _shareLoading
-                    ? const LoadingIcon(radius: 10)
-                    : SvgPicture.asset(
+            FutureBuilder<ShortDynamicLink>(
+              future: ShareService.createShareLink(kya: widget.kya),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return InkWell(
+                    onTap: () async {
+                      ShortDynamicLink? link = snapshot.data;
+                      if (link != null) {
+                        await ShareService.shareLink(
+                          link: link,
+                          subject: widget.kya.title,
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      child: SvgPicture.asset(
                         'assets/icon/share_icon.svg',
                         color: CustomColors.greyColor,
                         height: 16,
                         width: 16,
                       ),
-              ),
+                    ),
+                  );
+                }
+                return const LoadingIcon(radius: 14);
+              },
             ),
           ],
         ),
@@ -161,21 +175,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       index++;
     }
     itemPositionsListener.itemPositions.addListener(scrollListener);
-  }
-
-  Future<void> _share() async {
-    if (_shareLoading) {
-      return;
-    }
-    setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: _globalKeys[currentIndex],
-      imageName: 'airqo_know_your_air',
-    );
-    if (complete && mounted) {
-      setState(() => _shareLoading = false);
-    }
   }
 
   void scrollListener() {

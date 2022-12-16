@@ -1,4 +1,6 @@
+import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -47,6 +49,19 @@ class Kya extends HiveObject with EquatableMixin {
   List<KyaLesson> lessons = [];
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+    final kyaId = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
+
+    Kya kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .firstWhere((element) => element.id == kyaId);
+    return kya;
+  }
+
+  String shareLinkParams() {
+    return 'kyaId=$id';
+  }
 
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';

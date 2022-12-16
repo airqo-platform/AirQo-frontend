@@ -3,6 +3,7 @@ import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -17,10 +18,14 @@ void main() async {
 
   await initializeMainMethod();
 
-  const configuredApp = AppConfig(
+  final PendingDynamicLinkData? initialLink =
+      await FirebaseDynamicLinks.instance.getInitialLink();
+
+  final configuredApp = AppConfig(
     appTitle: 'AirQo',
     environment: Environment.prod,
-    child: AirQoApp(),
+    initialLink: initialLink,
+    child: AirQoApp(initialLink: initialLink),
   );
 
   if (kReleaseMode) {
