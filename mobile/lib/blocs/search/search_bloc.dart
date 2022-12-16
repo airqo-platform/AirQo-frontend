@@ -16,17 +16,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<ReloadSearchPage>(_onReloadSearchPage);
     on<FilterByAirQuality>(_onFilterByAirQuality);
     on<SearchAirQuality>(_onSearchAirQuality);
-
     on<SearchTermChanged>(
       _onSearchTermChanged,
-      transformer: debounce(const Duration(milliseconds: 300)),
+      transformer: debounce(const Duration(seconds: 1)),
     );
     searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
 
   late final SearchRepository searchRepository;
 
-  Future<void> _onLoadSearchHistory(Emitter<SearchState> emit) async {
+  Future<void> _loadSearchHistory(Emitter<SearchState> emit) async {
     List<SearchHistory> searchHistory =
         Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
     searchHistory = searchHistory.sortByDateTime().take(3).toList();
@@ -36,14 +35,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return emit(state.copyWith(recentSearches: recentSearches));
   }
 
-  Future<void> _initialize(
-    Emitter<SearchState> emit,
-  ) async {
+  Future<void> _initialize(Emitter<SearchState> emit) async {
     List<AirQualityReading> africanCities = [];
-    final nearestAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
 
     final airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
@@ -61,7 +54,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     africanCities.shuffle();
 
-    if (africanCities.isEmpty && nearestAirQualityReadings.isEmpty) {
+    if (africanCities.isEmpty) {
       return emit(const SearchState.initial().copyWith(
         searchStatus: SearchStatus.error,
         searchError: SearchError.noAirQualityData,
@@ -69,13 +62,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     emit(const SearchState.initial().copyWith(
-      nearbyAirQualityLocations: nearestAirQualityReadings.sortByAirQuality(),
       africanCities: africanCities,
       searchStatus: SearchStatus.initial,
       searchError: SearchError.none,
     ));
 
-    await _onLoadSearchHistory(emit);
+    await _loadSearchHistory(emit);
 
     return;
   }
@@ -123,10 +115,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<AirQualityReading> otherAirQualityLocations = <AirQualityReading>[];
 
     if (event.airQuality != null) {
-      nearbyAirQualityLocations = state.nearbyAirQualityLocations
-          .where((element) =>
-              Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
-          .toList();
+      nearbyAirQualityLocations =
+          Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+              .values
+              .where((element) =>
+                  Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
+              .toList();
 
       final List<AirQualityReading> airQualityReadings =
           Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
@@ -137,6 +131,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           .where((element) =>
               Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
           .toList();
+
+      otherAirQualityLocations.removeWhere((element) =>
+          nearbyAirQualityLocations
+              .map((e) => e.placeId)
+              .toList()
+              .contains(element.placeId));
     }
 
     return emit(state.copyWith(
@@ -230,13 +230,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       final List<String> countries =
           airQualityReadings.map((e) => e.country).toSet().toList();
 
-      final results = await searchRepository.search(
+      final SearchResult results = await searchRepository.search(
         searchTerm,
         countries: countries,
       );
 
       return emit(state.copyWith(
-        searchResults: results.items,
+        searchResults: results.items.toSet().toList(),
         searchStatus: SearchStatus.autoCompleteSearchSuccess,
         searchError: SearchError.none,
       ));
