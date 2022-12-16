@@ -7,15 +7,15 @@ const TweetsComponent = () => {
     document.getElementsByClassName('twitter-embed')[0].appendChild(script);
   }, []);
 //   const iframes = document.getElementsByClassName('css-1dbjc4n r-140t1nj r-qklmqi');
-//   const iframe = document.getElementById('twitter-widget-0');
+  const iframe = document.getElementById("twitter-widget-0");
 //   console.log(iframes.length)
 
 //   element = iframe.contentWindow.document.getElementsByClassName(
 //     'css-1dbjc4n r-140t1nj r-qklmqi'
 //   );
-//   console.log(element)
+  console.log(iframe)
   return (
-    <section className="twitterContainer" style={{ padding: '90px 0 60px 0' }}>
+    <section className="twitterContainer" style={{ padding: '90px 60px 0 60px' }}>
       <div className="twitter-embed">
         <a
           className="twitter-timeline"
