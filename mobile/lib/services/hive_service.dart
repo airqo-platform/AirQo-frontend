@@ -30,6 +30,7 @@ class HiveService {
     await Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces);
     try {
       await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
+      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
     } catch (e) {
       Hive.box<AirQualityReading>(HiveBox.airQualityReadings).deleteFromDisk();
       Hive.registerAdapter<AirQualityReading>(
@@ -38,12 +39,6 @@ class HiveService {
         internal: true,
       );
       await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
-    }
-    try {
-      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
-    } catch (e) {
-      Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-          .deleteFromDisk();
       await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
     }
 
