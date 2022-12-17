@@ -1,7 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/kya/kya_title_page.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/services/services.dart';
@@ -13,19 +13,13 @@ import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
-import '../insights/insights_page.dart';
 import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-    this.initialLink,
-  });
-
-  final PendingDynamicLinkData? initialLink;
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => SplashScreenState();
@@ -65,6 +59,18 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
+    FirebaseDynamicLinks.instance.onLink.listen((linkData) {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (navigatorBuildContext != null) {
+        ShareService.navigateToPage(
+          linkData: linkData,
+          context: navigatorBuildContext,
+        );
+      }
+    }).onError((error) async {
+      await logException(error, null);
+    });
+
     final isLoggedIn = CustomAuth.isLoggedIn();
 
     final nextPage = getOnBoardingPageConstant(
@@ -76,36 +82,6 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(
       const Duration(seconds: 5),
       () {
-        // TODO Add error handling and don't return on failure
-        PendingDynamicLinkData? linkData = widget.initialLink;
-        if (linkData != null) {
-          final destination =
-              linkData.link.queryParameters['destination'] ?? '';
-
-          if (destination.equalsIgnoreCase('insights')) {
-            AirQualityReading airQualityReading =
-                AirQualityReading.fromDynamicLink(linkData);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) {
-                return InsightsPage(airQualityReading);
-              }),
-            );
-            return;
-          }
-
-          if (destination.equalsIgnoreCase('kya')) {
-            Kya kya = Kya.fromDynamicLink(linkData);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) {
-                return KyaTitlePage(kya);
-              }),
-            );
-            return;
-          }
-        }
-
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {

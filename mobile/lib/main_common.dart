@@ -19,9 +19,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AirQoApp extends StatelessWidget {
-  const AirQoApp({super.key, this.initialLink});
-
-  final PendingDynamicLinkData? initialLink;
+  const AirQoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +66,14 @@ class AirQoApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
             SentryNavigatorObserver(),
           ],
           title: config.appTitle,
           theme: customTheme(),
-          home: SplashScreen(initialLink: initialLink),
+          home: const SplashScreen(),
         );
       },
     );

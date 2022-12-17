@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
@@ -91,14 +93,12 @@ class AppConfig extends InheritedWidget {
     required Widget child,
     required this.environment,
     required this.appTitle,
-    this.initialLink,
   }) : super(
           key: key,
           child: child,
         );
   final Environment environment;
   final String appTitle;
-  final PendingDynamicLinkData? initialLink;
 
   static AppConfig of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;

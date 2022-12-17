@@ -2,6 +2,8 @@ import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../screens/home_page.dart';
+
 class NextButton extends StatelessWidget {
   const NextButton({
     super.key,
@@ -60,7 +62,17 @@ class AppBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pop(context);
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              return const HomePage();
+            }),
+            (r) => false,
+          );
+        }
       },
       child: SvgPicture.asset(
         'assets/icon/back_button.svg',

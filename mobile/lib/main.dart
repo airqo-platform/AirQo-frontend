@@ -15,17 +15,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
   await initializeMainMethod();
 
-  final PendingDynamicLinkData? initialLink =
-      await FirebaseDynamicLinks.instance.getInitialLink();
-
-  final configuredApp = AppConfig(
+  const configuredApp = AppConfig(
     appTitle: 'AirQo',
     environment: Environment.prod,
-    initialLink: initialLink,
-    child: AirQoApp(initialLink: initialLink),
+    child: AirQoApp(),
   );
 
   if (kReleaseMode) {

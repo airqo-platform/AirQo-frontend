@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
@@ -20,6 +21,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
+import '../screens/insights/insights_page.dart';
+import '../screens/kya/kya_title_page.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'local_storage.dart';
@@ -116,12 +119,14 @@ class ShareService {
         packageName: packageInfo.packageName,
         minimumVersion: 30,
         fallbackUrl: Uri.parse(
-            'https://play.google.com/store/apps/details?id=com.airqo.app'),
+          'https://play.google.com/store/apps/details?id=com.airqo.app',
+        ),
       ),
       iosParameters: IOSParameters(
         bundleId: packageInfo.packageName,
         fallbackUrl: Uri.parse(
-            'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091'),
+          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
+        ),
         appStoreId: Config.iosStoreId,
         minimumVersion: packageInfo.version,
       ),
@@ -136,7 +141,8 @@ class ShareService {
         title: title,
         description: description,
         imageUrl: Uri.parse(
-            'https://storage.googleapis.com/airqo_open_data/test_share_image.png'),
+          'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg',
+        ),
       ),
     );
 
@@ -144,6 +150,45 @@ class ShareService {
         await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
 
     return dynamicLink;
+  }
+
+  static void navigateToPage({
+    required PendingDynamicLinkData linkData,
+    required BuildContext context,
+  }) {
+    final destination = linkData.link.queryParameters['destination'] ?? '';
+    try {
+      if (destination.equalsIgnoreCase('insights')) {
+        AirQualityReading airQualityReading = AirQualityReading.fromDynamicLink(
+          linkData,
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return InsightsPage(airQualityReading);
+          }),
+          (r) => false,
+        );
+      }
+
+      if (destination.equalsIgnoreCase('kya')) {
+        Kya kya = Kya.fromDynamicLink(linkData);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return KyaTitlePage(kya);
+          }),
+          (r) => false,
+        );
+      }
+    } catch (e) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) {
+          return const ErrorPage();
+        }),
+      );
+    }
   }
 
   static Future<void> shareLink(

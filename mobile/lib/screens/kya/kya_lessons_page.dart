@@ -12,6 +12,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../home_page.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
@@ -51,7 +52,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           children: [
             InkWell(
               onTap: () {
-                Navigator.of(context).pop(true);
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const HomePage();
+                    }),
+                    (r) => false,
+                  );
+                }
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 7),
