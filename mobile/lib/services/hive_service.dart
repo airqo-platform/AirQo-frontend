@@ -23,23 +23,27 @@ class HiveService {
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
-    await Hive.openBox<AppNotification>(HiveBox.appNotifications);
-    await Hive.openBox<SearchHistory>(HiveBox.searchHistory);
-    await Hive.openBox<Kya>(HiveBox.kya);
-    await Hive.openBox<Analytics>(HiveBox.analytics);
-    await Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces);
-    try {
-      await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
-      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
-    } catch (e) {
-      Hive.box<AirQualityReading>(HiveBox.airQualityReadings).deleteFromDisk();
-      Hive.registerAdapter<AirQualityReading>(
-        AirQualityReadingAdapter(),
-        override: true,
-        internal: true,
-      );
-      await Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings);
-      await Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings);
+    await Future.wait([
+      Hive.openBox<AppNotification>(HiveBox.appNotifications),
+      Hive.openBox<SearchHistory>(HiveBox.searchHistory),
+      Hive.openBox<Kya>(HiveBox.kya),
+      Hive.openBox<Analytics>(HiveBox.analytics),
+      Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
+    ]);
+
+    for (final box in [
+      HiveBox.airQualityReadings,
+      HiveBox.nearByAirQualityReadings
+    ]) {
+      try {
+        await Hive.openBox<AirQualityReading>(box);
+      } catch (_, __) {
+        await Hive.box<AirQualityReading>(box)
+            .deleteFromDisk()
+            .whenComplete(() async => {
+                  await Hive.openBox<AirQualityReading>(box),
+                });
+      }
     }
 
     final encryptionKey = await getEncryptionKey();
