@@ -34,7 +34,7 @@ describe("Verify AirQo Documentation Home Page", () => {
     cy.get(".sidebar > .sidebar-nav").should("be.exist");
   });
 
-  it("Verify Side Bar Navigation menu Links are present", () => {
+  it("Verify Navigation Links are present", () => {
     cy.get("a[title='API']").first().should("be.exist");
     cy.get("a[title='Calibration']").first().should("be.exist");
     cy.get("a[title='Hardware']").first().should("be.exist");
