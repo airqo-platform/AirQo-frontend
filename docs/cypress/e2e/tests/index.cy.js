@@ -5,27 +5,27 @@ describe("Verify AirQo Documentation Home Page", () => {
     cy.visit("http://localhost:3000/#/");
   });
 
-  it("Verify Side Menu Button is functional", () => {
-    cy.get(".sidebar-toggle").click();
-  });
-
-  it("Verify AirQo logo is present and visible", () => {
+  it.skip("Verify AirQo logo is present and visible", () => {
     cy.get("section > .cover-main").eq(0).should("be.visible");
   });
 
-  it("Verify Header is present", () => {
+  it.skip("Verify Header is present", () => {
     cy.get("blockquote")
       .first()
       .should("be.exist")
       .contains("Clean Air for all African Cities");
   });
 
-  it("Verify GitHub Call-To-Action is functional", () => {
+  it.skip("Verify GitHub Call-To-Action is functional", () => {
     cy.get('[href="https://github.com/airqo-platform"]').click();
   });
 
-  it("Verify Explore Data Call-To-Action is functional", () => {
+  it.skip("Verify Explore Data Call-To-Action is functional", () => {
     cy.get('[href="https://airqo.net/explore-data"]').click();
+  });
+
+  it("Verify Side Menu Button is functional", () => {
+    cy.get(".sidebar-toggle").click();
   });
 
   it("Verify Side Bar menu sections exist", () => {
