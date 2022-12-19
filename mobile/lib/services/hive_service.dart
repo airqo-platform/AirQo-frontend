@@ -29,22 +29,9 @@ class HiveService {
       Hive.openBox<Kya>(HiveBox.kya),
       Hive.openBox<Analytics>(HiveBox.analytics),
       Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
+      Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
+      Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
-
-    for (final box in [
-      HiveBox.airQualityReadings,
-      HiveBox.nearByAirQualityReadings
-    ]) {
-      try {
-        await Hive.openBox<AirQualityReading>(box);
-      } catch (_, __) {
-        await Hive.box<AirQualityReading>(box)
-            .deleteFromDisk()
-            .whenComplete(() async => {
-                  await Hive.openBox<AirQualityReading>(box),
-                });
-      }
-    }
 
     final encryptionKey = await getEncryptionKey();
     await Hive.openBox<Profile>(
@@ -221,7 +208,7 @@ class HiveBox {
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get analytics => 'analytics';
-  static String get airQualityReadings => 'airQualityReadingsBox';
-  static String get nearByAirQualityReadings => 'nearByAirQualityReadings';
+  static String get airQualityReadings => 'airQualityReadings-v1';
+  static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
   static String get favouritePlaces => 'favouritePlaces';
 }
