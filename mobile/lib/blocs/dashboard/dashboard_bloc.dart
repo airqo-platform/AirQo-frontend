@@ -70,10 +70,20 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     RefreshDashboard _,
     Emitter<DashboardState> emit,
   ) async {
-    // TODO check internet connection
-    // TODO return error if air quality is empty
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection && state.airQualityReadings.isEmpty) {
+      return emit(state.copyWith(
+        blocStatus: DashboardStatus.error,
+        error: DashboardError.noInternetConnection,
+      ));
+    }
 
-    emit(state.copyWith(blocStatus: DashboardStatus.processing));
+    emit(state.copyWith(
+      blocStatus: state.airQualityReadings.isEmpty
+          ? DashboardStatus.loading
+          : DashboardStatus.refreshing,
+    ));
+
     await AppService().refreshAirQualityReadings();
     await AppService().updateFavouritePlacesReferenceSites();
     await _updateGreetings(emit);
@@ -84,7 +94,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     InitializeDashboard _,
     Emitter<DashboardState> emit,
   ) async {
-    emit(state.copyWith(blocStatus: DashboardStatus.processing));
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: DashboardStatus.error,
+        error: DashboardError.noInternetConnection,
+      ));
+    }
+
+    emit(state.copyWith(
+        blocStatus: state.airQualityReadings.isEmpty
+            ? DashboardStatus.loading
+            : DashboardStatus.refreshing));
     await _updateGreetings(emit);
     _updateAirQualityReadings(emit);
   }

@@ -1,10 +1,10 @@
 part of 'dashboard_bloc.dart';
 
 enum DashboardStatus {
-  initial,
   loaded,
-  processing,
+  refreshing,
   error,
+  loading,
 }
 
 enum DashboardError { noAirQuality, noInternetConnection, none }
@@ -13,14 +13,14 @@ class DashboardState extends Equatable {
   const DashboardState._({
     this.greetings = '',
     this.airQualityReadings = const [],
-    this.blocStatus = DashboardStatus.initial,
+    this.blocStatus = DashboardStatus.loading,
     this.error = DashboardError.none,
   });
 
   const DashboardState({
     this.greetings = '',
     this.airQualityReadings = const [],
-    this.blocStatus = DashboardStatus.initial,
+    this.blocStatus = DashboardStatus.loading,
     this.error = DashboardError.none,
   });
 

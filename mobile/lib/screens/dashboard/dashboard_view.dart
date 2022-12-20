@@ -117,132 +117,134 @@ class _DashboardViewState extends State<DashboardView>
               const SizedBox(
                 height: 24,
               ),
-              Expanded(
-                child: AppRefreshIndicator(
-                  sliverChildDelegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final items = [
-                        Text(
-                          getDateTime(),
-                          style: Theme.of(context).textTheme.caption?.copyWith(
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text(
-                          'Today’s air quality',
-                          style: CustomTextStyle.headline11(context),
-                        ),
-                        BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
-                          builder: (context, state) {
-                            if (state.blocStatus ==
-                                NearbyLocationStatus.error) {
-                              switch (state.error) {
-                                case NearbyAirQualityError.locationDenied:
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 16),
-                                    child: DashboardLocationButton(state.error),
-                                  );
-                                case NearbyAirQualityError.locationDisabled:
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 16),
-                                    child: DashboardLocationButton(state.error),
-                                  );
-                                case NearbyAirQualityError.none:
-                                case NearbyAirQualityError
-                                    .noNearbyAirQualityReadings:
-                                  return Container();
-                              }
-                            }
+              BlocBuilder<DashboardBloc, DashboardState>(
+                builder: (context, state) {
+                  switch (state.blocStatus) {
+                    case DashboardStatus.error:
+                      switch (state.error) {
+                        case DashboardError.none:
+                        case DashboardError.noAirQuality:
+                          return NoAirQualityDataWidget(
+                            callBack: () {
+                              _refresh();
+                            },
+                          );
+                        case DashboardError.noInternetConnection:
+                          return NoInternetConnectionWidget(
+                            callBack: () {
+                              _refresh();
+                            },
+                          );
+                      }
+                    case DashboardStatus.loading:
+                      return const Expanded(
+                        child: DashboardLoadingWidget(),
+                      );
+                    case DashboardStatus.refreshing:
+                    case DashboardStatus.loaded:
+                      break;
+                  }
 
-                            if (state.airQualityReadings.isEmpty) {
-                              return Container();
-                            }
+                  if (state.airQualityReadings.isEmpty) {
+                    return NoAirQualityDataWidget(
+                      callBack: () {
+                        _refresh();
+                      },
+                    );
+                  }
 
-                            final AirQualityReading nearbyAirQuality = state
-                                .airQualityReadings
-                                .reduce((value, element) {
-                              if (value.distanceToReferenceSite.compareTo(
-                                    element.distanceToReferenceSite,
-                                  ) <
-                                  0) {
-                                return value;
-                              }
-
-                              return element;
-                            });
-
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: AnalyticsCard(
-                                nearbyAirQuality,
-                                false,
-                              ),
-                            );
-                          },
-                        ),
-                        BlocBuilder<AccountBloc, AccountState>(
-                          builder: (context, state) {
-                            final incompleteKya =
-                                state.kya.filterIncompleteKya();
-                            if (incompleteKya.isEmpty) {
-                              return const SizedBox();
-                            }
-
-                            final Kya kya = incompleteKya.reduce(
-                              (value, element) =>
-                                  value.progress > element.progress
-                                      ? value
-                                      : element,
-                            );
-
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: DashboardKyaCard(kya),
-                            );
-                          },
-                        ),
-                        BlocBuilder<DashboardBloc, DashboardState>(
-                          builder: (context, state) {
-                            switch (state.blocStatus) {
-                              case DashboardStatus.initial:
-                                return NoAirQualityDataWidget(
-                                  callBack: () {
-                                    _refresh();
-                                  },
-                                );
-                              case DashboardStatus.error:
-                                switch (state.error) {
-                                  case DashboardError.none:
-                                  case DashboardError.noAirQuality:
-                                    return NoAirQualityDataWidget(
-                                      callBack: () {
-                                        _refresh();
-                                      },
-                                    );
-                                  case DashboardError.noInternetConnection:
-                                    return NoInternetConnectionWidget(
-                                      callBack: () {
-                                        _refresh();
-                                      },
-                                    );
+                  return Expanded(
+                    child: AppRefreshIndicator(
+                      sliverChildDelegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final items = [
+                            Text(
+                              getDateTime(),
+                              style:
+                                  Theme.of(context).textTheme.caption?.copyWith(
+                                        color: Colors.black.withOpacity(0.5),
+                                      ),
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              'Today’s air quality',
+                              style: CustomTextStyle.headline11(context),
+                            ),
+                            BlocBuilder<NearbyLocationBloc,
+                                NearbyLocationState>(
+                              builder: (context, state) {
+                                if (state.blocStatus ==
+                                    NearbyLocationStatus.error) {
+                                  switch (state.error) {
+                                    case NearbyAirQualityError.locationDenied:
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: DashboardLocationButton(
+                                            state.error),
+                                      );
+                                    case NearbyAirQualityError.locationDisabled:
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: DashboardLocationButton(
+                                            state.error),
+                                      );
+                                    case NearbyAirQualityError.none:
+                                    case NearbyAirQualityError
+                                        .noNearbyAirQualityReadings:
+                                      return Container();
+                                  }
                                 }
-                              case DashboardStatus.processing:
-                              case DashboardStatus.loaded:
-                                break;
-                            }
 
-                            if (state.airQualityReadings.isEmpty) {
-                              return NoAirQualityDataWidget(
-                                callBack: () {
-                                  _refresh();
-                                },
-                              );
-                            }
+                                if (state.airQualityReadings.isEmpty) {
+                                  return Container();
+                                }
 
-                            return ListView.builder(
+                                final AirQualityReading nearbyAirQuality = state
+                                    .airQualityReadings
+                                    .reduce((value, element) {
+                                  if (value.distanceToReferenceSite.compareTo(
+                                        element.distanceToReferenceSite,
+                                      ) <
+                                      0) {
+                                    return value;
+                                  }
+
+                                  return element;
+                                });
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: AnalyticsCard(
+                                    nearbyAirQuality,
+                                    false,
+                                  ),
+                                );
+                              },
+                            ),
+                            BlocBuilder<AccountBloc, AccountState>(
+                              builder: (context, state) {
+                                final incompleteKya =
+                                    state.kya.filterIncompleteKya();
+                                if (incompleteKya.isEmpty) {
+                                  return const SizedBox();
+                                }
+
+                                final Kya kya = incompleteKya.reduce(
+                                  (value, element) =>
+                                      value.progress > element.progress
+                                          ? value
+                                          : element,
+                                );
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: DashboardKyaCard(kya),
+                                );
+                              },
+                            ),
+                            ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: state.airQualityReadings.length,
@@ -255,19 +257,19 @@ class _DashboardViewState extends State<DashboardView>
                                   ),
                                 );
                               },
-                            );
-                          },
-                        ),
-                      ];
+                            ),
+                          ];
 
-                      return items[index];
-                    },
-                    childCount: 6,
-                  ),
-                  onRefresh: () async {
-                    _refresh();
-                  },
-                ),
+                          return items[index];
+                        },
+                        childCount: 6,
+                      ),
+                      onRefresh: () async {
+                        _refresh();
+                      },
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -599,12 +601,6 @@ class _AnimatedDashboardViewState extends State<AnimatedDashboardView>
                     child: BlocBuilder<DashboardBloc, DashboardState>(
                       builder: (context, state) {
                         switch (state.blocStatus) {
-                          case DashboardStatus.initial:
-                            return NoAirQualityDataWidget(
-                              callBack: () {
-                                _refresh();
-                              },
-                            );
                           case DashboardStatus.error:
                             switch (state.error) {
                               case DashboardError.none:
@@ -621,9 +617,13 @@ class _AnimatedDashboardViewState extends State<AnimatedDashboardView>
                                   },
                                 );
                             }
-                          case DashboardStatus.processing:
+                          case DashboardStatus.refreshing:
                           case DashboardStatus.loaded:
                             break;
+                          case DashboardStatus.loading:
+                            return const Expanded(
+                              child: DashboardLoadingWidget(),
+                            );
                         }
 
                         if (state.airQualityReadings.isEmpty) {

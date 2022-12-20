@@ -392,7 +392,7 @@ class AnalyticsCard extends StatelessWidget {
                                           builder: (context, state) {
                                             return CircularLoadingIndicator(
                                               loading: state.blocStatus ==
-                                                  DashboardStatus.processing,
+                                                  DashboardStatus.refreshing,
                                             );
                                           },
                                         ),
