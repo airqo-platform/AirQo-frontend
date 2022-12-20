@@ -122,6 +122,39 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 
     return data;
   }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
+
+    return data;
+  }
+
+  List<AirQualityReading> shuffleByCountry() {
+    List<AirQualityReading> data = List.of(this);
+    List<AirQualityReading> shuffledData = [];
+
+    final List<String> countries = data.map((e) => e.country).toSet().toList();
+    countries.shuffle();
+    while (data.isNotEmpty) {
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = data
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .take(1)
+            .toList();
+        shuffledData.addAll(countryReadings);
+        for (final reading in countryReadings) {
+          data.remove(reading);
+        }
+      }
+    }
+
+    return shuffledData;
+  }
 }
 
 extension ProfileExt on Profile {

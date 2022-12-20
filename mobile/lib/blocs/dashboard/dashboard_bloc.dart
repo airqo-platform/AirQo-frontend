@@ -15,31 +15,32 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<RefreshDashboard>(_onRefreshDashboard);
   }
 
-  Future<void> _onUpdateGreetings(Emitter<DashboardState> emit) async {
+  Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
     final greetings = await DateTime.now().getGreetings();
     emit(state.copyWith(greetings: greetings));
   }
 
-  void _getAirQualityReadings(Emitter<DashboardState> emit) {
+  void _updateAirQualityReadings(Emitter<DashboardState> emit) {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
     List<AirQualityReading> nearbyAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
             .values
-            .toList();
-    nearbyAirQualityReadings.sort((x, y) {
-      return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-    });
+            .toList()
+            .sortByDistanceToReferenceSite();
 
-    if (nearbyAirQualityReadings.isNotEmpty) {
+    if (nearbyAirQualityReadings.length > 1) {
       nearbyAirQualityReadings.removeAt(0);
+      airQualityCards.add(nearbyAirQualityReadings.first);
     }
-
-    airQualityCards.addAll(nearbyAirQualityReadings.take(2).toList());
 
     List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
-    airQualityReadings.shuffle();
+
+    airQualityReadings.removeWhere((element) => airQualityCards
+        .map((e) => e.placeId)
+        .toList()
+        .contains(element.placeId));
 
     final List<String> countries =
         airQualityReadings.map((e) => e.country).toSet().toList();
@@ -48,14 +49,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       List<AirQualityReading> countryReadings = airQualityReadings
           .where((element) => element.country.equalsIgnoreCase(country))
           .toList();
-      countryReadings.removeWhere((element) => airQualityCards
-          .map((e) => e.placeId)
-          .toList()
-          .contains(element.placeId));
+      countryReadings.shuffle();
       airQualityCards.addAll(countryReadings.take(2));
     }
 
-    airQualityCards.shuffle();
+    airQualityCards = airQualityCards.shuffleByCountry();
 
     return emit(state.copyWith(
       airQualityReadings: airQualityCards,
@@ -78,8 +76,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(state.copyWith(blocStatus: DashboardStatus.processing));
     await AppService().refreshAirQualityReadings();
     await AppService().updateFavouritePlacesReferenceSites();
-    await _onUpdateGreetings(emit);
-    _getAirQualityReadings(emit);
+    await _updateGreetings(emit);
+    _updateAirQualityReadings(emit);
   }
 
   Future<void> _onInitializeDashboard(
@@ -87,7 +85,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     emit(state.copyWith(blocStatus: DashboardStatus.processing));
-    await _onUpdateGreetings(emit);
-    _getAirQualityReadings(emit);
+    await _updateGreetings(emit);
+    _updateAirQualityReadings(emit);
   }
 }

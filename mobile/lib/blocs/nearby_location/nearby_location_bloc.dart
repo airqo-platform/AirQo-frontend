@@ -1,6 +1,5 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,52 +17,42 @@ class NearbyLocationBloc
     SearchLocationAirQuality _,
     Emitter<NearbyLocationState> emit,
   ) async {
-    try {
-      emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.searching,
-        error: NearbyAirQualityError.none,
-      ));
+    emit(state.copyWith(
+      blocStatus: NearbyLocationStatus.searching,
+      error: NearbyAirQualityError.none,
+    ));
 
-      final permissionGranted =
-          await PermissionService.checkPermission(AppPermission.location);
+    final bool permissionGranted =
+        await PermissionService.checkPermission(AppPermission.location);
 
-      if (!permissionGranted) {
-        return emit(state.copyWith(
-          blocStatus: NearbyLocationStatus.error,
-          error: NearbyAirQualityError.locationDenied,
-        ));
-      }
-
-      bool? serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return emit(state.copyWith(
-          blocStatus: NearbyLocationStatus.error,
-          error: NearbyAirQualityError.locationDisabled,
-        ));
-      }
-
-      final airQualityReadings =
-          await LocationService.getNearbyAirQualityReadings(top: 8);
-
-      await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
-
-      if (airQualityReadings.isEmpty) {
-        return emit(state.copyWith(
-          blocStatus: NearbyLocationStatus.error,
-          error: NearbyAirQualityError.noNearbyAirQualityReadings,
-        ));
-      }
-
+    if (!permissionGranted) {
       return emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.loaded,
-        error: NearbyAirQualityError.none,
-        airQualityReadings: airQualityReadings,
+        blocStatus: NearbyLocationStatus.error,
+        error: NearbyAirQualityError.locationDenied,
       ));
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
     }
+
+    final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return emit(state.copyWith(
+        blocStatus: NearbyLocationStatus.error,
+        error: NearbyAirQualityError.locationDisabled,
+      ));
+    }
+
+    final airQualityReadings =
+        await LocationService.getNearbyAirQualityReadings();
+
+    await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
+
+    return emit(state.copyWith(
+      blocStatus: airQualityReadings.isEmpty
+          ? NearbyLocationStatus.error
+          : NearbyLocationStatus.loaded,
+      error: airQualityReadings.isEmpty
+          ? NearbyAirQualityError.noNearbyAirQualityReadings
+          : NearbyAirQualityError.none,
+      airQualityReadings: airQualityReadings,
+    ));
   }
 }
