@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -99,17 +100,21 @@ class ShareService {
     String params = '';
     String? title;
     String? description;
+    Uri? shareImage;
 
     if (airQualityReading != null) {
       params = '${airQualityReading.shareLinkParams()}&destination=insights';
       title = airQualityReading.name;
       description = airQualityReading.location;
+      // TODO add siteShareImage to AirQualityReading model
+      // shareImage = airQualityReading.siteShareImage.isEmpty ? null : Uri.parse(airQualityReading.siteShareImage);
     }
 
     if (kya != null) {
       params = '${kya.shareLinkParams()}&destination=kya';
       title = kya.title;
       description = 'Breathe Clean';
+      shareImage = kya.shareImage.isEmpty ? null : Uri.parse(kya.shareImage);
     }
 
     final dynamicLinkParams = DynamicLinkParameters(
@@ -128,34 +133,30 @@ class ShareService {
           'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
         ),
         appStoreId: Config.iosStoreId,
-        minimumVersion: packageInfo.version,
+        minimumVersion:
+            packageInfo.version, // TODO replace with minimum version
       ),
       googleAnalyticsParameters: const GoogleAnalyticsParameters(
         source: 'airqo-app',
         medium: 'social',
-        campaign: 'sharing-air-quality',
-        content: 'air-quality',
-        term: 'air-quality',
+        campaign: 'Air Quality Sharing',
+        content: 'Air Quality Sharing',
+        term: 'Air Quality Sharing',
       ),
       socialMetaTagParameters: SocialMetaTagParameters(
         title: title,
         description: description,
-        imageUrl: Uri.parse(
-          'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg',
-        ),
+        imageUrl: shareImage,
       ),
     );
 
-    final ShortDynamicLink dynamicLink =
-        await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-
-    return dynamicLink;
+    return FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
   }
 
-  static void navigateToPage({
+  static Future<void> navigateToSharedFeature({
     required PendingDynamicLinkData linkData,
     required BuildContext context,
-  }) {
+  }) async {
     final destination = linkData.link.queryParameters['destination'] ?? '';
     try {
       if (destination.equalsIgnoreCase('insights')) {
@@ -172,7 +173,13 @@ class ShareService {
       }
 
       if (destination.equalsIgnoreCase('kya')) {
-        Kya kya = Kya.fromDynamicLink(linkData);
+        final String id = linkData.link.queryParameters['kyaId'] ?? '';
+        Kya kya = Hive.box<Kya>(HiveBox.kya)
+            .values
+            .firstWhere((element) => element.id == id, orElse: () {
+          return Kya.withOnlyId(id);
+        });
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
@@ -181,18 +188,23 @@ class ShareService {
           (r) => false,
         );
       }
-    } catch (e) {
+    } catch (exception, stackTrace) {
+      print(exception);
+      print(stackTrace);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) {
           return const ErrorPage();
         }),
       );
+      await logException(exception, stackTrace);
     }
   }
 
-  static Future<void> shareLink(
-      {required ShortDynamicLink link, required String subject}) async {
+  static Future<void> shareLink({
+    required ShortDynamicLink link,
+    required String subject,
+  }) async {
     await Share.share(
       '${link.shortUrl}',
       subject: subject,

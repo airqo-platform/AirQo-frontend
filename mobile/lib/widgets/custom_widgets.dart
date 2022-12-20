@@ -325,8 +325,13 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         Expanded(
           child: FutureBuilder<ShortDynamicLink>(
             future: ShareService.createShareLink(
-                airQualityReading: widget.airQualityReading),
+              airQualityReading: widget.airQualityReading,
+            ),
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                // TODO implement this functionality
+              }
+
               if (snapshot.hasData) {
                 return InkWell(
                   onTap: () async {
@@ -348,6 +353,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   ),
                 );
               }
+
               return const LoadingIcon(radius: 14);
             },
           ),

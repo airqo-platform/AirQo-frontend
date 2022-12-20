@@ -1408,6 +1408,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                 airQualityReading: widget.airQualityReading,
               ),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  // TODO implement this functionality
+                }
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
@@ -1429,6 +1432,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                     ),
                   );
                 }
+
                 return const LoadingIcon(radius: 14);
               },
             ),

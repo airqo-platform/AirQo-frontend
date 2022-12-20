@@ -19,6 +19,7 @@ class Kya extends HiveObject with EquatableMixin {
     required this.progress,
     required this.completionMessage,
     required this.secondaryImageUrl,
+    required this.shareImage,
   });
 
   @HiveField(1, defaultValue: 0)
@@ -28,10 +29,8 @@ class Kya extends HiveObject with EquatableMixin {
   @HiveField(2)
   String title;
 
-  @HiveField(
-    3,
-    defaultValue: 'You just finished your first Know You Air Lesson',
-  )
+  @HiveField(3,
+      defaultValue: 'You just finished your first Know You Air Lesson')
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
   String completionMessage;
 
@@ -48,15 +47,24 @@ class Kya extends HiveObject with EquatableMixin {
   @HiveField(7)
   List<KyaLesson> lessons = [];
 
+  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
+  @HiveField(8, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareImage;
+
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
-  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
-    final kyaId = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
-
-    Kya kya = Hive.box<Kya>(HiveBox.kya)
-        .values
-        .firstWhere((element) => element.id == kyaId);
-    return kya;
+  factory Kya.withOnlyId(String id) {
+    return Kya(
+      title: '',
+      imageUrl: '',
+      id: id,
+      lessons: [],
+      progress: 0,
+      completionMessage: '',
+      secondaryImageUrl: '',
+      shareImage: '',
+    );
   }
 
   String shareLinkParams() {

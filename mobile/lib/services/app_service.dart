@@ -102,6 +102,30 @@ class AppService {
     }
   }
 
+  static Future<Kya> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      return kya.firstWhere((element) => element.id == id);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      throw NotFoundException('Kya not found');
+    }
+  }
+
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(

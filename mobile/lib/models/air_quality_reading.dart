@@ -45,6 +45,7 @@ class AirQualityReading extends HiveObject {
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .values
             .firstWhere((element) => element.referenceSite == referenceSite);
+
     return airQualityReading.copyWith(
       placeId: placeId,
       name: name,
@@ -219,6 +220,11 @@ class AirQualityReading extends HiveObject {
   @HiveField(13, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String region;
+
+  // @HiveField(14, defaultValue: '')
+  // @JsonKey(defaultValue: '')
+  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
+  // final String siteShareImage;
 
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
 }

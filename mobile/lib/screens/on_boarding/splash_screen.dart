@@ -59,10 +59,10 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
-    FirebaseDynamicLinks.instance.onLink.listen((linkData) {
+    FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
       if (navigatorBuildContext != null) {
-        ShareService.navigateToPage(
+        await ShareService.navigateToSharedFeature(
           linkData: linkData,
           context: navigatorBuildContext,
         );

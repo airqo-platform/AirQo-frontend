@@ -83,6 +83,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             FutureBuilder<ShortDynamicLink>(
               future: ShareService.createShareLink(kya: widget.kya),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  // TODO implement this functionality
+                }
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
@@ -105,6 +108,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     ),
                   );
                 }
+
                 return const LoadingIcon(radius: 14);
               },
             ),

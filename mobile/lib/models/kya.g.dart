@@ -26,13 +26,14 @@ class KyaAdapter extends TypeAdapter<Kya> {
           ? 'You just finished your first Know You Air Lesson'
           : fields[3] as String,
       secondaryImageUrl: fields[5] as String,
+      shareImage: fields[8] == null ? '' : fields[8] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Kya obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(1)
       ..write(obj.progress)
       ..writeByte(2)
@@ -46,7 +47,9 @@ class KyaAdapter extends TypeAdapter<Kya> {
       ..writeByte(6)
       ..write(obj.id)
       ..writeByte(7)
-      ..write(obj.lessons);
+      ..write(obj.lessons)
+      ..writeByte(8)
+      ..write(obj.shareImage);
   }
 
   @override
@@ -115,6 +118,7 @@ Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
       completionMessage: json['completionMessage'] as String? ??
           'You just finished your first Know You Air Lesson',
       secondaryImageUrl: json['secondaryImageUrl'] as String? ?? '',
+      shareImage: json['shareImage'] as String? ?? '',
     );
 
 Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
@@ -125,6 +129,7 @@ Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
       'secondaryImageUrl': instance.secondaryImageUrl,
       'id': instance.id,
       'lessons': instance.lessons.map((e) => e.toJson()).toList(),
+      'shareImage': instance.shareImage,
     };
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
