@@ -18,6 +18,7 @@ class SiteReading extends Equatable {
     required this.pm2_5,
     required this.pm10,
     required this.source,
+    required this.shareImage,
   });
 
   factory SiteReading.fromMeasurement(Measurement measurement) {
@@ -40,7 +41,9 @@ class SiteReading extends Equatable {
         pm10: double.parse(
             (measurement.pm10.calibratedValue ?? measurement.pm10.value)
                 .toStringAsFixed(2)),
-        source: measurement.site.tenant);
+        source: measurement.site.tenant,
+        shareImage: measurement.site.shareImage,
+    );
   }
 
   factory SiteReading.fromJson(Map<String, dynamic> json) =>
@@ -59,6 +62,7 @@ class SiteReading extends Equatable {
   final DateTime dateTime;
   final double pm2_5;
   final double pm10;
+  final String shareImage;
 
   @override
   List<Object?> get props => [name, dateTime, pm2_5];

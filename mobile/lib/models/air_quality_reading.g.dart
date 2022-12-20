@@ -30,13 +30,14 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       pm10: fields[10] == null ? 0.0 : fields[10] as double,
       distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
       placeId: fields[12] == null ? '' : fields[12] as String,
+      shareImage: fields[14] == null ? '' : fields[14] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, AirQualityReading obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.referenceSite)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(12)
       ..write(obj.placeId)
       ..writeByte(13)
-      ..write(obj.region);
+      ..write(obj.region)
+      ..writeByte(14)
+      ..write(obj.shareImage);
   }
 
   @override
@@ -96,6 +99,7 @@ AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
       distanceToReferenceSite:
           (json['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
       placeId: json['placeId'] as String? ?? '',
+      shareImage: json['shareImage'] as String? ?? '',
     );
 
 Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
@@ -113,4 +117,5 @@ Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
       'distanceToReferenceSite': instance.distanceToReferenceSite,
       'placeId': instance.placeId,
       'region': instance.region,
+      'shareImage': instance.shareImage,
     };

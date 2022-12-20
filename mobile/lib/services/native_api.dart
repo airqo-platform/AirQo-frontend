@@ -105,8 +105,9 @@ class ShareService {
       params = '${airQualityReading.shareLinkParams()}&destination=insights';
       title = airQualityReading.name;
       description = airQualityReading.location;
-      // TODO add siteShareImage to AirQualityReading model
-      // shareImage = airQualityReading.siteShareImage.isEmpty ? null : Uri.parse(airQualityReading.siteShareImage);
+      shareImage = airQualityReading.shareImage.isEmpty
+          ? null
+          : Uri.parse(airQualityReading.shareImage);
     }
 
     if (kya != null) {

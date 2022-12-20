@@ -33,4 +33,6 @@ class Site {
   final String region;
   @JsonKey(defaultValue: 'AirQo', required: false)
   final String tenant;
+  @JsonKey(name: 'share_image',defaultValue: '', required: false)
+  final String shareImage;
 }

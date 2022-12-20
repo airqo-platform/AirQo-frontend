@@ -27,6 +27,7 @@ class AirQualityReading extends HiveObject {
     required this.pm10,
     required this.distanceToReferenceSite,
     required this.placeId,
+    required this.shareImage,
   });
 
   factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
@@ -61,6 +62,7 @@ class AirQualityReading extends HiveObject {
           pm10: 0,
           distanceToReferenceSite: 0,
           placeId: '',
+          shareImage: '',
         );
       },
     );
@@ -87,6 +89,7 @@ class AirQualityReading extends HiveObject {
       pm10: siteReading.pm10,
       distanceToReferenceSite: 0.0,
       placeId: siteReading.siteId,
+      shareImage: siteReading.shareImage,
     );
   }
 
@@ -150,6 +153,7 @@ class AirQualityReading extends HiveObject {
     DateTime? dateTime,
     double? pm2_5,
     double? pm10,
+    String? shareImage,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
@@ -166,6 +170,7 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
+      shareImage: shareImage ?? this.shareImage,
     );
   }
 
@@ -240,10 +245,9 @@ class AirQualityReading extends HiveObject {
   @JsonKey(defaultValue: '')
   final String region;
 
-  // @HiveField(14, defaultValue: '')
-  // @JsonKey(defaultValue: '')
-  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
-  // final String siteShareImage;
+  @HiveField(14, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareImage;
 
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
 }
