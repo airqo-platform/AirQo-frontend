@@ -103,9 +103,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     }
 
     emit(state.copyWith(
-        blocStatus: state.airQualityReadings.isEmpty
-            ? DashboardStatus.loading
-            : DashboardStatus.refreshing));
+      blocStatus: state.airQualityReadings.isEmpty
+          ? DashboardStatus.loading
+          : DashboardStatus.refreshing,
+    ));
     await _updateGreetings(emit);
     _updateAirQualityReadings(emit);
   }

@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -48,38 +49,35 @@ class AirQualityReading extends HiveObject {
   }
 
   factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    return AirQualityReading(
+    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.firstWhere(
+        (element) => element.referenceSite == favouritePlace.referenceSite,
+        orElse: () {
+      return AirQualityReading(
+        referenceSite: favouritePlace.referenceSite,
+        source: '',
+        latitude: favouritePlace.latitude,
+        longitude: favouritePlace.longitude,
+        country: '',
+        name: favouritePlace.name,
+        location: favouritePlace.location,
+        region: '',
+        dateTime: DateTime.now(),
+        pm2_5: 0,
+        pm10: 0,
+        distanceToReferenceSite: 0,
+        placeId: favouritePlace.placeId,
+      );
+    });
+
+    return airQualityReading.copyWith(
       referenceSite: favouritePlace.referenceSite,
       latitude: favouritePlace.latitude,
       longitude: favouritePlace.longitude,
-      country: favouritePlace.location,
       name: favouritePlace.name,
       location: favouritePlace.location,
-      region: '',
-      source: favouritePlace.location,
-      dateTime: DateTime.now(),
-      pm2_5: 0.0,
-      pm10: 0.0,
-      distanceToReferenceSite: 0.0,
       placeId: favouritePlace.placeId,
-    );
-  }
-
-  factory AirQualityReading.duplicate(AirQualityReading airQualityReading) {
-    return AirQualityReading(
-      referenceSite: airQualityReading.referenceSite,
-      source: airQualityReading.referenceSite,
-      latitude: airQualityReading.latitude,
-      longitude: airQualityReading.longitude,
-      country: airQualityReading.country,
-      name: airQualityReading.name,
-      location: airQualityReading.location,
-      region: airQualityReading.region,
-      dateTime: airQualityReading.dateTime,
-      pm2_5: airQualityReading.pm2_5,
-      pm10: airQualityReading.pm10,
-      distanceToReferenceSite: airQualityReading.distanceToReferenceSite,
-      placeId: airQualityReading.placeId,
     );
   }
 
@@ -88,6 +86,7 @@ class AirQualityReading extends HiveObject {
     String? placeId,
     String? name,
     String? location,
+    String? country,
     String? referenceSite,
     double? latitude,
     double? longitude,
@@ -100,7 +99,7 @@ class AirQualityReading extends HiveObject {
       source: source,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      country: country,
+      country: country ?? this.country,
       name: name ?? this.name,
       location: location ?? this.location,
       region: region,
@@ -110,26 +109,6 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
-    );
-  }
-
-  AirQualityReading populateFavouritePlace(FavouritePlace favouritePlace) {
-    return AirQualityReading.duplicate(
-      AirQualityReading(
-        placeId: favouritePlace.placeId,
-        latitude: favouritePlace.latitude,
-        longitude: favouritePlace.longitude,
-        name: favouritePlace.name,
-        location: favouritePlace.location,
-        referenceSite: referenceSite,
-        source: source,
-        country: country,
-        region: region,
-        dateTime: dateTime,
-        pm2_5: pm2_5,
-        pm10: pm10,
-        distanceToReferenceSite: distanceToReferenceSite,
-      ),
     );
   }
 

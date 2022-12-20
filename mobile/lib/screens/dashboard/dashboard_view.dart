@@ -182,13 +182,15 @@ class _DashboardViewState extends State<DashboardView>
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 16),
                                         child: DashboardLocationButton(
-                                            state.error),
+                                          state.error,
+                                        ),
                                       );
                                     case NearbyAirQualityError.locationDisabled:
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 16),
                                         child: DashboardLocationButton(
-                                            state.error),
+                                          state.error,
+                                        ),
                                       );
                                     case NearbyAirQualityError.none:
                                     case NearbyAirQualityError
