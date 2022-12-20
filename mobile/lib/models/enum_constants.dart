@@ -152,8 +152,7 @@ enum NearbyAirQualityError {
     snackBarDuration: 5,
   ),
   locationDenied(
-    message:
-        'Grant location access in your phone settings get air quality near you',
+    message: 'Grant location access to get air quality near you',
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),

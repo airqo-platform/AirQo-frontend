@@ -221,7 +221,7 @@ class AppService {
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
     for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+      final nearestSite = await LocationService.getNearestSite(
         favPlace.latitude,
         favPlace.longitude,
       );

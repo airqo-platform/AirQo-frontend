@@ -9,7 +9,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../insights/insights_page.dart';
 
@@ -71,7 +70,7 @@ class _SearchResultsWidgetState extends State<SearchResultsWidget> {
     final place = await _searchRepository.placeDetails(searchResultItem.id);
 
     if (place != null) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+      final nearestSite = await LocationService.getNearestSite(
         place.geometry.location.lat,
         place.geometry.location.lng,
       );
@@ -482,7 +481,7 @@ class RequestLocationAccess extends StatelessWidget {
     PermissionService.checkPermission(AppPermission.location, request: true)
         .then((value) => context
             .read<NearbyLocationBloc>()
-            .add(const SearchNearbyLocations()));
+            .add(const SearchLocationAirQuality()));
   }
 }
 

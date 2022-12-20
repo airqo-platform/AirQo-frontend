@@ -264,8 +264,9 @@ class AnalyticsCard extends StatelessWidget {
               child: Column(
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      const Spacer(),
                       InkWell(
                         onTap: () {
                           pmInfoDialog(
@@ -283,7 +284,7 @@ class AnalyticsCard extends StatelessWidget {
                             height: 20,
                             width: 20,
                             child: SvgPicture.asset(
-                              'assets/icon/close.svg',
+                              'assets/icon/info_icon.svg',
                               height: 20,
                               width: 20,
                             ),

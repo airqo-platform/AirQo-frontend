@@ -35,7 +35,7 @@ class DashboardLocationButton extends StatelessWidget {
         elevation: 2,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(8),
+            Radius.circular(13),
           ),
         ),
         backgroundColor: CustomColors.appColorBlue,

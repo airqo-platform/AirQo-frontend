@@ -7,7 +7,8 @@ class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
-  static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
+  static String get airqoApiUrl =>
+      dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
@@ -64,12 +65,10 @@ class Config {
   static String get locationErrorMessage =>
       'Cannot get your location at the moment';
 
-  static int get maxSearchRadius => searchRadius * 2;
-
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
 
-  static int get searchRadius => 2;
+  static int get searchRadius => 4;
 
   static String get termsUrl =>
       'https://docs.airqo.net/#/mobile_app/privacy_policy';

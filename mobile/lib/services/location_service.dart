@@ -18,23 +18,19 @@ class LocationService {
     required double latitude,
     required double longitude,
   }) async {
-    try {
-      final landMarks = await placemarkFromCoordinates(latitude, longitude);
-      String? address = '';
-      final landMark = landMarks.first;
+    List<Placemark> landMarks =
+        await placemarkFromCoordinates(latitude, longitude);
 
-      address = landMark.thoroughfare ?? landMark.subLocality;
-      address = address ?? landMark.locality;
-
-      return address ?? '';
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+    if (landMarks.isEmpty) {
+      return '';
     }
 
-    return '';
+    final Placemark landMark = landMarks.first;
+
+    String? address = landMark.thoroughfare ?? landMark.subLocality;
+    address = address ?? landMark.locality;
+
+    return address ?? '';
   }
 
   static Future<Position?> getCurrentPosition() async {
@@ -69,73 +65,47 @@ class LocationService {
   }
 
   static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
-    int top = 5,
     Position? position,
   }) async {
-    try {
-      position ??= await getCurrentPosition();
-      var address = '';
+    position ??= await getCurrentPosition();
 
-      if (position == null) {
-        final geoCoordinates = await AirqoApiClient().getLocation();
-        position = Position(
-          longitude: geoCoordinates['longitude'] as double,
-          latitude: geoCoordinates['latitude'] as double,
-          timestamp: DateTime.now(),
-          accuracy: 0.0,
-          altitude: 0.0,
-          heading: 0.0,
-          speed: 0.0,
-          speedAccuracy: 0.0,
-        );
-      } else {
-        address = await getAddress(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-      }
-
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      if (airQualityReadings.isEmpty) {
+    if (position == null) {
+      final geoCoordinates = await AirqoApiClient().getLocation();
+      if (!geoCoordinates.keys.contains('latitude') ||
+          !geoCoordinates.keys.contains('longitude')) {
         return [];
       }
 
-      final nearestAirQualityReadings = <AirQualityReading>[];
-
-      for (final airQualityReading in airQualityReadings) {
-        final distanceInMeters = metersToKmDouble(
-          Geolocator.distanceBetween(
-            airQualityReading.latitude,
-            airQualityReading.longitude,
-            position.latitude,
-            position.longitude,
-          ),
-        );
-        nearestAirQualityReadings.add(
-          AirQualityReading.duplicate(airQualityReading).copyWith(
-            distanceToReferenceSite: distanceInMeters,
-          ),
-        );
-      }
-
-      final sortedReadings =
-          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
-              .take(top)
-              .toList();
-      if (address.isNotEmpty) {
-        sortedReadings.first = sortedReadings.first.copyWith(name: address);
-      }
-
-      return sortedReadings;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return [];
+      position = Position(
+        longitude: geoCoordinates['longitude'] as double,
+        latitude: geoCoordinates['latitude'] as double,
+        timestamp: DateTime.now(),
+        accuracy: 0.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+      );
     }
+
+    List<AirQualityReading> airQualityReadings = await getNearestSites(
+      position.latitude,
+      position.longitude,
+    );
+    airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
+
+    String address = await getAddress(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+
+    if (airQualityReadings.isNotEmpty && address.isNotEmpty) {
+      airQualityReadings.first = airQualityReadings.first.copyWith(
+        name: address,
+      );
+    }
+
+    return airQualityReadings;
   }
 
   static Future<bool> allowLocationAccess() async {
@@ -218,58 +188,41 @@ class LocationService {
     );
   }
 
-  static Future<AirQualityReading?> getNearestSiteAirQualityReading(
+  static Future<AirQualityReading?> getNearestSite(
     double latitude,
     double longitude,
   ) async {
-    try {
-      final nearestSites = await getNearestSites(latitude, longitude);
-      if (nearestSites.isEmpty) {
-        return null;
-      }
+    List<AirQualityReading> nearestSites = await getNearestSites(
+      latitude,
+      longitude,
+    );
 
-      var nearestSite = nearestSites.first;
-
-      for (final site in nearestSites) {
-        if (nearestSite.distanceToReferenceSite >
-            site.distanceToReferenceSite) {
-          nearestSite = site;
-        }
-      }
-
-      return nearestSite;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return null;
-    }
+    return nearestSites.isEmpty
+        ? null
+        : nearestSites.sortByDistanceToReferenceSite().first;
   }
 
   static Future<List<AirQualityReading>> getNearestSites(
     double latitude,
     double longitude,
   ) async {
-    final nearestSites = <AirQualityReading>[];
-    double distanceInMeters;
-    final airQualityReadings =
+    List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    for (final airQualityReading in airQualityReadings) {
-      distanceInMeters = metersToKmDouble(
+    airQualityReadings = airQualityReadings.map((element) {
+      final double distanceInMeters = metersToKmDouble(
         Geolocator.distanceBetween(
-          airQualityReading.latitude,
-          airQualityReading.longitude,
+          element.latitude,
+          element.longitude,
           latitude,
           longitude,
         ),
       );
-      if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-        nearestSites.add(airQualityReading.copyWith(
-          distanceToReferenceSite: distanceInMeters,
-        ));
-      }
-    }
+      return element.copyWith(distanceToReferenceSite: distanceInMeters);
+    }).toList();
 
-    return sortAirQualityReadingsByDistance(nearestSites);
+    return airQualityReadings.where((element) {
+      return element.distanceToReferenceSite < Config.searchRadius.toDouble();
+    }).toList();
   }
 }
