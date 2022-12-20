@@ -14,7 +14,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -157,47 +156,35 @@ class ShareService {
     required PendingDynamicLinkData linkData,
     required BuildContext context,
   }) async {
-    final destination = linkData.link.queryParameters['destination'] ?? '';
-    try {
-      if (destination.equalsIgnoreCase('insights')) {
-        AirQualityReading airQualityReading = AirQualityReading.fromDynamicLink(
-          linkData,
-        );
+    final destination =
+        (linkData.link.queryParameters['destination'] ?? '').toLowerCase();
+    switch (destination) {
+      case 'insights':
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return InsightsPage(airQualityReading);
+            return InsightsPage(AirQualityReading.fromDynamicLink(linkData));
           }),
           (r) => false,
         );
-      }
-
-      if (destination.equalsIgnoreCase('kya')) {
-        final String id = linkData.link.queryParameters['kyaId'] ?? '';
-        Kya kya = Hive.box<Kya>(HiveBox.kya)
-            .values
-            .firstWhere((element) => element.id == id, orElse: () {
-          return Kya.withOnlyId(id);
-        });
-
+        break;
+      case 'kya':
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return KyaTitlePage(kya);
+            return KyaTitlePage(Kya.fromDynamicLink(linkData));
           }),
           (r) => false,
         );
-      }
-    } catch (exception, stackTrace) {
-      print(exception);
-      print(stackTrace);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) {
-          return const ErrorPage();
-        }),
-      );
-      await logException(exception, stackTrace);
+        break;
+      default:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return const ErrorPage();
+          }),
+        );
+        break;
     }
   }
 

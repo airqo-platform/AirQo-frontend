@@ -61,7 +61,7 @@ class KyaNotFoundWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Spacer(),
-                SvgPicture.asset('assets/icon/kya_icon.svg'),
+                SvgPicture.asset('assets/icon/no_kya_icon.svg'),
                 const SizedBox(
                   height: 50,
                 ),
