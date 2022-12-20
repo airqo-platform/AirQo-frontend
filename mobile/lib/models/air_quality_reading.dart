@@ -44,7 +44,26 @@ class AirQualityReading extends HiveObject {
     AirQualityReading airQualityReading =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .values
-            .firstWhere((element) => element.referenceSite == referenceSite);
+            .firstWhere(
+      (element) => element.referenceSite == referenceSite,
+      orElse: () {
+        return AirQualityReading(
+          referenceSite: referenceSite,
+          source: '',
+          latitude: 0,
+          longitude: 0,
+          country: '',
+          name: name,
+          location: location,
+          region: '',
+          dateTime: DateTime.now(),
+          pm2_5: 0,
+          pm10: 0,
+          distanceToReferenceSite: 0,
+          placeId: '',
+        );
+      },
+    );
 
     return airQualityReading.copyWith(
       placeId: placeId,

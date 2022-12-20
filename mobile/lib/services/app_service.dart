@@ -102,7 +102,7 @@ class AppService {
     }
   }
 
-  static Future<Kya> getKya(String id) async {
+  static Future<Kya?> getKya(String id) async {
     List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
         .values
         .where((element) => element.id == id)
@@ -119,10 +119,12 @@ class AppService {
 
     try {
       kya = await CloudStore.getKya();
-      return kya.firstWhere((element) => element.id == id);
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      throw NotFoundException('Kya not found');
+      await logException(exception, stackTrace);
+      return null;
     }
   }
 

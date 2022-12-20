@@ -29,8 +29,10 @@ class Kya extends HiveObject with EquatableMixin {
   @HiveField(2)
   String title;
 
-  @HiveField(3,
-      defaultValue: 'You just finished your first Know You Air Lesson')
+  @HiveField(
+    3,
+    defaultValue: 'You just finished your first Know You Air Lesson',
+  )
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
   String completionMessage;
 
@@ -54,17 +56,23 @@ class Kya extends HiveObject with EquatableMixin {
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
-  factory Kya.withOnlyId(String id) {
-    return Kya(
-      title: '',
-      imageUrl: '',
-      id: id,
-      lessons: [],
-      progress: 0,
-      completionMessage: '',
-      secondaryImageUrl: '',
-      shareImage: '',
-    );
+  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+    final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
+
+    return Hive.box<Kya>(HiveBox.kya)
+        .values
+        .firstWhere((element) => element.id == id, orElse: () {
+      return Kya(
+        title: '',
+        imageUrl: '',
+        id: id,
+        lessons: [],
+        progress: 0,
+        completionMessage: '',
+        secondaryImageUrl: '',
+        shareImage: '',
+      );
+    });
   }
 
   String shareLinkParams() {
