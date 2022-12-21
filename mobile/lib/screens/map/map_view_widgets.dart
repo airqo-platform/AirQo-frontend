@@ -711,7 +711,7 @@ class SearchSites extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filteredAirQualityReadings =
-        filterNearestLocations(airQualityReadings);
+        airQualityReadings.filterNearestLocations();
 
     return MediaQuery.removePadding(
       removeTop: true,

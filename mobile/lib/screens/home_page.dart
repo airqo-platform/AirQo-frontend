@@ -170,6 +170,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<MapBloc>().add(const InitializeMapState());
+    context.read<SearchBloc>().add(const InitializeSearchPage());
 
     if (refresh) {
       await _appService.fetchData(context);
@@ -231,6 +232,8 @@ class _HomePageState extends State<HomePage> {
           case MapStatus.showingRegions:
           case MapStatus.showingFeaturedSite:
           case MapStatus.showingRegionSites:
+          case MapStatus.searching:
+          case MapStatus.loading:
             break;
         }
         break;
