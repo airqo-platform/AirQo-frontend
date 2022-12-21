@@ -159,7 +159,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
+    context.read<DashboardBloc>().add(const InitializeDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
     context.read<SearchBloc>().add(const InitializeSearchPage());
     await checkNetworkConnection(
@@ -204,9 +204,6 @@ class _HomePageState extends State<HomePage> {
   void _onItemTapped(int index) {
     switch (index) {
       case 0:
-        context
-            .read<NearbyLocationBloc>()
-            .add(const SearchLocationAirQuality());
         context.read<DashboardBloc>().add(const RefreshDashboard());
         break;
       case 1:

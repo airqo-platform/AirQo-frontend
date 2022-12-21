@@ -53,7 +53,6 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
-    context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const InitializeDashboard());
@@ -99,8 +98,6 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     await _appService.fetchData(context);
-
-    await LocationService.listenToLocationUpdates();
   }
 
   @override

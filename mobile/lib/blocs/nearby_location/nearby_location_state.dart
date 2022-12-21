@@ -9,24 +9,24 @@ enum NearbyLocationStatus {
 
 class NearbyLocationState extends Equatable {
   const NearbyLocationState._({
-    this.airQualityReadings = const [],
+    this.locationAirQuality,
     this.blocStatus = NearbyLocationStatus.initial,
     this.error = NearbyAirQualityError.none,
   });
 
   const NearbyLocationState({
-    this.airQualityReadings = const [],
+    this.locationAirQuality,
     this.blocStatus = NearbyLocationStatus.initial,
     this.error = NearbyAirQualityError.none,
   });
 
   NearbyLocationState copyWith({
-    List<AirQualityReading>? airQualityReadings,
+    AirQualityReading? locationAirQuality,
     NearbyLocationStatus? blocStatus,
     NearbyAirQualityError? error,
   }) {
     return NearbyLocationState(
-      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      locationAirQuality: locationAirQuality ?? this.locationAirQuality,
       blocStatus: blocStatus ?? this.blocStatus,
       error: error ?? this.error,
     );
@@ -34,14 +34,14 @@ class NearbyLocationState extends Equatable {
 
   const NearbyLocationState.initial() : this._();
 
-  final List<AirQualityReading> airQualityReadings;
+  final AirQualityReading? locationAirQuality;
   final NearbyLocationStatus blocStatus;
   final NearbyAirQualityError error;
 
   @override
   List<Object?> get props => [
         error,
-        airQualityReadings,
+        locationAirQuality,
         blocStatus,
       ];
 }

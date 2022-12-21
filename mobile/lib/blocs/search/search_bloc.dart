@@ -18,7 +18,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchAirQuality>(_onSearchAirQuality);
     on<SearchTermChanged>(
       _onSearchTermChanged,
-      transformer: debounce(const Duration(seconds: 1)),
+      transformer: debounce(const Duration(milliseconds: 300)),
     );
     searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }

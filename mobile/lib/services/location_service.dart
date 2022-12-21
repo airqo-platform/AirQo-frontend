@@ -132,62 +132,6 @@ class LocationService {
     await profile.update(enableLocation: false);
   }
 
-  static Future<void> listenToLocationUpdates() async {
-    late LocationSettings locationSettings;
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      locationSettings = AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-        forceLocationManager: true,
-        intervalDuration: const Duration(seconds: 10),
-      );
-    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS) {
-      locationSettings = AppleSettings(
-        accuracy: LocationAccuracy.high,
-        activityType: ActivityType.fitness,
-        distanceFilter: 100,
-        pauseLocationUpdatesAutomatically: true,
-        showBackgroundLocationIndicator: false,
-      );
-    } else {
-      locationSettings = const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-      );
-    }
-
-    final permissionGranted =
-        await PermissionService.checkPermission(AppPermission.location);
-
-    if (!permissionGranted) {
-      return;
-    }
-
-    bool? serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return;
-    }
-
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position? position) async {
-        if (position != null) {
-          final nearbyAirQualityReadings =
-              await LocationService.getNearbyAirQualityReadings(
-            position: position,
-          );
-          await HiveService.updateNearbyAirQualityReadings(
-            nearbyAirQualityReadings,
-          );
-        }
-      },
-      onError: (error) {
-        debugPrint('error listening to locations : $error');
-      },
-    );
-  }
-
   static Future<AirQualityReading?> getNearestSite(
     double latitude,
     double longitude,
