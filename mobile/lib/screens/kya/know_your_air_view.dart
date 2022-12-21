@@ -20,6 +20,7 @@ class KnowYourAirView extends StatelessWidget {
 
         if (completeKya.isEmpty) {
           final inCompleteKya = state.kya.filterIncompleteKya();
+
           return NoKyaWidget(
             callBack: () async {
               if (inCompleteKya.isEmpty) {

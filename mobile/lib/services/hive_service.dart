@@ -95,12 +95,11 @@ class HiveService {
   ) async {
     List<SearchHistory> searchHistoryList =
         Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
-    final searchHistoryMap = <dynamic, SearchHistory>{};
-
-    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
     searchHistoryList
         .add(SearchHistory.fromAirQualityReading(airQualityReading));
+    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
 
+    final searchHistoryMap = <String, SearchHistory>{};
     for (final searchHistory in searchHistoryList) {
       searchHistoryMap[searchHistory.placeId] = searchHistory;
     }
@@ -143,6 +142,7 @@ class HiveService {
       analyticsMap[element.id] = element;
     }
 
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
     await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 

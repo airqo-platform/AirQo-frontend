@@ -173,7 +173,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       ));
     }
 
-    final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+    final nearestSite = await LocationService.getNearestSite(
       place.geometry.location.lat,
       place.geometry.location.lng,
     );
@@ -193,9 +193,18 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       longitude: place.geometry.location.lng,
     );
 
+    List<AirQualityReading> recentSearches = state.recentSearches;
+    if (!recentSearches
+        .map((e) => e.placeId)
+        .toList()
+        .contains(airQualityReading.placeId)) {
+      recentSearches.insert(0, airQualityReading);
+    }
+
     emit(state.copyWith(
       searchStatus: SearchStatus.autoCompleteSearching,
       searchAirQuality: airQualityReading,
+      recentSearches: recentSearches,
     ));
 
     await HiveService.updateSearchHistory(airQualityReading);

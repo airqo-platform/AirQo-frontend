@@ -204,16 +204,13 @@ class NoAnalyticsWidget extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Turn on location',
-              ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.location_on_outlined,
+              text: 'Turn on location',
             ),
           ),
           const Spacer(),

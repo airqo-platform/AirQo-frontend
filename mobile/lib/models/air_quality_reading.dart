@@ -52,24 +52,25 @@ class AirQualityReading extends HiveObject {
     AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
       HiveBox.airQualityReadings,
     ).values.firstWhere(
-        (element) => element.referenceSite == favouritePlace.referenceSite,
-        orElse: () {
-      return AirQualityReading(
-        referenceSite: favouritePlace.referenceSite,
-        source: '',
-        latitude: favouritePlace.latitude,
-        longitude: favouritePlace.longitude,
-        country: '',
-        name: favouritePlace.name,
-        location: favouritePlace.location,
-        region: '',
-        dateTime: DateTime.now(),
-        pm2_5: 0,
-        pm10: 0,
-        distanceToReferenceSite: 0,
-        placeId: favouritePlace.placeId,
-      );
-    });
+      (element) => element.referenceSite == favouritePlace.referenceSite,
+      orElse: () {
+        return AirQualityReading(
+          referenceSite: favouritePlace.referenceSite,
+          source: '',
+          latitude: favouritePlace.latitude,
+          longitude: favouritePlace.longitude,
+          country: '',
+          name: favouritePlace.name,
+          location: favouritePlace.location,
+          region: '',
+          dateTime: DateTime.now(),
+          pm2_5: 0,
+          pm10: 0,
+          distanceToReferenceSite: 0,
+          placeId: favouritePlace.placeId,
+        );
+      },
+    );
 
     return airQualityReading.copyWith(
       referenceSite: favouritePlace.referenceSite,

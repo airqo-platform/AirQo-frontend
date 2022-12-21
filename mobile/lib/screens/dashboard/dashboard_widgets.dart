@@ -270,65 +270,6 @@ class KyaDashboardAvatar extends StatelessWidget {
   }
 }
 
-class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const DashboardTopBar({super.key});
-
-  @override
-  PreferredSizeWidget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      title: Container(
-        padding: const EdgeInsets.only(top: 24),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/airqo_logo.svg',
-              height: 40,
-              width: 58,
-              semanticsLabel: 'AirQo',
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return const SearchPage();
-                    },
-                  ),
-                );
-              },
-              child: Container(
-                height: 40,
-                width: 40,
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10.0),
-                  ),
-                ),
-                child: SvgPicture.asset(
-                  'assets/icon/search.svg',
-                  semanticsLabel: 'Search',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      elevation: 0,
-      toolbarHeight: 65,
-      backgroundColor: CustomColors.appBodyColor,
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(72);
-}
-
 class DashboardKyaProgressBar extends StatefulWidget {
   const DashboardKyaProgressBar(this.kya, {super.key});
   final Kya kya;

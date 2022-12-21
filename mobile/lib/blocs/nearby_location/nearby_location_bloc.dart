@@ -43,9 +43,7 @@ class NearbyLocationBloc
     final airQualityReadings =
         await LocationService.getNearbyAirQualityReadings();
 
-    await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
-
-    return emit(state.copyWith(
+    emit(state.copyWith(
       blocStatus: airQualityReadings.isEmpty
           ? NearbyLocationStatus.error
           : NearbyLocationStatus.loaded,
@@ -54,5 +52,7 @@ class NearbyLocationBloc
           : NearbyAirQualityError.none,
       airQualityReadings: airQualityReadings,
     ));
+
+    await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
   }
 }

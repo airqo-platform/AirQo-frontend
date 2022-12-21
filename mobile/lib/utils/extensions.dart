@@ -129,7 +129,7 @@ extension SearchHistoryListExt on List<SearchHistory> {
     List<AirQualityReading> airQualityReadings = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
-          await LocationService.getNearestSiteAirQualityReading(
+          await LocationService.getNearestSite(
         searchHistory.latitude,
         searchHistory.longitude,
       );

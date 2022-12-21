@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -41,7 +40,18 @@ class _DashboardViewState extends State<DashboardView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const DashboardTopBar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: SvgPicture.asset(
+          'assets/icon/airqo_logo.svg',
+          height: 40,
+          width: 58,
+          semanticsLabel: 'AirQo',
+        ),
+        elevation: 0,
+        backgroundColor: CustomColors.appBodyColor,
+      ),
       body: AppSafeArea(
         horizontalPadding: 16.0,
         widget: Padding(
@@ -206,16 +216,8 @@ class _DashboardViewState extends State<DashboardView>
 
                                 final AirQualityReading nearbyAirQuality = state
                                     .airQualityReadings
-                                    .reduce((value, element) {
-                                  if (value.distanceToReferenceSite.compareTo(
-                                        element.distanceToReferenceSite,
-                                      ) <
-                                      0) {
-                                    return value;
-                                  }
-
-                                  return element;
-                                });
+                                    .sortByDistanceToReferenceSite()
+                                    .first;
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
@@ -278,6 +280,20 @@ class _DashboardViewState extends State<DashboardView>
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const SearchPage();
+              },
+            ),
+          );
+        },
+        backgroundColor: CustomColors.appColorBlue,
+        child: const Icon(Icons.search),
+      ),
     );
   }
 
@@ -292,6 +308,7 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
+    context.read<DashboardBloc>().add(const InitializeDashboard());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
   }
