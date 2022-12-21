@@ -4,6 +4,8 @@ import 'package:flutter_svg/svg.dart';
 
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../screens/home_page.dart';
 
@@ -16,6 +18,8 @@ class NoSearchResultsWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 33),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SvgPicture.asset(
               'assets/icon/no_search_results.svg',
@@ -24,20 +28,14 @@ class NoSearchResultsWidget extends StatelessWidget {
             const SizedBox(height: 53),
             Text(
               'No results found',
+              style: CustomTextStyle.errorTitle(context),
               textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context)?.copyWith(
-                fontSize: 21,
-                fontWeight: FontWeight.w600,
-              ),
             ),
             const SizedBox(height: 23),
             Text(
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                    fontSize: 15.0,
-                    color: CustomColors.emptyNotificationScreenTextColor,
-                  ),
               'Try adjusting your search to find what you’re looking for.',
+              style: CustomTextStyle.errorSubTitle(context),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -219,9 +217,9 @@ class AppErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 33),
-      child: Center(
+    return AppSafeArea(
+      horizontalPadding: 33,
+      widget: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -284,78 +282,162 @@ class AppErrorWidget extends StatelessWidget {
   }
 }
 
+class AppCrushWidget extends StatelessWidget {
+  const AppCrushWidget(this.exception, this.stackTrace, {super.key});
+  final dynamic exception;
+  final StackTrace? stackTrace;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: null,
+      body: AppSafeArea(
+        horizontalPadding: 24,
+        verticalPadding: 24,
+        widget: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/error_icon.svg',
+              semanticsLabel: 'Error',
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Oops! ',
+                      style: CustomTextStyle.headline7(context)?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'A fatal error has occurred.',
+                      style: CustomTextStyle.headline7(context)?.copyWith(
+                        color: CustomColors.appColorBlack,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Text(
+                'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.headline8(context)?.copyWith(
+                  color: CustomColors.appColorBlack,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+            const Spacer(),
+            InkWell(
+              onTap: () async {
+                PackageInfo packageInfo = await PackageInfo.fromPlatform();
+                String email = "support@airqo.net";
+                String subject = "Mobile App Crush";
+                String body = ""
+                    "App Version : ${packageInfo.version}\n"
+                    "Build Number : ${packageInfo.buildNumber}\n"
+                    "Installed via : ${packageInfo.installerStore}\n\n"
+                    "Error : $exception\n\n"
+                    "StackTrace : $stackTrace\n\n";
+                await Share.share(body, subject: subject);
+              },
+              child: const ActionButton(
+                icon: Icons.error_outline_rounded,
+                text: 'Report Error',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ErrorPage extends StatelessWidget {
   const ErrorPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppSafeArea(
-      horizontalPadding: 24,
-      verticalPadding: 24,
-      widget: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Spacer(),
-          SvgPicture.asset(
-            'assets/icon/error_icon.svg',
-            semanticsLabel: 'Error',
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: <TextSpan>[
-                  TextSpan(
-                    text: 'Oops! ',
-                    style: CustomTextStyle.headline7(context)?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-                  ),
-                  TextSpan(
-                    text:
-                        'We can’t seem to find the content you’re looking for.',
-                    style: CustomTextStyle.headline7(context)?.copyWith(
-                      color: CustomColors.appColorBlack,
-                    ),
-                  ),
-                ],
-              ),
+    return Scaffold(
+      body: AppSafeArea(
+        horizontalPadding: 24,
+        verticalPadding: 24,
+        widget: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/error_icon.svg',
+              semanticsLabel: 'Error',
             ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Text(
-              'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline8(context)?.copyWith(
-                color: CustomColors.appColorBlack,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const HomePage();
-                  },
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Oops! ',
+                      style: CustomTextStyle.headline7(context)?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          'We can’t seem to find the content you’re looking for.',
+                      style: CustomTextStyle.headline7(context)?.copyWith(
+                        color: CustomColors.appColorBlack,
+                      ),
+                    ),
+                  ],
                 ),
-                (r) => false,
-              );
-            },
-            child: NextButton(
-              buttonColor: CustomColors.appColorBlue,
-              text: 'Return home',
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Text(
+                'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.headline8(context)?.copyWith(
+                  color: CustomColors.appColorBlack,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const HomePage();
+                    },
+                  ),
+                  (r) => false,
+                );
+              },
+              child: NextButton(
+                buttonColor: CustomColors.appColorBlue,
+                text: 'Return home',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

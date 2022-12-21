@@ -1,4 +1,3 @@
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app_repository/app_repository.dart';
@@ -250,29 +249,4 @@ class AirQualityReading extends HiveObject {
   final String shareImage;
 
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
-}
-
-List<AirQualityReading> sortAirQualityReadingsByDistance(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings.sort(
-    (x, y) {
-      return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-    },
-  );
-
-  return airQualityReadings;
-}
-
-List<AirQualityReading> filterNearestLocations(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings = airQualityReadings
-      .where(
-        (element) => element.distanceToReferenceSite <= Config.searchRadius,
-      )
-      .toList();
-  airQualityReadings = sortAirQualityReadingsByDistance(airQualityReadings);
-
-  return airQualityReadings;
 }

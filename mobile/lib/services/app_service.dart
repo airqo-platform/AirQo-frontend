@@ -162,15 +162,19 @@ class AppService {
     return insights;
   }
 
-  Future<void> refreshAirQualityReadings() async {
+  Future<bool> refreshAirQualityReadings() async {
     try {
       final siteReadings = await AppRepository(
         airqoApiKey: Config.airqoApiToken,
         baseUrl: Config.airqoApiUrl,
       ).getSitesReadings();
       await HiveService.updateAirQualityReadings(siteReadings);
+
+      return true;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      logException(exception, stackTrace);
+
+      return false;
     }
   }
 

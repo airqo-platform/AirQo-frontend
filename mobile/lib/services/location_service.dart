@@ -124,9 +124,7 @@ class LocationService {
       }
 
       final sortedReadings =
-          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
-              .take(top)
-              .toList();
+          nearestAirQualityReadings.sortByDistance().take(top).toList();
       if (address.isNotEmpty) {
         sortedReadings.first = sortedReadings.first.copyWith(name: address);
       }
@@ -259,6 +257,6 @@ class LocationService {
       }
     }
 
-    return sortAirQualityReadingsByDistance(nearestSites);
+    return nearestSites.sortByDistance();
   }
 }
