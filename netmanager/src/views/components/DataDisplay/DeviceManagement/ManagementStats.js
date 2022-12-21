@@ -176,7 +176,7 @@ export default function ManagementStat() {
           />
 
           <ChartContainer
-            title={'leaderboard'}
+            title={'Leaderboard in the last 24hours'}
             controller={
               devicesUptimeDescending ? (
                 <SortAscendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
