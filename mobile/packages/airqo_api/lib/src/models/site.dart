@@ -17,6 +17,7 @@ class Site {
     required this.description,
     required this.region,
     required this.tenant,
+    required this.shareImage,
   });
 
   @JsonKey(name: '_id')
@@ -33,6 +34,6 @@ class Site {
   final String region;
   @JsonKey(defaultValue: 'AirQo', required: false)
   final String tenant;
-  @JsonKey(name: 'share_image',defaultValue: '', required: false)
+  @JsonKey(name: 'share_image', defaultValue: '', required: false)
   final String shareImage;
 }

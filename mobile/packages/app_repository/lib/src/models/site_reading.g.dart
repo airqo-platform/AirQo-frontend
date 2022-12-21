@@ -23,10 +23,15 @@ SiteReading _$SiteReadingFromJson(Map<String, dynamic> json) => $checkedCreate(
           pm2_5: $checkedConvert('pm2_5', (v) => (v as num).toDouble()),
           pm10: $checkedConvert('pm10', (v) => (v as num).toDouble()),
           source: $checkedConvert('source', (v) => v as String),
+          shareImage: $checkedConvert('share_image', (v) => v as String),
         );
         return val;
       },
-      fieldKeyMap: const {'siteId': 'site_id', 'dateTime': 'date_time'},
+      fieldKeyMap: const {
+        'siteId': 'site_id',
+        'dateTime': 'date_time',
+        'shareImage': 'share_image'
+      },
     );
 
 Map<String, dynamic> _$SiteReadingToJson(SiteReading instance) =>
@@ -42,4 +47,5 @@ Map<String, dynamic> _$SiteReadingToJson(SiteReading instance) =>
       'date_time': instance.dateTime.toIso8601String(),
       'pm2_5': instance.pm2_5,
       'pm10': instance.pm10,
+      'share_image': instance.shareImage,
     };

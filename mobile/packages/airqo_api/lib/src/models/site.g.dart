@@ -24,12 +24,14 @@ Site _$SiteFromJson(Map<String, dynamic> json) => $checkedCreate(
           description: $checkedConvert('description', (v) => v as String),
           region: $checkedConvert('region', (v) => v as String),
           tenant: $checkedConvert('tenant', (v) => v as String? ?? 'AirQo'),
+          shareImage: $checkedConvert('share_image', (v) => v as String? ?? ''),
         );
         return val;
       },
       fieldKeyMap: const {
         'id': '_id',
         'locationName': 'location_name',
-        'searchName': 'search_name'
+        'searchName': 'search_name',
+        'shareImage': 'share_image'
       },
     );

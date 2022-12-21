@@ -124,6 +124,7 @@ class AppService {
       return kya.isEmpty ? null : kya.first;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
+
       return null;
     }
   }

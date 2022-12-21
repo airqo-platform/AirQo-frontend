@@ -127,7 +127,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
     return Container(
       height: 54,
       width: 54,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 5,
         vertical: 2,
       ),
