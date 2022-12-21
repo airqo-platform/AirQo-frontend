@@ -161,6 +161,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<MapBloc>().add(const InitializeMapState());
+    context.read<SearchBloc>().add(const InitializeSearchPage());
     await checkNetworkConnection(
       context,
       notifyUser: true,

@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -109,11 +111,49 @@ extension AnalyticsListExt on List<Analytics> {
   }
 }
 
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSiteAirQualityReading(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+
+    return airQualityReadings;
+  }
+}
+
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> sortByAirQuality() {
+  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
     List<AirQualityReading> data = List.of(this);
     data.sort((a, b) {
-      if (a.country.compareTo(b.country) != 0) {
+      if (sortCountries && a.country.compareTo(b.country) != 0) {
         return a.country.compareTo(b.country);
       }
 
@@ -123,15 +163,15 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     return data;
   }
 
-  List<AirQualityReading> sortByDistanceToReferenceSite() {
-    List<AirQualityReading> data = List.of(this);
-    data.sort(
-      (x, y) {
-        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-      },
-    );
+  List<AirQualityReading> filterNearestLocations() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings = airQualityReadings
+        .where(
+          (element) => element.distanceToReferenceSite <= Config.searchRadius,
+        )
+        .toList();
 
-    return data;
+    return airQualityReadings.sortByDistanceToReferenceSite();
   }
 
   List<AirQualityReading> shuffleByCountry() {
@@ -154,6 +194,17 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     }
 
     return shuffledData;
+  }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
+
+    return data;
   }
 }
 

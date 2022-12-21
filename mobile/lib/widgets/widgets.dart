@@ -6,3 +6,4 @@ export 'health_tip.dart';
 export 'text_fields.dart';
 export 'tooltip.dart';
 export 'error_widgets.dart';
+export 'icons.dart';

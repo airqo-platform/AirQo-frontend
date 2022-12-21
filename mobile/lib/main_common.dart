@@ -88,18 +88,6 @@ class AppHttpOverrides extends HttpOverrides {
 }
 
 Future<void> initializeMainMethod() async {
-  await Future.wait([
-    SystemProperties.setDefault(),
-    dotenv.load(fileName: Config.environmentFile),
-    HiveService.initialize(),
-    // NotificationService.listenToNotifications(),
-    // initializeBackgroundServices()
-  ]);
-
-  HttpOverrides.global = AppHttpOverrides();
-
-  EquatableConfig.stringify = true;
-
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
 
@@ -114,4 +102,14 @@ Future<void> initializeMainMethod() async {
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return kDebugMode ? ErrorWidget(details.exception) : const ErrorPage();
   };
+
+  await Future.wait([
+    SystemProperties.setDefault(),
+    dotenv.load(fileName: Config.environmentFile),
+    HiveService.initialize(),
+  ]);
+
+  HttpOverrides.global = AppHttpOverrides();
+
+  EquatableConfig.stringify = true;
 }

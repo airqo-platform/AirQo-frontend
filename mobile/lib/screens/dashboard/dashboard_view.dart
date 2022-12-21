@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -658,6 +659,20 @@ class _AnimatedDashboardViewState extends State<AnimatedDashboardView>
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const SearchPage();
+              },
+            ),
+          );
+        },
+        backgroundColor: CustomColors.appColorBlue,
+        child: const Icon(Icons.search),
       ),
     );
   }

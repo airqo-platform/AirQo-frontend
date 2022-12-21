@@ -15,7 +15,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../kya/kya_title_page.dart';
 import '../kya/kya_widgets.dart';
-import '../search/search_page.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
