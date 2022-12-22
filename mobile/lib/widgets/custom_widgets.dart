@@ -356,7 +356,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                     if (link != null) {
                       await ShareService.shareLink(
                         link: link,
-                        subject: widget.airQualityReading.name,
+                        airQualityReading: widget.airQualityReading,
                       );
                     }
                   },

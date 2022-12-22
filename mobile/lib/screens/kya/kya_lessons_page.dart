@@ -93,7 +93,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       if (link != null) {
                         await ShareService.shareLink(
                           link: link,
-                          subject: widget.kya.title,
+                          kya: kya,
                         );
                       }
                     },

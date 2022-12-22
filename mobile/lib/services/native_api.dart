@@ -114,7 +114,8 @@ class ShareService {
       params = '${kya.shareLinkParams()}&destination=kya';
       title = kya.title;
       description = 'Breathe Clean';
-      shareImage = kya.shareImage.isEmpty ? null : Uri.parse(kya.shareImage);
+      shareImage =
+          Uri.parse(kya.shareImage.isEmpty ? kya.imageUrl : kya.shareImage);
     }
 
     final dynamicLinkParams = DynamicLinkParameters(
@@ -191,8 +192,17 @@ class ShareService {
 
   static Future<void> shareLink({
     required ShortDynamicLink link,
-    required String subject,
+    Kya? kya,
+    AirQualityReading? airQualityReading,
   }) async {
+    String subject;
+    if (kya != null) {
+      subject = kya.title;
+    } else if (airQualityReading != null) {
+      subject = '${airQualityReading.name}\n${airQualityReading.location}';
+    } else {
+      subject = '';
+    }
     await Share.share(
       '${link.shortUrl}',
       subject: subject,

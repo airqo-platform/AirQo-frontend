@@ -112,6 +112,7 @@ class AirQualityReading extends HiveObject {
           pm10: 0,
           distanceToReferenceSite: 0,
           placeId: favouritePlace.placeId,
+          shareImage: '',
         );
       },
     );

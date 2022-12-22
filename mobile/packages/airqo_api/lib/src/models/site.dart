@@ -34,6 +34,6 @@ class Site {
   final String region;
   @JsonKey(defaultValue: 'AirQo', required: false)
   final String tenant;
-  @JsonKey(name: 'share_image', defaultValue: '', required: false)
+  @JsonKey(name: 'share_image', defaultValue: 'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg', required: false)
   final String shareImage;
 }

@@ -1418,7 +1418,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                       if (link != null) {
                         await ShareService.shareLink(
                           link: link,
-                          subject: widget.airQualityReading?.name ?? '',
+                          airQualityReading: widget.airQualityReading,
                         );
                       }
                     },

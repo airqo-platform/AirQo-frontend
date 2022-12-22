@@ -24,7 +24,11 @@ Site _$SiteFromJson(Map<String, dynamic> json) => $checkedCreate(
           description: $checkedConvert('description', (v) => v as String),
           region: $checkedConvert('region', (v) => v as String),
           tenant: $checkedConvert('tenant', (v) => v as String? ?? 'AirQo'),
-          shareImage: $checkedConvert('share_image', (v) => v as String? ?? ''),
+          shareImage: $checkedConvert(
+              'share_image',
+              (v) =>
+                  v as String? ??
+                  'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg'),
         );
         return val;
       },
