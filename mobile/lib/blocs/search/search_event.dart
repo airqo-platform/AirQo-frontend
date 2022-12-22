@@ -42,3 +42,10 @@ class SearchAirQuality extends SearchEvent {
   @override
   List<Object> get props => [searchResultItem];
 }
+
+class ClearSearchResult extends SearchEvent {
+  const ClearSearchResult();
+
+  @override
+  List<Object> get props => [];
+}
