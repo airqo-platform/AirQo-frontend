@@ -56,9 +56,9 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
-    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
+    context.read<DashboardBloc>().add(const InitializeDashboard());
     FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
       if (navigatorBuildContext != null) {
@@ -70,6 +70,7 @@ class SplashScreenState extends State<SplashScreen> {
     }).onError((error) async {
       await logException(error, null);
     });
+    
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -100,7 +101,7 @@ class SplashScreenState extends State<SplashScreen> {
                 case OnBoardingPage.complete:
                   return const SetUpCompleteScreen();
                 case OnBoardingPage.home:
-                  return const HomePage(refresh: false);
+                  return const HomePage();
                 default:
                   return const IntroductionScreen();
               }
@@ -112,8 +113,6 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     await _appService.fetchData(context);
-
-    await LocationService.listenToLocationUpdates();
   }
 
   @override

@@ -66,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         child: Column(
                           children: [
+                            // TODO implement app lifecycle
                             ListTile(
                               title: Text(
                                 'Location',

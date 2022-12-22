@@ -401,7 +401,7 @@ class ExploreAfricanCityCard extends StatelessWidget {
           const SizedBox(
             height: 5,
           ),
-          AnalyticsAvatar(airQualityReading: airQualityReading),
+          AnalyticsAvatar(airQualityReading),
           const SizedBox(
             height: 4,
           ),
@@ -522,6 +522,7 @@ class AutoCompleteResultsWidget extends StatelessWidget {
               listener: (context, state) async {
                 AirQualityReading? airQualityReading = state.searchAirQuality;
                 if (airQualityReading != null) {
+                  context.read<SearchBloc>().add(const ClearSearchResult());
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -538,7 +539,7 @@ class AutoCompleteResultsWidget extends StatelessWidget {
                         previous.searchStatus ==
                             SearchStatus.searchingAirQuality) &&
                     current.searchStatus ==
-                        SearchStatus.autoCompleteSearching &&
+                        SearchStatus.autoCompleteSearchSuccess &&
                     current.searchAirQuality != null;
               },
             ),

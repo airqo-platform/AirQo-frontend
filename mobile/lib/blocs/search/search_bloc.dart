@@ -16,9 +16,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<ReloadSearchPage>(_onReloadSearchPage);
     on<FilterByAirQuality>(_onFilterByAirQuality);
     on<SearchAirQuality>(_onSearchAirQuality);
+    on<ClearSearchResult>(_onClearSearchResult);
     on<SearchTermChanged>(
       _onSearchTermChanged,
-      transformer: debounce(const Duration(seconds: 1)),
+      transformer: debounce(const Duration(milliseconds: 300)),
     );
     searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
@@ -173,7 +174,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       ));
     }
 
-    final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+    final nearestSite = await LocationService.getNearestSite(
       place.geometry.location.lat,
       place.geometry.location.lng,
     );
@@ -193,12 +194,27 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       longitude: place.geometry.location.lng,
     );
 
+    List<AirQualityReading> recentSearches = state.recentSearches;
+    if (!recentSearches
+        .map((e) => e.placeId)
+        .toList()
+        .contains(airQualityReading.placeId)) {
+      recentSearches.insert(0, airQualityReading);
+    }
+
     emit(state.copyWith(
-      searchStatus: SearchStatus.autoCompleteSearching,
+      searchStatus: SearchStatus.autoCompleteSearchSuccess,
       searchAirQuality: airQualityReading,
+      recentSearches: recentSearches,
     ));
 
     await HiveService.updateSearchHistory(airQualityReading);
+  }
+
+  void _onClearSearchResult(ClearSearchResult _, Emitter<SearchState> emit) {
+    return emit(state.copyWith(
+      searchAirQuality: null,
+    ));
   }
 
   void _onSearchTermChanged(

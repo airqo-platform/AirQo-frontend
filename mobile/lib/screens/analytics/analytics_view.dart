@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../settings/settings_page.dart';
 import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatelessWidget {
@@ -27,7 +28,19 @@ class AnalyticsView extends StatelessWidget {
         final analytics = state.analytics.sortByDateTime();
 
         if (analytics.isEmpty) {
-          return Container(); // TODO replace with error page
+          return NoAnalyticsWidget(
+            callBack: () async {
+              // TODO implement method using the bloc pattern
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const SettingsPage();
+                  },
+                ),
+              );
+            },
+          );
         }
 
         return AppRefreshIndicator(
