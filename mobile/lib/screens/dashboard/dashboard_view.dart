@@ -131,7 +131,7 @@ class _DashboardViewState extends State<DashboardView>
               ),
               BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
-                  switch (state.blocStatus) {
+                  switch (state.status) {
                     case DashboardStatus.error:
                       switch (state.error) {
                         case DashboardError.none:
