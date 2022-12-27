@@ -386,12 +386,12 @@ class AnalyticsCard extends StatelessWidget {
                                         BlocBuilder<DashboardBloc,
                                             DashboardState>(
                                           buildWhen: (previous, current) {
-                                            return previous.blocStatus !=
-                                                current.blocStatus;
+                                            return previous.status !=
+                                                current.status;
                                           },
                                           builder: (context, state) {
                                             return CircularLoadingIndicator(
-                                              loading: state.blocStatus ==
+                                              loading: state.status ==
                                                   DashboardStatus.refreshing,
                                             );
                                           },
