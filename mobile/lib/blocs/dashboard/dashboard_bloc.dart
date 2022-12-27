@@ -11,7 +11,6 @@ part 'dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc() : super(const DashboardState.initial()) {
-    on<InitializeDashboard>(_onInitializeDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
   }
 
@@ -67,9 +66,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onRefreshDashboard(
-    RefreshDashboard _,
+    RefreshDashboard event,
     Emitter<DashboardState> emit,
   ) async {
+    if (event.reload ?? false) {
+      emit(const DashboardState.initial());
+    }
+
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection && state.airQualityReadings.isEmpty) {
       return emit(state.copyWith(
@@ -89,20 +92,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       AppService().updateFavouritePlacesReferenceSites(),
       _updateGreetings(emit)
     ]);
-
-    return _loadAirQualityReadings(emit);
-  }
-
-  Future<void> _onInitializeDashboard(
-    InitializeDashboard _,
-    Emitter<DashboardState> emit,
-  ) async {
-    emit(state.copyWith(
-      status: state.airQualityReadings.isEmpty
-          ? DashboardStatus.loading
-          : DashboardStatus.refreshing,
-    ));
-    await _updateGreetings(emit);
 
     return _loadAirQualityReadings(emit);
   }

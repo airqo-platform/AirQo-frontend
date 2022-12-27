@@ -25,7 +25,6 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +54,7 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
-    context.read<DashboardBloc>().add(const InitializeDashboard());
+    context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -96,8 +95,6 @@ class SplashScreenState extends State<SplashScreen> {
         );
       },
     );
-
-    await _appService.fetchData(context);
   }
 
   @override
