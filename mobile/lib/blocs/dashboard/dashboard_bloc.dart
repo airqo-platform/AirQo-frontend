@@ -11,7 +11,6 @@ part 'dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc() : super(const DashboardState.initial()) {
-    on<InitializeDashboard>(_onInitializeDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
   }
 
@@ -20,7 +19,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(state.copyWith(greetings: greetings));
   }
 
-  void _updateAirQualityReadings(Emitter<DashboardState> emit) {
+  void _loadAirQualityReadings(Emitter<DashboardState> emit) {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
     List<AirQualityReading> nearbyAirQualityReadings =
@@ -57,7 +56,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     return emit(state.copyWith(
       airQualityReadings: airQualityCards,
-      blocStatus: airQualityCards.isEmpty
+      status: airQualityCards.isEmpty
           ? DashboardStatus.error
           : DashboardStatus.loaded,
       error: airQualityCards.isEmpty
@@ -67,47 +66,33 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onRefreshDashboard(
-    RefreshDashboard _,
+    RefreshDashboard event,
     Emitter<DashboardState> emit,
   ) async {
+    if (event.reload ?? false) {
+      emit(const DashboardState.initial());
+    }
+
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection && state.airQualityReadings.isEmpty) {
       return emit(state.copyWith(
-        blocStatus: DashboardStatus.error,
+        status: DashboardStatus.error,
         error: DashboardError.noInternetConnection,
       ));
     }
 
     emit(state.copyWith(
-      blocStatus: state.airQualityReadings.isEmpty
+      status: state.airQualityReadings.isEmpty
           ? DashboardStatus.loading
           : DashboardStatus.refreshing,
     ));
 
-    await AppService().refreshAirQualityReadings();
-    await AppService().updateFavouritePlacesReferenceSites();
-    await _updateGreetings(emit);
-    _updateAirQualityReadings(emit);
-  }
+    await Future.wait([
+      AppService().refreshAirQualityReadings(),
+      AppService().updateFavouritePlacesReferenceSites(),
+      _updateGreetings(emit)
+    ]);
 
-  Future<void> _onInitializeDashboard(
-    InitializeDashboard _,
-    Emitter<DashboardState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: DashboardStatus.error,
-        error: DashboardError.noInternetConnection,
-      ));
-    }
-
-    emit(state.copyWith(
-      blocStatus: state.airQualityReadings.isEmpty
-          ? DashboardStatus.loading
-          : DashboardStatus.refreshing,
-    ));
-    await _updateGreetings(emit);
-    _updateAirQualityReadings(emit);
+    return _loadAirQualityReadings(emit);
   }
 }

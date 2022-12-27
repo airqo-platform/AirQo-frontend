@@ -102,44 +102,6 @@ class AppService {
     }
   }
 
-  static Future<Kya?> getKya(String id) async {
-    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
-        .values
-        .where((element) => element.id == id)
-        .toList();
-
-    if (kya.isNotEmpty) {
-      return kya.first;
-    }
-
-    final bool isConnected = await hasNetworkConnection();
-    if (!isConnected) {
-      throw NetworkConnectionException('No internet Connection');
-    }
-
-    try {
-      kya = await CloudStore.getKya();
-      kya = kya.where((element) => element.id == id).toList();
-
-      return kya.isEmpty ? null : kya.first;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-
-      return null;
-    }
-  }
-
-  Future<void> fetchData(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<InsightData> fetchInsightsData(
     String siteId, {
     Frequency? frequency,

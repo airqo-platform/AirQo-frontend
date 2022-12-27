@@ -77,13 +77,9 @@ extension ChartDataExt on ChartData {
 
 extension KyaListExt on List<Kya> {
   int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
-    }
-
-    return sum;
+    return isEmpty
+        ? 0
+        : map((element) => element.progress).toList().reduce((x, y) => x + y);
   }
 
   List<Kya> filterIncompleteKya() {

@@ -21,7 +21,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   late final SearchRepository searchRepository;
 
-  Future<void> _onPopulateMapState(Emitter<MapState> emit) async {
+  Future<void> _onInitializeMapState(
+    InitializeMapState _,
+    Emitter<MapState> emit,
+  ) async {
     List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
@@ -61,13 +64,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       mapStatus: MapStatus.showingCountries,
       featuredAirQualityReadings: airQualityReadings,
     ));
-  }
-
-  Future<void> _onInitializeMapState(
-    InitializeMapState _,
-    Emitter<MapState> emit,
-  ) async {
-    await _onPopulateMapState(emit);
   }
 
   void _onShowCountryRegions(
