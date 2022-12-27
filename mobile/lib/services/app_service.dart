@@ -102,17 +102,6 @@ class AppService {
     }
   }
 
-  Future<void> fetchData(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<InsightData> fetchInsightsData(
     String siteId, {
     Frequency? frequency,

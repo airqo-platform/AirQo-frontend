@@ -40,6 +40,8 @@ class _SettingsPageState extends State<SettingsPage> {
             final profile = state.profile;
 
             if (profile == null) {
+              context.read<AccountBloc>().add(const RefreshProfile());
+
               return AppErrorWidget(
                 callBack: () {
                   context.read<AccountBloc>().add(const RefreshProfile());
