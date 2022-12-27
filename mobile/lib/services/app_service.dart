@@ -79,6 +79,33 @@ class AppService {
     return authSuccessful;
   }
 
+  static Future<Kya?> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+
+      return null;
+    }
+  }
+
   Future<bool> doesUserExist({
     String? phoneNumber,
     String? emailAddress,

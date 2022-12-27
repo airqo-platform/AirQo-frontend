@@ -77,7 +77,7 @@ class HiveService {
     List<SiteReading> siteReadings, {
     bool reload = false,
   }) async {
-    final airQualityReadings = <dynamic, AirQualityReading>{};
+    final airQualityReadings = <String, AirQualityReading>{};
 
     for (final siteReading in siteReadings) {
       final airQualityReading = AirQualityReading.fromSiteReading(siteReading);
@@ -163,23 +163,23 @@ class HiveService {
         .putAll(notificationsMap);
   }
 
-  static Future<void> loadKya(List<Kya> kya) async {
-    if (kya.isEmpty) {
+  static Future<void> loadKya(List<Kya> kyaList) async {
+    if (kyaList.isEmpty) {
       return;
     }
 
     await Hive.box<Kya>(HiveBox.kya).clear();
     final kyaMap = <String, Kya>{};
 
-    for (final x in kya) {
+    for (final x in kyaList) {
       kyaMap[x.id] = x;
     }
 
     await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
 
-    for (final kya in kya) {
-      CacheService.cacheKyaImages(kya);
-    }
+    kyaMap.forEach((_, value) async {
+      CacheService.cacheKyaImages(value);
+    });
   }
 
   static Future<void> loadProfile(Profile profile) async {

@@ -69,7 +69,6 @@ class SplashScreenState extends State<SplashScreen> {
     }).onError((error) async {
       await logException(error, null);
     });
-    
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 

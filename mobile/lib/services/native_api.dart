@@ -94,8 +94,6 @@ class ShareService {
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    const uriPrefix = 'https://airqo.page.link';
     String params = '';
     String? title;
     String? description;
@@ -117,6 +115,9 @@ class ShareService {
       shareImage =
           Uri.parse(kya.shareImage.isEmpty ? kya.imageUrl : kya.shareImage);
     }
+
+    final packageInfo = await PackageInfo.fromPlatform();
+    const uriPrefix = 'https://airqo.page.link';
 
     final dynamicLinkParams = DynamicLinkParameters(
       link: Uri.parse('https://airqo.net/?$params'),
