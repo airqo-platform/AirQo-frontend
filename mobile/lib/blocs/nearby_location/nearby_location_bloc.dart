@@ -51,15 +51,15 @@ class NearbyLocationBloc
             .values
             .toList();
 
-    List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.toList();
 
     nearByAirQualityReadings = nearByAirQualityReadings
         .map((element) {
           List<AirQualityReading> referenceReadings = airQualityReadings
               .where(
-                (reading) => reading.referenceSite == element.referenceSite,
-              )
+                  (reading) => reading.referenceSite == element.referenceSite)
               .toList();
           if (referenceReadings.isNotEmpty) {
             return element.copyWith(

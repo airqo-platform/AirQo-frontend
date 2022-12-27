@@ -350,6 +350,7 @@ class _DashboardViewState extends State<DashboardView>
 
   void _refresh({bool refreshMap = true}) {
     context.read<DashboardBloc>().add(const RefreshDashboard());
+    context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());

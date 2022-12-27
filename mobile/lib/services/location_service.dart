@@ -18,8 +18,10 @@ class LocationService {
     required double latitude,
     required double longitude,
   }) async {
-    List<Placemark> landMarks =
-        await placemarkFromCoordinates(latitude, longitude);
+    List<Placemark> landMarks = await placemarkFromCoordinates(
+      latitude,
+      longitude,
+    );
 
     if (landMarks.isEmpty) {
       return '';
@@ -150,8 +152,9 @@ class LocationService {
     double latitude,
     double longitude,
   ) async {
-    List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.toList();
 
     airQualityReadings = airQualityReadings.map((element) {
       final double distanceInMeters = metersToKmDouble(

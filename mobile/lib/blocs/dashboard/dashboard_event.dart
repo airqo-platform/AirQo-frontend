@@ -4,15 +4,9 @@ abstract class DashboardEvent extends Equatable {
   const DashboardEvent();
 }
 
-class InitializeDashboard extends DashboardEvent {
-  const InitializeDashboard();
-
-  @override
-  List<Object?> get props => [];
-}
-
 class RefreshDashboard extends DashboardEvent {
-  const RefreshDashboard();
+  const RefreshDashboard({this.reload});
+  final bool? reload;
 
   @override
   List<Object?> get props => [];
