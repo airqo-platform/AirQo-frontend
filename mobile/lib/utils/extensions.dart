@@ -77,13 +77,9 @@ extension ChartDataExt on ChartData {
 
 extension KyaListExt on List<Kya> {
   int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
-    }
-
-    return sum;
+    return isEmpty
+        ? 0
+        : map((element) => element.progress).toList().reduce((x, y) => x + y);
   }
 
   List<Kya> filterIncompleteKya() {
@@ -129,7 +125,7 @@ extension SearchHistoryListExt on List<SearchHistory> {
     List<AirQualityReading> airQualityReadings = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
-          await LocationService.getNearestSiteAirQualityReading(
+          await LocationService.getNearestSite(
         searchHistory.latitude,
         searchHistory.longitude,
       );
@@ -171,18 +167,40 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
         )
         .toList();
 
-    return airQualityReadings.sortByDistance();
+    return airQualityReadings.sortByDistanceToReferenceSite();
   }
 
-  List<AirQualityReading> sortByDistance() {
-    List<AirQualityReading> airQualityReadings = List.of(this);
-    airQualityReadings.sort(
+  List<AirQualityReading> shuffleByCountry() {
+    List<AirQualityReading> data = List.of(this);
+    List<AirQualityReading> shuffledData = [];
+
+    final List<String> countries = data.map((e) => e.country).toSet().toList();
+    countries.shuffle();
+    while (data.isNotEmpty) {
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = data
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .take(1)
+            .toList();
+        shuffledData.addAll(countryReadings);
+        for (final reading in countryReadings) {
+          data.remove(reading);
+        }
+      }
+    }
+
+    return shuffledData;
+  }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
       (x, y) {
         return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
       },
     );
 
-    return airQualityReadings;
+    return data;
   }
 }
 

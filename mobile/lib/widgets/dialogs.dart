@@ -7,8 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../screens/settings/settings_page.dart';
-
 void pmInfoDialog(BuildContext context, double pm2_5) {
   showGeneralDialog(
     barrierColor: Colors.transparent,
@@ -301,16 +299,7 @@ Future<void> showLocationErrorSnackBar(
           case NearbyAirQualityError.locationDisabled:
             await Geolocator.openLocationSettings();
             break;
-          case NearbyAirQualityError.locationNotAllowed:
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return const SettingsPage();
-                },
-              ),
-            );
-            break;
+          case NearbyAirQualityError.none:
           case NearbyAirQualityError.noNearbyAirQualityReadings:
             break;
         }

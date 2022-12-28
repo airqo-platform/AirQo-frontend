@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../screens/home_page.dart';
+import '../screens/search/search_page.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
   const NoSearchResultsWidget({super.key});
@@ -93,6 +94,179 @@ class NoAirQualityDataWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class NoFavouritePlacesWidget extends StatelessWidget {
+  const NoFavouritePlacesWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_favorite_places_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'View your favorite places',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(children: [
+              TextSpan(
+                text: 'Tap the ',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+              WidgetSpan(
+                child: SvgPicture.asset(
+                  'assets/icon/heart.svg',
+                  semanticsLabel: 'Favorite',
+                  height: 15.33,
+                  width: 15.12,
+                ),
+              ),
+              TextSpan(
+                text:
+                    ' Favorite icon on any location to add it to your favorites',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+            ]),
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const SearchPage();
+                  },
+                ),
+              );
+            },
+            child: const ActionButton(
+              icon: Icons.add,
+              text: 'Add Favorites',
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class NoAnalyticsWidget extends StatelessWidget {
+  const NoAnalyticsWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_analytics_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'Know the Air Quality trends',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'Stay on top of changes in Air Quality of places important to you',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.location_on_outlined,
+              text: 'Turn on location',
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class NoKyaWidget extends StatelessWidget {
+  const NoKyaWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'Keep up with your lessons',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'Track your completed “Know Your Air” lessons and revisit them anytime',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: InkWell(
+              onTap: () {
+                callBack();
+              },
+              child: NextButton(
+                buttonColor: CustomColors.appColorBlue,
+                text: 'Start learning',
+              ),
+            ),
+          ),
+          const Spacer(),
+        ],
       ),
     );
   }
