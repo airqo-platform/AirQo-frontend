@@ -1,3 +1,5 @@
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -48,7 +50,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     emit(state.copyWith(location: event.enable));
-    await _saveChanges();
+    if (event.enable) {
+      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+    }
+    Profile profile = await Profile.getProfile();
+    await profile.update(enableLocation: event.enable);
   }
 
   Future<void> _onUpdateNotificationPref(
@@ -56,13 +62,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     emit(state.copyWith(notifications: event.enable));
-    await _saveChanges();
-  }
-
-  Future<void> _saveChanges() async {
-    // TODO update profile
-    // TODO log events
-    // await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
-    // await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+    if (event.enable) {
+      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
+    }
+    Profile profile = await Profile.getProfile();
+    await profile.update(enableNotification: event.enable);
   }
 }
