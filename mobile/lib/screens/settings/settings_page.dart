@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -6,26 +8,52 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
-import 'settings_page_widgets.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
-
+  // TODO implement restoration for android permissions
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  late BuildContext _loadingContext;
+class _SettingsPageState extends State<SettingsPage>
+    with WidgetsBindingObserver {
+  late String enableLocationMessage;
+  late String enableNotificationsMessage;
+  late String disableLocationMessage;
+  late String disableNotificationsMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadingContext = context;
+    WidgetsBinding.instance.addObserver(this);
+    context.read<SettingsBloc>().add(const InitializeSettings());
+    if (Platform.isAndroid) {
+      enableLocationMessage =
+          'To turn on location, go to\nApp Info > Permissions > Location > Allow only while using the app';
+      enableNotificationsMessage =
+          'To turn on notifications, go to\nApp Info > Notifications';
+
+      disableLocationMessage =
+          'To turn off location, go to\nApp Info > Permissions > Location > Deny';
+      disableNotificationsMessage =
+          'To turn off notifications, go to\nApp Info > Notifications';
+    } else {
+      enableLocationMessage =
+          'To turn on location, go to\nSettings > AirQo > Location > Always';
+      enableNotificationsMessage =
+          'To turn on notifications, go to\nSettings > AirQo > Notifications';
+
+      disableLocationMessage =
+          'To turn off location, go to\nSettings > AirQo > Location > Never';
+      disableNotificationsMessage =
+          'To turn off notifications, go to\nSettings > AirQo > Notifications';
+    }
   }
 
   @override
@@ -35,189 +63,209 @@ class _SettingsPageState extends State<SettingsPage> {
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        widget: BlocBuilder<SettingsBloc, SettingsState>(
           builder: (context, state) {
-            final profile = state.profile;
+            final Widget divider = Divider(
+              height: 1,
+              thickness: 0,
+              color: CustomColors.appBodyColor,
+            );
 
-            if (profile == null) {
-              context.read<AccountBloc>().add(const RefreshProfile());
+            const ShapeBorder topBorder = RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            );
 
-              return AppErrorWidget(
-                callBack: () {
-                  context.read<AccountBloc>().add(const RefreshProfile());
-                },
-              );
-            }
+            const ShapeBorder bottomBorder = RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+            );
 
             return Column(
-              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Expanded(
-                  child: ListView(
-                    children: [
-                      const SizedBox(
-                        height: 31,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(8.0),
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  shape: topBorder,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: topBorder,
+                    title: Text(
+                      'Location',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                    trailing: CupertinoSwitch(
+                      activeColor: CustomColors.appColorBlue,
+                      onChanged: (bool value) async {
+                        await _onLocationToggle(value);
+                      },
+                      value: state.location,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    title: Text(
+                      'Notification',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                    trailing: CupertinoSwitch(
+                      activeColor: CustomColors.appColorBlue,
+                      onChanged: (bool value) async {
+                        await _onNotificationToggle(value);
+                      },
+                      value: state.notifications,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return const FeedbackPage();
+                          },
+                        ),
+                      );
+                    },
+                    title: Text(
+                      'Send feedback',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    onTap: () async {
+                      await RateService.rateApp();
+                    },
+                    title: Text(
+                      'Rate the AirQo App',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  shape: bottomBorder,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: bottomBorder,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return const AboutAirQo();
+                          },
+                        ),
+                      );
+                    },
+                    title: Text(
+                      'About',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                BlocBuilder<AccountBloc, AccountState>(
+                  buildWhen: (previous, current) {
+                    return previous.guestUser != current.guestUser;
+                  },
+                  builder: (context, state) {
+                    if (state.guestUser) {
+                      return Container();
+                    }
+
+                    return MultiBlocListener(
+                      listeners: [
+                        BlocListener<AccountBloc, AccountState>(
+                          listener: (context, state) {
+                            loadingScreen(context);
+                          },
+                          listenWhen: (previous, current) {
+                            return current.blocStatus == BlocStatus.processing;
+                          },
+                        ),
+                        BlocListener<AccountBloc, AccountState>(
+                          listener: (context, state) {
+                            Navigator.pop(context);
+                          },
+                          listenWhen: (previous, current) {
+                            return previous.blocStatus == BlocStatus.processing;
+                          },
+                        ),
+                        BlocListener<AccountBloc, AccountState>(
+                          listener: (context, state) {
+                            showSnackBar(context, state.blocError.message);
+                          },
+                          listenWhen: (previous, current) {
+                            return current.blocStatus == BlocStatus.error &&
+                                current.blocError != AuthenticationError.none;
+                          },
+                        ),
+                        BlocListener<AccountBloc, AccountState>(
+                          listener: (context, state) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return const AuthVerificationWidget();
+                              }),
+                            );
+                          },
+                          listenWhen: (previous, current) {
+                            return current.blocStatus ==
+                                BlocStatus.accountDeletionCheckSuccess;
+                          },
+                        ),
+                      ],
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                        ),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          onTap: () {
+                            _deleteAccount();
+                          },
+                          title: Text(
+                            'Delete your account',
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                Theme.of(context).textTheme.bodyText2?.copyWith(
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.6),
+                                    ),
                           ),
                         ),
-                        child: Column(
-                          children: [
-                            // TODO implement app lifecycle
-                            ListTile(
-                              title: Text(
-                                'Location',
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodyText1,
-                              ),
-                              trailing: CupertinoSwitch(
-                                activeColor: CustomColors.appColorBlue,
-                                onChanged: (bool value) async {
-                                  context.read<AccountBloc>().add(
-                                        UpdateProfilePreferences(
-                                          location: value,
-                                        ),
-                                      );
-                                  if (value) {
-                                    await PermissionService.checkPermission(
-                                      AppPermission.location,
-                                      request: true,
-                                    );
-                                  }
-                                },
-                                value: profile.preferences.location,
-                              ),
-                            ),
-                            Divider(
-                              color: CustomColors.appBodyColor,
-                            ),
-                            ListTile(
-                              title: Text(
-                                'Notification',
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodyText1,
-                              ),
-                              trailing: CupertinoSwitch(
-                                activeColor: CustomColors.appColorBlue,
-                                onChanged: (bool value) async {
-                                  context.read<AccountBloc>().add(
-                                        UpdateProfilePreferences(
-                                          notifications: value,
-                                        ),
-                                      );
-                                  if (value) {
-                                    await PermissionService.checkPermission(
-                                      AppPermission.notification,
-                                      request: true,
-                                    );
-                                  }
-                                },
-                                value: profile.preferences.notifications,
-                              ),
-                            ),
-                            Divider(
-                              color: CustomColors.appBodyColor,
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const FeedbackPage();
-                                    },
-                                  ),
-                                );
-                              },
-                              child: const SettingsCard(text: 'Send feedback'),
-                            ),
-                            Divider(
-                              color: CustomColors.appBodyColor,
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                await RateService.rateApp();
-                              },
-                              child: const SettingsCard(
-                                text: 'Rate the AirQo App',
-                              ),
-                            ),
-                            Divider(
-                              color: CustomColors.appBodyColor,
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const AboutAirQo();
-                                    },
-                                  ),
-                                );
-                              },
-                              child: const SettingsCard(text: 'About'),
-                            ),
-                          ],
-                        ),
                       ),
-                    ],
-                  ),
-                ),
-                Visibility(
-                  visible: !state.guestUser,
-                  child: DeleteAccountButton(
-                    deleteAccount: _deleteAccount,
-                  ),
-                ),
-                MultiBlocListener(
-                  listeners: [
-                    BlocListener<AccountBloc, AccountState>(
-                      listener: (context, state) {
-                        loadingScreen(_loadingContext);
-                      },
-                      listenWhen: (previous, current) {
-                        return current.blocStatus == BlocStatus.processing;
-                      },
-                    ),
-                    BlocListener<AccountBloc, AccountState>(
-                      listener: (context, state) {
-                        Navigator.pop(_loadingContext);
-                      },
-                      listenWhen: (previous, current) {
-                        return previous.blocStatus == BlocStatus.processing;
-                      },
-                    ),
-                    BlocListener<AccountBloc, AccountState>(
-                      listener: (context, state) {
-                        showSnackBar(context, state.blocError.message);
-                      },
-                      listenWhen: (previous, current) {
-                        return current.blocStatus == BlocStatus.error &&
-                            current.blocError != AuthenticationError.none;
-                      },
-                    ),
-                    BlocListener<AccountBloc, AccountState>(
-                      listener: (context, state) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) {
-                            return const AuthVerificationWidget();
-                          }),
-                        );
-                      },
-                      listenWhen: (previous, current) {
-                        return current.blocStatus ==
-                            BlocStatus.accountDeletionCheckSuccess;
-                      },
-                    ),
-                  ],
-                  child: Container(),
+                    );
+                  },
                 ),
               ],
             );
@@ -227,7 +275,130 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        context.read<SettingsBloc>().add(const InitializeSettings());
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
+
+  Future<void> _onLocationToggle(bool value) async {
+    if (value) {
+      await Permission.location.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await _openSettings(enableLocationMessage);
+            break;
+          case PermissionStatus.denied:
+            if (Platform.isAndroid) {
+              await _openSettings(enableLocationMessage);
+            } else {
+              await _requestLocation();
+            }
+            break;
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await _requestLocation();
+            break;
+          case PermissionStatus.granted:
+            context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+            break;
+        }
+      });
+    } else {
+      await _openSettings(disableLocationMessage);
+    }
+  }
+
+  Future<void> _onNotificationToggle(bool value) async {
+    if (value) {
+      await Permission.notification.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await _openSettings(enableNotificationsMessage);
+            break;
+          case PermissionStatus.denied:
+            if (Platform.isAndroid) {
+              await _openSettings(enableNotificationsMessage);
+            } else {
+              await _requestNotifications();
+            }
+            break;
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await _requestNotifications();
+            break;
+          case PermissionStatus.granted:
+            context
+                .read<SettingsBloc>()
+                .add(const UpdateNotificationPref(true));
+            break;
+        }
+      });
+    } else {
+      await _openSettings(disableNotificationsMessage);
+    }
+  }
+
   void _deleteAccount() {
     context.read<AccountBloc>().add(DeleteAccount(context: context));
+  }
+
+  Future<void> _openSettings(String message) async {
+    final confirmation = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return SettingsDialog(message);
+      },
+    );
+
+    if (confirmation == ConfirmationAction.ok) {
+      await openAppSettings();
+    }
+  }
+
+  Future<void> _requestLocation() async {
+    await Permission.location.request().then((status) {
+      switch (status) {
+        case PermissionStatus.restricted:
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+          break;
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(false));
+          break;
+      }
+    });
+  }
+
+  Future<void> _requestNotifications() async {
+    await Permission.notification.request().then((status) {
+      switch (status) {
+        case PermissionStatus.restricted:
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context.read<SettingsBloc>().add(const UpdateNotificationPref(true));
+          break;
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context.read<SettingsBloc>().add(const UpdateNotificationPref(false));
+          break;
+      }
+    });
   }
 }

@@ -343,6 +343,54 @@ void showSnackBar(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
+class SettingsDialog extends StatelessWidget {
+  const SettingsDialog(this.message, {super.key});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      content: Column(
+        children: [
+          const SizedBox(
+            height: 7,
+          ),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.cancel);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: true,
+          child: Text(
+            'Cancel',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            'Proceed',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class AuthMethodDialog extends StatelessWidget {
   const AuthMethodDialog({
     super.key,
