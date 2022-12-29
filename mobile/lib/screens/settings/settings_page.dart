@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -155,7 +157,13 @@ class _SettingsPageState extends State<SettingsPage>
                   child: ListTile(
                     tileColor: Colors.white,
                     onTap: () async {
-                      await RateService.rateApp();
+                      await hasNetworkConnection().then((value) async {
+                        if (value) {
+                          await RateService.rateApp();
+                        } else {
+                          showSnackBar(context, Config.connectionErrorMessage);
+                        }
+                      });
                     },
                     title: Text(
                       'Rate the AirQo App',
@@ -286,6 +294,9 @@ class _SettingsPageState extends State<SettingsPage>
     switch (state) {
       case AppLifecycleState.resumed:
         context.read<SettingsBloc>().add(const InitializeSettings());
+        context
+            .read<NearbyLocationBloc>()
+            .add(const SearchLocationAirQuality());
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
@@ -299,26 +310,29 @@ class _SettingsPageState extends State<SettingsPage>
       await Permission.location.status.then((status) async {
         switch (status) {
           case PermissionStatus.permanentlyDenied:
-            await _openSettings(enableLocationMessage);
+            await _openPhoneSettings(enableLocationMessage);
             break;
           case PermissionStatus.denied:
             if (Platform.isAndroid) {
-              await _openSettings(enableLocationMessage);
+              await _openPhoneSettings(enableLocationMessage);
             } else {
-              await _requestLocation();
+              await _openLocationDialog();
             }
             break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
-            await _requestLocation();
+            await _openLocationDialog();
             break;
           case PermissionStatus.granted:
             context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+            context
+                .read<NearbyLocationBloc>()
+                .add(const SearchLocationAirQuality());
             break;
         }
       });
     } else {
-      await _openSettings(disableLocationMessage);
+      await _openPhoneSettings(disableLocationMessage);
     }
   }
 
@@ -327,18 +341,18 @@ class _SettingsPageState extends State<SettingsPage>
       await Permission.notification.status.then((status) async {
         switch (status) {
           case PermissionStatus.permanentlyDenied:
-            await _openSettings(enableNotificationsMessage);
+            await _openPhoneSettings(enableNotificationsMessage);
             break;
           case PermissionStatus.denied:
             if (Platform.isAndroid) {
-              await _openSettings(enableNotificationsMessage);
+              await _openPhoneSettings(enableNotificationsMessage);
             } else {
-              await _requestNotifications();
+              await _openNotificationDialog();
             }
             break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
-            await _requestNotifications();
+            await _openNotificationDialog();
             break;
           case PermissionStatus.granted:
             context
@@ -348,7 +362,7 @@ class _SettingsPageState extends State<SettingsPage>
         }
       });
     } else {
-      await _openSettings(disableNotificationsMessage);
+      await _openPhoneSettings(disableNotificationsMessage);
     }
   }
 
@@ -356,7 +370,7 @@ class _SettingsPageState extends State<SettingsPage>
     context.read<AccountBloc>().add(DeleteAccount(context: context));
   }
 
-  Future<void> _openSettings(String message) async {
+  Future<void> _openPhoneSettings(String message) async {
     final confirmation = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
@@ -370,23 +384,29 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  Future<void> _requestLocation() async {
+  Future<void> _openLocationDialog() async {
     await Permission.location.request().then((status) {
       switch (status) {
         case PermissionStatus.restricted:
         case PermissionStatus.granted:
         case PermissionStatus.limited:
           context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
           break;
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
           context.read<SettingsBloc>().add(const UpdateLocationPref(false));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
           break;
       }
     });
   }
 
-  Future<void> _requestNotifications() async {
+  Future<void> _openNotificationDialog() async {
     await Permission.notification.request().then((status) {
       switch (status) {
         case PermissionStatus.restricted:
