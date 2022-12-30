@@ -194,7 +194,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       longitude: place.geometry.location.lng,
     );
 
-    List<AirQualityReading> recentSearches = List.from(state.recentSearches);
+    List<AirQualityReading> recentSearches = List.of(state.recentSearches);
     if (!recentSearches
         .map((e) => e.placeId)
         .toList()

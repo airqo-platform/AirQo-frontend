@@ -374,7 +374,7 @@ class _SettingsPageState extends State<SettingsPage>
     final confirmation = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext _) {
         return SettingsDialog(message);
       },
     );
