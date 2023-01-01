@@ -19,6 +19,7 @@ class SiteReading extends Equatable {
     required this.pm10,
     required this.source,
     required this.shareImage,
+    required this.shareLink,
   });
 
   factory SiteReading.fromMeasurement(Measurement measurement) {
@@ -42,7 +43,8 @@ class SiteReading extends Equatable {
             (measurement.pm10.calibratedValue ?? measurement.pm10.value)
                 .toStringAsFixed(2)),
         source: measurement.site.tenant,
-        shareImage: measurement.site.shareImage,
+        shareImage: measurement.site.shareLinks == null ? '' : measurement.site.shareLinks?.shareImage ?? '',
+        shareLink: measurement.site.shareLinks == null ? '' :  measurement.site.shareLinks?.shareShortLink ?? '',
     );
   }
 
@@ -63,6 +65,7 @@ class SiteReading extends Equatable {
   final double pm2_5;
   final double pm10;
   final String shareImage;
+  final String shareLink;
 
   @override
   List<Object?> get props => [name, dateTime, pm2_5];

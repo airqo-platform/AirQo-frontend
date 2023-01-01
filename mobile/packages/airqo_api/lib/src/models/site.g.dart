@@ -24,6 +24,31 @@ Site _$SiteFromJson(Map<String, dynamic> json) => $checkedCreate(
           description: $checkedConvert('description', (v) => v as String),
           region: $checkedConvert('region', (v) => v as String),
           tenant: $checkedConvert('tenant', (v) => v as String? ?? 'AirQo'),
+          shareLinks: $checkedConvert(
+              'share_links',
+              (v) => v == null
+                  ? null
+                  : ShareLinks.fromJson(v as Map<String, dynamic>)),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'id': '_id',
+        'locationName': 'location_name',
+        'searchName': 'search_name',
+        'shareLinks': 'share_links'
+      },
+    );
+
+ShareLinks _$ShareLinksFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'ShareLinks',
+      json,
+      ($checkedConvert) {
+        final val = ShareLinks(
+          shareShortLink:
+              $checkedConvert('mobile_short_link', (v) => v as String? ?? ''),
+          sharePreviewLink:
+              $checkedConvert('mobile_preview_link', (v) => v as String? ?? ''),
           shareImage: $checkedConvert(
               'share_image',
               (v) =>
@@ -33,9 +58,8 @@ Site _$SiteFromJson(Map<String, dynamic> json) => $checkedCreate(
         return val;
       },
       fieldKeyMap: const {
-        'id': '_id',
-        'locationName': 'location_name',
-        'searchName': 'search_name',
+        'shareShortLink': 'mobile_short_link',
+        'sharePreviewLink': 'mobile_preview_link',
         'shareImage': 'share_image'
       },
     );

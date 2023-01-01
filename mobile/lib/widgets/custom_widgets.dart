@@ -7,7 +7,6 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -340,7 +339,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     return Row(
       children: [
         Expanded(
-          child: FutureBuilder<ShortDynamicLink>(
+          child: FutureBuilder<Uri>(
             future: ShareService.createShareLink(
               airQualityReading: widget.airQualityReading,
             ),
@@ -352,10 +351,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
               if (snapshot.hasData) {
                 return InkWell(
                   onTap: () async {
-                    ShortDynamicLink? link = snapshot.data;
+                    Uri? link = snapshot.data;
                     if (link != null) {
                       await ShareService.shareLink(
-                        link: link,
+                        link,
                         airQualityReading: widget.airQualityReading,
                       );
                     }

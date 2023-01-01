@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
@@ -17,7 +17,7 @@ class Site {
     required this.description,
     required this.region,
     required this.tenant,
-    required this.shareImage,
+    required this.shareLinks,
   });
 
   @JsonKey(name: '_id')
@@ -34,6 +34,29 @@ class Site {
   final String region;
   @JsonKey(defaultValue: 'AirQo', required: false)
   final String tenant;
-  @JsonKey(name: 'share_image', defaultValue: 'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg', required: false)
+  @JsonKey(name: 'share_links', required: false)
+  final ShareLinks? shareLinks;
+}
+
+@JsonSerializable()
+class ShareLinks {
+  factory ShareLinks.fromJson(Map<String, dynamic> json) =>
+      _$ShareLinksFromJson(json);
+
+  const ShareLinks({
+    required this.shareShortLink,
+    required this.sharePreviewLink,
+    required this.shareImage,
+  });
+
+  @JsonKey(name: 'mobile_short_link', defaultValue: '', required: false)
+  final String shareShortLink;
+  @JsonKey(name: 'mobile_preview_link', defaultValue: '', required: false)
+  final String sharePreviewLink;
+  @JsonKey(
+      name: 'share_image',
+      defaultValue:
+          'https://storage.googleapis.com/airqo_open_data/hero_image.jpeg',
+      required: false)
   final String shareImage;
 }

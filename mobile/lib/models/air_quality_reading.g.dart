@@ -30,7 +30,7 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       pm10: fields[10] == null ? 0.0 : fields[10] as double,
       distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
       placeId: fields[12] == null ? '' : fields[12] as String,
-      shareImage: fields[14] == null ? '' : fields[14] as String,
+      shareLink: fields[14] == null ? '' : fields[14] as String,
     );
   }
 
@@ -65,7 +65,7 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(13)
       ..write(obj.region)
       ..writeByte(14)
-      ..write(obj.shareImage);
+      ..write(obj.shareLink);
   }
 
   @override
@@ -99,7 +99,7 @@ AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
       distanceToReferenceSite:
           (json['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
       placeId: json['placeId'] as String? ?? '',
-      shareImage: json['shareImage'] as String? ?? '',
+      shareLink: json['shareLink'] as String? ?? '',
     );
 
 Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
@@ -117,5 +117,5 @@ Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
       'distanceToReferenceSite': instance.distanceToReferenceSite,
       'placeId': instance.placeId,
       'region': instance.region,
-      'shareImage': instance.shareImage,
+      'shareLink': instance.shareLink,
     };

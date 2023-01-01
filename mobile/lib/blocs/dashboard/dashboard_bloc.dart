@@ -16,7 +16,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
   Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
     final greetings = await DateTime.now().getGreetings();
-    emit(state.copyWith(greetings: greetings));
+    return emit(state.copyWith(greetings: greetings));
   }
 
   void _loadAirQualityReadings(Emitter<DashboardState> emit) {
@@ -71,6 +71,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     if (event.reload ?? false) {
       emit(const DashboardState.initial());
+      _loadAirQualityReadings(emit);
     }
 
     final hasConnection = await hasNetworkConnection();
@@ -91,8 +92,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       AppService().refreshAirQualityReadings(),
       AppService().updateFavouritePlacesReferenceSites(),
       _updateGreetings(emit)
-    ]);
-
-    return _loadAirQualityReadings(emit);
+    ]).whenComplete(() => _loadAirQualityReadings(emit));
   }
 }

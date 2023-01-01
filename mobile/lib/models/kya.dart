@@ -19,7 +19,7 @@ class Kya extends HiveObject with EquatableMixin {
     required this.progress,
     required this.completionMessage,
     required this.secondaryImageUrl,
-    required this.shareImage,
+    required this.shareLink,
   });
 
   @HiveField(1, defaultValue: 0)
@@ -52,7 +52,7 @@ class Kya extends HiveObject with EquatableMixin {
   // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
   @HiveField(8, defaultValue: '')
   @JsonKey(defaultValue: '')
-  final String shareImage;
+  final String shareLink;
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
@@ -70,7 +70,7 @@ class Kya extends HiveObject with EquatableMixin {
         progress: 0,
         completionMessage: '',
         secondaryImageUrl: '',
-        shareImage: '',
+        shareLink: '',
       );
     });
   }

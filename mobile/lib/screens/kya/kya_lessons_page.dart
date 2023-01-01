@@ -5,7 +5,6 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -80,7 +79,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
               ),
             ),
-            FutureBuilder<ShortDynamicLink>(
+            FutureBuilder<Uri>(
               future: ShareService.createShareLink(kya: widget.kya),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -89,10 +88,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
-                      ShortDynamicLink? link = snapshot.data;
+                      Uri? link = snapshot.data;
                       if (link != null) {
                         await ShareService.shareLink(
-                          link: link,
+                          link,
                           kya: kya,
                         );
                       }

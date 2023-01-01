@@ -90,10 +90,30 @@ class RateService {
 }
 
 class ShareService {
-  static Future<ShortDynamicLink> createShareLink({
+  // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
+  static Future<Uri> createShareLink({
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
+    if (airQualityReading != null && kya != null) {
+      throw Exception('One model should be provided');
+    }
+
+    try {
+      if (airQualityReading != null && airQualityReading.shareLink.isNotEmpty) {
+        return Uri.parse(airQualityReading.shareLink);
+      }
+
+      if (kya != null && kya.shareLink.isNotEmpty) {
+        return Uri.parse(kya.shareLink);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
     String params = '';
     String? title;
     String? description;
@@ -103,23 +123,19 @@ class ShareService {
       params = '${airQualityReading.shareLinkParams()}&destination=insights';
       title = airQualityReading.name;
       description = airQualityReading.location;
-      shareImage = airQualityReading.shareImage.isEmpty
-          ? null
-          : Uri.parse(airQualityReading.shareImage);
     }
 
     if (kya != null) {
       params = '${kya.shareLinkParams()}&destination=kya';
       title = kya.title;
       description = 'Breathe Clean';
-      shareImage =
-          Uri.parse(kya.shareImage.isEmpty ? kya.imageUrl : kya.shareImage);
+      shareImage = Uri.parse(kya.imageUrl);
     }
 
     final packageInfo = await PackageInfo.fromPlatform();
     const uriPrefix = 'https://airqo.page.link';
 
-    final dynamicLinkParams = DynamicLinkParameters(
+    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
       link: Uri.parse('https://airqo.net/?$params'),
       uriPrefix: uriPrefix,
       androidParameters: AndroidParameters(
@@ -152,7 +168,14 @@ class ShareService {
       ),
     );
 
-    return FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
+    }
+    final ShortDynamicLink shortDynamicLink =
+        await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+
+    return shortDynamicLink.shortUrl;
   }
 
   static Future<void> navigateToSharedFeature({
@@ -191,21 +214,25 @@ class ShareService {
     }
   }
 
-  static Future<void> shareLink({
-    required ShortDynamicLink link,
+  static Future<void> shareLink(
+    Uri link, {
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
+    if (airQualityReading != null && kya != null) {
+      throw Exception('One model should be provided');
+    }
+
     String subject;
     if (kya != null) {
-      subject = kya.title;
+      subject = 'kya.title';
     } else if (airQualityReading != null) {
       subject = '${airQualityReading.name}\n${airQualityReading.location}';
     } else {
       subject = '';
     }
     await Share.share(
-      '${link.shortUrl}',
+      link.toString(),
       subject: subject,
     ).then((value) => {updateUserShares()});
   }

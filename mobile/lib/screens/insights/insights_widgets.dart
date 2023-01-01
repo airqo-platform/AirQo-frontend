@@ -1403,7 +1403,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-            child: FutureBuilder<ShortDynamicLink>(
+            child: FutureBuilder<Uri>(
               future: ShareService.createShareLink(
                 airQualityReading: widget.airQualityReading,
               ),
@@ -1414,10 +1414,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
-                      ShortDynamicLink? link = snapshot.data;
+                      Uri? link = snapshot.data;
                       if (link != null) {
                         await ShareService.shareLink(
-                          link: link,
+                          link,
                           airQualityReading: widget.airQualityReading,
                         );
                       }

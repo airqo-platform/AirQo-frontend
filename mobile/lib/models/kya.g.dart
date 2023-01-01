@@ -26,7 +26,7 @@ class KyaAdapter extends TypeAdapter<Kya> {
           ? 'You just finished your first Know You Air Lesson'
           : fields[3] as String,
       secondaryImageUrl: fields[5] as String,
-      shareImage: fields[8] == null ? '' : fields[8] as String,
+      shareLink: fields[8] == null ? '' : fields[8] as String,
     );
   }
 
@@ -49,7 +49,7 @@ class KyaAdapter extends TypeAdapter<Kya> {
       ..writeByte(7)
       ..write(obj.lessons)
       ..writeByte(8)
-      ..write(obj.shareImage);
+      ..write(obj.shareLink);
   }
 
   @override
@@ -118,7 +118,7 @@ Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
       completionMessage: json['completionMessage'] as String? ??
           'You just finished your first Know You Air Lesson',
       secondaryImageUrl: json['secondaryImageUrl'] as String? ?? '',
-      shareImage: json['shareImage'] as String? ?? '',
+      shareLink: json['shareLink'] as String? ?? '',
     );
 
 Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
@@ -129,7 +129,7 @@ Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
       'secondaryImageUrl': instance.secondaryImageUrl,
       'id': instance.id,
       'lessons': instance.lessons.map((e) => e.toJson()).toList(),
-      'shareImage': instance.shareImage,
+      'shareLink': instance.shareLink,
     };
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
