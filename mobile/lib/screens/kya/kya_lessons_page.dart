@@ -110,13 +110,13 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               height: MediaQuery.of(context).size.height * 0.6,
               child: AppinioSwiper(
                 cards: kyaCards,
+                allowUnswipe: true,
                 unlimitedUnswipe: true,
                 controller: swipeController,
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
                 unswipe: _unswipe,
                 onEnd: () {
-                  kya.progress = currentIndex;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -164,18 +164,23 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   initState() {
     super.initState();
+    kya = widget.kya;
     currentIndex = widget.kya.lessons.length;
-    for (int i = 0; i < widget.kya.lessons.length; i++) {
-      _globalKeys.add(GlobalKey());
+    var index = 0;
+    while (index != widget.kya.lessons.length) {
+      _globalKeys.add(
+        GlobalKey(),
+      );
+      index++;
     }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    kya = widget.kya;
     for (KyaLesson lesson in widget.kya.lessons) {
       Card card = _kyaCard(lesson, widget.kya.lessons.indexOf(lesson));
+      _globalKeys.add(GlobalKey());
       kyaCards.add(card);
     }
   }
@@ -196,20 +201,22 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   void _swipe(int index, AppinioSwiperDirection direction) {
-    setState(() {
-      currentIndex = index;
-      _tipsProgress += 0.1;
-    });
-    // TODO: Add account updates
-    // context
-    // .read<AccountBloc>()
-    // .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
+    if (direction == AppinioSwiperDirection.left ||
+        direction == AppinioSwiperDirection.right) {
+      setState(() {
+        currentIndex = index;
+        _tipsProgress += 0.1;
+      });
+    }
+    context
+        .read<AccountBloc>()
+        .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
   }
 
   void _unswipe(bool unswiped) {
     setState(() {
       if (unswiped) {
-        currentIndex++;
+        currentIndex--;
         _tipsProgress -= 0.1;
       }
     });
