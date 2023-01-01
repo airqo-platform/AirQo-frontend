@@ -7,6 +7,7 @@ import careersReducer from './Careers/reducers';
 import teamReducer from './Team/reducers';
 import highlightsReducer from './Highlights/reducers';
 import partnersReducer from './Partners/reducers';
+import boardReducer from './Board/reducers';
 
 export default combineReducers({
     airqlouds: airqloudsReducer,
@@ -17,4 +18,5 @@ export default combineReducers({
     teamData: teamReducer,
     highlightsData: highlightsReducer,
     partnersData: partnersReducer,
+    boardData: boardReducer
 });

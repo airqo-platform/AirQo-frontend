@@ -3,12 +3,12 @@ import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../constants/config.dart';
+import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
 @JsonSerializable()
-@HiveType(typeId: 50, adapterName: 'AirQualityReadingAdapter')
+@HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject {
   AirQualityReading({
     required this.referenceSite,
@@ -37,7 +37,7 @@ class AirQualityReading extends HiveObject {
       country: siteReading.country,
       name: siteReading.name,
       location: siteReading.location,
-      region: Region.fromString(siteReading.region),
+      region: siteReading.region,
       source: siteReading.source,
       dateTime: siteReading.dateTime,
       pm2_5: siteReading.pm2_5,
@@ -55,7 +55,7 @@ class AirQualityReading extends HiveObject {
       country: favouritePlace.location,
       name: favouritePlace.name,
       location: favouritePlace.location,
-      region: Region.fromString(''),
+      region: '',
       source: favouritePlace.location,
       dateTime: DateTime.now(),
       pm2_5: 0.0,
@@ -133,7 +133,7 @@ class AirQualityReading extends HiveObject {
     );
   }
 
-  @HiveField(0)
+  @HiveField(0, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String referenceSite;
 
@@ -145,69 +145,44 @@ class AirQualityReading extends HiveObject {
   @JsonKey(defaultValue: 0.0)
   final double longitude;
 
-  @HiveField(3)
+  @HiveField(3, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String country;
 
-  @HiveField(4)
+  @HiveField(4, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String name;
 
-  @HiveField(5)
+  @HiveField(5, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String source;
 
-  @HiveField(6)
+  @HiveField(6, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String location;
-
-  @HiveField(7)
-  @RegionConverter()
-  final Region region;
 
   @HiveField(8)
   final DateTime dateTime;
 
-  @HiveField(9)
+  @HiveField(9, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double pm2_5;
 
-  @HiveField(10)
+  @HiveField(10, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double pm10;
 
-  @HiveField(11)
+  @HiveField(11, defaultValue: 0.0)
   @JsonKey(defaultValue: 0.0)
   final double distanceToReferenceSite;
 
-  @HiveField(12)
+  @HiveField(12, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String placeId;
 
+  @HiveField(13, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String region;
+
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
-}
-
-List<AirQualityReading> sortAirQualityReadingsByDistance(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings.sort(
-    (x, y) {
-      return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-    },
-  );
-
-  return airQualityReadings;
-}
-
-List<AirQualityReading> filterNearestLocations(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings = airQualityReadings
-      .where(
-        (element) => element.distanceToReferenceSite <= Config.searchRadius,
-      )
-      .toList();
-  airQualityReadings = sortAirQualityReadingsByDistance(airQualityReadings);
-
-  return airQualityReadings;
 }

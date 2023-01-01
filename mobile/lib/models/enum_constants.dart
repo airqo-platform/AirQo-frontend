@@ -4,7 +4,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -192,70 +191,90 @@ enum AppNotificationType {
   welcomeMessage,
 }
 
-@HiveType(typeId: 140, adapterName: 'RegionAdapter')
-enum Region {
-  @HiveField(1)
-  central('Central Region'),
-  @HiveField(2)
-  eastern('Eastern Region'),
-  @HiveField(3)
-  northern('Northern Region'),
-  @HiveField(4)
-  western('Western Region'),
-  @HiveField(5)
-  southern('Southern Region'),
-  @HiveField(0)
-  none('');
+enum AirQuality {
+  good(
+    string: 'Good',
+    searchNearbyLocationsText: 'Good Quality Air around you',
+    searchOtherLocationsText: 'Locations with Good Quality Air',
+    value: 6,
+    minimumValue: 0,
+    maximumValue: 12.09,
+  ),
+  moderate(
+    string: 'Moderate',
+    searchNearbyLocationsText: 'Moderate Quality Air around you',
+    searchOtherLocationsText: 'Locations with Moderate Quality Air',
+    value: 23.8,
+    minimumValue: 12.1,
+    maximumValue: 35.49,
+  ),
+  ufsgs(
+    string: 'Unhealthy For Sensitive Groups',
+    searchNearbyLocationsText:
+        'Nearby locations with air quality Unhealthy For Sensitive Groups',
+    searchOtherLocationsText:
+        'Locations with air quality Unhealthy For Sensitive Groups',
+    value: 101,
+    minimumValue: 35.5,
+    maximumValue: 55.49,
+  ),
+  unhealthy(
+    string: 'Unhealthy',
+    searchNearbyLocationsText: 'Unhealthy Quality Air around you',
+    searchOtherLocationsText: 'Locations with Unhealthy Quality Air',
+    value: 103,
+    minimumValue: 55.5,
+    maximumValue: 150.49,
+  ),
+  veryUnhealthy(
+    string: 'Very Unhealthy',
+    searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
+    searchOtherLocationsText: 'Locations with Very Unhealthy Quality Air',
+    value: 200.5,
+    minimumValue: 150.5,
+    maximumValue: 250.49,
+  ),
+  hazardous(
+    string: 'Hazardous',
+    searchNearbyLocationsText: 'Hazardous Quality Air around you',
+    searchOtherLocationsText: 'Locations with Hazardous Quality Air',
+    value: 300,
+    minimumValue: 250.5,
+    maximumValue: 500,
+  );
 
-  factory Region.fromString(String string) {
-    if (string.toLowerCase().contains('central')) {
-      return Region.central;
-    } else if (string.toLowerCase().contains('east')) {
-      return Region.eastern;
-    } else if (string.toLowerCase().contains('west')) {
-      return Region.western;
-    } else if (string.toLowerCase().contains('north')) {
-      return Region.northern;
-    } else if (string.toLowerCase().contains('south')) {
-      return Region.southern;
-    } else {
-      return Region.none;
+  const AirQuality({
+    required this.string,
+    required this.searchNearbyLocationsText,
+    required this.searchOtherLocationsText,
+    required this.value,
+    required this.minimumValue,
+    required this.maximumValue,
+  });
+
+  final String string;
+  final String searchOtherLocationsText;
+  final String searchNearbyLocationsText;
+  final double value;
+  final double minimumValue;
+  final double maximumValue;
+
+  Color color() {
+    switch (this) {
+      case AirQuality.good:
+        return CustomColors.aqiGreen;
+      case AirQuality.moderate:
+        return CustomColors.aqiYellow;
+      case AirQuality.ufsgs:
+        return CustomColors.aqiOrange;
+      case AirQuality.unhealthy:
+        return CustomColors.aqiRed;
+      case AirQuality.veryUnhealthy:
+        return CustomColors.aqiPurple;
+      case AirQuality.hazardous:
+        return CustomColors.aqiMaroon;
     }
   }
-
-  const Region(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-}
-
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
-}
-
-enum AirQuality {
-  good('Good'),
-  moderate('Moderate'),
-  ufsgs('Unhealthy For Sensitive Groups'),
-  unhealthy('Unhealthy'),
-  veryUnhealthy('Very Unhealthy'),
-  hazardous('Hazardous');
-
-  const AirQuality(this.string);
-
-  final String string;
 
   @override
   String toString() => string;
