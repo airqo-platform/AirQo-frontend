@@ -63,9 +63,7 @@ List<Measurement> parseMeasurements(Map<String, dynamic> jsonBody) {
   for (final jsonElement in jsonArray) {
     try {
       measurements.add(Measurement.fromJson(jsonElement));
-    } catch (exception, _) {
-      print(exception);
-    }
+    } catch (_, __) {}
   }
 
   return measurements;

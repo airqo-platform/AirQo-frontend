@@ -59,7 +59,8 @@ class NearbyLocationBloc
         .map((element) {
           List<AirQualityReading> referenceReadings = airQualityReadings
               .where(
-                  (reading) => reading.referenceSite == element.referenceSite)
+                (reading) => reading.referenceSite == element.referenceSite,
+              )
               .toList();
           if (referenceReadings.isNotEmpty) {
             return element.copyWith(
