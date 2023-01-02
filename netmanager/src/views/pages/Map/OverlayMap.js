@@ -590,7 +590,7 @@ const MapContainer = () => {
     if (isEmpty(monitoringSiteData.features)) {
       dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
     }
-  }, []);
+  }, [monitoringSiteData]);
 
   return (
     <div>
