@@ -95,12 +95,11 @@ class HiveService {
   ) async {
     List<SearchHistory> searchHistoryList =
         Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
-    final searchHistoryMap = <dynamic, SearchHistory>{};
-
-    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
     searchHistoryList
         .add(SearchHistory.fromAirQualityReading(airQualityReading));
+    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
 
+    final searchHistoryMap = <String, SearchHistory>{};
     for (final searchHistory in searchHistoryList) {
       searchHistoryMap[searchHistory.placeId] = searchHistory;
     }
@@ -113,17 +112,38 @@ class HiveService {
   static Future<void> updateNearbyAirQualityReadings(
     List<AirQualityReading> nearbyAirQualityReadings,
   ) async {
-    final nearByAirQualityReadings = <dynamic, AirQualityReading>{};
+    final airQualityReadingsMap = <String, AirQualityReading>{};
 
-    nearbyAirQualityReadings = nearbyAirQualityReadings.sortByDistance();
+    nearbyAirQualityReadings =
+        nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     for (final airQualityReading in nearbyAirQualityReadings) {
-      nearByAirQualityReadings[airQualityReading.placeId] = airQualityReading;
+      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }
 
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings).clear();
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-        .putAll(nearByAirQualityReadings);
+        .putAll(airQualityReadingsMap);
+    await updateAnalytics(nearbyAirQualityReadings);
+  }
+
+  static Future<void> updateAnalytics(
+    List<AirQualityReading> airQualityReadings,
+  ) async {
+    List<Analytics> analytics = airQualityReadings
+        .map((e) => Analytics.fromAirQualityReading(e))
+        .toList();
+
+    analytics.addAll(Hive.box<Analytics>(HiveBox.analytics).values.toList());
+
+    final analyticsMap = <String, Analytics>{};
+
+    for (final element in analytics) {
+      analyticsMap[element.id] = element;
+    }
+
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
+    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 
   static Future<void> loadNotifications(

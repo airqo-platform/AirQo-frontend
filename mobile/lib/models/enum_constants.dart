@@ -146,18 +146,18 @@ enum AuthenticationError {
 }
 
 enum NearbyAirQualityError {
+  none(
+    message: '',
+    snackBarActionLabel: '',
+    snackBarDuration: 5,
+  ),
   locationDenied(
-    message: 'Grant location access in your phone settings',
+    message: 'Enable location to get air quality near you',
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),
   locationDisabled(
     message: 'Turn on location to get air quality near you',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
-  ),
-  locationNotAllowed(
-    message: 'Enable location in your settings.',
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),

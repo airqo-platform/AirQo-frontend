@@ -14,10 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
-  const AnalyticsAvatar({
-    super.key,
-    required this.airQualityReading,
-  });
+  const AnalyticsAvatar(this.airQualityReading, {super.key});
   final AirQualityReading airQualityReading;
 
   @override
@@ -67,50 +64,6 @@ class AnalyticsAvatar extends StatelessWidget {
           ),
           const Spacer(),
         ],
-      ),
-    );
-  }
-}
-
-class MapAnalyticsMoreInsights extends StatelessWidget {
-  const MapAnalyticsMoreInsights({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return SizedBox(
-      height: 16,
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(
-          left: 20,
-          right: 30,
-        ),
-        title: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/chart.svg',
-              semanticsLabel: 'chart',
-              height: 16,
-              width: 16,
-            ),
-            const SizedBox(width: 8.0),
-            Text(
-              'View More Insights',
-              style: TextStyle(
-                fontSize: 12,
-                color: appColors.appColorBlue,
-              ),
-            ),
-            const Spacer(),
-            SvgPicture.asset(
-              'assets/icon/more_arrow.svg',
-              semanticsLabel: 'more',
-              height: 6.99,
-              width: 4,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -188,7 +141,7 @@ class AnalyticsShareCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnalyticsAvatar(airQualityReading: airQualityReading),
+              AnalyticsAvatar(airQualityReading),
               const SizedBox(width: 10.0),
               Flexible(
                 child: Column(
@@ -213,9 +166,7 @@ class AnalyticsShareCard extends StatelessWidget {
                     const SizedBox(
                       height: 12,
                     ),
-                    AqiStringContainer(
-                      airQualityReading: airQualityReading,
-                    ),
+                    AqiStringContainer(airQualityReading),
                     const SizedBox(
                       height: 8,
                     ),
@@ -266,12 +217,10 @@ class AnalyticsShareCard extends StatelessWidget {
 class AnalyticsCard extends StatelessWidget {
   AnalyticsCard(
     this.airQualityReading,
-    this.isRefreshing,
     this.showHelpTip, {
     super.key,
   });
   final AirQualityReading airQualityReading;
-  final bool isRefreshing;
   final bool showHelpTip;
   final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
@@ -286,6 +235,14 @@ class AnalyticsCard extends StatelessWidget {
         minHeight: 251,
         minWidth: 328,
         maxWidth: 328,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(
+            16.0,
+          ),
+        ),
       ),
       child: Stack(
         children: [
@@ -307,8 +264,9 @@ class AnalyticsCard extends StatelessWidget {
               child: Column(
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      const Spacer(),
                       InkWell(
                         onTap: () {
                           pmInfoDialog(
@@ -327,8 +285,8 @@ class AnalyticsCard extends StatelessWidget {
                             width: 20,
                             child: SvgPicture.asset(
                               'assets/icon/info_icon.svg',
-                              semanticsLabel: 'Pm2.5',
-                              key: _infoToolTipKey,
+                              height: 20,
+                              width: 20,
                             ),
                           ),
                         ),
@@ -347,9 +305,7 @@ class AnalyticsCard extends StatelessWidget {
                           child: Row(
                             children: [
                               GestureDetector(
-                                child: AnalyticsAvatar(
-                                  airQualityReading: airQualityReading,
-                                ),
+                                child: AnalyticsAvatar(airQualityReading),
                                 onTap: () {
                                   ToolTip(context, ToolTipType.info).show(
                                     widgetKey: _infoToolTipKey,
@@ -368,7 +324,9 @@ class AnalyticsCard extends StatelessWidget {
                                       airQualityReading.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.headline9(context),
+                                      style: CustomTextStyle.headline9(
+                                        context,
+                                      ),
                                     ),
                                     Text(
                                       airQualityReading.location,
@@ -384,9 +342,8 @@ class AnalyticsCard extends StatelessWidget {
                                       height: 12,
                                     ),
                                     GestureDetector(
-                                      child: AqiStringContainer(
-                                        airQualityReading: airQualityReading,
-                                      ),
+                                      child:
+                                          AqiStringContainer(airQualityReading),
                                       onTap: () {
                                         ToolTip(
                                           context,
@@ -426,14 +383,18 @@ class AnalyticsCard extends StatelessWidget {
                                         const SizedBox(
                                           width: 4.0,
                                         ),
-                                        Visibility(
-                                          visible: isRefreshing,
-                                          child: SvgPicture.asset(
-                                            'assets/icon/loader.svg',
-                                            semanticsLabel: 'loader',
-                                            height: 8.0,
-                                            width: 8.0,
-                                          ),
+                                        BlocBuilder<DashboardBloc,
+                                            DashboardState>(
+                                          buildWhen: (previous, current) {
+                                            return previous.status !=
+                                                current.status;
+                                          },
+                                          builder: (context, state) {
+                                            return CircularLoadingIndicator(
+                                              loading: state.status ==
+                                                  DashboardStatus.refreshing,
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
@@ -692,22 +653,5 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     context
         .read<AccountBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
-  }
-}
-
-class EmptyAnalytics extends StatelessWidget {
-  const EmptyAnalytics({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Container(
-      color: appColors.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: const Center(
-        child: Text('No Analytics'),
-      ),
-    );
   }
 }
