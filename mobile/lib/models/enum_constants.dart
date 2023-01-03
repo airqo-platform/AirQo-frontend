@@ -690,8 +690,3 @@ enum ToolTipType {
   forecast,
 }
 
-enum Swipe {
-  left,
-  right,
-  none,
-}

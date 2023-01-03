@@ -10,8 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
-// import 'package:path/path.dart' as path;
-
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
@@ -89,7 +87,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         child: Column(
           children: [
             Visibility(
-              visible: currentIndex == 9,
+              visible: currentIndex == kya.lessons.length,
               replacement: const SizedBox(
                 height: 100,
                 width: double.infinity,
@@ -135,7 +133,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Visibility(
-                    visible: currentIndex != 9,
+                    visible: currentIndex != kya.lessons.length - 1,
                     child: GestureDetector(
                       onTap: () => swipeController.unswipe(),
                       child: const CircularKyaButton(
@@ -180,7 +178,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     super.didChangeDependencies();
     for (KyaLesson lesson in widget.kya.lessons) {
       Card card = _kyaCard(lesson, widget.kya.lessons.indexOf(lesson));
-      _globalKeys.add(GlobalKey());
       kyaCards.add(card);
     }
   }

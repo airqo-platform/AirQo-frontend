@@ -76,9 +76,10 @@ dependencies:
   equatable: ^2.0.5
   drift: ^2.2.0
   sqlite3_flutter_libs: ^0.5.0
+  appinio_swiper: ^1.1.1
   app_repository:
     path: packages/app_repository
-  appinio_swiper: ^1.1.1
+
 
   # https://pub.dev/packages/retry
 
