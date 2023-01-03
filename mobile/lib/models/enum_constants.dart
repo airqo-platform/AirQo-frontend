@@ -689,4 +689,3 @@ enum ToolTipType {
   forYou,
   forecast,
 }
-

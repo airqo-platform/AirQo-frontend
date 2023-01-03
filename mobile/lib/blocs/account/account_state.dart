@@ -3,7 +3,6 @@ part of 'account_bloc.dart';
 class AccountState extends Equatable {
   const AccountState._({
     this.profile,
-    this.kya = const [],
     this.favouritePlaces = const [],
     this.notifications = const [],
     this.analytics = const [],
@@ -14,7 +13,6 @@ class AccountState extends Equatable {
 
   const AccountState({
     this.profile,
-    this.kya = const [],
     this.favouritePlaces = const [],
     this.notifications = const [],
     this.analytics = const [],
@@ -27,7 +25,6 @@ class AccountState extends Equatable {
 
   AccountState copyWith({
     Profile? profile,
-    List<Kya>? kya,
     List<FavouritePlace>? favouritePlaces,
     List<AppNotification>? notifications,
     List<Analytics>? analytics,
@@ -37,7 +34,6 @@ class AccountState extends Equatable {
   }) {
     return AccountState(
       profile: profile ?? this.profile,
-      kya: kya ?? this.kya,
       favouritePlaces: favouritePlaces ?? this.favouritePlaces,
       notifications: notifications ?? this.notifications,
       analytics: analytics ?? this.analytics,
@@ -48,7 +44,7 @@ class AccountState extends Equatable {
   }
 
   final Profile? profile;
-  final List<Kya> kya;
+
   final List<FavouritePlace> favouritePlaces;
   final List<AppNotification> notifications;
   final List<Analytics> analytics;
@@ -59,10 +55,6 @@ class AccountState extends Equatable {
   @override
   List<Object?> get props => [
         profile,
-        kya.filterIncompleteKya().totalProgress(),
-        kya.filterCompleteKya().totalProgress(),
-        kya.filterIncompleteKya().length,
-        kya.filterCompleteKya().length,
         favouritePlaces,
         notifications,
         analytics,

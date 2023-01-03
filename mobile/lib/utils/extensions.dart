@@ -75,27 +75,62 @@ extension ChartDataExt on ChartData {
   }
 }
 
-extension KyaListExt on List<Kya> {
-  int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
+extension KyaExt on Kya {
+  String getKyaMessage() {
+    if (isInProgress()) {
+      return 'Continue';
+    } else if (isPartiallyComplete()) {
+      return 'Complete! Move to For You';
+    } else {
+      return 'Start learning';
     }
+  }
 
-    return sum;
+  bool isPartiallyComplete() {
+    return progress == 1;
+  }
+
+  bool isComplete() {
+    return progress == -1;
+  }
+
+  bool isInProgress() {
+    return progress > 0 && progress < 1;
+  }
+
+  double getProgress(int visibleCardIndex) {
+    return (visibleCardIndex + 1) / lessons.length;
+  }
+}
+
+extension KyaListExt on List<Kya> {
+  void sortByProgress() {
+    sort((x, y) => -(x.progress.compareTo(y.progress)));
   }
 
   List<Kya> filterIncompleteKya() {
     return where((element) {
-      return element.progress != -1;
+      return !element.isComplete();
     }).toList();
   }
 
   List<Kya> filterCompleteKya() {
     return where((element) {
-      return element.progress == -1;
+      return element.isComplete();
     }).toList();
+  }
+
+  List<Kya> removeDuplicates() {
+    List<Kya> cleanedKya = [];
+    for (final kya in this) {
+      final duplicates = where((e) => e.id == kya.id).toList();
+      duplicates.sortByProgress();
+      if (!cleanedKya.contains(duplicates.first)) {
+        cleanedKya.add(duplicates.first);
+      }
+    }
+
+    return cleanedKya;
   }
 }
 

@@ -1,7 +1,8 @@
-import 'package:app/blocs/account/account_bloc.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -27,20 +28,26 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController swipeController = AppinioSwiperController();
-  List<Card> kyaCards = [];
-  late int currentIndex;
-  double _tipsProgress = 0.1;
-  late Kya kya;
+  List<Card> _kyaCards = [];
+  int _visibleCardIndex = 0;
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
   bool _shareLoading = false;
+  Map<int, int> indexMappings = {};
+
+  @override
+  void dispose() {
+    swipeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColors.appBodyColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
+        backgroundColor: Colors.transparent,
         centerTitle: false,
         titleSpacing: 0,
         title: Row(
@@ -48,6 +55,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             InkWell(
               onTap: () {
                 Navigator.of(context).pop(true);
+                context.read<KyaBloc>().add(
+                      UpdateKyaProgress(
+                        kya: widget.kya,
+                        visibleCardIndex: _visibleCardIndex,
+                      ),
+                    );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 7),
@@ -59,11 +72,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             Expanded(
-              child: LinearProgressIndicator(
-                color: CustomColors.appColorBlue,
-                value: _tipsProgress,
-                backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
-              ),
+              child: KyaProgressBar(context.read<KyaProgressCubit>().state),
             ),
             InkWell(
               onTap: () async => _share(),
@@ -87,12 +96,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         child: Column(
           children: [
             Visibility(
-              visible: currentIndex == kya.lessons.length,
+              visible: _visibleCardIndex <= 0,
               replacement: const SizedBox(
                 height: 100,
                 width: double.infinity,
               ),
-              child: Container(
+              child: SizedBox(
                 height: 100,
                 width: double.infinity,
                 child: AutoSizeText(
@@ -107,13 +116,13 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.6,
               child: AppinioSwiper(
-                cards: kyaCards,
+                cards: _kyaCards,
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
                 controller: swipeController,
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
-                unswipe: _unswipe,
+                unswipe: _unSwipe,
                 onEnd: () {
                   Navigator.pushReplacement(
                     context,
@@ -133,7 +142,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Visibility(
-                    visible: currentIndex != kya.lessons.length - 1,
+                    visible: _visibleCardIndex >= 1,
                     child: GestureDetector(
                       onTap: () => swipeController.unswipe(),
                       child: const CircularKyaButton(
@@ -162,24 +171,22 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   initState() {
     super.initState();
-    kya = widget.kya;
-    currentIndex = widget.kya.lessons.length;
-    var index = 0;
-    while (index != widget.kya.lessons.length) {
+    for (final kyaLesson in widget.kya.lessons) {
+      indexMappings[widget.kya.lessons.reversed.toList().indexOf(kyaLesson)] =
+          widget.kya.lessons.indexOf(kyaLesson);
       _globalKeys.add(
         GlobalKey(),
       );
-      index++;
     }
+    context
+        .read<KyaProgressCubit>()
+        .updateProgress(widget.kya.getProgress(_visibleCardIndex));
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    for (KyaLesson lesson in widget.kya.lessons) {
-      Card card = _kyaCard(lesson, widget.kya.lessons.indexOf(lesson));
-      kyaCards.add(card);
-    }
+    _kyaCards = widget.kya.lessons.reversed.map((e) => _kyaCard(e)).toList();
   }
 
   Future<void> _share() async {
@@ -189,7 +196,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     setState(() => _shareLoading = true);
     final complete = await ShareService.shareWidget(
       buildContext: context,
-      globalKey: _globalKeys[currentIndex],
+      globalKey: _globalKeys[_visibleCardIndex],
       imageName: 'airqo_know_your_air',
     );
     if (complete && mounted) {
@@ -197,29 +204,30 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     }
   }
 
-  void _swipe(int index, AppinioSwiperDirection direction) {
-    if (direction == AppinioSwiperDirection.left ||
-        direction == AppinioSwiperDirection.right) {
-      setState(() {
-        currentIndex = index;
-        _tipsProgress += 0.1;
-      });
-    }
-    context
-        .read<AccountBloc>()
-        .add(UpdateKyaProgress(kya: kya, progress: currentIndex));
-  }
-
-  void _unswipe(bool unswiped) {
+  void _swipe(int reversedIndex, AppinioSwiperDirection _) {
+    int index = indexMappings[reversedIndex]!;
     setState(() {
-      if (unswiped) {
-        currentIndex--;
-        _tipsProgress -= 0.1;
-      }
+      _visibleCardIndex = index + 1;
     });
+    context
+        .read<KyaProgressCubit>()
+        .updateProgress(widget.kya.getProgress(_visibleCardIndex));
   }
 
-  Card _kyaCard(KyaLesson kyaItem, int index) {
+  void _unSwipe(bool unSwiped) {
+    if (unSwiped) {
+      setState(() {
+        _visibleCardIndex = _visibleCardIndex - 1;
+      });
+      context
+          .read<KyaProgressCubit>()
+          .updateProgress(widget.kya.getProgress(_visibleCardIndex));
+    }
+  }
+
+  Card _kyaCard(KyaLesson kyaItem) {
+    final int index = widget.kya.lessons.indexOf(kyaItem);
+
     return Card(
       color: Colors.white,
       elevation: 5,
@@ -255,10 +263,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     Icons.error_outline,
                     color: CustomColors.aqiRed,
                   ),
-                  cacheKey: kyaItem.imageUrlCacheKey(kya),
+                  cacheKey: kyaItem.imageUrlCacheKey(widget.kya),
                   cacheManager: CacheManager(
                     CacheService.cacheConfig(
-                      kyaItem.imageUrlCacheKey(kya),
+                      kyaItem.imageUrlCacheKey(widget.kya),
                     ),
                   ),
                 ),
