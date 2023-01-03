@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
@@ -13,6 +16,62 @@ extension DoubleExtension on double {
 extension IntExt on int {
   String toStringLength({int length = 1}) {
     return toString().length == length ? '0$this' : '$this';
+  }
+}
+
+extension ChartDataExt on ChartData {
+  String chartDomainFn() {
+    switch (frequency) {
+      case Frequency.daily:
+        return DateFormat('EEE').format(dateTime);
+      case Frequency.hourly:
+        final hour = dateTime.hour;
+
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+    }
+  }
+
+  double chartValue(Pollutant pollutant) {
+    return pollutant == Pollutant.pm2_5
+        ? double.parse(pm2_5.toStringAsFixed(2))
+        : double.parse(pm10.toStringAsFixed(2));
+  }
+
+  String lastUpdated(Frequency frequency) {
+    String lastUpdated = '';
+
+    if (dateTime.isToday()) {
+      lastUpdated = 'Updated Today';
+
+      return available ? lastUpdated : '$lastUpdated - Not Available';
+    }
+
+    switch (frequency) {
+      case Frequency.daily:
+        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
+        break;
+      case Frequency.hourly:
+        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
+        break;
+    }
+
+    return available ? lastUpdated : '$lastUpdated - Not Available';
+  }
+
+  Color chartAvatarContainerColor(Pollutant pollutant) {
+    return available
+        ? pollutant.color(chartValue(pollutant))
+        : CustomColors.greyColor;
+  }
+
+  String chartAvatarValue(Pollutant pollutant) {
+    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
+  }
+
+  Color chartAvatarValueColor(Pollutant pollutant) {
+    return available
+        ? pollutant.textColor(value: chartValue(pollutant))
+        : CustomColors.darkGreyColor;
   }
 }
 
@@ -52,6 +111,81 @@ extension AnalyticsListExt on List<Analytics> {
   }
 }
 
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSiteAirQualityReading(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+
+    return airQualityReadings;
+  }
+}
+
+extension AirQualityReadingListExt on List<AirQualityReading> {
+  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
+    List<AirQualityReading> data = List.of(this);
+    data.sort((a, b) {
+      if (sortCountries && a.country.compareTo(b.country) != 0) {
+        return a.country.compareTo(b.country);
+      }
+
+      return a.pm2_5.compareTo(b.pm2_5);
+    });
+
+    return data;
+  }
+
+  List<AirQualityReading> filterNearestLocations() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings = airQualityReadings
+        .where(
+          (element) => element.distanceToReferenceSite <= Config.searchRadius,
+        )
+        .toList();
+
+    return airQualityReadings.sortByDistance();
+  }
+
+  List<AirQualityReading> sortByDistance() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
+
+    return airQualityReadings;
+  }
+}
+
 extension ProfileExt on Profile {
   String greetings() {
     final hour = DateTime.now().hour;
@@ -74,12 +208,9 @@ extension ProfileExt on Profile {
 
 extension DateTimeExt on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
-    var firstDate = this;
-    final weekday = firstDate.weekday;
-
-    if (weekday != 1) {
-      final offset = weekday - 1;
-      firstDate = firstDate.subtract(Duration(days: offset));
+    DateTime firstDate = this;
+    while (firstDate.weekday != 1) {
+      firstDate = firstDate.subtract(const Duration(days: 1));
     }
 
     return firstDate.getDateOfFirstHourOfDay();
@@ -105,6 +236,14 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == 1 || compareTo(dateTime) == 0;
+  }
+
+  bool isBeforeOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == -1 || compareTo(dateTime) == 0;
   }
 
   DateTime getDateOfLastDayOfWeek() {
@@ -268,67 +407,50 @@ extension DateTimeExt on DateTime {
   }
 
   bool isInWeek(String referenceWeek) {
-    final now = DateTime.now();
-    DateTime referenceDay;
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay;
     DateTime lastDay;
     switch (referenceWeek.toLowerCase()) {
       case 'last':
-        referenceDay =
+        firstDay =
             now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay =
             now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       case 'next':
-        referenceDay =
-            now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       default:
-        referenceDay = now.getDateOfFirstDayOfWeek();
+        firstDay = now.getDateOfFirstDayOfWeek();
         lastDay = now.getDateOfLastDayOfWeek();
         break;
     }
 
-    while (referenceDay != lastDay) {
-      if (day == referenceDay.day &&
-          month == referenceDay.month &&
-          year == referenceDay.year) {
-        return true;
-      }
-      referenceDay = referenceDay.add(const Duration(days: 1));
-    }
-
-    return false;
+    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
-    if (day == DateTime.now().day &&
-        month == DateTime.now().month &&
-        year == DateTime.now().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
   }
 
   bool isTomorrow() {
-    if (day == tomorrow().day &&
-        month == tomorrow().month &&
-        year == tomorrow().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final tomorrowDate = formatter.parse(formatter.format(tomorrow()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(tomorrowDate) == 0;
   }
 
   bool isYesterday() {
-    if (day == yesterday().day &&
-        month == yesterday().month &&
-        year == yesterday().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final yesterdayDate = formatter.parse(formatter.format(yesterday()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(yesterdayDate) ==
+        0;
   }
 
   String notificationDisplayDate() {

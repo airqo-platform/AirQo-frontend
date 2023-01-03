@@ -1,27 +1,44 @@
-import 'package:equatable/equatable.dart';
+part of 'search_bloc.dart';
 
 abstract class SearchEvent extends Equatable {
   const SearchEvent();
 }
 
-class ResetSearch extends SearchEvent {
-  const ResetSearch();
+class InitializeSearchPage extends SearchEvent {
+  const InitializeSearchPage();
 
   @override
-  List<Object> get props => ['reset'];
+  List<Object> get props => [];
+}
+
+class ReloadSearchPage extends SearchEvent {
+  const ReloadSearchPage();
 
   @override
-  String toString() => 'Search has been reset';
+  List<Object> get props => [];
+}
+
+class FilterByAirQuality extends SearchEvent {
+  const FilterByAirQuality(this.airQuality);
+  final AirQuality? airQuality;
+
+  @override
+  List<Object?> get props => [airQuality];
 }
 
 class SearchTermChanged extends SearchEvent {
-  const SearchTermChanged({required this.text});
+  const SearchTermChanged(this.text);
 
   final String text;
 
   @override
   List<Object> get props => [text];
+}
+
+class SearchAirQuality extends SearchEvent {
+  const SearchAirQuality(this.searchResultItem);
+  final SearchResultItem searchResultItem;
 
   @override
-  String toString() => 'Search text changed to : $text }';
+  List<Object> get props => [searchResultItem];
 }

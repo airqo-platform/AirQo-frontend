@@ -63,11 +63,11 @@ $text-size-h2:40px;
                 .selected{
                     border-bottom: 2px solid $aq-black-0;
                     color:$aq-black-0;
+                    cursor: pointer;
                 }
                 .unselected{
                     border-bottom: 0px;
                     color:$aq-grey-0;
-                    cursor: default;
                 }
             }
         }

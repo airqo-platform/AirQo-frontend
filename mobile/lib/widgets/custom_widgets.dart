@@ -17,6 +17,26 @@ import 'package:lottie/lottie.dart';
 import 'buttons.dart';
 import 'custom_shimmer.dart';
 
+class AirQualityChip extends StatelessWidget {
+  const AirQualityChip(this.airQuality, {super.key});
+  final AirQuality airQuality;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      backgroundColor: airQuality.color().withOpacity(0.3),
+      label: Text(airQuality.string),
+      labelStyle: CustomTextStyle.airQualityChip(context),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.all(2),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
+      avatar: CircleAvatar(
+        backgroundColor: airQuality.color(),
+      ),
+    );
+  }
+}
+
 class AppRefreshIndicator extends StatelessWidget {
   const AppRefreshIndicator({
     super.key,
@@ -260,7 +280,7 @@ class HeartIcon extends StatelessWidget {
   });
 
   final bool showAnimation;
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -284,8 +304,11 @@ class HeartIcon extends StatelessWidget {
       builder: (context, box, widget) {
         final placesIds = box.keys.toList();
 
+        final placeId =
+            airQualityReading == null ? '' : airQualityReading?.placeId;
+
         return SvgPicture.asset(
-          placesIds.contains(airQualityReading.placeId)
+          placesIds.contains(placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',
@@ -395,6 +418,7 @@ class AppSafeArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
       color: backgroundColor ?? CustomColors.appBodyColor,
       child: SafeArea(
         minimum: EdgeInsets.symmetric(

@@ -6,7 +6,6 @@ import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
@@ -39,13 +38,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   Future<List<AirQualityReading>> _getAirQualityReadings() async {
     final airQualityCards = <AirQualityReading>[];
 
-    final preferences = await SharedPreferences.getInstance();
-    final region = getNextDashboardRegion(preferences);
     final regionAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .values
-            .where((element) => element.region == region)
-            .toList()
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList()
           ..shuffle();
 
     for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {

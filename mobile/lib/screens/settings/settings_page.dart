@@ -13,9 +13,7 @@ import 'about_page.dart';
 import 'settings_page_widgets.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({
-    super.key,
-  });
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -42,9 +40,11 @@ class _SettingsPageState extends State<SettingsPage> {
             final profile = state.profile;
 
             if (profile == null) {
-              context.read<AccountBloc>().add(const RefreshProfile());
-
-              return Container(); // TODO replace with error page
+              return AppErrorWidget(
+                callBack: () {
+                  context.read<AccountBloc>().add(const RefreshProfile());
+                },
+              );
             }
 
             return Column(

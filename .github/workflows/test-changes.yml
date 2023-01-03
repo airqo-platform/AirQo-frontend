@@ -1,4 +1,4 @@
-name: run-tests
+name: test-changes
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ jobs:
   check:
     name: check for changed frontends
     outputs:
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
-
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,21 +27,26 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
 
-  ### next-platform changes ###
-  next-platform:
-    name: test-next-platform
+  ### test analytics platform changes ###
+  analytics-platform:
+    name: test-analytics-platform-changes
     needs: [check]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     container: cypress/browsers:node16.14.0-chrome99-ff97
     steps:
@@ -70,7 +75,7 @@ jobs:
           browser: chrome
           record: true
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          CYPRESS_RECORD_KEY: ${{ secrets.ANALYTICS_PLATFORM_CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: code-coverage
 
@@ -78,3 +83,32 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           directory: ./platform/coverage/lcov-report
+
+  ### test docs changes ###
+  docs:
+    name: test-docs-changes
+    needs: [check]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    container: cypress/browsers:node16.14.0-chrome99-ff97
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        with:
+          working-directory: ./docs/
+          start: yarn preview
+          wait-on: http://localhost:3000
+          browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.DOCS_CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: code-coverage
+
+      - name: Deploy code coverage report 🚀
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./docs/coverage/lcov-report

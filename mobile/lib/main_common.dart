@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
-import 'package:app/screens/analytics/error_page.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
@@ -30,7 +30,16 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => SearchBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => MapSearchBloc(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => FeedbackBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => DailyInsightsBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => HourlyInsightsBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => NearbyLocationBloc(),
@@ -79,18 +88,6 @@ class AppHttpOverrides extends HttpOverrides {
 }
 
 Future<void> initializeMainMethod() async {
-  await Future.wait([
-    SystemProperties.setDefault(),
-    dotenv.load(fileName: Config.environmentFile),
-    HiveService.initialize(),
-    // NotificationService.listenToNotifications(),
-    // initializeBackgroundServices()
-  ]);
-
-  HttpOverrides.global = AppHttpOverrides();
-
-  EquatableConfig.stringify = true;
-
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
 
@@ -105,4 +102,14 @@ Future<void> initializeMainMethod() async {
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return kDebugMode ? ErrorWidget(details.exception) : const ErrorPage();
   };
+
+  await Future.wait([
+    SystemProperties.setDefault(),
+    dotenv.load(fileName: Config.environmentFile),
+    HiveService.initialize(),
+  ]);
+
+  HttpOverrides.global = AppHttpOverrides();
+
+  EquatableConfig.stringify = true;
 }
