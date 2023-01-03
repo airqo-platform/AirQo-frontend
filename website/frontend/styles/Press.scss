@@ -1,16 +1,16 @@
 @import "lib/variables";
 @import "lib/colors";
 
-.press-page{
+.list-page{
     background-color: $aq-white-0;
 
     .content{
         display:grid;
         grid-template-columns: $gridColumn;
-        .press-top{
+        .title-wrapper{
             grid-column: 2 / 3;
         }
-        .press-cards{
+        .list-cards{
             grid-column: 2 / 3;
         }
         .press-cards-lg{
@@ -18,7 +18,7 @@
         }
     }
 
-    .p-header{
+    .page-header{
         background-color: $aq-white-3;
         .content{
             height:244px;
@@ -55,11 +55,11 @@
         }
     }
 
-    .p-body{
+    .page-body{
         margin-bottom: 10%;
         .content {
             margin-top:50px;
-            .press-cards{
+            .list-cards{
                 display: grid;
                 grid-template-columns: repeat(2, 4fr);
                 grid-auto-rows: 450px;
@@ -173,17 +173,17 @@
         .content {
             display: grid;
             grid-template-columns: 1fr;
-            .press-top{
+            .title-wrapper{
                 padding: 0 10px;
             }
-            .press-cards{
+            .list-cards{
                 padding: 0 20px;
             }
             .press-cards-lg{
                 padding: 0 10px;
             }
         }
-        .p-header{
+        .page-header{
             .content{
                 height: 292px;
                 h2{
@@ -191,11 +191,11 @@
                 }
             }
         }
-        .p-body{
+        .page-body{
             margin-bottom: 20px;
             .content {
                 margin-top:50px;
-                .press-cards{
+                .list-cards{
                     display: flex;
                     flex-wrap: wrap;
                     .card{
