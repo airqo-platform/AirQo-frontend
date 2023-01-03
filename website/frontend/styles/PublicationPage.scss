@@ -1,0 +1,32 @@
+@import "lib/variables";
+@import "lib/colors";
+
+.list-page{
+    .card-container{
+        .title{
+            h2{
+                line-height: 36px;
+                font-size: 28px;
+                color:$aq-black-2;
+                max-height: 220px;
+                font-weight: 600;
+                overflow-y: hidden;
+            }
+        }
+        .sub-title{
+            font-size:18px;
+            max-height: 45px;
+            overflow-y: hidden;
+        }
+        .cta-links{
+            position: absolute;
+            bottom:0px;
+            .a-link{
+                border:1px solid $aq-black-1;
+                border-radius: 8px;
+                padding:8px;
+                height:35px;
+            }
+        }
+    }
+}
