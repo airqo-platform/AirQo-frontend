@@ -1,39 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useHistory, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import moment from "moment";
-import { isEmpty } from "underscore";
-import {
-  useDevicesStatusData,
-  useNetworkUptimeData,
-} from "redux/DeviceManagement/selectors";
-import {
-  loadDevicesStatusData,
-  loadNetworkUptimeData,
-} from "redux/DeviceManagement/operations";
-import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
-import { updateDeviceBackUrl } from "redux/Urls/operations";
-import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useDevicesData } from "redux/DeviceRegistry/selectors";
+import React, { useState, useEffect } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import moment from 'moment';
+import { isEmpty } from 'underscore';
+import { useDevicesStatusData, useNetworkUptimeData } from 'redux/DeviceManagement/selectors';
+import { loadDevicesStatusData, loadNetworkUptimeData } from 'redux/DeviceManagement/operations';
+import { createBarChartData, ApexTimeSeriesData } from 'utils/charts';
+import { updateDeviceBackUrl } from 'redux/Urls/operations';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import {
   ApexChart,
   ChartContainer,
   timeSeriesChartOptions,
-  createPieChartOptions,
-} from "views/charts";
-import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+  createPieChartOptions
+} from 'views/charts';
+import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 
-import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
-import {
-  useDeviceUptimeLeaderboard,
-  useInitScrollTop,
-} from "utils/customHooks";
-import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
+import { SortAscendingIcon, SortDescendingIcon } from 'assets/img';
+import { useDeviceUptimeLeaderboard, useInitScrollTop } from 'utils/customHooks';
+import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 
 // css style
-import "chartjs-plugin-annotation";
-import "assets/scss/device-management.sass";
-import "assets/css/device-view.css"; // there are some shared styles here too :)
+import 'chartjs-plugin-annotation';
+import 'assets/scss/device-management.sass';
+import 'assets/css/device-view.css'; // there are some shared styles here too :)
 
 export default function ManagementStat() {
   useInitScrollTop();
@@ -49,15 +40,13 @@ export default function ManagementStat() {
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
     bar: { label: [], data: [] },
-    line: { label: [], data: [] },
+    line: { label: [], data: [] }
   });
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
-      if (device1.long_name.toLowerCase() > device2.long_name.toLowerCase())
-        return 1;
-      if (device1.long_name.toLowerCase() < device2.long_name.toLowerCase())
-        return -1;
+      if (device1.long_name.toLowerCase() > device2.long_name.toLowerCase()) return 1;
+      if (device1.long_name.toLowerCase() < device2.long_name.toLowerCase()) return -1;
       return 0;
     };
 
@@ -98,17 +87,15 @@ export default function ManagementStat() {
         loadDevicesStatusData({
           startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
-          limit: 1,
+          limit: 1
         })
       );
     }
     if (isEmpty(networkUptimeData)) {
       dispatch(
         loadNetworkUptimeData({
-          startDate: roundToStartOfDay(
-            moment(new Date()).subtract(28, "days").toISOString()
-          ).toISOString(),
-          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          startDate: roundToStartOfDay(moment(new Date()).toISOString()).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
     }
@@ -124,30 +111,25 @@ export default function ManagementStat() {
     if (isEmpty(networkUptimeData)) {
       return;
     }
-    networkUptimeData.sort(
-      (a, b) => new Date(a.created_at) - new Date(b.created_at)
-    );
+    networkUptimeData.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
     networkUptimeData.map((val) => {
       lineLabel.push(val.created_at);
       lineData.push(parseFloat(val.uptime).toFixed(2));
     });
 
-    const barChartData = createBarChartData(
-      networkUptimeData.reverse(),
-      "uptime"
-    );
+    const barChartData = createBarChartData(networkUptimeData.reverse(), 'uptime');
 
     setNetworkUptimeDataset({
       line: { label: lineLabel, data: lineData },
-      bar: { label: barChartData.label, data: barChartData.data },
+      bar: { label: barChartData.label, data: barChartData.data }
     });
   }, [networkUptimeData]);
 
   useEffect(() => {
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
-      devicesStatusData.count_of_online_devices,
+      devicesStatusData.count_of_online_devices
     ]);
   }, [devicesStatusData]);
 
@@ -158,42 +140,34 @@ export default function ManagementStat() {
 
   const series = [
     {
-      name: "uptime",
-      data: ApexTimeSeriesData(
-        networkUptimeDataset.line.label,
-        networkUptimeDataset.line.data
-      ),
-    },
+      name: 'uptime',
+      data: ApexTimeSeriesData(networkUptimeDataset.line.label, networkUptimeDataset.line.data)
+    }
   ];
 
   return (
     <ErrorBoundary>
-      <div className={"container-wrapper"}>
+      <div className={'container-wrapper'}>
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           <ApexChart
             options={timeSeriesChartOptions({})}
-            title={"Network uptime"}
+            title={'Network uptime'}
             series={series}
-            lastUpdated={
-              networkUptimeData.length > 0 && networkUptimeData[0].created_at
-            }
+            lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}
             type="area"
             blue
           />
           <ApexChart
-            options={createPieChartOptions(
-              ["#FF2E2E", "#00A300"],
-              ["Offline", "Online"]
-            )}
+            options={createPieChartOptions(['#FF2E2E', '#00A300'], ['Offline', 'Online'])}
             series={pieChartStatusValues}
-            title={"online status"}
+            title={'online status'}
             lastUpdated={devicesStatusData.created_at}
             type="pie"
             green
@@ -202,18 +176,12 @@ export default function ManagementStat() {
           />
 
           <ChartContainer
-            title={"leaderboard"}
+            title={'Leaderboard in the last 24hours'}
             controller={
               devicesUptimeDescending ? (
-                <SortAscendingIcon
-                  onClick={handleSortIconClick}
-                  style={{ fill: "white" }}
-                />
+                <SortAscendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
               ) : (
-                <SortDescendingIcon
-                  onClick={handleSortIconClick}
-                  style={{ fill: "white" }}
-                />
+                <SortDescendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
               )
             }
             blue
@@ -224,30 +192,26 @@ export default function ManagementStat() {
                 <span>downtime (%)</span>
                 <span>uptime (%)</span>
               </div>
-              {devicesUptime.map(
-                ({ long_name, device_name, uptime }, index) => {
-                  uptime = uptime <= 100 ? uptime : 100;
-                  const style =
-                    uptime >= 80
-                      ? "uptime-success"
-                      : uptime >= 50
-                      ? "uptime-warning"
-                      : "uptime-danger";
-                  return (
-                    <div
-                      className={`m-device-uptime-row`}
-                      key={`device-${device_name}-${index}`}
-                      onClick={() =>
-                        history.push(`/device/${device_name}/overview`)
-                      }
-                    >
-                      <span>{long_name}</span>
-                      <span>{(100 - uptime).toFixed(2)}</span>
-                      <span className={`${style}`}>{uptime.toFixed(2)}</span>
-                    </div>
-                  );
-                }
-              )}
+              {devicesUptime.map(({ long_name, device_name, uptime }, index) => {
+                uptime = uptime <= 100 ? uptime : 100;
+                const style =
+                  uptime >= 80
+                    ? 'uptime-success'
+                    : uptime >= 50
+                    ? 'uptime-warning'
+                    : 'uptime-danger';
+                return (
+                  <div
+                    className={`m-device-uptime-row`}
+                    key={`device-${device_name}-${index}`}
+                    onClick={() => history.push(`/device/${device_name}/overview`)}
+                  >
+                    <span>{long_name}</span>
+                    <span>{(100 - uptime).toFixed(2)}</span>
+                    <span className={`${style}`}>{uptime.toFixed(2)}</span>
+                  </div>
+                );
+              })}
             </div>
           </ChartContainer>
         </div>

@@ -159,7 +159,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
     context.read<SearchBloc>().add(const InitializeSearchPage());
     await checkNetworkConnection(

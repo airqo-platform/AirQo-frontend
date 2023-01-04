@@ -25,7 +25,7 @@ class AnalyticsView extends StatelessWidget {
           context.read<AccountBloc>().add(const RefreshAnalytics());
         }
 
-        final analytics = state.analytics.sortByDateTime();
+        List<Analytics> analytics = state.analytics.sortByDateTime();
 
         if (analytics.isEmpty) {
           return NoAnalyticsWidget(

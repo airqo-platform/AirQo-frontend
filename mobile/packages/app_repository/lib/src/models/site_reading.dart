@@ -24,27 +24,27 @@ class SiteReading extends Equatable {
 
   factory SiteReading.fromMeasurement(Measurement measurement) {
     return SiteReading(
-        siteId: measurement.site.id,
-        latitude: measurement.site.latitude,
-        longitude: measurement.site.longitude,
-        country: measurement.site.country,
-        name: measurement.site.searchName == ''
-            ? measurement.site.name
-            : measurement.site.searchName,
-        location: measurement.site.locationName == ''
-            ? measurement.site.description
-            : measurement.site.locationName,
-        region: measurement.site.region,
-        dateTime: measurement.dateTime,
-        pm2_5: double.parse(
-            (measurement.pm2_5.calibratedValue ?? measurement.pm2_5.value)
-                .toStringAsFixed(2)),
-        pm10: double.parse(
-            (measurement.pm10.calibratedValue ?? measurement.pm10.value)
-                .toStringAsFixed(2)),
-        source: measurement.site.tenant,
-        shareImage: measurement.site.shareLinks == null ? '' : measurement.site.shareLinks?.shareImage ?? '',
-        shareLink: measurement.site.shareLinks == null ? '' :  measurement.site.shareLinks?.shareShortLink ?? '',
+      siteId: measurement.site.id,
+      latitude: measurement.site.latitude,
+      longitude: measurement.site.longitude,
+      country: measurement.site.country,
+      name: measurement.site.searchName == ''
+          ? measurement.site.name
+          : measurement.site.searchName,
+      location: measurement.site.locationName == ''
+          ? measurement.site.description
+          : measurement.site.locationName,
+      region: measurement.site.region,
+      dateTime: measurement.dateTime,
+      pm2_5: measurement.pm2_5.calibratedValue ?? measurement.pm2_5.value,
+      pm10: measurement.pm10.calibratedValue ?? measurement.pm10.value,
+      source: measurement.site.tenant,
+      shareImage: measurement.site.shareLinks == null
+          ? ''
+          : measurement.site.shareLinks?.shareImage ?? '',
+      shareLink: measurement.site.shareLinks == null
+          ? ''
+          : measurement.site.shareLinks?.shareShortLink ?? '',
     );
   }
 
@@ -68,7 +68,7 @@ class SiteReading extends Equatable {
   final String shareLink;
 
   @override
-  List<Object?> get props => [name, dateTime, pm2_5];
+  List<Object> get props => [name, dateTime, pm2_5];
 }
 
 List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
@@ -76,17 +76,8 @@ List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
   for (final measurement in measurements) {
     try {
       airQuality.add(SiteReading.fromMeasurement(measurement));
-    } catch (exception) {
-      // TODO create utils package
-      // await logException(
-      //   exception,
-      //   stackTrace,
-      // );
-    }
+    } catch (_, __) {}
   }
-  airQuality.sort(
-    (x, y) => x.dateTime.compareTo(y.dateTime),
-  );
 
   return airQuality;
 }

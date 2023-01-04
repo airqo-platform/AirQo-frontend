@@ -46,6 +46,12 @@ if (localStorage.jwtToken) {
   store.dispatch(loadSites());
   store.dispatch(loadPM25HeatMapData());
   store.dispatch(loadPM25SensorData());
+} else{
+  store.dispatch(setOrganization());
+  store.dispatch(setDefaultAirQloud());
+  store.dispatch(loadSites());
+  store.dispatch(loadPM25HeatMapData());
+  store.dispatch(loadPM25SensorData());
 }
 
 const App = () => {
