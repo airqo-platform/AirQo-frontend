@@ -25,7 +25,6 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +52,10 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
-    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     context.read<AccountBloc>().add(const LoadAccountInfo());
     context.read<KyaBloc>().add(const LoadKya());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
+    context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -87,7 +86,7 @@ class SplashScreenState extends State<SplashScreen> {
                 case OnBoardingPage.complete:
                   return const SetUpCompleteScreen();
                 case OnBoardingPage.home:
-                  return const HomePage(refresh: false);
+                  return const HomePage();
                 default:
                   return const IntroductionScreen();
               }
@@ -97,10 +96,6 @@ class SplashScreenState extends State<SplashScreen> {
         );
       },
     );
-
-    await _appService.fetchData(context);
-
-    await LocationService.listenToLocationUpdates();
   }
 
   @override

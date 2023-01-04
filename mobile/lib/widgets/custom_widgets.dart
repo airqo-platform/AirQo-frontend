@@ -136,10 +136,7 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AqiStringContainer extends StatelessWidget {
-  const AqiStringContainer({
-    super.key,
-    required this.airQualityReading,
-  });
+  const AqiStringContainer(this.airQualityReading, {super.key});
   final AirQualityReading airQualityReading;
 
   @override

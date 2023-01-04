@@ -198,25 +198,6 @@ class KyaCardWidget extends StatelessWidget {
   }
 }
 
-class EmptyKya extends StatelessWidget {
-  const EmptyKya({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: CustomColors.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: Center(
-        child: Text(
-          'All your complete lessons will show up here',
-          textAlign: TextAlign.center,
-          style: CustomTextStyle.headline7(context),
-        ),
-      ),
-    );
-  }
-}
-
 class KyaProgressBar extends StatelessWidget {
   const KyaProgressBar(
     this.progress, {

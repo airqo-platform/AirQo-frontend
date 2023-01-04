@@ -7,7 +7,88 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+class DashboardLoadingWidget extends StatelessWidget {
+  const DashboardLoadingWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: 6,
+      itemBuilder: (BuildContext context, int index) {
+        double height;
+        switch (index) {
+          case 0:
+            height = 50;
+            break;
+          case 1:
+            height = 75;
+            break;
+          case 2:
+            height = 100;
+            break;
+          default:
+            height = 251;
+            break;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: ContainerLoadingAnimation(
+            radius: 16,
+            height: height,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton(this.error, {super.key});
+  final NearbyAirQualityError error;
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () async {
+        if (error == NearbyAirQualityError.locationDenied) {
+          await Geolocator.openAppSettings();
+        } else if (error == NearbyAirQualityError.locationDisabled) {
+          await Geolocator.openLocationSettings();
+        }
+      },
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(40),
+        elevation: 2,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(13),
+          ),
+        ),
+        backgroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 14,
+        ),
+      ),
+      child: Text(
+        error.message,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          height: 22 / 14,
+          letterSpacing: 16 * -0.022,
+        ),
+      ),
+    );
+  }
+}
 
 class DashboardTopCard extends StatelessWidget {
   const DashboardTopCard({
@@ -73,51 +154,6 @@ class DashboardTopCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class DashboardFavPlaceAvatar extends StatelessWidget {
-  const DashboardFavPlaceAvatar({
-    super.key,
-    required this.rightPadding,
-    required this.airQualityReading,
-  });
-  final double rightPadding;
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            '${airQualityReading.pm2_5}',
-            style: TextStyle(
-              fontSize: 7,
-              color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
-            ),
           ),
         ),
       ),
@@ -222,36 +258,6 @@ class KyaDashboardAvatar extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class DashboardEmptyAvatar extends StatelessWidget {
-  const DashboardEmptyAvatar({
-    super.key,
-    required this.rightPadding,
-  });
-  final double rightPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: CustomColors.greyColor,
-          shape: BoxShape.circle,
         ),
       ),
     );

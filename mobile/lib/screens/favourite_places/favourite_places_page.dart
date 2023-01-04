@@ -24,22 +24,27 @@ class FavouritePlacesPage extends StatelessWidget {
             if (state.favouritePlaces.isEmpty) {
               context.read<AccountBloc>().add(const RefreshFavouritePlaces());
 
-              return const EmptyFavouritePlaces(); // TODO replace with error page
+              return const NoFavouritePlacesWidget();
             }
+            final airQualityReadings =
+                Hive.box<AirQualityReading>(HiveBox.airQualityReadings);
 
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final airQualityReading =
-                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                          .get(state.favouritePlaces[index].referenceSite);
-                  final favouritePlace = state.favouritePlaces[index];
+                  final siteReadings = airQualityReadings.values.where(
+                    (element) =>
+                        element.referenceSite ==
+                        state.favouritePlaces[index].referenceSite,
+                  );
 
-                  if (airQualityReading == null) {
-                    return EmptyFavouritePlace(
-                      airQualityReading:
-                          AirQualityReading.fromFavouritePlace(favouritePlace),
-                    );
+                  final AirQualityReading airQualityReading =
+                      AirQualityReading.fromFavouritePlace(
+                    state.favouritePlaces[index],
+                  );
+
+                  if (siteReadings.isEmpty) {
+                    return EmptyFavouritePlace(airQualityReading);
                   }
 
                   return Padding(
@@ -47,7 +52,7 @@ class FavouritePlacesPage extends StatelessWidget {
                       top: Config.refreshIndicatorPadding(index),
                     ),
                     child: MiniAnalyticsCard(
-                      airQualityReading.populateFavouritePlace(favouritePlace),
+                      airQualityReading,
                       animateOnClick: false,
                     ),
                   );
