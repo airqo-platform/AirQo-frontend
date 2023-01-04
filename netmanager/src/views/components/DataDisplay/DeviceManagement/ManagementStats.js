@@ -121,7 +121,7 @@ export default function ManagementStat() {
     if (isEmpty(allDevices)) dispatch(loadDevicesData());
 
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, [leaderboardData]);
+  }, []);
 
   useEffect(() => {
     let lineLabel = [];
@@ -164,11 +164,13 @@ export default function ManagementStat() {
   ];
 
   const updateLeaderboardDateRange = (e) => {
+    e.preventDefault();
     setLoading(true);
-    let dateRange = e.target.value;
-    setLeaderboardDateRange(dateRange);
+    const { value } = e.target;
 
-    if (dateRange === '1') {
+    setLeaderboardDateRange(value);
+
+    if (value === '1') {
       dispatch(
         loadUptimeLeaderboardData({
           startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
@@ -179,7 +181,7 @@ export default function ManagementStat() {
       dispatch(
         loadUptimeLeaderboardData({
           startDate: roundToStartOfDay(
-            moment(new Date()).subtract(parseInt(dateRange), 'days').toISOString()
+            moment(new Date()).subtract(parseInt(value), 'days').toISOString()
           ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
@@ -258,7 +260,7 @@ export default function ManagementStat() {
                     </div>
                   }
                   open={leaderboardDateMenu}
-                  onClose={() => toggleLeaderboardDateMenu(!leaderboardDateMenu)}
+                  onClose={() => toggleLeaderboardDateMenu(false)}
                   placement="bottom-end"
                 >
                   <EditIcon onClick={() => toggleLeaderboardDateMenu(!leaderboardDateMenu)} />
