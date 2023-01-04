@@ -38,7 +38,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   ) async {
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    final favouritePlaces = state.favouritePlaces;
+    List<FavouritePlace> favouritePlaces = state.favouritePlaces;
     final placesIds = favouritePlaces.map((e) => e.placeId);
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
@@ -267,7 +267,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    final kya = state.kya;
+    List<Kya> kya = state.kya;
     final cloudKya = await CloudStore.getKya();
 
     final List<String> kyaIds = kya.map((kya) => kya.id).toList();

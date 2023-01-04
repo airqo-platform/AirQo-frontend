@@ -33,13 +33,7 @@ Future<dynamic> performGetRequest({
     if (response.statusCode == 200) {
       return json.decode(response.body);
     }
-  } catch (exception, _) {
-    // TODO create utils package
-    // await logException(
-    //   exception,
-    //   stackTrace,
-    // );
-  }
+  } catch (_, __) {}
 
   return null;
 }
