@@ -25,6 +25,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
 import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
+import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 
 export default function ManagementStat() {
   useInitScrollTop();
@@ -94,7 +95,20 @@ export default function ManagementStat() {
     if (isEmpty(networkUptimeData)) {
       dispatch(
         loadNetworkUptimeData({
-          startDate: roundToStartOfDay(moment(new Date()).toISOString()).toISOString(),
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, 'days').toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+        })
+      );
+    }
+
+    if (isEmpty(leaderboardData)) {
+      dispatch(
+        loadUptimeLeaderboardData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(1, 'days').toISOString()
+          ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
@@ -176,7 +190,7 @@ export default function ManagementStat() {
           />
 
           <ChartContainer
-            title={'Leaderboard in the last 24hours'}
+            title={'Leaderboard in the last 24 hours'}
             controller={
               devicesUptimeDescending ? (
                 <SortAscendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
