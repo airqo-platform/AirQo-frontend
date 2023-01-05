@@ -20,11 +20,15 @@ import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { SortAscendingIcon, SortDescendingIcon } from 'assets/img';
 import { useDeviceUptimeLeaderboard, useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import { TextField } from '@material-ui/core';
+import RichTooltip from 'views/containers/RichToolTip';
+import EditIcon from '@material-ui/icons/Edit';
 
 // css style
 import 'chartjs-plugin-annotation';
 import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
+import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
 
 export default function ManagementStat() {
   useInitScrollTop();
@@ -42,6 +46,9 @@ export default function ManagementStat() {
     bar: { label: [], data: [] },
     line: { label: [], data: [] }
   });
+  const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
+  const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
+  const [isLoading, setLoading] = useState(false);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -94,7 +101,18 @@ export default function ManagementStat() {
     if (isEmpty(networkUptimeData)) {
       dispatch(
         loadNetworkUptimeData({
-          startDate: roundToStartOfDay(moment(new Date()).toISOString()).toISOString(),
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, 'days').toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+        })
+      );
+    }
+
+    if (isEmpty(leaderboardData)) {
+      dispatch(
+        loadUptimeLeaderboardData({
+          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
       );
@@ -145,6 +163,33 @@ export default function ManagementStat() {
     }
   ];
 
+  const updateLeaderboardDateRange = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const { value } = e.target;
+
+    setLeaderboardDateRange(value);
+
+    if (value === '1') {
+      dispatch(
+        loadUptimeLeaderboardData({
+          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+        })
+      );
+    } else {
+      dispatch(
+        loadUptimeLeaderboardData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(parseInt(value), 'days').toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+        })
+      );
+    }
+    setLoading(false);
+  };
+
   return (
     <ErrorBoundary>
       <div className={'container-wrapper'}>
@@ -176,13 +221,51 @@ export default function ManagementStat() {
           />
 
           <ChartContainer
-            title={'Leaderboard in the last 24hours'}
+            title={`Leaderboard in the last ${
+              leaderboardDateRange === '1' ? '24 hours' : `${leaderboardDateRange} days`
+            }`}
+            loading={isLoading}
             controller={
-              devicesUptimeDescending ? (
-                <SortAscendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
-              ) : (
-                <SortDescendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
-              )
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                {devicesUptimeDescending ? (
+                  <SortAscendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
+                ) : (
+                  <SortDescendingIcon onClick={handleSortIconClick} style={{ fill: 'white' }} />
+                )}
+                <RichTooltip
+                  content={
+                    <div style={{ width: '200px' }}>
+                      <TextField
+                        id="range"
+                        select
+                        fullWidth
+                        label="Range"
+                        value={
+                          leaderboardDateRange === '1' ? 'Last 24 hours' : leaderboardDateRange
+                        }
+                        style={{ marginTop: '15px' }}
+                        onChange={updateLeaderboardDateRange}
+                        SelectProps={{
+                          native: true,
+                          style: { width: '100%', height: '40px' }
+                        }}
+                        variant="outlined"
+                      >
+                        <option value={'1'}>Last 24 hours</option>
+                        <option value={'2'}>Last 2 days</option>
+                        <option value={'3'}>Last 3 days</option>
+                        <option value={'4'}>Last 4 days</option>
+                        <option value={'5'}>Last 5 days</option>
+                      </TextField>
+                    </div>
+                  }
+                  open={leaderboardDateMenu}
+                  onClose={() => toggleLeaderboardDateMenu(false)}
+                  placement="bottom-end"
+                >
+                  <EditIcon onClick={() => toggleLeaderboardDateMenu(!leaderboardDateMenu)} />
+                </RichTooltip>
+              </div>
             }
             blue
           >
