@@ -30,16 +30,16 @@ class KyaLessonsPage extends StatefulWidget {
 }
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
-  final AppinioSwiperController swipeController = AppinioSwiperController();
+  final AppinioSwiperController _swipeController = AppinioSwiperController();
   List<Card> _kyaCards = [];
   int _visibleCardIndex = 0;
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
   bool _shareLoading = false;
-  Map<int, int> indexMappings = {};
+  final Map<int, int> _indexMappings = {};
 
   @override
   void dispose() {
-    swipeController.dispose();
+    _swipeController.dispose();
     super.dispose();
   }
 
@@ -150,7 +150,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 cards: _kyaCards,
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
-                controller: swipeController,
+                controller: _swipeController,
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
                 unswipe: _unSwipe,
@@ -175,14 +175,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   Visibility(
                     visible: _visibleCardIndex >= 1,
                     child: GestureDetector(
-                      onTap: () => swipeController.unswipe(),
+                      onTap: () => _swipeController.unswipe(),
                       child: const CircularKyaButton(
                         icon: 'assets/icon/previous_arrow.svg',
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => swipeController.swipe(),
+                    onTap: () => _swipeController.swipe(),
                     child: const CircularKyaButton(
                       icon: 'assets/icon/next_arrow.svg',
                     ),
@@ -203,7 +203,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   initState() {
     super.initState();
     for (final kyaLesson in widget.kya.lessons) {
-      indexMappings[widget.kya.lessons.reversed.toList().indexOf(kyaLesson)] =
+      _indexMappings[widget.kya.lessons.reversed.toList().indexOf(kyaLesson)] =
           widget.kya.lessons.indexOf(kyaLesson);
       _globalKeys.add(
         GlobalKey(),
@@ -236,7 +236,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   void _swipe(int reversedIndex, AppinioSwiperDirection _) {
-    int index = indexMappings[reversedIndex]!;
+    int index = _indexMappings[reversedIndex]!;
     setState(() {
       _visibleCardIndex = index + 1;
     });

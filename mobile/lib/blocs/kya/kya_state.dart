@@ -10,6 +10,12 @@ enum KyaStatus {
   initial;
 }
 
+class KyaProgressCubit extends Cubit<double> {
+  KyaProgressCubit() : super(0);
+
+  void updateProgress(double value) => emit(value);
+}
+
 class KyaState extends Equatable {
   const KyaState._({
     this.kya = const [],

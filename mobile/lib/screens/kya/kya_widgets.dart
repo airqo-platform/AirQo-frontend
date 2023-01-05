@@ -13,105 +13,6 @@ import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
 
-class KyaLoadingWidget extends StatelessWidget {
-  const KyaLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            color: CustomColors.appBodyColor,
-            height: double.infinity,
-            width: double.infinity,
-          ),
-          const FractionallySizedBox(
-            alignment: Alignment.topCenter,
-            widthFactor: 1.0,
-            heightFactor: 0.4,
-            child: ContainerLoadingAnimation(
-              radius: 0,
-              height: double.infinity,
-            ),
-          ),
-          const Align(
-            alignment: AlignmentDirectional.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                bottom: 32,
-              ),
-              child: ContainerLoadingAnimation(
-                radius: 8,
-                height: 48,
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const Spacer(),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(16.0),
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: const [
-                            SizedBox(
-                              height: 48,
-                            ),
-                            SizedContainerLoadingAnimation(
-                              radius: 8,
-                              height: 133,
-                              width: 221,
-                            ),
-                            SizedBox(
-                              height: 18,
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 40),
-                              child: ContainerLoadingAnimation(
-                                radius: 5,
-                                height: 20,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 64,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class KyaProgressCubit extends Cubit<double> {
-  KyaProgressCubit() : super(0);
-
-  void updateProgress(double value) => emit(value);
-}
-
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
@@ -312,6 +213,99 @@ class KyaProgressBar extends StatelessWidget {
           value: progress,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
         ),
+      ),
+    );
+  }
+}
+
+class KyaLoadingWidget extends StatelessWidget {
+  const KyaLoadingWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            color: CustomColors.appBodyColor,
+            height: double.infinity,
+            width: double.infinity,
+          ),
+          const FractionallySizedBox(
+            alignment: Alignment.topCenter,
+            widthFactor: 1.0,
+            heightFactor: 0.4,
+            child: ContainerLoadingAnimation(
+              radius: 0,
+              height: double.infinity,
+            ),
+          ),
+          const Align(
+            alignment: AlignmentDirectional.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 32,
+              ),
+              child: ContainerLoadingAnimation(
+                radius: 8,
+                height: 48,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(16.0),
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: const [
+                            SizedBox(
+                              height: 48,
+                            ),
+                            SizedContainerLoadingAnimation(
+                              radius: 8,
+                              height: 133,
+                              width: 221,
+                            ),
+                            SizedBox(
+                              height: 18,
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 40),
+                              child: ContainerLoadingAnimation(
+                                radius: 5,
+                                height: 20,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 64,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
