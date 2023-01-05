@@ -7,9 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'insights_widgets.dart';
 
 class DailyInsightsTab extends StatelessWidget {
-  DailyInsightsTab({super.key});
-
-  final GlobalKey _globalKey = GlobalKey();
+  const DailyInsightsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -61,17 +59,11 @@ class DailyInsightsTab extends StatelessWidget {
                       const SizedBox(
                         height: 12,
                       ),
-                      RepaintBoundary(
-                        key: _globalKey,
-                        child: const DailyInsightsGraph(),
-                      ),
+                      const DailyInsightsGraph(),
                       const SizedBox(
                         height: 16,
                       ),
-                      InsightsActionBar(
-                        shareKey: _globalKey,
-                        airQualityReading: state.airQualityReading,
-                      ),
+                      InsightsActionBar(state.airQualityReading),
                       const SizedBox(
                         height: 32,
                       ),

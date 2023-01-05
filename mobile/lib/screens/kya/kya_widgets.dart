@@ -218,6 +218,93 @@ class KyaProgressBar extends StatelessWidget {
   }
 }
 
+class KyaLessonCard extends StatelessWidget {
+  const KyaLessonCard(this.kyaLesson, this.kya, {super.key});
+  final KyaLesson kyaLesson;
+  final Kya kya;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      elevation: 5,
+      margin: EdgeInsets.zero,
+      shadowColor: CustomColors.appBodyColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 8.0,
+              right: 8.0,
+              top: 8.0,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                fit: BoxFit.fill,
+                placeholder: (context, url) => const SizedBox(
+                  child: ContainerLoadingAnimation(
+                    height: 180,
+                    radius: 8,
+                  ),
+                ),
+                imageUrl: kyaLesson.imageUrl,
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: CustomColors.aqiRed,
+                ),
+                cacheKey: kyaLesson.imageUrlCacheKey(kya),
+                cacheManager: CacheManager(
+                  CacheService.cacheConfig(
+                    kyaLesson.imageUrlCacheKey(kya),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
+            child: AutoSizeText(
+              kyaLesson.title,
+              maxLines: 2,
+              minFontSize: 20,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline9(context),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
+            child: AutoSizeText(
+              kyaLesson.body,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              minFontSize: 16,
+              style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.5),
+                  ),
+            ),
+          ),
+          const Spacer(),
+          SvgPicture.asset(
+            'assets/icon/tips_graphics.svg',
+            semanticsLabel: 'tips_graphics',
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class KyaLoadingWidget extends StatelessWidget {
   const KyaLoadingWidget({super.key});
 

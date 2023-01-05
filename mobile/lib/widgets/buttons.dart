@@ -53,6 +53,20 @@ class NextButton extends StatelessWidget {
   }
 }
 
+Future<void> popNavigation(BuildContext context) async {
+  if (Navigator.canPop(context)) {
+    Navigator.pop(context);
+  } else {
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }),
+      (r) => false,
+    );
+  }
+}
+
 class AppBackButton extends StatelessWidget {
   const AppBackButton({
     super.key,
@@ -61,18 +75,8 @@ class AppBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        } else {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) {
-              return const HomePage();
-            }),
-            (r) => false,
-          );
-        }
+      onTap: () async {
+        await popNavigation(context);
       },
       child: SvgPicture.asset(
         'assets/icon/back_button.svg',

@@ -52,8 +52,6 @@ class Config {
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
-  static String get shareFailedMessage => 'Couldn\'t share image.';
-
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
 

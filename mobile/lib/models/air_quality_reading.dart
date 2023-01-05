@@ -35,11 +35,14 @@ class AirQualityReading extends HiveObject {
   factory AirQualityReading.fromDynamicLink(
     PendingDynamicLinkData dynamicLinkData,
   ) {
-    final referenceSite =
+    String referenceSite =
         dynamicLinkData.link.queryParameters['referenceSite'] ?? '';
-    final placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
-    final name = dynamicLinkData.link.queryParameters['name'] ?? '';
-    final location = dynamicLinkData.link.queryParameters['location'] ?? '';
+    String placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
+    String name = dynamicLinkData.link.queryParameters['name'] ?? '';
+    String location = dynamicLinkData.link.queryParameters['location'] ?? '';
+    String latitude = dynamicLinkData.link.queryParameters['latitude'] ?? '0.0';
+    String longitude =
+        dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
 
     AirQualityReading airQualityReading =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
@@ -47,21 +50,30 @@ class AirQualityReading extends HiveObject {
             .firstWhere(
       (element) => element.referenceSite == referenceSite,
       orElse: () {
+        String country = dynamicLinkData.link.queryParameters['country'] ?? '';
+        String source = dynamicLinkData.link.queryParameters['source'] ?? '';
+        String shareLink =
+            dynamicLinkData.link.queryParameters['shareLink'] ?? '';
+        String region = dynamicLinkData.link.queryParameters['region'] ?? '';
+        String distanceToReferenceSite =
+            dynamicLinkData.link.queryParameters['distanceToReferenceSite'] ??
+                '';
+
         return AirQualityReading(
           referenceSite: referenceSite,
-          source: '',
-          latitude: 0,
-          longitude: 0,
-          country: '',
+          source: source,
+          latitude: latitude as double,
+          longitude: longitude as double,
+          country: country,
           name: name,
           location: location,
-          region: '',
+          region: region,
           dateTime: DateTime.now(),
-          pm2_5: 0,
-          pm10: 0,
-          distanceToReferenceSite: 0,
-          placeId: '',
-          shareLink: '',
+          pm2_5: 0.0,
+          pm10: 0.0,
+          distanceToReferenceSite: distanceToReferenceSite as double,
+          placeId: placeId,
+          shareLink: shareLink,
         );
       },
     );
@@ -70,6 +82,8 @@ class AirQualityReading extends HiveObject {
       placeId: placeId,
       name: name,
       location: location,
+      latitude: latitude as double,
+      longitude: longitude as double,
     );
   }
 

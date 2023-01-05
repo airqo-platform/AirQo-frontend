@@ -6,7 +6,6 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -1373,13 +1372,8 @@ class InsightsToggleBar extends StatelessWidget {
 }
 
 class InsightsActionBar extends StatefulWidget {
-  const InsightsActionBar({
-    super.key,
-    required this.shareKey,
-    required this.airQualityReading,
-  });
+  const InsightsActionBar(this.airQualityReading, {super.key});
 
-  final GlobalKey shareKey;
   final AirQualityReading? airQualityReading;
 
   @override

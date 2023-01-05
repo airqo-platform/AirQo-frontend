@@ -98,13 +98,13 @@ class ShareService {
     Uri? shareImage;
 
     if (airQualityReading != null) {
-      params = '${airQualityReading.shareLinkParams()}&destination=insights';
+      params = '${airQualityReading.shareLinkParams()}&page=insights';
       title = airQualityReading.name;
       description = airQualityReading.location;
     }
 
     if (kya != null) {
-      params = '${kya.shareLinkParams()}&destination=kya';
+      params = '${kya.shareLinkParams()}&page=kya';
       title = kya.title;
       description = 'Breathe Clean';
       shareImage = Uri.parse(kya.imageUrl);
@@ -160,9 +160,8 @@ class ShareService {
     required PendingDynamicLinkData linkData,
     required BuildContext context,
   }) async {
-    final destination =
-        (linkData.link.queryParameters['destination'] ?? '').toLowerCase();
-    switch (destination) {
+    final destination = linkData.link.queryParameters['page'] ?? '';
+    switch (destination.toLowerCase()) {
       case 'insights':
         Navigator.pushAndRemoveUntil(
           context,
@@ -203,7 +202,7 @@ class ShareService {
 
     String subject;
     if (kya != null) {
-      subject = 'kya.title';
+      subject = kya.title;
     } else if (airQualityReading != null) {
       subject = '${airQualityReading.name}\n${airQualityReading.location}';
     } else {
@@ -212,7 +211,7 @@ class ShareService {
     await Share.share(
       link.toString(),
       subject: subject,
-    ).then((value) => {updateUserShares()});
+    ).then((_) => {updateUserShares()});
   }
 
   static Future<void> updateUserShares() async {

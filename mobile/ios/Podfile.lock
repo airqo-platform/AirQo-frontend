@@ -620,6 +620,9 @@ PODS:
   - Firebase/Crashlytics (10.3.0):
     - Firebase/CoreOnly
     - FirebaseCrashlytics (~> 10.3.0)
+  - Firebase/DynamicLinks (10.3.0):
+    - Firebase/CoreOnly
+    - FirebaseDynamicLinks (~> 10.3.0)
   - Firebase/Firestore (10.3.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 10.3.0)
@@ -645,6 +648,10 @@ PODS:
     - Flutter
   - firebase_crashlytics (3.0.9):
     - Firebase/Crashlytics (= 10.3.0)
+    - firebase_core
+    - Flutter
+  - firebase_dynamic_links (5.0.11):
+    - Firebase/DynamicLinks (= 10.3.0)
     - firebase_core
     - Flutter
   - firebase_in_app_messaging (0.7.0-10):
@@ -701,6 +708,8 @@ PODS:
     - GoogleUtilities/Environment (~> 7.8)
     - nanopb (< 2.30910.0, >= 2.30908.0)
     - PromisesObjC (~> 2.1)
+  - FirebaseDynamicLinks (10.3.0):
+    - FirebaseCore (~> 10.0)
   - FirebaseFirestore (10.3.0):
     - abseil/algorithm (~> 1.20211102.0)
     - abseil/base (~> 1.20211102.0)
@@ -1044,6 +1053,7 @@ SPEC CHECKSUMS:
   firebase_auth: 1a21c9357a8077f5c7e2a28311cd5286a0b8ee75
   firebase_core: bf59c32d2e53814f558efa20840c1902fa2fe461
   firebase_crashlytics: a45cced3521640e1e389d8b3662936ea9afd6055
+  firebase_dynamic_links: e5ca49679928f5d46e2db5168656975eae39d379
   firebase_in_app_messaging: 0b143b35807ab8403247c9cfd059533bc70e9595
   firebase_messaging: ee597229fc260f8fa491fa8f2d4a32dfbfa406fa
   firebase_storage: 8b85bf19de50a1886f9387924fbddf066a718965
@@ -1056,6 +1066,7 @@ SPEC CHECKSUMS:
   FirebaseCoreExtension: 93d252fabdc9696bf14a73b04d84877ab9b3a832
   FirebaseCoreInternal: 29b76f784d607df8b2a1259d73c3f04f1210137b
   FirebaseCrashlytics: f20d956f8229010b645e534693c39e0b7843c268
+  FirebaseDynamicLinks: 51c81d07bd63155bb56d76b0abdda79c8a3d8d02
   FirebaseFirestore: 244f71ff14ef44f39e00b44d356eac708ce03103
   FirebaseInAppMessaging: cd50ea5f6883a9b371976d8a9b41133dbdc8c776
   FirebaseInstallations: e2f26126089dcf41e215f7b8925af8d953c7d602

@@ -514,9 +514,8 @@ class FeaturedSiteReading extends StatelessWidget {
 }
 
 class MapAnalyticsCard extends StatelessWidget {
-  MapAnalyticsCard(this.airQualityReading, {super.key});
+  const MapAnalyticsCard(this.airQualityReading, {super.key});
   final AirQualityReading airQualityReading;
-  final GlobalKey _shareWidgetKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -528,161 +527,147 @@ class MapAnalyticsCard extends StatelessWidget {
         minHeight: 251,
       ),
       color: Colors.white,
-      child: Stack(
-        children: [
-          RepaintBoundary(
-            key: _shareWidgetKey,
-            child: AnalyticsShareCard(airQualityReading: airQualityReading),
+      child: InkWell(
+        onTap: () async => _goToInsights(context),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(16.0),
+            ),
           ),
-          InkWell(
-            onTap: () async => _goToInsights(context),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(16.0),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            final String region =
-                                context.read<MapBloc>().state.featuredRegion;
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        final String region =
+                            context.read<MapBloc>().state.featuredRegion;
 
-                            context.read<MapBloc>().add(region.isEmpty
-                                ? const InitializeMapState()
-                                : ShowRegionSites(region));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              right: 12,
-                              top: 12,
-                              left: 20,
-                            ),
-                            child: SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: SvgPicture.asset(
-                                'assets/icon/close.svg',
-                                height: 20,
-                                width: 20,
-                              ),
-                            ),
+                        context.read<MapBloc>().add(region.isEmpty
+                            ? const InitializeMapState()
+                            : ShowRegionSites(region));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          right: 12,
+                          top: 12,
+                          left: 20,
+                        ),
+                        child: SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 20,
+                            width: 20,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 104,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Row(
-                            children: [
-                              AnalyticsAvatar(airQualityReading),
-                              const SizedBox(
-                                width: 16.0,
-                              ),
-                              // TODO : investigate ellipsis
-                              Flexible(
-                                child: Column(
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Column(
+                children: [
+                  SizedBox(
+                    height: 104,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Row(
+                        children: [
+                          AnalyticsAvatar(airQualityReading),
+                          const SizedBox(
+                            width: 16.0,
+                          ),
+                          // TODO : investigate ellipsis
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  airQualityReading.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.headline9(
+                                    context,
+                                  ),
+                                ),
+                                Text(
+                                  airQualityReading.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.bodyText4(context)
+                                      ?.copyWith(
+                                    color: appColors.appColorBlack
+                                        .withOpacity(0.3),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                AqiStringContainer(airQualityReading),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      airQualityReading.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.headline9(
-                                        context,
-                                      ),
-                                    ),
-                                    Text(
-                                      airQualityReading.location,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.bodyText4(context)
-                                          ?.copyWith(
-                                        color: appColors.appColorBlack
-                                            .withOpacity(0.3),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 12,
-                                    ),
-                                    AqiStringContainer(airQualityReading),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          constraints: BoxConstraints(
-                                            maxWidth: MediaQuery.of(context)
-                                                    .size
-                                                    .width /
+                                    Container(
+                                      constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width /
                                                 3.2,
-                                          ),
-                                          child: Text(
-                                            dateToString(
-                                              airQualityReading.dateTime,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 8,
-                                              color:
-                                                  Colors.black.withOpacity(0.3),
-                                            ),
-                                          ),
+                                      ),
+                                      child: Text(
+                                        dateToString(
+                                          airQualityReading.dateTime,
                                         ),
-                                      ],
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          color: Colors.black.withOpacity(0.3),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 32),
-                        child: AnalyticsMoreInsights(),
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(
-                        color: Color(0xffC4C4C4),
-                        height: 1.0,
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: AnalyticsCardFooter(
-                      shareKey: _shareWidgetKey,
-                      airQualityReading: airQualityReading,
                     ),
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    child: AnalyticsMoreInsights(),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(
+                    color: Color(0xffC4C4C4),
+                    height: 1.0,
                   ),
                 ],
               ),
-            ),
+              Expanded(
+                child: AnalyticsCardFooter(airQualityReading),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -318,14 +318,9 @@ class HeartIcon extends StatelessWidget {
 }
 
 class AnalyticsCardFooter extends StatefulWidget {
-  const AnalyticsCardFooter({
-    super.key,
-    required this.airQualityReading,
-    required this.shareKey,
-  });
+  const AnalyticsCardFooter(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
-  final GlobalKey shareKey;
 
   @override
   State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();

@@ -2,9 +2,12 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../home_page.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kya, {super.key});
@@ -78,8 +81,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   Future<void> _initialize() async {
     await Future.delayed(
       const Duration(seconds: 4),
-      () {
-        Navigator.pop(context);
+      () async {
+        await popNavigation(context);
       },
     );
   }
