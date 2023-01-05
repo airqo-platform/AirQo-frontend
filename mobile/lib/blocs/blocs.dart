@@ -8,3 +8,4 @@ export 'map/map_bloc.dart';
 export 'nearby_location/nearby_location_bloc.dart';
 export 'phone_auth/phone_auth_bloc.dart';
 export 'search/search_bloc.dart';
+export 'kya/kya_bloc.dart';
