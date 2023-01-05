@@ -273,33 +273,11 @@ const PublicationsSection = () => {
       <div className="title">Publications</div>
       <div>
         <div className="main-text">
-          Exploring PM<sub>2.5</sub> variations from calibrated low-cost sensor network in Greater
-          Kampala, during COVID-19 imposed lockdown restrictions:Lessons for Policy.
-        </div>
-        <div className="author">Published by</div>
-        <div className="team">AirQo and Makerere University</div>
-        <div>
-          <div className="link">
-            <a
-              href="https://cleanairjournal.org.za/article/view/10906"
-              target="_blank"
-              download
-              rel="noopener noreferrer">
-              <span>
-                Read Journal <ArrowRight />
-              </span>
-            </a>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div>
-        <div className="main-text">
           Seeing the air in detail: Hyperlocal air quality dataset collected from spatially
           distributed AirQo network.
         </div>
         <div className="author">Published by</div>
-        <div className="team">AirQo and Makerere University</div>
+        <div className="team">AirQo</div>
         <div>
           <div className="link">
             <a
@@ -309,27 +287,6 @@ const PublicationsSection = () => {
               rel="noopener noreferrer">
               <span>
                 Read More <ArrowRight />
-              </span>
-            </a>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div>
-        <div className="main-text">
-          Determination of Satellite-Derived PM<sub>2.5</sub> for Kampala District, Uganda.
-        </div>
-        <div className="author">Published by</div>
-        <div className="team">AirQo and Makerere University</div>
-        <div>
-          <div className="link">
-            <a
-              href="https://www.mdpi.com/2673-7418/2/1/8"
-              target="_blank"
-              download
-              rel="noopener noreferrer">
-              <span>
-                Read Article <ArrowRight />
               </span>
             </a>
           </div>

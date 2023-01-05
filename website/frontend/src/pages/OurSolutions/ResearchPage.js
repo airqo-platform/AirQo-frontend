@@ -51,47 +51,6 @@ const PublicationsSection = () => {
             </a>
           </div>
         </div>
-        <hr />
-        <div className="main-text">
-          Characterization of Ambient Air Quality in Selected Urban Areas in Uganda : A Low-Cost
-          Approach.
-        </div>
-        <div className="author">Created by</div>
-        <div className="team">AirQo and Makerere University</div>
-        <div className="author">Supported by</div>
-        <div className="team">World Bank</div>
-        <div>
-          <div className="link">
-            <a
-              href="https://openknowledge.worldbank.org/handle/10986/35035"
-              target="_blank"
-              download
-              rel="noopener noreferrer">
-              <span>
-                Read More <ArrowRight />
-              </span>
-            </a>
-          </div>
-        </div>
-        <hr />
-        <div className="main-text">Pollution Management and the Making of Prosperous Cities.</div>
-        <div className="author">Created by</div>
-        <div className="team">AirQo and Makerere University</div>
-        <div className="author">Supported by</div>
-        <div className="team">World Bank</div>
-        <div>
-          <div className="link">
-            <a
-              href="https://openknowledge.worldbank.org/handle/10986/34643"
-              target="_blank"
-              download
-              rel="noopener noreferrer">
-              <span>
-                Read More <ArrowRight />
-              </span>
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   );
