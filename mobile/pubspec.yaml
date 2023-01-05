@@ -33,7 +33,6 @@ dependencies:
   cached_network_image: ^3.2.3
   geolocator: ^9.0.2
   flutter_local_notifications: ^13.0.0
-  url_launcher: ^6.1.6
   path_provider: ^2.0.11
   animations: ^2.0.7
   provider: ^6.0.5

@@ -1,19 +1,109 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'native_api.dart';
 import 'rest_api.dart';
 
 class LocationService {
+  static Future<void> locationRequestDialog(BuildContext context) async {
+    await Permission.location.request().then((status) {
+      switch (status) {
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+        case PermissionStatus.restricted:
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(false));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+      }
+    });
+  }
+
+  static Future<bool> locationGranted() async {
+    final permissionStatus = await Permission.location.status;
+
+    switch (permissionStatus) {
+      case PermissionStatus.permanentlyDenied:
+      case PermissionStatus.denied:
+      case PermissionStatus.restricted:
+        return false;
+      case PermissionStatus.limited:
+      case PermissionStatus.granted:
+        break;
+    }
+
+    return true;
+  }
+
+  static Future<void> requestLocation(
+    BuildContext context,
+    bool allow,
+  ) async {
+    late String enableLocationMessage;
+    late String disableLocationMessage;
+
+    if (Platform.isAndroid) {
+      enableLocationMessage =
+          'To turn on location, go to\nApp Info > Permissions > Location > Allow only while using the app';
+      disableLocationMessage =
+          'To turn off location, go to\nApp Info > Permissions > Location > Deny';
+    } else {
+      enableLocationMessage =
+          'To turn on location, go to\nSettings > AirQo > Location > Always';
+      disableLocationMessage =
+          'To turn off location, go to\nSettings > AirQo > Location > Never';
+    }
+
+    if (allow) {
+      await Permission.location.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await openPhoneSettings(context, enableLocationMessage);
+            break;
+          case PermissionStatus.denied:
+            if (Platform.isAndroid) {
+              await openPhoneSettings(context, enableLocationMessage);
+            } else {
+              await locationRequestDialog(context);
+            }
+            break;
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await locationRequestDialog(context);
+            break;
+          case PermissionStatus.granted:
+            context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+            context
+                .read<NearbyLocationBloc>()
+                .add(const SearchLocationAirQuality());
+            break;
+        }
+      });
+    } else {
+      await openPhoneSettings(context, disableLocationMessage);
+    }
+  }
+
   static Future<String> getAddress({
     required double latitude,
     required double longitude,
@@ -108,30 +198,6 @@ class LocationService {
     }
 
     return airQualityReadings;
-  }
-
-  static Future<bool> allowLocationAccess() async {
-    final enabled = await PermissionService.checkPermission(
-      AppPermission.location,
-      request: true,
-    );
-    if (enabled) {
-      final profile = await Profile.getProfile();
-
-      await Future.wait([
-        CloudAnalytics.logEvent(
-          AnalyticsEvent.allowLocation,
-        ),
-        profile.update(enableLocation: true),
-      ]);
-    }
-
-    return enabled;
-  }
-
-  static Future<void> revokePermission() async {
-    final profile = await Profile.getProfile();
-    await profile.update(enableLocation: false);
   }
 
   static Future<AirQualityReading?> getNearestSite(

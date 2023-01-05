@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
@@ -54,11 +53,7 @@ class DashboardLocationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        if (error == NearbyAirQualityError.locationDenied) {
-          await Geolocator.openAppSettings();
-        } else if (error == NearbyAirQualityError.locationDisabled) {
-          await Geolocator.openLocationSettings();
-        }
+        await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(40),

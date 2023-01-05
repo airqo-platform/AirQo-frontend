@@ -71,6 +71,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => MapBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => SettingsBloc(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
         ),
       ],

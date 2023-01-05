@@ -17,10 +17,8 @@ class NearbyLocationBloc
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
-    final bool permissionGranted =
-        await PermissionService.checkPermission(AppPermission.location);
-
-    if (!permissionGranted) {
+    final locationGranted = await LocationService.locationGranted();
+    if (!locationGranted) {
       emit(state.copyWith(
         blocStatus: NearbyLocationStatus.error,
         error: NearbyAirQualityError.locationDenied,
