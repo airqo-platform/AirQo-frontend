@@ -21,7 +21,7 @@ class KyaAdapter extends TypeAdapter<Kya> {
       imageUrl: fields[4] as String,
       id: fields[6] as String,
       lessons: (fields[7] as List).cast<KyaLesson>(),
-      progress: fields[1] == null ? 0 : fields[1] as int,
+      progress: fields[8] == null ? 0 : fields[8] as double,
       completionMessage: fields[3] == null
           ? 'You just finished your first Know You Air Lesson'
           : fields[3] as String,
@@ -33,9 +33,7 @@ class KyaAdapter extends TypeAdapter<Kya> {
   @override
   void write(BinaryWriter writer, Kya obj) {
     writer
-      ..writeByte(8)
-      ..writeByte(1)
-      ..write(obj.progress)
+      ..writeByte(7)
       ..writeByte(2)
       ..write(obj.title)
       ..writeByte(3)
@@ -49,7 +47,7 @@ class KyaAdapter extends TypeAdapter<Kya> {
       ..writeByte(7)
       ..write(obj.lessons)
       ..writeByte(8)
-      ..write(obj.shareLink);
+      ..write(obj.progress);
   }
 
   @override
@@ -114,7 +112,7 @@ Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
       lessons: (json['lessons'] as List<dynamic>)
           .map((e) => KyaLesson.fromJson(e as Map<String, dynamic>))
           .toList(),
-      progress: json['progress'] as int? ?? 0,
+      progress: (json['progress'] as num?)?.toDouble() ?? 0,
       completionMessage: json['completionMessage'] as String? ??
           'You just finished your first Know You Air Lesson',
       secondaryImageUrl: json['secondaryImageUrl'] as String? ?? '',
@@ -122,14 +120,13 @@ Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
     );
 
 Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
-      'progress': instance.progress,
       'title': instance.title,
       'completionMessage': instance.completionMessage,
       'imageUrl': instance.imageUrl,
       'secondaryImageUrl': instance.secondaryImageUrl,
       'id': instance.id,
       'lessons': instance.lessons.map((e) => e.toJson()).toList(),
-      'shareLink': instance.shareLink,
+      'progress': instance.progress,
     };
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(

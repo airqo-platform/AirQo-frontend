@@ -15,6 +15,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
+import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -76,18 +77,15 @@ class _DashboardViewState extends State<DashboardView>
               const SizedBox(
                 height: 16,
               ),
-              BlocBuilder<AccountBloc, AccountState>(
-                builder: (context, state) {
-                  final favouritePlaces = favouritePlacesWidgets(
-                    state.favouritePlaces.take(3).toList(),
-                  );
-                  final kyaWidgets = completeKyaWidgets(
-                    state.kya.filterCompleteKya().take(3).toList(),
-                  );
+              Row(
+                children: [
+                  BlocBuilder<AccountBloc, AccountState>(
+                    builder: (context, state) {
+                      final favouritePlaces = favouritePlacesWidgets(
+                        state.favouritePlaces.take(3).toList(),
+                      );
 
-                  return Row(
-                    children: [
-                      DashboardTopCard(
+                      return DashboardTopCard(
                         toolTipType: ToolTipType.favouritePlaces,
                         title: 'Favorites',
                         widgetKey: _favToolTipKey,
@@ -102,11 +100,19 @@ class _DashboardViewState extends State<DashboardView>
                           );
                         },
                         children: favouritePlaces,
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      DashboardTopCard(
+                      );
+                    },
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  BlocBuilder<KyaBloc, KyaState>(
+                    builder: (context, state) {
+                      final kyaWidgets = completeKyaWidgets(
+                        state.kya.filterCompleteKya().take(3).toList(),
+                      );
+
+                      return DashboardTopCard(
                         toolTipType: ToolTipType.forYou,
                         title: 'For You',
                         widgetKey: _kyaToolTipKey,
@@ -121,10 +127,10 @@ class _DashboardViewState extends State<DashboardView>
                           );
                         },
                         children: kyaWidgets,
-                      ),
-                    ],
-                  );
-                },
+                      );
+                    },
+                  ),
+                ],
               ),
               const SizedBox(
                 height: 24,
@@ -226,24 +232,17 @@ class _DashboardViewState extends State<DashboardView>
                                 );
                               },
                             ),
-                            BlocBuilder<AccountBloc, AccountState>(
+                            BlocBuilder<KyaBloc, KyaState>(
                               builder: (context, state) {
-                                final incompleteKya =
-                                    state.kya.filterIncompleteKya();
-                                if (incompleteKya.isEmpty) {
+                                List<Kya> kya = state.kya.filterIncompleteKya();
+                                if (kya.isEmpty) {
                                   return const SizedBox();
                                 }
-
-                                final Kya kya = incompleteKya.reduce(
-                                  (value, element) =>
-                                      value.progress > element.progress
-                                          ? value
-                                          : element,
-                                );
+                                kya.sortByProgress();
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: DashboardKyaCard(kya),
+                                  child: KyaCardWidget(kya.first),
                                 );
                               },
                             ),
@@ -309,6 +308,7 @@ class _DashboardViewState extends State<DashboardView>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
+    _refresh();
   }
 
   @override

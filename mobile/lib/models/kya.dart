@@ -22,10 +22,6 @@ class Kya extends HiveObject with EquatableMixin {
     required this.shareLink,
   });
 
-  @HiveField(1, defaultValue: 0)
-  @JsonKey(defaultValue: 0)
-  int progress;
-
   @HiveField(2)
   String title;
 
@@ -49,8 +45,12 @@ class Kya extends HiveObject with EquatableMixin {
   @HiveField(7)
   List<KyaLesson> lessons = [];
 
+  @HiveField(8, defaultValue: 0)
+  @JsonKey(defaultValue: 0)
+  double progress;
+
   // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
-  @HiveField(8, defaultValue: '')
+  @HiveField(9, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String shareLink;
 
