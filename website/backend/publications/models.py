@@ -23,4 +23,4 @@ class Publication(BaseModel):
         ordering = ['order', '-id']
 
     def __str__(self):
-        return self.id
+        return self.title
