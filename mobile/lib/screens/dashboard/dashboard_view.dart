@@ -309,6 +309,7 @@ class _DashboardViewState extends State<DashboardView>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
+    _refresh();
   }
 
   @override

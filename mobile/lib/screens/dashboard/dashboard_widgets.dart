@@ -14,7 +14,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../kya/kya_title_page.dart';
 import '../kya/kya_widgets.dart';
-import '../settings/settings_page.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -60,14 +59,7 @@ class DashboardLocationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const SettingsPage();
-            },
-          ),
-        );
+        await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(40),

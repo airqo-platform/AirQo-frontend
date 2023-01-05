@@ -5,7 +5,21 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+Future<void> openPhoneSettings(BuildContext context, String message) async {
+  final confirmation = await showDialog<ConfirmationAction>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext _) {
+      return SettingsDialog(message);
+    },
+  );
+
+  if (confirmation == ConfirmationAction.ok) {
+    await openAppSettings();
+  }
+}
 
 void pmInfoDialog(BuildContext context, double pm2_5) {
   showGeneralDialog(
@@ -277,47 +291,6 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
   );
 }
 
-Future<void> showLocationErrorSnackBar(
-  BuildContext context,
-  NearbyAirQualityError error,
-) async {
-  final snackBar = SnackBar(
-    duration: Duration(seconds: error.snackBarDuration),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    elevation: 10,
-    behavior: SnackBarBehavior.floating,
-    action: SnackBarAction(
-      label: error.snackBarActionLabel,
-      textColor: CustomColors.appColorBlue,
-      onPressed: () async {
-        switch (error) {
-          case NearbyAirQualityError.locationDenied:
-            await Geolocator.openAppSettings();
-            break;
-          case NearbyAirQualityError.locationDisabled:
-            await Geolocator.openLocationSettings();
-            break;
-          case NearbyAirQualityError.none:
-          case NearbyAirQualityError.noNearbyAirQualityReadings:
-            break;
-        }
-      },
-    ),
-    content: Text(
-      error.message,
-      softWrap: true,
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        color: Colors.white,
-      ),
-    ),
-    backgroundColor: CustomColors.snackBarBgColor,
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
 void showSnackBar(
   BuildContext context,
   String message, {
@@ -506,45 +479,6 @@ class AuthProcedureDialog extends StatelessWidget {
           isDestructiveAction: false,
           child: Text(
             authProcedure.confirmationOkayText,
-            style: CustomTextStyle.caption4(context)
-                ?.copyWith(color: CustomColors.appColorBlue),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ErrorDialog extends StatelessWidget {
-  const ErrorDialog({
-    super.key,
-    required this.errorMessage,
-  });
-  final ErrorMessage errorMessage;
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoAlertDialog(
-      title: Text(
-        errorMessage.title,
-        textAlign: TextAlign.center,
-      ),
-      content: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Text(
-          errorMessage.message,
-          textAlign: TextAlign.center,
-        ),
-      ),
-      actions: <Widget>[
-        CupertinoDialogAction(
-          onPressed: () {
-            Navigator.of(context).pop(ConfirmationAction.ok);
-          },
-          isDefaultAction: true,
-          isDestructiveAction: false,
-          child: Text(
-            'Close',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),

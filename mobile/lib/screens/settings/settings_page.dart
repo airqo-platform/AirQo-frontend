@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -10,7 +8,6 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
@@ -18,44 +15,18 @@ import 'about_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
-  // TODO implement restoration for android permissions
+
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage>
     with WidgetsBindingObserver {
-  late String enableLocationMessage;
-  late String enableNotificationsMessage;
-  late String disableLocationMessage;
-  late String disableNotificationsMessage;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     context.read<SettingsBloc>().add(const InitializeSettings());
-    if (Platform.isAndroid) {
-      enableLocationMessage =
-          'To turn on location, go to\nApp Info > Permissions > Location > Allow only while using the app';
-      enableNotificationsMessage =
-          'To turn on notifications, go to\nApp Info > Notifications';
-
-      disableLocationMessage =
-          'To turn off location, go to\nApp Info > Permissions > Location > Deny';
-      disableNotificationsMessage =
-          'To turn off notifications, go to\nApp Info > Notifications';
-    } else {
-      enableLocationMessage =
-          'To turn on location, go to\nSettings > AirQo > Location > Always';
-      enableNotificationsMessage =
-          'To turn on notifications, go to\nSettings > AirQo > Notifications';
-
-      disableLocationMessage =
-          'To turn off location, go to\nSettings > AirQo > Location > Never';
-      disableNotificationsMessage =
-          'To turn off notifications, go to\nSettings > AirQo > Notifications';
-    }
   }
 
   @override
@@ -103,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage>
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
                       onChanged: (bool value) async {
-                        await _onLocationToggle(value);
+                        await LocationService.requestLocation(context, value);
                       },
                       value: state.location,
                     ),
@@ -122,7 +93,10 @@ class _SettingsPageState extends State<SettingsPage>
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
                       onChanged: (bool value) async {
-                        await _onNotificationToggle(value);
+                        await NotificationService.requestNotification(
+                          context,
+                          value,
+                        );
                       },
                       value: state.notifications,
                     ),
@@ -305,120 +279,7 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  Future<void> _onLocationToggle(bool value) async {
-    if (value) {
-      await Permission.location.status.then((status) async {
-        switch (status) {
-          case PermissionStatus.permanentlyDenied:
-            await _openPhoneSettings(enableLocationMessage);
-            break;
-          case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await _openPhoneSettings(enableLocationMessage);
-            } else {
-              await _openLocationDialog();
-            }
-            break;
-          case PermissionStatus.restricted:
-          case PermissionStatus.limited:
-            await _openLocationDialog();
-            break;
-          case PermissionStatus.granted:
-            context.read<SettingsBloc>().add(const UpdateLocationPref(true));
-            context
-                .read<NearbyLocationBloc>()
-                .add(const SearchLocationAirQuality());
-            break;
-        }
-      });
-    } else {
-      await _openPhoneSettings(disableLocationMessage);
-    }
-  }
-
-  Future<void> _onNotificationToggle(bool value) async {
-    if (value) {
-      await Permission.notification.status.then((status) async {
-        switch (status) {
-          case PermissionStatus.permanentlyDenied:
-            await _openPhoneSettings(enableNotificationsMessage);
-            break;
-          case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await _openPhoneSettings(enableNotificationsMessage);
-            } else {
-              await _openNotificationDialog();
-            }
-            break;
-          case PermissionStatus.restricted:
-          case PermissionStatus.limited:
-            await _openNotificationDialog();
-            break;
-          case PermissionStatus.granted:
-            context
-                .read<SettingsBloc>()
-                .add(const UpdateNotificationPref(true));
-            break;
-        }
-      });
-    } else {
-      await _openPhoneSettings(disableNotificationsMessage);
-    }
-  }
-
   void _deleteAccount() {
     context.read<AccountBloc>().add(DeleteAccount(context: context));
-  }
-
-  Future<void> _openPhoneSettings(String message) async {
-    final confirmation = await showDialog<ConfirmationAction>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext _) {
-        return SettingsDialog(message);
-      },
-    );
-
-    if (confirmation == ConfirmationAction.ok) {
-      await openAppSettings();
-    }
-  }
-
-  Future<void> _openLocationDialog() async {
-    await Permission.location.request().then((status) {
-      switch (status) {
-        case PermissionStatus.restricted:
-        case PermissionStatus.granted:
-        case PermissionStatus.limited:
-          context.read<SettingsBloc>().add(const UpdateLocationPref(true));
-          context
-              .read<NearbyLocationBloc>()
-              .add(const SearchLocationAirQuality());
-          break;
-        case PermissionStatus.denied:
-        case PermissionStatus.permanentlyDenied:
-          context.read<SettingsBloc>().add(const UpdateLocationPref(false));
-          context
-              .read<NearbyLocationBloc>()
-              .add(const SearchLocationAirQuality());
-          break;
-      }
-    });
-  }
-
-  Future<void> _openNotificationDialog() async {
-    await Permission.notification.request().then((status) {
-      switch (status) {
-        case PermissionStatus.restricted:
-        case PermissionStatus.granted:
-        case PermissionStatus.limited:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(true));
-          break;
-        case PermissionStatus.denied:
-        case PermissionStatus.permanentlyDenied:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(false));
-          break;
-      }
-    });
   }
 }
