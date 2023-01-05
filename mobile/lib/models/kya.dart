@@ -19,10 +19,6 @@ class Kya extends HiveObject with EquatableMixin {
     required this.secondaryImageUrl,
   });
 
-  @HiveField(1, defaultValue: 0)
-  @JsonKey(defaultValue: 0)
-  int progress;
-
   @HiveField(2)
   String title;
 
@@ -45,6 +41,10 @@ class Kya extends HiveObject with EquatableMixin {
 
   @HiveField(7)
   List<KyaLesson> lessons = [];
+
+  @HiveField(8, defaultValue: 0)
+  @JsonKey(defaultValue: 0)
+  double progress;
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
