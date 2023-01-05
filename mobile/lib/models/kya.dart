@@ -4,10 +4,12 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'hive_type_id.dart';
+
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 30, adapterName: 'KyaAdapter')
+@HiveType(typeId: kyaTypeId)
 class Kya extends HiveObject with EquatableMixin {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
