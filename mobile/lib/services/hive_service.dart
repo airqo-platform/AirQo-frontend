@@ -224,7 +224,7 @@ class HiveService {
 class HiveBox {
   static String get appNotifications => 'appNotifications';
   static String get searchHistory => 'searchHistory';
-  static String get kya => 'kya';
+  static String get kya => 'kya-v1';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get analytics => 'analytics';
