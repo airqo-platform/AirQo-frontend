@@ -1,22 +1,28 @@
-import React from 'react'
+import React from 'react';
 
-const CardComponent = () => {
+const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
   return (
     <div className="card-container article">
       <div className="title">
-        <h2>
-          Air pollution and mobility patterns in two Ugandan cities during COVID-19 mobility
-          restrictions suggest the validity of air quality data as a measure for human mobility.
-        </h2>
+        <h2>{title}</h2>
       </div>
-      <div className="sub-title">Galiwango, R., Bainomugisha, E., Kivunike, F. et al </div>
-      <div className='cta-links'>
-        <a className="a-link" href='#' target="_blank">
-          <small>Read More {'->'}</small>
+      <div className="sub-title">{authors} </div>
+      <div className="cta-links">
+        <a className="a-link" href={link} target="_blank">
+          <small>
+            {linkTitle || 'Read More'} {'->'}
+          </small>
         </a>
+        {downloadLink ? (
+          <a className="a-link" href="#" target="_blank">
+            <small>Download </small>
+          </a>
+        ) : (
+          <span />
+        )}
       </div>
     </div>
   );
-}
+};
 
-export default CardComponent
+export default CardComponent;
