@@ -194,7 +194,7 @@ export const ContentUganda = () => {
           <div>
             <p>Collaboration with NEMA</p>
             <p>
-              NEMA is the lead government agency mandated to coordinate, supervise, and regulate
+              National Environment Management Authority (NEMA) is the lead government agency mandated to coordinate, supervise, and regulate
               environmental management in Uganda.
             </p>
             <span className="number-list">
