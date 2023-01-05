@@ -43,9 +43,6 @@ class Config {
   static String get placesSearchUrl =>
       'https://maps.googleapis.com/maps/api/place/';
 
-  static String get appErrorMessage =>
-      'Failed to process your request. Try again later';
-
   static String get appStoreUrl =>
       'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
 
@@ -55,18 +52,7 @@ class Config {
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
-  static String get allowLocationMessage =>
-      'Turn on and allow location permissions';
-
-  static String get feedbackSuccessMessage => 'Thanks for the feedback';
-
   static String get shareFailedMessage => 'Couldn\'t share image.';
-
-  static String get feedbackFailureMessage =>
-      'Could not capture your feedback. Try again later';
-
-  static String get locationErrorMessage =>
-      'Cannot get your location at the moment';
 
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
