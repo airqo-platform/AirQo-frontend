@@ -19,7 +19,6 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
 import 'firebase_service.dart';
@@ -51,33 +50,12 @@ class SystemProperties {
 }
 
 class RateService {
-  static Future<void> rateApp({
-    bool inApp = false,
-  }) async {
-    if (await InAppReview.instance.isAvailable()) {
-      inApp
-          ? await InAppReview.instance.requestReview()
-          : await InAppReview.instance
-              .openStoreListing(
-                appStoreId: Config.iosStoreId,
-              )
-              .then((value) => logAppRating);
+  static Future<void> rateApp() async {
+    final InAppReview inAppReview = InAppReview.instance;
+    if (await inAppReview.isAvailable()) {
+      await InAppReview.instance.requestReview().then((value) => logAppRating);
     } else {
-      if (Platform.isIOS || Platform.isMacOS) {
-        try {
-          await launchUrl(Uri.parse(Config.appStoreUrl))
-              .then((value) => logAppRating);
-        } catch (exception, stackTrace) {
-          debugPrint('${exception.toString()}\n${stackTrace.toString()}');
-        }
-      } else {
-        try {
-          await launchUrl(Uri.parse(Config.playStoreUrl))
-              .then((value) => logAppRating);
-        } catch (exception, stackTrace) {
-          debugPrint('${exception.toString()}\n${stackTrace.toString()}');
-        }
-      }
+      await inAppReview.openStoreListing(appStoreId: Config.iosStoreId);
     }
   }
 

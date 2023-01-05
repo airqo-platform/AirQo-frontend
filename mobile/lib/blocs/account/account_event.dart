@@ -34,12 +34,6 @@ class RefreshFavouritePlaces extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class RefreshKya extends AccountEvent {
-  const RefreshKya();
-  @override
-  List<Object?> get props => [];
-}
-
 class RefreshProfile extends AccountEvent {
   const RefreshProfile();
   @override
@@ -100,18 +94,6 @@ class UpdateProfile extends AccountEvent {
 
   @override
   List<Object?> get props => [];
-}
-
-class UpdateKyaProgress extends AccountEvent {
-  const UpdateKyaProgress({
-    required this.kya,
-    required this.progress,
-  });
-  final int progress;
-  final Kya kya;
-
-  @override
-  List<Object?> get props => [progress, kya];
 }
 
 class UpdateProfilePreferences extends AccountEvent {

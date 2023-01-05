@@ -58,7 +58,9 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
-                  onTap: _allowNotifications,
+                  onTap: () async {
+                    await _allowNotifications();
+                  },
                   child: NextButton(
                     text: 'Yes, keep me updated',
                     buttonColor: CustomColors.appColorBlue,
@@ -100,10 +102,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   }
 
   Future<void> _allowNotifications() async {
-    loadingScreen(context);
-    await NotificationService.allowNotifications().then(
+    await NotificationService.requestNotification(context, true).then(
       (_) {
-        Navigator.pop(context);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
