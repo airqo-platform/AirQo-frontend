@@ -11,6 +11,7 @@ import {
     TAGS_URL,
     PARTNERS_URL,
     BOARD_MEMBERS_URL,
+    PUBLICATIONS_URL,
 } from '../config/urls';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
@@ -45,3 +46,7 @@ export const getAllPartnersApi = async () => await axios.get(PARTNERS_URL).then(
 // Board Members endpoints
 export const getBoardMembersApi = async () =>
   await axios.get(BOARD_MEMBERS_URL).then((response) => response.data);
+
+// Publications endpoints
+export const getAllPublicationsApi = async () =>
+  await axios.get(PUBLICATIONS_URL).then((response) => response.data);
