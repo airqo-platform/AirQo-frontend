@@ -6,12 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry/sentry.dart';
 
-/// Exception thrown when get measurements fails.
-class AirQoApiRequestFailure implements Exception {}
-
-/// Exception thrown when no measurements are returned
-class DataNotFound implements Exception {}
-
 /// {@template airqo_api_client}
 /// Dart API Client which wraps the [AirQo API](https://api.airqo.net/).
 /// {@endtemplate}
@@ -62,10 +56,8 @@ class AirQoApiClient {
         httpClient: _httpClient,
       );
 
-      return responseBody != null
-          ? parseMeasurements(responseBody)
-          : <Measurement>[];
-    } catch (exception, _) {
+      return parseMeasurements(responseBody as Map<String, dynamic>);
+    } catch (_, __) {
       // TODO create utils package
       // await logException(
       //   exception,

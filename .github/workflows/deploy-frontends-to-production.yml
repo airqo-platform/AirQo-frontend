@@ -35,6 +35,8 @@ jobs:
     outputs:
       build_id: ${{ steps.prep.outputs.build_id }} # build id
       datetime: ${{ steps.prep.outputs.datetime }} # build date
+    # This job will only run if triggered by Baalmart
+    if: github.triggering_actor == 'Baalmart'
     steps:
       - name: generate build ID
         id: prep
@@ -90,16 +92,17 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:latest
 
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@master # Retries action on fail
         with:
-          valueFile: "k8s/netmanager/values-prod.yaml"
-          propertyPath: "image.tag"
-          value: ${{ needs.image-tag.outputs.build_id }}
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update netmanger production image tag to ${{ needs.image-tag.outputs.build_id }}"
-          createPR: false
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/netmanager/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: deployment/argocd
+            message: "Update netmanger production image tag to ${{ needs.image-tag.outputs.build_id }}"
+            createPR: false
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -239,15 +242,16 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:latest
 
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@master # Retries action on fail
         with:
-          valueFile: "k8s/calibrate/values-prod.yaml"
-          propertyPath: "image.tag"
-          value: ${{ needs.image-tag.outputs.build_id }}
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/calibrate/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: deployment/argocd
+            message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -296,15 +300,16 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:latest
 
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@master # Retries action on fail
         with:
-          valueFile: "k8s/platform/values-prod.yaml"
-          propertyPath: "image.tag"
-          value: ${{ needs.image-tag.outputs.build_id }}
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/platform/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: deployment/argocd
+            message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -342,12 +347,13 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:latest
 
-      - name: Update corresponding helm values file
-        uses: fjogeleit/yaml-update-action@main
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@master # Retries action on fail
         with:
-          valueFile: "k8s/docs/values-prod.yaml"
-          propertyPath: "image.tag"
-          value: ${{ needs.image-tag.outputs.build_id }}
-          updateFile: true
-          branch: deployment/argocd
-          message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/docs/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: deployment/argocd
+            message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"

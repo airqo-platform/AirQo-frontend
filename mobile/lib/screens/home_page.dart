@@ -19,11 +19,7 @@ import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({
-    super.key,
-    this.refresh,
-  });
-  final bool? refresh;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -46,7 +42,6 @@ class _HomePageState extends State<HomePage> {
     const MapView(),
     const ProfileView(),
   ];
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +61,6 @@ class _HomePageState extends State<HomePage> {
               child: child,
             );
           },
-          // child: Center(
-          //   child: _widgetOptions.elementAt(_selectedIndex),
-          // ),
           child: IndexedStack(
             index: _selectedIndex,
             children: _widgetOptions,
@@ -197,24 +189,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
-
-    if (refresh) {
-      await _appService.fetchData(context);
-    } else {
-      await checkNetworkConnection(
-        context,
-        notifyUser: true,
-      );
-    }
+    context.read<SearchBloc>().add(const InitializeSearchPage());
+    await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
   @override
   void initState() {
     super.initState();
-    refresh = widget.refresh ?? true;
     _initialize();
   }
 
@@ -247,21 +234,10 @@ class _HomePageState extends State<HomePage> {
   void _onItemTapped(int index) {
     switch (index) {
       case 0:
-        context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+        context.read<DashboardBloc>().add(const RefreshDashboard());
         break;
       case 1:
-        switch (context.read<MapBloc>().state.mapStatus) {
-          case MapStatus.initial:
-          case MapStatus.error:
-          case MapStatus.noAirQuality:
-            context.read<MapBloc>().add(const InitializeMapState());
-            break;
-          case MapStatus.showingCountries:
-          case MapStatus.showingRegions:
-          case MapStatus.showingFeaturedSite:
-          case MapStatus.showingRegionSites:
-            break;
-        }
+        context.read<MapBloc>().add(const InitializeMapState());
         break;
     }
 

@@ -1,11 +1,10 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../../blocs/account/account_bloc.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kya, {super.key});
@@ -69,15 +68,15 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    context.read<AccountBloc>().add(UpdateKyaProgress(
+    context.read<KyaBloc>().add(UpdateKyaProgress(
           kya: widget.kya,
-          progress: widget.kya.lessons.length,
+          visibleCardIndex: widget.kya.lessons.length - 1,
         ));
     _initialize();
   }
 
-  void _initialize() {
-    Future.delayed(
+  Future<void> _initialize() async {
+    await Future.delayed(
       const Duration(seconds: 4),
       () {
         Navigator.pop(context);

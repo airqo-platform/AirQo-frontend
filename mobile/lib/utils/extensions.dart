@@ -1,7 +1,8 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -74,27 +75,62 @@ extension ChartDataExt on ChartData {
   }
 }
 
-extension KyaListExt on List<Kya> {
-  int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
+extension KyaExt on Kya {
+  String getKyaMessage() {
+    if (isInProgress()) {
+      return 'Continue';
+    } else if (isPartiallyComplete()) {
+      return 'Complete! Move to For You';
+    } else {
+      return 'Start learning';
     }
+  }
 
-    return sum;
+  bool isPartiallyComplete() {
+    return progress == 1;
+  }
+
+  bool isComplete() {
+    return progress == -1;
+  }
+
+  bool isInProgress() {
+    return progress > 0 && progress < 1;
+  }
+
+  double getProgress(int visibleCardIndex) {
+    return (visibleCardIndex + 1) / lessons.length;
+  }
+}
+
+extension KyaListExt on List<Kya> {
+  void sortByProgress() {
+    sort((x, y) => -(x.progress.compareTo(y.progress)));
   }
 
   List<Kya> filterIncompleteKya() {
     return where((element) {
-      return element.progress != -1;
+      return !element.isComplete();
     }).toList();
   }
 
   List<Kya> filterCompleteKya() {
     return where((element) {
-      return element.progress == -1;
+      return element.isComplete();
     }).toList();
+  }
+
+  List<Kya> removeDuplicates() {
+    List<Kya> cleanedKya = [];
+    for (final kya in this) {
+      final duplicates = where((e) => e.id == kya.id).toList();
+      duplicates.sortByProgress();
+      if (!cleanedKya.contains(duplicates.first)) {
+        cleanedKya.add(duplicates.first);
+      }
+    }
+
+    return cleanedKya;
   }
 }
 
@@ -110,16 +146,98 @@ extension AnalyticsListExt on List<Analytics> {
   }
 }
 
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSite(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+
+    return airQualityReadings;
+  }
+}
+
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> sortByAirQuality() {
+  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
     List<AirQualityReading> data = List.of(this);
     data.sort((a, b) {
-      if (a.country.compareTo(b.country) != 0) {
+      if (sortCountries && a.country.compareTo(b.country) != 0) {
         return a.country.compareTo(b.country);
       }
 
       return a.pm2_5.compareTo(b.pm2_5);
     });
+
+    return data;
+  }
+
+  List<AirQualityReading> filterNearestLocations() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings = airQualityReadings
+        .where(
+          (element) => element.distanceToReferenceSite <= Config.searchRadius,
+        )
+        .toList();
+
+    return airQualityReadings.sortByDistanceToReferenceSite();
+  }
+
+  List<AirQualityReading> shuffleByCountry() {
+    List<AirQualityReading> data = List.of(this);
+    List<AirQualityReading> shuffledData = [];
+
+    final List<String> countries = data.map((e) => e.country).toSet().toList();
+    countries.shuffle();
+    while (data.isNotEmpty) {
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = data
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .take(1)
+            .toList();
+        shuffledData.addAll(countryReadings);
+        for (final reading in countryReadings) {
+          data.remove(reading);
+        }
+      }
+    }
+
+    return shuffledData;
+  }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
 
     return data;
   }

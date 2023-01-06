@@ -103,17 +103,6 @@ class AppService {
     }
   }
 
-  Future<void> fetchData(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<InsightData> fetchInsightsData(
     String siteId, {
     Frequency? frequency,
@@ -137,15 +126,19 @@ class AppService {
     return insights;
   }
 
-  Future<void> refreshAirQualityReadings() async {
+  Future<bool> refreshAirQualityReadings() async {
     try {
       final siteReadings = await AppRepository(
         airqoApiKey: Config.airqoApiToken,
         baseUrl: Config.airqoApiUrl,
       ).getSitesReadings();
       await HiveService.updateAirQualityReadings(siteReadings);
+
+      return true;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      logException(exception, stackTrace);
+
+      return false;
     }
   }
 
@@ -233,23 +226,12 @@ class AppService {
     return false;
   }
 
-  Future<void> refreshDashboard(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
     for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+      final nearestSite = await LocationService.getNearestSite(
         favPlace.latitude,
         favPlace.longitude,
       );

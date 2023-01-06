@@ -165,7 +165,7 @@ class SearchTile extends StatelessWidget {
     final place = await _searchRepository.placeDetails(searchResult.id);
 
     if (place != null) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+      final nearestSite = await LocationService.getNearestSite(
         place.geometry.location.lat,
         place.geometry.location.lng,
       );
@@ -591,9 +591,7 @@ class MapAnalyticsCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Row(
                             children: [
-                              AnalyticsAvatar(
-                                airQualityReading: airQualityReading,
-                              ),
+                              AnalyticsAvatar(airQualityReading),
                               const SizedBox(
                                 width: 16.0,
                               ),
@@ -623,9 +621,7 @@ class MapAnalyticsCard extends StatelessWidget {
                                     const SizedBox(
                                       height: 12,
                                     ),
-                                    AqiStringContainer(
-                                      airQualityReading: airQualityReading,
-                                    ),
+                                    AqiStringContainer(airQualityReading),
                                     const SizedBox(
                                       height: 8,
                                     ),
@@ -698,97 +694,6 @@ class MapAnalyticsCard extends StatelessWidget {
         builder: (context) {
           return InsightsPage(airQualityReading);
         },
-      ),
-    );
-  }
-}
-
-class SearchSites extends StatelessWidget {
-  const SearchSites({super.key, required this.airQualityReadings});
-
-  final List<AirQualityReading> airQualityReadings;
-
-  @override
-  Widget build(BuildContext context) {
-    final filteredAirQualityReadings =
-        filterNearestLocations(airQualityReadings);
-
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          Visibility(
-            visible: airQualityReadings.isEmpty,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Stack(
-                    children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Visibility(
-            visible: filteredAirQualityReadings.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => SiteTile(
-                    airQualityReading: filteredAirQualityReadings[index],
-                  ),
-                  itemCount: filteredAirQualityReadings.length,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-        ],
       ),
     );
   }

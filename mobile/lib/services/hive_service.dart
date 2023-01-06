@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -11,35 +12,35 @@ class HiveService {
     await Hive.initFlutter();
 
     Hive
-      ..registerAdapter(AppNotificationAdapter())
-      ..registerAdapter(ProfileAdapter())
-      ..registerAdapter(KyaAdapter())
-      ..registerAdapter(AnalyticsAdapter())
-      ..registerAdapter(AppNotificationTypeAdapter())
-      ..registerAdapter(KyaLessonAdapter())
-      ..registerAdapter(UserPreferencesTypeAdapter())
-      ..registerAdapter(FavouritePlaceAdapter())
-      ..registerAdapter(AirQualityReadingAdapter());
+      ..registerAdapter<AppNotification>(AppNotificationAdapter())
+      ..registerAdapter<Profile>(ProfileAdapter())
+      ..registerAdapter<Kya>(KyaAdapter())
+      ..registerAdapter<Analytics>(AnalyticsAdapter())
+      ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
+      ..registerAdapter<KyaLesson>(KyaLessonAdapter())
+      ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
+      ..registerAdapter<FavouritePlace>(FavouritePlaceAdapter())
+      ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+      ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
+
+    await Future.wait([
+      Hive.openBox<AppNotification>(HiveBox.appNotifications),
+      Hive.openBox<SearchHistory>(HiveBox.searchHistory),
+      Hive.openBox<Kya>(HiveBox.kya),
+      Hive.openBox<Analytics>(HiveBox.analytics),
+      Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
+      Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
+      Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
+    ]);
 
     final encryptionKey = await getEncryptionKey();
-
-    await Future.wait(
-      [
-        Hive.openBox<AppNotification>(HiveBox.appNotifications),
-        Hive.openBox<Kya>(HiveBox.kya),
-        Hive.openBox<Analytics>(HiveBox.analytics),
-        Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
-        Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
-        Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
-        Hive.openBox<Profile>(
-          HiveBox.profile,
-          encryptionCipher: encryptionKey == null
-              ? null
-              : HiveAesCipher(
-                  encryptionKey,
-                ),
-        ),
-      ],
+    await Hive.openBox<Profile>(
+      HiveBox.profile,
+      encryptionCipher: encryptionKey == null
+          ? null
+          : HiveAesCipher(
+              encryptionKey,
+            ),
     );
   }
 
@@ -66,6 +67,7 @@ class HiveService {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
+      Hive.box<Kya>(HiveBox.searchHistory).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
@@ -88,21 +90,60 @@ class HiveService {
         .putAll(airQualityReadings);
   }
 
+  static Future<void> updateSearchHistory(
+    AirQualityReading airQualityReading,
+  ) async {
+    List<SearchHistory> searchHistoryList =
+        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+    searchHistoryList
+        .add(SearchHistory.fromAirQualityReading(airQualityReading));
+    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
+
+    final searchHistoryMap = <String, SearchHistory>{};
+    for (final searchHistory in searchHistoryList) {
+      searchHistoryMap[searchHistory.placeId] = searchHistory;
+    }
+
+    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
+    await Hive.box<SearchHistory>(HiveBox.searchHistory)
+        .putAll(searchHistoryMap);
+  }
+
   static Future<void> updateNearbyAirQualityReadings(
     List<AirQualityReading> nearbyAirQualityReadings,
   ) async {
-    final nearByAirQualityReadings = <dynamic, AirQualityReading>{};
+    final airQualityReadingsMap = <String, AirQualityReading>{};
 
     nearbyAirQualityReadings =
-        sortAirQualityReadingsByDistance(nearbyAirQualityReadings).toList();
+        nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     for (final airQualityReading in nearbyAirQualityReadings) {
-      nearByAirQualityReadings[airQualityReading.placeId] = airQualityReading;
+      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }
 
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings).clear();
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-        .putAll(nearByAirQualityReadings);
+        .putAll(airQualityReadingsMap);
+    await updateAnalytics(nearbyAirQualityReadings);
+  }
+
+  static Future<void> updateAnalytics(
+    List<AirQualityReading> airQualityReadings,
+  ) async {
+    List<Analytics> analytics = airQualityReadings
+        .map((e) => Analytics.fromAirQualityReading(e))
+        .toList();
+
+    analytics.addAll(Hive.box<Analytics>(HiveBox.analytics).values.toList());
+
+    final analyticsMap = <String, Analytics>{};
+
+    for (final element in analytics) {
+      analyticsMap[element.id] = element;
+    }
+
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
+    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 
   static Future<void> loadNotifications(
@@ -182,11 +223,12 @@ class HiveService {
 
 class HiveBox {
   static String get appNotifications => 'appNotifications';
+  static String get searchHistory => 'searchHistory';
   static String get kya => 'kya';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get analytics => 'analytics';
-  static String get airQualityReadings => 'airQualityReadingsBox';
-  static String get nearByAirQualityReadings => 'nearByAirQualityReadings';
+  static String get airQualityReadings => 'airQualityReadings-v1';
+  static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
   static String get favouritePlaces => 'favouritePlaces';
 }

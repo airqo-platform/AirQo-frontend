@@ -37,11 +37,8 @@ class Prediction {
 
     for (final jsonElement in jsonBody['predictions']) {
       try {
-        final measurement = Prediction.fromJson(jsonElement);
-        suggestions.add(measurement);
-      } catch (exception, stackTrace) {
-        print('$exception\n$stackTrace');
-      }
+        suggestions.add(Prediction.fromJson(jsonElement));
+      } catch (exception, _) {}
     }
 
     return suggestions;

@@ -6,21 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'feedback_page_widgets.dart';
 
-class FeedbackPage extends StatefulWidget {
+class FeedbackPage extends StatelessWidget {
   const FeedbackPage({super.key});
-
-  @override
-  State<FeedbackPage> createState() => _FeedbackPageState();
-}
-
-class _FeedbackPageState extends State<FeedbackPage> {
-  late BuildContext _loadingContext;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadingContext = context;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +26,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
             MultiBlocListener(
               listeners: [
                 BlocListener<FeedbackBloc, FeedbackState>(
-                  listener: (context, state) {
-                    loadingScreen(_loadingContext);
+                  listener: (context, _) {
+                    loadingScreen(context);
                   },
                   listenWhen: (previous, current) {
                     return current.blocStatus == BlocStatus.processing;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
-                  listener: (context, state) {
-                    Navigator.pop(_loadingContext);
+                  listener: (context, _) {
+                    Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
                     return previous.blocStatus == BlocStatus.processing;
@@ -65,7 +52,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
-                  listener: (context, state) {
+                  listener: (context, _) {
                     showSnackBar(context, 'Thanks for your feedback.');
                     context
                         .read<FeedbackBloc>()
@@ -79,10 +66,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ],
               child: Container(),
             ),
-            BlocConsumer<FeedbackBloc, FeedbackState>(
-              listener: (context, state) {
-                return;
-              },
+            BlocBuilder<FeedbackBloc, FeedbackState>(
               buildWhen: (previous, current) {
                 return previous.step != current.step;
               },
@@ -98,10 +82,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               },
             ),
             const Spacer(),
-            BlocConsumer<FeedbackBloc, FeedbackState>(
-              listener: (context, state) {
-                return;
-              },
+            BlocBuilder<FeedbackBloc, FeedbackState>(
               buildWhen: (previous, current) {
                 return previous.step != current.step;
               },

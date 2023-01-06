@@ -1,50 +1,108 @@
 part of 'search_bloc.dart';
 
-abstract class SearchState extends Equatable {
-  const SearchState();
-
-  @override
-  List<Object> get props => [];
+enum SearchError {
+  noInternetConnection,
+  noAirQualityData,
+  none;
 }
 
-class SearchStateNearestLocations extends SearchState {
-  const SearchStateNearestLocations({
-    required this.airQualityReadings,
-    required this.nearbyLocations,
+enum SearchStatus {
+  initial,
+  loading,
+  searchingAirQuality,
+  airQualitySearchFailed,
+  autoCompleteSearching,
+  error,
+  autoCompleteSearchSuccess;
+}
+
+class SearchState extends Equatable {
+  const SearchState._({
+    this.featuredAirQuality,
+    this.searchAirQuality,
+    this.recentSearches = const [],
+    this.nearbyAirQualityLocations = const [],
+    this.otherAirQualityLocations = const [],
+    this.africanCities = const [],
+    this.searchResults = const [],
+    this.searchTerm = '',
+    this.searchStatus = SearchStatus.initial,
+    this.searchError = SearchError.none,
   });
 
-  final List<AirQualityReading> airQualityReadings;
-  final bool nearbyLocations;
+  const SearchState({
+    this.featuredAirQuality,
+    this.searchAirQuality,
+    this.recentSearches = const [],
+    this.nearbyAirQualityLocations = const [],
+    this.otherAirQualityLocations = const [],
+    this.africanCities = const [],
+    this.searchResults = const [],
+    this.searchTerm = '',
+    this.searchStatus = SearchStatus.initial,
+    this.searchError = SearchError.none,
+  });
+
+  const SearchState.initial() : this._();
+
+  SearchState copyWith({
+    List<AirQualityReading>? recentSearches,
+    List<AirQualityReading>? nearbyAirQualityLocations,
+    List<AirQualityReading>? otherAirQualityLocations,
+    List<AirQualityReading>? africanCities,
+    String? searchTerm,
+    List<SearchResultItem>? searchResults,
+    AirQuality? featuredAirQuality,
+    AirQualityReading? searchAirQuality,
+    SearchStatus? searchStatus,
+    SearchError? searchError,
+    bool nullFeaturedAirQuality = false,
+    bool nullSearchAirQuality = false,
+  }) {
+    featuredAirQuality = nullFeaturedAirQuality
+        ? null
+        : featuredAirQuality ?? this.featuredAirQuality;
+    searchAirQuality =
+        nullSearchAirQuality ? null : searchAirQuality ?? this.searchAirQuality;
+
+    return SearchState(
+      recentSearches: recentSearches ?? this.recentSearches,
+      nearbyAirQualityLocations:
+          nearbyAirQualityLocations ?? this.nearbyAirQualityLocations,
+      otherAirQualityLocations:
+          otherAirQualityLocations ?? this.otherAirQualityLocations,
+      africanCities: africanCities ?? this.africanCities,
+      searchTerm: searchTerm ?? this.searchTerm,
+      searchResults: searchResults ?? this.searchResults,
+      featuredAirQuality: featuredAirQuality,
+      searchAirQuality: searchAirQuality,
+      searchStatus: searchStatus ?? this.searchStatus,
+      searchError: searchError ?? this.searchError,
+    );
+  }
+
+  final List<AirQualityReading> recentSearches;
+  final List<AirQualityReading> nearbyAirQualityLocations;
+  final List<AirQualityReading> otherAirQualityLocations;
+  final List<AirQualityReading> africanCities;
+  final String searchTerm;
+  final List<SearchResultItem> searchResults;
+  final AirQuality? featuredAirQuality;
+  final AirQualityReading? searchAirQuality;
+  final SearchStatus searchStatus;
+  final SearchError searchError;
 
   @override
-  List<Object> get props => [airQualityReadings];
-
-  @override
-  String toString() =>
-      'Search page nearest locations: ${airQualityReadings.length}';
-}
-
-class SearchStateLocationNotSupported extends SearchState {}
-
-class SearchStateLoading extends SearchState {}
-
-class SearchStateSuccess extends SearchState {
-  const SearchStateSuccess(this.items);
-
-  final List<SearchResultItem> items;
-
-  @override
-  List<Object> get props => [items];
-
-  @override
-  String toString() => 'SearchStateSuccess { items: ${items.length} }';
-}
-
-class SearchStateError extends SearchState {
-  const SearchStateError(this.error);
-
-  final String error;
-
-  @override
-  List<Object> get props => [error];
+  List<Object?> get props => [
+        recentSearches,
+        nearbyAirQualityLocations,
+        otherAirQualityLocations,
+        africanCities,
+        searchTerm,
+        searchResults,
+        featuredAirQuality,
+        searchError,
+        searchStatus,
+        searchAirQuality,
+      ];
 }

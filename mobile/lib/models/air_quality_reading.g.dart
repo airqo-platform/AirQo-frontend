@@ -8,7 +8,7 @@ part of 'air_quality_reading.dart';
 
 class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
   @override
-  final int typeId = 51;
+  final int typeId = 52;
 
   @override
   AirQualityReading read(BinaryReader reader) {

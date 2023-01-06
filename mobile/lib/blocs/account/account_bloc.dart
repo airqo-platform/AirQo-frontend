@@ -25,9 +25,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<RefreshAnalytics>(_onRefreshAnalytics);
     on<RefreshNotifications>(_onRefreshNotifications);
     on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
-    on<RefreshKya>(_onRefreshKya);
     on<RefreshProfile>(_onRefreshProfile);
-    on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<UpdateProfilePreferences>(_onUpdateProfilePreferences);
     on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
   }
@@ -38,7 +36,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   ) async {
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    final favouritePlaces = state.favouritePlaces;
+    List<FavouritePlace> favouritePlaces = state.favouritePlaces;
     final placesIds = favouritePlaces.map((e) => e.placeId);
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
@@ -109,44 +107,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Future<void> _onUpdateKyaProgress(
-    UpdateKyaProgress event,
-    Emitter<AccountState> emit,
-  ) async {
-    final progress =
-        event.progress > event.kya.lessons.length ? -1 : event.progress;
-
-    if (progress < -1) {
-      return;
-    }
-
-    final stateKya = state.kya;
-    Kya kya = stateKya.firstWhere((element) => element.id == event.kya.id);
-
-    if (kya.progress == -1) {
-      return;
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    kya.progress = progress;
-    stateKya.removeWhere((element) => element.id == kya.id);
-    stateKya.add(kya);
-
-    emit(state.copyWith(kya: stateKya, blocStatus: BlocStatus.initial));
-
-    await HiveService.loadKya(stateKya);
-
-    if (progress == -1) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.completeOneKYA);
-    }
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateKya(kya);
-    }
-  }
-
   Future<void> _onLoadAccountInfo(
     LoadAccountInfo _,
     Emitter<AccountState> emit,
@@ -159,13 +119,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     final notifications =
         Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
 
-    final kya = Hive.box<Kya>(HiveBox.kya).values.toList();
-
     final profile = await Profile.getProfile();
 
     emit(const AccountState.initial().copyWith(
       notifications: notifications,
-      kya: kya,
       favouritePlaces: favouritePlaces,
       analytics: analytics,
       profile: profile,
@@ -251,35 +208,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
-  }
-
-  Future<void> _onRefreshKya(
-    RefreshKya _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    final kya = state.kya;
-    final cloudKya = await CloudStore.getKya();
-
-    final List<String> kyaIds = kya.map((kya) => kya.id).toList();
-    cloudKya.removeWhere((kya) => kyaIds.contains(kya.id));
-
-    kya.addAll(cloudKya);
-
-    emit(state.copyWith(kya: kya, blocStatus: BlocStatus.initial));
-
-    await HiveService.loadKya(kya);
-
-    // TODO: update cloud KYA
   }
 
   Future<void> _onRefreshAnalytics(
@@ -415,7 +343,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     await Future.wait([
       _fetchProfile(emit),
       _fetchAnalytics(emit),
-      _fetchKya(emit),
       _fetchFavouritePlaces(emit),
       _fetchNotifications(emit),
     ]);
@@ -580,16 +507,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
 
     await HiveService.loadAnalytics(analytics);
-  }
-
-  Future<void> _fetchKya(
-    Emitter<AccountState> emit,
-  ) async {
-    final kya = await CloudStore.getKya();
-    emit(state.copyWith(
-      kya: kya,
-    ));
-    await HiveService.loadKya(kya);
   }
 
   Future<void> _fetchProfile(

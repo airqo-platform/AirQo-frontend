@@ -50,14 +50,7 @@ class SearchApiClient {
       if (responseBody != null && responseBody['status'] == 'OK') {
         return Prediction.parsePredictions(responseBody);
       }
-    } catch (exception, stackTrace) {
-      // TODO: add utility functions
-      print('$exception, $stackTrace');
-      // await logException(
-      //   exception,
-      //   stackTrace,
-      // );
-    }
+    } catch (_, __) { }
 
     return [];
   }
@@ -83,14 +76,7 @@ class SearchApiClient {
       final place = Place.fromJson(responseBody['result']);
 
       return place;
-    } catch (exception, stackTrace) {
-      // TODO: add utility functions
-      print('$exception, $stackTrace');
-      // await logException(
-      //   exception,
-      //   stackTrace,
-      // );
-    }
+    } catch (_, __) {}
 
     return null;
   }

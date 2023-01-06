@@ -17,6 +17,26 @@ import 'package:lottie/lottie.dart';
 import 'buttons.dart';
 import 'custom_shimmer.dart';
 
+class AirQualityChip extends StatelessWidget {
+  const AirQualityChip(this.airQuality, {super.key});
+  final AirQuality airQuality;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      backgroundColor: airQuality.color().withOpacity(0.3),
+      label: Text(airQuality.string),
+      labelStyle: CustomTextStyle.airQualityChip(context),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.all(2),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
+      avatar: CircleAvatar(
+        backgroundColor: airQuality.color(),
+      ),
+    );
+  }
+}
+
 class AppRefreshIndicator extends StatelessWidget {
   const AppRefreshIndicator({
     super.key,
@@ -116,10 +136,7 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AqiStringContainer extends StatelessWidget {
-  const AqiStringContainer({
-    super.key,
-    required this.airQualityReading,
-  });
+  const AqiStringContainer(this.airQualityReading, {super.key});
   final AirQualityReading airQualityReading;
 
   @override

@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
+import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -30,6 +32,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => SearchBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => WebViewLoadingCubit(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => MapSearchBloc(),
         ),
         BlocProvider(
@@ -37,6 +42,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => DailyInsightsBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => KyaBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => HourlyInsightsBloc(),
@@ -51,6 +59,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => AuthCodeBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => KyaProgressCubit(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
@@ -58,6 +69,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => SettingsBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
@@ -88,18 +102,6 @@ class AppHttpOverrides extends HttpOverrides {
 }
 
 Future<void> initializeMainMethod() async {
-  await Future.wait([
-    SystemProperties.setDefault(),
-    dotenv.load(fileName: Config.environmentFile),
-    HiveService.initialize(),
-    // NotificationService.listenToNotifications(),
-    // initializeBackgroundServices()
-  ]);
-
-  HttpOverrides.global = AppHttpOverrides();
-
-  EquatableConfig.stringify = true;
-
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
 
@@ -114,4 +116,14 @@ Future<void> initializeMainMethod() async {
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return kDebugMode ? ErrorWidget(details.exception) : const ErrorPage();
   };
+
+  await Future.wait([
+    SystemProperties.setDefault(),
+    dotenv.load(fileName: Config.environmentFile),
+    HiveService.initialize(),
+  ]);
+
+  HttpOverrides.global = AppHttpOverrides();
+
+  EquatableConfig.stringify = true;
 }
