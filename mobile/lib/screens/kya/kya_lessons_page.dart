@@ -46,8 +46,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: false,
-        titleSpacing: 0,
+        titleSpacing: 20,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             InkWell(
               onTap: () async {
@@ -59,23 +60,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     );
                 await popNavigation(context);
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 7),
-                child: SvgPicture.asset(
-                  'assets/icon/close.svg',
-                  height: 20,
-                  width: 20,
-                ),
+              child: SvgPicture.asset(
+                'assets/icon/close.svg',
+                height: 40,
+                width: 40,
               ),
-            ),
-            Expanded(
-              child: KyaProgressBar(context.read<KyaProgressCubit>().state),
             ),
             FutureBuilder<Uri>(
               future: ShareService.createShareLink(kya: widget.kya),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  // TODO implement this functionality
+                  return Container();
                 }
                 if (snapshot.hasData) {
                   return InkWell(
@@ -88,19 +83,16 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         );
                       }
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        color: CustomColors.greyColor,
-                        height: 16,
-                        width: 16,
-                      ),
+                    child: SvgPicture.asset(
+                      'assets/icon/share_icon.svg',
+                      color: CustomColors.greyColor,
+                      height: 26,
+                      width: 26,
                     ),
                   );
                 }
 
-                return const LoadingIcon(radius: 14);
+                return const LoadingIcon(radius: 20);
               },
             ),
           ],
@@ -108,29 +100,45 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       ),
       body: Container(
         color: CustomColors.appBodyColor,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: [
             Visibility(
               visible: _visibleCardIndex <= 0,
-              replacement: const SizedBox(
-                height: 100,
-                width: double.infinity,
-              ),
               child: SizedBox(
-                height: 100,
-                width: double.infinity,
-                child: AutoSizeText(
-                  'Swipe Left Or Right to Move to Next Card',
-                  style: CustomTextStyle.headline7(context)?.copyWith(
-                    color: CustomColors.appColorBlue,
+                height: 50,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: AutoSizeText(
+                      'Swipe Left Or Right to Move to Next Card',
+                      maxLines: 2,
+                      style: CustomTextStyle.headline7(context)?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
+            ),
+            Visibility(
+              visible: _visibleCardIndex >= 1,
+              child: SizedBox(
+                height: 50,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: KyaProgressBar(context.read<KyaProgressCubit>().state),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 15,
             ),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.6,
               child: AppinioSwiper(
+                padding: EdgeInsets.zero,
                 cards: _kyaCards,
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
@@ -151,28 +159,31 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             const Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Visibility(
-                    visible: _visibleCardIndex >= 1,
-                    child: GestureDetector(
-                      onTap: () => _swipeController.unswipe(),
-                      child: const CircularKyaButton(
-                        icon: 'assets/icon/previous_arrow.svg',
-                      ),
-                    ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (_visibleCardIndex >= 1) {
+                      _swipeController.unswipe();
+                    }
+                  },
+                  child: CircularKyaButton(
+                    icon: 'assets/icon/previous_arrow.svg',
+                    isActive: _visibleCardIndex >= 1,
                   ),
-                  GestureDetector(
-                    onTap: () => _swipeController.swipe(),
-                    child: const CircularKyaButton(
-                      icon: 'assets/icon/next_arrow.svg',
-                    ),
+                ),
+                const SizedBox(
+                  width: 38,
+                ),
+                GestureDetector(
+                  onTap: () => _swipeController.swipe(),
+                  child: const CircularKyaButton(
+                    icon: 'assets/icon/next_arrow.svg',
+                    isActive: true,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(
               height: 40,

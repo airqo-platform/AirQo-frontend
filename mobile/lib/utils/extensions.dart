@@ -136,13 +136,14 @@ extension KyaListExt on List<Kya> {
 
 extension AnalyticsListExt on List<Analytics> {
   List<Analytics> sortByDateTime() {
-    sort(
+    List<Analytics> data = List.of(this);
+    data.sort(
       (x, y) {
         return -(x.createdAt.compareTo(y.createdAt));
       },
     );
 
-    return this;
+    return data;
   }
 }
 
