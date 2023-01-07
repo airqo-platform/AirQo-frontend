@@ -37,7 +37,7 @@
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
 ### **For Contributors:**
-  - It's important to first read our guidelines [here](/../CONTRIBUTING.md).
+  - It's important to first read our guidelines [here](https://github.com/airqo-platform/AirQo-frontend/blob/staging/CONTRIBUTING.md).
   - Thereafter, proceed to create your own necessary configuration files. These include;
     - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
       - Here's what your .env file would look like;
