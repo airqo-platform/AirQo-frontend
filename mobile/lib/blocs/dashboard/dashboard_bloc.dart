@@ -16,8 +16,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
   Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
     final greetings = await DateTime.now().getGreetings();
-
-    return emit(state.copyWith(greetings: greetings));
+    emit(state.copyWith(greetings: greetings));
   }
 
   void _loadAirQualityReadings(Emitter<DashboardState> emit) {

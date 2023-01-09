@@ -5,16 +5,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-class NotFoundException implements Exception {
-  String message;
-  NotFoundException(this.message);
-
-  @override
-  String toString() {
-    return 'NotFoundException: $message';
-  }
-}
-
 class NetworkConnectionException implements Exception {
   String cause;
   NetworkConnectionException(this.cause);
