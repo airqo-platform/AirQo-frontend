@@ -1,6 +1,5 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -8,7 +7,6 @@ import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
-@JsonSerializable()
 @HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject {
   AirQualityReading({
@@ -27,24 +25,32 @@ class AirQualityReading extends HiveObject {
     required this.placeId,
   });
 
-  factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
-      _$AirQualityReadingFromJson(json);
+  factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
+    DateTime dateTime = DateTime.parse(json["time"] as String);
+    final int offSet = DateTime.now().timeZoneOffset.inHours;
+    dateTime.add(Duration(hours: offSet));
 
-  factory AirQualityReading.fromSiteReading(SiteReading siteReading) {
+    PollutantValue pm2_5 =
+        PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
+    PollutantValue pm10 =
+        PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
+
     return AirQualityReading(
-      referenceSite: siteReading.siteId,
-      latitude: siteReading.latitude,
-      longitude: siteReading.longitude,
-      country: siteReading.country,
-      name: siteReading.name,
-      location: siteReading.location,
-      region: siteReading.region,
-      source: siteReading.source,
-      dateTime: siteReading.dateTime,
-      pm2_5: siteReading.pm2_5,
-      pm10: siteReading.pm10,
       distanceToReferenceSite: 0.0,
-      placeId: siteReading.siteId,
+      dateTime: dateTime,
+      pm2_5: pm2_5.calibratedValue ?? pm2_5.value,
+      pm10: pm10.calibratedValue ?? pm10.value,
+      placeId: json["siteDetails"]["_id"] as String,
+      referenceSite: json["siteDetails"]["_id"] as String,
+      latitude: json["siteDetails"]["approximate_latitude"] as double,
+      longitude: json["siteDetails"]["approximate_longitude"] as double,
+      country: json["siteDetails"]["country"] as String,
+      name: (json["siteDetails"]["search_name"] ?? json["siteDetails"]["name"])
+          as String,
+      location: (json["siteDetails"]["location_name"] ??
+          json["siteDetails"]["description"]) as String,
+      region: json["siteDetails"]["region"] as String,
+      source: json["siteDetails"]["network"] as String,
     );
   }
 
@@ -163,6 +169,30 @@ class AirQualityReading extends HiveObject {
   @HiveField(13, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String region;
+}
 
-  Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
+@JsonSerializable(createToJson: false)
+class PollutantValue {
+  factory PollutantValue.fromJson(Map<String, dynamic> json) =>
+      _$PollutantValueFromJson(json);
+
+  const PollutantValue({
+    required this.value,
+    required this.calibratedValue,
+  });
+
+  @JsonKey(
+    required: false,
+    name: 'calibratedValue',
+    fromJson: _valueFromJson,
+    includeIfNull: true,
+  )
+  final double? calibratedValue;
+
+  @JsonKey(required: false, name: 'value', fromJson: _valueFromJson)
+  final double value;
+
+  static double _valueFromJson(double json) {
+    return double.parse(json.toStringAsFixed(2));
+  }
 }

@@ -5,9 +5,9 @@ import 'dart:ui';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -205,15 +205,13 @@ void backgroundCallbackDispatcher() {
       try {
         switch (task) {
           case BackgroundService.airQualityUpdates:
-            final siteReadings = await AppRepository(
-              airqoApiKey: Config.airqoApiToken,
-              baseUrl: Config.airqoApiUrl,
-            ).getSitesReadings();
+            final airQualityReadings =
+                await AirqoApiClient().fetchAirQualityReadings();
             final sendPort = IsolateNameServer.lookupPortByName(
               BackgroundService.taskChannel(task),
             );
             if (sendPort != null) {
-              sendPort.send(siteReadings);
+              sendPort.send(airQualityReadings);
             } else {
               // TODO: implement saving
               // final SharedPreferences prefs = await
@@ -292,7 +290,8 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(data as List<SiteReading>);
+        await HiveService.updateAirQualityReadings(
+            data as List<AirQualityReading>);
       },
     );
   }

@@ -210,9 +210,8 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return EmailAuthModel.parseEmailAuthModel(
-        json.decode(response.body),
-      );
+      return EmailAuthModel.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -221,6 +220,44 @@ class AirqoApiClient {
     }
 
     return null;
+  }
+
+  Future<List<AirQualityReading>> fetchAirQualityReadings() async {
+    final airQualityReadings = <AirQualityReading>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('recent', () => 'yes')
+      ..putIfAbsent('metadata', () => 'site_id')
+      ..putIfAbsent('external', () => 'no')
+      ..putIfAbsent(
+        'startTime',
+        () => '${DateFormat('yyyy-MM-dd').format(
+          DateTime.now().toUtc().subtract(
+                const Duration(days: 1),
+              ),
+        )}T00:00:00Z',
+      )
+      ..putIfAbsent('frequency', () => 'hourly')
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        AirQoUrls.measurements,
+      );
+
+      for (final measurement in body['measurements']) {
+        try {
+          airQualityReadings.add(
+              AirQualityReading.fromAPI(measurement as Map<String, dynamic>));
+        } catch (_, __) {}
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+    return airQualityReadings;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {

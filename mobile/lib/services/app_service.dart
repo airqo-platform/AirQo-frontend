@@ -1,7 +1,5 @@
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -127,11 +125,9 @@ class AppService {
 
   Future<bool> refreshAirQualityReadings() async {
     try {
-      final siteReadings = await AppRepository(
-        airqoApiKey: Config.airqoApiToken,
-        baseUrl: Config.airqoApiUrl,
-      ).getSitesReadings();
-      await HiveService.updateAirQualityReadings(siteReadings);
+      final airQualityReadings =
+          await AirqoApiClient().fetchAirQualityReadings();
+      await HiveService.updateAirQualityReadings(airQualityReadings);
 
       return true;
     } catch (exception, stackTrace) {
