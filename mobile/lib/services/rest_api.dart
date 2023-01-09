@@ -164,13 +164,13 @@ class AirqoApiClient {
 
       for (final e in body['data']['forecast']) {
         final json = e;
-        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        json['frequency'] = (e['frequency'] as String).toLowerCase();
         forecastData.add(ForecastInsight.fromJson(json));
       }
 
       for (final e in body['data']['historical']) {
         final json = e;
-        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        json['frequency'] = (e['frequency'] as String).toLowerCase();
         historicalData.add(HistoricalInsight.fromJson(json));
       }
 
