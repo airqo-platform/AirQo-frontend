@@ -6,6 +6,7 @@ import { loadPublicationsData } from '../../../reduxStore/Publications/operation
 import { usePublicationsData } from '../../../reduxStore/Publications/selectors';
 import Page from '../Page';
 import CardComponent from './CardComponent';
+import Pagination from './Pagination';
 import ReportComponent from './ReportComponent';
 
 const PublicationsPage = () => {
@@ -15,6 +16,22 @@ const PublicationsPage = () => {
 
   const dispatch = useDispatch();
   const publicationsData = usePublicationsData();
+  const ResearchData = publicationsData.filter(
+    (publication) => publication.category === 'research'
+  );
+  const ReportsData = publicationsData.filter(
+    (publication) => publication.category === 'technical' || publication.category === 'policy'
+  );
+
+  const [currentpage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const lastItem = currentpage * itemsPerPage;
+  const firstItem = lastItem - itemsPerPage;
+  const currentResearch = ResearchData.slice(firstItem, lastItem);
+  const currentReports = ReportsData.slice(firstItem, lastItem);
+  const totalResearch = ResearchData.length;
+  const totalReports = ReportsData.length;
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
     dispatch(loadPublicationsData());
@@ -26,7 +43,7 @@ const PublicationsPage = () => {
         <SEO
           title="Publications"
           siteTitle="AirQo Publications"
-          description="AirQo drives research conversations in the air quality space"
+          description="Discover AirQo's latest collection of research publications"
         />
         <div className="page-header">
           <div className="content">
@@ -57,42 +74,40 @@ const PublicationsPage = () => {
         <div className="page-body">
           <div className="content">
             {selectedTab === 'Research' ? (
-              publicationsData
-                .filter((publication) => publication.category === 'research')
-                .map((publication) => (
-                  <div className="press-cards-lg">
-                    <div className="card-lg">
-                      <CardComponent
-                        title={publication.title}
-                        authors={publication.authors}
-                        link={publication.link}
-                        linkTitle={publication.link_title}
-                      />
-                    </div>
+              currentResearch.map((publication) => (
+                <div className="press-cards-lg">
+                  <div className="card-lg">
+                    <CardComponent
+                      title={publication.title}
+                      authors={publication.authors}
+                      link={publication.link}
+                      linkTitle={publication.link_title}
+                    />
                   </div>
-                ))
+                </div>
+              ))
             ) : (
               <div />
             )}
             {selectedTab === 'Reports' ? (
-              publicationsData
-                .filter(
-                  (publication) =>
-                    publication.category === 'technical' || publication.category === 'policy'
-                )
-                .map((publication) => (
-                  <ReportComponent
-                    title={publication.title}
-                    authors={publication.authors}
-                    link={publication.link}
-                    linkTitle={publication.link_title}
-                  />
-                ))
+              currentReports.map((publication) => (
+                <ReportComponent
+                  title={publication.title}
+                  authors={publication.authors}
+                  link={publication.link}
+                  linkTitle={publication.link_title}
+                />
+              ))
             ) : (
               <div />
             )}
           </div>
         </div>
+        <Pagination
+          itemsPerPage={itemsPerPage}
+          totalItems={selectedTab === 'Research' ? totalResearch : totalReports}
+          paginate={paginate}
+        />
       </div>
     </Page>
   );

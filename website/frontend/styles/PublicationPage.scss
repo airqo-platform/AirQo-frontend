@@ -1,7 +1,7 @@
 @import "lib/variables";
 @import "lib/colors";
 
-$tab_width: 180px;
+$tab_width: 160px;
 
 .list-page{
     position: relative;
@@ -105,17 +105,41 @@ $tab_width: 180px;
             }
         }
     }
+    .pagination{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        text-align: center;
+        font-family: 'Inter';
+        li{
+            list-style: none;
+        }
+        li.page-item{
+            .page-link{
+                font-size: 25px;
+                margin-right: 16px;
+                cursor: pointer;
+            }
+            .page-number{
+                font-weight: 400;
+                font-size:25px;
+                background-color: $aq-blue-4;
+                color: #fff;
+                padding: 8px 16px;
+                border-radius: 8px;
+            }
+        }
+    }
 }
 
 @media (max-width: $mainBreakPoint) {
     .list-page{
         .nav{
-            button{
-                font-size: 15px;
-                margin-bottom:20px;
+            #tab2{
+                left:$tab_width;
             }
-            button.selected{
-                font-size: 16px;
+            button{
+                font-size: 12px;
             }
         }
     }
