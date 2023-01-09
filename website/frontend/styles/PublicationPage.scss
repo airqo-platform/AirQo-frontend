@@ -1,29 +1,42 @@
 @import "lib/variables";
 @import "lib/colors";
 
+$tab_width: 180px;
+
 .list-page{
+    position: relative;
     .nav{
-        padding:20px 0;
         grid-column: 2 / 3;
+        position: relative;
+        span{
+            position: absolute;
+            bottom:0px;
+        }
+        #tab1{
+            left: 0;
+            width: $tab_width -100px;
+        }
+        #tab2{
+            left:$tab_width + 10px;
+        }
         button{
-            padding:20px;
-            margin-right: 17px;
-            border: none;
-            outline:none;
+            border:0px;
+            outline: none;
             cursor: pointer;
-            border-radius: 8px;
-
-            width:auto;
-            height: 58px;
-
-            background-color: $aq-white-3;
+            padding:0 0 5px 0;
+            background-color: transparent;
+            height:32px;
+            font-size:14px;
             font-weight: 400;
-            font-size: 18px;
+            line-height: 20px;
+            flex-grow: 0;
+            border-bottom: 0px;
+            color:$aq-grey-0;
         }
         button.selected{
-            background-color: $aq-blue-9;
-            color: #fff;
-            font-size: 18.5px;
+            border-bottom: 2px solid $aq-black-0;
+            color:$aq-black-0;
+            cursor: pointer;
         }
     }
     .press-cards-lg{

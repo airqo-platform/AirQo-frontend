@@ -10,7 +10,7 @@ import ReportComponent from './ReportComponent';
 
 const PublicationsPage = () => {
   useInitScrollTop();
-  const [selectedTab, setSelectedTab] = useState('All');
+  const [selectedTab, setSelectedTab] = useState('Research');
   const onClickTabItem = (tab) => setSelectedTab(tab);
 
   const dispatch = useDispatch();
@@ -36,26 +36,15 @@ const PublicationsPage = () => {
                 Discover our latest collection of research publications
               </span>
             </div>
-          </div>
-        </div>
-        <div className="page-body">
-          <div className="content">
             <div className="nav">
               <span id="tab1">
-                <button
-                  className={selectedTab === 'All' ? 'selected' : 'unselected'}
-                  onClick={() => onClickTabItem('All')}>
-                  All
-                </button>
-              </span>
-              <span id="tab2">
                 <button
                   className={selectedTab === 'Research' ? 'selected' : 'unselected'}
                   onClick={() => onClickTabItem('Research')}>
                   Research Publications
                 </button>
               </span>
-              <span id="tab3">
+              <span id="tab2">
                 <button
                   className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
                   onClick={() => onClickTabItem('Reports')}>
@@ -63,22 +52,10 @@ const PublicationsPage = () => {
                 </button>
               </span>
             </div>
-            {selectedTab === 'All' ? (
-              publicationsData.map((publication) => (
-                <div className="press-cards-lg">
-                  <div className="card-lg">
-                    <CardComponent
-                      title={publication.title}
-                      authors={publication.authors}
-                      link={publication.link}
-                      linkTitle={publication.link_title}
-                    />
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div />
-            )}
+          </div>
+        </div>
+        <div className="page-body">
+          <div className="content">
             {selectedTab === 'Research' ? (
               publicationsData
                 .filter((publication) => publication.category === 'research')
@@ -99,7 +76,10 @@ const PublicationsPage = () => {
             )}
             {selectedTab === 'Reports' ? (
               publicationsData
-                .filter((publication) => publication.category === 'technical' || publication.category === 'policy')
+                .filter(
+                  (publication) =>
+                    publication.category === 'technical' || publication.category === 'policy'
+                )
                 .map((publication) => (
                   <ReportComponent
                     title={publication.title}
