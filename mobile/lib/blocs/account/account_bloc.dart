@@ -36,7 +36,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   ) async {
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    List<FavouritePlace> favouritePlaces = state.favouritePlaces;
+    List<FavouritePlace> favouritePlaces = List.from(state.favouritePlaces);
     final placesIds = favouritePlaces.map((e) => e.placeId);
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
