@@ -12,18 +12,14 @@ import 'package:flutter_svg/svg.dart';
 import '../../services/native_api.dart';
 import 'kya_title_page.dart';
 
-class KyaProgressCubit extends Cubit<double> {
-  KyaProgressCubit() : super(0);
-
-  void updateProgress(double value) => emit(value);
-}
-
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
     required this.icon,
+    required this.isActive,
   });
   final String icon;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +28,14 @@ class CircularKyaButton extends StatelessWidget {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: CustomColors.appColorBlue.withOpacity(0.24),
+        color: isActive
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlue.withOpacity(0.5),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        color: CustomColors.appColorBlue,
+        color: Colors.white,
       ),
     );
   }

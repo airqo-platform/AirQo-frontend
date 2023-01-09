@@ -15,7 +15,7 @@ abstract class Insight extends Table {
   RealColumn get pm10 => real()();
   BoolColumn get available => boolean().withDefault(const Constant(true))();
   TextColumn get siteId => text()();
-  IntColumn get frequency => intEnum<Frequency>()();
+  TextColumn get frequency => textEnum<Frequency>()();
 
   @override
   Set<Column> get primaryKey => {

@@ -8,7 +8,7 @@ part of 'kya.dart';
 
 class KyaAdapter extends TypeAdapter<Kya> {
   @override
-  final int typeId = 30;
+  final int typeId = 31;
 
   @override
   Kya read(BinaryReader reader) {
