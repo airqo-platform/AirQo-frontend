@@ -145,7 +145,7 @@ jobs:
             createPR: false
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+        uses: azure/k8s-set-context@v2
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
