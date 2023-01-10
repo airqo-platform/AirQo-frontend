@@ -82,7 +82,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -103,7 +103,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -124,7 +124,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -145,7 +145,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Delete PR deploy preview
         run: |-
