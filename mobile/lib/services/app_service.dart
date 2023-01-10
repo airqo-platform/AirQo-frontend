@@ -104,7 +104,7 @@ class AppService {
     String siteId, {
     Frequency? frequency,
   }) async {
-    final insights = await AirqoApiClient().fetchInsightsData(siteId);
+    InsightData insights = await AirqoApiClient().fetchInsightsData(siteId);
 
     await AirQoDatabase().insertHistoricalInsights(insights.historical);
     await AirQoDatabase().insertForecastInsights(insights.forecast);

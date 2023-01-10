@@ -160,24 +160,7 @@ class AirqoApiClient {
         AirQoUrls.insights,
       );
 
-      // return InsightData.fromJson(body['data']);
-
-      final List<HistoricalInsight> historicalData = [];
-      final List<ForecastInsight> forecastData = [];
-
-      for (final e in body['data']['forecast']) {
-        final json = e;
-        json['frequency'] = (e['frequency'] as String).toLowerCase();
-        forecastData.add(ForecastInsight.fromJson(json));
-      }
-
-      for (final e in body['data']['historical']) {
-        final json = e;
-        json['frequency'] = (e['frequency'] as String).toLowerCase();
-        historicalData.add(HistoricalInsight.fromJson(json));
-      }
-
-      return InsightData(forecast: forecastData, historical: historicalData);
+      return InsightData.fromJson(body['data']);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -332,6 +315,7 @@ class AirqoApiClient {
   }) async {
     try {
       url = addQueryParameters(queryParams, url);
+      print(url);
 
       final response = await httpClient
           .get(
