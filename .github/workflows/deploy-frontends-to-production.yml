@@ -105,7 +105,7 @@ jobs:
             createPR: false
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+        uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
@@ -254,7 +254,7 @@ jobs:
             message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+        uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
@@ -312,7 +312,7 @@ jobs:
             message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+        uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
