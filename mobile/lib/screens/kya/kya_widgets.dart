@@ -12,12 +12,6 @@ import 'package:flutter_svg/svg.dart';
 import '../../services/native_api.dart';
 import 'kya_title_page.dart';
 
-class KyaProgressCubit extends Cubit<double> {
-  KyaProgressCubit() : super(0);
-
-  void updateProgress(double value) => emit(value);
-}
-
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
