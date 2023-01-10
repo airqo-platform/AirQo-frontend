@@ -136,13 +136,52 @@ extension KyaListExt on List<Kya> {
 
 extension AnalyticsListExt on List<Analytics> {
   List<Analytics> sortByDateTime() {
-    sort(
+    List<Analytics> data = List.of(this);
+    data.sort(
       (x, y) {
         return -(x.createdAt.compareTo(y.createdAt));
       },
     );
 
-    return this;
+    return data;
+  }
+}
+
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSite(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+
+    return airQualityReadings;
   }
 }
 

@@ -132,27 +132,6 @@ class _SettingsPageState extends State<SettingsPage>
                   child: ListTile(
                     tileColor: Colors.white,
                     onTap: () async {
-                      await hasNetworkConnection().then((value) async {
-                        if (value) {
-                          await RateService.rateApp();
-                        } else {
-                          showSnackBar(context, Config.connectionErrorMessage);
-                        }
-                      });
-                    },
-                    title: Text(
-                      'Rate the AirQo App',
-                      style: Theme.of(context).textTheme.bodyText1,
-                    ),
-                  ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    onTap: () async {
                       await AppService().clearshowcase();
                       await Navigator.pushAndRemoveUntil(
                         context,
@@ -166,6 +145,27 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Take a tour of the App',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    onTap: () async {
+                      await hasNetworkConnection().then((value) async {
+                        if (value) {
+                          await RateService.rateApp();
+                        } else {
+                          showSnackBar(context, Config.connectionErrorMessage);
+                        }
+                      });
+                    },
+                    title: Text(
+                      'Rate the AirQo App',
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
                   ),

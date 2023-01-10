@@ -45,9 +45,9 @@ class $HistoricalInsightsTable extends HistoricalInsights
   static const VerificationMeta _frequencyMeta =
       const VerificationMeta('frequency');
   @override
-  late final GeneratedColumnWithTypeConverter<Frequency, int> frequency =
-      GeneratedColumn<int>('frequency', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
+  late final GeneratedColumnWithTypeConverter<Frequency, String> frequency =
+      GeneratedColumn<String>('frequency', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<Frequency>(
               $HistoricalInsightsTable.$converterfrequency);
   @override
@@ -112,7 +112,7 @@ class $HistoricalInsightsTable extends HistoricalInsights
           .read(DriftSqlType.string, data['${effectivePrefix}site_id'])!,
       frequency: $HistoricalInsightsTable.$converterfrequency.fromSql(
           attachedDatabase.typeMapping
-              .read(DriftSqlType.int, data['${effectivePrefix}frequency'])!),
+              .read(DriftSqlType.string, data['${effectivePrefix}frequency'])!),
     );
   }
 
@@ -121,8 +121,8 @@ class $HistoricalInsightsTable extends HistoricalInsights
     return $HistoricalInsightsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<Frequency, int, int> $converterfrequency =
-      const EnumIndexConverter<Frequency>(Frequency.values);
+  static JsonTypeConverter2<Frequency, String, String> $converterfrequency =
+      const EnumNameConverter<Frequency>(Frequency.values);
 }
 
 class HistoricalInsight extends DataClass
@@ -150,7 +150,7 @@ class HistoricalInsight extends DataClass
     map['site_id'] = Variable<String>(siteId);
     {
       final converter = $HistoricalInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<int>(converter.toSql(frequency));
+      map['frequency'] = Variable<String>(converter.toSql(frequency));
     }
     return map;
   }
@@ -176,7 +176,7 @@ class HistoricalInsight extends DataClass
       available: serializer.fromJson<bool>(json['available']),
       siteId: serializer.fromJson<String>(json['siteId']),
       frequency: $HistoricalInsightsTable.$converterfrequency
-          .fromJson(serializer.fromJson<int>(json['frequency'])),
+          .fromJson(serializer.fromJson<String>(json['frequency'])),
     );
   }
   @override
@@ -188,7 +188,7 @@ class HistoricalInsight extends DataClass
       'pm10': serializer.toJson<double>(pm10),
       'available': serializer.toJson<bool>(available),
       'siteId': serializer.toJson<String>(siteId),
-      'frequency': serializer.toJson<int>(
+      'frequency': serializer.toJson<String>(
           $HistoricalInsightsTable.$converterfrequency.toJson(frequency)),
     };
   }
@@ -269,7 +269,7 @@ class HistoricalInsightsCompanion extends UpdateCompanion<HistoricalInsight> {
     Expression<double>? pm10,
     Expression<bool>? available,
     Expression<String>? siteId,
-    Expression<int>? frequency,
+    Expression<String>? frequency,
   }) {
     return RawValuesInsertable({
       if (time != null) 'time': time,
@@ -318,7 +318,7 @@ class HistoricalInsightsCompanion extends UpdateCompanion<HistoricalInsight> {
     }
     if (frequency.present) {
       final converter = $HistoricalInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<int>(converter.toSql(frequency.value));
+      map['frequency'] = Variable<String>(converter.toSql(frequency.value));
     }
     return map;
   }
@@ -379,9 +379,9 @@ class $ForecastInsightsTable extends ForecastInsights
   static const VerificationMeta _frequencyMeta =
       const VerificationMeta('frequency');
   @override
-  late final GeneratedColumnWithTypeConverter<Frequency, int> frequency =
-      GeneratedColumn<int>('frequency', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
+  late final GeneratedColumnWithTypeConverter<Frequency, String> frequency =
+      GeneratedColumn<String>('frequency', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<Frequency>($ForecastInsightsTable.$converterfrequency);
   @override
   List<GeneratedColumn> get $columns =>
@@ -445,7 +445,7 @@ class $ForecastInsightsTable extends ForecastInsights
           .read(DriftSqlType.string, data['${effectivePrefix}site_id'])!,
       frequency: $ForecastInsightsTable.$converterfrequency.fromSql(
           attachedDatabase.typeMapping
-              .read(DriftSqlType.int, data['${effectivePrefix}frequency'])!),
+              .read(DriftSqlType.string, data['${effectivePrefix}frequency'])!),
     );
   }
 
@@ -454,8 +454,8 @@ class $ForecastInsightsTable extends ForecastInsights
     return $ForecastInsightsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<Frequency, int, int> $converterfrequency =
-      const EnumIndexConverter<Frequency>(Frequency.values);
+  static JsonTypeConverter2<Frequency, String, String> $converterfrequency =
+      const EnumNameConverter<Frequency>(Frequency.values);
 }
 
 class ForecastInsight extends DataClass implements Insertable<ForecastInsight> {
@@ -482,7 +482,7 @@ class ForecastInsight extends DataClass implements Insertable<ForecastInsight> {
     map['site_id'] = Variable<String>(siteId);
     {
       final converter = $ForecastInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<int>(converter.toSql(frequency));
+      map['frequency'] = Variable<String>(converter.toSql(frequency));
     }
     return map;
   }
@@ -508,7 +508,7 @@ class ForecastInsight extends DataClass implements Insertable<ForecastInsight> {
       available: serializer.fromJson<bool>(json['available']),
       siteId: serializer.fromJson<String>(json['siteId']),
       frequency: $ForecastInsightsTable.$converterfrequency
-          .fromJson(serializer.fromJson<int>(json['frequency'])),
+          .fromJson(serializer.fromJson<String>(json['frequency'])),
     );
   }
   @override
@@ -520,7 +520,7 @@ class ForecastInsight extends DataClass implements Insertable<ForecastInsight> {
       'pm10': serializer.toJson<double>(pm10),
       'available': serializer.toJson<bool>(available),
       'siteId': serializer.toJson<String>(siteId),
-      'frequency': serializer.toJson<int>(
+      'frequency': serializer.toJson<String>(
           $ForecastInsightsTable.$converterfrequency.toJson(frequency)),
     };
   }
@@ -601,7 +601,7 @@ class ForecastInsightsCompanion extends UpdateCompanion<ForecastInsight> {
     Expression<double>? pm10,
     Expression<bool>? available,
     Expression<String>? siteId,
-    Expression<int>? frequency,
+    Expression<String>? frequency,
   }) {
     return RawValuesInsertable({
       if (time != null) 'time': time,
@@ -650,7 +650,7 @@ class ForecastInsightsCompanion extends UpdateCompanion<ForecastInsight> {
     }
     if (frequency.present) {
       final converter = $ForecastInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<int>(converter.toSql(frequency.value));
+      map['frequency'] = Variable<String>(converter.toSql(frequency.value));
     }
     return map;
   }
