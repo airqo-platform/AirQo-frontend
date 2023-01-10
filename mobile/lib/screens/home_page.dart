@@ -29,19 +29,12 @@ class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
   late bool refresh;
-  static final GlobalKey _homeShowcaseKey = GlobalKey();
-  static final GlobalKey _mapShowcaseKey = GlobalKey();
-  static final GlobalKey _profileShowcaseKey = GlobalKey();
+  late GlobalKey _homeShowcaseKey;
+  late GlobalKey _mapShowcaseKey;
+  late GlobalKey _profileShowcaseKey;
   static BuildContext? myContext;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    ShowCaseWidget(
-      onFinish: _startShowcase,
-      builder: Builder(builder: (context) => const DashboardView()),
-    ),
-    const MapView(),
-    const ProfileView(),
-  ];
+  late List<Widget> _widgetOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +196,17 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _initialize();
+    _homeShowcaseKey = GlobalKey();
+    _mapShowcaseKey = GlobalKey();
+    _profileShowcaseKey = GlobalKey();
+    _widgetOptions = <Widget>[
+      ShowCaseWidget(
+        onFinish: _startShowcase,
+        builder: Builder(builder: (context) => const DashboardView()),
+      ),
+      const MapView(),
+      const ProfileView(),
+    ];
   }
 
   Future<bool> _onWillPop() {
@@ -244,7 +248,7 @@ class _HomePageState extends State<HomePage> {
     setState(() => _selectedIndex = index);
   }
 
-  static void _startShowcase() {
+  void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ShowCaseWidget.of(myContext!).startShowCase(
         [

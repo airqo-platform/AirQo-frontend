@@ -23,8 +23,8 @@ class _ForYouPageState extends State<ForYouPage>
   late TabController _tabController;
   late bool _analytics;
   final AppService _appService = AppService();
-  static final GlobalKey _analyticsTabShowcaseKey = GlobalKey();
-  static final GlobalKey _kyaTabShowcaseKey = GlobalKey();
+  late GlobalKey _analyticsTabShowcaseKey;
+  late GlobalKey _kyaTabShowcaseKey;
   static BuildContext? myContext;
 
   @override
@@ -52,7 +52,7 @@ class _ForYouPageState extends State<ForYouPage>
                   builder: Builder(
                     builder: (context) {
                       myContext = context;
-                      
+
                       return TabBar(
                         controller: _tabController,
                         indicatorColor: Colors.transparent,
@@ -120,6 +120,8 @@ class _ForYouPageState extends State<ForYouPage>
     _analytics = widget.analytics ?? true;
     _tabController = TabController(length: 2, vsync: this);
     _tabController.animateTo(_analytics ? 0 : 1);
+    _analyticsTabShowcaseKey = GlobalKey();
+    _kyaTabShowcaseKey = GlobalKey();
     WidgetsBinding.instance.addPostFrameCallback((_) => showcasetoggle());
   }
 

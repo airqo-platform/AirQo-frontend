@@ -31,14 +31,14 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
-  final GlobalKey _favToolTipKey = GlobalKey();
-  final GlobalKey _kyaToolTipKey = GlobalKey();
-  final GlobalKey _favoritesShowcaseKey = GlobalKey();
-  final GlobalKey _forYouShowcaseKey = GlobalKey();
-  final GlobalKey _kyaShowcaseKey = GlobalKey();
-  final GlobalKey _analyticsShowcaseKey = GlobalKey();
-  final GlobalKey _nearestLocationShowcaseKey = GlobalKey();
-  bool emptykya = false;
+  late GlobalKey _favToolTipKey;
+  late GlobalKey _kyaToolTipKey;
+  late GlobalKey _favoritesShowcaseKey;
+  late GlobalKey _forYouShowcaseKey;
+  late GlobalKey _kyaShowcaseKey;
+  late GlobalKey _analyticsShowcaseKey;
+  late GlobalKey _nearestLocationShowcaseKey;
+  bool kyaexists = true, nearbylocationexists = true;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -50,13 +50,27 @@ class _DashboardViewState extends State<DashboardView>
   final AppService _appService = AppService();
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!emptykya) {
+      if (kyaexists && nearbylocationexists) {
+        ShowCaseWidget.of(context).startShowCase([
+          _favoritesShowcaseKey,
+          _forYouShowcaseKey,
+          _nearestLocationShowcaseKey,
+          _kyaShowcaseKey,
+          _analyticsShowcaseKey,        
+        ]);
+      } else if (kyaexists && !nearbylocationexists) {
         ShowCaseWidget.of(context).startShowCase([
           _favoritesShowcaseKey,
           _forYouShowcaseKey,
           _kyaShowcaseKey,
           _analyticsShowcaseKey,
+        ]);
+      } else if (!kyaexists && nearbylocationexists) {
+        ShowCaseWidget.of(context).startShowCase([
+          _favoritesShowcaseKey,
+          _forYouShowcaseKey,
           _nearestLocationShowcaseKey,
+          _analyticsShowcaseKey,
         ]);
       } else {
         ShowCaseWidget.of(context).startShowCase([
@@ -114,7 +128,8 @@ class _DashboardViewState extends State<DashboardView>
                         state.favouritePlaces.take(3).toList(),
                       );
 
-                      return Showcase(
+                      return Expanded(
+                        child: Showcase(
                           key: _favoritesShowcaseKey,
                           description:
                               'Find the latest air quality from your favorite locations',
@@ -133,7 +148,9 @@ class _DashboardViewState extends State<DashboardView>
                               );
                             },
                             children: favouritePlaces,
-                          ));
+                          ),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(
@@ -145,26 +162,28 @@ class _DashboardViewState extends State<DashboardView>
                         state.kya.filterCompleteKya().take(3).toList(),
                       );
 
-                      return Showcase(
-                          key: _forYouShowcaseKey,
-                          description:
-                              'Find amazing content specifically designed for you here.',
-                          child: DashboardTopCard(
-                            toolTipType: ToolTipType.forYou,
-                            title: 'For You',
-                            widgetKey: _kyaToolTipKey,
-                            nextScreenClickHandler: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ForYouPage(analytics: false);
-                                  },
-                                ),
-                              );
-                            },
-                            children: kyaWidgets,
-                          ));
+                      return Expanded(
+                          child: Showcase(
+                        key: _forYouShowcaseKey,
+                        description:
+                            'Find amazing content specifically designed for you here.',
+                        child: DashboardTopCard(
+                          toolTipType: ToolTipType.forYou,
+                          title: 'For You',
+                          widgetKey: _kyaToolTipKey,
+                          nextScreenClickHandler: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const ForYouPage(analytics: false);
+                                },
+                              ),
+                            );
+                          },
+                          children: kyaWidgets,
+                        ),
+                      ));
                     },
                   ),
                 ],
@@ -232,6 +251,7 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 if (state.blocStatus ==
                                     NearbyLocationStatus.error) {
+                                  nearbylocationexists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
                                       return Padding(
@@ -277,7 +297,7 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 List<Kya> kya = state.kya.filterIncompleteKya();
                                 if (kya.isEmpty) {
-                                  emptykya = true;
+                                  kyaexists = false;
                                   return const SizedBox();
                                 }
                                 kya.sortByProgress();
@@ -369,6 +389,13 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
+    _favToolTipKey = GlobalKey();
+    _kyaToolTipKey = GlobalKey();
+    _favoritesShowcaseKey = GlobalKey();
+    _forYouShowcaseKey = GlobalKey();
+    _kyaShowcaseKey = GlobalKey();
+    _analyticsShowcaseKey = GlobalKey();
+    _nearestLocationShowcaseKey = GlobalKey();
   }
 
   @override

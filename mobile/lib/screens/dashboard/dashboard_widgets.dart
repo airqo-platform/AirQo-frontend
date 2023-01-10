@@ -115,8 +115,7 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-        child: GestureDetector(
+    return GestureDetector(
       onTap: nextScreenClickHandler,
       key: widgetKey,
       child: Container(
@@ -152,7 +151,6 @@ class DashboardTopCard extends StatelessWidget {
           ],
         ),
       ),
-    )
     );
   }
 }
