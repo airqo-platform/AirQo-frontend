@@ -2,10 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'hive_type_id.dart';
+
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 30, adapterName: 'KyaAdapter')
+@HiveType(typeId: kyaTypeId)
 class Kya extends HiveObject with EquatableMixin {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
@@ -18,10 +20,6 @@ class Kya extends HiveObject with EquatableMixin {
     required this.completionMessage,
     required this.secondaryImageUrl,
   });
-
-  @HiveField(1, defaultValue: 0)
-  @JsonKey(defaultValue: 0)
-  int progress;
 
   @HiveField(2)
   String title;
@@ -45,6 +43,10 @@ class Kya extends HiveObject with EquatableMixin {
 
   @HiveField(7)
   List<KyaLesson> lessons = [];
+
+  @HiveField(8, defaultValue: 0)
+  @JsonKey(defaultValue: 0)
+  double progress;
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 

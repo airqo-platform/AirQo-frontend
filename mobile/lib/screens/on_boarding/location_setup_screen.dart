@@ -58,7 +58,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
-                  onTap: _allowLocation,
+                  onTap: () async {
+                    await _allowLocation();
+                  },
                   child: NextButton(
                     text: 'Yes, keep me safe',
                     buttonColor: CustomColors.appColorBlue,
@@ -102,10 +104,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   Future<void> _allowLocation() async {
-    loadingScreen(context);
-    await LocationService.allowLocationAccess().then(
+    await LocationService.requestLocation(context, true).then(
       (_) {
-        Navigator.pop(context);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(

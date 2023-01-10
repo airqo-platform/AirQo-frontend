@@ -48,3 +48,6 @@ export const PARTNERS_URL = `${WEBSITE_BASE_URL}/partner/`;
 
 // Board Member url
 export const BOARD_MEMBERS_URL = `${WEBSITE_BASE_URL}/board/`;
+
+// Publications url
+export const PUBLICATIONS_URL = `${WEBSITE_BASE_URL}/publications/`

@@ -14,10 +14,9 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         final completeKya = state.kya.filterCompleteKya();
-
         if (completeKya.isEmpty) {
           final inCompleteKya = state.kya.filterIncompleteKya();
 
@@ -41,7 +40,7 @@ class KnowYourAirView extends StatelessWidget {
                     index,
                   ),
                 ),
-                child: KyaViewWidget(
+                child: KyaCardWidget(
                   completeKya[index],
                 ),
               );
@@ -57,7 +56,7 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshKya());
+    context.read<KyaBloc>().add(const LoadKya());
   }
 
   Future<void> _startKyaLessons(BuildContext context, Kya kya) async {

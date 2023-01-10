@@ -1,15 +1,83 @@
+import 'dart:io';
+
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'firebase_service.dart';
 import 'native_api.dart';
 
 class NotificationService {
-  static Future<void> revokePermission() async {
-    final profile = await Profile.getProfile();
-    await profile.update(enableNotification: false);
+  static Future<void> notificationRequestDialog(BuildContext context) async {
+    await Permission.notification.request().then((status) {
+      switch (status) {
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context.read<SettingsBloc>().add(const UpdateNotificationPref(true));
+          break;
+        case PermissionStatus.restricted:
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context.read<SettingsBloc>().add(const UpdateNotificationPref(false));
+          break;
+      }
+    });
+  }
+
+  static Future<void> requestNotification(
+    BuildContext context,
+    bool value,
+  ) async {
+    late String enableNotificationsMessage;
+    late String disableNotificationsMessage;
+
+    if (Platform.isAndroid) {
+      enableNotificationsMessage =
+          'To turn on notifications, go to\nApp Info > Notifications';
+
+      disableNotificationsMessage =
+          'To turn off notifications, go to\nApp Info > Notifications';
+    } else {
+      enableNotificationsMessage =
+          'To turn on notifications, go to\nSettings > AirQo > Notifications';
+
+      disableNotificationsMessage =
+          'To turn off notifications, go to\nSettings > AirQo > Notifications';
+    }
+
+    if (value) {
+      await Permission.notification.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await openPhoneSettings(context, enableNotificationsMessage);
+            break;
+          case PermissionStatus.denied:
+            if (Platform.isAndroid) {
+              await openPhoneSettings(context, enableNotificationsMessage);
+            } else {
+              await notificationRequestDialog(context);
+            }
+            break;
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await notificationRequestDialog(context);
+            break;
+          case PermissionStatus.granted:
+            context
+                .read<SettingsBloc>()
+                .add(const UpdateNotificationPref(true));
+            break;
+        }
+      });
+    } else {
+      await openPhoneSettings(context, disableNotificationsMessage);
+    }
   }
 
   static Future<void> initNotifications() async {
@@ -104,20 +172,6 @@ class NotificationService {
         exception,
         stackTrace,
       );
-    }
-  }
-
-  static Future<void> allowNotifications() async {
-    final enabled = await PermissionService.checkPermission(
-      AppPermission.notification,
-      request: true,
-    );
-    if (enabled) {
-      final profile = await Profile.getProfile();
-      await Future.wait([
-        CloudAnalytics.logEvent(AnalyticsEvent.allowNotification),
-        profile.update(enableNotification: true),
-      ]);
     }
   }
 }
