@@ -82,8 +82,8 @@ class AirQualityReading extends HiveObject {
       placeId: placeId,
       name: name,
       location: location,
-      latitude: latitude as double,
-      longitude: longitude as double,
+      latitude: double.parse(latitude),
+      longitude: double.parse(longitude),
     );
   }
 

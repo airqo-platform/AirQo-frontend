@@ -5,7 +5,6 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,7 +18,8 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen(this.initialLink, {super.key});
+  final PendingDynamicLinkData? initialLink;
 
   @override
   State<SplashScreen> createState() => SplashScreenState();
@@ -60,27 +60,39 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<KyaBloc>().add(const LoadKya());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
-    FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
+
+    PendingDynamicLinkData? dynamicLinkData = widget.initialLink;
+    if (dynamicLinkData != null) {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
       if (navigatorBuildContext != null) {
         await ShareService.navigateToSharedFeature(
-          linkData: linkData,
+          linkData: dynamicLinkData,
           context: navigatorBuildContext,
         );
+      } else {
+        await _proceedWithSplashAnimation();
       }
-    }).onError((error) async {
-      await logException(error, null);
-    });
+    } else {
+      await _proceedWithSplashAnimation();
+    }
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _proceedWithSplashAnimation() async {
     final isLoggedIn = CustomAuth.isLoggedIn();
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
     );
 
-    Future.delayed(const Duration(seconds: 1), _updateWidget);
+    await Future.delayed(const Duration(seconds: 1), _updateWidget);
 
-    Future.delayed(
+    await Future.delayed(
       const Duration(seconds: 5),
       () {
         Navigator.pushAndRemoveUntil(
@@ -111,12 +123,6 @@ class SplashScreenState extends State<SplashScreen> {
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
   }
 
   void _updateWidget() {
