@@ -289,7 +289,8 @@ class _DashboardViewState extends State<DashboardView>
                                       child: AnalyticsCard(
                                         nearbyAirQuality,
                                         false,
-                                      )),
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -298,6 +299,7 @@ class _DashboardViewState extends State<DashboardView>
                                 List<Kya> kya = state.kya.filterIncompleteKya();
                                 if (kya.isEmpty) {
                                   kyaexists = false;
+
                                   return const SizedBox();
                                 }
                                 kya.sortByProgress();
@@ -308,7 +310,8 @@ class _DashboardViewState extends State<DashboardView>
                                       key: _kyaShowcaseKey,
                                       description:
                                           'Do you want to know more about air quality? Know your air in this section',
-                                      child: KyaCardWidget(kya.first)),
+                                    child: KyaCardWidget(kya.first),
+                                  ),
                                 );
                               },
                             ),
