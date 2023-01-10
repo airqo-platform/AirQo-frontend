@@ -323,7 +323,7 @@ jobs:
         run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
