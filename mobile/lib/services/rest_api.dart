@@ -8,6 +8,7 @@ import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
@@ -159,6 +160,8 @@ class AirqoApiClient {
         AirQoUrls.insights,
       );
 
+      // return InsightData.fromJson(body['data']);
+
       final List<HistoricalInsight> historicalData = [];
       final List<ForecastInsight> forecastData = [];
 
@@ -211,7 +214,8 @@ class AirqoApiClient {
       );
 
       return EmailAuthModel.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
+        json.decode(response.body) as Map<String, dynamic>,
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -248,7 +252,8 @@ class AirqoApiClient {
       for (final measurement in body['measurements']) {
         try {
           airQualityReadings.add(
-              AirQualityReading.fromAPI(measurement as Map<String, dynamic>));
+            AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
+          );
         } catch (_, __) {}
       }
     } catch (exception, stackTrace) {
@@ -257,6 +262,7 @@ class AirqoApiClient {
         stackTrace,
       );
     }
+
     return airQualityReadings;
   }
 
@@ -378,5 +384,114 @@ class AirqoApiClient {
     }
 
     return false;
+  }
+}
+
+class SearchApiClient {
+  factory SearchApiClient() {
+    return _instance;
+  }
+  SearchApiClient._internal();
+  static final SearchApiClient _instance = SearchApiClient._internal();
+
+  final String sessionToken = const Uuid().v4();
+  final String placeDetailsUrl =
+      'https://maps.googleapis.com/maps/api/place/details/json';
+  final String autoCompleteApi =
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+  final SearchCache _cache = SearchCache();
+  final _httpClient = SentryHttpClient(
+    client: http.Client(),
+    failedRequestStatusCodes: [
+      SentryStatusCode(503),
+      SentryStatusCode(400),
+      SentryStatusCode(404),
+    ],
+    captureFailedRequests: true,
+    networkTracing: true,
+  );
+
+  Future<dynamic> _getRequest({
+    required Map<String, dynamic> queryParams,
+    required String url,
+  }) async {
+    try {
+      url = addQueryParameters(queryParams, url);
+
+      final response = await _httpClient.get(
+        Uri.parse(url),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (_, __) {}
+
+    return null;
+  }
+
+  Future<List<SearchPlace>> getSearchPlaces(String input) async {
+    List<SearchPlace>? cachedResult = _cache.getSearchPlaces(input);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    List<SearchPlace> searchPlaces = <SearchPlace>[];
+
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('input', () => input)
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
+
+      final responseBody = await _getRequest(
+        url: autoCompleteApi,
+        queryParams: queryParams,
+      );
+
+      if (responseBody != null && responseBody['status'] == 'OK') {
+        for (final jsonElement in responseBody['predictions']) {
+          try {
+            searchPlaces.add(SearchPlace.fromAutoCompleteAPI(jsonElement));
+          } catch (__, _) {}
+        }
+      }
+    } catch (_, __) {}
+
+    return searchPlaces;
+  }
+
+  Future<SearchPlace?> getSearchPlaceDetails(
+    SearchPlace searchPlace,
+  ) async {
+    SearchPlace? cachedResult = _cache.getSearchPlace(searchPlace.id);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('place_id', () => searchPlace.id)
+        ..putIfAbsent('fields', () => 'name,geometry')
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
+
+      final responseBody = await _getRequest(
+        url: placeDetailsUrl,
+        queryParams: queryParams,
+      );
+
+      return SearchPlace.fromPlacesAPI(
+        responseBody['result'],
+        searchPlace,
+      );
+    } catch (_, __) {}
+
+    return null;
   }
 }

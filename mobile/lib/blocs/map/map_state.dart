@@ -55,7 +55,7 @@ class MapState extends Equatable {
     String? featuredRegion,
     String? featuredCountry,
     List<AirQualityReading>? airQualityReadings,
-    List<SearchResultItem>? searchResults,
+    List<SearchPlace>? searchResults,
     AuthenticationError? blocError,
   }) {
     return MapState(
@@ -81,7 +81,7 @@ class MapState extends Equatable {
   final String featuredRegion;
   final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
-  final List<SearchResultItem> searchResults;
+  final List<SearchPlace> searchResults;
   final AuthenticationError blocError;
 
   @override
@@ -117,7 +117,7 @@ class MapSearchState extends Equatable {
   MapSearchState copyWith({
     MapSearchStatus? mapStatus,
     List<AirQualityReading>? airQualityReadings,
-    List<SearchResultItem>? searchResults,
+    List<SearchPlace>? searchResults,
     String? searchTerm,
   }) {
     return MapSearchState(
@@ -130,7 +130,7 @@ class MapSearchState extends Equatable {
 
   final MapSearchStatus mapStatus;
   final List<AirQualityReading> airQualityReadings;
-  final List<SearchResultItem> searchResults;
+  final List<SearchPlace> searchResults;
   final String searchTerm;
 
   @override

@@ -12,3 +12,4 @@ export 'place_details.dart';
 export 'profile.dart';
 export 'chart_data.dart';
 export 'search_history.dart';
+export 'search_place.dart';

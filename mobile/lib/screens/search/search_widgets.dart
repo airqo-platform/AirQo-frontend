@@ -4,7 +4,6 @@ import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -569,8 +568,8 @@ class AutoCompleteResultsWidget extends StatelessWidget {
 }
 
 class AutoCompleteResultTile extends StatelessWidget {
-  const AutoCompleteResultTile(this.searchResultItem, {super.key});
-  final SearchResultItem searchResultItem;
+  const AutoCompleteResultTile(this.searchPlace, {super.key});
+  final SearchPlace searchPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -606,7 +605,7 @@ class AutoCompleteResultTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  searchResultItem.name,
+                  searchPlace.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -615,7 +614,7 @@ class AutoCompleteResultTile extends StatelessWidget {
                   height: 2,
                 ),
                 Text(
-                  searchResultItem.location,
+                  searchPlace.location,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.bodyText4(context)?.copyWith(

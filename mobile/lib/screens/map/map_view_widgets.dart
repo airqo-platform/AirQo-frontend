@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -118,13 +116,11 @@ class SiteTile extends StatelessWidget {
 }
 
 class SearchTile extends StatelessWidget {
-  SearchTile({
+  const SearchTile({
     super.key,
-    required this.searchResult,
+    required this.searchPlace,
   });
-  final SearchResultItem searchResult;
-  final SearchRepository _searchRepository =
-      SearchRepository(searchApiKey: Config.searchApiKey);
+  final SearchPlace searchPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -135,14 +131,14 @@ class SearchTile extends StatelessWidget {
         _showPlaceDetails(context);
       },
       title: AutoSizeText(
-        searchResult.name,
+        searchPlace.name,
         maxLines: 1,
         minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        searchResult.location,
+        searchPlace.location,
         maxLines: 1,
         minFontSize: 14.0,
         overflow: TextOverflow.ellipsis,
@@ -162,12 +158,14 @@ class SearchTile extends StatelessWidget {
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
 
-    final place = await _searchRepository.placeDetails(searchResult.id);
+    SearchPlace? place = await SearchApiClient().getSearchPlaceDetails(
+      searchPlace,
+    );
 
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
-        place.geometry.location.lat,
-        place.geometry.location.lng,
+        place.latitude,
+        place.longitude,
       );
 
       Navigator.pop(context);
@@ -177,7 +175,7 @@ class SearchTile extends StatelessWidget {
         showSnackBar(
           context,
           'Oops!!.. We don’t have air quality readings for'
-          ' ${searchResult.name}',
+          ' ${searchPlace.name}',
           durationInSeconds: 3,
         );
 
@@ -190,11 +188,11 @@ class SearchTile extends StatelessWidget {
           builder: (context) {
             return InsightsPage(
               nearestSite.copyWith(
-                name: searchResult.name,
-                location: searchResult.location,
-                placeId: searchResult.id,
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
+                name: searchPlace.name,
+                location: searchPlace.location,
+                placeId: searchPlace.id,
+                latitude: place.latitude,
+                longitude: place.longitude,
               ),
             );
           },
@@ -675,7 +673,7 @@ class SearchResults extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) => SearchTile(
-                  searchResult: state.searchResults[index],
+                  searchPlace: state.searchResults[index],
                 ),
                 itemCount: state.searchResults.length,
               ),

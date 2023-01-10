@@ -1,8 +1,6 @@
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -18,8 +16,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<ShowSiteReading>(_onShowSiteReading);
     on<InitializeSearch>(_onInitializeSearch);
   }
-
-  late final SearchRepository searchRepository;
 
   Future<void> _onInitializeMapState(
     InitializeMapState _,
@@ -142,10 +138,7 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
       _onMapSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
-    searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
-
-  late final SearchRepository searchRepository;
 
   void _onLoadDefaults(
     Emitter<MapSearchState> emit,
@@ -190,12 +183,15 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
       final List<String> countries =
           state.airQualityReadings.map((e) => e.country).toSet().toList();
 
-      final results = await searchRepository.search(
-        searchTerm,
-        countries: countries,
-      );
+      List<SearchPlace> results =
+          await SearchApiClient().getSearchPlaces(searchTerm);
 
-      return emit(state.copyWith(searchResults: results.items));
+      results = results.where((element) {
+        return countries.any((country) =>
+            element.location.toLowerCase().contains(country.toLowerCase()));
+      }).toList();
+
+      return emit(state.copyWith(searchResults: results));
     } catch (error) {
       return;
     }
