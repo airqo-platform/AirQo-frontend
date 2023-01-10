@@ -1,2 +1,2 @@
-json_key_file("/Users/mutabazinble/Desktop/AirQo/Mobile/airqo-dev-208a1c06d68d.json")
+json_key_file("fastlane/airqo-android-service-account-key.json")
 package_name("com.airqo.app")

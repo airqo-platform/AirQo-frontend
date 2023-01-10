@@ -63,30 +63,11 @@ jobs:
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="sta-env-mobile-app" > .env.dev
 
-      - name: Build app
-        run: |
-          cd mobile/
-          flutter pub get
-          flutter build appbundle --flavor airqo
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-bundle
-          path: mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab
-          retention-days: 1
-      
       - name: Add firebase app distribution service and play store service account
         run: |
           cd mobile/android/
           gcloud secrets versions access latest --secret="prod-env-mobile-firebase-app-distribution" | base64 --decode > firebase_distributor.json
           gcloud secrets versions access latest --secret="prod-env-mobile-play-store-service-account-encrypted" | base64 --decode > play_store_SA.json
-
-
-      - name: Add app testers
-        run: |
-          cd mobile/android/
-          gcloud secrets versions access latest --secret="prod-env-mobile-testers-android"  > testers.txt
 
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
