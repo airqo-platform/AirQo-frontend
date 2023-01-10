@@ -178,7 +178,7 @@ jobs:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK(gcloud)
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
@@ -250,7 +250,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
@@ -317,7 +317,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
