@@ -109,7 +109,7 @@ jobs:
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "12"
       - run: |
@@ -256,7 +256,7 @@ jobs:
         run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "12"
       - run: |
