@@ -209,93 +209,6 @@ class SearchTile extends StatelessWidget {
   }
 }
 
-class EmptyView extends StatelessWidget {
-  const EmptyView({
-    super.key,
-    required this.title,
-    required this.bodyInnerText,
-    required this.topBars,
-    required this.showRegions,
-  });
-  final String title;
-  final String bodyInnerText;
-  final bool topBars;
-  final VoidCallback showRegions;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Visibility(
-          visible: topBars,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: 32,
-                width: 32,
-                decoration: BoxDecoration(
-                  color: CustomColors.appBodyColor,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: Center(
-                  child: IconButton(
-                    iconSize: 10,
-                    icon: Icon(
-                      Icons.clear,
-                      color: CustomColors.appColorBlack,
-                    ),
-                    onPressed: showRegions,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 80,
-        ),
-        Image.asset(
-          'assets/icon/coming_soon.png',
-          height: 80,
-          width: 80,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: Text(
-            '$title\nComing soon on the network'.trim(),
-            textAlign: TextAlign.center,
-            style: CustomTextStyle.headline7(context)
-                ?.copyWith(letterSpacing: 16 * -0.01),
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: Text(
-            'We currently do not support air quality '
-            'monitoring in this $bodyInnerText, but we’re working on it.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.4),
-                ),
-          ),
-        ),
-        const SizedBox(
-          height: 158,
-        ),
-      ],
-    );
-  }
-}
-
 class CountryTile extends StatelessWidget {
   const CountryTile(this.country, {super.key});
   final String country;
@@ -430,17 +343,7 @@ class RegionSites extends StatelessWidget {
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: state.featuredAirQualityReadings.isEmpty,
-                  child: EmptyView(
-                    title: state.featuredRegion.toTitleCase(),
-                    topBars: false,
-                    bodyInnerText: 'region',
-                    showRegions: () {
-                      context.read<MapBloc>().add(const InitializeMapState());
-                    },
-                  ),
-                ),
+                // TODO added empty widget
               ],
             ),
           );
