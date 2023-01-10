@@ -291,7 +291,7 @@ jobs:
             message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+        uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
