@@ -156,6 +156,9 @@ const Footer = () => {
                   <Link to="/contact">Contact</Link>
                 </span>
                 <span>
+                  <Link to="/publications">Publications</Link>
+                </span>
+                <span>
                   <Link to="/press">Press</Link>
                 </span>
                 <span>
