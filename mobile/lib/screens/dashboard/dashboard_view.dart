@@ -363,7 +363,7 @@ class _DashboardViewState extends State<DashboardView>
     _kyaShowcaseKey = GlobalKey();
     _analyticsShowcaseKey = GlobalKey();
     _nearestLocationShowcaseKey = GlobalKey();
-    WidgetsBinding.instance.addPostFrameCallback((_) => showcaseToggle());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
@@ -435,7 +435,7 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  Future<void> showcaseToggle() async {
+  Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('homePageshowcase') == null) {
       Future.delayed(const Duration(microseconds: 10), () {
