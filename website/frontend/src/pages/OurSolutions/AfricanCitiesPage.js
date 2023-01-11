@@ -221,23 +221,23 @@ const PublicationsSection = () => {
 const AfricanCitiesPage = () => {
     useInitScrollTop();
     return (
-        <Page>
-            <div className="AfricanCitiesPage">
-                <SEO
-                    title="Our Solutions"
-                    siteTitle="For African Cities"
-                    description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
-                />
-                <CityHeroSection />
-                <CityBanner />
-                <div className="cities-divider" />
-                <AfricanCitiesApproach />
-                <CityTabs />
-                <Outlet />
-                <PublicationsSection />
-            </div>
-        </Page>
-    )
+      <Page>
+        <div className="AfricanCitiesPage">
+          <SEO
+            title="Our Solutions"
+            siteTitle="For African Cities"
+            description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
+          />
+          <CityHeroSection />
+          <CityBanner />
+          <div className="cities-divider" />
+          <AfricanCitiesApproach />
+          <CityTabs />
+          <Outlet />
+          <PublicationsSection />
+        </div>
+      </Page>
+    );
 }
 
 export default AfricanCitiesPage;
