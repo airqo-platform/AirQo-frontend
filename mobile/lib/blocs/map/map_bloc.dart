@@ -183,8 +183,7 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
       final List<String> countries =
           state.airQualityReadings.map((e) => e.country).toSet().toList();
 
-      List<SearchPlace> results =
-          await SearchApiClient().getSearchPlaces(searchTerm);
+      List<SearchResult> results = await SearchApiClient().search(searchTerm);
 
       results = results.where((element) {
         return countries.any((country) =>

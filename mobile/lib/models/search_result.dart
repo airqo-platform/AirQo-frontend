@@ -1,5 +1,5 @@
-class SearchPlace {
-  SearchPlace({
+class SearchResult {
+  SearchResult({
     required this.id,
     required this.name,
     required this.location,
@@ -7,8 +7,8 @@ class SearchPlace {
     required this.longitude,
   });
 
-  factory SearchPlace.fromAutoCompleteAPI(Map<String, dynamic> json) {
-    return SearchPlace(
+  factory SearchResult.fromAutoCompleteAPI(Map<String, dynamic> json) {
+    return SearchResult(
       id: json["place_id"] as String,
       name: json["structured_formatting"]["main_text"] as String,
       location: json["structured_formatting"]["secondary_text"] as String,
@@ -17,21 +17,21 @@ class SearchPlace {
     );
   }
 
-  factory SearchPlace.fromPlacesAPI(
+  factory SearchResult.fromPlacesAPI(
     Map<String, dynamic> json,
-    SearchPlace searchPlace,
+    SearchResult searchResult,
   ) {
-    return searchPlace.copyWith(
+    return searchResult.copyWith(
       latitude: json["geometry"]["location"]["lat"] as double,
       longitude: json["geometry"]["location"]["lng"] as double,
     );
   }
 
-  SearchPlace copyWith({
+  SearchResult copyWith({
     double? latitude,
     double? longitude,
   }) {
-    return SearchPlace(
+    return SearchResult(
       id: id,
       name: name,
       location: location,
@@ -48,16 +48,17 @@ class SearchPlace {
 }
 
 class SearchCache {
-  final _searchPlacesCache = <String, List<SearchPlace>>{};
-  final _searchPlaceCache = <String, SearchPlace>{};
+  final _searchResultsCache = <String, List<SearchResult>>{};
+  final _searchResultCache = <String, SearchResult>{};
 
-  List<SearchPlace>? getSearchPlaces(String term) => _searchPlacesCache[term];
+  List<SearchResult>? getSearchResults(String term) =>
+      _searchResultsCache[term];
 
-  void setSearchPlaces(String term, List<SearchPlace> result) =>
-      _searchPlacesCache[term] = result;
+  void setSearchResults(String term, List<SearchResult> result) =>
+      _searchResultsCache[term] = result;
 
-  SearchPlace? getSearchPlace(String placeId) => _searchPlaceCache[placeId];
+  SearchResult? getSearchResult(String placeId) => _searchResultCache[placeId];
 
-  void setSearchPlace(String placeId, SearchPlace result) =>
-      _searchPlaceCache[placeId] = result;
+  void setSearchResult(String placeId, SearchResult result) =>
+      _searchResultCache[placeId] = result;
 }

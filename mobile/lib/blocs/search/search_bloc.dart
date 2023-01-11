@@ -159,10 +159,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(state.copyWith(searchStatus: SearchStatus.searchingAirQuality));
 
-    final SearchPlace? placeDetails =
-        await SearchApiClient().getSearchPlaceDetails(event.searchPlace);
+    final SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(event.searchResult);
 
-    if (placeDetails == null) {
+    if (searchResult == null) {
       return emit(state.copyWith(
         searchStatus: SearchStatus.airQualitySearchFailed,
         nullSearchAirQuality: true,
@@ -170,8 +170,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     final nearestSite = await LocationService.getNearestSite(
-      placeDetails.latitude,
-      placeDetails.longitude,
+      searchResult.latitude,
+      searchResult.longitude,
     );
 
     if (nearestSite == null) {
@@ -182,11 +182,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     AirQualityReading airQualityReading = nearestSite.copyWith(
-      name: event.searchPlace.name,
-      location: event.searchPlace.location,
-      placeId: event.searchPlace.id,
-      latitude: placeDetails.latitude,
-      longitude: placeDetails.longitude,
+      name: event.searchResult.name,
+      location: event.searchResult.location,
+      placeId: event.searchResult.id,
+      latitude: searchResult.latitude,
+      longitude: searchResult.longitude,
     );
 
     List<AirQualityReading> recentSearches = List.of(state.recentSearches);
@@ -241,8 +241,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       final List<String> countries =
           airQualityReadings.map((e) => e.country).toSet().toList();
 
-      List<SearchPlace> results =
-          await SearchApiClient().getSearchPlaces(searchTerm);
+      List<SearchResult> results = await SearchApiClient().search(searchTerm);
 
       results = results.where((element) {
         return countries.any((country) =>

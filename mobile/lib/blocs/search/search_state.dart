@@ -51,7 +51,7 @@ class SearchState extends Equatable {
     List<AirQualityReading>? otherAirQualityLocations,
     List<AirQualityReading>? africanCities,
     String? searchTerm,
-    List<SearchPlace>? searchResults,
+    List<SearchResult>? searchResults,
     AirQuality? featuredAirQuality,
     AirQualityReading? searchAirQuality,
     SearchStatus? searchStatus,
@@ -86,7 +86,7 @@ class SearchState extends Equatable {
   final List<AirQualityReading> otherAirQualityLocations;
   final List<AirQualityReading> africanCities;
   final String searchTerm;
-  final List<SearchPlace> searchResults;
+  final List<SearchResult> searchResults;
   final AirQuality? featuredAirQuality;
   final AirQualityReading? searchAirQuality;
   final SearchStatus searchStatus;

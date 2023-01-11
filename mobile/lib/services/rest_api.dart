@@ -196,9 +196,7 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return EmailAuthModel.fromJson(
-        json.decode(response.body) as Map<String, dynamic>,
-      );
+      return EmailAuthModel.fromJson(json.decode(response.body));
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -381,7 +379,7 @@ class SearchApiClient {
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
       'https://maps.googleapis.com/maps/api/place/details/json';
-  final String autoCompleteApi =
+  final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
   final _httpClient = SentryHttpClient(
@@ -413,13 +411,13 @@ class SearchApiClient {
     return null;
   }
 
-  Future<List<SearchPlace>> getSearchPlaces(String input) async {
-    List<SearchPlace>? cachedResult = _cache.getSearchPlaces(input);
+  Future<List<SearchResult>> search(String input) async {
+    List<SearchResult>? cachedResult = _cache.getSearchResults(input);
     if (cachedResult != null) {
       return cachedResult;
     }
 
-    List<SearchPlace> searchPlaces = <SearchPlace>[];
+    List<SearchResult> searchResults = <SearchResult>[];
 
     try {
       final queryParams = <String, String>{}
@@ -431,33 +429,33 @@ class SearchApiClient {
         );
 
       final responseBody = await _getRequest(
-        url: autoCompleteApi,
+        url: autoCompleteUrl,
         queryParams: queryParams,
       );
 
       if (responseBody != null && responseBody['status'] == 'OK') {
         for (final jsonElement in responseBody['predictions']) {
           try {
-            searchPlaces.add(SearchPlace.fromAutoCompleteAPI(jsonElement));
+            searchResults.add(SearchResult.fromAutoCompleteAPI(jsonElement));
           } catch (__, _) {}
         }
       }
     } catch (_, __) {}
 
-    return searchPlaces;
+    return searchResults;
   }
 
-  Future<SearchPlace?> getSearchPlaceDetails(
-    SearchPlace searchPlace,
+  Future<SearchResult?> getPlaceDetails(
+    SearchResult searchResult,
   ) async {
-    SearchPlace? cachedResult = _cache.getSearchPlace(searchPlace.id);
+    SearchResult? cachedResult = _cache.getSearchResult(searchResult.id);
     if (cachedResult != null) {
       return cachedResult;
     }
 
     try {
       final queryParams = <String, String>{}
-        ..putIfAbsent('place_id', () => searchPlace.id)
+        ..putIfAbsent('place_id', () => searchResult.id)
         ..putIfAbsent('fields', () => 'name,geometry')
         ..putIfAbsent('key', () => Config.searchApiKey)
         ..putIfAbsent(
@@ -470,9 +468,9 @@ class SearchApiClient {
         queryParams: queryParams,
       );
 
-      return SearchPlace.fromPlacesAPI(
+      return SearchResult.fromPlacesAPI(
         responseBody['result'],
-        searchPlace,
+        searchResult,
       );
     } catch (_, __) {}
 

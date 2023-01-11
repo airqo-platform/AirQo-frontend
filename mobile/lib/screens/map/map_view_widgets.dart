@@ -118,27 +118,27 @@ class SiteTile extends StatelessWidget {
 class SearchTile extends StatelessWidget {
   const SearchTile({
     super.key,
-    required this.searchPlace,
+    required this.searchResult,
   });
-  final SearchPlace searchPlace;
+  final SearchResult searchResult;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
-      onTap: () {
-        _showPlaceDetails(context);
+      onTap: () async {
+        await _showPlaceDetails(context);
       },
       title: AutoSizeText(
-        searchPlace.name,
+        searchResult.name,
         maxLines: 1,
         minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        searchPlace.location,
+        searchResult.location,
         maxLines: 1,
         minFontSize: 14.0,
         overflow: TextOverflow.ellipsis,
@@ -158,8 +158,8 @@ class SearchTile extends StatelessWidget {
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
 
-    SearchPlace? place = await SearchApiClient().getSearchPlaceDetails(
-      searchPlace,
+    SearchResult? place = await SearchApiClient().getPlaceDetails(
+      searchResult,
     );
 
     if (place != null) {
@@ -175,7 +175,7 @@ class SearchTile extends StatelessWidget {
         showSnackBar(
           context,
           'Oops!!.. We don’t have air quality readings for'
-          ' ${searchPlace.name}',
+          ' ${searchResult.name}',
           durationInSeconds: 3,
         );
 
@@ -188,9 +188,9 @@ class SearchTile extends StatelessWidget {
           builder: (context) {
             return InsightsPage(
               nearestSite.copyWith(
-                name: searchPlace.name,
-                location: searchPlace.location,
-                placeId: searchPlace.id,
+                name: searchResult.name,
+                location: searchResult.location,
+                placeId: searchResult.id,
                 latitude: place.latitude,
                 longitude: place.longitude,
               ),
@@ -673,7 +673,7 @@ class SearchResults extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) => SearchTile(
-                  searchPlace: state.searchResults[index],
+                  searchResult: state.searchResults[index],
                 ),
                 itemCount: state.searchResults.length,
               ),

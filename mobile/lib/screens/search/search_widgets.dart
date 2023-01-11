@@ -568,8 +568,8 @@ class AutoCompleteResultsWidget extends StatelessWidget {
 }
 
 class AutoCompleteResultTile extends StatelessWidget {
-  const AutoCompleteResultTile(this.searchPlace, {super.key});
-  final SearchPlace searchPlace;
+  const AutoCompleteResultTile(this.searchResult, {super.key});
+  final SearchResult searchResult;
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +605,7 @@ class AutoCompleteResultTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  searchPlace.name,
+                  searchResult.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -614,7 +614,7 @@ class AutoCompleteResultTile extends StatelessWidget {
                   height: 2,
                 ),
                 Text(
-                  searchPlace.location,
+                  searchResult.location,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.bodyText4(context)?.copyWith(

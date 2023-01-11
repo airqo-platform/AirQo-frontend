@@ -36,11 +36,11 @@ class SearchTermChanged extends SearchEvent {
 }
 
 class SearchAirQuality extends SearchEvent {
-  const SearchAirQuality(this.searchPlace);
-  final SearchPlace searchPlace;
+  const SearchAirQuality(this.searchResult);
+  final SearchResult searchResult;
 
   @override
-  List<Object> get props => [searchPlace];
+  List<Object> get props => [searchResult];
 }
 
 class ClearSearchResult extends SearchEvent {
