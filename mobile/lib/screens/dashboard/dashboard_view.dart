@@ -38,7 +38,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _kyaShowcaseKey;
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
-  bool kyaexists = true, nearbylocationexists = true;
+  bool _kyaExists = true, _nearbyLocationExists = true;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -48,39 +48,6 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<ServiceStatus> _locationServiceStream;
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
-  void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (kyaexists && nearbylocationexists) {
-        ShowCaseWidget.of(context).startShowCase([
-          _favoritesShowcaseKey,
-          _forYouShowcaseKey,
-          _nearestLocationShowcaseKey,
-          _kyaShowcaseKey,
-          _analyticsShowcaseKey,
-        ]);
-      } else if (kyaexists && !nearbylocationexists) {
-        ShowCaseWidget.of(context).startShowCase([
-          _favoritesShowcaseKey,
-          _forYouShowcaseKey,
-          _kyaShowcaseKey,
-          _analyticsShowcaseKey,
-        ]);
-      } else if (!kyaexists && nearbylocationexists) {
-        ShowCaseWidget.of(context).startShowCase([
-          _favoritesShowcaseKey,
-          _forYouShowcaseKey,
-          _nearestLocationShowcaseKey,
-          _analyticsShowcaseKey,
-        ]);
-      } else {
-        ShowCaseWidget.of(context).startShowCase([
-          _favoritesShowcaseKey,
-          _forYouShowcaseKey,
-          _analyticsShowcaseKey,
-        ]);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,9 +148,10 @@ class _DashboardViewState extends State<DashboardView>
                               ),
                             );
                           },
-                          children: kyaWidgets,
+                            children: kyaWidgets,
+                          ),
                         ),
-                      ));
+                      );
                     },
                   ),
                 ],
@@ -251,7 +219,7 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 if (state.blocStatus ==
                                     NearbyLocationStatus.error) {
-                                  nearbylocationexists = false;
+                                  _nearbyLocationExists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
                                       return Padding(
@@ -298,7 +266,7 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 List<Kya> kya = state.kya.filterIncompleteKya();
                                 if (kya.isEmpty) {
-                                  kyaexists = false;
+                                  _kyaExists = false;
 
                                   return const SizedBox();
                                 }
@@ -388,10 +356,6 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => showcasetoggle());
-    WidgetsBinding.instance.addObserver(this);
-    _listenToStreams();
-    _refresh();
     _favToolTipKey = GlobalKey();
     _kyaToolTipKey = GlobalKey();
     _favoritesShowcaseKey = GlobalKey();
@@ -399,6 +363,10 @@ class _DashboardViewState extends State<DashboardView>
     _kyaShowcaseKey = GlobalKey();
     _analyticsShowcaseKey = GlobalKey();
     _nearestLocationShowcaseKey = GlobalKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) => showcaseToggle());
+    WidgetsBinding.instance.addObserver(this);
+    _listenToStreams();
+    _refresh();
   }
 
   @override
@@ -447,14 +415,34 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
-  Future<void> showcasetoggle() async {
+  void _startShowcase() {
+    List<GlobalKey> globalKeys = [
+      _favoritesShowcaseKey,
+      _forYouShowcaseKey,
+      _analyticsShowcaseKey,
+    ];
+    if (_kyaExists) {
+      globalKeys.add(_kyaShowcaseKey);
+    }
+
+    if (_nearbyLocationExists) {
+      globalKeys.add(_nearestLocationShowcaseKey);
+    }
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        ShowCaseWidget.of(context).startShowCase(globalKeys);
+      },
+    );
+  }
+
+  Future<void> showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('homePageshowcase') == null) {
       Future.delayed(const Duration(microseconds: 10), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             _startShowcase();
-            _appService.stopshowcase('homePageshowcase');
+            _appService.stopShowcase('homePageshowcase');
           });
         }
       });

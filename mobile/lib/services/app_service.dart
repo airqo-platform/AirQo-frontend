@@ -169,17 +169,17 @@ class AppService {
     }
   }
 
-  Future<void> setshowcase() async {
+  Future<void> setShowcase() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showcase', true);
   }
 
-  Future<void> stopshowcase(String key) async {
+  Future<void> stopShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, false);
   }
 
-  Future<void> clearshowcase() async {
+  Future<void> clearShowcase() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('homePageshowcase');
     await prefs.remove('forYouPageShowcase');

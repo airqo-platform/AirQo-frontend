@@ -132,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage>
                   child: ListTile(
                     tileColor: Colors.white,
                     onTap: () async {
-                      await AppService().clearshowcase();
+                      await AppService().clearShowcase();
                       await Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(

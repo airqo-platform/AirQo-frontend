@@ -122,7 +122,7 @@ class _ForYouPageState extends State<ForYouPage>
     _tabController.animateTo(_analytics ? 0 : 1);
     _analyticsTabShowcaseKey = GlobalKey();
     _kyaTabShowcaseKey = GlobalKey();
-    WidgetsBinding.instance.addPostFrameCallback((_) => showcasetoggle());
+    WidgetsBinding.instance.addPostFrameCallback((_) => showcaseToggle());
   }
 
   void _startShowcase() {
@@ -136,11 +136,11 @@ class _ForYouPageState extends State<ForYouPage>
     });
   }
 
-  Future<void> showcasetoggle() async {
+  Future<void> showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('forYouPageShowcase') == null) {
       _startShowcase();
-      _appService.stopshowcase('forYouPageShowcase');
+      _appService.stopShowcase('forYouPageShowcase');
     }
   }
 }
