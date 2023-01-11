@@ -84,7 +84,7 @@ const Press = () => {
                           </div>
                       </div>
                       <div className="press-cards-lg">
-                          <div className="card-lg">
+                          <div className="card-lg" style={{paddingBottom:'0px'}}>
                               <Article
                                   title="AirQo Project to expand its air quality monitoring network to more African countries"
                                   subtitle="AirQo Project to expand its air quality monitoring network to more African countries"
