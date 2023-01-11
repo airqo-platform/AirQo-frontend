@@ -47,8 +47,8 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
-  Future<Map<String, dynamic>> getLocation() async {
-    var ipAddress = '';
+  Future<Map<String, double>> getLocation() async {
+    String ipAddress = '';
     try {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
@@ -68,7 +68,10 @@ class AirqoApiClient {
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
-      return response['data'] as Map<String, dynamic>;
+      return {
+        'latitude': response['data']['latitude'] as double,
+        'longitude': response['data']['longitude'] as double,
+      };
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -161,13 +164,13 @@ class AirqoApiClient {
 
       for (final e in body['data']['forecast']) {
         final json = e;
-        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        json['frequency'] = (e['frequency'] as String).toLowerCase();
         forecastData.add(ForecastInsight.fromJson(json));
       }
 
       for (final e in body['data']['historical']) {
         final json = e;
-        json['frequency'] = frequencyFromString(e['frequency'] as String);
+        json['frequency'] = (e['frequency'] as String).toLowerCase();
         historicalData.add(HistoricalInsight.fromJson(json));
       }
 

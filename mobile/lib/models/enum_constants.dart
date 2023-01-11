@@ -4,6 +4,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -146,18 +147,18 @@ enum AuthenticationError {
 }
 
 enum NearbyAirQualityError {
+  none(
+    message: '',
+    snackBarActionLabel: '',
+    snackBarDuration: 5,
+  ),
   locationDenied(
-    message: 'Grant location access in your phone settings',
+    message: 'Enable location to get air quality near you',
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),
   locationDisabled(
     message: 'Turn on location to get air quality near you',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
-  ),
-  locationNotAllowed(
-    message: 'Enable location in your settings.',
     snackBarActionLabel: 'Open Settings',
     snackBarDuration: 5,
   ),
@@ -432,6 +433,7 @@ enum AuthProcedure {
   final String confirmationCancelText;
 }
 
+@JsonEnum(valueField: 'string')
 enum Frequency {
   daily('daily'),
   hourly('hourly');
@@ -501,18 +503,6 @@ enum Gender {
 enum ConfirmationAction {
   cancel,
   ok,
-}
-
-enum ErrorMessage {
-  logout('Failed to logout', 'Try again later');
-
-  const ErrorMessage(this.title, this.message);
-
-  final String title;
-  final String message;
-
-  @override
-  String toString() => title;
 }
 
 enum OnBoardingPage {

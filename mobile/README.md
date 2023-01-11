@@ -20,7 +20,8 @@
 | [.env.dev]()      | App root directory (this directory) |
 | **.env.prod**     | App root directory (this directory). Create an empty file named `.env.prod`. |
 | [airqo-dev-keystore.jks]()      | Place it in any secure directory on your computer |
-| [GoogleService-Info.plist]()      | `Runner` directory under `ios` folder (`ios/Runner/`)
+| [GoogleService-Info.plist]()      | `airqo` directory `ios/config` folder (`ios/config/`)
+| [GoogleService-Info.plist]()      | `airqodev` directory under `ios/config` folder (`ios/config/`)(For the staging environment)
 
 ### **Update variables in configuration files**
 
@@ -36,7 +37,7 @@
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
 ### **For Contributors:**
-  - It's important to first read our guidelines [here](/../CONTRIBUTING.md).
+  - It's important to first read our guidelines [here](/CONTRIBUTING.md).
   - Thereafter, proceed to create your own necessary configuration files. These include;
     - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
       - Here's what your .env file would look like;

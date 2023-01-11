@@ -10,6 +10,18 @@ part 'analytics.g.dart';
 @JsonSerializable()
 @HiveType(typeId: 40, adapterName: 'AnalyticsAdapter')
 class Analytics extends HiveObject {
+  factory Analytics.fromAirQualityReading(AirQualityReading airQualityReading) {
+    return Analytics(
+      id: airQualityReading.placeId,
+      site: airQualityReading.referenceSite,
+      name: airQualityReading.name,
+      location: airQualityReading.location,
+      createdAt: airQualityReading.dateTime,
+      longitude: airQualityReading.longitude,
+      latitude: airQualityReading.latitude,
+    );
+  }
+
   factory Analytics.fromJson(Map<String, dynamic> json) =>
       _$AnalyticsFromJson(json);
 
@@ -59,14 +71,8 @@ class Analytics extends HiveObject {
   static List<Analytics> fromAirQualityReadings() {
     return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .values
-        .map((airQualityReading) => Analytics(
-              id: airQualityReading.placeId,
-              site: airQualityReading.referenceSite,
-              name: airQualityReading.name,
-              location: airQualityReading.location,
-              createdAt: airQualityReading.dateTime,
-              longitude: airQualityReading.longitude,
-              latitude: airQualityReading.latitude,
+        .map((airQualityReading) => Analytics.fromAirQualityReading(
+              airQualityReading,
             ))
         .toList();
   }

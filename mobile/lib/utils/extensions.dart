@@ -75,39 +75,75 @@ extension ChartDataExt on ChartData {
   }
 }
 
-extension KyaListExt on List<Kya> {
-  int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
+extension KyaExt on Kya {
+  String getKyaMessage() {
+    if (isInProgress()) {
+      return 'Continue';
+    } else if (isPartiallyComplete()) {
+      return 'Complete! Move to For You';
+    } else {
+      return 'Start learning';
     }
+  }
 
-    return sum;
+  bool isPartiallyComplete() {
+    return progress == 1;
+  }
+
+  bool isComplete() {
+    return progress == -1;
+  }
+
+  bool isInProgress() {
+    return progress > 0 && progress < 1;
+  }
+
+  double getProgress(int visibleCardIndex) {
+    return (visibleCardIndex + 1) / lessons.length;
+  }
+}
+
+extension KyaListExt on List<Kya> {
+  void sortByProgress() {
+    sort((x, y) => -(x.progress.compareTo(y.progress)));
   }
 
   List<Kya> filterIncompleteKya() {
     return where((element) {
-      return element.progress != -1;
+      return !element.isComplete();
     }).toList();
   }
 
   List<Kya> filterCompleteKya() {
     return where((element) {
-      return element.progress == -1;
+      return element.isComplete();
     }).toList();
+  }
+
+  List<Kya> removeDuplicates() {
+    List<Kya> cleanedKya = [];
+    for (final kya in this) {
+      final duplicates = where((e) => e.id == kya.id).toList();
+      duplicates.sortByProgress();
+      if (!cleanedKya.contains(duplicates.first)) {
+        cleanedKya.add(duplicates.first);
+      }
+    }
+
+    return cleanedKya;
   }
 }
 
 extension AnalyticsListExt on List<Analytics> {
   List<Analytics> sortByDateTime() {
-    sort(
+    List<Analytics> data = List.of(this);
+    data.sort(
       (x, y) {
         return -(x.createdAt.compareTo(y.createdAt));
       },
     );
 
-    return this;
+    return data;
   }
 }
 
@@ -129,7 +165,7 @@ extension SearchHistoryListExt on List<SearchHistory> {
     List<AirQualityReading> airQualityReadings = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
-          await LocationService.getNearestSiteAirQualityReading(
+          await LocationService.getNearestSite(
         searchHistory.latitude,
         searchHistory.longitude,
       );
@@ -171,18 +207,40 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
         )
         .toList();
 
-    return airQualityReadings.sortByDistance();
+    return airQualityReadings.sortByDistanceToReferenceSite();
   }
 
-  List<AirQualityReading> sortByDistance() {
-    List<AirQualityReading> airQualityReadings = List.of(this);
-    airQualityReadings.sort(
+  List<AirQualityReading> shuffleByCountry() {
+    List<AirQualityReading> data = List.of(this);
+    List<AirQualityReading> shuffledData = [];
+
+    final List<String> countries = data.map((e) => e.country).toSet().toList();
+    countries.shuffle();
+    while (data.isNotEmpty) {
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = data
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .take(1)
+            .toList();
+        shuffledData.addAll(countryReadings);
+        for (final reading in countryReadings) {
+          data.remove(reading);
+        }
+      }
+    }
+
+    return shuffledData;
+  }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
       (x, y) {
         return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
       },
     );
 
-    return airQualityReadings;
+    return data;
   }
 }
 

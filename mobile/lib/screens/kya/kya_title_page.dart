@@ -1,11 +1,11 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'kya_lessons_page.dart';
 
@@ -21,17 +21,6 @@ class KyaTitlePage extends StatefulWidget {
 }
 
 class _KyaTitlePageState extends State<KyaTitlePage> {
-  String buttonText = 'Begin';
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.kya.progress > 0 &&
-        widget.kya.progress < widget.kya.lessons.length) {
-      buttonText = 'Resume';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +75,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                   );
                 },
                 child: NextButton(
-                  text: buttonText,
+                  text: widget.kya.isInProgress() ? 'Resume' : 'Begin',
                   buttonColor: CustomColors.appColorBlue,
                 ),
               ),
@@ -160,22 +149,6 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget circularButton(String icon) {
-    return Container(
-      height: 48,
-      width: 48,
-      padding: const EdgeInsets.all(15.0),
-      decoration: BoxDecoration(
-        color: CustomColors.appColorBlue.withOpacity(0.24),
-        shape: BoxShape.circle,
-      ),
-      child: SvgPicture.asset(
-        icon,
-        color: CustomColors.appColorBlue,
       ),
     );
   }

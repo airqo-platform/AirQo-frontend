@@ -34,12 +34,8 @@ class SiteReading extends Equatable {
             : measurement.site.locationName,
         region: measurement.site.region,
         dateTime: measurement.dateTime,
-        pm2_5: double.parse(
-            (measurement.pm2_5.calibratedValue ?? measurement.pm2_5.value)
-                .toStringAsFixed(2)),
-        pm10: double.parse(
-            (measurement.pm10.calibratedValue ?? measurement.pm10.value)
-                .toStringAsFixed(2)),
+        pm2_5: measurement.pm2_5.calibratedValue ?? measurement.pm2_5.value,
+        pm10: measurement.pm10.calibratedValue ?? measurement.pm10.value,
         source: measurement.site.tenant);
   }
 
@@ -61,7 +57,7 @@ class SiteReading extends Equatable {
   final double pm10;
 
   @override
-  List<Object?> get props => [name, dateTime, pm2_5];
+  List<Object> get props => [name, dateTime, pm2_5];
 }
 
 List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
@@ -69,17 +65,8 @@ List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
   for (final measurement in measurements) {
     try {
       airQuality.add(SiteReading.fromMeasurement(measurement));
-    } catch (exception) {
-      // TODO create utils package
-      // await logException(
-      //   exception,
-      //   stackTrace,
-      // );
-    }
+    } catch (_, __) {}
   }
-  airQuality.sort(
-    (x, y) => x.dateTime.compareTo(y.dateTime),
-  );
 
   return airQuality;
 }

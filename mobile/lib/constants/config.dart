@@ -2,6 +2,7 @@ import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
@@ -40,9 +41,6 @@ class Config {
   static String get placesSearchUrl =>
       'https://maps.googleapis.com/maps/api/place/';
 
-  static String get appErrorMessage =>
-      'Failed to process your request. Try again later';
-
   static String get appStoreUrl =>
       'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
 
@@ -52,25 +50,12 @@ class Config {
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
-  static String get allowLocationMessage =>
-      'Turn on and allow location permissions';
-
-  static String get feedbackSuccessMessage => 'Thanks for the feedback';
-
   static String get shareFailedMessage => 'Couldn\'t share image.';
-
-  static String get feedbackFailureMessage =>
-      'Could not capture your feedback. Try again later';
-
-  static String get locationErrorMessage =>
-      'Cannot get your location at the moment';
-
-  static int get maxSearchRadius => searchRadius * 2;
 
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
 
-  static int get searchRadius => 2;
+  static int get searchRadius => 4;
 
   static String get termsUrl =>
       'https://docs.airqo.net/#/mobile_app/privacy_policy';
@@ -81,6 +66,34 @@ class Config {
 
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
+  }
+
+  static LocationSettings locationSettings() {
+    LocationSettings locationSettings;
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      locationSettings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
+        forceLocationManager: true,
+        intervalDuration: const Duration(minutes: 1),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      locationSettings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        activityType: ActivityType.fitness,
+        distanceFilter: 100,
+        showBackgroundLocationIndicator: false,
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
+      );
+    }
+
+    return locationSettings;
   }
 }
 

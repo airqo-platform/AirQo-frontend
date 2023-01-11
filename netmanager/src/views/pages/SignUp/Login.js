@@ -90,7 +90,6 @@ class Login extends Component {
         [id]: value,
       },
       () => {
-        console.log(errors);
       }
     );
   };

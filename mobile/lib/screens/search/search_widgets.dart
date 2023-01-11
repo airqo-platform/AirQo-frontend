@@ -127,7 +127,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
     return Container(
       height: 54,
       width: 54,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 5,
         vertical: 2,
       ),
@@ -311,49 +311,50 @@ class SearchSection extends StatelessWidget {
       return Container();
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.headline8(context)?.copyWith(
-            color: CustomColors.appColorBlack.withOpacity(0.3),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.headline8(context)?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.3),
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (_, index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return InsightsPage(data[index]);
-                      },
-                    ),
-                  );
-                },
-                child: SearchPageAirQualityTile(data[index]),
-              ),
-            );
-          },
-          itemCount: data.length,
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-      ],
+          const SizedBox(
+            height: 8,
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (_, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return InsightsPage(data[index]);
+                        },
+                      ),
+                    );
+                  },
+                  child: SearchPageAirQualityTile(data[index]),
+                ),
+              );
+            },
+            itemCount: data.length,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -401,7 +402,7 @@ class ExploreAfricanCityCard extends StatelessWidget {
           const SizedBox(
             height: 5,
           ),
-          AnalyticsAvatar(airQualityReading: airQualityReading),
+          AnalyticsAvatar(airQualityReading),
           const SizedBox(
             height: 4,
           ),
@@ -423,52 +424,53 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
           return Container();
         }
 
-        return Column(
-          // mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Explore African Cities',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: CustomTextStyle.headline8(context)?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.3),
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Explore African Cities',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: CustomTextStyle.headline8(context)?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.3),
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            GridView.builder(
-              shrinkWrap: true,
-              itemCount: state.africanCities.length,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemBuilder: (_, index) {
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return InsightsPage(state.africanCities[index]);
-                        },
-                      ),
-                    );
-                  },
-                  child: ExploreAfricanCityCard(state.africanCities[index]),
-                );
-              },
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-                childAspectRatio: 1 / 1.2,
+              const SizedBox(
+                height: 16,
               ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-          ],
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: state.africanCities.length,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemBuilder: (_, index) {
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return InsightsPage(state.africanCities[index]);
+                          },
+                        ),
+                      );
+                    },
+                    child: ExploreAfricanCityCard(state.africanCities[index]),
+                  );
+                },
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  childAspectRatio: 1 / 1.2,
+                ),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+            ],
+          ),
         );
       },
     );
@@ -522,6 +524,7 @@ class AutoCompleteResultsWidget extends StatelessWidget {
               listener: (context, state) async {
                 AirQualityReading? airQualityReading = state.searchAirQuality;
                 if (airQualityReading != null) {
+                  context.read<SearchBloc>().add(const ClearSearchResult());
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -538,7 +541,7 @@ class AutoCompleteResultsWidget extends StatelessWidget {
                         previous.searchStatus ==
                             SearchStatus.searchingAirQuality) &&
                     current.searchStatus ==
-                        SearchStatus.autoCompleteSearching &&
+                        SearchStatus.autoCompleteSearchSuccess &&
                     current.searchAirQuality != null;
               },
             ),
@@ -669,8 +672,10 @@ class SearchInputField extends StatelessWidget {
             fillColor: Colors.white,
             filled: true,
             prefixIcon: prefixIcon,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 5,
+              vertical: 10,
+            ),
             focusedBorder: border,
             enabledBorder: border,
             border: border,

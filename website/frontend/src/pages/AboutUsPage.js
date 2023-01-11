@@ -25,7 +25,7 @@ const AboutUsPage = () => {
   const dispatch = useDispatch();
   const teamData = useTeamData();
   const partnersData = usePartnersData();
-  const boardData = useBoardData()
+  const boardData = useBoardData();
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
 
@@ -205,19 +205,23 @@ const AboutUsPage = () => {
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
-              {teamData.map((member) => (
-                <div key={member.id}>
-                  <Profile
-                    ImgPath={member.picture}
-                    name={member.name}
-                    title={member.title}
-                    twitter={member.twitter}
-                    linkedin={member.linked_in}
-                    biography={member.descriptions}
-                    about={member.about}
-                  />
-                </div>
-              ))}
+              {teamData.length > 0 ? (
+                teamData.map((member) => (
+                  <div key={member.id}>
+                    <Profile
+                      ImgPath={member.picture}
+                      name={member.name}
+                      title={member.title}
+                      twitter={member.twitter}
+                      linkedin={member.linked_in}
+                      biography={member.descriptions}
+                      about={member.about}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div />
+              )}
             </div>
           </div>
           <hr />
@@ -232,18 +236,22 @@ const AboutUsPage = () => {
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
-              {boardData.map((member) => (
-                <div key={member.id}>
-                  <Profile
-                    ImgPath={member.picture}
-                    name={member.name}
-                    title={member.title}
-                    twitter={member.twitter}
-                    linkedin={member.linked_in}
-                    biography={member.descriptions}
-                  />
-                </div>
-              ))}
+              {boardData.length > 0 ? (
+                boardData.map((member) => (
+                  <div key={member.id}>
+                    <Profile
+                      ImgPath={member.picture}
+                      name={member.name}
+                      title={member.title}
+                      twitter={member.twitter}
+                      linkedin={member.linked_in}
+                      biography={member.descriptions}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div />
+              )}
             </div>
           </div>
           <hr />
@@ -279,7 +287,7 @@ const AboutUsPage = () => {
                 ) : (
                   <span />
                 )}
-                {togglePartnersDisplay &&
+                {togglePartnersDisplay && partnerDataGroup.length > 0 ? (
                   partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
@@ -292,7 +300,10 @@ const AboutUsPage = () => {
                         </td>
                       ))}
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <div />
+                )}
               </tbody>
             </table>
             <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>
