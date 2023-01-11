@@ -313,7 +313,6 @@ class AirqoApiClient {
   }) async {
     try {
       url = addQueryParameters(queryParams, url);
-      print(url);
 
       final response = await httpClient
           .get(

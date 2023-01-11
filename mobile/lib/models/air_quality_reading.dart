@@ -44,13 +44,13 @@ class AirQualityReading extends HiveObject {
       referenceSite: json["siteDetails"]["_id"] as String,
       latitude: json["siteDetails"]["approximate_latitude"] as double,
       longitude: json["siteDetails"]["approximate_longitude"] as double,
-      country: json["siteDetails"]["country"] as String,
+      country: (json["siteDetails"]["country"] ?? "") as String,
+      region: (json["siteDetails"]["region"] ?? "") as String,
+      source: (json["siteDetails"]["network"] ?? "") as String,
       name: (json["siteDetails"]["search_name"] ?? json["siteDetails"]["name"])
           as String,
       location: (json["siteDetails"]["location_name"] ??
           json["siteDetails"]["description"]) as String,
-      region: json["siteDetails"]["region"] as String,
-      source: json["siteDetails"]["network"] as String,
     );
   }
 
