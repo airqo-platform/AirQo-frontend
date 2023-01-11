@@ -1,16 +1,20 @@
 name: deploy-mobile-android-to-firebase-app-distribution
 
 on:
-  pull_request:
-    branches:
-      - staging
-    types:
-      - closed
+  workflow_dispatch:
+    inputs:
+      android:
+        description: "Deploy android to firebase app distribution"
+        required: false
+        type: boolean  
+        
 jobs:
-  build:
+  android:
     name: android build
-    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
     steps:
       - name: Checkout
         uses: 'actions/checkout@v3'
@@ -24,7 +28,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2.8.0
         with:
-          flutter-version: '3.3.7'
+          flutter-version: '3.3.10'
           channel: 'stable'
 
       - name: Google login
@@ -36,36 +40,29 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Add google-services.json for Firebase
-        run: gcloud secrets versions access latest --secret="prod-env-mobile-android-firebase-json" > mobile/android/app/google-services.json
+        run: gcloud secrets versions access latest --secret="prod-env-mobile-android-firebase-json" > android/app/google-services.json
         
-      - name: Set up keystore files
+      - name: Add  keystore and key.properties files
         run: |
-          cd mobile/android/
-          gcloud secrets versions access latest --secret="sta-env-mobile-airqo-dev-keystore-encrypted" | base64 -di > app/airqo-dev-keystore.jks
+          cd android/
           gcloud secrets versions access latest --secret="prod-env-mobile-upload_keystore_encrypted" | base64 -di > app/upload-keystore.jks
-
-
-      - name: Create key.properties files
-        run: |
-          cd mobile/android/
           gcloud secrets versions access latest --secret="prod-key-mobile-CI" > prod-key.properties
-          gcloud secrets versions access latest --secret="sta-key-mobile-ci" > key.properties
+
 
       - name: Add firebase options files
         run: |
-          cd mobile/lib/
+          cd lib/
           gcloud secrets versions access latest --secret="prod-env-mobile-firebase_optionsDev" > firebase_options_dev.dart
           gcloud secrets versions access latest --secret="prod-env-mobile-firebase_options" > firebase_options.dart
 
       - name: Add .env files
         run: |
-          cd mobile/
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="sta-env-mobile-app" > .env.dev
 
       - name: Add firebase app distribution service and play store service account
         run: |
-          cd mobile/android/
+          cd android/
           gcloud secrets versions access latest --secret="prod-env-mobile-firebase-app-distribution" | base64 --decode > firebase_distributor.json
           gcloud secrets versions access latest --secret="prod-env-mobile-play-store-service-account-encrypted" | base64 --decode > play_store_SA.json
 
@@ -77,16 +74,16 @@ jobs:
       
       - name: Install bundle
         run: |
+          cd android/
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
-        working-directory: mobile/android
           
       - name: Deploy to app distribution
         run: 
+          cd android/
           bundle exec fastlane android distribute
         env:
           MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}
-        working-directory: mobile/android
         
 
 
