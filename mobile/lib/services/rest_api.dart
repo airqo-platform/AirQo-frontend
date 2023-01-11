@@ -66,8 +66,10 @@ class AirqoApiClient {
       final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
           : <String, dynamic>{};
-      final response =
-          await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
+      final response = await _performGetRequest(
+        params,
+        AirQoUrls.ipGeoCoordinates,
+      );
 
       return {
         'latitude': response['data']['latitude'] as double,

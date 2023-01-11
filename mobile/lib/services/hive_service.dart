@@ -66,7 +66,7 @@ class HiveService {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
-      Hive.box<Kya>(HiveBox.searchHistory).clear(),
+      Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);

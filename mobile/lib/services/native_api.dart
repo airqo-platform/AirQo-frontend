@@ -52,11 +52,7 @@ class SystemProperties {
 class RateService {
   static Future<void> rateApp() async {
     final InAppReview inAppReview = InAppReview.instance;
-    if (await inAppReview.isAvailable()) {
-      await InAppReview.instance.requestReview().then((value) => logAppRating);
-    } else {
-      await inAppReview.openStoreListing(appStoreId: Config.iosStoreId);
-    }
+    await inAppReview.openStoreListing(appStoreId: Config.iosStoreId);
   }
 
   static Future<void> logAppRating() async {
