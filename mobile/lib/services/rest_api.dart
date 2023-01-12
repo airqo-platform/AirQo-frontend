@@ -105,37 +105,21 @@ class AirqoApiClient {
     String? phoneNumber,
     String? emailAddress,
   }) async {
-    Map<String, String> headers = HashMap()
-      ..putIfAbsent('Content-Type', () => 'application/json');
-    http.Response response;
+    Map<String, String> body = HashMap();
 
     if (phoneNumber != null) {
-      final body = {
-        'phoneNumber': phoneNumber,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
+      body['phoneNumber'] = phoneNumber;
     } else if (emailAddress != null) {
-      final body = {
-        'emailAddress': emailAddress,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
-    } else {
-      throw Exception('Failed to perform action. Try again later');
+      body['email'] = emailAddress;
     }
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to perform action. Try again later');
-    }
+    final response = await httpClient.post(
+      Uri.parse(AirQoUrls.firebaseLookup),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
 
-    return json.decode(response.body)['status'] as bool;
+    return json.decode(response.body)['exists'] as bool;
   }
 
   Future<InsightData> fetchInsightsData(String siteId) async {

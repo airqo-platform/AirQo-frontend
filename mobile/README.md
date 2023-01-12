@@ -45,7 +45,6 @@ For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then 
         AIRQO_API_URL= https://api.airqo.net/api/v1/
         AIRQO_API_TOKEN = Get this token by following the respective links below.
         SEARCH_API_KEY = 
-        AIRQO_API_USER_EXISTS_URL = https://europe-west1-airqo-250220.cloudfunctions.net/airqo-app-check-user
 
         FAV_PLACES_COLLECTION =
         KYA_COLLECTION =

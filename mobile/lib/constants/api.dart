@@ -1,7 +1,8 @@
 import 'config.dart';
 
 class AirQoUrls {
-  static String get checkUserExists => Config.airqoApiUserExistsUrl;
+  static String get firebaseLookup =>
+      '${Config.airqoApiUrl}users/firebase/lookup';
 
   static String get insights =>
       '${Config.airqoApiUrl}view/measurements/mobile-app/insights';
