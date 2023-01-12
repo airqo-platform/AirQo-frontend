@@ -57,14 +57,12 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GestureDetector(
-                  onTap: () async {
+                child: NextButton(
+                  text: 'Yes, keep me safe',
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
                     await _allowLocation();
                   },
-                  child: NextButton(
-                    text: 'Yes, keep me safe',
-                    buttonColor: CustomColors.appColorBlue,
-                  ),
                 ),
               ),
               const SizedBox(

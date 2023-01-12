@@ -21,17 +21,11 @@ class PhoneInputField extends StatefulWidget {
 }
 
 class _PhoneInputFieldState extends State<PhoneInputField> {
-  late TextEditingController _phoneInputController;
+  final TextEditingController _phoneInputController = TextEditingController();
   @override
   void dispose() {
     _phoneInputController.dispose();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _phoneInputController = TextEditingController();
   }
 
   @override
@@ -160,17 +154,12 @@ class EmailInputField extends StatefulWidget {
 }
 
 class _EmailInputFieldState extends State<EmailInputField> {
-  late TextEditingController _emailInputController;
+  final TextEditingController _emailInputController = TextEditingController();
+
   @override
   void dispose() {
     _emailInputController.dispose();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _emailInputController = TextEditingController();
   }
 
   @override
@@ -361,28 +350,32 @@ class ProceedAsGuest extends StatelessWidget {
           (r) => false,
         );
       },
-      child: Row(
-        children: [
-          const Spacer(),
-          Text(
-            'Proceed as',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.6),
-                ),
-          ),
-          const SizedBox(
-            width: 2,
-          ),
-          Text(
-            'Guest',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
-          ),
-          const Spacer(),
-        ],
+      child: SizedBox(
+        width: double.infinity,
+        height: 20,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Proceed as',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.caption?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.6),
+                  ),
+            ),
+            const SizedBox(
+              width: 2,
+            ),
+            Text(
+              'Guest',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.caption?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -391,35 +384,75 @@ class ProceedAsGuest extends StatelessWidget {
 class SignUpButton extends StatelessWidget {
   const SignUpButton({
     super.key,
-    required this.text,
+    required this.authProcedure,
+    required this.authMethod,
   });
-
-  final String text;
+  final AuthProcedure authProcedure;
+  final AuthMethod authMethod;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 48,
-      constraints: const BoxConstraints(
-        minWidth: double.infinity,
-        maxHeight: 48,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xff8D8D8D).withOpacity(0.1),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-      ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-          child: AutoSizeText(
-            text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                switch (authMethod) {
+                  case AuthMethod.phone:
+                    return authProcedure == AuthProcedure.login
+                        ? const EmailLoginWidget()
+                        : const EmailSignUpWidget();
+                  case AuthMethod.email:
+                    return authProcedure == AuthProcedure.login
+                        ? const PhoneLoginWidget()
+                        : const PhoneSignUpWidget();
+                  case AuthMethod.none:
+                    return const PhoneSignUpWidget();
+                }
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation.drive(
+                    Tween<double>(
+                      begin: 0,
+                      end: 1,
+                    ),
+                  ),
+                  child: child,
+                );
+              },
+            ),
+            (r) => false,
+          );
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
           ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+          foregroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+          padding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 0,
+          ),
+        ),
+        child: AutoSizeText(
+          authMethod.optionsButtonText(authProcedure),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.caption?.copyWith(
+                color: CustomColors.appColorBlue,
+              ),
         ),
       ),
     );

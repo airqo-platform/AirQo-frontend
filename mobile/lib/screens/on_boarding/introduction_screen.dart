@@ -69,20 +69,15 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                 svg: 'assets/icon/onboarding_profile_icon.svg',
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const PhoneSignUpWidget();
-                    }),
-                    (r) => false,
-                  );
+              NextButton(
+                text: 'Let’s go',
+                buttonColor: CustomColors.appColorBlue,
+                callBack: () {
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const PhoneSignUpWidget();
+                  }), (r) => false);
                 },
-                child: NextButton(
-                  text: 'Let’s go',
-                  buttonColor: CustomColors.appColorBlue,
-                ),
               ),
             ],
           ),

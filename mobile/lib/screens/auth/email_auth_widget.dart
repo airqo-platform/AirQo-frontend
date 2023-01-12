@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -38,10 +37,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   void initState() {
     super.initState();
     _loadingContext = context;
-    context.read<EmailAuthBloc>().add(InitializeEmailAuth(
-          emailAddress: widget.emailAddress ?? '',
-          authProcedure: widget.authProcedure,
-        ));
+    context.read<EmailAuthBloc>().add(
+          InitializeEmailAuth(
+            emailAddress: widget.emailAddress ?? '',
+            authProcedure: widget.authProcedure,
+          ),
+        );
   }
 
   @override
@@ -55,176 +56,125 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           verticalPadding: 10,
-          widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
-            listener: (context, state) {
-              return;
-            },
+          horizontalPadding: 24,
+          widget: BlocBuilder<EmailAuthBloc, EmailAuthState>(
             builder: (context, state) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MultiBlocListener(
-                        listeners: [
-                          BlocListener<EmailAuthBloc, EmailAuthState>(
-                            listener: (context, state) {
-                              loadingScreen(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<EmailAuthBloc, EmailAuthState>(
-                            listener: (context, state) {
-                              Navigator.pop(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return previous.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<EmailAuthBloc, EmailAuthState>(
-                            listener: (context, state) {
-                              showSnackBar(context, state.error.message);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.error &&
-                                  current.error != AuthenticationError.none &&
-                                  current.error !=
-                                      AuthenticationError.invalidEmailAddress;
-                            },
-                          ),
-                          BlocListener<EmailAuthBloc, EmailAuthState>(
-                            listener: (context, state) {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(InitializeAuthCodeState(
-                                    emailAddress: state.emailAddress,
-                                    authProcedure: state.authProcedure,
-                                    authMethod: AuthMethod.email,
-                                  ));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MultiBlocListener(
+                    listeners: [
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          loadingScreen(_loadingContext);
+                        },
+                        listenWhen: (previous, current) {
+                          return current.blocStatus == BlocStatus.processing;
+                        },
+                      ),
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          Navigator.pop(_loadingContext);
+                        },
+                        listenWhen: (previous, current) {
+                          return previous.blocStatus == BlocStatus.processing;
+                        },
+                      ),
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          showSnackBar(context, state.error.message);
+                        },
+                        listenWhen: (previous, current) {
+                          return current.blocStatus == BlocStatus.error &&
+                              current.error != AuthenticationError.none &&
+                              current.error !=
+                                  AuthenticationError.invalidEmailAddress;
+                        },
+                      ),
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          context
+                              .read<AuthCodeBloc>()
+                              .add(InitializeAuthCodeState(
+                                emailAddress: state.emailAddress,
+                                authProcedure: state.authProcedure,
+                                authMethod: AuthMethod.email,
+                              ));
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) {
-                                  return const AuthVerificationWidget();
-                                }),
-                              );
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.success;
-                            },
-                          ),
-                        ],
-                        child: Container(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          state.blocStatus == BlocStatus.error &&
-                                  state.error ==
-                                      AuthenticationError.invalidEmailAddress
-                              ? AuthMethod.email.invalidInputMessage
-                              : AuthMethod.email
-                                  .optionsText(state.authProcedure),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyle.headline7(context),
-                        ),
-                      ),
-                      InputValidationCodeMessage(
-                        state.blocStatus != BlocStatus.error,
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                      const SizedBox(
-                        height: 48,
-                        child: EmailInputField(),
-                      ),
-                      InputValidationErrorMessage(
-                        message: AuthMethod.email.invalidInputErrorMessage,
-                        visible: state.blocStatus == BlocStatus.error &&
-                            state.error ==
-                                AuthenticationError.invalidEmailAddress,
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(
-                            () {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) =>
-                                      state.authProcedure == AuthProcedure.login
-                                          ? const PhoneLoginWidget()
-                                          : const PhoneSignUpWidget(),
-                                  transitionsBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation.drive(
-                                        Tween<double>(
-                                          begin: 0,
-                                          end: 1,
-                                        ),
-                                      ),
-                                      child: child,
-                                    );
-                                  },
-                                ),
-                                (r) => false,
-                              );
-                            },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) {
+                              return const AuthVerificationWidget();
+                            }),
                           );
                         },
-                        child: SignUpButton(
-                          text: AuthMethod.email
-                              .optionsButtonText(state.authProcedure),
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () async {
-                          context
-                              .read<EmailAuthBloc>()
-                              .add(ValidateEmailAddress(context: context));
+                        listenWhen: (previous, current) {
+                          return current.blocStatus == BlocStatus.success;
                         },
-                        child: NextButton(
-                          buttonColor: state.emailAddress.isValidEmail()
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorDisabled,
-                        ),
-                      ),
-                      Visibility(
-                        visible: !_keyboardVisible,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 16, bottom: 12),
-                          child: state.authProcedure == AuthProcedure.login
-                              ? const LoginOptions(authMethod: AuthMethod.email)
-                              : const SignUpOptions(
-                                  authMethod: AuthMethod.email,
-                                ),
-                        ),
                       ),
                     ],
+                    child: Container(),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AutoSizeText(
+                      state.blocStatus == BlocStatus.error &&
+                              state.error ==
+                                  AuthenticationError.invalidEmailAddress
+                          ? AuthMethod.email.invalidInputMessage
+                          : AuthMethod.email.optionsText(state.authProcedure),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline7(context),
+                    ),
+                  ),
+                  InputValidationCodeMessage(
+                    state.blocStatus != BlocStatus.error,
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  const SizedBox(
+                    height: 48,
+                    child: EmailInputField(),
+                  ),
+                  InputValidationErrorMessage(
+                    message: AuthMethod.email.invalidInputErrorMessage,
+                    visible: state.blocStatus == BlocStatus.error &&
+                        state.error == AuthenticationError.invalidEmailAddress,
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  SignUpButton(
+                    authProcedure: state.authProcedure,
+                    authMethod: AuthMethod.email,
+                  ),
+                  const Spacer(),
+                  NextButton(
+                    buttonColor: state.emailAddress.isValidEmail()
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorDisabled,
+                    callBack: () {
+                      context
+                          .read<EmailAuthBloc>()
+                          .add(ValidateEmailAddress(context: context));
+                    },
+                  ),
+                  Visibility(
+                    visible: !_keyboardVisible,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      child: state.authProcedure == AuthProcedure.login
+                          ? const LoginOptions(authMethod: AuthMethod.email)
+                          : const SignUpOptions(
+                              authMethod: AuthMethod.email,
+                            ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

@@ -57,14 +57,12 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GestureDetector(
-                  onTap: () async {
+                child: NextButton(
+                  text: 'Yes, keep me updated',
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
                     await _allowNotifications();
                   },
-                  child: NextButton(
-                    text: 'Yes, keep me updated',
-                    buttonColor: CustomColors.appColorBlue,
-                  ),
                 ),
               ),
               const SizedBox(

@@ -103,13 +103,11 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () async {
+              NextButton(
+                buttonColor: nextBtnColor,
+                callBack: () async {
                   await _saveName();
                 },
-                child: NextButton(
-                  buttonColor: nextBtnColor,
-                ),
               ),
               SizedBox(
                 height: _showOptions ? 16 : 12,

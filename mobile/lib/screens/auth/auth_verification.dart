@@ -315,8 +315,11 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       const Spacer(),
                       Visibility(
                         visible: state.blocStatus != BlocStatus.success,
-                        child: GestureDetector(
-                          onTap: () async {
+                        child: NextButton(
+                          buttonColor: state.inputAuthCode.length >= 6
+                              ? CustomColors.appColorBlue
+                              : CustomColors.appColorDisabled,
+                          callBack: () {
                             if (state.blocStatus == BlocStatus.success ||
                                 state.blocStatus == BlocStatus.processing) {
                               return;
@@ -328,11 +331,6 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                   .add(const VerifyAuthCode());
                             }
                           },
-                          child: NextButton(
-                            buttonColor: state.inputAuthCode.length >= 6
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorDisabled,
-                          ),
                         ),
                       ),
                       const SizedBox(

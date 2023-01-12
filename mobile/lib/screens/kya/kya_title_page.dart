@@ -59,8 +59,10 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
             alignment: AlignmentDirectional.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
-              child: GestureDetector(
-                onTap: () {
+              child: NextButton(
+                text: widget.kya.isInProgress() ? 'Resume' : 'Begin',
+                buttonColor: CustomColors.appColorBlue,
+                callBack: () {
                   setState(
                     () {
                       Navigator.pushReplacement(
@@ -74,10 +76,6 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                     },
                   );
                 },
-                child: NextButton(
-                  text: widget.kya.isInProgress() ? 'Resume' : 'Begin',
-                  buttonColor: CustomColors.appColorBlue,
-                ),
               ),
             ),
           ),
