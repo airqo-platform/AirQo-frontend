@@ -36,6 +36,8 @@ class Config {
   static String get prefOnBoardingPage =>
       dotenv.env['PREF_ON_BOARDING_PAGE'] ?? '';
 
+  static String get homePageShowcase => 'homePageShowcase';
+
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get placesSearchUrl =>

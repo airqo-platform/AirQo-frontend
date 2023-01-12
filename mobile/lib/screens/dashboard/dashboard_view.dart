@@ -130,24 +130,24 @@ class _DashboardViewState extends State<DashboardView>
                       );
 
                       return Expanded(
-                          child: Showcase(
-                        key: _forYouShowcaseKey,
-                        description:
-                            'Find amazing content specifically designed for you here.',
-                        child: DashboardTopCard(
-                          toolTipType: ToolTipType.forYou,
-                          title: 'For You',
-                          widgetKey: _kyaToolTipKey,
-                          nextScreenClickHandler: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const ForYouPage(analytics: false);
-                                },
-                              ),
-                            );
-                          },
+                        child: Showcase(
+                          key: _forYouShowcaseKey,
+                          description:
+                              'Find amazing content specifically designed for you here.',
+                          child: DashboardTopCard(
+                            toolTipType: ToolTipType.forYou,
+                            title: 'For You',
+                            widgetKey: _kyaToolTipKey,
+                            nextScreenClickHandler: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const ForYouPage(analytics: false);
+                                  },
+                                ),
+                              );
+                            },
                             children: kyaWidgets,
                           ),
                         ),
@@ -251,12 +251,12 @@ class _DashboardViewState extends State<DashboardView>
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: Showcase(
-                                      key: _nearestLocationShowcaseKey,
-                                      description:
-                                          'This card shows the air quality of your nearest location',
-                                      child: AnalyticsCard(
-                                        nearbyAirQuality,
-                                        false,
+                                    key: _nearestLocationShowcaseKey,
+                                    description:
+                                        'This card shows the air quality of your nearest location',
+                                    child: AnalyticsCard(
+                                      nearbyAirQuality,
+                                      false,
                                     ),
                                   ),
                                 );
@@ -275,9 +275,9 @@ class _DashboardViewState extends State<DashboardView>
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: Showcase(
-                                      key: _kyaShowcaseKey,
-                                      description:
-                                          'Do you want to know more about air quality? Know your air in this section',
+                                    key: _kyaShowcaseKey,
+                                    description:
+                                        'Do you want to know more about air quality? Know your air in this section',
                                     child: KyaCardWidget(kya.first),
                                   ),
                                 );
@@ -290,7 +290,7 @@ class _DashboardViewState extends State<DashboardView>
                               itemBuilder: (BuildContext context, int index) {
                                 return (index == 0)
                                     ? Padding(
-                                        padding: const EdgeInsets.only(top: 0),
+                                        padding: const EdgeInsets.only(top: 16),
                                         child: Showcase(
                                           key: _analyticsShowcaseKey,
                                           description:
@@ -437,12 +437,12 @@ class _DashboardViewState extends State<DashboardView>
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('homePageshowcase') == null) {
-      Future.delayed(const Duration(microseconds: 10), () {
+    if (prefs.getBool(Config.homePageShowcase) == null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             _startShowcase();
-            _appService.stopShowcase('homePageshowcase');
+            _appService.stopShowcase(Config.homePageShowcase);
           });
         }
       });

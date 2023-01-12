@@ -13,7 +13,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'for_you_page.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
@@ -32,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   late GlobalKey _homeShowcaseKey;
   late GlobalKey _mapShowcaseKey;
   late GlobalKey _profileShowcaseKey;
-  static BuildContext? myContext;
+  late BuildContext _showcaseContext;
 
   late List<Widget> _widgetOptions;
 
@@ -81,7 +80,7 @@ class _HomePageState extends State<HomePage> {
           },
           builder: Builder(
             builder: (context) {
-              myContext = context;
+              _showcaseContext = context;
 
               return BottomNavigationBar(
                 selectedIconTheme: Theme.of(context)
@@ -93,9 +92,10 @@ class _HomePageState extends State<HomePage> {
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: Showcase(
+                      showArrow: false,
                       key: _homeShowcaseKey,
                       description: 'Home',
-                      child: CustomBottomNavBarItem(
+                      child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         svg: 'assets/icon/home_icon.svg',
                         label: 'Home',
@@ -107,8 +107,9 @@ class _HomePageState extends State<HomePage> {
                   BottomNavigationBarItem(
                     icon: Showcase(
                       key: _mapShowcaseKey,
+                      showArrow: false,
                       description: 'This is the AirQo map',
-                      child: CustomBottomNavBarItem(
+                      child: BottomNavIcon(
                         svg: 'assets/icon/location.svg',
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
@@ -122,8 +123,9 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Showcase(
                           key: _profileShowcaseKey,
+                          showArrow: false,
                           description: 'Access your Profile details here',
-                          child: CustomBottomNavBarItem(
+                          child: BottomNavIcon(
                             svg: 'assets/icon/profile.svg',
                             selectedIndex: _selectedIndex,
                             label: 'Profile',
@@ -250,7 +252,7 @@ class _HomePageState extends State<HomePage> {
 
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ShowCaseWidget.of(myContext!).startShowCase(
+      ShowCaseWidget.of(_showcaseContext).startShowCase(
         [
           _homeShowcaseKey,
           _mapShowcaseKey,

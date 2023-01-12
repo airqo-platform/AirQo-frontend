@@ -25,7 +25,7 @@ class _ForYouPageState extends State<ForYouPage>
   final AppService _appService = AppService();
   late GlobalKey _analyticsTabShowcaseKey;
   late GlobalKey _kyaTabShowcaseKey;
-  static BuildContext? myContext;
+  late BuildContext _showcaseContext;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class _ForYouPageState extends State<ForYouPage>
                   },
                   builder: Builder(
                     builder: (context) {
-                      myContext = context;
+                      _showcaseContext = context;
 
                       return TabBar(
                         controller: _tabController,
@@ -127,7 +127,7 @@ class _ForYouPageState extends State<ForYouPage>
 
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ShowCaseWidget.of(myContext!).startShowCase(
+      ShowCaseWidget.of(_showcaseContext).startShowCase(
         [
           _analyticsTabShowcaseKey,
           _kyaTabShowcaseKey,

@@ -428,8 +428,8 @@ class AppSafeArea extends StatelessWidget {
   }
 }
 
-class CustomBottomNavBarItem extends StatelessWidget {
-  const CustomBottomNavBarItem({
+class BottomNavIcon extends StatelessWidget {
+  const BottomNavIcon({
     super.key,
     required this.svg,
     required this.selectedIndex,
