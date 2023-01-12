@@ -85,8 +85,10 @@ class _MapLandscapeState extends State<MapLandscape> {
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
   final double zoom = 6;
-  final _defaultCameraPosition =
-      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6);
+  final _defaultCameraPosition = const CameraPosition(
+    target: LatLng(1.6183002, 32.504365),
+    zoom: 6,
+  );
 
   @override
   Widget build(BuildContext context) {
