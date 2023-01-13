@@ -12,6 +12,7 @@ jobs:
   android:
     name: android build
     runs-on: ubuntu-latest
+    if: inputs.android == true
     defaults:
       run:
         working-directory: mobile
