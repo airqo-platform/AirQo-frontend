@@ -62,10 +62,9 @@ jobs:
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="prod-env-mobile-CI" > .env.dev
 
-      - name: Add firebase app distribution service account and play store service account
+      - name: Add play store service account
         run: |
           cd android/fastlane/
-          gcloud secrets versions access latest --secret="prod-key-mobile-firebase-app-distribution" > firebase-app-distribution.json
           gcloud secrets versions access latest --secret="prod-key-mobile-play-store-service-account" > play-store-service-account.json
 
       - name: Setup Fastlane
