@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       android:
-        description: "Deploy android to firebase app distribution"
+        description: "Deploy android to play store"
         required: false
         type: boolean  
         
