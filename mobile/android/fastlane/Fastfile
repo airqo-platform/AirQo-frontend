@@ -2,13 +2,14 @@ default_platform(:android)
 
 platform :android do
 
-  desc "Deploy a new version to alpha track"
+  desc "Deploy a new version to play store"
   lane :production do
   
     gradle(task: "bundleAirqoRelease")
     upload_to_play_store(
-      version_name: "2.0.13",
-      version_code: "20025",
+      version_name: "2.0.14",
+      version_code: "20026",
+      track: "production",
       release_status: "draft",
       metadata_path:"metadata",
       json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
