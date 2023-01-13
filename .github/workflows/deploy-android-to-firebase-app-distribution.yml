@@ -50,7 +50,6 @@ jobs:
           gcloud secrets versions access latest --secret="sta-key-mobile-prod-properties" > prod-key.properties
           gcloud secrets versions access latest --secret="sta-key-mobile-properties" > key.properties
 
-
       - name: Add firebase options files
         run: |
           cd lib/
@@ -71,7 +70,7 @@ jobs:
         uses: ruby/setup-ruby@v1.123.0
         with:
           ruby-version: "2.6"
-          working-directory: mobile/android
+          working-directory: android
       
       - name: Install bundle
         run: |
