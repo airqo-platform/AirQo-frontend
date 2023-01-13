@@ -40,31 +40,32 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Add google-services.json for Firebase
-        run: gcloud secrets versions access latest --secret="prod-env-mobile-android-firebase-json" > android/app/google-services.json
+        run: gcloud secrets versions access latest --secret="sta-key-mobile-android-firebase-json" > android/app/google-services.json
         
       - name: Add  keystore and key.properties files
         run: |
           cd android/
-          gcloud secrets versions access latest --secret="prod-env-mobile-upload_keystore_encrypted" | base64 -di > app/upload-keystore.jks
-          gcloud secrets versions access latest --secret="prod-key-mobile-CI" > prod-key.properties
+          gcloud secrets versions access latest --secret="sta-key-mobile-upload-keystore-encrypted" | base64 -di > app/upload-keystore.jks
+          gcloud secrets versions access latest --secret="sta-key-mobile-airqo-dev-keystore" | base64 -di > app/airqo-dev-keystore.jks
+          gcloud secrets versions access latest --secret="sta-key-mobile-prod-properties" > prod-key.properties
+          gcloud secrets versions access latest --secret="sta-key-mobile-properties" > key.properties
 
 
       - name: Add firebase options files
         run: |
           cd lib/
-          gcloud secrets versions access latest --secret="prod-env-mobile-firebase_optionsDev" > firebase_options_dev.dart
-          gcloud secrets versions access latest --secret="prod-env-mobile-firebase_options" > firebase_options.dart
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-options-dev" > firebase_options_dev.dart
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase_options" > firebase_options.dart
 
       - name: Add .env files
         run: |
-          gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
+          gcloud secrets versions access latest --secret="sta-env-mobile-app-CI" > .env.prod
           gcloud secrets versions access latest --secret="sta-env-mobile-app" > .env.dev
 
-      - name: Add firebase app distribution service and play store service account
+      - name: Add firebase app distribution service account
         run: |
-          cd android/
-          gcloud secrets versions access latest --secret="prod-env-mobile-firebase-app-distribution" | base64 --decode > firebase_distributor.json
-          gcloud secrets versions access latest --secret="prod-env-mobile-play-store-service-account-encrypted" | base64 --decode > play_store_SA.json
+          cd android/fastlane
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-app-distribution" > firebase-app-distribution.json
 
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
