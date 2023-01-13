@@ -80,10 +80,9 @@ jobs:
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
           
-      - name: Deploy to app distribution
+      - name: Deploy to play store
         run: 
           cd android/
-          bundle exec fastlane android distribute
-        env:
-          MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}
+          bundle exec fastlane android production
+
   
