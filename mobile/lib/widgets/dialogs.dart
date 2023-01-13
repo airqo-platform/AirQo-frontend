@@ -393,7 +393,7 @@ class AuthMethodDialog extends StatelessWidget {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              height: 18 / 16,
+              height: 20 / 16,
             ),
           ),
           const SizedBox(

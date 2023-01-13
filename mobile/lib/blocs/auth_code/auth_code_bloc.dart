@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -19,7 +18,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     on<ResendAuthCode>(_onResendAuthCode);
     on<InitializeAuthCodeState>(_onInitializeAuthCodeState);
     on<ClearAuthCodeState>(_onClearAuthCodeState);
-    on<GuestUserEvent>(_onGuestUserEvent);
     on<UpdateCountDown>(_updateCountDown);
     on<UpdateVerificationId>(_onUpdateVerificationId);
     on<UpdateEmailCredentials>(_onUpdateEmailCredentials);
@@ -183,22 +181,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     Emitter<AuthCodeState> emit,
   ) {
     emit(const AuthCodeState.initial());
-  }
-
-  Future<void> _onGuestUserEvent(
-    GuestUserEvent event,
-    Emitter<AuthCodeState> emit,
-  ) async {
-    try {
-      await AppService().authenticateUser(
-        authProcedure: AuthProcedure.anonymousLogin,
-      );
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    } finally {
-      event.context.read<AccountBloc>().add(const FetchAccountInfo());
-      emit(const AuthCodeState.initial());
-    }
   }
 
   void _onUpdateAuthCode(

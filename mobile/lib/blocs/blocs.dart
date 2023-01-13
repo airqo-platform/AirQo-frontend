@@ -10,3 +10,6 @@ export 'phone_auth/phone_auth_bloc.dart';
 export 'search/search_bloc.dart';
 export 'settings/settings_bloc.dart';
 export 'kya/kya_bloc.dart';
+export 'favourite_place/favourite_place_bloc.dart';
+export 'analytics/analytics_bloc.dart';
+export 'notifications/notification_bloc.dart';

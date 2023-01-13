@@ -22,24 +22,23 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: AppSafeArea(
-          widget: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'All Set!',
-                  textAlign: TextAlign.center,
-                  style: _setUpCompleteTextStyle(),
+          widget: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'All Set!',
+                textAlign: TextAlign.center,
+                style: _setUpCompleteTextStyle(),
+              ),
+              Text(
+                'Breathe',
+                textAlign: TextAlign.center,
+                style: _setUpCompleteTextStyle()?.copyWith(
+                  color: CustomColors.appColorBlue,
                 ),
-                Text(
-                  'Breathe',
-                  textAlign: TextAlign.center,
-                  style: _setUpCompleteTextStyle()?.copyWith(
-                    color: CustomColors.appColorBlue,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -65,15 +64,11 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   void _goToHome() {
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return const HomePage();
-          },
-        ),
-        (r) => false,
-      );
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+        builder: (context) {
+          return const HomePage();
+        },
+      ), (r) => false);
     }
   }
 

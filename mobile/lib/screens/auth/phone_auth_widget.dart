@@ -52,7 +52,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          verticalPadding: 10,
           horizontalPadding: 24,
           widget: BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
             builder: (context, state) {
@@ -112,7 +111,9 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         },
                       ),
                     ],
-                    child: Container(),
+                    child: const SizedBox(
+                      height: 10,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -4,14 +4,6 @@ abstract class AuthCodeEvent extends Equatable {
   const AuthCodeEvent();
 }
 
-class GuestUserEvent extends AuthCodeEvent {
-  const GuestUserEvent(this.context);
-
-  final BuildContext context;
-  @override
-  List<Object?> get props => [];
-}
-
 class InitializeAuthCodeState extends AuthCodeEvent {
   const InitializeAuthCodeState({
     required this.authMethod,

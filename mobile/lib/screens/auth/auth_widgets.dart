@@ -1,7 +1,9 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -12,6 +14,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'email_auth_widget.dart';
+
+void postSignInActions(BuildContext context) {
+  context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
+  context.read<AccountBloc>().add(const FetchProfile());
+  context.read<KyaBloc>().add(const FetchKya());
+  context.read<AnalyticsBloc>().add(const FetchAnalytics());
+  context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
+  context.read<NotificationBloc>().add(const FetchNotifications());
+}
+
+void postSignOutActions(BuildContext context) {
+  context.read<AccountBloc>().add(const ClearProfile());
+  context.read<KyaBloc>().add(const ClearKya());
+  context.read<AnalyticsBloc>().add(const ClearAnalytics());
+  context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
+  context.read<NotificationBloc>().add(const ClearNotifications());
+}
 
 class PhoneInputField extends StatefulWidget {
   const PhoneInputField({super.key});
@@ -334,25 +353,23 @@ class InputValidationCodeMessage extends StatelessWidget {
   }
 }
 
-class ProceedAsGuest extends StatelessWidget {
+class ProceedAsGuest extends StatefulWidget {
   const ProceedAsGuest({super.key});
 
+  @override
+  State<ProceedAsGuest> createState() => _ProceedAsGuestState();
+}
+
+class _ProceedAsGuestState extends State<ProceedAsGuest> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        context.read<AuthCodeBloc>().add(GuestUserEvent(context));
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }),
-          (r) => false,
-        );
+        await _guestSignIn();
       },
       child: SizedBox(
         width: double.infinity,
-        height: 20,
+        height: 40,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -378,6 +395,35 @@ class ProceedAsGuest extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _guestSignIn() async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      if (!mounted) {
+        return;
+      }
+      showSnackBar(context, "Check your internet connection");
+      return;
+    }
+
+    final success = await CustomAuth.firebaseSignIn(null);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (success) {
+      Navigator.pop(context);
+      postSignInActions(context);
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    } else {
+      Navigator.pop(context);
+      showSnackBar(context, Config.guestLogInFailed);
+    }
   }
 }
 
@@ -470,81 +516,60 @@ class SignUpOptions extends StatelessWidget {
 
     return Column(
       children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  switch (authMethod) {
-                    case AuthMethod.none:
-                    case AuthMethod.phone:
-                      return const PhoneLoginWidget();
-                    case AuthMethod.email:
-                      return const EmailLoginWidget();
-                  }
-                },
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation.drive(tween),
-                    child: child,
-                  );
-                },
-              ),
-              (r) => false,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Already have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.6),
-                    ),
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Text(
-                'Log in',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-              ),
-            ],
+        SizedBox(
+          width: double.infinity,
+          height: 20,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    switch (authMethod) {
+                      case AuthMethod.none:
+                      case AuthMethod.phone:
+                        return const PhoneLoginWidget();
+                      case AuthMethod.email:
+                        return const EmailLoginWidget();
+                    }
+                  },
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation.drive(tween),
+                      child: child,
+                    );
+                  },
+                ),
+                (r) => false,
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Already have an account',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.6),
+                      ),
+                ),
+                const SizedBox(
+                  width: 2,
+                ),
+                Text(
+                  'Log in',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 8,
         ),
         const ProceedAsGuest(),
       ],
-    );
-  }
-}
-
-class CancelOption extends StatelessWidget {
-  const CancelOption({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context, false);
-      },
-      child: Text(
-        'Cancel',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: CustomColors.appColorBlue,
-        ),
-      ),
     );
   }
 }
@@ -562,56 +587,56 @@ class LoginOptions extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  switch (authMethod) {
-                    case AuthMethod.none:
-                    case AuthMethod.phone:
-                      return const PhoneSignUpWidget();
-                    case AuthMethod.email:
-                      return const EmailSignUpWidget();
-                  }
-                },
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation.drive(tween),
-                    child: child,
-                  );
-                },
-              ),
-              (r) => false,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Don’t have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.6),
-                    ),
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Text(
-                'Sign up',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-              ),
-            ],
+        SizedBox(
+          width: double.infinity,
+          height: 20,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      switch (authMethod) {
+                        case AuthMethod.none:
+                        case AuthMethod.phone:
+                          return const PhoneSignUpWidget();
+                        case AuthMethod.email:
+                          return const EmailSignUpWidget();
+                      }
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                  (r) => false);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Don’t have an account',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.6),
+                      ),
+                ),
+                const SizedBox(
+                  width: 2,
+                ),
+                Text(
+                  'Sign up',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 8,
         ),
         const ProceedAsGuest(),
       ],

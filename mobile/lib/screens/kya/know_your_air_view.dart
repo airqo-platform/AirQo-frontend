@@ -56,7 +56,7 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const LoadKya());
+    context.read<KyaBloc>().add(const RefreshKya());
   }
 
   Future<void> _startKyaLessons(BuildContext context, Kya kya) async {

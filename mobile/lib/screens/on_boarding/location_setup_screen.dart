@@ -104,15 +104,11 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   Future<void> _allowLocation() async {
     await LocationService.requestLocation(context, true).then(
       (_) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const SetUpCompleteScreen();
-            },
-          ),
-          (r) => false,
-        );
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+          builder: (context) {
+            return const SetUpCompleteScreen();
+          },
+        ), (r) => false);
       },
     );
   }

@@ -20,12 +20,9 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  late BuildContext _loadingContext;
-
   @override
   void initState() {
     super.initState();
-    _loadingContext = context;
   }
 
   @override
@@ -52,7 +49,7 @@ class _ProfileViewState extends State<ProfileView> {
                   listeners: [
                     BlocListener<AccountBloc, AccountState>(
                       listener: (context, state) {
-                        loadingScreen(_loadingContext);
+                        loadingScreen(context);
                       },
                       listenWhen: (previous, current) {
                         return current.blocStatus == BlocStatus.processing &&
@@ -61,7 +58,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     BlocListener<AccountBloc, AccountState>(
                       listener: (context, state) {
-                        Navigator.pop(_loadingContext);
+                        Navigator.pop(context);
                       },
                       listenWhen: (previous, current) {
                         return previous.blocStatus == BlocStatus.processing &&
@@ -121,12 +118,7 @@ class _ProfileViewState extends State<ProfileView> {
                   userDetails: profile,
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => context
-                      .read<AccountBloc>()
-                      .add(LogOutAccount(context: context)),
-                  child: const LogoutButton(),
-                ),
+                const SignOutButton(),
                 const SizedBox(
                   height: 10,
                 ),

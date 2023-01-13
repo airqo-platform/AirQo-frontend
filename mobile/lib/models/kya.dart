@@ -22,31 +22,43 @@ class Kya extends HiveObject with EquatableMixin {
   });
 
   @HiveField(2)
-  String title;
+  final String title;
 
   @HiveField(
     3,
     defaultValue: 'You just finished your first Know You Air Lesson',
   )
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
-  String completionMessage;
+  final String completionMessage;
 
   @HiveField(4)
-  String imageUrl;
+  final String imageUrl;
 
   @HiveField(5)
   @JsonKey(defaultValue: '')
-  String secondaryImageUrl;
+  final String secondaryImageUrl;
 
   @HiveField(6)
-  String id;
+  final String id;
 
   @HiveField(7)
-  List<KyaLesson> lessons = [];
+  final List<KyaLesson> lessons;
 
   @HiveField(8, defaultValue: 0)
   @JsonKey(defaultValue: 0)
-  double progress;
+  final double progress;
+
+  Kya copyWith({double? progress}) {
+    return Kya(
+      title: title,
+      completionMessage: completionMessage,
+      imageUrl: imageUrl,
+      secondaryImageUrl: secondaryImageUrl,
+      id: id,
+      lessons: lessons,
+      progress: progress ?? this.progress,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
@@ -71,7 +83,7 @@ class Kya extends HiveObject with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
+@HiveType(typeId: kyaLessonTypeId)
 class KyaLesson extends Equatable {
   const KyaLesson({
     required this.title,
@@ -103,4 +115,25 @@ class KyaLesson extends Equatable {
         imageUrl,
         body,
       ];
+}
+
+@JsonSerializable()
+class KyaProgress {
+  const KyaProgress({
+    required this.id,
+    required this.progress,
+  });
+
+  factory KyaProgress.fromJson(Map<String, dynamic> json) =>
+      _$KyaProgressFromJson(json);
+
+  factory KyaProgress.fromKya(Kya kya) => KyaProgress(
+        id: kya.id,
+        progress: kya.progress,
+      );
+
+  final String id;
+  final double progress;
+
+  Map<String, dynamic> toJson() => _$KyaProgressToJson(this);
 }

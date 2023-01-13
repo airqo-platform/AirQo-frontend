@@ -1,4 +1,4 @@
-import 'package:app/blocs/account/account_bloc.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
@@ -150,7 +150,9 @@ class EmptyFavouritePlace extends StatelessWidget {
   }
 
   void _updateFavPlace(BuildContext context) {
-    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
+    context
+        .read<FavouritePlaceBloc>()
+        .add(UpdateFavouritePlace(airQualityReading));
   }
 
   void _navigateToInsights(BuildContext context) {

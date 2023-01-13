@@ -70,13 +70,10 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const LocationSetupScreen();
-                    }),
-                    (r) => false,
-                  );
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const LocationSetupScreen();
+                  }), (r) => false);
                 },
                 child: Text(
                   'No, thanks',

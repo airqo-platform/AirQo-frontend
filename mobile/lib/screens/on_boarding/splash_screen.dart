@@ -53,12 +53,18 @@ class SplashScreenState extends State<SplashScreen> {
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<SettingsBloc>().add(const InitializeSettings());
-    context.read<AccountBloc>().add(const LoadAccountInfo());
-    context.read<KyaBloc>().add(const LoadKya());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
 
     final isLoggedIn = CustomAuth.isLoggedIn();
+
+    if (isLoggedIn) {
+      context.read<AccountBloc>().add(const RefreshProfile());
+      context.read<KyaBloc>().add(const RefreshKya());
+      context.read<AnalyticsBloc>().add(const RefreshAnalytics());
+      context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
+      context.read<NotificationBloc>().add(const RefreshNotifications());
+    }
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
@@ -66,37 +72,32 @@ class SplashScreenState extends State<SplashScreen> {
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 
-    Future.delayed(
-      const Duration(seconds: 5),
-      () {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            if (!isLoggedIn) {
-              return const IntroductionScreen();
-            } else {
-              switch (nextPage) {
-                case OnBoardingPage.signup:
-                  return const PhoneSignUpWidget();
-                case OnBoardingPage.profile:
-                  return const ProfileSetupScreen();
-                case OnBoardingPage.notification:
-                  return const NotificationsSetupScreen();
-                case OnBoardingPage.location:
-                  return const LocationSetupScreen();
-                case OnBoardingPage.complete:
-                  return const SetUpCompleteScreen();
-                case OnBoardingPage.home:
-                  return const HomePage();
-                default:
-                  return const IntroductionScreen();
-              }
+    Future.delayed(const Duration(seconds: 5), () {
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+        builder: (context) {
+          if (isLoggedIn) {
+            return const HomePage();
+          } else {
+            switch (nextPage) {
+              case OnBoardingPage.signup:
+                return const PhoneSignUpWidget();
+              case OnBoardingPage.profile:
+                return const ProfileSetupScreen();
+              case OnBoardingPage.notification:
+                return const NotificationsSetupScreen();
+              case OnBoardingPage.location:
+                return const LocationSetupScreen();
+              case OnBoardingPage.complete:
+                return const SetUpCompleteScreen();
+              case OnBoardingPage.home:
+                return const HomePage();
+              default:
+                return const IntroductionScreen();
             }
-          }),
-          (r) => false,
-        );
-      },
-    );
+          }
+        },
+      ), (r) => true);
+    });
   }
 
   @override

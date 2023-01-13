@@ -79,7 +79,7 @@ class _DashboardViewState extends State<DashboardView>
               ),
               Row(
                 children: [
-                  BlocBuilder<AccountBloc, AccountState>(
+                  BlocBuilder<FavouritePlaceBloc, FavouritePlaceState>(
                     builder: (context, state) {
                       final favouritePlaces = favouritePlacesWidgets(
                         state.favouritePlaces.take(3).toList(),

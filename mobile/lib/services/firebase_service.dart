@@ -16,7 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class CloudAnalytics {
-  static Future<bool> logEvent(AnalyticsEvent analyticsEvent) async {
+  static Future<bool> logEvent(Event analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.snakeCase(),
     );
@@ -29,12 +29,12 @@ class CloudAnalytics {
     if (profile != null) {
       final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
       if (carrier.toLowerCase().contains('airtel')) {
-        await logEvent(AnalyticsEvent.airtelUser);
+        await logEvent(Event.airtelUser);
       } else if (carrier.toLowerCase().contains('mtn')) {
-        await logEvent(AnalyticsEvent.mtnUser);
+        await logEvent(Event.mtnUser);
       } else {
         await logEvent(
-          AnalyticsEvent.otherNetwork,
+          Event.otherNetwork,
         );
       }
     }
@@ -43,11 +43,11 @@ class CloudAnalytics {
   static Future<void> logPlatformType() async {
     if (Platform.isAndroid) {
       await logEvent(
-        AnalyticsEvent.androidUser,
+        Event.androidUser,
       );
     } else if (Platform.isIOS) {
       await logEvent(
-        AnalyticsEvent.iosUser,
+        Event.iosUser,
       );
     } else {
       debugPrint('Unknown Platform');
@@ -59,15 +59,15 @@ class CloudAnalytics {
     if (profile != null) {
       if (profile.getGender() == Gender.male) {
         await logEvent(
-          AnalyticsEvent.maleUser,
+          Event.maleUser,
         );
       } else if (profile.getGender() == Gender.female) {
         await logEvent(
-          AnalyticsEvent.femaleUser,
+          Event.femaleUser,
         );
       } else {
         await logEvent(
-          AnalyticsEvent.undefinedGender,
+          Event.undefinedGender,
         );
       }
     }
@@ -110,94 +110,71 @@ class CloudStore {
     return true;
   }
 
-  static Future<List<Kya>> _getReferenceKya() async {
-    final referenceKyaCollection =
+  static Future<List<Kya>> getKya() async {
+    List<Kya> kya = <Kya>[];
+    final kyaCollection =
         await FirebaseFirestore.instance.collection(Config.kyaCollection).get();
-    final referenceKya = <Kya>[];
-    for (final kyaDoc in referenceKyaCollection.docs) {
+
+    for (final doc in kyaCollection.docs) {
       try {
-        final kyaData = kyaDoc.data();
+        final kyaData = doc.data();
         if (kyaData.isEmpty) {
           continue;
         }
-        referenceKya.add(Kya.fromJson(kyaData));
+        kya.add(Kya.fromJson(kyaData));
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
+        logException(exception, stackTrace);
       }
     }
 
-    return referenceKya;
-  }
-
-  static Future<List<Kya>> _getUserKya() async {
     final userId = CustomAuth.getUserId();
-    if (userId.isEmpty) {
-      return [];
-    }
-
-    final kya = <Kya>[];
-
-    final userKyaCollection = await FirebaseFirestore.instance
+    List<KyaProgress> userProgress = <KyaProgress>[];
+    final kyaProgressCollection = await FirebaseFirestore.instance
         .collection(Config.usersKyaCollection)
         .doc(userId)
         .collection(userId)
         .get();
 
-    for (final kyaDoc in userKyaCollection.docs) {
+    for (final doc in kyaProgressCollection.docs) {
       try {
-        kya.add(
-          Kya.fromJson(
-            kyaDoc.data(),
-          ),
-        );
+        userProgress.add(KyaProgress.fromJson(doc.data()));
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
       }
     }
 
+    kya = kya.map((element) {
+      KyaProgress kyaProgress =
+          userProgress.firstWhere((x) => x.id == element.id, orElse: () {
+        return KyaProgress(id: element.id, progress: 0);
+      });
+      return element.copyWith(progress: kyaProgress.progress);
+    }).toList();
+
     return kya;
   }
 
-  static Future<List<Kya>> getKya() async {
-    final referenceKya = await _getReferenceKya();
-
-    if (CustomAuth.isGuestUser()) {
-      return referenceKya;
-    }
-
-    final userKya = await _getUserKya();
-
-    final List<String> userKyaIds = userKya.map((kya) => kya.id).toList();
-    referenceKya.removeWhere((kya) => userKyaIds.contains(kya.id));
-
-    userKya.addAll(referenceKya);
-
-    return userKya;
-  }
-
   static Future<List<AppNotification>> getNotifications() async {
-    final uid = CustomAuth.getUserId();
-    if (uid.isEmpty) {
-      return [];
-    }
+    final userId = CustomAuth.getUserId();
+    final notifications = <AppNotification>[];
 
     try {
-      final notificationsJson = await FirebaseFirestore.instance
-          .collection('${Config.usersNotificationCollection}/$uid/$uid')
+      final notificationsCollection = await FirebaseFirestore.instance
+          .collection(Config.usersNotificationCollection)
+          .doc(userId)
+          .collection(userId)
           .get();
 
-      final notifications = <AppNotification>[];
-
-      for (final doc in notificationsJson.docs) {
-        final notification = AppNotification.parseAppNotification(
-          doc.data(),
-        );
-        if (notification != null) {
-          notifications.add(notification);
+      for (final doc in notificationsCollection.docs) {
+        try {
+          notifications.add(AppNotification.fromJson(doc.data()));
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
         }
       }
-
-      return notifications;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -205,32 +182,30 @@ class CloudStore {
       );
     }
 
-    return [];
+    return notifications;
   }
 
   static Future<List<Analytics>> getCloudAnalytics() async {
-    final uid = CustomAuth.getUserId();
-    if (uid.isEmpty) {
-      return [];
-    }
+    String uid = CustomAuth.getUserId();
+    List<Analytics> analytics = <Analytics>[];
 
     try {
       final analyticsCollection = await FirebaseFirestore.instance
-          .collection('${Config.usersAnalyticsCollection}/$uid/$uid')
+          .collection(Config.usersKyaCollection)
+          .doc(uid)
+          .collection(uid)
           .get();
 
-      final cloudAnalytics = <Analytics>[];
-
       for (final doc in analyticsCollection.docs) {
-        final analytics = Analytics.parseAnalytics(
-          doc.data(),
-        );
-        if (analytics != null) {
-          cloudAnalytics.add(analytics);
+        try {
+          analytics.add(Analytics.fromJson(doc.data()));
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
         }
       }
-
-      return cloudAnalytics;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -238,42 +213,35 @@ class CloudStore {
       );
     }
 
-    return [];
+    return analytics;
   }
 
   static Future<Profile> getProfile() async {
+    Profile profile;
     try {
-      final uuid = CustomAuth.getUserId();
-
       final userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
-          .doc(uuid)
+          .doc(CustomAuth.getUserId())
           .get();
 
-      return Profile.fromJson(
-        userJson.data()!,
-      );
-    } on FirebaseException catch (exception) {
-      if (exception.code == 'not-found') {
-        return await CustomAuth.createProfile();
-      } else {
-        rethrow;
-      }
+      profile = Profile.fromJson(userJson.data()!);
     } catch (exception, stackTrace) {
+      profile = await Profile.create();
+      await updateProfile(profile);
       await logException(
         exception,
         stackTrace,
       );
     }
 
-    return Profile.getProfile();
+    return profile;
   }
 
   static Future<List<FavouritePlace>> getFavouritePlaces() async {
+    final favouritePlaces = <FavouritePlace>[];
+
     try {
       final userId = CustomAuth.getUserId();
-
-      if (userId.isEmpty) return [];
 
       final jsonObject = await FirebaseFirestore.instance
           .collection(Config.favPlacesCollection)
@@ -281,25 +249,21 @@ class CloudStore {
           .collection(userId)
           .get();
 
-      final favouritePlaces = <FavouritePlace>[];
-
       for (final doc in jsonObject.docs) {
         try {
-          favouritePlaces.add(FavouritePlace.fromFirestore(snapshot: doc));
+          favouritePlaces.add(FavouritePlace.fromFirestore(doc));
         } catch (exception, stackTrace) {
           await logException(exception, stackTrace);
         }
       }
-
-      return favouritePlaces;
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
-
-      return [];
     }
+
+    return favouritePlaces;
   }
 
   static Future<bool> updateFavouritePlaces() async {
@@ -459,39 +423,17 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateKya(Kya kya) async {
-    if (CustomAuth.isGuestUser()) {
-      return;
-    }
-
+  static Future<void> updateKyaProgress(Kya kya) async {
     final userId = CustomAuth.getUserId();
+    KyaProgress progress = KyaProgress.fromKya(kya);
 
     try {
       await FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
           .doc(userId)
           .collection(userId)
-          .doc(kya.id)
-          .update(
-            kya.toJson(),
-          );
-    } on FirebaseException catch (exception, stackTrace) {
-      // TODO : Add to authentication decryption enum
-      if (exception.code.contains('not-found')) {
-        await FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(kya.id)
-            .set(
-              kya.toJson(),
-            );
-      } else {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+          .doc(progress.id)
+          .set(progress.toJson());
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -532,7 +474,8 @@ class CloudMessaging {
 
 class CustomAuth {
   static Future<Profile> createProfile() async {
-    final profile = await Profile.getProfile();
+    final profile = await Profile.create();
+
     try {
       await FirebaseAuth.instance.currentUser
           ?.updateDisplayName(profile.firstName);
@@ -553,14 +496,38 @@ class CustomAuth {
     return true;
   }
 
-  static Future<bool> firebaseSignIn(
-    AuthCredential? authCredential,
-  ) async {
-    final UserCredential userCredential = authCredential == null
-        ? await FirebaseAuth.instance.signInAnonymously()
-        : await FirebaseAuth.instance.signInWithCredential(authCredential);
+  static Future<bool> firebaseSignIn(AuthCredential? authCredential) async {
+    UserCredential userCredential;
+    if (authCredential == null) {
+      User? user = getUser();
+
+      if (user != null && user.isAnonymous) {
+        return true;
+      }
+
+      userCredential = await FirebaseAuth.instance.signInAnonymously();
+    } else {
+      User? user = getUser();
+      userCredential = user == null
+          ? await FirebaseAuth.instance.signInWithCredential(authCredential)
+          : await user.linkWithCredential(authCredential);
+    }
 
     return userCredential.user != null;
+  }
+
+  static Future<bool> firebaseSignOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   static User? getUser() {
@@ -568,20 +535,12 @@ class CustomAuth {
   }
 
   static String getUserId() {
-    if (!isLoggedIn()) {
-      return '';
-    }
-
-    return getUser()!.uid;
+    User? user = getUser();
+    return user == null ? '' : user.uid;
   }
 
   static bool isLoggedIn() {
-    final user = getUser();
-    if (user == null) {
-      return false;
-    }
-
-    return !user.isAnonymous;
+    return getUser() != null;
   }
 
   static bool isGuestUser() {

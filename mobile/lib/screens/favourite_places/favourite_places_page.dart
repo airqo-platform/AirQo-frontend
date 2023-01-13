@@ -19,10 +19,12 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        widget: BlocBuilder<FavouritePlaceBloc, FavouritePlaceState>(
           builder: (context, state) {
             if (state.favouritePlaces.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+              context
+                  .read<FavouritePlaceBloc>()
+                  .add(const RefreshFavouritePlaces());
 
               return const NoFavouritePlacesWidget();
             }
@@ -70,6 +72,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
   }
 }

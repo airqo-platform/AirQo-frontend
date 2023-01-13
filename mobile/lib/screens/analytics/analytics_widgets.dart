@@ -651,7 +651,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }

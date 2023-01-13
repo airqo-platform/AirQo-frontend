@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
@@ -20,21 +21,36 @@ import '../for_you_page.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
 
-class LogoutButton extends StatelessWidget {
-  const LogoutButton({super.key});
+class SignOutButton extends StatefulWidget {
+  const SignOutButton({super.key});
 
   @override
+  State<SignOutButton> createState() => _SignOutButtonState();
+}
+
+class _SignOutButtonState extends State<SignOutButton> {
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 48,
-      padding: const EdgeInsets.only(top: 12, bottom: 12),
-      decoration: BoxDecoration(
-        color: CustomColors.appColorBlue.withOpacity(0.1),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          await _signOut();
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.1),
+          foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
         ),
-      ),
-      child: Center(
         child: Text(
           'Log Out',
           style: TextStyle(
@@ -44,6 +60,27 @@ class LogoutButton extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _signOut() async {
+    final success = await CustomAuth.firebaseSignOut();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (success) {
+      Navigator.pop(context);
+      context.read<AccountBloc>().add(LogOutAccount(context: context));
+      context.read<AccountBloc>().add(const ClearProfile());
+      context.read<KyaBloc>().add(const ClearKya());
+      context.read<AnalyticsBloc>().add(const ClearAnalytics());
+      context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
+      context.read<NotificationBloc>().add(const ClearNotifications());
+    } else {
+      Navigator.pop(context);
+      showSnackBar(context, Config.signOutFailed);
+    }
   }
 }
 
@@ -66,7 +103,7 @@ class SignUpSection extends StatelessWidget {
             height: 48,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 25.0, right: 25.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: AutoSizeText(
               'Personalise your\nexperience',
               maxLines: 3,
@@ -80,7 +117,7 @@ class SignUpSection extends StatelessWidget {
             height: 8,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 55.0, right: 55.0),
+            padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
               'Create your account today and enjoy air quality'
               ' updates and health tips.',
@@ -95,42 +132,9 @@ class SignUpSection extends StatelessWidget {
           const SizedBox(
             height: 24,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) {
-                  return const PhoneSignUpWidget();
-                }),
-                (r) => false,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 32, right: 32),
-              child: Container(
-                constraints: const BoxConstraints(minWidth: double.infinity),
-                decoration: BoxDecoration(
-                  color: CustomColors.appColorBlue,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 12, bottom: 14),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        height: 22 / 14,
-                        letterSpacing: 16 * -0.022,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: SignUpButton(),
           ),
           const SizedBox(
             height: 40,
@@ -141,13 +145,58 @@ class SignUpSection extends StatelessWidget {
   }
 }
 
+class SignUpButton extends StatelessWidget {
+  const SignUpButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              return const PhoneSignUpWidget();
+            }),
+            (r) => false,
+          );
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: CustomColors.appColorBlue,
+          foregroundColor: CustomColors.appColorBlue,
+        ),
+        child: const Text(
+          'Sign Up',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            height: 22 / 14,
+            letterSpacing: 16 * -0.022,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SettingsButton extends StatelessWidget {
   const SettingsButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
+    return OutlinedButton(
+      onPressed: () async {
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -157,34 +206,39 @@ class SettingsButton extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        height: 56,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+        ),
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
+            Radius.circular(8),
           ),
         ),
-        child: ListTile(
-          leading: Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: CustomColors.appColorBlue.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/icon/cog.svg',
-                color: CustomColors.appColorBlue,
-              ),
+        backgroundColor: Colors.white,
+        foregroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      ),
+      child: ListTile(
+        leading: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icon/cog.svg',
+              color: CustomColors.appColorBlue,
             ),
           ),
-          title: AutoSizeText(
-            'Settings',
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyText1,
-          ),
+        ),
+        title: AutoSizeText(
+          'Settings',
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyText1,
         ),
       ),
     );
@@ -899,23 +953,20 @@ class GuestProfileView extends StatelessWidget {
           ],
         ),
       ),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: const <Widget>[
-              SizedBox(
-                height: 24,
-              ),
-              SignUpSection(),
-              SizedBox(
-                height: 16,
-              ),
-              SettingsButton(),
-              Spacer(),
-            ],
-          ),
+      body: AppSafeArea(
+        horizontalPadding: 16.0,
+        widget: Column(
+          children: const <Widget>[
+            SizedBox(
+              height: 24,
+            ),
+            SignUpSection(),
+            SizedBox(
+              height: 16,
+            ),
+            SettingsButton(),
+            Spacer(),
+          ],
         ),
       ),
     );

@@ -28,7 +28,7 @@ class ProfileEditPage extends StatelessWidget {
         builder: (context, state) {
           var profile = state.profile;
           if (profile == null) {
-            context.read<AccountBloc>().add(const FetchAccountInfo());
+            context.read<AccountBloc>().add(const FetchProfile());
 
             return const LoadingWidget();
           }

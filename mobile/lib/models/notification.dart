@@ -63,16 +63,6 @@ class AppNotification extends HiveObject {
 
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 
-  static AppNotification? parseAppNotification(Map<String, dynamic> jsonBody) {
-    try {
-      return AppNotification.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-
-      return null;
-    }
-  }
-
   static List<AppNotification> sort(List<AppNotification> notifications) {
     notifications.sort(
       (x, y) {

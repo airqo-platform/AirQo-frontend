@@ -101,13 +101,9 @@ class NotificationService {
       // Temporarily disabling on notification listeners
       // FirebaseMessaging.onMessage
       // .listen(NotificationService.notificationHandler);
-      FirebaseMessaging.onMessageOpenedApp.listen(
-        (_) {
-          CloudAnalytics.logEvent(
-            AnalyticsEvent.notificationOpen,
-          );
-        },
-      );
+      FirebaseMessaging.onMessageOpenedApp.listen((_) {
+        CloudAnalytics.logEvent(Event.notificationOpen);
+      });
       FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
         final profile = await Profile.getProfile();
         await profile.update();
@@ -162,7 +158,7 @@ class NotificationService {
               ),
             ),
             CloudAnalytics.logEvent(
-              AnalyticsEvent.notificationReceive,
+              Event.notificationReceive,
             ),
           ],
         );

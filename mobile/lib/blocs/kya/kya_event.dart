@@ -4,8 +4,20 @@ abstract class KyaEvent extends Equatable {
   const KyaEvent();
 }
 
-class LoadKya extends KyaEvent {
-  const LoadKya();
+class FetchKya extends KyaEvent {
+  const FetchKya();
+  @override
+  List<Object?> get props => [];
+}
+
+class RefreshKya extends KyaEvent {
+  const RefreshKya();
+  @override
+  List<Object?> get props => [];
+}
+
+class ClearKya extends KyaEvent {
+  const ClearKya();
   @override
   List<Object?> get props => [];
 }

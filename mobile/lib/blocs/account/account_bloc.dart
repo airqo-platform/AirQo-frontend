@@ -10,183 +10,46 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../analytics/analytics_bloc.dart';
+import '../favourite_place/favourite_place_bloc.dart';
+import '../kya/kya_bloc.dart';
+import '../notifications/notification_bloc.dart';
+
 part 'account_event.dart';
 part 'account_state.dart';
 
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   AccountBloc() : super(const AccountState.initial()) {
-    on<FetchAccountInfo>(_onFetchAccountInfo);
-    on<LoadAccountInfo>(_onLoadAccountInfo);
     on<LogOutAccount>(_onLogOutAccount);
     on<DeleteAccount>(_onDeleteAccount);
     on<AccountDeletionCheck>(_accountDeletionCheck);
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
-    on<RefreshAnalytics>(_onRefreshAnalytics);
-    on<RefreshNotifications>(_onRefreshNotifications);
-    on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
+    on<FetchProfile>(_onFetchProfile);
     on<RefreshProfile>(_onRefreshProfile);
-    on<UpdateProfilePreferences>(_onUpdateProfilePreferences);
-    on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
-  }
-
-  Future<void> _onUpdateFavouritePlace(
-    UpdateFavouritePlace event,
-    Emitter<AccountState> emit,
-  ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    List<FavouritePlace> favouritePlaces = List.of(state.favouritePlaces);
-    final placesIds = favouritePlaces.map((e) => e.placeId);
-
-    if (placesIds.contains(event.airQualityReading.placeId)) {
-      favouritePlaces.removeWhere(
-        (element) => element.placeId == event.airQualityReading.placeId,
-      );
-    } else {
-      favouritePlaces.add(
-        FavouritePlace.fromAirQualityReading(event.airQualityReading),
-      );
-    }
-
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-
-    emit(state.copyWith(
-      blocStatus: BlocStatus.initial,
-      favouritePlaces: favouritePlaces,
-    ));
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateFavouritePlaces();
-      if (favouritePlaces.length >= 5) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.savesFiveFavorites,
-        );
-      }
-    }
-  }
-
-  @override
-  Future<void> onError(Object error, StackTrace stackTrace) async {
-    await logException(error, stackTrace);
-    super.onError(error, stackTrace);
+    on<ClearProfile>(_onClearProfile);
   }
 
   Future<Profile> _getProfile() async {
-    return state.profile ?? await Profile.initializeGuestProfile();
+    return state.profile ?? await CloudStore.getProfile();
   }
 
-  Future<void> _onUpdateProfilePreferences(
-    UpdateProfilePreferences event,
+  Future<void> _onClearProfile(
+    ClearProfile _,
     Emitter<AccountState> emit,
   ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    final profile = await _getProfile();
-
-    profile.preferences.notifications =
-        event.notifications ?? profile.preferences.notifications;
-    profile.preferences.location =
-        event.location ?? profile.preferences.location;
-
-    emit(state.copyWith(profile: profile, blocStatus: BlocStatus.initial));
-
+    Profile profile = await Profile.create();
+    emit(const AccountState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
-
-    if (event.notifications ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
-    }
-
-    if (event.location ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
-    }
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateProfile(profile);
-    }
   }
 
-  Future<void> _onLoadAccountInfo(
-    LoadAccountInfo _,
+  Future<void> _onFetchProfile(
+    FetchProfile _,
     Emitter<AccountState> emit,
   ) async {
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-
-    final analytics = Hive.box<Analytics>(HiveBox.analytics).values.toList();
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
-
-    final profile = await Profile.getProfile();
-
-    emit(const AccountState.initial().copyWith(
-      notifications: notifications,
-      favouritePlaces: favouritePlaces,
-      analytics: analytics,
-      profile: profile,
-      guestUser: CustomAuth.isGuestUser(),
-    ));
-
-    await _onRefreshFavouritePlacesInsights();
-
-    return;
-  }
-
-  Future<void> _onRefreshNotifications(
-    RefreshNotifications _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
-
-    final cloudNotifications = await CloudStore.getNotifications();
-    final notificationsIds = notifications.map((e) => e.id).toList();
-
-    cloudNotifications.removeWhere((x) => notificationsIds.contains(x.id));
-
-    notifications.addAll(cloudNotifications);
-
-    emit(state.copyWith(notifications: notifications));
-
-    await HiveService.loadNotifications(notifications);
-  }
-
-  Future<void> _onRefreshFavouritePlacesInsights() async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-    final AppService appService = AppService();
-    for (final favouritePlace in state.favouritePlaces) {
-      await appService.fetchInsightsData(favouritePlace.referenceSite);
-    }
-  }
-
-  Future<void> _onRefreshFavouritePlaces(
-    RefreshFavouritePlaces _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-    final AppService appService = AppService();
-    await appService.updateFavouritePlacesReferenceSites();
-    await _onRefreshFavouritePlacesInsights();
+    Profile profile = await CloudStore.getProfile();
+    emit(const AccountState.initial().copyWith(profile: profile));
+    await HiveService.loadProfile(profile);
   }
 
   Future<void> _onRefreshProfile(
@@ -209,23 +72,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
-  }
-
-  Future<void> _onRefreshAnalytics(
-    RefreshAnalytics _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final AppService appService = AppService();
-    await appService.refreshAirQualityReadings();
-    // TODO: update cloud Analytics
   }
 
   Future<void> _onUpdateProfile(
@@ -296,7 +142,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
         await Future.wait([
           CloudAnalytics.logEvent(
-            AnalyticsEvent.uploadProfilePicture,
+            Event.uploadProfilePicture,
           ),
           profile.update(),
         ]);
@@ -335,27 +181,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
   }
 
-  Future<void> _fetchAccountInfo(
-    Emitter<AccountState> emit,
-  ) async {
-    emit(const AccountState.initial()
-        .copyWith(guestUser: CustomAuth.isGuestUser()));
-
-    await Future.wait([
-      _fetchProfile(emit),
-      _fetchAnalytics(emit),
-      _fetchFavouritePlaces(emit),
-      _fetchNotifications(emit),
-    ]);
-  }
-
-  Future<void> _onFetchAccountInfo(
-    FetchAccountInfo _,
-    Emitter<AccountState> emit,
-  ) async {
-    await _fetchAccountInfo(emit);
-  }
-
   Future<void> _onLogOutAccount(
     LogOutAccount event,
     Emitter<AccountState> emit,
@@ -392,9 +217,15 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     );
 
     if (successful) {
-      await _fetchAccountInfo(emit);
+      event.context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
+      event.context.read<KyaBloc>().add(const ClearKya());
+      event.context.read<AnalyticsBloc>().add(const ClearAnalytics());
+      event.context
+          .read<FavouritePlaceBloc>()
+          .add(const ClearFavouritePlaces());
+      event.context.read<NotificationBloc>().add(const ClearNotifications());
 
-      return emit(state.copyWith(
+      return emit(const AccountState.initial().copyWith(
         blocStatus: BlocStatus.success,
         blocError: AuthenticationError.none,
       ));
@@ -495,56 +326,5 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
 
     return emit(const AccountState.initial());
-  }
-
-  Future<void> _fetchAnalytics(
-    Emitter<AccountState> emit,
-  ) async {
-    final analytics = state.guestUser
-        ? Analytics.fromAirQualityReadings()
-        : await CloudStore.getCloudAnalytics();
-    emit(state.copyWith(
-      analytics: analytics,
-    ));
-
-    await HiveService.loadAnalytics(analytics);
-  }
-
-  Future<void> _fetchProfile(
-    Emitter<AccountState> emit,
-  ) async {
-    final profile = state.guestUser
-        ? await Profile.initializeGuestProfile()
-        : await CloudStore.getProfile();
-
-    emit(state.copyWith(
-      profile: profile,
-    ));
-    await HiveService.loadProfile(profile);
-  }
-
-  Future<void> _fetchFavouritePlaces(
-    Emitter<AccountState> emit,
-  ) async {
-    final favouritePlaces = state.guestUser
-        ? <FavouritePlace>[]
-        : await CloudStore.getFavouritePlaces();
-    emit(state.copyWith(
-      favouritePlaces: favouritePlaces,
-    ));
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-  }
-
-  Future<void> _fetchNotifications(
-    Emitter<AccountState> emit,
-  ) async {
-    final notifications = state.guestUser
-        ? <AppNotification>[]
-        : await CloudStore.getNotifications();
-    emit(state.copyWith(
-      notifications: notifications,
-    ));
-
-    await HiveService.loadNotifications(notifications);
   }
 }

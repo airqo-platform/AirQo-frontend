@@ -55,7 +55,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          verticalPadding: 10,
           horizontalPadding: 24,
           widget: BlocBuilder<EmailAuthBloc, EmailAuthState>(
             builder: (context, state) {
@@ -94,13 +93,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       ),
                       BlocListener<EmailAuthBloc, EmailAuthState>(
                         listener: (context, state) {
-                          context
-                              .read<AuthCodeBloc>()
-                              .add(InitializeAuthCodeState(
-                                emailAddress: state.emailAddress,
-                                authProcedure: state.authProcedure,
-                                authMethod: AuthMethod.email,
-                              ));
+                          context.read<AuthCodeBloc>().add(
+                                InitializeAuthCodeState(
+                                  emailAddress: state.emailAddress,
+                                  authProcedure: state.authProcedure,
+                                  authMethod: AuthMethod.email,
+                                ),
+                              );
 
                           Navigator.push(
                             context,
@@ -114,7 +113,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         },
                       ),
                     ],
-                    child: Container(),
+                    child: const SizedBox(
+                      height: 10,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -166,7 +167,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   Visibility(
                     visible: !_keyboardVisible,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       child: state.authProcedure == AuthProcedure.login
                           ? const LoginOptions(authMethod: AuthMethod.email)
                           : const SignUpOptions(

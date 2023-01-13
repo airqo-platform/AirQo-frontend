@@ -38,8 +38,7 @@ class AppService {
             await CustomAuth.reAuthenticate(authCredential!);
         if (reAuthentication) {
           final cloudStoreDeletion = await CloudStore.deleteAccount();
-          final logging =
-              await CloudAnalytics.logEvent(AnalyticsEvent.deletedAccount);
+          final logging = await CloudAnalytics.logEvent(Event.deletedAccount);
           final localStorageDeletion = await _clearUserLocalStorage();
           if (cloudStoreDeletion && logging && localStorageDeletion) {
             authSuccessful = await CustomAuth.deleteAccount();
@@ -168,9 +167,7 @@ class AppService {
     try {
       await Future.wait([
         Profile.getProfile(),
-        CloudAnalytics.logEvent(
-          AnalyticsEvent.createUserProfile,
-        ),
+        CloudAnalytics.logEvent(Event.createUserProfile),
         CloudAnalytics.logNetworkProvider(),
         CloudAnalytics.logPlatformType(),
         CloudAnalytics.logGender(),

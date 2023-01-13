@@ -16,13 +16,13 @@ class AnalyticsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<AnalyticsBloc, AnalyticsState>(
       buildWhen: (previous, current) {
         return previous.analytics != current.analytics;
       },
       builder: (context, state) {
         if (state.analytics.isEmpty) {
-          context.read<AccountBloc>().add(const RefreshAnalytics());
+          context.read<AnalyticsBloc>().add(const RefreshAnalytics());
         }
 
         List<Analytics> analytics = state.analytics.sortByDateTime();
@@ -77,6 +77,6 @@ class AnalyticsView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshAnalytics());
+    context.read<AnalyticsBloc>().add(const RefreshAnalytics());
   }
 }

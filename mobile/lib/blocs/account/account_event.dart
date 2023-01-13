@@ -4,32 +4,14 @@ abstract class AccountEvent extends Equatable {
   const AccountEvent();
 }
 
-class FetchAccountInfo extends AccountEvent {
-  const FetchAccountInfo();
+class FetchProfile extends AccountEvent {
+  const FetchProfile();
   @override
   List<Object?> get props => [];
 }
 
-class LoadAccountInfo extends AccountEvent {
-  const LoadAccountInfo();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshAnalytics extends AccountEvent {
-  const RefreshAnalytics();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshNotifications extends AccountEvent {
-  const RefreshNotifications();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshFavouritePlaces extends AccountEvent {
-  const RefreshFavouritePlaces();
+class ClearProfile extends AccountEvent {
+  const ClearProfile();
   @override
   List<Object?> get props => [];
 }
@@ -68,10 +50,7 @@ class AccountDeletionCheck extends AccountEvent {
   final bool passed;
   final AuthenticationError? error;
   @override
-  List<Object?> get props => [
-        passed,
-        error,
-      ];
+  List<Object?> get props => [passed, error];
 }
 
 class EditProfile extends AccountEvent {
@@ -94,23 +73,4 @@ class UpdateProfile extends AccountEvent {
 
   @override
   List<Object?> get props => [];
-}
-
-class UpdateProfilePreferences extends AccountEvent {
-  const UpdateProfilePreferences({
-    this.notifications,
-    this.location,
-  });
-  final bool? notifications;
-  final bool? location;
-
-  @override
-  List<Object?> get props => [location, notifications];
-}
-
-class UpdateFavouritePlace extends AccountEvent {
-  const UpdateFavouritePlace(this.airQualityReading);
-  final AirQualityReading airQualityReading;
-  @override
-  List<Object?> get props => [airQualityReading];
 }

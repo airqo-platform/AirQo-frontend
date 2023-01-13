@@ -1470,7 +1470,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       }
     });
 
-    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
+    context
+        .read<FavouritePlaceBloc>()
+        .add(UpdateFavouritePlace(airQualityReading));
   }
 }
 

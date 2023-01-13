@@ -1,6 +1,8 @@
+import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -76,6 +78,36 @@ class Profile extends HiveObject with EquatableMixin {
     } else {
       return 'Hello';
     }
+  }
+
+  static Future<Profile> create() async {
+    Profile profile = Profile(
+      title: '',
+      firstName: '',
+      lastName: '',
+      userId: const Uuid().v4(),
+      emailAddress: '',
+      phoneNumber: '',
+      device: await CloudMessaging.getDeviceToken() ?? '',
+      preferences: UserPreferences(
+        notifications:
+            await PermissionService.checkPermission(AppPermission.notification),
+        location:
+            await PermissionService.checkPermission(AppPermission.location),
+        aqShares: 0,
+      ),
+      utcOffset: DateTime.now().getUtcOffset(),
+      photoUrl: '',
+    );
+    User? user = CustomAuth.getUser();
+    if (user != null) {
+      profile
+        ..userId = user.uid
+        ..phoneNumber = user.phoneNumber ?? ''
+        ..emailAddress = user.email ?? '';
+    }
+
+    return profile;
   }
 
   static Future<Profile> getProfile() async {
@@ -179,32 +211,10 @@ class Profile extends HiveObject with EquatableMixin {
     }
   }
 
-  static Future<Profile> initializeGuestProfile() async {
-    final user = CustomAuth.getUser();
-    final userId = user != null ? user.uid : const Uuid().v4();
-
-    return Profile(
-      title: '',
-      firstName: '',
-      lastName: '',
-      userId: userId,
-      emailAddress: '',
-      phoneNumber: '',
-      device: await CloudMessaging.getDeviceToken() ?? '',
-      preferences: UserPreferences(
-        notifications:
-            await PermissionService.checkPermission(AppPermission.notification),
-        location:
-            await PermissionService.checkPermission(AppPermission.location),
-        aqShares: 0,
-      ),
-      utcOffset: DateTime.now().getUtcOffset(),
-      photoUrl: '',
-    );
-  }
-
   static Future<Profile> _initialize() async {
-    final profile = Profile(
+    User? user = CustomAuth.getUser();
+
+    Profile profile = Profile(
       title: '',
       firstName: '',
       lastName: '',

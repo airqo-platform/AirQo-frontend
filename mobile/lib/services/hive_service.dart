@@ -145,10 +145,9 @@ class HiveService {
     await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 
-  static Future<void> loadNotifications(
-    List<AppNotification> notifications,
-  ) async {
-    if (notifications.isEmpty) {
+  static Future<void> loadNotifications(List<AppNotification> notifications,
+      {bool clear = false}) async {
+    if (notifications.isEmpty && !clear) {
       return;
     }
     await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
@@ -185,10 +184,9 @@ class HiveService {
     await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
 
-  static Future<void> loadFavouritePlaces(
-    List<FavouritePlace> favouritePlaces,
-  ) async {
-    if (favouritePlaces.isEmpty) {
+  static Future<void> loadFavouritePlaces(List<FavouritePlace> favouritePlaces,
+      {bool clear = false}) async {
+    if (favouritePlaces.isEmpty && !clear) {
       return;
     }
     await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
@@ -204,8 +202,13 @@ class HiveService {
         .then((value) => CloudStore.updateFavouritePlaces());
   }
 
-  static Future<void> loadAnalytics(List<Analytics> analytics) async {
-    if (analytics.isEmpty) {
+  static List<Analytics> getAnalytics() {
+    return Hive.box<Analytics>(HiveBox.analytics).values.toList();
+  }
+
+  static Future<void> loadAnalytics(List<Analytics> analytics,
+      {bool clear = false}) async {
+    if (analytics.isEmpty && !clear) {
       return;
     }
     await Hive.box<Analytics>(HiveBox.analytics).clear();

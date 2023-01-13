@@ -57,7 +57,7 @@ class RateService {
 
   static Future<void> logAppRating() async {
     await CloudAnalytics.logEvent(
-      AnalyticsEvent.rateApp,
+      Event.rateApp,
     );
   }
 }
@@ -148,7 +148,7 @@ class ShareService {
 
     if (value >= 5) {
       await CloudAnalytics.logEvent(
-        AnalyticsEvent.shareAirQualityInformation,
+        Event.shareAirQualityInformation,
       );
     }
   }
