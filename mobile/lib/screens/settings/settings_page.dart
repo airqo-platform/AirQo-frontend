@@ -171,13 +171,14 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const Spacer(),
                 BlocBuilder<AccountBloc, AccountState>(
-                  buildWhen: (previous, current) {
-                    return previous.guestUser != current.guestUser;
-                  },
+                  // TODO investigate this code
+                  // buildWhen: (previous, current) {
+                  //   return previous.guestUser != current.guestUser;
+                  // },
                   builder: (context, state) {
-                    if (state.guestUser) {
-                      return Container();
-                    }
+                    // if (state.guestUser) {
+                    //   return Container();
+                    // }
 
                     return MultiBlocListener(
                       listeners: [
@@ -280,6 +281,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   void _deleteAccount() {
+    // TODO final authSuccessful = CustomAuth.reAuthenticate(authCredential);
     context.read<AccountBloc>().add(DeleteAccount(context: context));
   }
 }

@@ -29,6 +29,7 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     ClearAnalytics _,
     Emitter<AnalyticsState> emit,
   ) async {
+    // TODO await CloudStore.updateCloudAnalytics()
     emit(const AnalyticsState.initial());
     await HiveService.loadAnalytics([], clear: true);
   }
@@ -45,8 +46,7 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
       ));
     }
 
-    final AppService appService = AppService();
-    await appService.refreshAirQualityReadings();
+    await AppService().refreshAirQualityReadings();
     // TODO: update cloud Analytics
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +31,13 @@ class _ProfileViewState extends State<ProfileView> {
     return BlocBuilder<AccountBloc, AccountState>(
       builder: (context, state) {
         final profile = state.profile;
-        if (state.guestUser || profile == null) {
+        if (profile == null) {
           return const GuestProfileView();
+        } else {
+          final user = profile.user;
+          if (user == null || user.isAnonymous) {
+            return const GuestProfileView();
+          }
         }
 
         return Scaffold(
@@ -89,7 +95,7 @@ class _ProfileViewState extends State<ProfileView> {
                   height: 8,
                 ),
                 AutoSizeText(
-                  profile.getProfileViewName(),
+                  profile.displayName(),
                   maxLines: 2,
                   style: CustomTextStyle.headline9(context),
                 ),

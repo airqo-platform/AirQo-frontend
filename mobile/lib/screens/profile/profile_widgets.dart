@@ -63,6 +63,8 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 
   Future<void> _signOut() async {
+    loadingScreen(context);
+    // TODO check internet connection
     final success = await CustomAuth.firebaseSignOut();
 
     if (!mounted) {
@@ -71,12 +73,7 @@ class _SignOutButtonState extends State<SignOutButton> {
 
     if (success) {
       Navigator.pop(context);
-      context.read<AccountBloc>().add(LogOutAccount(context: context));
-      context.read<AccountBloc>().add(const ClearProfile());
-      context.read<KyaBloc>().add(const ClearKya());
-      context.read<AnalyticsBloc>().add(const ClearAnalytics());
-      context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
-      context.read<NotificationBloc>().add(const ClearNotifications());
+      AppService.postSignOutActions(context);
     } else {
       Navigator.pop(context);
       showSnackBar(context, Config.signOutFailed);
@@ -297,7 +294,8 @@ class ViewProfilePicture extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
       final profile = state.profile;
-      if (state.guestUser || profile == null) {
+      // TODO check user profile
+      if (profile == null) {
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -354,7 +352,7 @@ class ViewProfilePicture extends StatelessWidget {
               ),
             ),
             Text(
-              profile.getInitials(),
+              profile.initials(),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -412,7 +410,7 @@ class ViewNotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<NotificationBloc, NotificationState>(
       buildWhen: (previous, current) {
         final previousUnReadNotifications = previous.notifications
             .where((element) => !element.read)

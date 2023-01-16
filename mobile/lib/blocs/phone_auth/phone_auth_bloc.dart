@@ -98,8 +98,6 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       ));
     }
 
-    final appService = AppService();
-
     final phoneNumber = '${state.countryCode} ${state.phoneNumber}';
 
     try {
@@ -112,8 +110,8 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
           );
           break;
         case AuthProcedure.signup:
-          await appService
-              .doesUserExist(
+          await AirqoApiClient()
+              .checkIfUserExists(
                 phoneNumber: state.phoneNumber,
               )
               .then((exists) => {

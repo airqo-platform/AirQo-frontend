@@ -29,6 +29,9 @@ class Profile extends HiveObject with EquatableMixin {
     required this.photoUrl,
     required this.utcOffset,
   });
+
+  User? user;
+
   @HiveField(0)
   @JsonKey(defaultValue: '')
   String title = '';
@@ -67,35 +70,18 @@ class Profile extends HiveObject with EquatableMixin {
 
   @HiveField(9)
   @JsonKey(required: false)
-  UserPreferences preferences =
-      UserPreferences(notifications: false, aqShares: 0, location: false);
-
-  String getProfileViewName() {
-    if (firstName != '') {
-      return firstName.trim();
-    } else if (lastName != '') {
-      return lastName.trim();
-    } else {
-      return 'Hello';
-    }
-  }
+  UserPreferences preferences = UserPreferences.initialize();
 
   static Future<Profile> create() async {
     Profile profile = Profile(
-      title: '',
+      title: TitleOptions.ms.value,
       firstName: '',
       lastName: '',
       userId: const Uuid().v4(),
       emailAddress: '',
       phoneNumber: '',
       device: await CloudMessaging.getDeviceToken() ?? '',
-      preferences: UserPreferences(
-        notifications:
-            await PermissionService.checkPermission(AppPermission.notification),
-        location:
-            await PermissionService.checkPermission(AppPermission.location),
-        aqShares: 0,
-      ),
+      preferences: UserPreferences.initialize(),
       utcOffset: DateTime.now().getUtcOffset(),
       photoUrl: '',
     );
@@ -112,51 +98,10 @@ class Profile extends HiveObject with EquatableMixin {
 
   static Future<Profile> getProfile() async {
     return Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ??
-        await _initialize();
-  }
-
-  Gender getGender() {
-    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
-      return Gender.male;
-    } else if (title
-        .toLowerCase()
-        .contains(TitleOptions.ms.value.toLowerCase())) {
-      return Gender.female;
-    } else {
-      return Gender.undefined;
-    }
-  }
-
-  String getInitials() {
-    var initials = '';
-    if (firstName.isNotEmpty) {
-      initials = firstName[0].toUpperCase();
-    }
-
-    if (lastName.isNotEmpty) {
-      initials = '$initials${lastName[0].toUpperCase()}';
-    }
-
-    return initials.isEmpty ? 'A' : initials;
+        await create();
   }
 
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
-
-  static Future<void> syncProfile() async {
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection && CustomAuth.isLoggedIn()) {
-      final profile = await CloudStore.getProfile();
-      await profile.update();
-    }
-  }
-
-  Future<void> logOut() async {
-    await _initialize();
-  }
-
-  Future<void> deleteAccount() async {
-    await _initialize();
-  }
 
   Future<void> updateName(String fullName) async {
     firstName = Profile.getNames(fullName).first;
@@ -211,33 +156,6 @@ class Profile extends HiveObject with EquatableMixin {
     }
   }
 
-  static Future<Profile> _initialize() async {
-    User? user = CustomAuth.getUser();
-
-    Profile profile = Profile(
-      title: '',
-      firstName: '',
-      lastName: '',
-      userId: const Uuid().v4(),
-      emailAddress: '',
-      phoneNumber: '',
-      device: await CloudMessaging.getDeviceToken() ?? '',
-      preferences: UserPreferences(
-        notifications:
-            await PermissionService.checkPermission(AppPermission.notification),
-        location:
-            await PermissionService.checkPermission(AppPermission.location),
-        aqShares: 0,
-      ),
-      utcOffset: DateTime.now().getUtcOffset(),
-      photoUrl: '',
-    );
-
-    await profile.update();
-
-    return profile;
-  }
-
   @override
   List<Object?> get props => [
         title,
@@ -278,7 +196,7 @@ class UserPreferences extends HiveObject with EquatableMixin {
 
   Map<String, dynamic> toJson() => _$UserPreferencesToJson(this);
 
-  static UserPreferences initialize() {
+  factory UserPreferences.initialize() {
     return UserPreferences(
       notifications: false,
       location: false,

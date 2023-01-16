@@ -10,11 +10,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../analytics/analytics_bloc.dart';
-import '../favourite_place/favourite_place_bloc.dart';
-import '../kya/kya_bloc.dart';
-import '../notifications/notification_bloc.dart';
-
 part 'account_event.dart';
 part 'account_state.dart';
 
@@ -28,16 +23,27 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<FetchProfile>(_onFetchProfile);
     on<RefreshProfile>(_onRefreshProfile);
     on<ClearProfile>(_onClearProfile);
+    on<UpdateTitle>(_onUpdateTitle);
   }
 
   Future<Profile> _getProfile() async {
     return state.profile ?? await CloudStore.getProfile();
   }
 
+  Future<void> _onUpdateTitle(
+    UpdateTitle event,
+    Emitter<AccountState> emit,
+  ) async {
+    Profile profile = await Profile.create();
+    profile.title = event.title.value;
+    emit(state.copyWith(profile: profile));
+  }
+
   Future<void> _onClearProfile(
     ClearProfile _,
     Emitter<AccountState> emit,
   ) async {
+    // TODO profile.update(logout: true)
     Profile profile = await Profile.create();
     emit(const AccountState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
@@ -69,7 +75,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     return emit(state.copyWith(
       profile: profile,
-      guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
   }
@@ -212,29 +217,29 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       blocError: AuthenticationError.none,
     ));
 
-    final successful = await AppService().authenticateUser(
-      authProcedure: AuthProcedure.logout,
-    );
+    // final successful = await AppService().authenticateUser(
+    //   authProcedure: AuthProcedure.logout,
+    // );
+    //
+    // if (successful) {
+    //   event.context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
+    //   event.context.read<KyaBloc>().add(const ClearKya());
+    //   event.context.read<AnalyticsBloc>().add(const ClearAnalytics());
+    //   event.context
+    //       .read<FavouritePlaceBloc>()
+    //       .add(const ClearFavouritePlaces());
+    //   event.context.read<NotificationBloc>().add(const ClearNotifications());
+    //
+    //   return emit(const AccountState.initial().copyWith(
+    //     blocStatus: BlocStatus.success,
+    //     blocError: AuthenticationError.none,
+    //   ));
+    // }
 
-    if (successful) {
-      event.context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
-      event.context.read<KyaBloc>().add(const ClearKya());
-      event.context.read<AnalyticsBloc>().add(const ClearAnalytics());
-      event.context
-          .read<FavouritePlaceBloc>()
-          .add(const ClearFavouritePlaces());
-      event.context.read<NotificationBloc>().add(const ClearNotifications());
-
-      return emit(const AccountState.initial().copyWith(
-        blocStatus: BlocStatus.success,
-        blocError: AuthenticationError.none,
-      ));
-    }
-
-    return emit(state.copyWith(
-      blocStatus: BlocStatus.error,
-      blocError: AuthenticationError.logoutFailed,
-    ));
+    // return emit(state.copyWith(
+    //   blocStatus: BlocStatus.error,
+    //   blocError: AuthenticationError.logoutFailed,
+    // ));
   }
 
   Future<void> _onDeleteAccount(

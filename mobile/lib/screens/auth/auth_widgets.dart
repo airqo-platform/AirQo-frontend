@@ -15,23 +15,6 @@ import 'package:flutter_svg/svg.dart';
 
 import 'email_auth_widget.dart';
 
-void postSignInActions(BuildContext context) {
-  context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
-  context.read<AccountBloc>().add(const FetchProfile());
-  context.read<KyaBloc>().add(const FetchKya());
-  context.read<AnalyticsBloc>().add(const FetchAnalytics());
-  context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
-  context.read<NotificationBloc>().add(const FetchNotifications());
-}
-
-void postSignOutActions(BuildContext context) {
-  context.read<AccountBloc>().add(const ClearProfile());
-  context.read<KyaBloc>().add(const ClearKya());
-  context.read<AnalyticsBloc>().add(const ClearAnalytics());
-  context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
-  context.read<NotificationBloc>().add(const ClearNotifications());
-}
-
 class PhoneInputField extends StatefulWidget {
   const PhoneInputField({super.key});
 
@@ -415,7 +398,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
 
     if (success) {
       Navigator.pop(context);
-      postSignInActions(context);
+      AppService.postSignInActions(context);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return const HomePage();

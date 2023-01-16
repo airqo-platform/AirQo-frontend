@@ -65,17 +65,11 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
         email: state.emailAddress,
       );
 
-      final authenticationSuccessful = await AppService().authenticateUser(
-        authProcedure: state.authProcedure,
-        authCredential: emailCredential,
-      );
+      final signInSuccess = await CustomAuth.firebaseSignIn(emailCredential);
 
       return emit(state.copyWith(
-        error: authenticationSuccessful
-            ? state.error
-            : AuthenticationError.authFailure,
-        blocStatus:
-            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
+        error: signInSuccess ? state.error : AuthenticationError.authFailure,
+        blocStatus: signInSuccess ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
@@ -131,17 +125,11 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       );
       final authCredential = state.phoneAuthCredential ?? phoneCredential;
 
-      final authenticationSuccessful = await AppService().authenticateUser(
-        authProcedure: state.authProcedure,
-        authCredential: authCredential,
-      );
+      final signInSuccess = await CustomAuth.firebaseSignIn(authCredential);
 
       return emit(state.copyWith(
-        error: authenticationSuccessful
-            ? state.error
-            : AuthenticationError.authFailure,
-        blocStatus:
-            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
+        error: signInSuccess ? state.error : AuthenticationError.authFailure,
+        blocStatus: signInSuccess ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, _) {
       final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);

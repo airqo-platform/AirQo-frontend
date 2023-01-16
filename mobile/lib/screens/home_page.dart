@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                         : CustomColors.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Profile',
                   ),
-                  BlocBuilder<AccountBloc, AccountState>(
+                  BlocBuilder<NotificationBloc, NotificationState>(
                     buildWhen: (previous, current) {
                       final previousNotifications = previous.notifications
                           .where((element) => !element.read)

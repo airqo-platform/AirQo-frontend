@@ -1,7 +1,9 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 OnBoardingPage getOnBoardingPageConstant(String value) {
@@ -72,35 +74,27 @@ class OnBoardingNotificationIcon extends StatelessWidget {
 class ProfileSetupNameInputField extends StatelessWidget {
   const ProfileSetupNameInputField({
     super.key,
-    required this.nameChangeCallBack,
-    required this.showTileOptionsCallBack,
     this.controller,
   });
-  final Function(String) nameChangeCallBack;
-  final Function(bool) showTileOptionsCallBack;
   final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      onTap: () => showTileOptionsCallBack(false),
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
-          const Duration(milliseconds: 250),
-          () {
-            showTileOptionsCallBack(true);
-          },
-        );
+        // TODO update name
       },
       enableSuggestions: false,
       cursorWidth: 1,
       cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.name,
-      onChanged: nameChangeCallBack,
+      onChanged: (name) {
+        // TODO update name
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter your name';
@@ -127,7 +121,9 @@ class ProfileSetupNameInputField extends StatelessWidget {
           fontSize: 0,
         ),
         suffixIcon: GestureDetector(
-          onTap: () => nameChangeCallBack(''),
+          onTap: () {
+            // TODO clear name
+          },
           child: const TextInputCloseButton(),
         ),
       ),
@@ -135,33 +131,61 @@ class ProfileSetupNameInputField extends StatelessWidget {
   }
 }
 
-class TitleDropDown extends StatelessWidget {
-  const TitleDropDown({
+class TitleToggleListOption extends StatelessWidget {
+  const TitleToggleListOption({
     super.key,
-    required this.showTileOptionsCallBack,
     required this.title,
+    required this.currentTitle,
   });
-  final Function(bool) showTileOptionsCallBack;
   final TitleOptions title;
+  final TitleOptions currentTitle;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => showTileOptionsCallBack(true),
+    Color textColor = currentTitle == title
+        ? CustomColors.appColorBlue
+        : CustomColors.appColorBlack;
+
+    return Text(
+      title.value,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: textColor,
+          ),
+    );
+  }
+}
+
+class TitleDropDown extends StatelessWidget {
+  const TitleDropDown(this.selectedTitle, {super.key});
+  final TitleOptions selectedTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<TitleOptions>(
+      padding: const EdgeInsets.only(top: -8),
+      position: PopupMenuPosition.under,
+      color: CustomColors.appBodyColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
+      onSelected: (title) {
+        context.read<AccountBloc>().add(UpdateTitle(title));
+      },
       child: Container(
         width: 70,
-        padding:
-            const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
         decoration: BoxDecoration(
-          color: const Color(0xffF4F4F4),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(title.abbr),
+              Text(selectedTitle.abbr),
               const Icon(
                 Icons.keyboard_arrow_down_sharp,
                 color: Colors.black,
@@ -170,6 +194,17 @@ class TitleDropDown extends StatelessWidget {
           ),
         ),
       ),
+      itemBuilder: (BuildContext context) => TitleOptions.values
+          .map(
+            (element) => PopupMenuItem(
+              value: element,
+              child: TitleToggleListOption(
+                title: element,
+                currentTitle: selectedTitle,
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }
