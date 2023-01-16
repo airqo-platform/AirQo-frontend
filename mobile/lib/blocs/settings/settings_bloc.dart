@@ -53,8 +53,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     if (event.enable) {
       await CloudAnalytics.logEvent(Event.allowLocation);
     }
-    Profile profile = await Profile.getProfile();
-    await profile.update(enableLocation: event.enable);
   }
 
   Future<void> _onUpdateNotificationPref(
@@ -65,7 +63,5 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     if (event.enable) {
       await CloudAnalytics.logEvent(Event.allowNotification);
     }
-    Profile profile = await Profile.getProfile();
-    await profile.update(enableNotification: event.enable);
   }
 }

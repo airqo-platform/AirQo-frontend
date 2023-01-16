@@ -89,6 +89,10 @@ class HiveService {
         .putAll(airQualityReadingsMap);
   }
 
+  static Future<void> updateProfile(Profile profile) async {
+    await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
+  }
+
   static Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {

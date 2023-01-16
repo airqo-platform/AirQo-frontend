@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
@@ -6,6 +8,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -23,6 +26,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
@@ -102,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                         : CustomColors.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Profile',
                   ),
-                  BlocBuilder<AccountBloc, AccountState>(
+                  BlocBuilder<NotificationBloc, NotificationState>(
                     buildWhen: (previous, current) {
                       final previousNotifications = previous.notifications
                           .where((element) => !element.read)
@@ -172,7 +177,37 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen((value) {
+      switch (value) {
+        case ConnectivityResult.wifi:
+        case ConnectivityResult.ethernet:
+        case ConnectivityResult.mobile:
+        case ConnectivityResult.vpn:
+          _refresh();
+          break;
+        case ConnectivityResult.bluetooth:
+        case ConnectivityResult.none:
+          break;
+      }
+    });
+
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  void _refresh() {
+    context.read<DashboardBloc>().add(const RefreshDashboard());
+    context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
+    context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
+    context.read<MapBloc>().add(const InitializeMapState());
+    // TODO sync profile
   }
 
   Future<bool> _onWillPop() {

@@ -64,11 +64,15 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   void _goToHome() {
     if (mounted) {
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-        builder: (context) {
-          return const HomePage();
-        },
-      ), (r) => false);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return const HomePage();
+          },
+        ),
+        (r) => false,
+      );
     }
   }
 

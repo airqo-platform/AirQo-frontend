@@ -23,7 +23,6 @@ import 'package:workmanager/workmanager.dart' as workmanager;
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'local_storage.dart';
 
 class SystemProperties {
   static Future<void> setDefault() async {
@@ -53,12 +52,7 @@ class RateService {
   static Future<void> rateApp() async {
     final InAppReview inAppReview = InAppReview.instance;
     await inAppReview.openStoreListing(appStoreId: Config.iosStoreId);
-  }
-
-  static Future<void> logAppRating() async {
-    await CloudAnalytics.logEvent(
-      Event.rateApp,
-    );
+    await CloudAnalytics.logAppRating();
   }
 }
 
@@ -88,7 +82,7 @@ class ShareService {
       final result = await Share.shareXFiles([XFile(imgFile.path)]);
 
       if (result.status == ShareResultStatus.success) {
-        await updateUserShares();
+        await CloudAnalytics.logAirQualitySharing();
       }
     } catch (exception, stackTrace) {
       await shareFailed(
@@ -131,26 +125,8 @@ class ShareService {
       'Source: AirQo App',
       subject: 'AirQo, ${airQualityReading.name}!',
     ).then(
-      (value) => {updateUserShares()},
+      (value) => {CloudAnalytics.logAirQualitySharing()},
     );
-  }
-
-  static Future<void> updateUserShares() async {
-    final preferences = await SharedPreferencesHelper.getPreferences();
-    final value = preferences.aqShares + 1;
-    if (CustomAuth.isLoggedIn()) {
-      final profile = await Profile.getProfile();
-      profile.preferences.aqShares = value;
-      await profile.update();
-    } else {
-      await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
-    }
-
-    if (value >= 5) {
-      await CloudAnalytics.logEvent(
-        Event.shareAirQualityInformation,
-      );
-    }
   }
 }
 

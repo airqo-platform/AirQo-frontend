@@ -1,11 +1,12 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -18,16 +19,10 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  String _fullName = '';
   DateTime? _exitTime;
-  Color nextBtnColor = CustomColors.appColorDisabled;
-  bool _showDropDown = false;
 
   final _formKey = GlobalKey<FormState>();
-  bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-
-  TitleOptions _title = TitleOptions.ms;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +38,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Great!\nPlease enter your name?',
+                'Great!\nPlease enter your name',
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline7(context),
               ),
@@ -54,19 +49,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 height: 48,
                 child: Row(
                   children: <Widget>[
-                    TitleDropDown(
-                      showTileOptionsCallBack: _showTileOptionsCallBack,
-                      title: _title,
-                    ),
+                    const TitleDropDown(),
                     const SizedBox(
-                      width: 16,
+                      width: 8,
                     ),
                     Form(
                       key: _formKey,
-                      child: Flexible(
+                      child: Expanded(
                         child: ProfileSetupNameInputField(
-                          showTileOptionsCallBack: _showTileOptionsCallBack,
-                          nameChangeCallBack: _nameChangeCallBack,
                           controller: _controller,
                         ),
                       ),
@@ -74,63 +64,53 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 8,
-              ),
-              Visibility(
-                visible: _showDropDown,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffF4F4F4),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: _getTitleOptions(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const Spacer(),
-              NextButton(
-                buttonColor: nextBtnColor,
-                callBack: () async {
-                  await _saveName();
+              BlocBuilder<AccountBloc, AccountState>(
+                buildWhen: (previous, current) {
+                  Profile? currentProfile = current.profile;
+                  Profile? previousProfile = previous.profile;
+                  if (currentProfile == null || previousProfile == null) {
+                    return true;
+                  }
+                  return previousProfile.fullName() !=
+                      currentProfile.fullName();
+                },
+                builder: (context, state) {
+                  Profile? profile = state.profile;
+
+                  if (profile == null) {
+                    return Container(); // TODO replace with error widget
+                  }
+
+                  return NextButton(
+                    buttonColor: profile.fullName().isEmpty
+                        ? CustomColors.appColorDisabled
+                        : CustomColors.appColorBlue,
+                    callBack: () async {
+                      await _saveName();
+                    },
+                  );
                 },
               ),
-              SizedBox(
-                height: _showOptions ? 16 : 12,
+              const SizedBox(
+                height: 16,
               ),
-              Visibility(
-                visible: _showOptions,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) {
-                        return const NotificationsSetupScreen();
-                      }),
-                      (r) => false,
-                    );
-                  },
-                  child: Text(
-                    'No, thanks',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                          color: CustomColors.appColorBlue,
-                        ),
-                  ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const NotificationsSetupScreen();
+                    }),
+                    (r) => false,
+                  );
+                },
+                child: Text(
+                  'No, thanks',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
                 ),
               ),
             ],
@@ -140,62 +120,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  List<GestureDetector> _getTitleOptions() {
-    final options = <GestureDetector>[];
-
-    for (final option in TitleOptions.values) {
-      options.add(
-        GestureDetector(
-          onTap: () {
-            _updateTitleCallback(option);
-          },
-          child: AutoSizeText(
-            option.displayValue,
-            style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                  color: _title.displayValue == option.value
-                      ? CustomColors.appColorBlack
-                      : CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-          ),
-        ),
-      );
-    }
-
-    return options;
-  }
-
   @override
   void initState() {
     super.initState();
     updateOnBoardingPage();
-  }
-
-  void _showTileOptionsCallBack(bool showTitleOptions) {
-    setState(() => _showOptions = showTitleOptions);
-    setState(() => _showDropDown = showTitleOptions);
-  }
-
-  void _nameChangeCallBack(String name) {
-    if (name.toString().isEmpty || name.toString() == '') {
-      if (_fullName == '') {
-        FocusScope.of(context).unfocus();
-      }
-      setState(
-        () {
-          _fullName = '';
-          _controller.text = '';
-          nextBtnColor = CustomColors.appColorDisabled;
-          _controller.text = '';
-        },
-      );
-    } else {
-      setState(
-        () {
-          nextBtnColor = CustomColors.appColorBlue;
-          _fullName = name;
-        },
-      );
-    }
   }
 
   Future<bool> onWillPop() {
@@ -225,62 +153,22 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> _saveName() async {
-    try {
-      if (_formKey.currentState!.validate()) {
-        loadingScreen(context);
-
-        FocusScope.of(context).requestFocus(
-          FocusNode(),
-        );
-        Future.delayed(
-          const Duration(milliseconds: 250),
-          () {
-            setState(() => _showOptions = true);
-          },
-        );
-
-        setState(() => nextBtnColor = CustomColors.appColorDisabled);
-
-        final profile = await Profile.getProfile();
-        await profile.updateName(_fullName);
-
-        Navigator.pop(context);
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const NotificationsSetupScreen();
-          }),
-          (r) => false,
-        );
-      }
-    } on Exception catch (exception, stackTrace) {
-      Navigator.pop(context);
-      setState(
-        () {
-          nextBtnColor = CustomColors.appColorBlue;
-        },
+    if (_formKey.currentState!.validate()) {
+      context.read<AccountBloc>().add(const UpdateProfile());
+      FocusScope.of(context).requestFocus(
+        FocusNode(),
       );
-      showSnackBar(
+      await Navigator.pushAndRemoveUntil(
         context,
-        'Failed to update profile. Try again later',
-      );
-      await logException(
-        exception,
-        stackTrace,
+        MaterialPageRoute(builder: (context) {
+          return const NotificationsSetupScreen();
+        }),
+        (r) => false,
       );
     }
   }
 
   void updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.profile);
-  }
-
-  void _updateTitleCallback(TitleOptions title) {
-    setState(
-      () {
-        _title = title;
-        _showDropDown = false;
-      },
-    );
   }
 }

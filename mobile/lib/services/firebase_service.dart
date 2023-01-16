@@ -24,6 +24,49 @@ class CloudAnalytics {
     return true;
   }
 
+  static Future<void> logAppRating() async {
+    await CloudAnalytics.logEvent(
+      Event.rateApp,
+    );
+  }
+
+  static Future<void> logSignUpEvents() async {
+    // TODO add to final on boarding screen
+    try {
+      await Future.wait([
+        logEvent(Event.createUserProfile),
+        logNetworkProvider(),
+        logPlatformType(),
+        logGender(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  static Future<void> logSignInEvents() async {
+    // TODO add to final on boarding screen
+    try {
+      await Future.wait([
+        logPlatformType(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  static Future<void> logAirQualitySharing() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      profile.preferences.aqShares = profile.preferences.aqShares + 1;
+      if (profile.preferences.aqShares >= 5) {
+        await CloudAnalytics.logEvent(
+          Event.shareAirQualityInformation,
+        );
+      }
+    }
+  }
+
   static Future<void> logNetworkProvider() async {
     final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
@@ -57,11 +100,11 @@ class CloudAnalytics {
   static Future<void> logGender() async {
     final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
-      if (profile.getGender() == Gender.male) {
+      if (profile.gender() == Gender.male) {
         await logEvent(
           Event.maleUser,
         );
-      } else if (profile.getGender() == Gender.female) {
+      } else if (profile.gender() == Gender.female) {
         await logEvent(
           Event.femaleUser,
         );
@@ -75,41 +118,6 @@ class CloudAnalytics {
 }
 
 class CloudStore {
-  static Future<bool> deleteAccount() async {
-    try {
-      final id = CustomAuth.getUser()?.uid;
-      await Future.wait([
-        FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersNotificationCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersAnalyticsCollection)
-            .doc(id)
-            .delete(),
-      ]);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return true;
-  }
-
   static Future<List<Kya>> getKya() async {
     List<Kya> kya = <Kya>[];
     final kyaCollection =
@@ -218,13 +226,19 @@ class CloudStore {
 
   static Future<Profile> getProfile() async {
     Profile profile;
+
     try {
       final userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(CustomAuth.getUserId())
           .get();
 
-      profile = Profile.fromJson(userJson.data()!);
+      if (userJson.data() == null) {
+        profile = await Profile.create();
+        await updateProfile(profile);
+      } else {
+        profile = Profile.fromJson(userJson.data()!);
+      }
     } catch (exception, stackTrace) {
       profile = await Profile.create();
       await updateProfile(profile);
@@ -234,7 +248,7 @@ class CloudStore {
       );
     }
 
-    return profile;
+    return profile.copyWith(user: CustomAuth.getUser());
   }
 
   static Future<List<FavouritePlace>> getFavouritePlaces() async {
@@ -489,13 +503,6 @@ class CustomAuth {
     return profile;
   }
 
-  static Future<bool> deleteAccount() async {
-    final profile = await Profile.getProfile();
-    await getUser()?.delete().then((_) => profile.deleteAccount());
-
-    return true;
-  }
-
   static Future<bool> firebaseSignIn(AuthCredential? authCredential) async {
     UserCredential userCredential;
     if (authCredential == null) {
@@ -550,19 +557,6 @@ class CustomAuth {
     }
 
     return user.isAnonymous;
-  }
-
-  static Future<bool> logOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return true;
   }
 
   static Future<bool> reAuthenticate(AuthCredential authCredential) async {
@@ -786,7 +780,7 @@ class CustomAuth {
               .updatePhoneNumber(phoneCredential!)
               .then(
             (_) {
-              profile.update();
+              // TODO update profile
             },
           );
           break;
@@ -795,7 +789,7 @@ class CustomAuth {
               .updateEmail(emailAddress!)
               .then(
             (_) {
-              profile.update();
+              // TODO update profile
             },
           );
           break;

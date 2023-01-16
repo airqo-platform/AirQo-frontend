@@ -28,83 +28,129 @@ class Profile extends HiveObject with EquatableMixin {
     required this.preferences,
     required this.photoUrl,
     required this.utcOffset,
+    this.user,
   });
+
   @HiveField(0)
   @JsonKey(defaultValue: '')
-  String title = '';
+  final String title;
 
   @HiveField(1)
   @JsonKey(defaultValue: '')
-  String firstName = '';
+  final String firstName;
 
   @HiveField(2)
   @JsonKey(defaultValue: '')
-  String userId = '';
+  final String userId;
 
   @HiveField(3, defaultValue: '')
   @JsonKey(defaultValue: '')
-  String lastName = '';
+  final String lastName;
 
   @HiveField(4, defaultValue: '')
   @JsonKey(defaultValue: '')
-  String emailAddress = '';
+  final String emailAddress;
 
   @HiveField(5, defaultValue: '')
   @JsonKey(defaultValue: '')
-  String phoneNumber = '';
+  final String phoneNumber;
 
   @HiveField(6, defaultValue: '')
   @JsonKey(defaultValue: '')
-  String device = '';
+  final String device;
 
   @HiveField(7, defaultValue: 0)
   @JsonKey(defaultValue: 0)
-  int utcOffset = 0;
+  final int utcOffset;
 
   @HiveField(8, defaultValue: '')
   @JsonKey(defaultValue: '')
-  String photoUrl = '';
+  final String photoUrl;
 
   @HiveField(9)
   @JsonKey(required: false)
-  UserPreferences preferences =
-      UserPreferences(notifications: false, aqShares: 0, location: false);
+  final UserPreferences preferences;
 
-  String getProfileViewName() {
-    if (firstName != '') {
-      return firstName.trim();
-    } else if (lastName != '') {
-      return lastName.trim();
-    } else {
-      return 'Hello';
+  @JsonKey(ignore: true)
+  final User? user;
+
+  Profile copyWith({
+    String? title,
+    String? firstName,
+    String? userId,
+    String? lastName,
+    String? emailAddress,
+    String? phoneNumber,
+    String? device,
+    int? utcOffset,
+    String? photoUrl,
+    UserPreferences? preferences,
+    User? user,
+  }) {
+    return Profile(
+      title: title ?? this.title,
+      firstName: firstName ?? this.firstName,
+      userId: userId ?? this.userId,
+      lastName: lastName ?? this.lastName,
+      emailAddress: emailAddress ?? this.emailAddress,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      device: device ?? this.device,
+      utcOffset: utcOffset ?? this.utcOffset,
+      photoUrl: photoUrl ?? this.photoUrl,
+      preferences: preferences ?? this.preferences,
+      user: user ?? this.user,
+    );
+  }
+
+  Future<Profile> setUserCredentials() async {
+    String? userId;
+    String? emailAddress;
+    String? phoneNumber;
+
+    final user = CustomAuth.getUser();
+    if (user != null) {
+      phoneNumber = user.phoneNumber;
+      emailAddress = user.email;
+      userId = user.uid;
     }
+
+    return Profile(
+      userId: userId ?? this.userId,
+      emailAddress: emailAddress ?? this.emailAddress,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      lastName: lastName,
+      title: title,
+      firstName: firstName,
+      device: await CloudMessaging.getDeviceToken() ?? device,
+      utcOffset: DateTime.now().getUtcOffset(),
+      photoUrl: photoUrl,
+      preferences: preferences,
+      user: user,
+    );
   }
 
   static Future<Profile> create() async {
+    User? user = CustomAuth.getUser();
     Profile profile = Profile(
-      title: '',
+      title: TitleOptions.ms.value,
       firstName: '',
       lastName: '',
       userId: const Uuid().v4(),
       emailAddress: '',
       phoneNumber: '',
       device: await CloudMessaging.getDeviceToken() ?? '',
-      preferences: UserPreferences(
-        notifications:
-            await PermissionService.checkPermission(AppPermission.notification),
-        location:
-            await PermissionService.checkPermission(AppPermission.location),
-        aqShares: 0,
-      ),
+      preferences: UserPreferences.initialize(),
       utcOffset: DateTime.now().getUtcOffset(),
       photoUrl: '',
+      user: user,
     );
-    User? user = CustomAuth.getUser();
+
     if (user != null) {
-      profile
-        ..userId = user.uid
-        ..phoneNumber = user.phoneNumber ?? ''
-        ..emailAddress = user.email ?? '';
+      profile = profile.copyWith(
+        userId: user.uid,
+        phoneNumber: user.phoneNumber,
+        emailAddress: user.email,
+      );
     }
 
     return profile;
@@ -112,91 +158,10 @@ class Profile extends HiveObject with EquatableMixin {
 
   static Future<Profile> getProfile() async {
     return Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ??
-        await _initialize();
-  }
-
-  Gender getGender() {
-    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
-      return Gender.male;
-    } else if (title
-        .toLowerCase()
-        .contains(TitleOptions.ms.value.toLowerCase())) {
-      return Gender.female;
-    } else {
-      return Gender.undefined;
-    }
-  }
-
-  String getInitials() {
-    var initials = '';
-    if (firstName.isNotEmpty) {
-      initials = firstName[0].toUpperCase();
-    }
-
-    if (lastName.isNotEmpty) {
-      initials = '$initials${lastName[0].toUpperCase()}';
-    }
-
-    return initials.isEmpty ? 'A' : initials;
+        await create();
   }
 
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
-
-  static Future<void> syncProfile() async {
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection && CustomAuth.isLoggedIn()) {
-      final profile = await CloudStore.getProfile();
-      await profile.update();
-    }
-  }
-
-  Future<void> logOut() async {
-    await _initialize();
-  }
-
-  Future<void> deleteAccount() async {
-    await _initialize();
-  }
-
-  Future<void> updateName(String fullName) async {
-    firstName = Profile.getNames(fullName).first;
-    lastName = Profile.getNames(fullName).last;
-    await update();
-  }
-
-  Future<bool> update({
-    bool logout = false,
-    bool? enableNotification,
-    bool? enableLocation,
-  }) async {
-    if (enableNotification != null) {
-      preferences.notifications = enableNotification;
-    }
-
-    if (enableLocation != null) {
-      preferences.location = enableLocation;
-    }
-
-    this
-      ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
-      ..utcOffset = DateTime.now().getUtcOffset();
-
-    final user = CustomAuth.getUser();
-    if (user != null && !CustomAuth.isGuestUser()) {
-      this
-        ..userId = user.uid
-        ..phoneNumber = user.phoneNumber ?? ''
-        ..emailAddress = user.email ?? '';
-
-      await Hive.box<Profile>(HiveBox.profile)
-          .put(HiveBox.profile, this)
-          .whenComplete(() => CloudStore.updateProfile(this));
-    } else {
-      await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
-    }
-
-    return true;
-  }
 
   static List<String> getNames(String fullName) {
     final namesArray = fullName.split(' ');
@@ -209,33 +174,6 @@ class Profile extends HiveObject with EquatableMixin {
       default:
         return [namesArray.first, namesArray[1]];
     }
-  }
-
-  static Future<Profile> _initialize() async {
-    User? user = CustomAuth.getUser();
-
-    Profile profile = Profile(
-      title: '',
-      firstName: '',
-      lastName: '',
-      userId: const Uuid().v4(),
-      emailAddress: '',
-      phoneNumber: '',
-      device: await CloudMessaging.getDeviceToken() ?? '',
-      preferences: UserPreferences(
-        notifications:
-            await PermissionService.checkPermission(AppPermission.notification),
-        location:
-            await PermissionService.checkPermission(AppPermission.location),
-        aqShares: 0,
-      ),
-      utcOffset: DateTime.now().getUtcOffset(),
-      photoUrl: '',
-    );
-
-    await profile.update();
-
-    return profile;
   }
 
   @override
@@ -278,7 +216,7 @@ class UserPreferences extends HiveObject with EquatableMixin {
 
   Map<String, dynamic> toJson() => _$UserPreferencesToJson(this);
 
-  static UserPreferences initialize() {
+  factory UserPreferences.initialize() {
     return UserPreferences(
       notifications: false,
       location: false,

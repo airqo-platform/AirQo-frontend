@@ -34,9 +34,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     return Scaffold(
       appBar: AppTopBar(
         widget.title.trimEllipsis(),
-        actions: [
-          NavigationControls(_controller),
-        ],
+        actions: [NavigationControls(_controller)],
         centerTitle: false,
       ),
       body: AppSafeArea(
@@ -93,7 +91,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
           ..loadRequest(Uri.parse(widget.url));
 
     if (controller.platform is AndroidWebViewController) {
-      AndroidWebViewController.enableDebugging(true);
       (controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
     }

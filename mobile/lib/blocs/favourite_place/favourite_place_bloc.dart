@@ -5,7 +5,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'favourite_place_event.dart';
 part 'favourite_place_state.dart';
@@ -68,6 +67,7 @@ class FavouritePlaceBloc
     ClearFavouritePlaces _,
     Emitter<FavouritePlaceState> emit,
   ) async {
+    // TODO  await CloudStore.updateFavouritePlaces()
     emit(const FavouritePlaceState.initial());
     await HiveService.loadFavouritePlaces([], clear: true);
   }

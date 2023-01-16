@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -13,7 +14,6 @@ import 'package:flutter_svg/svg.dart';
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
-import 'auth_widgets.dart';
 
 class AuthVerificationWidget extends StatefulWidget {
   const AuthVerificationWidget({super.key});
@@ -101,11 +101,11 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             case AuthProcedure.login:
                             case AuthProcedure.anonymousLogin:
                             case AuthProcedure.signup:
-                              postSignInActions(context);
+                              AppService.postSignInActions(context);
                               break;
                             case AuthProcedure.logout:
                             case AuthProcedure.deleteAccount:
-                              postSignOutActions(context);
+                              AppService.postSignOutActions(context);
                               break;
                             case AuthProcedure.none:
                               break;

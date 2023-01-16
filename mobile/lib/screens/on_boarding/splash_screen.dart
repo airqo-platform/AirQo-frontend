@@ -125,7 +125,6 @@ class TaglineWidget extends StatelessWidget {
     return AnimatedOpacity(
       opacity: visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 500),
-      // The green box must be a child of the AnimatedOpacity widget.
       child: Center(
         child: Stack(
           alignment: AlignmentDirectional.center,
@@ -166,8 +165,6 @@ class LogoWidget extends StatelessWidget {
             SvgPicture.asset(
               'assets/icon/splash_image.svg',
               semanticsLabel: 'Share',
-              // height: 118,
-              // width: 81,
             ),
           ],
         ),

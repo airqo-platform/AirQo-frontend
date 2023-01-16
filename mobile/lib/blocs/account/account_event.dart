@@ -74,3 +74,19 @@ class UpdateProfile extends AccountEvent {
   @override
   List<Object?> get props => [];
 }
+
+class UpdateTitle extends AccountEvent {
+  const UpdateTitle(this.title);
+  final TitleOptions title;
+
+  @override
+  List<Object?> get props => [];
+}
+
+class UpdateName extends AccountEvent {
+  const UpdateName(this.fullName);
+  final String fullName;
+
+  @override
+  List<Object?> get props => [];
+}

@@ -114,8 +114,6 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
       ));
     }
 
-    final appService = AppService();
-
     try {
       switch (state.authProcedure) {
         case AuthProcedure.login:
@@ -126,10 +124,8 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
           );
           break;
         case AuthProcedure.signup:
-          await appService
-              .doesUserExist(
-                emailAddress: state.emailAddress,
-              )
+          await AirqoApiClient()
+              .checkIfUserExists(emailAddress: state.emailAddress)
               .then((exists) => {
                     if (exists)
                       {

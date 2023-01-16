@@ -6,39 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
-  static Future<void> clearPreferences() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.containsKey('notifications')) {
-      await sharedPreferences.remove('notifications');
-    }
-    if (sharedPreferences.containsKey('aqShares')) {
-      await sharedPreferences.remove('aqShares');
-    }
-    if (sharedPreferences.containsKey('location')) {
-      await sharedPreferences.remove('location');
-    }
-    if (sharedPreferences.containsKey('alerts')) {
-      await sharedPreferences.remove('alerts');
-    }
-  }
-
   static Future<String> getOnBoardingPage() async {
     final sharedPreferences = await SharedPreferences.getInstance();
 
     return sharedPreferences.getString(Config.prefOnBoardingPage) ?? 'welcome';
-  }
-
-  static Future<UserPreferences> getPreferences() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final notifications = sharedPreferences.getBool('notifications') ?? false;
-    final location = sharedPreferences.getBool('location') ?? false;
-    final aqShares = sharedPreferences.getInt('aqShares') ?? 0;
-
-    return UserPreferences(
-      location: location,
-      notifications: notifications,
-      aqShares: aqShares,
-    );
   }
 
   static Future<void> updateOnBoardingPage(

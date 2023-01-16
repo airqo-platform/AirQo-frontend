@@ -24,24 +24,14 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
-    final profile = await Profile.getProfile();
-
-    if (profile.emailAddress.isEmpty) {
-      return;
-    }
-
+    // TODO initialize feedback on loading
     if (state.blocStatus == BlocStatus.success) {
-      return emit(
-        const FeedbackState.initial().copyWith(
-          emailAddress: profile.emailAddress,
-          feedbackChannel: FeedbackChannel.email,
-        ),
-      );
+      return emit(const FeedbackState.initial());
     }
 
     return emit(
       state.copyWith(
-        emailAddress: profile.emailAddress,
+        emailAddress: "",
         feedbackChannel: FeedbackChannel.email,
       ),
     );

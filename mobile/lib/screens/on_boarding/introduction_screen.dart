@@ -73,10 +73,13 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                 text: 'Let’s go',
                 buttonColor: CustomColors.appColorBlue,
                 callBack: () {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (context) {
-                    return const PhoneSignUpWidget();
-                  }), (r) => false);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const PhoneSignUpWidget();
+                    }),
+                    (r) => false,
+                  );
                 },
               ),
             ],

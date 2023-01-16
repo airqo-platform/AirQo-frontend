@@ -1,7 +1,10 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 OnBoardingPage getOnBoardingPageConstant(String value) {
@@ -72,35 +75,32 @@ class OnBoardingNotificationIcon extends StatelessWidget {
 class ProfileSetupNameInputField extends StatelessWidget {
   const ProfileSetupNameInputField({
     super.key,
-    required this.nameChangeCallBack,
-    required this.showTileOptionsCallBack,
-    this.controller,
+    required this.controller,
   });
-  final Function(String) nameChangeCallBack;
-  final Function(bool) showTileOptionsCallBack;
-  final TextEditingController? controller;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
+    OutlineInputBorder borderSide = OutlineInputBorder(
+      borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
     return TextFormField(
       controller: controller,
-      onTap: () => showTileOptionsCallBack(false),
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
-          const Duration(milliseconds: 250),
-          () {
-            showTileOptionsCallBack(true);
-          },
-        );
+        context.read<AccountBloc>().add(UpdateName(controller.text));
       },
       enableSuggestions: false,
       cursorWidth: 1,
       cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.name,
-      onChanged: nameChangeCallBack,
+      onChanged: (name) {
+        context.read<AccountBloc>().add(UpdateName(name));
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter your name';
@@ -110,24 +110,18 @@ class ProfileSetupNameInputField extends StatelessWidget {
       },
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        border: OutlineInputBorder(
-          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        focusedBorder: borderSide,
+        enabledBorder: borderSide,
+        border: borderSide,
         hintText: 'Enter your name',
         errorStyle: const TextStyle(
           fontSize: 0,
         ),
         suffixIcon: GestureDetector(
-          onTap: () => nameChangeCallBack(''),
+          onTap: () {
+            controller.text = "";
+            context.read<AccountBloc>().add(const UpdateName(""));
+          },
           child: const TextInputCloseButton(),
         ),
       ),
@@ -135,41 +129,116 @@ class ProfileSetupNameInputField extends StatelessWidget {
   }
 }
 
-class TitleDropDown extends StatelessWidget {
-  const TitleDropDown({
+class TitleToggleListOption extends StatelessWidget {
+  const TitleToggleListOption({
     super.key,
-    required this.showTileOptionsCallBack,
     required this.title,
+    required this.currentTitle,
   });
-  final Function(bool) showTileOptionsCallBack;
   final TitleOptions title;
+  final TitleOptions currentTitle;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => showTileOptionsCallBack(true),
-      child: Container(
-        width: 70,
-        padding:
-            const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
-        decoration: BoxDecoration(
-          color: const Color(0xffF4F4F4),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(title.abbr),
-              const Icon(
-                Icons.keyboard_arrow_down_sharp,
-                color: Colors.black,
-              ),
-            ],
-          ),
+    Color textColor = currentTitle == title
+        ? CustomColors.appColorBlue
+        : CustomColors.appColorBlack;
+
+    Color bgColor = currentTitle == title
+        ? CustomColors.appColorBlue.withOpacity(0.05)
+        : Colors.transparent;
+
+    return ListTile(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0),
         ),
       ),
+      tileColor: bgColor,
+      title: Text(
+        title.value,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+class TitleDropDown extends StatelessWidget {
+  const TitleDropDown({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AccountBloc, AccountState>(
+      buildWhen: (previous, current) {
+        Profile? currentProfile = current.profile;
+        Profile? previousProfile = previous.profile;
+        if (currentProfile == null || previousProfile == null) {
+          return true;
+        }
+        return previousProfile.title != currentProfile.title;
+      },
+      builder: (context, state) {
+        Profile? profile = state.profile;
+
+        if (profile == null) {
+          return Container(); // TODO replace with error widget
+        }
+
+        return PopupMenuButton<TitleOptions>(
+          padding: const EdgeInsets.only(top: -8),
+          position: PopupMenuPosition.under,
+          color: CustomColors.appBodyColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+          ),
+          onSelected: (title) {
+            context.read<AccountBloc>().add(UpdateTitle(title));
+          },
+          child: Container(
+            width: 65,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    profile.getTitle().abbr,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_down_sharp,
+                    color: Colors.black,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          itemBuilder: (BuildContext context) => TitleOptions.values
+              .map(
+                (element) => PopupMenuItem(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  value: element,
+                  child: TitleToggleListOption(
+                    title: element,
+                    currentTitle: profile.getTitle(),
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }

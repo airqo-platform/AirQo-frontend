@@ -10,11 +10,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../analytics/analytics_bloc.dart';
-import '../favourite_place/favourite_place_bloc.dart';
-import '../kya/kya_bloc.dart';
-import '../notifications/notification_bloc.dart';
-
 part 'account_event.dart';
 part 'account_state.dart';
 
@@ -28,16 +23,43 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<FetchProfile>(_onFetchProfile);
     on<RefreshProfile>(_onRefreshProfile);
     on<ClearProfile>(_onClearProfile);
+    on<UpdateTitle>(_onUpdateTitle);
+    on<UpdateName>(_onUpdateName);
   }
 
   Future<Profile> _getProfile() async {
-    return state.profile ?? await CloudStore.getProfile();
+    return state.profile ?? await Profile.getProfile();
+  }
+
+  Future<void> _onUpdateName(
+    UpdateName event,
+    Emitter<AccountState> emit,
+  ) async {
+    Profile profile = await _getProfile();
+    String firstName = Profile.getNames(event.fullName).first;
+    String lastName = Profile.getNames(event.fullName).last;
+
+    return emit(state.copyWith(
+      profile: profile.copyWith(firstName: firstName, lastName: lastName),
+    ));
+  }
+
+  Future<void> _onUpdateTitle(
+    UpdateTitle event,
+    Emitter<AccountState> emit,
+  ) async {
+    Profile profile = await _getProfile();
+
+    return emit(state.copyWith(
+      profile: profile.copyWith(title: event.title.value),
+    ));
   }
 
   Future<void> _onClearProfile(
     ClearProfile _,
     Emitter<AccountState> emit,
   ) async {
+    // TODO profile.update(logout: true)
     Profile profile = await Profile.create();
     emit(const AccountState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
@@ -69,7 +91,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     return emit(state.copyWith(
       profile: profile,
-      guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
   }
@@ -86,7 +107,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       ));
     }
 
-    final profile = await _getProfile();
+    Profile profile = await _getProfile();
 
     if (!profile.firstName.isValidName()) {
       return emit(state.copyWith(
@@ -104,17 +125,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     emit(state.copyWith(blocStatus: BlocStatus.processing));
 
-    final user = CustomAuth.getUser();
-    if (user != null && !CustomAuth.isGuestUser()) {
-      profile
-        ..userId = user.uid
-        ..phoneNumber = user.phoneNumber ?? ''
-        ..emailAddress = user.email ?? '';
-    }
-
-    profile
-      ..device = await CloudMessaging.getDeviceToken() ?? ''
-      ..utcOffset = DateTime.now().getUtcOffset();
+    profile = await profile.setUserCredentials();
 
     final hiveProfile =
         Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ?? profile;
@@ -122,10 +133,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(blocStatus: BlocStatus.initial));
 
     if (hiveProfile.photoUrl != profile.photoUrl) {
-      await profile.update();
+      // TODO update profile
       await _uploadPicture(emit: emit);
     } else {
-      await profile.update();
+      // TODO update profile
     }
   }
 
@@ -138,13 +149,16 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       final imageUrl = await CloudStore.uploadProfilePicture(profile.photoUrl);
       if (imageUrl.isNotEmpty) {
         // TODO verify profile updating
-        emit(state.copyWith(profile: profile..photoUrl = imageUrl));
+        emit(state.copyWith(
+            profile: profile.copyWith(
+          photoUrl: imageUrl,
+        )));
 
         await Future.wait([
           CloudAnalytics.logEvent(
             Event.uploadProfilePicture,
           ),
-          profile.update(),
+          // TODO update profile
         ]);
       }
     } catch (exception, stackTrace) {
@@ -162,11 +176,11 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     final profile = await _getProfile();
 
     return emit(state.copyWith(
-      profile: profile
-        ..firstName = event.firstName ?? profile.firstName
-        ..lastName = event.lastName ?? profile.lastName
-        ..photoUrl = event.photoUrl ?? profile.photoUrl,
-    ));
+        profile: profile.copyWith(
+      firstName: event.firstName,
+      lastName: event.lastName,
+      photoUrl: event.photoUrl,
+    )));
   }
 
   Future<void> _accountDeletionCheck(
@@ -212,29 +226,29 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       blocError: AuthenticationError.none,
     ));
 
-    final successful = await AppService().authenticateUser(
-      authProcedure: AuthProcedure.logout,
-    );
+    // final successful = await AppService().authenticateUser(
+    //   authProcedure: AuthProcedure.logout,
+    // );
+    //
+    // if (successful) {
+    //   event.context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
+    //   event.context.read<KyaBloc>().add(const ClearKya());
+    //   event.context.read<AnalyticsBloc>().add(const ClearAnalytics());
+    //   event.context
+    //       .read<FavouritePlaceBloc>()
+    //       .add(const ClearFavouritePlaces());
+    //   event.context.read<NotificationBloc>().add(const ClearNotifications());
+    //
+    //   return emit(const AccountState.initial().copyWith(
+    //     blocStatus: BlocStatus.success,
+    //     blocError: AuthenticationError.none,
+    //   ));
+    // }
 
-    if (successful) {
-      event.context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
-      event.context.read<KyaBloc>().add(const ClearKya());
-      event.context.read<AnalyticsBloc>().add(const ClearAnalytics());
-      event.context
-          .read<FavouritePlaceBloc>()
-          .add(const ClearFavouritePlaces());
-      event.context.read<NotificationBloc>().add(const ClearNotifications());
-
-      return emit(const AccountState.initial().copyWith(
-        blocStatus: BlocStatus.success,
-        blocError: AuthenticationError.none,
-      ));
-    }
-
-    return emit(state.copyWith(
-      blocStatus: BlocStatus.error,
-      blocError: AuthenticationError.logoutFailed,
-    ));
+    // return emit(state.copyWith(
+    //   blocStatus: BlocStatus.error,
+    //   blocError: AuthenticationError.logoutFailed,
+    // ));
   }
 
   Future<void> _onDeleteAccount(
