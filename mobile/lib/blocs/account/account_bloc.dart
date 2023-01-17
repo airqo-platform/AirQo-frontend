@@ -55,6 +55,15 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
   }
 
+  Future<void> _onUpdateTitle(
+    UpdateTitle event,
+    Emitter<AccountState> emit,
+  ) async {
+    Profile profile = await Profile.create();
+    profile.title = event.title.value;
+    emit(state.copyWith(profile: profile));
+  }
+
   Future<void> _onClearProfile(
     ClearProfile _,
     Emitter<AccountState> emit,

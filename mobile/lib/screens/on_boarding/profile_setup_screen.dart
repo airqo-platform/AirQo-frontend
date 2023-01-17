@@ -141,13 +141,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return Future.value(false);
     }
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }),
-      (r) => false,
-    );
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return const HomePage();
+    }), (r) => false);
 
     return Future.value(false);
   }
