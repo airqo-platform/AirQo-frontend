@@ -177,7 +177,7 @@ class _DashboardViewState extends State<DashboardView>
                         (context, index) {
                           final items = [
                             Text(
-                              getDateTime(),
+                              DateTime.now().timelineString(),
                               style:
                                   Theme.of(context).textTheme.caption?.copyWith(
                                         color: Colors.black.withOpacity(0.5),

@@ -171,7 +171,7 @@ class AnalyticsShareCard extends StatelessWidget {
                       height: 8,
                     ),
                     Text(
-                      dateToShareString(airQualityReading.dateTime),
+                      airQualityReading.dateTime.shareString(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -368,9 +368,8 @@ class AnalyticsCard extends StatelessWidget {
                                                 3.2,
                                           ),
                                           child: Text(
-                                            dateToString(
-                                              airQualityReading.dateTime,
-                                            ),
+                                            airQualityReading.dateTime
+                                                .analyticsCardString(),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

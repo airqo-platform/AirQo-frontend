@@ -26,8 +26,8 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       location: fields[6] == null ? '' : fields[6] as String,
       region: fields[13] == null ? '' : fields[13] as String,
       dateTime: fields[8] as DateTime,
-      pm2_5: fields[9] == null ? 0.0 : fields[9] as double,
-      pm10: fields[10] == null ? 0.0 : fields[10] as double,
+      pm2_5: fields[9] as double,
+      pm10: fields[10] as double?,
       distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
       placeId: fields[12] == null ? '' : fields[12] as String,
     );
@@ -82,7 +82,6 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
 
 PollutantValue _$PollutantValueFromJson(Map<String, dynamic> json) =>
     PollutantValue(
-      value: PollutantValue._valueFromJson(json['value'] as double),
-      calibratedValue:
-          PollutantValue._valueFromJson(json['calibratedValue'] as double),
+      value: PollutantValue._valueFromJson(json['value']),
+      calibratedValue: PollutantValue._valueFromJson(json['calibratedValue']),
     );

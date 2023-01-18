@@ -538,9 +538,8 @@ class MapAnalyticsCard extends StatelessWidget {
                                                 3.2,
                                           ),
                                           child: Text(
-                                            dateToString(
-                                              airQualityReading.dateTime,
-                                            ),
+                                            airQualityReading.dateTime
+                                                .analyticsCardString(),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

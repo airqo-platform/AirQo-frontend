@@ -1,10 +1,66 @@
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:stream_transform/stream_transform.dart';
+
+String chartTitleDateTimeTitle({
+  required DateTime dateTime,
+  required Frequency frequency,
+  bool showingForecast = false,
+}) {
+  if (showingForecast) {
+    if (dateTime.isToday()) {
+      return 'Today’s forecast';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s forecast';
+    } else {
+      return dateTime.getLongDate();
+    }
+  }
+  try {
+    String prefix = '';
+    String suffix = '';
+    switch (frequency) {
+      case Frequency.daily:
+        suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+            ' - '
+            '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+
+        if (dateTime.isInWeek('last')) {
+          prefix = 'Last Week';
+        } else if (dateTime.isInWeek('this')) {
+          prefix = 'This Week';
+        } else if (dateTime.isInWeek('next')) {
+          prefix = 'Next Week';
+        } else {
+          prefix = '';
+        }
+        break;
+      case Frequency.hourly:
+        suffix = dateTime.getLongDate();
+
+        if (dateTime.isToday()) {
+          prefix = 'Today';
+        } else if (dateTime.isYesterday()) {
+          prefix = 'Yesterday';
+        } else if (dateTime.isTomorrow()) {
+          prefix = 'Tomorrow';
+        } else {
+          prefix = dateTime.getWeekday().toTitleCase();
+        }
+        break;
+    }
+
+    return prefix == '' ? suffix : '$prefix, $suffix';
+  } catch (exception, stackTrace) {
+    logException(exception, stackTrace);
+
+    return dateTime.toString();
+  }
+}
 
 charts.Color chartBarColor(
   ChartData series,

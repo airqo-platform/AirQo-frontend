@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -27,19 +28,21 @@ class AirQualityReading extends HiveObject {
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
     DateTime dateTime = DateTime.parse(json["time"] as String);
-    final int offSet = DateTime.now().timeZoneOffset.inHours;
-    dateTime.add(Duration(hours: offSet));
-
+    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
     PollutantValue pm2_5 =
         PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
     PollutantValue pm10 =
         PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
 
+    if (pm2_5.displayValue() == null) {
+      throw Exception("pm2.5 is null for site ${json["siteDetails"]["_id"]}");
+    }
+
     return AirQualityReading(
       distanceToReferenceSite: 0.0,
       dateTime: dateTime,
-      pm2_5: pm2_5.calibratedValue ?? pm2_5.value,
-      pm10: pm10.calibratedValue ?? pm10.value,
+      pm2_5: pm2_5.displayValue()!,
+      pm10: pm10.displayValue(),
       placeId: json["siteDetails"]["_id"] as String,
       referenceSite: json["siteDetails"]["_id"] as String,
       latitude: json["siteDetails"]["approximate_latitude"] as double,
@@ -143,11 +146,11 @@ class AirQualityReading extends HiveObject {
   @HiveField(8)
   final DateTime dateTime;
 
-  @HiveField(9, defaultValue: 0.0)
+  @HiveField(9)
   final double pm2_5;
 
-  @HiveField(10, defaultValue: 0.0)
-  final double pm10;
+  @HiveField(10)
+  final double? pm10;
 
   @HiveField(11, defaultValue: 0.0)
   final double distanceToReferenceSite;
@@ -178,9 +181,15 @@ class PollutantValue {
   final double? calibratedValue;
 
   @JsonKey(required: false, name: 'value', fromJson: _valueFromJson)
-  final double value;
+  final double? value;
 
-  static double _valueFromJson(double json) {
-    return double.parse(json.toStringAsFixed(2));
+  double? displayValue() {
+    return calibratedValue ?? value;
+  }
+
+  static double? _valueFromJson(dynamic json) {
+    return json == null
+        ? null
+        : double.parse(double.parse("$json").toStringAsFixed(2));
   }
 }
