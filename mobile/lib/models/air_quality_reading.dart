@@ -27,6 +27,72 @@ class AirQualityReading extends HiveObject {
     required this.shareLink,
   });
 
+  factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
+    DateTime dateTime = DateTime.parse(json["time"] as String);
+    final int offSet = DateTime.now().timeZoneOffset.inHours;
+    dateTime.add(Duration(hours: offSet));
+
+    PollutantValue pm2_5 =
+        PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
+    PollutantValue pm10 =
+        PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
+
+    return AirQualityReading(
+      distanceToReferenceSite: 0.0,
+      dateTime: dateTime,
+      pm2_5: pm2_5.calibratedValue ?? pm2_5.value,
+      pm10: pm10.calibratedValue ?? pm10.value,
+      placeId: json["siteDetails"]["_id"] as String,
+      referenceSite: json["siteDetails"]["_id"] as String,
+      latitude: json["siteDetails"]["approximate_latitude"] as double,
+      longitude: json["siteDetails"]["approximate_longitude"] as double,
+      country: (json["siteDetails"]["country"] ?? "") as String,
+      region: (json["siteDetails"]["region"] ?? "") as String,
+      source: (json["siteDetails"]["network"] ?? "") as String,
+      name: (json["siteDetails"]["search_name"] ?? json["siteDetails"]["name"])
+          as String,
+      location: (json["siteDetails"]["location_name"] ??
+          json["siteDetails"]["description"]) as String,
+      shareLink:
+          (json["siteDetails"]["share_links"]["short_link"] ?? "") as String,
+    );
+  }
+
+  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
+    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.firstWhere(
+      (element) => element.referenceSite == favouritePlace.referenceSite,
+      orElse: () {
+        return AirQualityReading(
+          referenceSite: favouritePlace.referenceSite,
+          source: '',
+          latitude: favouritePlace.latitude,
+          longitude: favouritePlace.longitude,
+          country: '',
+          name: favouritePlace.name,
+          location: favouritePlace.location,
+          region: '',
+          dateTime: DateTime.now(),
+          pm2_5: 0,
+          pm10: 0,
+          distanceToReferenceSite: 0,
+          placeId: favouritePlace.placeId,
+          shareLink: '',
+        );
+      },
+    );
+
+    return airQualityReading.copyWith(
+      referenceSite: favouritePlace.referenceSite,
+      latitude: favouritePlace.latitude,
+      longitude: favouritePlace.longitude,
+      name: favouritePlace.name,
+      location: favouritePlace.location,
+      placeId: favouritePlace.placeId,
+    );
+  }
+
   factory AirQualityReading.fromDynamicLink(
     PendingDynamicLinkData dynamicLinkData,
   ) {
@@ -79,71 +145,6 @@ class AirQualityReading extends HiveObject {
       location: location,
       latitude: double.parse(latitude),
       longitude: double.parse(longitude),
-    );
-  }
-
-  factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
-    DateTime dateTime = DateTime.parse(json["time"] as String);
-    final int offSet = DateTime.now().timeZoneOffset.inHours;
-    dateTime.add(Duration(hours: offSet));
-
-    PollutantValue pm2_5 =
-        PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
-    PollutantValue pm10 =
-        PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
-
-    return AirQualityReading(
-      distanceToReferenceSite: 0.0,
-      shareLink: siteReading.shareImage,
-      dateTime: dateTime,
-      pm2_5: pm2_5.calibratedValue ?? pm2_5.value,
-      pm10: pm10.calibratedValue ?? pm10.value,
-      placeId: json["siteDetails"]["_id"] as String,
-      referenceSite: json["siteDetails"]["_id"] as String,
-      latitude: json["siteDetails"]["approximate_latitude"] as double,
-      longitude: json["siteDetails"]["approximate_longitude"] as double,
-      country: (json["siteDetails"]["country"] ?? "") as String,
-      region: (json["siteDetails"]["region"] ?? "") as String,
-      source: (json["siteDetails"]["network"] ?? "") as String,
-      name: (json["siteDetails"]["search_name"] ?? json["siteDetails"]["name"])
-          as String,
-      location: (json["siteDetails"]["location_name"] ??
-          json["siteDetails"]["description"]) as String,
-    );
-  }
-
-  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.firstWhere(
-      (element) => element.referenceSite == favouritePlace.referenceSite,
-      orElse: () {
-        return AirQualityReading(
-          referenceSite: favouritePlace.referenceSite,
-          source: '',
-          latitude: favouritePlace.latitude,
-          longitude: favouritePlace.longitude,
-          country: '',
-          name: favouritePlace.name,
-          location: favouritePlace.location,
-          region: '',
-          dateTime: DateTime.now(),
-          pm2_5: 0,
-          pm10: 0,
-          distanceToReferenceSite: 0,
-          placeId: favouritePlace.placeId,
-          shareLink: '',
-        );
-      },
-    );
-
-    return airQualityReading.copyWith(
-      referenceSite: favouritePlace.referenceSite,
-      latitude: favouritePlace.latitude,
-      longitude: favouritePlace.longitude,
-      name: favouritePlace.name,
-      location: favouritePlace.location,
-      placeId: favouritePlace.placeId,
     );
   }
 
