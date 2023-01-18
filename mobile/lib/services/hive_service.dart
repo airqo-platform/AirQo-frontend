@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
@@ -67,27 +66,27 @@ class HiveService {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
-      Hive.box<Kya>(HiveBox.searchHistory).clear(),
+      Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
   }
 
   static Future<void> updateAirQualityReadings(
-    List<SiteReading> siteReadings, {
+    List<AirQualityReading> airQualityReadings, {
     bool reload = false,
   }) async {
-    final airQualityReadings = <String, AirQualityReading>{};
+    final airQualityReadingsMap = <String, AirQualityReading>{};
 
-    for (final siteReading in siteReadings) {
-      final airQualityReading = AirQualityReading.fromSiteReading(siteReading);
-      airQualityReadings[airQualityReading.placeId] = airQualityReading;
+    for (final airQualityReading in airQualityReadings) {
+      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }
+
     if (reload) {
       await Hive.box<AirQualityReading>(HiveBox.airQualityReadings).clear();
     }
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-        .putAll(airQualityReadings);
+        .putAll(airQualityReadingsMap);
   }
 
   static Future<void> updateSearchHistory(

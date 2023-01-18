@@ -54,27 +54,3 @@ class SearchHistoryAdapter extends TypeAdapter<SearchHistory> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-SearchHistory _$SearchHistoryFromJson(Map<String, dynamic> json) =>
-    SearchHistory(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      name: json['name'] as String,
-      location: json['location'] as String,
-      dateTime: DateTime.parse(json['dateTime'] as String),
-      placeId: json['placeId'] as String,
-    );
-
-Map<String, dynamic> _$SearchHistoryToJson(SearchHistory instance) =>
-    <String, dynamic>{
-      'placeId': instance.placeId,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'name': instance.name,
-      'location': instance.location,
-      'dateTime': instance.dateTime.toIso8601String(),
-    };
