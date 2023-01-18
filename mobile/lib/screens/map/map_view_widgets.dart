@@ -436,7 +436,9 @@ class MapAnalyticsCard extends StatelessWidget {
             child: AnalyticsShareCard(airQualityReading: airQualityReading),
           ),
           InkWell(
-            onTap: () async => _goToInsights(context),
+            onTap: () async {
+              await _goToInsights(context);
+            },
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,

@@ -253,7 +253,9 @@ class AnalyticsCard extends StatelessWidget {
             ),
           ),
           InkWell(
-            onTap: () async => _goToInsights(context),
+            onTap: () async {
+              await _goToInsights(context);
+            },
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
