@@ -32,6 +32,7 @@ import TransitionAlerts from './TransitionAlerts';
 import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,6 +89,8 @@ const Topbar = (props) => {
   const { className, toggleSidebar, ...rest } = props;
   const history = useHistory();
 
+  const { user } = props.auth;
+
   const classes = useStyles();
 
   const [notifications] = useState([]);
@@ -129,7 +132,6 @@ const Topbar = (props) => {
   const [appsAnchorEl, setAppsAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const openAppsMenu = Boolean(appsAnchorEl);
-  const [isAuthenticatedUser, setIsAuthenticatedUser] = React.useState(props.auth.isAuthenticated);
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -273,7 +275,7 @@ const Topbar = (props) => {
         </Hidden>
 
         <div className={classes.flexGrow} />
-        {isAuthenticatedUser ? (
+        {!isEmpty(user) ? (
           <div className={classes.barRightStyles}>
             <IconButton
               className={classes.signOutButton}
