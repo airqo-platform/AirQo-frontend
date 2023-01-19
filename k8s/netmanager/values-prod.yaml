@@ -1,14 +1,14 @@
 replicaCount: 2
 image:
   repository: gcr.io/airqo-250220/airqo-platform-frontend
-  tag: prod-a231fe53-1671024527
+  tag: prod-ba0628c6-1674105824
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
 service:
   type: NodePort
-  nodePort: 30101
+  nodePort: 30104
   targetPort: 80
   port: 80
 ingress:
