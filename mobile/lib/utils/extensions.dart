@@ -265,6 +265,28 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
+  String shareString() {
+    return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
+  }
+
+  String analyticsCardString() {
+    String dateString = DateFormat('hh:mm a').format(this);
+    if (isYesterday()) {
+      return 'Updated yesterday at $dateString';
+    } else if (isToday()) {
+      return 'Updated today at $dateString';
+    } else if (isTomorrow()) {
+      return 'Tomorrow, $dateString';
+    } else {
+      return DateFormat('d MMM, hh:mm a').format(this);
+    }
+  }
+
+  String timelineString() {
+    return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
+        .toUpperCase();
+  }
+
   DateTime getDateOfFirstDayOfWeek() {
     DateTime firstDate = this;
     while (firstDate.weekday != 1) {
