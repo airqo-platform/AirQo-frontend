@@ -22,23 +22,27 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: AppSafeArea(
-          widget: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'All Set!',
-                textAlign: TextAlign.center,
-                style: _setUpCompleteTextStyle(),
-              ),
-              Text(
-                'Breathe',
-                textAlign: TextAlign.center,
-                style: _setUpCompleteTextStyle()?.copyWith(
-                  color: CustomColors.appColorBlue,
+          widget: SizedBox(
+            height: double.infinity,
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'All Set!',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle(),
                 ),
-              ),
-            ],
+                Text(
+                  'Breathe',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle()?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -47,7 +51,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   Future<void> _initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
-    Future.delayed(const Duration(seconds: 4), _goToHome);
+    await Future.delayed(const Duration(seconds: 3), _goToHome);
   }
 
   @override

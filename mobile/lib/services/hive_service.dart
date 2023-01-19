@@ -112,6 +112,10 @@ class HiveService {
         .putAll(searchHistoryMap);
   }
 
+  static Future<void> clearSearchHistory() async {
+    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
+  }
+
   static Future<void> updateNearbyAirQualityReadings(
     List<AirQualityReading> nearbyAirQualityReadings,
   ) async {
@@ -204,6 +208,10 @@ class HiveService {
     await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
         .putAll(favouritePlacesMap)
         .then((value) => CloudStore.updateFavouritePlaces());
+  }
+
+  static List<SearchHistory> getSearchHistory() {
+    return Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
   }
 
   static List<Analytics> getAnalytics() {

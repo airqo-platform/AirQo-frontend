@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../screens/auth/phone_auth_widget.dart';
+import '../screens/home_page.dart';
+import '../screens/on_boarding/profile_setup_screen.dart';
 import 'hive_service.dart';
 import 'location_service.dart';
 import 'rest_api.dart';
@@ -41,23 +44,48 @@ class AppService {
     return insights;
   }
 
-  static void postSignInActions(BuildContext context) {
-    context.read<AuthCodeBloc>().add(const ClearAuthCodeState());
+  static Future<void> postSignInActions(
+      BuildContext context, AuthProcedure authProcedure,
+      {int delay = 2}) async {
     context.read<AccountBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
     context.read<AnalyticsBloc>().add(const FetchAnalytics());
     context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
     context.read<NotificationBloc>().add(const FetchNotifications());
+    context.read<SearchBloc>().add(const ClearSearchHistory());
+
+    await Future.delayed(
+      Duration(seconds: delay),
+      () {
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          switch (authProcedure) {
+            case AuthProcedure.anonymousLogin:
+            case AuthProcedure.deleteAccount:
+            case AuthProcedure.login:
+            case AuthProcedure.none:
+            case AuthProcedure.logout:
+              return const HomePage();
+            case AuthProcedure.signup:
+              return const ProfileSetupScreen();
+          }
+        }), (r) => true);
+      },
+    );
   }
 
-  static void postSignOutActions(BuildContext context) {
+  static Future<void> postSignOutActions(BuildContext context) async {
     context.read<AccountBloc>().add(const ClearProfile());
     context.read<KyaBloc>().add(const ClearKya());
     context.read<AnalyticsBloc>().add(const ClearAnalytics());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
-    // TODO clear search history
-    // TODO SecureStorage().clearUserData()
+    context.read<SearchBloc>().add(const ClearSearchHistory());
+
+    await Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) {
+      return const PhoneLoginWidget();
+    }), (r) => true);
   }
 
   Future<bool> refreshAirQualityReadings() async {

@@ -4,6 +4,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -257,6 +258,15 @@ extension ProfileExt on Profile {
 
   String fullName() {
     return '$firstName $lastName'.trim();
+  }
+
+  bool isAQuest() {
+    User? profileUser = user;
+    if (profileUser == null) {
+      return true;
+    }
+
+    return profileUser.isAnonymous;
   }
 
   TitleOptions getTitle() {

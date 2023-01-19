@@ -228,20 +228,21 @@ class CloudStore {
     Profile profile;
 
     try {
-      final userJson = await FirebaseFirestore.instance
+      final profileJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(CustomAuth.getUserId())
           .get();
 
-      if (userJson.data() == null) {
+      final profileData = profileJson.data();
+      if (profileData == null) {
         profile = await Profile.create();
         await updateProfile(profile);
+        return profile;
       } else {
-        profile = Profile.fromJson(userJson.data()!);
+        profile = Profile.fromJson(profileData);
       }
     } catch (exception, stackTrace) {
       profile = await Profile.create();
-      await updateProfile(profile);
       await logException(
         exception,
         stackTrace,
@@ -333,32 +334,21 @@ class CloudStore {
   }
 
   static Future<void> updateProfile(Profile profile) async {
-    final currentUser = CustomAuth.getUser();
-    if (currentUser == null || CustomAuth.isGuestUser()) {
+    final user = profile.user;
+    if (user == null) {
       return;
     }
     try {
-      try {
-        await Future.wait([
-          currentUser.updateDisplayName(profile.firstName),
-          FirebaseFirestore.instance
-              .collection(Config.usersCollection)
-              .doc(profile.userId)
-              .update(
-                profile.toJson(),
-              ),
-        ]);
-      } catch (exception) {
-        await Future.wait([
-          currentUser.updateDisplayName(profile.firstName),
-          FirebaseFirestore.instance
-              .collection(Config.usersCollection)
-              .doc(profile.userId)
-              .set(
-                profile.toJson(),
-              ),
-        ]);
-      }
+      await Future.wait([
+        user.updateDisplayName(profile.firstName),
+        user.updatePhotoURL(profile.photoUrl),
+        FirebaseFirestore.instance
+            .collection(Config.usersCollection)
+            .doc(profile.userId)
+            .set(
+              profile.toJson(),
+            ),
+      ]);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -503,24 +493,32 @@ class CustomAuth {
     return profile;
   }
 
-  static Future<bool> firebaseSignIn(AuthCredential? authCredential) async {
+  static Future<bool> firebaseGuestSignIn() async {
     UserCredential userCredential;
-    if (authCredential == null) {
-      User? user = getUser();
-
-      if (user != null && user.isAnonymous) {
-        return true;
-      }
-
-      userCredential = await FirebaseAuth.instance.signInAnonymously();
-    } else {
-      User? user = getUser();
-      userCredential = user == null
-          ? await FirebaseAuth.instance.signInWithCredential(authCredential)
-          : await user.linkWithCredential(authCredential);
+    User? user = getUser();
+    if (user != null && user.isAnonymous) {
+      return true;
     }
 
+    userCredential = await FirebaseAuth.instance.signInAnonymously();
     return userCredential.user != null;
+  }
+
+  static Future<bool> firebaseSignIn(AuthCredential authCredential) async {
+    UserCredential userCredential;
+    User? user = getUser();
+    bool isSignedOut = true;
+
+    if (user != null) {
+      isSignedOut = await firebaseSignOut();
+    }
+    if (isSignedOut) {
+      userCredential =
+          await FirebaseAuth.instance.signInWithCredential(authCredential);
+      return userCredential.user != null;
+    }
+
+    return false;
   }
 
   static Future<bool> firebaseSignOut() async {
@@ -566,7 +564,9 @@ class CustomAuth {
     return userCredential.user != null;
   }
 
-  static AuthenticationError getFirebaseErrorCodeMessage(String code) {
+  static AuthenticationError getFirebaseExceptionMessage(
+      FirebaseAuthException exception) {
+    String code = exception.code;
     switch (code) {
       case 'invalid-email':
         return AuthenticationError.invalidEmailAddress;
@@ -596,6 +596,43 @@ class CustomAuth {
     }
   }
 
+  static Future<void> initiatePhoneNumberVerification(
+    String phoneNumber, {
+    required BuildContext buildContext,
+    int? resendingToken,
+  }) async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) {
+        debugPrint("verification complete");
+        buildContext
+            .read<PhoneAuthBloc>()
+            .add(PhoneAutoVerificationCompleted(credential));
+      },
+      verificationFailed: (FirebaseAuthException exception) {
+        debugPrint("verification Failed");
+        buildContext
+            .read<PhoneAuthBloc>()
+            .add(PhoneVerificationException(exception));
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        debugPrint("code Sent");
+        buildContext.read<PhoneAuthBloc>().add(PhoneVerificationCodeSent(
+              verificationId,
+              resendingToken: resendToken,
+            ));
+      },
+      forceResendingToken: resendingToken,
+      codeAutoRetrievalTimeout: (String verificationId) {
+        debugPrint("code Auto Retrieval Timeout");
+        buildContext
+            .read<PhoneAuthBloc>()
+            .add(PhoneAutoVerificationTimeout(verificationId));
+      },
+      timeout: const Duration(seconds: 5),
+    );
+  }
+
   static Future<void> sendPhoneAuthCode({
     required String phoneNumber,
     required BuildContext buildContext,
@@ -607,9 +644,6 @@ class CustomAuth {
         switch (authProcedure) {
           case AuthProcedure.login:
           case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
             buildContext
@@ -630,15 +664,11 @@ class CustomAuth {
         switch (authProcedure) {
           case AuthProcedure.login:
           case AuthProcedure.signup:
-            buildContext.read<PhoneAuthBloc>().add(UpdateStatus(
-                  BlocStatus.error,
-                  error: getFirebaseErrorCodeMessage(exception.code),
-                ));
             break;
           case AuthProcedure.deleteAccount:
             buildContext.read<AccountBloc>().add(AccountDeletionCheck(
                   passed: false,
-                  error: getFirebaseErrorCodeMessage(exception.code),
+                  error: getFirebaseExceptionMessage(exception),
                 ));
             break;
           case AuthProcedure.anonymousLogin:
@@ -657,9 +687,6 @@ class CustomAuth {
         switch (authProcedure) {
           case AuthProcedure.login:
           case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
             buildContext
@@ -680,9 +707,6 @@ class CustomAuth {
         switch (authProcedure) {
           case AuthProcedure.login:
           case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
             buildContext
@@ -773,7 +797,6 @@ class CustomAuth {
       return false;
     }
     try {
-      final profile = await Profile.getProfile();
       switch (authMethod) {
         case AuthMethod.phone:
           await FirebaseAuth.instance.currentUser!

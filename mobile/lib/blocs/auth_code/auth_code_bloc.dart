@@ -73,7 +73,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       ));
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
-          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+          CustomAuth.getFirebaseExceptionMessage(exception);
       emit(state.copyWith(
         error: authenticationError,
         blocStatus: BlocStatus.error,
@@ -132,7 +132,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
         blocStatus: signInSuccess ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+      final error = CustomAuth.getFirebaseExceptionMessage(exception);
 
       return emit(state.copyWith(
         error: error,
@@ -244,7 +244,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           break;
       }
     } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+      final error = CustomAuth.getFirebaseExceptionMessage(exception);
 
       return emit(state.copyWith(
         error: error,

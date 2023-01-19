@@ -11,6 +11,7 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState.initial()) {
     on<InitializeSearchPage>(_onInitializeSearchPage);
+    on<ClearSearchHistory>(_onClearSearchHistory);
     on<ReloadSearchPage>(_onReloadSearchPage);
     on<FilterByAirQuality>(_onFilterByAirQuality);
     on<SearchAirQuality>(_onSearchAirQuality);
@@ -21,9 +22,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     );
   }
 
+  Future<void> _onClearSearchHistory(
+    ClearSearchHistory _,
+    Emitter<SearchState> emit,
+  ) async {
+    emit(const SearchState.initial());
+    await HiveService.clearSearchHistory();
+  }
+
   Future<void> _loadSearchHistory(Emitter<SearchState> emit) async {
-    List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+    List<SearchHistory> searchHistory = HiveService.getSearchHistory();
     searchHistory = searchHistory.sortByDateTime().take(3).toList();
     List<AirQualityReading> recentSearches =
         await searchHistory.attachedAirQualityReadings();

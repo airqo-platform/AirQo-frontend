@@ -8,7 +8,6 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'account_event.dart';
 part 'account_state.dart';
@@ -55,15 +54,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
   }
 
-  Future<void> _onUpdateTitle(
-    UpdateTitle event,
-    Emitter<AccountState> emit,
-  ) async {
-    Profile profile = await Profile.create();
-    profile.title = event.title.value;
-    emit(state.copyWith(profile: profile));
-  }
-
   Future<void> _onClearProfile(
     ClearProfile _,
     Emitter<AccountState> emit,
@@ -72,6 +62,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     Profile profile = await Profile.create();
     emit(const AccountState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
+    await SecureStorage().clearUserData();
   }
 
   Future<void> _onFetchProfile(
@@ -108,45 +99,18 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     UpdateProfile _,
     Emitter<AccountState> emit,
   ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
     Profile profile = await _getProfile();
 
-    if (!profile.firstName.isValidName()) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.invalidFirstName,
-      ));
-    }
-
-    if (!profile.lastName.isValidName()) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.invalidLastName,
-      ));
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
-
     profile = await profile.setUserCredentials();
+    emit(state.copyWith(profile: profile));
+    await HiveService.updateProfile(profile);
 
-    final hiveProfile =
-        Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ?? profile;
-
-    emit(state.copyWith(blocStatus: BlocStatus.initial));
-
-    if (hiveProfile.photoUrl != profile.photoUrl) {
-      // TODO update profile
-      await _uploadPicture(emit: emit);
-    } else {
-      // TODO update profile
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return;
     }
+    await CloudStore.updateProfile(profile);
+    // TODO background task to upload image
   }
 
   Future<void> _uploadPicture({
@@ -325,7 +289,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       }
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
-          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+          CustomAuth.getFirebaseExceptionMessage(exception);
       emit(state.copyWith(
         blocError: authenticationError,
         blocStatus: BlocStatus.error,

@@ -131,7 +131,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       style: CustomTextStyle.headline7(context),
                     ),
                   ),
-                  InputValidationCodeMessage(
+                  VerificationCodeMessage(
                     state.blocStatus != BlocStatus.error,
                   ),
                   const SizedBox(
@@ -163,6 +163,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                           .read<EmailAuthBloc>()
                           .add(ValidateEmailAddress(context: context));
                     },
+                  ),
+                  Visibility(
+                    visible: _keyboardVisible,
+                    child: const SizedBox(
+                      height: 10,
+                    ),
                   ),
                   Visibility(
                     visible: !_keyboardVisible,

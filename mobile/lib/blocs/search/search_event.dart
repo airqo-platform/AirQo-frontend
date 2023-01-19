@@ -11,6 +11,12 @@ class InitializeSearchPage extends SearchEvent {
   List<Object> get props => [];
 }
 
+class ClearSearchHistory extends SearchEvent {
+  const ClearSearchHistory();
+  @override
+  List<Object?> get props => [];
+}
+
 class ReloadSearchPage extends SearchEvent {
   const ReloadSearchPage();
 

@@ -31,13 +31,8 @@ class _ProfileViewState extends State<ProfileView> {
     return BlocBuilder<AccountBloc, AccountState>(
       builder: (context, state) {
         final profile = state.profile;
-        if (profile == null) {
+        if (profile == null || profile.isAQuest()) {
           return const GuestProfileView();
-        } else {
-          final user = profile.user;
-          if (user == null || user.isAnonymous) {
-            return const GuestProfileView();
-          }
         }
 
         return Scaffold(

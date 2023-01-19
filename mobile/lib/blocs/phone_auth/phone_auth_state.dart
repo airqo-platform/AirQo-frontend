@@ -1,20 +1,50 @@
 part of 'phone_auth_bloc.dart';
 
+enum PhoneBlocStatus {
+  processing,
+  initial,
+  verificationSuccessful,
+  autoVerifying,
+  verificationCodeSent,
+  error;
+}
+
+enum PhoneBlocError {
+  none,
+  invalidPhoneNumber,
+  invalidCode,
+  verificationFailed,
+  phoneNumberTaken,
+  noInternetConnection;
+}
+
 class PhoneAuthState extends Equatable {
   const PhoneAuthState._({
     this.phoneNumber = '',
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
+    this.error = PhoneBlocError.none,
+    this.status = PhoneBlocStatus.initial,
+    this.verificationId = '',
+    this.errorMessage = '',
+    this.authCredential,
+    this.codeCountDown = 5,
+    this.resendingToken,
+    this.inputAuthCode = '',
   });
 
   const PhoneAuthState({
     this.phoneNumber = '',
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
+    this.error = PhoneBlocError.none,
+    this.status = PhoneBlocStatus.initial,
+    this.verificationId = '',
+    this.errorMessage = '',
+    this.authCredential,
+    this.codeCountDown = 5,
+    this.resendingToken,
+    this.inputAuthCode = '',
   });
 
   const PhoneAuthState.initial({
@@ -22,44 +52,50 @@ class PhoneAuthState extends Equatable {
     String? countryCode,
     required AuthProcedure authProcedure,
   }) : this._(
-          blocStatus: BlocStatus.initial,
           countryCode: countryCode ?? '+256',
           phoneNumber: phoneNumber ?? '',
           authProcedure: authProcedure,
         );
 
-  const PhoneAuthState.verificationRequest()
-      : this._(blocStatus: BlocStatus.processing);
-
-  const PhoneAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
-
-  const PhoneAuthState.error(AuthenticationError error)
-      : this._(error: error, blocStatus: BlocStatus.error);
-
-  const PhoneAuthState.verificationSuccessful()
-      : this._(blocStatus: BlocStatus.success);
-
   PhoneAuthState copyWith({
     String? phoneNumber,
     String? countryCode,
+    String? inputAuthCode,
+    int? codeCountDown,
     AuthProcedure? authProcedure,
-    AuthenticationError? error,
-    BlocStatus? blocStatus,
+    PhoneBlocError? error,
+    PhoneBlocStatus? status,
+    String? verificationId,
+    String? errorMessage,
+    PhoneAuthCredential? authCredential,
+    int? resendingToken,
   }) {
     return PhoneAuthState(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       countryCode: countryCode ?? this.countryCode,
       authProcedure: authProcedure ?? this.authProcedure,
+      codeCountDown: codeCountDown ?? this.codeCountDown,
       error: error ?? this.error,
-      blocStatus: blocStatus ?? this.blocStatus,
+      status: status ?? this.status,
+      verificationId: verificationId ?? this.verificationId,
+      authCredential: authCredential ?? this.authCredential,
+      resendingToken: resendingToken ?? this.resendingToken,
+      errorMessage: errorMessage ?? this.errorMessage,
+      inputAuthCode: inputAuthCode ?? this.inputAuthCode,
     );
   }
 
   final String phoneNumber;
   final String countryCode;
   final AuthProcedure authProcedure;
-  final AuthenticationError error;
-  final BlocStatus blocStatus;
+  final PhoneBlocError error;
+  final PhoneBlocStatus status;
+  final String verificationId;
+  final PhoneAuthCredential? authCredential;
+  final String errorMessage;
+  final int? resendingToken;
+  final String inputAuthCode;
+  final int codeCountDown;
 
   @override
   List<Object?> get props => [
@@ -67,6 +103,11 @@ class PhoneAuthState extends Equatable {
         countryCode,
         error,
         authProcedure,
-        blocStatus,
+        status,
+        authCredential,
+        verificationId,
+        resendingToken,
+        inputAuthCode,
+        codeCountDown,
       ];
 }

@@ -63,17 +63,22 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 
   Future<void> _signOut() async {
-    loadingScreen(context);
-    // TODO check internet connection
-    final success = await CustomAuth.firebaseSignOut();
-
-    if (!mounted) {
+    bool hasConnection =
+        await checkNetworkConnection(context, notifyUser: true);
+    if (!hasConnection) {
       return;
     }
 
+    if (!mounted) return;
+
+    loadingScreen(context);
+    final success = await CustomAuth.firebaseSignOut();
+
+    if (!mounted) return;
+
     if (success) {
       Navigator.pop(context);
-      AppService.postSignOutActions(context);
+      await AppService.postSignOutActions(context);
     } else {
       Navigator.pop(context);
       showSnackBar(context, Config.signOutFailed);

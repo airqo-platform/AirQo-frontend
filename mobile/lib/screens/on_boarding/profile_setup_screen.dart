@@ -38,7 +38,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Great!\nPlease enter your name',
+                'Great!\nPlease enter your name?',
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline7(context),
               ),
@@ -151,15 +151,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _saveName() async {
     if (_formKey.currentState!.validate()) {
       context.read<AccountBloc>().add(const UpdateProfile());
-      FocusScope.of(context).requestFocus(
-        FocusNode(),
-      );
+      FocusManager.instance.primaryFocus?.unfocus();
       await Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) {
           return const NotificationsSetupScreen();
         }),
-        (r) => false,
+        (r) => true,
       );
     }
   }

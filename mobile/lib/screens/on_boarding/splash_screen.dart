@@ -75,7 +75,6 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
         builder: (context) {
-          return const ProfileSetupScreen();
           if (isLoggedIn) {
             return const HomePage();
           } else {

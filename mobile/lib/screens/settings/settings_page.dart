@@ -171,14 +171,11 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
                 const Spacer(),
                 BlocBuilder<AccountBloc, AccountState>(
-                  // TODO investigate this code
-                  // buildWhen: (previous, current) {
-                  //   return previous.guestUser != current.guestUser;
-                  // },
                   builder: (context, state) {
-                    // if (state.guestUser) {
-                    //   return Container();
-                    // }
+                    final profile = state.profile;
+                    if (profile == null || profile.isAQuest()) {
+                      return Container();
+                    }
 
                     return MultiBlocListener(
                       listeners: [
@@ -222,29 +219,39 @@ class _SettingsPageState extends State<SettingsPage>
                           },
                         ),
                       ],
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        elevation: 0,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        child: ListTile(
-                          tileColor: Colors.white,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          // TODO implement this functionality
+                          context
+                              .read<AccountBloc>()
+                              .add(DeleteAccount(context: context));
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: CustomColors.aqiRed,
+                          minimumSize: const Size.fromHeight(60),
+                          alignment: Alignment.centerLeft,
+                          elevation: 0,
+                          side: const BorderSide(color: Colors.transparent),
                           shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(8),
+                            ),
                           ),
-                          onTap: () {
-                            _deleteAccount();
-                          },
-                          title: Text(
-                            'Delete your account',
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.bodyText2?.copyWith(
-                                      color: CustomColors.appColorBlack
-                                          .withOpacity(0.6),
-                                    ),
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 14,
                           ),
+                        ),
+                        child: Text(
+                          'Delete your account',
+                          textAlign: TextAlign.start,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText2
+                              ?.copyWith(
+                                  color: CustomColors.aqiRed,
+                                  fontWeight: FontWeight.w500),
                         ),
                       ),
                     );
@@ -278,10 +285,5 @@ class _SettingsPageState extends State<SettingsPage>
       case AppLifecycleState.detached:
         break;
     }
-  }
-
-  void _deleteAccount() {
-    // TODO final authSuccessful = CustomAuth.reAuthenticate(authCredential);
-    context.read<AccountBloc>().add(DeleteAccount(context: context));
   }
 }

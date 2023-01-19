@@ -81,6 +81,81 @@ class CountryCodePickerField extends StatelessWidget {
   }
 }
 
+class PhoneOptField extends StatelessWidget {
+  const PhoneOptField({
+    super.key,
+    required this.callbackFn,
+    required this.status,
+    required this.codeCountDown,
+  });
+
+  final Function(String value) callbackFn;
+  final PhoneBlocStatus status;
+  final int codeCountDown;
+
+  @override
+  Widget build(BuildContext context) {
+    Color fillColor = Colors.transparent;
+    Color textColor = CustomColors.appColorBlue;
+    bool codeSent = codeCountDown <= 0;
+
+    if (!codeSent) {
+      fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
+      textColor = Colors.transparent;
+    }
+
+    if (status == PhoneBlocStatus.error) {
+      textColor = CustomColors.appColorInvalid;
+      fillColor = textColor.withOpacity(0.05);
+    } else if (status == PhoneBlocStatus.verificationSuccessful) {
+      textColor = CustomColors.appColorValid;
+      fillColor = textColor.withOpacity(0.05);
+    }
+
+    InputBorder inputBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: textColor, width: 1.0),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
+    return TextFormField(
+      onChanged: callbackFn,
+      showCursor: codeSent,
+      enabled: codeSent,
+      textAlign: TextAlign.center,
+      maxLength: 6,
+      enableSuggestions: false,
+      cursorWidth: 1,
+      cursorColor: textColor,
+      keyboardType: TextInputType.number,
+      style: Theme.of(context).textTheme.bodyText1?.copyWith(
+            fontSize: 32,
+            fontWeight: FontWeight.w500,
+            color: textColor,
+            letterSpacing: 16 * 0.41,
+            height: 40 / 32,
+          ),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10,
+          horizontal: 0,
+        ),
+        iconColor: textColor,
+        fillColor: fillColor,
+        filled: true,
+        focusedBorder: inputBorder,
+        enabledBorder: inputBorder,
+        disabledBorder: inputBorder,
+        errorBorder: inputBorder,
+        border: inputBorder,
+        counter: const Offstage(),
+        errorStyle: const TextStyle(
+          fontSize: 0,
+        ),
+      ),
+    );
+  }
+}
+
 class OptField extends StatefulWidget {
   const OptField({
     super.key,

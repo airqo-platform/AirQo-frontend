@@ -101,7 +101,8 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             case AuthProcedure.login:
                             case AuthProcedure.anonymousLogin:
                             case AuthProcedure.signup:
-                              AppService.postSignInActions(context);
+                              AppService.postSignInActions(
+                                  context, state.authProcedure);
                               break;
                             case AuthProcedure.logout:
                             case AuthProcedure.deleteAccount:
@@ -139,7 +140,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         },
                       ),
                     ],
-                    child: Container(),
+                    child: const SizedBox(height: 10),
                   ),
                   AutoSizeText(
                     'Verify your account',
