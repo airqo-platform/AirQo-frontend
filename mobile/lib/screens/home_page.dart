@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
@@ -161,6 +163,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
+    context.read<DashboardBloc>().add(const RefreshDashboard());
+    context.read<MapBloc>().add(const InitializeMapState());
+    context.read<SearchBloc>().add(const InitializeSearchPage());
+    await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
+    await _initializeDynamicLinks();
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+  }
+
+  Future<void> _initializeDynamicLinks() async {
     FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
       if (navigatorBuildContext != null) {
@@ -172,14 +186,6 @@ class _HomePageState extends State<HomePage> {
     }).onError((error) async {
       await logException(error, null);
     });
-    context.read<DashboardBloc>().add(const RefreshDashboard());
-    context.read<MapBloc>().add(const InitializeMapState());
-    context.read<SearchBloc>().add(const InitializeSearchPage());
-    await checkNetworkConnection(
-      context,
-      notifyUser: true,
-    );
-    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
   @override

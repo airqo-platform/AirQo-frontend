@@ -76,8 +76,6 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.12
   appinio_swiper: ^1.1.1
   firebase_dynamic_links: ^5.0.11
-  app_repository:
-    path: packages/app_repository
   # https://pub.dev/packages/retry
   
 dev_dependencies:

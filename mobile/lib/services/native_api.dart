@@ -64,6 +64,10 @@ class RateService {
 }
 
 class ShareService {
+  // TODO replace with minimum versions
+  static String get iosMinimumShareVersion => '2.0.0';
+  static int get androidMinimumShareVersion => 30;
+
   // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri> createShareLink({
     Kya? kya,
@@ -106,27 +110,29 @@ class ShareService {
       shareImage = Uri.parse(kya.imageUrl);
     }
 
-    final packageInfo = await PackageInfo.fromPlatform();
     const uriPrefix = 'https://airqo.page.link';
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
     final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
       link: Uri.parse('https://airqo.net/?$params'),
       uriPrefix: uriPrefix,
       androidParameters: AndroidParameters(
-        packageName: packageInfo.packageName,
-        minimumVersion: 30,
+        packageName: Platform.isAndroid
+            ? packageInfo.packageName
+            : Config.androidPackageName,
+        minimumVersion: androidMinimumShareVersion,
         fallbackUrl: Uri.parse(
           'https://play.google.com/store/apps/details?id=com.airqo.app',
         ),
       ),
       iosParameters: IOSParameters(
-        bundleId: packageInfo.packageName,
+        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
         fallbackUrl: Uri.parse(
           'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
         ),
         appStoreId: Config.iosStoreId,
-        minimumVersion:
-            packageInfo.version, // TODO replace with minimum version
+        // minimumVersion: iosMinimumShareVersion,
       ),
       googleAnalyticsParameters: const GoogleAnalyticsParameters(
         source: 'airqo-app',

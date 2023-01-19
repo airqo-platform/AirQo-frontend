@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
@@ -5,6 +7,7 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +31,7 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
+  late StreamSubscription<PendingDynamicLinkData> _dynamicLinkSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +64,25 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<KyaBloc>().add(const LoadKya());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    _dynamicLinkSubscription =
+        FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (mounted && navigatorBuildContext != null) {
+        await ShareService.navigateToSharedFeature(
+          linkData: linkData,
+          context: navigatorBuildContext,
+        );
+      }
+    });
+
+    _dynamicLinkSubscription.onError((error) async {
+      await logException(error, null);
+    });
 
     PendingDynamicLinkData? dynamicLinkData = widget.initialLink;
     if (dynamicLinkData != null) {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
-      if (navigatorBuildContext != null) {
+      if (mounted && navigatorBuildContext != null) {
         await ShareService.navigateToSharedFeature(
           linkData: dynamicLinkData,
           context: navigatorBuildContext,
@@ -75,6 +93,12 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await _proceedWithSplashAnimation();
     }
+  }
+
+  @override
+  void dispose() {
+    _dynamicLinkSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -95,32 +119,34 @@ class SplashScreenState extends State<SplashScreen> {
     await Future.delayed(
       const Duration(seconds: 5),
       () {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            if (!isLoggedIn) {
-              return const IntroductionScreen();
-            } else {
-              switch (nextPage) {
-                case OnBoardingPage.signup:
-                  return const PhoneSignUpWidget();
-                case OnBoardingPage.profile:
-                  return const ProfileSetupScreen();
-                case OnBoardingPage.notification:
-                  return const NotificationsSetupScreen();
-                case OnBoardingPage.location:
-                  return const LocationSetupScreen();
-                case OnBoardingPage.complete:
-                  return const SetUpCompleteScreen();
-                case OnBoardingPage.home:
-                  return const HomePage();
-                default:
-                  return const IntroductionScreen();
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              if (!isLoggedIn) {
+                return const IntroductionScreen();
+              } else {
+                switch (nextPage) {
+                  case OnBoardingPage.signup:
+                    return const PhoneSignUpWidget();
+                  case OnBoardingPage.profile:
+                    return const ProfileSetupScreen();
+                  case OnBoardingPage.notification:
+                    return const NotificationsSetupScreen();
+                  case OnBoardingPage.location:
+                    return const LocationSetupScreen();
+                  case OnBoardingPage.complete:
+                    return const SetUpCompleteScreen();
+                  case OnBoardingPage.home:
+                    return const HomePage();
+                  default:
+                    return const IntroductionScreen();
+                }
               }
-            }
-          }),
-          (r) => false,
-        );
+            }),
+            (r) => false,
+          );
+        }
       },
     );
   }

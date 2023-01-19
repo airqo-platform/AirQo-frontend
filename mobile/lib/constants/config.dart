@@ -48,6 +48,10 @@ class Config {
 
   static String get iosStoreId => '1337573091';
 
+  static String get iosBundleId => 'com.airqo.net';
+
+  static String get androidPackageName => 'com.airqo.app';
+
   static String get connectionErrorMessage => 'No internet connection';
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
