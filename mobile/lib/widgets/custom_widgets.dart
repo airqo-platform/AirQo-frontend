@@ -318,9 +318,14 @@ class HeartIcon extends StatelessWidget {
 }
 
 class AnalyticsCardFooter extends StatefulWidget {
-  const AnalyticsCardFooter(this.airQualityReading, {super.key});
+  const AnalyticsCardFooter(
+    this.airQualityReading, {
+    super.key,
+    this.radius = 16,
+  });
 
   final AirQualityReading airQualityReading;
+  final double radius;
 
   @override
   State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
@@ -329,9 +334,47 @@ class AnalyticsCardFooter extends StatefulWidget {
 class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
   bool _showHeartAnimation = false;
 
+  late ButtonStyle _leftButtonStyle;
+  late ButtonStyle _rightButtonStyle;
+
+  @override
+  void initState() {
+    super.initState();
+    _leftButtonStyle = OutlinedButton.styleFrom(
+      foregroundColor: CustomColors.appColorBlue,
+      elevation: 0,
+      side: const BorderSide(
+        color: Colors.transparent,
+        width: 0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.only(bottomLeft: Radius.circular(widget.radius)),
+      ),
+      backgroundColor: Colors.white,
+      padding: EdgeInsets.zero,
+    );
+
+    _rightButtonStyle = OutlinedButton.styleFrom(
+      foregroundColor: CustomColors.appColorBlue,
+      elevation: 0,
+      side: const BorderSide(
+        color: Colors.transparent,
+        width: 0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.only(bottomRight: Radius.circular(widget.radius)),
+      ),
+      backgroundColor: Colors.white,
+      padding: EdgeInsets.zero,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
           child: FutureBuilder<Uri>(
@@ -342,10 +385,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
               if (snapshot.hasError) {
                 // TODO implement this functionality
               }
-
               if (snapshot.hasData) {
-                return InkWell(
-                  onTap: () async {
+                return OutlinedButton(
+                  style: _leftButtonStyle,
+                  onPressed: () async {
                     Uri? link = snapshot.data;
                     if (link != null) {
                       await ShareService.shareLink(
@@ -354,30 +397,42 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                       );
                     }
                   },
-                  child: IconTextButton(
-                    iconWidget: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      color: CustomColors.greyColor,
-                      semanticsLabel: 'Share',
+                  child: Center(
+                    child: IconTextButton(
+                      iconWidget: SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        color: CustomColors.greyColor,
+                        semanticsLabel: 'Share',
+                      ),
+                      text: 'Share',
                     ),
-                    text: 'Share',
                   ),
                 );
               }
-
-              return const LoadingIcon(radius: 14);
+              return OutlinedButton(
+                style: _leftButtonStyle,
+                onPressed: () {},
+                child: const Center(
+                  child: LoadingIcon(radius: 14),
+                ),
+              );
             },
           ),
         ),
         Expanded(
-          child: InkWell(
-            onTap: () async => _updateFavPlace(context),
-            child: IconTextButton(
-              iconWidget: HeartIcon(
-                showAnimation: _showHeartAnimation,
-                airQualityReading: widget.airQualityReading,
+          child: OutlinedButton(
+            style: _rightButtonStyle,
+            onPressed: () {
+              _updateFavPlace(context);
+            },
+            child: Center(
+              child: IconTextButton(
+                iconWidget: HeartIcon(
+                  showAnimation: _showHeartAnimation,
+                  airQualityReading: widget.airQualityReading,
+                ),
+                text: 'Favorite',
               ),
-              text: 'Favorite',
             ),
           ),
         ),

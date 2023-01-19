@@ -1383,18 +1383,45 @@ class InsightsActionBar extends StatefulWidget {
 class _InsightsActionBarState extends State<InsightsActionBar> {
   bool _showHeartAnimation = false;
 
+  final ButtonStyle _leftButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: CustomColors.appColorBlue,
+    elevation: 0,
+    side: const BorderSide(
+      color: Colors.transparent,
+      width: 0,
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(8),
+        topLeft: Radius.circular(8),
+      ),
+    ),
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.zero,
+  );
+  final ButtonStyle _rightButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: CustomColors.appColorBlue,
+    elevation: 0,
+    side: const BorderSide(
+      color: Colors.transparent,
+      width: 0,
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        bottomRight: Radius.circular(8),
+        topRight: Radius.circular(8),
+      ),
+    ),
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.zero,
+  );
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.all(color: Colors.transparent),
-      ),
+    return SizedBox(
+      height: 60,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: FutureBuilder<Uri>(
@@ -1406,8 +1433,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                   // TODO implement this functionality
                 }
                 if (snapshot.hasData) {
-                  return InkWell(
-                    onTap: () async {
+                  return OutlinedButton(
+                    style: _leftButtonStyle,
+                    onPressed: () async {
                       Uri? link = snapshot.data;
                       if (link != null) {
                         await ShareService.shareLink(
@@ -1416,26 +1444,35 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                         );
                       }
                     },
-                    child: IconTextButton(
-                      iconWidget: SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        color: CustomColors.greyColor,
-                        semanticsLabel: 'Share',
+                    child: Center(
+                      child: IconTextButton(
+                        iconWidget: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          semanticsLabel: 'Share',
+                        ),
+                        text: 'Share',
                       ),
-                      text: 'Share',
                     ),
                   );
                 }
-
-                return const LoadingIcon(radius: 14);
+                return OutlinedButton(
+                  style: _leftButtonStyle,
+                  onPressed: () {},
+                  child: const Center(
+                    child: LoadingIcon(radius: 14),
+                  ),
+                );
               },
             ),
           ),
           Expanded(
-            child: InkWell(
-              onTap: () async => _updateFavPlace(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 21),
+            child: OutlinedButton(
+              style: _rightButtonStyle,
+              onPressed: () {
+                _updateFavPlace();
+              },
+              child: Center(
                 child: IconTextButton(
                   iconWidget: HeartIcon(
                     showAnimation: _showHeartAnimation,
@@ -1451,14 +1488,13 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     );
   }
 
-  Future<void> _updateFavPlace() async {
+  void _updateFavPlace() {
     final airQualityReading = widget.airQualityReading;
     if (airQualityReading == null) {
       return;
     }
-
     setState(() => _showHeartAnimation = true);
-    await Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }
