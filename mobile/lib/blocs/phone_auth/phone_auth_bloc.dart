@@ -94,13 +94,15 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     } on FirebaseAuthException catch (exception, _) {
       final error = CustomAuth.getFirebaseExceptionMessage(exception);
       return emit(state.copyWith(
-          errorMessage: error.message,
-          status: PhoneBlocStatus.error,
-          error: PhoneBlocError.verificationFailed));
+        errorMessage: error.message,
+        status: PhoneBlocStatus.error,
+        error: PhoneBlocError.verificationFailed,
+      ));
     } catch (exception, stackTrace) {
       emit(state.copyWith(
-          status: PhoneBlocStatus.error,
-          error: PhoneBlocError.verificationFailed));
+        status: PhoneBlocStatus.error,
+        error: PhoneBlocError.verificationFailed,
+      ));
       await logException(exception, stackTrace);
     }
   }

@@ -9,7 +9,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 
@@ -206,12 +205,7 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                         BlocListener<ProfileBloc, ProfileState>(
                           listener: (context, state) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) {
-                                return const AuthVerificationWidget();
-                              }),
-                            );
+                            // TODO implement account deletion
                           },
                           listenWhen: (previous, current) {
                             return current.blocStatus ==

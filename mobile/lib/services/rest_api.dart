@@ -157,6 +157,27 @@ class AirqoApiClient {
     return const InsightData(forecast: [], historical: []);
   }
 
+  Future<EmailAuthModel?> getEmailVerificationCode(String emailAddress) async {
+    try {
+      final response = await http.post(
+        Uri.parse(AirQoUrls.requestEmailVerification),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': emailAddress,
+        }),
+      );
+
+      return EmailAuthModel.fromJson(json.decode(response.body));
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
   Future<EmailAuthModel?> requestEmailVerificationCode(
     String emailAddress,
     bool reAuthenticate,

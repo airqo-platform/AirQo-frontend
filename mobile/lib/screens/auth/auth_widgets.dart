@@ -167,10 +167,9 @@ class _PhoneAuthVerificationWidgetState
       const Duration(milliseconds: 1200),
       (Timer timer) {
         if (mounted) {
-          final newCount =
-              context.read<PhoneAuthBloc>().state.codeCountDown - 1;
-          context.read<PhoneAuthBloc>().add(UpdatePhoneCountDown(newCount));
-          if (newCount == 0) {
+          final count = context.read<PhoneAuthBloc>().state.codeCountDown - 1;
+          context.read<PhoneAuthBloc>().add(UpdatePhoneCountDown(count));
+          if (count == 0) {
             setState(() => timer.cancel());
           }
         }
@@ -212,6 +211,17 @@ class _PhoneAuthVerificationWidgetState
                         return previous.status != current.status &&
                             current.status ==
                                 PhoneBlocStatus.verificationSuccessful;
+                      },
+                    ),
+
+                    BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                      listener: (context, state) async {
+                        _startCodeSentCountDown();
+                      },
+                      listenWhen: (previous, current) {
+                        return previous.status != current.status &&
+                            current.status ==
+                                EmailBlocStatus.verificationCodeSent;
                       },
                     ),
 
@@ -431,6 +441,296 @@ class _PhoneAuthVerificationWidgetState
   }
 }
 
+class EmailAuthVerificationWidget extends StatefulWidget {
+  const EmailAuthVerificationWidget({super.key});
+
+  @override
+  State<EmailAuthVerificationWidget> createState() =>
+      _EmailAuthVerificationWidgetState();
+}
+
+class _EmailAuthVerificationWidgetState
+    extends State<EmailAuthVerificationWidget> {
+  void _startCodeSentCountDown() {
+    context.read<EmailAuthBloc>().add(const UpdateEmailCountDown(5));
+
+    Timer.periodic(
+      const Duration(milliseconds: 1200),
+      (Timer timer) {
+        if (mounted) {
+          final count = context.read<EmailAuthBloc>().state.codeCountDown - 1;
+          context.read<EmailAuthBloc>().add(UpdateEmailCountDown(count));
+          if (count == 0) {
+            setState(() => timer.cancel());
+          }
+        }
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startCodeSentCountDown();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
+      body: AppSafeArea(
+        horizontalPadding: 24,
+        backgroundColor: Colors.white,
+        widget: BlocBuilder<EmailAuthBloc, EmailAuthState>(
+          builder: (context, state) {
+            final String cancelText = AuthMethod.email.editEntryText;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                MultiBlocListener(
+                  listeners: [
+                    // verification success listener
+                    BlocListener<EmailAuthBloc, EmailAuthState>(
+                      listener: (context, state) async {
+                        await AppService.postSignInActions(
+                            context, state.authProcedure);
+                      },
+                      listenWhen: (previous, current) {
+                        return previous.status != current.status &&
+                            current.status ==
+                                EmailBlocStatus.verificationSuccessful;
+                      },
+                    ),
+
+                    BlocListener<EmailAuthBloc, EmailAuthState>(
+                      listener: (context, state) async {
+                        _startCodeSentCountDown();
+                      },
+                      listenWhen: (previous, current) {
+                        return previous.status != current.status &&
+                            current.status ==
+                                EmailBlocStatus.verificationCodeSent;
+                      },
+                    ),
+
+                    // loading screen listeners
+                    BlocListener<EmailAuthBloc, EmailAuthState>(
+                      listener: (context, state) {
+                        loadingScreen(context);
+                      },
+                      listenWhen: (previous, current) {
+                        return current.status == EmailBlocStatus.processing;
+                      },
+                    ),
+                    BlocListener<EmailAuthBloc, EmailAuthState>(
+                      listener: (context, state) {
+                        Navigator.pop(context);
+                      },
+                      listenWhen: (previous, current) {
+                        return previous.status == EmailBlocStatus.processing;
+                      },
+                    ),
+                  ],
+                  child: Container(),
+                ),
+                AutoSizeText(
+                  'Verify your account',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline7(context),
+                ),
+                const SizedBox(
+                  height: 14,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: AutoSizeText(
+                    AuthMethod.email.codeVerificationText,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.6),
+                        ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                AutoSizeText(
+                  state.emailAddress,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                        fontSize: 18.0,
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 36),
+                  child: EmailOptField(
+                    callbackFn: (String value) {
+                      context.read<EmailAuthBloc>().add(UpdateEmailAuthCode(
+                            value,
+                          ));
+                    },
+                    status: state.status,
+                    codeCountDown: state.codeCountDown,
+                  ),
+                ),
+                InputValidationErrorMessage(
+                  visible: state.status == EmailBlocStatus.error &&
+                      state.error == EmailBlocError.verificationFailed,
+                  message: state.errorMessage,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Visibility(
+                  visible: state.codeCountDown > 0,
+                  child: Text(
+                    'The code should arrive with in ${state.codeCountDown} sec',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.caption?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      state.status != EmailBlocStatus.verificationSuccessful,
+                  child: GestureDetector(
+                    onTap: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      context.read<EmailAuthBloc>().add(ValidateEmailAddress(
+                            context,
+                            showConfirmationDialog: false,
+                          ));
+                    },
+                    child: Text(
+                      'Resend code',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlue,
+                          ),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: state.codeCountDown <= 0 &&
+                      state.status != EmailBlocStatus.verificationSuccessful,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 36,
+                      right: 36,
+                      top: 19,
+                    ),
+                    child: Stack(
+                      alignment: AlignmentDirectional.center,
+                      children: [
+                        Container(
+                          height: 1.09,
+                          color: Colors.black.withOpacity(0.05),
+                        ),
+                        Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Text(
+                            'Or',
+                            style:
+                                Theme.of(context).textTheme.caption?.copyWith(
+                                      color: const Color(0xffD1D3D9),
+                                    ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: state.codeCountDown <= 0 &&
+                      state.status != EmailBlocStatus.verificationSuccessful,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 19),
+                    child: GestureDetector(
+                      onTap: () {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        cancelText,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.caption?.copyWith(
+                              color: CustomColors.appColorBlue,
+                            ),
+                      ),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      state.status == EmailBlocStatus.verificationSuccessful,
+                  child: const Spacer(),
+                ),
+                Visibility(
+                  visible:
+                      state.status == EmailBlocStatus.verificationSuccessful,
+                  child: Center(
+                    child: Container(
+                      height: 151,
+                      width: 151,
+                      padding: const EdgeInsets.all(25),
+                      decoration: BoxDecoration(
+                        color: CustomColors.appColorValid.withOpacity(0.1),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/icon/valid_input_icon.svg',
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Visibility(
+                  visible: state.codeCountDown <= 0 &&
+                      state.status != EmailBlocStatus.verificationSuccessful,
+                  child: NextButton(
+                    buttonColor: state.inputAuthCode.length >= 6
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorDisabled,
+                    callBack: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      context
+                          .read<EmailAuthBloc>()
+                          .add(const VerifyEmailCode());
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      state.status != EmailBlocStatus.verificationSuccessful,
+                  child: const SizedBox(
+                    height: 12,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class EmailInputField extends StatefulWidget {
   const EmailInputField({Key? key}) : super(key: key);
 
@@ -467,7 +767,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             ? formColor
             : CustomColors.greyColor.withOpacity(0.7);
 
-        if (state.blocStatus == BlocStatus.error) {
+        if (state.status == EmailBlocStatus.error) {
           formColor = CustomColors.appColorInvalid;
           textColor = formColor;
           suffixIconColor = formColor;
@@ -503,9 +803,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
           },
           onEditingComplete: () async {
-            context
-                .read<EmailAuthBloc>()
-                .add(ValidateEmailAddress(context: context));
+            context.read<EmailAuthBloc>().add(ValidateEmailAddress(context));
           },
           style:
               Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
@@ -533,10 +831,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             suffixIcon: GestureDetector(
               onTap: () {
                 _emailInputController.text = '';
-                FocusScope.of(context).requestFocus(
-                  FocusNode(),
-                );
-
+                FocusManager.instance.primaryFocus?.unfocus();
                 context.read<EmailAuthBloc>().add(const ClearEmailAddress());
               },
               child: suffixIcon,
@@ -635,7 +930,6 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
       },
       child: SizedBox(
         width: double.infinity,
-        height: 40,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -779,62 +1073,68 @@ class SignUpOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     final tween = Tween<double>(begin: 0, end: 1);
 
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 20,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) {
-                    switch (authMethod) {
-                      case AuthMethod.none:
-                      case AuthMethod.phone:
-                        return const PhoneLoginWidget();
-                      case AuthMethod.email:
-                        return const EmailLoginWidget();
-                    }
-                  },
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(
-                      opacity: animation.drive(tween),
-                      child: child,
-                    );
-                  },
+    return SizedBox(
+      height: 60,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      switch (authMethod) {
+                        case AuthMethod.none:
+                        case AuthMethod.phone:
+                          return const PhoneLoginWidget();
+                        case AuthMethod.email:
+                          return const EmailLoginWidget();
+                      }
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                  (r) => false,
+                );
+              },
+              child: SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.6),
+                          ),
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    Text(
+                      'Log in',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlue,
+                          ),
+                    ),
+                  ],
                 ),
-                (r) => false,
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Already have an account',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.6),
-                      ),
-                ),
-                const SizedBox(
-                  width: 2,
-                ),
-                Text(
-                  'Log in',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-        const ProceedAsGuest(),
-      ],
+          const Expanded(child: ProceedAsGuest()),
+        ],
+      ),
     );
   }
 }
@@ -848,63 +1148,67 @@ class LoginOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     final tween = Tween<double>(begin: 0, end: 1);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 20,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) {
-                      switch (authMethod) {
-                        case AuthMethod.none:
-                        case AuthMethod.phone:
-                          return const PhoneSignUpWidget();
-                        case AuthMethod.email:
-                          return const EmailSignUpWidget();
-                      }
-                    },
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(
-                        opacity: animation.drive(tween),
-                        child: child,
-                      );
-                    },
-                  ),
-                  (r) => false);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Don’t have an account',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.6),
-                      ),
+    return SizedBox(
+      height: 60,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) {
+                        switch (authMethod) {
+                          case AuthMethod.none:
+                          case AuthMethod.phone:
+                            return const PhoneSignUpWidget();
+                          case AuthMethod.email:
+                            return const EmailSignUpWidget();
+                        }
+                      },
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(
+                          opacity: animation.drive(tween),
+                          child: child,
+                        );
+                      },
+                    ),
+                    (r) => false);
+              },
+              child: SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Don’t have an account',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.6),
+                          ),
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    Text(
+                      'Sign up',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlue,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  width: 2,
-                ),
-                Text(
-                  'Sign up',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-        const ProceedAsGuest(),
-      ],
+          const Expanded(child: ProceedAsGuest()),
+        ],
+      ),
     );
   }
 }

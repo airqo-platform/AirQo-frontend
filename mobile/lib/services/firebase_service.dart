@@ -633,6 +633,25 @@ class CustomAuth {
     );
   }
 
+  static Future<void> initiateEmailVerification({
+    required String emailAddress,
+    required BuildContext buildContext,
+    required AuthProcedure authProcedure,
+  }) async {
+    await AirqoApiClient()
+        .getEmailVerificationCode(emailAddress)
+        .then((emailAuthModel) {
+      if (emailAuthModel == null) {
+        buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed());
+      } else {
+        buildContext.read<EmailAuthBloc>().add(EmailVerificationCodeSent(
+              verificationLink: emailAuthModel.loginLink,
+              token: emailAuthModel.token,
+            ));
+      }
+    });
+  }
+
   static Future<void> sendPhoneAuthCode({
     required String phoneNumber,
     required BuildContext buildContext,
@@ -727,64 +746,7 @@ class CustomAuth {
     required String emailAddress,
     required BuildContext buildContext,
     required AuthProcedure authProcedure,
-  }) async {
-    try {
-      final emailSignupResponse = await AirqoApiClient()
-          .requestEmailVerificationCode(emailAddress, false);
-
-      if (emailSignupResponse == null) {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
-                  AuthenticationError.authFailure,
-                ));
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext.read<ProfileBloc>().add(const AccountDeletionCheck(
-                  error: AuthenticationError.authFailure,
-                  passed: false,
-                ));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      } else {
-        buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
-              emailVerificationLink: emailSignupResponse.loginLink,
-              emailToken: emailSignupResponse.token,
-            ));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext
-                .read<EmailAuthBloc>()
-                .add(const EmailValidationPassed());
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext
-                .read<ProfileBloc>()
-                .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      }
-    } catch (exception, stackTrace) {
-      buildContext
-          .read<EmailAuthBloc>()
-          .add(const EmailValidationFailed(AuthenticationError.authFailure));
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
+  }) async {}
 
   static Future<bool> updateCredentials({
     required AuthMethod authMethod,

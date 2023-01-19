@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
 
-import 'auth_verification.dart';
 import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
@@ -30,13 +30,11 @@ class EmailAuthWidget extends StatefulWidget {
 
 class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   DateTime? _exitTime;
-  late BuildContext _loadingContext;
   bool _keyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _loadingContext = context;
     context.read<EmailAuthBloc>().add(
           InitializeEmailAuth(
             emailAddress: widget.emailAddress ?? '',
@@ -58,6 +56,14 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           horizontalPadding: 24,
           widget: BlocBuilder<EmailAuthBloc, EmailAuthState>(
             builder: (context, state) {
+              Color nextButtonColor = state.emailAddress.isValidEmail()
+                  ? CustomColors.appColorBlue
+                  : CustomColors.appColorDisabled;
+
+              Widget bottomWidget = state.authProcedure == AuthProcedure.login
+                  ? const LoginOptions(authMethod: AuthMethod.email)
+                  : const SignUpOptions(authMethod: AuthMethod.email);
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -65,51 +71,63 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   MultiBlocListener(
                     listeners: [
                       BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          loadingScreen(_loadingContext);
-                        },
-                        listenWhen: (previous, current) {
-                          return current.blocStatus == BlocStatus.processing;
-                        },
-                      ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          Navigator.pop(_loadingContext);
-                        },
-                        listenWhen: (previous, current) {
-                          return previous.blocStatus == BlocStatus.processing;
-                        },
-                      ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          showSnackBar(context, state.error.message);
-                        },
-                        listenWhen: (previous, current) {
-                          return current.blocStatus == BlocStatus.error &&
-                              current.error != AuthenticationError.none &&
-                              current.error !=
-                                  AuthenticationError.invalidEmailAddress;
-                        },
-                      ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          context.read<AuthCodeBloc>().add(
-                                InitializeAuthCodeState(
-                                  emailAddress: state.emailAddress,
-                                  authProcedure: state.authProcedure,
-                                  authMethod: AuthMethod.email,
-                                ),
-                              );
-
-                          Navigator.push(
+                        listener: (context, state) async {
+                          await AppService.postSignInActions(
                             context,
-                            MaterialPageRoute(builder: (context) {
-                              return const AuthVerificationWidget();
-                            }),
+                            state.authProcedure,
                           );
                         },
                         listenWhen: (previous, current) {
-                          return current.blocStatus == BlocStatus.success;
+                          return previous.status != current.status &&
+                              current.status ==
+                                  EmailBlocStatus.verificationSuccessful;
+                        },
+                      ),
+
+                      // verification failed listener
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          showSnackBar(context, state.errorMessage);
+                        },
+                        listenWhen: (previous, current) {
+                          return current.status == EmailBlocStatus.error &&
+                              current.error ==
+                                  EmailBlocError.verificationFailed;
+                        },
+                      ),
+
+                      // loading screen listeners
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          loadingScreen(context);
+                        },
+                        listenWhen: (previous, current) {
+                          return current.status == EmailBlocStatus.processing;
+                        },
+                      ),
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          Navigator.pop(context);
+                        },
+                        listenWhen: (previous, current) {
+                          return previous.status == EmailBlocStatus.processing;
+                        },
+                      ),
+
+                      // auto verification listeners
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) async {
+                          await Navigator.pushAndRemoveUntil(
+                            context,
+                            bottomNavigation(
+                                const EmailAuthVerificationWidget()),
+                            (r) => false,
+                          );
+                        },
+                        listenWhen: (previous, current) {
+                          return previous.status != current.status &&
+                              current.status ==
+                                  EmailBlocStatus.verificationCodeSent;
                         },
                       ),
                     ],
@@ -120,9 +138,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: AutoSizeText(
-                      state.blocStatus == BlocStatus.error &&
-                              state.error ==
-                                  AuthenticationError.invalidEmailAddress
+                      state.status == EmailBlocStatus.error &&
+                              state.error == EmailBlocError.invalidEmailAddress
                           ? AuthMethod.email.invalidInputMessage
                           : AuthMethod.email.optionsText(state.authProcedure),
                       textAlign: TextAlign.center,
@@ -132,7 +149,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                     ),
                   ),
                   VerificationCodeMessage(
-                    state.blocStatus != BlocStatus.error,
+                    state.status != EmailBlocStatus.error,
                   ),
                   const SizedBox(
                     height: 32,
@@ -143,8 +160,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   ),
                   InputValidationErrorMessage(
                     message: AuthMethod.email.invalidInputErrorMessage,
-                    visible: state.blocStatus == BlocStatus.error &&
-                        state.error == AuthenticationError.invalidEmailAddress,
+                    visible: state.status == EmailBlocStatus.error &&
+                        state.error == EmailBlocError.invalidEmailAddress,
                   ),
                   const SizedBox(
                     height: 32,
@@ -155,13 +172,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   ),
                   const Spacer(),
                   NextButton(
-                    buttonColor: state.emailAddress.isValidEmail()
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorDisabled,
+                    buttonColor: nextButtonColor,
                     callBack: () {
                       context
                           .read<EmailAuthBloc>()
-                          .add(ValidateEmailAddress(context: context));
+                          .add(ValidateEmailAddress(context));
                     },
                   ),
                   Visibility(
@@ -172,14 +187,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   ),
                   Visibility(
                     visible: !_keyboardVisible,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: state.authProcedure == AuthProcedure.login
-                          ? const LoginOptions(authMethod: AuthMethod.email)
-                          : const SignUpOptions(
-                              authMethod: AuthMethod.email,
-                            ),
-                    ),
+                    child: bottomWidget,
                   ),
                 ],
               );
@@ -204,8 +212,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
       return Future.value(false);
     }
-
-    Navigator.pop(_loadingContext);
 
     Navigator.pushAndRemoveUntil(
       context,

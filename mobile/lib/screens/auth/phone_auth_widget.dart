@@ -58,28 +58,9 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               BlocListener<PhoneAuthBloc, PhoneAuthState>(
                 listener: (context, state) async {
                   await AppService.postSignInActions(
-                      context, state.authProcedure);
-
-                  // Future.delayed(
-                  //   const Duration(seconds: 2),
-                  //       () {
-                  //     Navigator.pushAndRemoveUntil(context,
-                  //         MaterialPageRoute(builder: (context) {
-                  //           switch (state.authProcedure) {
-                  //             case AuthProcedure.anonymousLogin:
-                  //             case AuthProcedure.login:
-                  //               return const HomePage();
-                  //             case AuthProcedure.signup:
-                  //               return const ProfileSetupScreen();
-                  //             case AuthProcedure.deleteAccount:
-                  //               return const PhoneSignUpWidget();
-                  //             case AuthProcedure.none:
-                  //             case AuthProcedure.logout:
-                  //               return const PhoneLoginWidget();
-                  //           }
-                  //         }), (r) => true);
-                  //   },
-                  // );
+                    context,
+                    state.authProcedure,
+                  );
                 },
                 listenWhen: (previous, current) {
                   return previous.status != current.status &&
@@ -136,9 +117,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               BlocListener<PhoneAuthBloc, PhoneAuthState>(
                 listener: (context, state) async {
                   await Navigator.pushAndRemoveUntil(
-                      context,
-                      bottomNavigation(const PhoneAuthVerificationWidget()),
-                      (r) => true);
+                    context,
+                    bottomNavigation(const PhoneAuthVerificationWidget()),
+                    (r) => true,
+                  );
                 },
                 listenWhen: (previous, current) {
                   return previous.status != current.status &&
@@ -200,9 +182,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
                 Widget bottomWidget = state.authProcedure == AuthProcedure.login
                     ? const LoginOptions(authMethod: AuthMethod.phone)
-                    : const SignUpOptions(
-                        authMethod: AuthMethod.phone,
-                      );
+                    : const SignUpOptions(authMethod: AuthMethod.phone);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -289,10 +269,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                     ),
                     Visibility(
                       visible: !_keyboardVisible,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: bottomWidget,
-                      ),
+                      child: bottomWidget,
                     ),
                   ],
                 );

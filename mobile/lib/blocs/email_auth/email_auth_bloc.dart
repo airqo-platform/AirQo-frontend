@@ -5,6 +5,7 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,12 +17,98 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
       : super(const EmailAuthState.initial(
           authProcedure: AuthProcedure.signup,
         )) {
+    on<EmailVerificationCodeSent>(_onEmailVerificationCodeSent);
     on<ValidateEmailAddress>(_onValidateEmailAddress);
-    on<EmailValidationFailed>(_onEmailValidationFailed);
-    on<EmailValidationPassed>(_onEmailValidationPassed);
+    on<UpdateEmailCountDown>(_onUpdateEmailCountDown);
+    on<UpdateEmailAuthCode>(_onUpdateEmailAuthCode);
     on<UpdateEmailAddress>(_onUpdateEmailAddress);
     on<ClearEmailAddress>(_onClearEmailAddress);
+    on<VerifyEmailCode>(_verifyEmailCode);
+    on<EmailValidationFailed>(_onEmailValidationFailed);
     on<InitializeEmailAuth>(_onInitializeEmailAuth);
+  }
+
+  Future<void> _verifyEmailCode(
+    VerifyEmailCode event,
+    Emitter<EmailAuthState> emit,
+  ) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.noInternetConnection,
+      ));
+    }
+
+    if (state.inputAuthCode != state.validAuthCode) {
+      return emit(state.copyWith(
+        error: EmailBlocError.invalidCode,
+        status: EmailBlocStatus.error,
+      ));
+    }
+
+    try {
+      final emailCredential = EmailAuthProvider.credentialWithLink(
+        emailLink: state.verificationLink,
+        email: state.emailAddress,
+      );
+
+      final signInSuccess = await CustomAuth.firebaseSignIn(emailCredential);
+
+      return emit(state.copyWith(
+        error: signInSuccess
+            ? EmailBlocError.none
+            : EmailBlocError.verificationFailed,
+        status: signInSuccess
+            ? EmailBlocStatus.verificationSuccessful
+            : EmailBlocStatus.error,
+      ));
+    } on FirebaseAuthException catch (exception, _) {
+      final error = CustomAuth.getFirebaseExceptionMessage(exception);
+      return emit(state.copyWith(
+        errorMessage: error.message,
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.verificationFailed,
+      ));
+    } catch (exception, stackTrace) {
+      emit(state.copyWith(
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.verificationFailed,
+      ));
+      await logException(exception, stackTrace);
+    }
+  }
+
+  void _onUpdateEmailAuthCode(
+    UpdateEmailAuthCode event,
+    Emitter<EmailAuthState> emit,
+  ) {
+    emit(state.copyWith(
+      inputAuthCode: event.value,
+      errorMessage: "",
+      error: EmailBlocError.none,
+      status: EmailBlocStatus.initial,
+    ));
+  }
+
+  void _onUpdateEmailCountDown(
+    UpdateEmailCountDown event,
+    Emitter<EmailAuthState> emit,
+  ) {
+    return emit(state.copyWith(codeCountDown: event.countDown));
+  }
+
+  void _onEmailVerificationCodeSent(
+    EmailVerificationCodeSent event,
+    Emitter<EmailAuthState> emit,
+  ) {
+    return emit(state.copyWith(
+      validAuthCode: event.token.toString(),
+      verificationLink: event.verificationLink,
+      error: EmailBlocError.none,
+      errorMessage: "",
+      status: EmailBlocStatus.verificationCodeSent,
+    ));
   }
 
   Future<void> _onInitializeEmailAuth(
@@ -34,14 +121,11 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     ));
   }
 
-  Future<void> _onUpdateEmailAddress(
+  void _onUpdateEmailAddress(
     UpdateEmailAddress event,
     Emitter<EmailAuthState> emit,
-  ) async {
-    return emit(state.copyWith(
-      emailAddress: event.emailAddress,
-      blocStatus: BlocStatus.editing,
-    ));
+  ) {
+    return emit(state.copyWith(emailAddress: event.emailAddress));
   }
 
   Future<void> _onClearEmailAddress(
@@ -50,7 +134,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   ) async {
     return emit(state.copyWith(
       emailAddress: '',
-      blocStatus: BlocStatus.initial,
+      status: EmailBlocStatus.initial,
     ));
   }
 
@@ -59,20 +143,20 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(
-      blocStatus: BlocStatus.error,
-      error: event.authenticationError,
-    ));
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.verificationFailed,
+        errorMessage: "Verification failed. Try again later"));
   }
 
-  Future<void> _onEmailValidationPassed(
-    EmailValidationPassed _,
-    Emitter<EmailAuthState> emit,
-  ) async {
-    return emit(state.copyWith(
-      blocStatus: BlocStatus.success,
-      error: AuthenticationError.none,
-    ));
-  }
+  // Future<void> _onEmailValidationPassed(
+  //   EmailValidationPassed _,
+  //   Emitter<EmailAuthState> emit,
+  // ) async {
+  //   return emit(state.copyWith(
+  //     status: EmailBlocStatus.verificationSuccessful,
+  //     error: EmailBlocError.none,
+  //   ));
+  // }
 
   Future<void> _onValidateEmailAddress(
     ValidateEmailAddress event,
@@ -80,82 +164,57 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   ) async {
     if (!state.emailAddress.isValidEmail()) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        error: AuthenticationError.invalidEmailAddress,
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.invalidEmailAddress,
       ));
     }
-
-    final confirmation = await showDialog<ConfirmationAction>(
-      context: event.context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AuthMethodDialog(
-          credentials: state.emailAddress,
-          authMethod: AuthMethod.email,
-        );
-      },
-    );
-
-    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.initial,
-        error: AuthenticationError.none,
-      ));
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        error: AuthenticationError.noInternetConnection,
+        status: EmailBlocStatus.error,
+        error: EmailBlocError.noInternetConnection,
       ));
+    }
+    if (event.showConfirmationDialog) {
+      final confirmation = await showDialog<ConfirmationAction>(
+        context: event.context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AuthMethodDialog(
+            credentials: state.emailAddress,
+            authMethod: AuthMethod.email,
+          );
+        },
+      );
+
+      if (confirmation == null || confirmation == ConfirmationAction.cancel) {
+        return emit(state.copyWith(
+          status: EmailBlocStatus.initial,
+          error: EmailBlocError.none,
+        ));
+      }
     }
 
-    try {
-      switch (state.authProcedure) {
-        case AuthProcedure.login:
-          await CustomAuth.sendEmailAuthCode(
-            emailAddress: state.emailAddress,
-            buildContext: event.context,
-            authProcedure: state.authProcedure,
-          );
-          break;
-        case AuthProcedure.signup:
-          await AirqoApiClient()
-              .checkIfUserExists(emailAddress: state.emailAddress)
-              .then((exists) => {
-                    if (exists)
-                      {
-                        emit(state.copyWith(
-                          blocStatus: BlocStatus.error,
-                          error: AuthenticationError.emailTaken,
-                        )),
-                      }
-                    else
-                      {
-                        CustomAuth.sendEmailAuthCode(
-                          emailAddress: state.emailAddress,
-                          buildContext: event.context,
-                          authProcedure: state.authProcedure,
-                        ),
-                      },
-                  });
-          break;
-        case AuthProcedure.anonymousLogin:
-        case AuthProcedure.deleteAccount:
-        case AuthProcedure.logout:
-        case AuthProcedure.none:
-          break;
+    emit(state.copyWith(status: EmailBlocStatus.processing));
+
+    if (state.authProcedure == AuthProcedure.signup) {
+      bool exists = await AirqoApiClient().checkIfUserExists(
+        emailAddress: state.emailAddress,
+      );
+      if (exists) {
+        return emit(state.copyWith(
+          status: EmailBlocStatus.error,
+          error: EmailBlocError.emailTaken,
+        ));
       }
-    } catch (exception, stackTrace) {
-      emit(state.copyWith(
-        error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
-      ));
-      await logException(exception, stackTrace);
     }
+
+    await CustomAuth.initiateEmailVerification(
+      emailAddress: state.emailAddress,
+      buildContext: event.context,
+      authProcedure: state.authProcedure,
+    );
 
     return;
   }

@@ -5,12 +5,26 @@ abstract class EmailAuthEvent extends Equatable {
 }
 
 class ValidateEmailAddress extends EmailAuthEvent {
-  const ValidateEmailAddress({
-    required this.context,
+  const ValidateEmailAddress(
+    this.context, {
+    this.showConfirmationDialog = true,
   });
+
   final BuildContext context;
+  final bool showConfirmationDialog;
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [context, showConfirmationDialog];
+}
+
+class EmailVerificationCodeSent extends EmailAuthEvent {
+  const EmailVerificationCodeSent({
+    required this.verificationLink,
+    required this.token,
+  });
+  final String verificationLink;
+  final int token;
+  @override
+  List<Object?> get props => [token, verificationLink];
 }
 
 class InitializeEmailAuth extends EmailAuthEvent {
@@ -25,16 +39,23 @@ class InitializeEmailAuth extends EmailAuthEvent {
 }
 
 class EmailValidationFailed extends EmailAuthEvent {
-  const EmailValidationFailed(this.authenticationError);
-  final AuthenticationError authenticationError;
-  @override
-  List<Object?> get props => [authenticationError];
-}
-
-class EmailValidationPassed extends EmailAuthEvent {
-  const EmailValidationPassed();
+  const EmailValidationFailed();
   @override
   List<Object?> get props => [];
+}
+
+class UpdateEmailCountDown extends EmailAuthEvent {
+  const UpdateEmailCountDown(this.countDown);
+  final int countDown;
+  @override
+  List<Object?> get props => [];
+}
+
+class UpdateEmailAuthCode extends EmailAuthEvent {
+  const UpdateEmailAuthCode(this.value);
+  final String value;
+  @override
+  List<Object?> get props => [value];
 }
 
 class UpdateEmailAddress extends EmailAuthEvent {
@@ -42,6 +63,12 @@ class UpdateEmailAddress extends EmailAuthEvent {
   final String emailAddress;
   @override
   List<Object?> get props => [emailAddress];
+}
+
+class VerifyEmailCode extends EmailAuthEvent {
+  const VerifyEmailCode();
+  @override
+  List<Object?> get props => [];
 }
 
 class ClearEmailAddress extends EmailAuthEvent {
