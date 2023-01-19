@@ -647,7 +647,7 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<AccountBloc>()
+                .read<ProfileBloc>()
                 .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
@@ -666,7 +666,7 @@ class CustomAuth {
           case AuthProcedure.signup:
             break;
           case AuthProcedure.deleteAccount:
-            buildContext.read<AccountBloc>().add(AccountDeletionCheck(
+            buildContext.read<ProfileBloc>().add(AccountDeletionCheck(
                   passed: false,
                   error: getFirebaseExceptionMessage(exception),
                 ));
@@ -690,7 +690,7 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<AccountBloc>()
+                .read<ProfileBloc>()
                 .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
@@ -710,7 +710,7 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<AccountBloc>()
+                .read<ProfileBloc>()
                 .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
@@ -741,7 +741,7 @@ class CustomAuth {
                 ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
+            buildContext.read<ProfileBloc>().add(const AccountDeletionCheck(
                   error: AuthenticationError.authFailure,
                   passed: false,
                 ));
@@ -766,7 +766,7 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<AccountBloc>()
+                .read<ProfileBloc>()
                 .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:

@@ -65,7 +65,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ),
               const Spacer(),
-              BlocBuilder<AccountBloc, AccountState>(
+              BlocBuilder<ProfileBloc, ProfileState>(
                 buildWhen: (previous, current) {
                   Profile? currentProfile = current.profile;
                   Profile? previousProfile = previous.profile;
@@ -150,7 +150,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _saveName() async {
     if (_formKey.currentState!.validate()) {
-      context.read<AccountBloc>().add(const UpdateProfile());
+      context.read<ProfileBloc>().add(const UpdateProfile());
       FocusManager.instance.primaryFocus?.unfocus();
       await Navigator.pushAndRemoveUntil(
         context,

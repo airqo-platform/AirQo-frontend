@@ -92,14 +92,14 @@ class ProfileSetupNameInputField extends StatelessWidget {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        context.read<AccountBloc>().add(UpdateName(controller.text));
+        context.read<ProfileBloc>().add(UpdateName(controller.text));
       },
       enableSuggestions: false,
       cursorWidth: 1,
       cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.name,
       onChanged: (name) {
-        context.read<AccountBloc>().add(UpdateName(name));
+        context.read<ProfileBloc>().add(UpdateName(name));
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -120,7 +120,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
         suffixIcon: GestureDetector(
           onTap: () {
             controller.text = "";
-            context.read<AccountBloc>().add(const UpdateName(""));
+            context.read<ProfileBloc>().add(const UpdateName(""));
           },
           child: const TextInputCloseButton(),
         ),
@@ -171,7 +171,7 @@ class TitleDropDown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<ProfileBloc, ProfileState>(
       buildWhen: (previous, current) {
         Profile? currentProfile = current.profile;
         Profile? previousProfile = previous.profile;
@@ -197,7 +197,7 @@ class TitleDropDown extends StatelessWidget {
             ),
           ),
           onSelected: (title) {
-            context.read<AccountBloc>().add(UpdateTitle(title));
+            context.read<ProfileBloc>().add(UpdateTitle(title));
           },
           child: Container(
             width: 65,

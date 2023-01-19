@@ -9,11 +9,11 @@ import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-part 'account_event.dart';
-part 'account_state.dart';
+part 'profile_event.dart';
+part 'profile_state.dart';
 
-class AccountBloc extends Bloc<AccountEvent, AccountState> {
-  AccountBloc() : super(const AccountState.initial()) {
+class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
+  ProfileBloc() : super(const ProfileState.initial()) {
     on<LogOutAccount>(_onLogOutAccount);
     on<DeleteAccount>(_onDeleteAccount);
     on<AccountDeletionCheck>(_accountDeletionCheck);
@@ -32,7 +32,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onUpdateName(
     UpdateName event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     Profile profile = await _getProfile();
     String firstName = Profile.getNames(event.fullName).first;
@@ -45,7 +45,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onUpdateTitle(
     UpdateTitle event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     Profile profile = await _getProfile();
 
@@ -56,27 +56,27 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onClearProfile(
     ClearProfile _,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     // TODO profile.update(logout: true)
     Profile profile = await Profile.create();
-    emit(const AccountState.initial().copyWith(profile: profile));
+    emit(const ProfileState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
     await SecureStorage().clearUserData();
   }
 
   Future<void> _onFetchProfile(
     FetchProfile _,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     Profile profile = await CloudStore.getProfile();
-    emit(const AccountState.initial().copyWith(profile: profile));
+    emit(const ProfileState.initial().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
   }
 
   Future<void> _onRefreshProfile(
     RefreshProfile _,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
@@ -97,7 +97,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onUpdateProfile(
     UpdateProfile _,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     Profile profile = await _getProfile();
 
@@ -114,7 +114,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   }
 
   Future<void> _uploadPicture({
-    required Emitter<AccountState> emit,
+    required Emitter<ProfileState> emit,
   }) async {
     try {
       final profile = await _getProfile();
@@ -144,7 +144,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onEditProfile(
     EditProfile event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     final profile = await _getProfile();
 
@@ -158,7 +158,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _accountDeletionCheck(
     AccountDeletionCheck event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     return emit(state.copyWith(
       blocStatus: event.passed
@@ -170,7 +170,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onLogOutAccount(
     LogOutAccount event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     final action = await showDialog<ConfirmationAction>(
       context: event.context,
@@ -226,7 +226,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   Future<void> _onDeleteAccount(
     DeleteAccount event,
-    Emitter<AccountState> emit,
+    Emitter<ProfileState> emit,
   ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
@@ -312,6 +312,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       );
     }
 
-    return emit(const AccountState.initial());
+    return emit(const ProfileState.initial());
   }
 }

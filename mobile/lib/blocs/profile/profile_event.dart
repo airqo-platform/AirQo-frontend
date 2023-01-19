@@ -1,28 +1,28 @@
-part of 'account_bloc.dart';
+part of 'profile_bloc.dart';
 
-abstract class AccountEvent extends Equatable {
-  const AccountEvent();
+abstract class ProfileEvent extends Equatable {
+  const ProfileEvent();
 }
 
-class FetchProfile extends AccountEvent {
+class FetchProfile extends ProfileEvent {
   const FetchProfile();
   @override
   List<Object?> get props => [];
 }
 
-class ClearProfile extends AccountEvent {
+class ClearProfile extends ProfileEvent {
   const ClearProfile();
   @override
   List<Object?> get props => [];
 }
 
-class RefreshProfile extends AccountEvent {
+class RefreshProfile extends ProfileEvent {
   const RefreshProfile();
   @override
   List<Object?> get props => [];
 }
 
-class LogOutAccount extends AccountEvent {
+class LogOutAccount extends ProfileEvent {
   const LogOutAccount({
     required this.context,
   });
@@ -31,7 +31,7 @@ class LogOutAccount extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class DeleteAccount extends AccountEvent {
+class DeleteAccount extends ProfileEvent {
   const DeleteAccount({
     required this.context,
   });
@@ -41,7 +41,7 @@ class DeleteAccount extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class AccountDeletionCheck extends AccountEvent {
+class AccountDeletionCheck extends ProfileEvent {
   const AccountDeletionCheck({
     this.error,
     required this.passed,
@@ -53,7 +53,7 @@ class AccountDeletionCheck extends AccountEvent {
   List<Object?> get props => [passed, error];
 }
 
-class EditProfile extends AccountEvent {
+class EditProfile extends ProfileEvent {
   const EditProfile({
     this.firstName,
     this.lastName,
@@ -68,14 +68,14 @@ class EditProfile extends AccountEvent {
   List<Object?> get props => [firstName, lastName, photoUrl];
 }
 
-class UpdateProfile extends AccountEvent {
+class UpdateProfile extends ProfileEvent {
   const UpdateProfile();
 
   @override
   List<Object?> get props => [];
 }
 
-class UpdateTitle extends AccountEvent {
+class UpdateTitle extends ProfileEvent {
   const UpdateTitle(this.title);
   final TitleOptions title;
 
@@ -83,7 +83,7 @@ class UpdateTitle extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class UpdateName extends AccountEvent {
+class UpdateName extends ProfileEvent {
   const UpdateName(this.fullName);
   final String fullName;
 

@@ -297,7 +297,7 @@ class ViewProfilePicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
+    return BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
       final profile = state.profile;
       // TODO check user profile
       if (profile == null) {
@@ -737,7 +737,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           const AppBackButton(),
           const Spacer(),
-          BlocBuilder<AccountBloc, AccountState>(
+          BlocBuilder<ProfileBloc, ProfileState>(
             builder: (context, state) {
               final profile = state.profile;
               final hiveProfile =
@@ -749,7 +749,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               return GestureDetector(
                 onTap: () {
-                  context.read<AccountBloc>().add(const UpdateProfile());
+                  context.read<ProfileBloc>().add(const UpdateProfile());
                 },
                 child: Text(
                   'Save',

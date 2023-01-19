@@ -170,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                 ),
                 const Spacer(),
-                BlocBuilder<AccountBloc, AccountState>(
+                BlocBuilder<ProfileBloc, ProfileState>(
                   builder: (context, state) {
                     final profile = state.profile;
                     if (profile == null || profile.isAQuest()) {
@@ -179,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage>
 
                     return MultiBlocListener(
                       listeners: [
-                        BlocListener<AccountBloc, AccountState>(
+                        BlocListener<ProfileBloc, ProfileState>(
                           listener: (context, state) {
                             loadingScreen(context);
                           },
@@ -187,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage>
                             return current.blocStatus == BlocStatus.processing;
                           },
                         ),
-                        BlocListener<AccountBloc, AccountState>(
+                        BlocListener<ProfileBloc, ProfileState>(
                           listener: (context, state) {
                             Navigator.pop(context);
                           },
@@ -195,7 +195,7 @@ class _SettingsPageState extends State<SettingsPage>
                             return previous.blocStatus == BlocStatus.processing;
                           },
                         ),
-                        BlocListener<AccountBloc, AccountState>(
+                        BlocListener<ProfileBloc, ProfileState>(
                           listener: (context, state) {
                             showSnackBar(context, state.blocError.message);
                           },
@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 current.blocError != AuthenticationError.none;
                           },
                         ),
-                        BlocListener<AccountBloc, AccountState>(
+                        BlocListener<ProfileBloc, ProfileState>(
                           listener: (context, state) {
                             Navigator.push(
                               context,
@@ -223,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage>
                         onPressed: () {
                           // TODO implement this functionality
                           context
-                              .read<AccountBloc>()
+                              .read<ProfileBloc>()
                               .add(DeleteAccount(context: context));
                         },
                         style: OutlinedButton.styleFrom(

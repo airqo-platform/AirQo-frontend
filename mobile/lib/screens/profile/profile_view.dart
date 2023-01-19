@@ -28,7 +28,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
         final profile = state.profile;
         if (profile == null || profile.isAQuest()) {
@@ -48,7 +48,7 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 MultiBlocListener(
                   listeners: [
-                    BlocListener<AccountBloc, AccountState>(
+                    BlocListener<ProfileBloc, ProfileState>(
                       listener: (context, state) {
                         loadingScreen(context);
                       },
@@ -57,7 +57,7 @@ class _ProfileViewState extends State<ProfileView> {
                             mounted;
                       },
                     ),
-                    BlocListener<AccountBloc, AccountState>(
+                    BlocListener<ProfileBloc, ProfileState>(
                       listener: (context, state) {
                         Navigator.pop(context);
                       },
@@ -66,7 +66,7 @@ class _ProfileViewState extends State<ProfileView> {
                             mounted;
                       },
                     ),
-                    BlocListener<AccountBloc, AccountState>(
+                    BlocListener<ProfileBloc, ProfileState>(
                       listener: (context, state) {
                         showSnackBar(context, state.blocError.message);
                       },

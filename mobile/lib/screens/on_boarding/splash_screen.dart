@@ -59,7 +59,7 @@ class SplashScreenState extends State<SplashScreen> {
     final isLoggedIn = CustomAuth.isLoggedIn();
 
     if (isLoggedIn) {
-      context.read<AccountBloc>().add(const RefreshProfile());
+      context.read<ProfileBloc>().add(const RefreshProfile());
       context.read<KyaBloc>().add(const RefreshKya());
       context.read<AnalyticsBloc>().add(const RefreshAnalytics());
       context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());

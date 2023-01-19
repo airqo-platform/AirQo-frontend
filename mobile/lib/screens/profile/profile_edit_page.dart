@@ -17,7 +17,7 @@ class ProfileEditPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const EditProfileAppBar(),
-      body: BlocConsumer<AccountBloc, AccountState>(
+      body: BlocConsumer<ProfileBloc, ProfileState>(
         listenWhen: (previous, current) {
           return current.blocError != AuthenticationError.none &&
               current.blocStatus == BlocStatus.error;
@@ -28,7 +28,7 @@ class ProfileEditPage extends StatelessWidget {
         builder: (context, state) {
           var profile = state.profile;
           if (profile == null) {
-            context.read<AccountBloc>().add(const FetchProfile());
+            context.read<ProfileBloc>().add(const FetchProfile());
 
             return const LoadingWidget();
           }
@@ -82,7 +82,7 @@ class ProfileEditPage extends StatelessWidget {
                   value: profile.firstName,
                   valueChange: (firstName) {
                     context
-                        .read<AccountBloc>()
+                        .read<ProfileBloc>()
                         .add(EditProfile(firstName: firstName));
                   },
                 ),
@@ -103,7 +103,7 @@ class ProfileEditPage extends StatelessWidget {
                   value: profile.lastName,
                   valueChange: (lastName) {
                     context
-                        .read<AccountBloc>()
+                        .read<ProfileBloc>()
                         .add(EditProfile(lastName: lastName));
                   },
                 ),
@@ -124,7 +124,7 @@ class ProfileEditPage extends StatelessWidget {
     )
         .then((file) {
       if (file != null) {
-        context.read<AccountBloc>().add(EditProfile(photoUrl: file.path));
+        context.read<ProfileBloc>().add(EditProfile(photoUrl: file.path));
       }
     }).catchError((error) async {
       if (error is PlatformException) {

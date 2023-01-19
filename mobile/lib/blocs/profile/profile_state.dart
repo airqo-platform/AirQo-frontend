@@ -1,26 +1,26 @@
-part of 'account_bloc.dart';
+part of 'profile_bloc.dart';
 
-class AccountState extends Equatable {
-  const AccountState._({
+class ProfileState extends Equatable {
+  const ProfileState._({
     this.profile,
     this.blocStatus = BlocStatus.initial,
     this.blocError = AuthenticationError.none,
   });
 
-  const AccountState({
+  const ProfileState({
     this.profile,
     this.blocStatus = BlocStatus.initial,
     this.blocError = AuthenticationError.none,
   });
 
-  const AccountState.initial() : this._();
+  const ProfileState.initial() : this._();
 
-  AccountState copyWith({
+  ProfileState copyWith({
     Profile? profile,
     BlocStatus? blocStatus,
     AuthenticationError? blocError,
   }) {
-    return AccountState(
+    return ProfileState(
       profile: profile ?? this.profile,
       blocStatus: blocStatus ?? this.blocStatus,
       blocError: blocError ?? this.blocError,

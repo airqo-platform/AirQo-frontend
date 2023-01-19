@@ -47,7 +47,7 @@ class AppService {
   static Future<void> postSignInActions(
       BuildContext context, AuthProcedure authProcedure,
       {int delay = 2}) async {
-    context.read<AccountBloc>().add(const FetchProfile());
+    context.read<ProfileBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
     context.read<AnalyticsBloc>().add(const FetchAnalytics());
     context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
@@ -75,7 +75,7 @@ class AppService {
   }
 
   static Future<void> postSignOutActions(BuildContext context) async {
-    context.read<AccountBloc>().add(const ClearProfile());
+    context.read<ProfileBloc>().add(const ClearProfile());
     context.read<KyaBloc>().add(const ClearKya());
     context.read<AnalyticsBloc>().add(const ClearAnalytics());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
