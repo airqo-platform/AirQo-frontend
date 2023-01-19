@@ -77,6 +77,21 @@ class Kya extends HiveObject with EquatableMixin {
     });
   }
 
+  Kya copyWith({
+    String? shareLink,
+  }) {
+    return Kya(
+      title: title,
+      completionMessage: completionMessage,
+      imageUrl: imageUrl,
+      secondaryImageUrl: secondaryImageUrl,
+      id: id,
+      lessons: lessons,
+      progress: progress,
+      shareLink: shareLink ?? this.shareLink,
+    );
+  }
+
   String shareLinkParams() {
     return 'kyaId=$id';
   }

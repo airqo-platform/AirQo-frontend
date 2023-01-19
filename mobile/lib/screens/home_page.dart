@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';

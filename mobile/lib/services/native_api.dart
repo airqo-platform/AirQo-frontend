@@ -69,7 +69,7 @@ class ShareService {
   static int get androidMinimumShareVersion => 30;
 
   // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
-  static Future<Uri> createShareLink({
+  static Future<Uri?> createShareLink({
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
@@ -150,12 +150,29 @@ class ShareService {
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
-      return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
+      return null;
     }
-    final ShortDynamicLink shortDynamicLink =
-        await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
 
-    return shortDynamicLink.shortUrl;
+    try {
+      final ShortDynamicLink shortDynamicLink =
+          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      Uri shareLink = shortDynamicLink.shortUrl;
+      if (airQualityReading != null) {
+        await HiveService.updateAirQualityReading(airQualityReading.copyWith(
+          shareLink: shareLink.toString(),
+        ));
+      }
+
+      if (kya != null) {
+        await HiveService.updateKya(
+            kya.copyWith(shareLink: shareLink.toString()));
+      }
+
+      return shareLink;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
+    return null;
   }
 
   static Future<void> navigateToSharedFeature({

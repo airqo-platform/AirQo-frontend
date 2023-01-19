@@ -66,7 +66,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 width: 40,
               ),
             ),
-            FutureBuilder<Uri>(
+            FutureBuilder<Uri?>(
               future: ShareService.createShareLink(kya: widget.kya),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {

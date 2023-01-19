@@ -377,7 +377,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
-          child: FutureBuilder<Uri>(
+          child: FutureBuilder<Uri?>(
             future: ShareService.createShareLink(
               airQualityReading: widget.airQualityReading,
             ),
@@ -386,28 +386,28 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                 // TODO implement this functionality
               }
               if (snapshot.hasData) {
-                return OutlinedButton(
-                  style: _leftButtonStyle,
-                  onPressed: () async {
-                    Uri? link = snapshot.data;
-                    if (link != null) {
+                Uri? link = snapshot.data;
+                if (link != null) {
+                  return OutlinedButton(
+                    style: _leftButtonStyle,
+                    onPressed: () async {
                       await ShareService.shareLink(
                         link,
                         airQualityReading: widget.airQualityReading,
                       );
-                    }
-                  },
-                  child: Center(
-                    child: IconTextButton(
-                      iconWidget: SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        color: CustomColors.greyColor,
-                        semanticsLabel: 'Share',
+                    },
+                    child: Center(
+                      child: IconTextButton(
+                        iconWidget: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          semanticsLabel: 'Share',
+                        ),
+                        text: 'Share',
                       ),
-                      text: 'Share',
                     ),
-                  ),
-                );
+                  );
+                }
               }
               return OutlinedButton(
                 style: _leftButtonStyle,

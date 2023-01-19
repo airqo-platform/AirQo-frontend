@@ -72,14 +72,34 @@ class HiveService {
     ]);
   }
 
+  static Future<void> updateAirQualityReading(
+      AirQualityReading airQualityReading) async {
+    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+        .put(airQualityReading.placeId, airQualityReading);
+  }
+
+  static Future<void> updateKya(Kya kya) async {
+    await Hive.box<Kya>(HiveBox.kya).put(kya.id, kya);
+  }
+
   static Future<void> updateAirQualityReadings(
     List<AirQualityReading> airQualityReadings, {
     bool reload = false,
   }) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
-
-    for (final airQualityReading in airQualityReadings) {
-      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
+    final currentReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    for (final reading in airQualityReadings) {
+      if (reading.shareLink.isEmpty) {
+        AirQualityReading airQualityReading = currentReadings.firstWhere(
+            (element) => element.placeId == reading.placeId, orElse: () {
+          return reading;
+        });
+        airQualityReadingsMap[reading.placeId] =
+            reading.copyWith(shareLink: airQualityReading.shareLink);
+      } else {
+        airQualityReadingsMap[reading.placeId] = reading;
+      }
     }
 
     if (reload) {
@@ -167,13 +187,21 @@ class HiveService {
       return;
     }
 
-    await Hive.box<Kya>(HiveBox.kya).clear();
+    final currentKya = Hive.box<Kya>(HiveBox.kya).values.toList();
     final kyaMap = <String, Kya>{};
-
     for (final x in kyaList) {
-      kyaMap[x.id] = x;
+      if (x.shareLink.isEmpty) {
+        Kya kya =
+            currentKya.firstWhere((element) => element.id == x.id, orElse: () {
+          return x;
+        });
+        kyaMap[x.id] = x.copyWith(shareLink: kya.shareLink);
+      } else {
+        kyaMap[x.id] = x;
+      }
     }
 
+    await Hive.box<Kya>(HiveBox.kya).clear();
     await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
 
     kyaMap.forEach((_, value) async {

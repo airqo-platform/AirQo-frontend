@@ -307,7 +307,7 @@ class AnalyticsCard extends StatelessWidget {
             height: 1.0,
           ),
           SizedBox(
-            height: 52,
+            height: 57,
             child: AnalyticsCardFooter(airQualityReading),
           ),
         ],
