@@ -85,3 +85,29 @@ PollutantValue _$PollutantValueFromJson(Map<String, dynamic> json) =>
       value: PollutantValue._valueFromJson(json['value']),
       calibratedValue: PollutantValue._valueFromJson(json['calibratedValue']),
     );
+
+Site _$SiteFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const [
+      '_id',
+      'approximate_latitude',
+      'approximate_longitude',
+      'name',
+      'description'
+    ],
+  );
+  return Site(
+    id: json['_id'] as String,
+    latitude: (json['approximate_latitude'] as num).toDouble(),
+    longitude: (json['approximate_longitude'] as num).toDouble(),
+    name: json['name'] as String,
+    description: json['description'] as String,
+    searchName: json['search_name'] as String? ?? '',
+    searchLocation: json['location_name'] as String? ?? '',
+    country: json['country'] as String? ?? '',
+    region: json['region'] as String? ?? '',
+    source: json['network'] as String? ?? '',
+    shareLinks: json['share_links'] as Map<String, dynamic>? ?? {},
+  );
+}

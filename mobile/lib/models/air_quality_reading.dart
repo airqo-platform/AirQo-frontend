@@ -34,26 +34,26 @@ class AirQualityReading extends HiveObject {
     PollutantValue pm10 =
         PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
 
+    Site site = Site.fromJson(json["siteDetails"] as Map<String, dynamic>);
+
     if (pm2_5.displayValue() == null) {
-      throw Exception("pm2.5 is null for site ${json["siteDetails"]["_id"]}");
+      throw Exception("pm2.5 is null for site ${site.getName()}");
     }
 
     return AirQualityReading(
       distanceToReferenceSite: 0.0,
       dateTime: dateTime,
+      placeId: site.id,
+      referenceSite: site.id,
+      latitude: site.latitude,
+      longitude: site.longitude,
+      country: site.country,
+      region: site.region,
+      source: site.source,
       pm2_5: pm2_5.displayValue()!,
       pm10: pm10.displayValue(),
-      placeId: json["siteDetails"]["_id"] as String,
-      referenceSite: json["siteDetails"]["_id"] as String,
-      latitude: json["siteDetails"]["approximate_latitude"] as double,
-      longitude: json["siteDetails"]["approximate_longitude"] as double,
-      country: (json["siteDetails"]["country"] ?? "") as String,
-      region: (json["siteDetails"]["region"] ?? "") as String,
-      source: (json["siteDetails"]["network"] ?? "") as String,
-      name: (json["siteDetails"]["search_name"] ?? json["siteDetails"]["name"])
-          as String,
-      location: (json["siteDetails"]["location_name"] ??
-          json["siteDetails"]["description"]) as String,
+      name: site.getName(),
+      location: site.getLocation(),
     );
   }
 
@@ -191,5 +191,69 @@ class PollutantValue {
     return json == null
         ? null
         : double.parse(double.parse("$json").toStringAsFixed(2));
+  }
+}
+
+@JsonSerializable(createToJson: false)
+class Site {
+  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
+
+  const Site({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.name,
+    required this.description,
+    required this.searchName,
+    required this.searchLocation,
+    required this.country,
+    required this.region,
+    required this.source,
+    required this.shareLinks,
+  });
+
+  @JsonKey(required: true, name: '_id')
+  final String id;
+
+  @JsonKey(required: true, name: 'approximate_latitude')
+  final double latitude;
+
+  @JsonKey(required: true, name: 'approximate_longitude')
+  final double longitude;
+
+  @JsonKey(required: true)
+  final String name;
+
+  @JsonKey(required: true)
+  final String description;
+
+  @JsonKey(required: false, defaultValue: '', name: 'search_name')
+  final String searchName;
+
+  @JsonKey(required: false, defaultValue: '', name: 'location_name')
+  final String searchLocation;
+
+  @JsonKey(required: false, defaultValue: '')
+  final String country;
+
+  @JsonKey(required: false, defaultValue: '')
+  final String region;
+
+  @JsonKey(required: false, defaultValue: '', name: 'network')
+  final String source;
+
+  @JsonKey(required: false, defaultValue: {}, name: "share_links")
+  final Map<String, dynamic> shareLinks;
+
+  String getName() {
+    return searchName.isEmpty ? name : searchName;
+  }
+
+  String getLocation() {
+    return searchLocation.isEmpty ? description : searchLocation;
+  }
+
+  String getShareLink() {
+    return (shareLinks["short_link"] ?? "") as String;
   }
 }
