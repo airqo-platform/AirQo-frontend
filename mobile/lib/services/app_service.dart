@@ -181,8 +181,8 @@ class AppService {
 
   Future<void> clearShowcase() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('homePageshowcase');
-    await prefs.remove('forYouPageShowcase');
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
   }
 
   Future<void> _postSignUpActions() async {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:app/services/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/constants/constants.dart';
 
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
@@ -138,9 +139,9 @@ class _ForYouPageState extends State<ForYouPage>
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('forYouPageShowcase') == null) {
+    if (prefs.getBool(Config.forYouPageShowcase) == null) {
       _startShowcase();
-      _appService.stopShowcase('forYouPageShowcase');
+      _appService.stopShowcase(Config.forYouPageShowcase);
     }
   }
 }
