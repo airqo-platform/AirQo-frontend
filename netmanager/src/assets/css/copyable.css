@@ -1,8 +1,14 @@
 .copyable-icon {
-    fill: #58606a;
-    cursor: pointer;
+  fill: #58606a;
+  cursor: pointer;
+}
+
+.disabled-copyable-icon {
+  fill: #c7c7c7;
+  cursor: not-allowed;
+  pointer-events: auto;
 }
 
 .copyable-icon:hover {
-    fill: #0366d6;
+  fill: #0366d6;
 }

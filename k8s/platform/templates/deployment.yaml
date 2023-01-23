@@ -1,37 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.env.deployment_name }}
-  namespace: {{ .Values.appMode }}
-  labels: {{ .Values.env.labels }}
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    {{- include "platform.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-  minReadySeconds: 5
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Values.env.labels }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+        app: {{ .Values.app.label }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app.kubernetes.io/name: {{ .Values.env.labels }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app: {{ .Values.app.label }}
     spec:
-
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Values.env.labels }}
+        - name: {{ .Values.app.label }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ .Values.env.labels }}
+            - name: next-platform
               containerPort: {{ .Values.service.targetPort }}
+              protocol: {{ .Values.service.protocol }}
           # livenessProbe:
           #   httpGet:
           #     path: /
@@ -42,18 +45,18 @@ spec:
           #     port: http
           envFrom:
             - configMapRef:
-                name: {{ .Values.env.secret }}
+                name: {{ .Values.app.configmap }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}

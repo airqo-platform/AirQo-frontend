@@ -1,6 +1,6 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import AirQommunities from "assets/img/air-qommunity.svg";
+import AirQommunities from "assets/svg/community-img.svg";
 import AirQommunitiesSm from "assets/img/AirQommunities_mobile.svg";
 import { Link } from 'react-router-dom';
 

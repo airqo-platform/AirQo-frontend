@@ -1,216 +1,242 @@
-import 'package:app/constants/config.dart';
-import 'package:app/models/insights.dart';
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:stream_transform/stream_transform.dart';
 
-import '../models/enum_constants.dart';
-
-charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
-  if (series.empty) {
-    return charts.ColorUtil.fromDartColor(Config.greyColor);
-  } else if (series.forecast) {
-    return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
-  } else {
-    return pmToChartColor(series.getChartValue(pollutant), pollutant);
-  }
+charts.Color chartBarColor(
+  ChartData series,
+  Pollutant pollutant,
+) {
+  return series.available
+      ? pollutant.chartColor(series.chartValue(pollutant))
+      : charts.ColorUtil.fromDartColor(
+          CustomColors.greyColor,
+        );
 }
 
-List<List<charts.Series<Insights, String>>> insightsChartData(
-    List<Insights> insights, Pollutant pollutant, Frequency frequency) {
-  var data = <Insights>[...insights];
-
-  var insightsGraphs = <List<charts.Series<Insights, String>>>[];
-
-  if (frequency == Frequency.hourly) {
-    while (data.isNotEmpty) {
-      var earliestDate = data.reduce((value, element) {
-        if (value.time.isBefore(element.time)) {
-          return value;
-        }
-        return element;
-      }).time;
-
-      var filteredDates = data
-          .where((element) => element.time.day == earliestDate.day)
-          .toList();
-
-      if (filteredDates.length != 24) {
-        filteredDates = patchMissingData(filteredDates, frequency, false);
-      }
-
-      insightsGraphs.add([
-        charts.Series<Insights, String>(
-          id: '${const Uuid().v4()}-${earliestDate.day}',
-          colorFn: (Insights series, _) =>
-              insightsChartBarColor(series, pollutant),
-          domainFn: (Insights data, _) {
-            var hour = data.time.hour;
-            return hour.toString().length == 1 ? '0$hour' : '$hour';
-          },
-          measureFn: (Insights data, _) => data.getChartValue(pollutant),
-          data: Insights.formatData(filteredDates, frequency),
-        )
-      ]);
-      data.removeWhere((element) => element.time.day == earliestDate.day);
-    }
-  } else {
-    while (data.isNotEmpty) {
-      var earliestDate = data.reduce((value, element) {
-        if (value.time.isBefore(element.time)) {
-          return value;
-        }
-        return element;
-      }).time;
-
-      var dateRanges = <DateTime>[];
-      var filteredDates = <Insights>[];
-
-      while (dateRanges.length != 7) {
-        dateRanges.add(earliestDate);
-        earliestDate = earliestDate.add(const Duration(days: 1));
-      }
-
-      filteredDates.addAll(
-          data.where((element) => dateRanges.contains(element.time)).toList());
-
-      if (filteredDates.length != 7) {
-        filteredDates = patchMissingData(filteredDates, frequency, false);
-      }
-
-      data.removeWhere((element) => dateRanges.contains(element.time));
-
-      insightsGraphs.add([
-        charts.Series<Insights, String>(
-          id: '${const Uuid().v4()}-${earliestDate.weekday}',
-          colorFn: (Insights series, _) =>
-              insightsChartBarColor(series, pollutant),
-          domainFn: (Insights data, _) => DateFormat('EEE').format(data.time),
-          measureFn: (Insights data, _) => data.getChartValue(pollutant),
-          data: Insights.formatData(filteredDates, frequency),
-        )
-      ]);
-    }
-  }
-
-  return insightsGraphs;
+charts.OrdinalAxisSpec chartsYAxisScale(List<charts.TickSpec<String>> ticks) {
+  return charts.OrdinalAxisSpec(
+    tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks),
+  );
 }
 
-List<Insights> patchMissingData(
-    List<Insights> data, Frequency frequency, bool full) {
-  var insights = <Insights>[...data];
-  if (frequency == Frequency.daily && full) {
-    var referenceInsight = data.first;
+charts.NumericAxisSpec chartsXAxisScale() {
+  return charts.NumericAxisSpec(
+    tickProviderSpec: charts.StaticNumericTickProviderSpec(
+      <charts.TickSpec<double>>[
+        charts.TickSpec<double>(
+          0,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          125,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          250,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
+          ),
+        ),
+        charts.TickSpec<double>(
+          375,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          500,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-    var startDate = DateTime.now().getFirstDateOfCalendarMonth();
-    var lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
-
-    while (startDate.isBefore(lastDayOfCalendar)) {
-      var checkDate = insights
-          .where((element) =>
-              (element.time.day == startDate.day) &&
-              (element.time.month == startDate.month))
-          .toList();
-
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
+List<ChartData> formatData(
+  List<ChartData> data,
+  Frequency frequency,
+) {
+  data.sort(
+    (x, y) {
+      if (frequency == Frequency.daily) {
+        return x.dateTime.weekday.compareTo(y.dateTime.weekday);
       }
 
-      startDate = startDate.add(const Duration(days: 1));
-    }
-  } else if (frequency == Frequency.hourly && full) {
-    var referenceInsight = data.first;
+      return x.dateTime.compareTo(y.dateTime);
+    },
+  );
 
-    var startDate = referenceInsight.time
-        .getDateOfFirstDayOfWeek()
-        .getDateOfFirstHourOfDay();
-    var lastDayOfWeek =
-        referenceInsight.time.getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
+  return data;
+}
 
-    while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
-          .where((element) =>
-              (element.time.hour == startDate.hour) &&
-              (element.time.day == startDate.day))
-          .toList();
+List<List<charts.Series<ChartData, String>>> createChartsList({
+  required List<ChartData> insights,
+  required Pollutant pollutant,
+  required Frequency frequency,
+}) {
+  final data = <ChartData>[...insights];
 
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
-      }
+  final graphs = <List<charts.Series<ChartData, String>>>[];
+  data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
 
-      startDate = startDate.add(const Duration(hours: 1));
-    }
-  } else if (frequency == Frequency.hourly && !full) {
-    var referenceInsight = data.first;
+  int period;
 
-    var startDate = referenceInsight.time.getDateOfFirstHourOfDay();
-    var lastDayOfWeek = referenceInsight.time.getDateOfLastHourOfDay();
-
-    while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
-          .where((element) =>
-              (element.time.hour == startDate.hour) &&
-              (element.time.day == startDate.day))
-          .toList();
-
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
-      }
-
-      startDate = startDate.add(const Duration(hours: 1));
-    }
-  } else if (frequency == Frequency.daily && !full) {
-    var referenceInsight = data.first;
-
-    var startDate = referenceInsight.time.getDateOfFirstDayOfWeek();
-    var lastDayOfWeek = referenceInsight.time.getDateOfLastDayOfWeek();
-
-    while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
-          .where((element) =>
-              (element.time.day == startDate.day) &&
-              (element.time.month == startDate.month))
-          .toList();
-
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
-      }
-
-      startDate = startDate.add(const Duration(days: 1));
-    }
-  } else {
-    return insights;
+  switch (frequency) {
+    case Frequency.daily:
+      period = 7;
+      break;
+    case Frequency.hourly:
+      period = 24;
+      break;
   }
 
-  return Insights.formatData(insights, frequency);
+  while (data.isNotEmpty) {
+    List<ChartData> graphData = data.take(period).toList();
+
+    data.removeWhere((element) => graphData.contains(element));
+
+    graphs.add([
+      charts.Series<ChartData, String>(
+        id: graphData.first.toString(),
+        colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
+        domainFn: (ChartData data, _) => data.chartDomainFn(),
+        measureFn: (ChartData data, _) => data.chartValue(pollutant),
+        data: graphData,
+      ),
+    ]);
+  }
+
+  return graphs;
+}
+
+List<charts.Series<ChartData, String>> miniInsightsChartData(
+  List<ChartData> insights,
+  Pollutant pollutant,
+) {
+  var data = <ChartData>[...insights];
+
+  if (data.length < 24) {
+    data = fillMissingData(data, Frequency.hourly);
+  }
+
+  data.take(24);
+
+  return <charts.Series<ChartData, String>>[
+    charts.Series<ChartData, String>(
+      id: '${const Uuid().v4()}-${data.first.dateTime.day}',
+      colorFn: (ChartData series, _) => chartBarColor(series, pollutant),
+      domainFn: (ChartData data, _) {
+        final hour = data.dateTime.hour;
+
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+      },
+      measureFn: (ChartData data, _) => data.chartValue(pollutant),
+      data: formatData(
+        data,
+        Frequency.hourly,
+      ),
+    ),
+  ];
+}
+
+List<ChartData> fillMissingData(
+  List<ChartData> data,
+  Frequency frequency,
+) {
+  final insights = <ChartData>[...data];
+
+  switch (frequency) {
+    case Frequency.daily:
+      final referenceInsight = data.first;
+
+      var startDate = DateTime.now().getFirstDateOfCalendarMonth();
+      final lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
+
+      while (startDate.isBefore(lastDayOfCalendar)) {
+        final checkDate = insights
+            .where(
+              (element) =>
+                  (element.dateTime.day == startDate.day) &&
+                  (element.dateTime.month == startDate.month),
+            )
+            .toList();
+
+        if (checkDate.isEmpty) {
+          insights.add(
+            ChartData(
+              dateTime: startDate,
+              pm2_5: referenceInsight.pm2_5,
+              pm10: referenceInsight.pm10,
+              available: true,
+              siteId: referenceInsight.siteId,
+              frequency: referenceInsight.frequency,
+            ),
+          );
+        }
+
+        startDate = startDate.add(
+          const Duration(days: 1),
+        );
+      }
+      break;
+    case Frequency.hourly:
+      final referenceInsight = data.first;
+
+      var startDate = referenceInsight.dateTime
+          .getDateOfFirstDayOfWeek()
+          .getDateOfFirstHourOfDay();
+      final lastDayOfWeek = referenceInsight.dateTime
+          .getDateOfLastDayOfWeek()
+          .getDateOfLastHourOfDay();
+
+      while (startDate.isBefore(lastDayOfWeek)) {
+        final checkDate = insights
+            .where((element) =>
+                (element.dateTime.hour == startDate.hour) &&
+                (element.dateTime.day == startDate.day))
+            .toList();
+
+        if (checkDate.isEmpty) {
+          insights.add(
+            ChartData(
+              dateTime: startDate,
+              pm2_5: referenceInsight.pm2_5,
+              pm10: referenceInsight.pm10,
+              available: true,
+              siteId: referenceInsight.siteId,
+              frequency: referenceInsight.frequency,
+            ),
+          );
+        }
+
+        startDate = startDate.add(
+          const Duration(hours: 1),
+        );
+      }
+      break;
+  }
+
+  return formatData(insights, frequency);
+}
+
+EventTransformer<Event> debounce<Event>(Duration duration) {
+  return (events, mapper) => events.debounce(duration).switchMap(mapper);
 }

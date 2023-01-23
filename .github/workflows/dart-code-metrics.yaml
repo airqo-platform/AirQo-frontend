@@ -1,0 +1,55 @@
+name: Dart Code Metrics
+
+on: [push]
+
+jobs:
+  check:
+    name: check for changes in the mobile app
+    outputs:
+      run_app_metrics: ${{ steps.check_files.outputs.run_app_metrics }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: check modified app folder
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+          
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "run_app_metrics=false" >>$GITHUB_OUTPUT 
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == mobile/* ]]; then
+              echo "run_app_metrics=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+  metrics:
+    name: App code metrics
+    needs: [check]
+    if: needs.check.outputs.run_app_metrics == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Dart Code Metrics Action
+        uses: dart-code-checker/dart-code-metrics-action@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          relative_path: mobile/
+          pull_request_comment: true
+          check_unused_files: true
+          fatal_performance: true
+          fatal_style: true
+          fatal_warnings: true

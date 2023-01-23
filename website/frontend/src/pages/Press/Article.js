@@ -1,6 +1,5 @@
 import React from 'react';
 import NilePost from 'icons/press/np.svg';
-import ArrowRight from '../../icons/common/ArrowRight';
 
 const Article = ({icon, date, title, subtitle, url}) => (
     <div className="article">
@@ -16,8 +15,7 @@ const Article = ({icon, date, title, subtitle, url}) => (
                 <p className="first-line">{subtitle}</p>
             </span>
             <a className="a-link" href={url} target="_blank">
-                <small>Read more</small>
-                <ArrowRight />
+                <small>Read article {'->'}</small>
             </a>
         </div>
     </div>

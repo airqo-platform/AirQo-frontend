@@ -15,10 +15,19 @@ import { getEventsApi } from "views/apis/deviceRegistry";
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const payload = transformDataToGeoJson(responseData.data || [], {
-        longitude: "longitude",
-        latitude: "latitude",
-      });
+      const res = responseData.data.map((airqloud) => airqloud.values);
+      let values = [].concat(...res);
+      const heatMapValues = values.map((value) => value);
+
+      const payload = transformDataToGeoJson(
+        heatMapValues || [],
+        {
+          latitude: "latitude",
+          longitude: "longitude",
+        },
+        undefined,
+        (feature) => feature
+      );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload,

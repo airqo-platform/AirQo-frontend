@@ -1,129 +1,112 @@
-import 'package:app/utils/extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:app/models/models.dart';
 import 'package:intl/intl.dart';
 
-import '../models/enum_constants.dart';
+import 'exception.dart';
+import 'extensions.dart';
 
-String dateToShareString(String formattedString) {
+String dateToShareString(DateTime dateTime) {
   try {
-    var formattedDate = DateTime.parse(formattedString);
-    var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
-    return dateFormatter.format(formattedDate);
+    final dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
+
+    return dateFormatter.format(dateTime);
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
-    return dateToString(formattedString);
+    logException(exception, stackTrace);
+
+    return dateToString(dateTime);
   }
 }
 
-String dateToString(String formattedString) {
+String dateToString(DateTime dateTime) {
   try {
-    var now = DateTime.now();
-    var formattedDate = DateTime.parse(formattedString);
-
-    if (now.day == formattedDate.day) {
-      return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
-    } else {
-      if (now.isAfter(formattedDate)) {
-        var yesterday = now.subtract(const Duration(hours: 24));
-        if (formattedDate.day == yesterday.day) {
-          return 'Updated yesterday at'
-              ' ${DateFormat('hh:mm a').format(formattedDate)}';
-        } else {
-          var daysAgo = now.difference(formattedDate).inDays;
-          if (daysAgo == 1) {
-            return 'Updated $daysAgo day ago';
-          }
-          return 'Updated $daysAgo days ago';
-        }
+    final now = DateTime.now();
+    if (now.day == dateTime.day) {
+      return 'Updated today at ${DateFormat('hh:mm a').format(dateTime)}';
+    } else if (now.isAfter(dateTime)) {
+      final yesterday = now.subtract(const Duration(hours: 24));
+      if (dateTime.day == yesterday.day) {
+        return 'Updated yesterday at'
+            ' ${DateFormat('hh:mm a').format(dateTime)}';
       } else {
-        var tomorrow = now.add(const Duration(hours: 24));
-        if (tomorrow.day == formattedDate.day) {
-          return 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}';
-        } else {
-          return DateFormat('d MMM, hh:mm a').format(formattedDate);
-        }
+        final daysAgo = now.difference(dateTime).inDays;
+
+        return daysAgo == 1
+            ? 'Updated $daysAgo day ago'
+            : 'Updated $daysAgo days ago';
       }
+    } else {
+      final tomorrow = now.add(const Duration(hours: 24));
+
+      return tomorrow.day == dateTime.day
+          ? 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}'
+          : DateFormat('d MMM, hh:mm a').format(dateTime);
     }
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
-    return formattedString;
+    logException(exception, stackTrace);
+
+    return dateTime.toIso8601String();
   }
 }
 
 String getDateTime() {
-  var now = DateTime.now();
+  final now = DateTime.now();
+
   return '${now.getWeekday()} ${DateFormat('d').format(now)},'
           ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
 }
 
-String getGreetings(String name) {
-  if (name.isNull() || name.toLowerCase() == 'guest') {
-    return 'Hello';
-  }
-
-  var hour = DateTime.now().hour;
-  if (00 <= hour && hour < 12) {
-    return 'Good morning $name';
-  }
-
-  if (12 <= hour && hour < 16) {
-    return 'Good afternoon $name';
-  }
-
-  if (18 <= hour && hour <= 23) {
-    return 'Good evening $name';
-  }
-
-  return 'Hello $name';
-}
-
-String insightsChartTitleDateTimeToString(
-    DateTime dateTime, Frequency frequency) {
-  try {
-    if (frequency == Frequency.daily) {
-      var prefix = '';
-      var suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
-          ' - '
-          '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
-
-      if (dateTime.isInWeek('last')) {
-        prefix = 'Last Week';
-      } else if (dateTime.isInWeek('this')) {
-        prefix = 'This Week';
-      } else if (dateTime.isInWeek('next')) {
-        prefix = 'Next Week';
-      } else {
-        prefix = '';
-      }
-
-      return prefix == '' ? suffix : '$prefix, $suffix';
+String chartTitleDateTimeTitle({
+  required DateTime dateTime,
+  required Frequency frequency,
+  bool showingForecast = false,
+}) {
+  if (showingForecast) {
+    if (dateTime.isToday()) {
+      return 'Today’s forecast';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s forecast';
     } else {
-      var prefix = '';
-      var suffix = dateTime.getLongDate();
-
-      if (dateTime.isToday()) {
-        prefix = 'Today';
-      } else if (dateTime.isYesterday()) {
-        prefix = 'Yesterday';
-      } else if (dateTime.isTomorrow()) {
-        prefix = 'Tomorrow';
-      } else {
-        prefix = '';
-      }
-
-      return prefix == '' ? suffix : '$prefix, $suffix';
+      return dateTime.getLongDate();
     }
+  }
+  try {
+    String prefix = '';
+    String suffix = '';
+    switch (frequency) {
+      case Frequency.daily:
+        suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+            ' - '
+            '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+
+        if (dateTime.isInWeek('last')) {
+          prefix = 'Last Week';
+        } else if (dateTime.isInWeek('this')) {
+          prefix = 'This Week';
+        } else if (dateTime.isInWeek('next')) {
+          prefix = 'Next Week';
+        } else {
+          prefix = '';
+        }
+        break;
+      case Frequency.hourly:
+        suffix = dateTime.getLongDate();
+
+        if (dateTime.isToday()) {
+          prefix = 'Today';
+        } else if (dateTime.isYesterday()) {
+          prefix = 'Yesterday';
+        } else if (dateTime.isTomorrow()) {
+          prefix = 'Tomorrow';
+        } else {
+          prefix = dateTime.getWeekday().toTitleCase();
+        }
+        break;
+    }
+
+    return prefix == '' ? suffix : '$prefix, $suffix';
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
+    logException(exception, stackTrace);
+
     return dateTime.toString();
   }
-}
-
-DateTime tomorrow() {
-  return DateTime.now().add(const Duration(days: 1));
-}
-
-DateTime yesterday() {
-  return DateTime.now().subtract(const Duration(days: 1));
 }

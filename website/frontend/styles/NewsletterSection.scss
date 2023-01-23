@@ -9,6 +9,7 @@
     align-items: center;
     background-color: $aq-blue-1;
     text-align: center;
+    margin-top: 120px;
 
     h3 {
         margin: 0 auto;
@@ -20,13 +21,42 @@
     }
 
     p {
+        max-width: 642px;
         font-style: normal;
         font-weight: 400;
         font-size: $subTextFont;
         line-height: 26px;
         color: $aq-blue-0;
-        margin: 16px auto 40px auto;
         margin: 10px 32%;
+    }
+
+    .newsletter-info {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 42px;
+
+        >span {
+            width: 100%;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 26px;
+        }
+        span:last-child {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 26px;
+            /* or 144% */
+
+            display: flex;
+            align-items: center;
+            text-align: center;
+
+            /* Colors/Secondary/Black */
+
+            color: #353E52;
+        }
     }
 
     .newsletter-form {
@@ -44,22 +74,23 @@
 
         &-input {
             background-color: $aq-white-0;
-            width: 415px;
-            height: 53.76px;
-            border-top-left-radius: 16px;
-            border-bottom-left-radius: 16px;
+            width: 304px;
+            height: 56px;
             padding-left: 16px;
-            color: $aq-black-1;
+            color: #353E52;
+            margin-right: 18px;
         }
 
         &-btn {
-            width: 168px;
+            width: 160px;
             height: 56px;
-            color: $aq-white-0;
+            color: #FDFCFF;
             background: $aq-blue-0;
-            border-top-right-radius: 16px;
-            border-bottom-right-radius: 16px;
             cursor: pointer;
+        }
+
+        &-btn:hover {
+            background: $aq-blue-6;
         }
     }
 }
@@ -68,6 +99,7 @@
     .Newsletter {
         height: 100%;
         padding: 80px 16px;
+        margin-top: 40px;
 
         p {
             margin: 10px 34.95px;
@@ -84,14 +116,12 @@
                 padding: 4px 16px;
                 width: 92%;
                 box-sizing: content-box;
-                border-radius: 16px;
                 margin-bottom: 17.09px;
             }
     
             &-btn {
                 padding: 16px;
                 width: 100%;
-                border-radius: 16px;
             }
         }
     }

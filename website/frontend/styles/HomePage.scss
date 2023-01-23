@@ -2,6 +2,7 @@
 
 $home-padding: 80px;
 .HomePage {
+  overflow: hidden;
   .intro-container {
     display: flex;
     align-items: center;
@@ -12,7 +13,6 @@ $home-padding: 80px;
     padding: $home-padding;
     background: $aq-blue-1;
   }
-
 
   .container {
     display: flex;

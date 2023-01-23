@@ -1,16 +1,22 @@
 ## AirQo-frontend
-This repo contains the frontend code for the AirQo platform. This includes the code for the admin dashboard for the AirQo website, the mobile applications and 
 
+This repo contains the frontend code for the AirQo platform. This includes the code for the Analytics platform, Calibrate App, Netmanager dashboard, AirQo website, mobile application and the documentation website.
 
 ## What is AirQo?
-The AirQo project aims to measure and quantify the scale of air pollution in and around Kampala City through the design, development and deployment of a network of low-cost air quality sensing devices mounted on either static or mobile objects.
+
+The AirQo project aims to measure and quantify the scale of air pollution throughout Africa through the design, development and deployment of a network of low-cost air quality sensing devices mounted on either static or mobile objects.
 
 ## File Organization
-This repo is made up of three (3) directories:
-1. The mobile application
-2. The frontend for the main AirQo website
-3. The admin dashboard for the entire AirQo platform.
+
+This repo is made up of six (6) product sub directories:
+
+- [Analytics Platform](/platform/)
+- [Calibrate](/calibrate/)
+- [Docs](/docs/)
+- [Mobile app](/mobile/)
+- [Netmanager](/netmanager/)
+- [Website](/website/)
 
 ## Contributing
-We invite you to help us build this platform. Please look up the [contributing guide](https://github.com/airqo-platform/AirQo-frontend/wiki) for details.
 
+We invite you to help us build this platform. Please look at our [contributing guide](/CONTRIBUTING.md) for details.

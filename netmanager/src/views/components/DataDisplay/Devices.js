@@ -36,6 +36,7 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 // css
 import "assets/css/device-registry.css";
+import { capitalize } from "../../../utils/string";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -156,18 +157,29 @@ const createDeviceColumns = (history, setDelState) => [
   },
   {
     title: "Deployment status",
-    field: "isActive",
-    render: (data) => (
-      <Cell
-        fieldValue={
-          data.isActive ? (
-            <span style={{ color: "green" }}>Deployed</span>
-          ) : (
-            <span style={{ color: "red" }}>Not Deployed</span>
-          )
-        }
-      />
-    ),
+    field: "status",
+    render: (data) => {
+      const deviceStatus = !data.status
+        ? data.isActive === true
+          ? "deployed"
+          : "not deployed"
+        : data.status;
+
+      return (
+        <Cell
+          fieldValue={
+            <span
+              style={{
+                color: deviceStatus === "deployed" ? "green" : "red",
+                textTransform: "capitalize",
+              }}
+            >
+              {deviceStatus}
+            </span>
+          }
+        />
+      );
+    },
   },
 
   {
@@ -208,12 +220,16 @@ const CreateDevice = ({ open, setOpen }) => {
     long_name: "",
     generation_version: "",
     generation_count: "",
+    category: "",
+    status: "not deployed",
   };
 
   const initialErrors = {
     long_name: "",
     generation_version: "",
     generation_count: "",
+    category: "",
+    status: "not deployed",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -237,6 +253,7 @@ const CreateDevice = ({ open, setOpen }) => {
 
   let handleRegisterSubmit = (e) => {
     setOpen(false);
+
     axios
       .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
         headers: { "Content-Type": "application/json" },
@@ -325,6 +342,27 @@ const CreateDevice = ({ open, setOpen }) => {
             fullWidth
             required
           />
+          <TextField
+            autoFocus
+            select
+            margin="dense"
+            variant="outlined"
+            id="deviceType"
+            label="Device Type"
+            value={newDevice.category}
+            onChange={handleDeviceDataChange("category")}
+            SelectProps={{
+              native: true,
+              style: { width: "100%", height: "50px" },
+            }}
+            error={!!errors.mountType}
+            helperText={errors.mountType}
+            fullWidth
+          >
+            <option value="" />
+            <option value="lowcost">Low Cost</option>
+            <option value="bam">BAM</option>
+          </TextField>
         </form>
       </DialogContent>
 

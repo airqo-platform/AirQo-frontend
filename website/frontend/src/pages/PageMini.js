@@ -7,7 +7,9 @@ const PageMini = ({ children }) => {
         <div className='Page-mini'>
             {/* <NotificationBanner /> */}
             <TopBar />
-            {children}
+            <div className='page-mini-wrapper'>
+                {children}
+            </div>
         </div>
     )
 }

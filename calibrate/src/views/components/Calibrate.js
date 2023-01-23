@@ -127,6 +127,11 @@ const Calibrate = () => {
     humidity: null,
   });
 
+  const refPollutantMapper = {
+    "PM 2.5": "pm2_5",
+    "PM 10": "pm10",
+  };
+
   const [refData, setRefData] = useState({
     pollutant: null,
     ref_data: null,
@@ -201,8 +206,10 @@ const Calibrate = () => {
     }
 
     if (checkHasReference()) {
-      for (let key in refData) {
-        formData.append(key, refData[key]);
+      const modifiedRefData = refData;
+      modifiedRefData.pollutant = refPollutantMapper[modifiedRefData.pollutant];
+      for (let key in modifiedRefData) {
+        formData.append(key, modifiedRefData[key]);
       }
       const responseData = await trainAndCalibrateDataApi(formData);
       downloadCSVData(filename, responseData);

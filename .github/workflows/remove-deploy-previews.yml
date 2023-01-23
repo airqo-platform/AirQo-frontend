@@ -1,0 +1,154 @@
+name: remove-deploy-previews
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
+
+jobs:
+  branch-name:
+    name: Format branch name string
+    runs-on: ubuntu-latest
+    outputs:
+      lowercase: ${{ steps.string.outputs.lowercase }} # lowercase version
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
+
+  check:
+    name: check for available deploy previews
+    outputs:
+      remove_netmanager_preview: ${{ steps.check_files.outputs.remove_netmanager_preview }} # remove netmanager preview
+      remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }} # remove calibrate app preview
+      remove_analytics_platform: ${{ steps.check_files.outputs.remove_analytics_platform }} # analytics platform
+      remove_docs: ${{ steps.check_files.outputs.remove_docs }} # docs
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "remove_netmanager_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_docs=false" >>$GITHUB_OUTPUT
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == netmanager/* ]]; then
+              echo "remove_netmanager_preview=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == calibrate/* ]]; then
+              echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == platform/* ]]; then
+              echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "remove_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+  ### remove netmanager deploy preview ###
+  remove-netmanager-preview:
+    name: remove-netmanager-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_netmanager_preview == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
+  ### remove calibrate-app deploy preview ###
+  remove-calibrate-app-preview:
+    name: remove-calibrate-app-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_calibrate_app_preview == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
+  ### remove analytics platform deploy preview ###
+  remove-analytics-platform-preview:
+    name: remove-analytics-platform-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
+  ### remove docs deploy preview ###
+  remove-docs-preview:
+    name: remove-docs-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet

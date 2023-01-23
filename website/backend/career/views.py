@@ -1,8 +1,16 @@
 from rest_framework import viewsets
-from .models import Career
-from .serializers import CareerSerializer
+from rest_framework.permissions import AllowAny
+from .models import Career, Department
+from .serializers import CareerSerializer, DepartmentSerializer
+
+
+class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (AllowAny,)
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
 
 
 class CareerViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (AllowAny,)
     queryset = Career.objects.all()
     serializer_class = CareerSerializer

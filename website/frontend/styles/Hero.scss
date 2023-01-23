@@ -13,13 +13,13 @@
 
   background: $aq-blue-0;
   border: none;
-  border-radius: 16px;
-
+  
   font-style: normal;
   font-weight: 500;
   font-size: $buttonFont;
   line-height: 24px;
   color: $aq-white-0;
+  cursor: pointer;
 }
 
 .button-get-involved {
@@ -32,7 +32,6 @@
   padding: 16px 32px;
 
   background: $aq-blue-5;
-  border-radius: 16px;
   border: none;
 
   font-style: normal;
@@ -43,6 +42,15 @@
   color: $aq-blue-0;
 
   margin-top: 24px;
+  cursor: pointer;
+}
+
+.button-get-involved:hover {
+  background-color: $aq-blue-7;
+}
+
+.button-hero:hover {
+  background-color: $aq-blue-6;
 }
 
 .button-signin {
@@ -62,11 +70,11 @@
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
-  min-height: 721px;
   max-width: $columnWidth;
   background: $aq-white-0;
   color: $aq-black-1;
   margin: 0 auto;
+  padding: 80px 0;
 
   >span {
     position: relative;
@@ -82,11 +90,11 @@
     }
   }
   .hero-title {
-    width: 328px;
+    width: 464px;
     font-style: normal;
-    font-weight: 600;
-    font-size: 64px;
-    line-height: 72px;
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 64px;
 
     color: $aq-black-2;
     margin: 32px 0 16px 0;
@@ -100,17 +108,28 @@
     font-size: $subTextFont;
     line-height: 28px;
     margin: 0;
+    .fact {
+        color: $aq-blue-0;
+        font-weight: 600;
+      }
   }
 
   .hero-buttons {
     display: flex;
     flex-wrap: wrap;
     width: 328px;
+    padding-top: 48px;
     margin: 40px 0 80px 0;
+
+    .btn-disabled {
+      color: rgba(53, 62, 82, 0.28);
+      background: rgba(53, 62, 82, 0.08);
+      cursor: not-allowed;
+    }
   }
 }
 
-@media (min-width: $mainBreakPoint) {
+@media (min-width: $mainBreakPoint){
   .Hero {
     align-items: center;
     justify-content: space-between;
@@ -309,4 +328,114 @@
     margin-left: 24px;
   }
 
+}
+
+@media (max-width: $mainBreakPoint){
+  .Hero {
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding:20px 0 0 0;
+
+    >span {
+      position: relative;
+      padding: 0 16px;
+      margin-bottom: 30px;
+      >img {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+      }
+    }
+
+    .hero-content {
+      padding: 0 16px;
+      width: 100%;
+    }
+
+    .hero-title {
+      width: 100%;
+      font-size: 48px;
+      line-height: 56px;
+      margin: 0;
+      margin-bottom: 16px;
+    }
+
+    .hero-sub {
+      width: 100%;
+      height: auto;
+      margin: 0;
+      margin-bottom: 20px;
+    }
+
+    .hero-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      padding: 0;
+      width: auto;
+      margin: 0 auto;
+    }
+  }
+  .button-hero{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .button-hero, .button-get-involved {
+    width: 100%;
+    padding: 16px auto;
+    box-sizing: border-box;
+  }
+
+  .button-get-involved {
+    margin-top: 12px;
+  }
+}
+
+@media(max-width: 411px) {
+  .hero-buttons {
+    max-width: 328px;
+    width: 100%;
+    margin: 0;
+  }
+
+}
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+  .Hero{
+    flex-flow: column-reverse wrap;
+    align-items: flex-start;
+    justify-content: center;
+    padding:80px 20px;
+    >span{
+      >img{
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .hero-content{
+      width: 100%;
+      max-width: none;
+      height: auto;
+      text-align: center;
+    }
+    .hero-title{
+      width: auto;
+      height: auto;
+      padding-top: 30px;
+    }
+    .hero-sub{
+      width: auto;
+      margin-bottom: 0;
+      text-align: center;
+    }
+    .hero-buttons{
+      width: auto;
+      justify-content: center;
+    }
+  }
 }

@@ -10,12 +10,29 @@ spec:
   selector:
     matchLabels:
       app: prod-calibrate-app
-  replicas: 2
+  replicas: 3
   template:
     metadata:
       labels:
         app: prod-calibrate-app
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
       containers:
         - name: prod-calibrate-app
           image: us.gcr.io/airqo-250220/airqo-calibrate-app:latest
@@ -24,33 +41,36 @@ spec:
             - containerPort: 80
               name: prod-calibrate
           resources:
-            limits:
-              cpu: 250m
             requests:
-              cpu: 100m
+              # Average usage was 0.0001 vCPU and 25Mi over the last 30 days
+              cpu: 5m
+              memory: 25Mi
+            limits:
+              cpu: 50m
+              memory: 100Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-prod
 
 ---
 kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 metadata:
-  name: airqo-calibrate-app 
+  name: airqo-calibrate-app-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: airqo-calibrate-app 
+    name: airqo-calibrate-app
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 3
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
 
 ---
 kind: Service

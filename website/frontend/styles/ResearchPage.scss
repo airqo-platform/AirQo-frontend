@@ -3,6 +3,7 @@
 
 
 .ResearchPage {
+  height: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -43,6 +44,7 @@
       font-size: 20px;
       line-height: 28px;
       color: $aq-black-1;
+      margin: 0 16px;
     }
   }
 
@@ -57,8 +59,8 @@
     min-height: 482px;
     background: $aq-green-0;
     border-radius: 8px;
-    padding: 10px;
-    margin-top: 48px;
+    padding: 16px;
+    margin-bottom: 42px;
 
     >* {
       width: 100%;
@@ -71,13 +73,14 @@
       line-height: 28px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: $aq-black-3;
+      color: #0CE87E;
+      padding-top: 64px;
     }
 
     .main-text {
-      font-weight: 500;
-      font-size: 48px;
-      line-height: 56px;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 46px;
       color: $aq-black-2;
       margin: 24px 0 32px 0;
     }
@@ -98,6 +101,10 @@
       margin: 4px 0 36px 0;
     }
 
+    hr {
+      margin-bottom: 40px;
+    }
+
     .link {
       display: flex;
       width: 280px;
@@ -107,8 +114,9 @@
       font-size: 20px;
       line-height: 26px;
       color: $aq-black-1;
-      background: $aq-white-0;
-      border-radius: 16px;
+      border: 1px solid #000000;
+      margin-bottom: 64px;
+      // cursor: pointer;
 
       .link-arrow {
         display: inline-block;
@@ -129,7 +137,7 @@
 
   .research-content {
     width: 100%;
-    min-height: 2084px;
+    margin-bottom: 160px;
     padding: 10px;
 
     .content-intro {
@@ -155,14 +163,14 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-
+      
       .consult-text {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        width: 100%;
         max-width: 520px;
         min-height: 346px;
+        padding-right: 30px;
 
         p:first-child {
           font-weight: 500;
@@ -171,7 +179,7 @@
           width: 100%;
 
           color: $aq-black-1;
-          margin: 0px;
+          margin: 0;
         }
 
         p {
@@ -203,7 +211,8 @@
         .img-small {
           align-self: center;
           width: 100%;
-          height: auto;
+          height: 231px;
+          object-fit: cover;
           border-radius: 8px;
         }
 
@@ -212,7 +221,9 @@
           grid-row: 1/3;
           align-self: center;
           width: 100%;
-          height: auto;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
           border-radius: 8px;
         }
 
@@ -293,6 +304,90 @@
           font-size: 32.2px;
           line-height: 38px;
           color: $aq-black-2;
+        }
+      }
+    }
+  }
+
+  .bottom-hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 216px;
+    height: auto;
+    max-width: $columnWidth;
+    width: 100%;
+    border-radius: 16px;
+    background-color: #0CE87E;
+    margin: 0 16px;
+
+    h3 {
+        padding-top: 64px;
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 32px;
+        color: $aq-blue-2;
+        margin-bottom: 32px;
+        text-align: center;
+    }
+
+    .section-link {
+        font-size: 16px;
+        line-height: 24px;
+        color: $aq-blue-2;
+        padding-bottom: 64px;
+    }
+  }
+}
+
+@media(max-width: $mainBreakPoint) {
+  .ResearchPage {
+    overflow:hidden;
+    .research-content {
+      margin-bottom: 80px;
+      .research-divider {
+        margin: 64px auto;
+      }
+      .consult-container {
+        .consult-text {
+          margin-bottom: 44px;
+        }
+        .consult-images {
+          display: block;
+          height: auto;
+          
+          .img-small {
+            display: block;
+            width: 100%;
+            height: 231px;
+            object-fit: cover;
+            margin-bottom: 24px;
+          }
+
+          .img-long {
+            display: none;
+          }
+        }
+      }
+      .collaborate-container {
+        .consult-text {
+          margin-bottom: 44px;
+        }
+        .consult-images {
+          display: block;
+          height: auto;
+          
+          .img-small {
+            display: block;
+            width: 100%;
+            height: 231px;
+            object-fit: cover;
+            margin-bottom: 24px;
+          }
+
+          .img-long {
+            display: none;
+          }
         }
       }
     }

@@ -1,0 +1,89 @@
+###########################################################
+# Start deployment of platform frontend - staging
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-stage-platform-frontend
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app: sta-platform-ui
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: sta-platform-ui
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
+      containers:
+        - name: sta-platform-ui
+          image: us.gcr.io/airqo-250220/airqo-stage-platform-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: sta-platform-ui
+          envFrom:
+            - configMapRef:
+                name: env-platform-staging
+          resources:
+            requests:
+              # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+              cpu: 5m
+              memory: 20Mi
+            limits:
+              cpu: 50m
+              memory: 80Mi
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-stage-platform-ui-svc
+  namespace: staging
+spec:
+  selector:
+    app: sta-platform-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 31101
+  type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-stage-platform-frontend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-stage-platform-frontend
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

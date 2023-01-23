@@ -1,149 +1,106 @@
-import 'package:flutter/cupertino.dart';
+import 'package:equatable/equatable.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../utils/exception.dart';
+import 'hive_type_id.dart';
 
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Kya {
-  @JsonKey(defaultValue: 0)
-  int progress;
-  String title;
-  @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
-  String completionMessage;
-  String imageUrl;
-  @JsonKey(defaultValue: '')
-  String secondaryImageUrl;
-  String id;
-  List<KyaLesson> lessons = [];
-
-  Kya(
-      {required this.title,
-      required this.imageUrl,
-      required this.id,
-      required this.lessons,
-      required this.progress,
-      required this.completionMessage,
-      required this.secondaryImageUrl});
-
-  factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
-    if (json == null) {
-      return Kya(
-          title: '',
-          id: '',
-          imageUrl: '',
-          completionMessage: '',
-          lessons: [],
-          progress: 0,
-          secondaryImageUrl: '');
-    }
-
-    try {
-      var singleKya = json.first;
-      var kya = Kya(
-        title: singleKya['title'] as String,
-        imageUrl: singleKya['imageUrl'] as String,
-        id: singleKya['id'] as String,
-        lessons: [],
-        progress: singleKya['progress'] as int,
-        completionMessage: singleKya['completionMessage'] as String,
-        secondaryImageUrl: singleKya['secondaryImageUrl'] as String,
-      );
-
-      var kyaLessons = <KyaLesson>[];
-      for (var item in json) {
-        var kyaItem = KyaLesson(item['lesson_title'] as String,
-            item['lesson_imageUrl'] as String, item['lesson_body'] as String);
-        kyaLessons.add(kyaItem);
-      }
-
-      kya.lessons = kyaLessons;
-      return kya;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return Kya(
-        title: '',
-        id: '',
-        imageUrl: '',
-        completionMessage: '',
-        lessons: [],
-        progress: 0,
-        secondaryImageUrl: '');
-  }
-
+@HiveType(typeId: kyaTypeId)
+class Kya extends HiveObject with EquatableMixin {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
-  List<Map<String, dynamic>> parseKyaToDb() {
-    try {
-      var kyaLessons = lessons;
-      var kyaJson = toJson()..remove('lessons');
-      var kyaJsonList = <Map<String, dynamic>>[];
+  Kya({
+    required this.title,
+    required this.imageUrl,
+    required this.id,
+    required this.lessons,
+    required this.progress,
+    required this.completionMessage,
+    required this.secondaryImageUrl,
+  });
 
-      for (var lesson in kyaLessons) {
-        var lessonJson = <String, dynamic>{
-          'lesson_title': lesson.title,
-          'lesson_imageUrl': lesson.imageUrl,
-          'lesson_body': lesson.body,
-        };
-        var jsonBody = lessonJson..addAll(kyaJson);
-        kyaJsonList.add(jsonBody);
-      }
-      return kyaJsonList;
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-    }
-    return [];
-  }
+  @HiveField(2)
+  String title;
+
+  @HiveField(
+    3,
+    defaultValue: 'You just finished your first Know You Air Lesson',
+  )
+  @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
+  String completionMessage;
+
+  @HiveField(4)
+  String imageUrl;
+
+  @HiveField(5)
+  @JsonKey(defaultValue: '')
+  String secondaryImageUrl;
+
+  @HiveField(6)
+  String id;
+
+  @HiveField(7)
+  List<KyaLesson> lessons = [];
+
+  @HiveField(8, defaultValue: 0)
+  @JsonKey(defaultValue: 0)
+  double progress;
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'auto_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT, '
-      'progress INTEGER, title TEXT, completionMessage TEXT, '
-      'secondaryImageUrl TEXT, imageUrl TEXT,'
-      'lesson_title TEXT, lesson_imageUrl TEXT, lesson_body TEXT)';
-
-  static String dbName() => 'kya_db';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static Kya? parseKya(dynamic jsonBody) {
-    try {
-      return Kya.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-    }
-    return null;
+  String imageUrlCacheKey() {
+    return 'kya-$id-image-url';
   }
+
+  String secondaryImageUrlCacheKey() {
+    return 'kya-$id-secondary-image_url';
+  }
+
+  @override
+  List<Object?> get props => [
+        progress,
+        title,
+        completionMessage,
+        lessons,
+        id,
+        secondaryImageUrl,
+        imageUrl,
+      ];
 }
 
 @JsonSerializable(explicitToJson: true)
-class KyaLesson {
-  String title;
-  String imageUrl;
-  String body;
-
-  KyaLesson(this.title, this.imageUrl, this.body);
+@HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
+class KyaLesson extends Equatable {
+  const KyaLesson({
+    required this.title,
+    required this.imageUrl,
+    required this.body,
+  });
 
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
 
+  @HiveField(0)
+  final String title;
+
+  @HiveField(1)
+  final String imageUrl;
+
+  @HiveField(2)
+  final String body;
+
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
-}
 
-@JsonSerializable(explicitToJson: true)
-class UserKya {
-  @JsonKey(defaultValue: 0)
-  int progress;
-  String id;
+  String imageUrlCacheKey(Kya kya) {
+    return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
+  }
 
-  UserKya(this.id, this.progress);
-
-  factory UserKya.fromJson(Map<String, dynamic> json) =>
-      _$UserKyaFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserKyaToJson(this);
+  @override
+  List<Object?> get props => [
+        title,
+        imageUrl,
+        body,
+      ];
 }
