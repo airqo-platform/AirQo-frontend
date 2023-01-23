@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const GET_FAULTS = 'http://127.0.0.1:4001/api/v1/get-faults';
+const GET_FAULTS = `${process.env.REACT_APP_BASE_URL}get-faults`;
 export const getFaultsApi = async () => {
   return await axios.get(GET_FAULTS).then((response) => response.data);
 };
