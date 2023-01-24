@@ -70,7 +70,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             InkWell(
-              onTap: () async => _share(),
+              onTap: () async {
+                await _share();
+              },
               child: _shareLoading
                   ? const LoadingIcon(radius: 20)
                   : SvgPicture.asset(
