@@ -165,13 +165,15 @@ class ShareService {
 
       if (kya != null) {
         await HiveService.updateKya(
-            kya.copyWith(shareLink: shareLink.toString()));
+          kya.copyWith(shareLink: shareLink.toString()),
+        );
       }
 
       return shareLink;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
+
     return null;
   }
 

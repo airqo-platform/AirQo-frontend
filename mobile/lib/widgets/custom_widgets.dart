@@ -409,6 +409,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   );
                 }
               }
+
               return OutlinedButton(
                 style: _leftButtonStyle,
                 onPressed: () {},

@@ -73,7 +73,8 @@ class HiveService {
   }
 
   static Future<void> updateAirQualityReading(
-      AirQualityReading airQualityReading) async {
+    AirQualityReading airQualityReading,
+  ) async {
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .put(airQualityReading.placeId, airQualityReading);
   }
@@ -92,9 +93,11 @@ class HiveService {
     for (final reading in airQualityReadings) {
       if (reading.shareLink.isEmpty) {
         AirQualityReading airQualityReading = currentReadings.firstWhere(
-            (element) => element.placeId == reading.placeId, orElse: () {
-          return reading;
-        });
+          (element) => element.placeId == reading.placeId,
+          orElse: () {
+            return reading;
+          },
+        );
         airQualityReadingsMap[reading.placeId] =
             reading.copyWith(shareLink: airQualityReading.shareLink);
       } else {
@@ -204,7 +207,7 @@ class HiveService {
     await Hive.box<Kya>(HiveBox.kya).clear();
     await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
 
-    kyaMap.forEach((_, value) async {
+    kyaMap.forEach((_, value) {
       CacheService.cacheKyaImages(value);
     });
   }

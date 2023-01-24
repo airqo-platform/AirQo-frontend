@@ -1456,6 +1456,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                     );
                   }
                 }
+
                 return OutlinedButton(
                   style: _leftButtonStyle,
                   onPressed: () {},
