@@ -84,7 +84,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             ),
             PhoneNumberInputFormatter(),
           ],
-          onEditingComplete: () async {
+          onEditingComplete: () {
             FocusScope.of(context).requestFocus(
               FocusNode(),
             );
@@ -228,7 +228,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
           onChanged: (value) {
             context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
           },
-          onEditingComplete: () async {
+          onEditingComplete: () {
             context
                 .read<EmailAuthBloc>()
                 .add(ValidateEmailAddress(context: context));
