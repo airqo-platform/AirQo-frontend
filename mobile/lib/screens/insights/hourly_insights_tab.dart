@@ -79,10 +79,12 @@ class HourlyInsightsTab extends StatelessWidget {
               },
               childCount: 2,
             ),
-            onRefresh: () async {
+            onRefresh: () {
               context
                   .read<HourlyInsightsBloc>()
                   .add(const RefreshInsightsCharts());
+
+              return Future(() => null);
             },
           );
         },

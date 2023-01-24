@@ -73,10 +73,12 @@ class DailyInsightsTab extends StatelessWidget {
               },
               childCount: 1,
             ),
-            onRefresh: () async {
+            onRefresh: () {
               context
                   .read<DailyInsightsBloc>()
                   .add(const RefreshInsightsCharts());
+
+              return Future(() => null);
             },
           );
         },

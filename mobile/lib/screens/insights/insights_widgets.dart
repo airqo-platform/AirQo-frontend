@@ -1467,12 +1467,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
             ),
           ),
           Expanded(
-            child: OutlinedButton(
-              style: _rightButtonStyle,
-              onPressed: () {
-                _updateFavPlace();
-              },
-              child: Center(
+            child: InkWell(
+              onTap: () => _updateFavPlace(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 21),
                 child: IconTextButton(
                   iconWidget: HeartIcon(
                     showAnimation: _showHeartAnimation,
@@ -1499,8 +1497,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         setState(() => _showHeartAnimation = false);
       }
     });
-
-    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
+    if (mounted) {
+      context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
+    }
   }
 }
 

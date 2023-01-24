@@ -266,8 +266,10 @@ class _DashboardViewState extends State<DashboardView>
                         },
                         childCount: 6,
                       ),
-                      onRefresh: () async {
-                        await _refresh();
+                      onRefresh: () {
+                        _refresh();
+
+                        return Future(() => null);
                       },
                     ),
                   );
@@ -348,7 +350,7 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  Future<void> _refresh({bool refreshMap = true}) async {
+  void _refresh({bool refreshMap = true}) {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());

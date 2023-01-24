@@ -51,8 +51,10 @@ class NotificationPage extends StatelessWidget {
                 },
                 childCount: state.notifications.length,
               ),
-              onRefresh: () async {
+              onRefresh: () {
                 _refresh(context);
+
+                return Future(() => null);
               },
             );
           },

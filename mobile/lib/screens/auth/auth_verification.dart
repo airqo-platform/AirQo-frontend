@@ -216,7 +216,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         visible: state.codeCountDown <= 0 &&
                             state.blocStatus != BlocStatus.success,
                         child: GestureDetector(
-                          onTap: () async {
+                          onTap: () {
                             context
                                 .read<AuthCodeBloc>()
                                 .add(ResendAuthCode(context: context));
