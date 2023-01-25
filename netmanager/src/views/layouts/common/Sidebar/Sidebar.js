@@ -1,38 +1,38 @@
-import React from "react";
-import clsx from "clsx";
-import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/styles";
-import { Divider, Drawer } from "@material-ui/core";
-import DashboardIcon from "@material-ui/icons/Dashboard";
-import PeopleIcon from "@material-ui/icons/People";
-import AccountBoxIcon from "@material-ui/icons/AccountBox";
-import MapIcon from "@material-ui/icons/Map";
-import SettingsIcon from "@material-ui/icons/Settings";
-import LocateIcon from "@material-ui/icons/AddLocation";
-import ManageIcon from "@material-ui/icons/Build";
-import AddIcon from "@material-ui/icons/Add";
-import EditLocationIcon from "@material-ui/icons/EditLocation";
-import AspectRatioIcon from "@material-ui/icons/AspectRatio";
-import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
-import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
-import AirQloudIcon from "@material-ui/icons/FilterDrama";
-import { useOrgData } from "redux/Join/selectors";
-import { Profile, SidebarNav, SidebarWidgets } from "./components";
-import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import React from 'react';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/styles';
+import { Divider, Drawer } from '@material-ui/core';
+import DashboardIcon from '@material-ui/icons/Dashboard';
+import PeopleIcon from '@material-ui/icons/People';
+import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import MapIcon from '@material-ui/icons/Map';
+import SettingsIcon from '@material-ui/icons/Settings';
+import LocateIcon from '@material-ui/icons/AddLocation';
+import ManageIcon from '@material-ui/icons/Build';
+import AddIcon from '@material-ui/icons/Add';
+import EditLocationIcon from '@material-ui/icons/EditLocation';
+import AspectRatioIcon from '@material-ui/icons/AspectRatio';
+import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import AirQloudIcon from '@material-ui/icons/FilterDrama';
+import { useOrgData } from 'redux/Join/selectors';
+import { Profile, SidebarNav, SidebarWidgets } from './components';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
     width: 240,
-    [theme.breakpoints.up("lg")]: {
+    [theme.breakpoints.up('lg')]: {
       marginTop: 64,
-      height: "calc(100% - 64px)",
+      height: 'calc(100% - 64px)',
     },
   },
   root: {
     backgroundColor: theme.palette.white,
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
     padding: theme.spacing(2),
   },
   divider: {
@@ -51,104 +51,105 @@ const excludePages = (pages, excludedArr) => {
 
 const roleExcludePageMapper = {
   collaborator: [
-    "Users",
-    "Candidates",
-    "Locate",
-    "Network Monitoring",
-    "Location Registry",
-    "Device Registry",
-    "Site Registry",
-    "AirQloud Registry",
+    'Users',
+    'Candidates',
+    'Locate',
+    'Network Monitoring',
+    'Location Registry',
+    'Device Registry',
+    'Site Registry',
+    'AirQloud Registry',
   ],
   user: [
-    "Users",
-    "Candidates",
-    "Locate",
-    "Network Monitoring",
-    "Location Registry",
-    "Device Registry",
-    "Site Registry",
-    "AirQloud Registry",
+    'Users',
+    'Candidates',
+    'Locate',
+    'Network Monitoring',
+    'Location Registry',
+    'Device Registry',
+    'Site Registry',
+    'AirQloud Registry',
   ],
-  netmanager: ["Users", "Candidates"],
-  admin: ["Candidates"],
+  netmanager: ['Users', 'Candidates'],
+  admin: ['Candidates'],
   super: [],
 };
 
 const allMainPages = [
   {
-    title: "Overview",
-    href: "/overview",
+    title: 'Overview',
+    href: '/overview',
     icon: <AspectRatioIcon />,
   },
   {
-    title: "Map",
-    href: "/map",
+    title: 'Map',
+    href: '/map',
     icon: <MapIcon />,
   },
   {
-    title: "Dashboard",
-    href: "/dashboard",
+    title: 'Dashboard',
+    href: '/dashboard',
     icon: <DashboardIcon />,
   },
 
   {
-    title: "Export",
-    href: "/download",
+    title: 'Export',
+    href: '/download',
     icon: <CloudDownloadIcon />,
   },
   {
-    title: "Locate",
-    href: "/locate",
+    title: 'Locate',
+    href: '/locate',
     icon: <LocateIcon />,
   },
   {
-    title: "Network Monitoring",
-    href: "/manager",
+    title: 'Network Monitoring',
+    href: '/manager',
     icon: <ManageIcon />,
     collapse: true,
     nested: true,
     nestItems: [
-      { title: "Network Map", href: "/manager/map" },
-      { title: "Network Statistics", href: "/manager/stats" },
+      { title: 'Network Map', href: '/manager/map' },
+      { title: 'Network Statistics', href: '/manager/stats' },
+      { title: 'Fault Detection', href: '/manager/fault-detection' },
     ],
   },
   {
-    title: "Device Registry",
-    href: "/registry",
+    title: 'Device Registry',
+    href: '/registry',
     icon: <AddIcon />,
   },
   {
-    title: "Site Registry",
-    href: "/sites",
+    title: 'Site Registry',
+    href: '/sites',
     icon: <EditLocationIcon />,
   },
   {
-    title: "AirQloud Registry",
-    href: "/airqlouds",
+    title: 'AirQloud Registry',
+    href: '/airqlouds',
     icon: <AirQloudIcon />,
   },
 ];
 
 const allUserManagementPages = [
   {
-    title: "Users",
-    href: "/admin/users",
+    title: 'Users',
+    href: '/admin/users',
     icon: <PeopleIcon />,
   },
   {
-    title: "Candidates",
-    href: "/candidates",
+    title: 'Candidates',
+    href: '/candidates',
     icon: <SupervisedUserCircleIcon />,
   },
   {
-    title: "Account",
-    href: "/account",
+    title: 'Account',
+    href: '/account',
     icon: <AccountBoxIcon />,
   },
   {
-    title: "Settings",
-    href: "/settings",
+    title: 'Settings',
+    href: '/settings',
     icon: <SettingsIcon />,
   },
 ];
@@ -167,10 +168,10 @@ const Sidebar = (props) => {
   let pages = excludePages(allMainPages, excludedPages);
   const userPages = excludePages(allUserManagementPages, excludedPages);
 
-  if (orgData.name.toLowerCase() === "airqo") {
+  if (orgData.name.toLowerCase() === 'airqo') {
     pages = excludePages(pages, []);
   } else {
-    pages = excludePages(pages, ["Overview", "Network Monitoring", "Locate"]);
+    pages = excludePages(pages, ['Overview', 'Network Monitoring', 'Locate']);
   }
 
   return (
