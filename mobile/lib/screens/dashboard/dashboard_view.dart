@@ -177,7 +177,7 @@ class _DashboardViewState extends State<DashboardView>
                         (context, index) {
                           final items = [
                             Text(
-                              getDateTime(),
+                              DateTime.now().timelineString(),
                               style:
                                   Theme.of(context).textTheme.caption?.copyWith(
                                         color: Colors.black.withOpacity(0.5),
@@ -266,8 +266,10 @@ class _DashboardViewState extends State<DashboardView>
                         },
                         childCount: 6,
                       ),
-                      onRefresh: () async {
+                      onRefresh: () {
                         _refresh();
+
+                        return Future(() => null);
                       },
                     ),
                   );

@@ -89,7 +89,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
+        await Future.delayed(
           const Duration(milliseconds: 250),
           () {
             showTileOptionsCallBack(true);

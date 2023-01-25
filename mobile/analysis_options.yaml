@@ -53,7 +53,6 @@ dart_code_metrics:
     - prefer-last
     - prefer-first
     - no-equal-then-else
-    - avoid-banned-imports
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
@@ -78,7 +77,6 @@ dart_code_metrics:
     - missing-test-assertion
     - double-literal-format
     - binary-expression-operand-order
-    - ban-name
     - avoid-unused-parameters
     - avoid-unrelated-type-assertions
     - avoid-unnecessary-type-casts
@@ -112,3 +110,5 @@ dart_code_metrics:
 #    - avoid-dynamic
 #    - avoid-late-keyword
 #    - prefer-moving-to-variable
+#    - avoid-banned-imports
+#    - ban-name

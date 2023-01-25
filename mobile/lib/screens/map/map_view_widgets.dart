@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -118,21 +116,19 @@ class SiteTile extends StatelessWidget {
 }
 
 class SearchTile extends StatelessWidget {
-  SearchTile({
+  const SearchTile({
     super.key,
     required this.searchResult,
   });
-  final SearchResultItem searchResult;
-  final SearchRepository _searchRepository =
-      SearchRepository(searchApiKey: Config.searchApiKey);
+  final SearchResult searchResult;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
-      onTap: () {
-        _showPlaceDetails(context);
+      onTap: () async {
+        await _showPlaceDetails(context);
       },
       title: AutoSizeText(
         searchResult.name,
@@ -162,12 +158,14 @@ class SearchTile extends StatelessWidget {
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
 
-    final place = await _searchRepository.placeDetails(searchResult.id);
+    SearchResult? place = await SearchApiClient().getPlaceDetails(
+      searchResult,
+    );
 
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
-        place.geometry.location.lat,
-        place.geometry.location.lng,
+        place.latitude,
+        place.longitude,
       );
 
       Navigator.pop(context);
@@ -193,8 +191,8 @@ class SearchTile extends StatelessWidget {
                 name: searchResult.name,
                 location: searchResult.location,
                 placeId: searchResult.id,
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
+                latitude: place.latitude,
+                longitude: place.longitude,
               ),
             );
           },
@@ -206,93 +204,6 @@ class SearchTile extends StatelessWidget {
         'Try again later',
       );
     }
-  }
-}
-
-class EmptyView extends StatelessWidget {
-  const EmptyView({
-    super.key,
-    required this.title,
-    required this.bodyInnerText,
-    required this.topBars,
-    required this.showRegions,
-  });
-  final String title;
-  final String bodyInnerText;
-  final bool topBars;
-  final VoidCallback showRegions;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Visibility(
-          visible: topBars,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: 32,
-                width: 32,
-                decoration: BoxDecoration(
-                  color: CustomColors.appBodyColor,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: Center(
-                  child: IconButton(
-                    iconSize: 10,
-                    icon: Icon(
-                      Icons.clear,
-                      color: CustomColors.appColorBlack,
-                    ),
-                    onPressed: showRegions,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 80,
-        ),
-        Image.asset(
-          'assets/icon/coming_soon.png',
-          height: 80,
-          width: 80,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: Text(
-            '$title\nComing soon on the network'.trim(),
-            textAlign: TextAlign.center,
-            style: CustomTextStyle.headline7(context)
-                ?.copyWith(letterSpacing: 16 * -0.01),
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: Text(
-            'We currently do not support air quality '
-            'monitoring in this $bodyInnerText, but we’re working on it.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.4),
-                ),
-          ),
-        ),
-        const SizedBox(
-          height: 158,
-        ),
-      ],
-    );
   }
 }
 
@@ -430,17 +341,7 @@ class RegionSites extends StatelessWidget {
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: state.featuredAirQualityReadings.isEmpty,
-                  child: EmptyView(
-                    title: state.featuredRegion.toTitleCase(),
-                    topBars: false,
-                    bodyInnerText: 'region',
-                    showRegions: () {
-                      context.read<MapBloc>().add(const InitializeMapState());
-                    },
-                  ),
-                ),
+                // TODO added empty widget
               ],
             ),
           );
@@ -535,7 +436,9 @@ class MapAnalyticsCard extends StatelessWidget {
             child: AnalyticsShareCard(airQualityReading: airQualityReading),
           ),
           InkWell(
-            onTap: () async => _goToInsights(context),
+            onTap: () async {
+              await _goToInsights(context);
+            },
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -637,9 +540,8 @@ class MapAnalyticsCard extends StatelessWidget {
                                                 3.2,
                                           ),
                                           child: Text(
-                                            dateToString(
-                                              airQualityReading.dateTime,
-                                            ),
+                                            airQualityReading.dateTime
+                                                .analyticsCardString(),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

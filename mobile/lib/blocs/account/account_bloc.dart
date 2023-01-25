@@ -36,7 +36,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   ) async {
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
-    List<FavouritePlace> favouritePlaces = state.favouritePlaces;
+    List<FavouritePlace> favouritePlaces = List.of(state.favouritePlaces);
     final placesIds = favouritePlaces.map((e) => e.placeId);
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
@@ -44,8 +44,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         (element) => element.placeId == event.airQualityReading.placeId,
       );
     } else {
-      favouritePlaces
-          .add(FavouritePlace.fromAirQualityReading(event.airQualityReading));
+      favouritePlaces.add(
+        FavouritePlace.fromAirQualityReading(event.airQualityReading),
+      );
     }
 
     await HiveService.loadFavouritePlaces(favouritePlaces);
