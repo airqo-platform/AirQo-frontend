@@ -58,6 +58,11 @@ if (debugKeystorePropertiesFile.exists()) {
 }
 
 android {
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
     compileSdkVersion 33
     ndkVersion flutter.ndkVersion
 
