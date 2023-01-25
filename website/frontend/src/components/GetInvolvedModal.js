@@ -13,6 +13,7 @@ import ResearchIcon from 'assets/svg/Research.svg';
 import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
 import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
 import { sendInquiryApi } from 'apis';
+import { Link } from 'react-router-dom';
 
 const categoryMapper = {
   partner: 'partners',
@@ -92,62 +93,61 @@ const GetInvolvedEmail = () => {
     });
   };
   return (
-        <div className="form-section">
-            <div className="wrapper">
-                <form className="register-form">
-                    <div className="form-field">
-                        <label>First name</label>
-                        <input
-                          type="text"
-                          id="fname"
-                          defaultValue={emailState.firstName}
-                          onChange={handleOnChange('firstName')}
-                          required
-                        />
-                    </div>
-                    <div className="form-field">
-                        <label>Last name</label>
-                        <input
-                          type="text"
-                          id="lname"
-                          defaultValue={emailState.lastName}
-                          onChange={handleOnChange('lastName')}
-                          required
-                        />
-                    </div>
-                    <div className="form-field">
-                        <label>Email address</label>
-                        <input
-                          type="email"
-                          id="email"
-                          defaultValue={emailState.email}
-                          onChange={handleOnChange('email')}
-                          required
-                        />
-                    </div>
-                    <div className="input-field">
-                        <input
-                          type="checkbox"
-                          defaultChecked={emailState.acceptedTerms}
-                          onChange={handleOnCheckboxChange}
-                          required
-                        />
-                        <label>
-                            I agree to the <u>Terms of Service</u> and <u>Privacy Policy</u>
-                        </label>
-                    </div>
-                </form>
-                <div className="section-button-row">
-                    <button
-                      className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
-                      onClick={onSubmit}
-                    >
-                        {loading ? 'Creating account...' : 'Create account'}
-                    </button>
-                </div>
-
-            </div>
+    <div className="form-section">
+      <div className="wrapper">
+        <form className="register-form">
+          <div className="form-field">
+            <label>First name</label>
+            <input
+              type="text"
+              id="fname"
+              defaultValue={emailState.firstName}
+              onChange={handleOnChange('firstName')}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label>Last name</label>
+            <input
+              type="text"
+              id="lname"
+              defaultValue={emailState.lastName}
+              onChange={handleOnChange('lastName')}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label>Email address</label>
+            <input
+              type="email"
+              id="email"
+              defaultValue={emailState.email}
+              onChange={handleOnChange('email')}
+              required
+            />
+          </div>
+          <div className="input-field">
+            <input
+              type="checkbox"
+              defaultChecked={emailState.acceptedTerms}
+              onChange={handleOnCheckboxChange}
+              required
+            />
+            <label>
+              I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
+              <Link to="/legal">Privacy Policy</Link>
+            </label>
+          </div>
+        </form>
+        <div className="section-button-row">
+          <button
+            className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
+            onClick={onSubmit}>
+            {loading ? 'Submitting...' : 'Submit'}
+          </button>
         </div>
+      </div>
+    </div>
   );
 };
 

@@ -347,7 +347,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   radius: widget.loadingRadius ?? 14,
                 )
               : InkWell(
-                  onTap: () async => _share(),
+                  onTap: () async {
+                    await _share();
+                  },
                   child: IconTextButton(
                     iconWidget: SvgPicture.asset(
                       'assets/icon/share_icon.svg',

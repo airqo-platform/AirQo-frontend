@@ -1,8 +1,6 @@
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,10 +19,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
-    searchRepository = SearchRepository(searchApiKey: Config.searchApiKey);
   }
-
-  late final SearchRepository searchRepository;
 
   Future<void> _loadSearchHistory(Emitter<SearchState> emit) async {
     List<SearchHistory> searchHistory =
@@ -164,10 +159,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(state.copyWith(searchStatus: SearchStatus.searchingAirQuality));
 
-    final place =
-        await searchRepository.placeDetails(event.searchResultItem.id);
+    final SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(event.searchResult);
 
-    if (place == null) {
+    if (searchResult == null) {
       return emit(state.copyWith(
         searchStatus: SearchStatus.airQualitySearchFailed,
         nullSearchAirQuality: true,
@@ -175,8 +170,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     final nearestSite = await LocationService.getNearestSite(
-      place.geometry.location.lat,
-      place.geometry.location.lng,
+      searchResult.latitude,
+      searchResult.longitude,
     );
 
     if (nearestSite == null) {
@@ -187,11 +182,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     AirQualityReading airQualityReading = nearestSite.copyWith(
-      name: event.searchResultItem.name,
-      location: event.searchResultItem.location,
-      placeId: event.searchResultItem.id,
-      latitude: place.geometry.location.lat,
-      longitude: place.geometry.location.lng,
+      name: event.searchResult.name,
+      location: event.searchResult.location,
+      placeId: event.searchResult.id,
+      latitude: searchResult.latitude,
+      longitude: searchResult.longitude,
     );
 
     List<AirQualityReading> recentSearches = List.of(state.recentSearches);
@@ -246,13 +241,15 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       final List<String> countries =
           airQualityReadings.map((e) => e.country).toSet().toList();
 
-      final SearchResult results = await searchRepository.search(
-        searchTerm,
-        countries: countries,
-      );
+      List<SearchResult> results = await SearchApiClient().search(searchTerm);
+
+      results = results.where((element) {
+        return countries.any((country) =>
+            element.location.toLowerCase().contains(country.toLowerCase()));
+      }).toList();
 
       return emit(state.copyWith(
-        searchResults: results.items.toSet().toList(),
+        searchResults: results.toSet().toList(),
         searchStatus: SearchStatus.autoCompleteSearchSuccess,
         searchError: SearchError.none,
       ));

@@ -303,8 +303,8 @@ export const ExploreUserRegistry = () => {
                       radioOption
                       fieldClassName="tos"
                       formOptionClassName="tos">
-                      I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
-                      <Link to="/terms">Privacy Policy</Link>
+                      I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
+                      <Link to="/legal">Privacy Policy</Link>
                   </ExploreTemplateFormFieldOption>
                   <button className="nav-button" type="submit" onSubmit={registerOrganisation}>
                       {loading ? <CircularProgress /> : 'Create Account'}
