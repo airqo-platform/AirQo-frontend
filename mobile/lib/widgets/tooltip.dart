@@ -226,7 +226,7 @@ class ToolTip {
       return buildPopupLayout(_offset);
     });
 
-    Overlay.of(context)!.insert(_entry);
+    Overlay.of(context).insert(_entry);
     _isVisible = true;
   }
 

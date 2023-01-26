@@ -187,7 +187,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             text: TextSpan(children: [
               TextSpan(
                 text: 'Tap the ',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               WidgetSpan(
                 child: SvgPicture.asset(
@@ -200,7 +200,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
               TextSpan(
                 text:
                     ' Favorite icon on any location to add it to your favorites',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ]),
           ),

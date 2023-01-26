@@ -69,7 +69,7 @@ class HealthTipContainer extends StatelessWidget {
                     healthTip.body,
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.5),
                         ),
                   ),

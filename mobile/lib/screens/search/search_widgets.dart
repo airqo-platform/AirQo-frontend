@@ -660,7 +660,7 @@ class SearchInputField extends StatelessWidget {
           onChanged: (value) {
             context.read<SearchBloc>().add(SearchTermChanged(value));
           },
-          style: Theme.of(context).textTheme.caption?.copyWith(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontSize: 16,
               ),
           enableSuggestions: true,
@@ -679,7 +679,7 @@ class SearchInputField extends StatelessWidget {
             enabledBorder: border,
             border: border,
             hintText: 'Search for Air Quality by location',
-            hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                   fontSize: 14,
                   fontWeight: FontWeight.w400,

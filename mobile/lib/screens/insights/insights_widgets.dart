@@ -659,7 +659,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
                                     .textTheme
-                                    .caption
+                                    .bodySmall
                                     ?.copyWith(
                                       color: CustomColors.appColorBlack
                                           .withOpacity(0.3),
@@ -1004,7 +1004,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)
                                     .textTheme
-                                    .caption
+                                    .bodySmall
                                     ?.copyWith(
                                       color: CustomColors.appColorBlack
                                           .withOpacity(0.3),
@@ -1296,7 +1296,7 @@ class InsightsToggleBar extends StatelessWidget {
       children: [
         Text(
           'AIR QUALITY',
-          style: Theme.of(context).textTheme.caption?.copyWith(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.3),
               ),
         ),
