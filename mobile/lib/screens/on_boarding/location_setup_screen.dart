@@ -51,7 +51,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                   'Allow AirQo to send you location air '
                   'quality update for your work place, home',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const Spacer(),
@@ -85,7 +85,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 child: Text(
                   'No, thanks',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),

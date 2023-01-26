@@ -53,7 +53,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
                 child: Text(
                   widget.kya.completionMessage,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.5),
                       ),
                 ),

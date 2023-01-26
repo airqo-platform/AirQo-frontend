@@ -89,6 +89,12 @@ class HiveService {
         .putAll(airQualityReadingsMap);
   }
 
+  static List<AirQualityReading> getAirQualityReadings() {
+    return Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.toList();
+  }
+
   static Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {

@@ -69,7 +69,7 @@ class _SettingsPageState extends State<SettingsPage>
                     shape: topBorder,
                     title: Text(
                       'Location',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
@@ -88,7 +88,7 @@ class _SettingsPageState extends State<SettingsPage>
                     tileColor: Colors.white,
                     title: Text(
                       'Notification',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
@@ -120,7 +120,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Send feedback',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -141,7 +141,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Rate the AirQo App',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -165,7 +165,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'About',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -238,11 +238,13 @@ class _SettingsPageState extends State<SettingsPage>
                           title: Text(
                             'Delete your account',
                             overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.bodyText2?.copyWith(
-                                      color: CustomColors.appColorBlack
-                                          .withOpacity(0.6),
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.6),
+                                ),
                           ),
                         ),
                       ),

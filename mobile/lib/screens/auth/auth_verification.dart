@@ -159,7 +159,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context)
                               .textTheme
-                              .bodyText2
+                              .bodyMedium
                               ?.copyWith(
                                 color:
                                     CustomColors.appColorBlack.withOpacity(0.6),
@@ -174,7 +174,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
-                              Theme.of(context).textTheme.bodyText2?.copyWith(
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontSize: 18.0,
                                     color: CustomColors.appColorBlue,
                                   ),
@@ -206,7 +206,10 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         child: Text(
                           'The code should arrive with in ${state.codeCountDown} sec',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.caption?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
                                 color:
                                     CustomColors.appColorBlack.withOpacity(0.5),
                               ),
@@ -226,7 +229,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             'Resend code',
                             textAlign: TextAlign.center,
                             style:
-                                Theme.of(context).textTheme.caption?.copyWith(
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: CustomColors.appColorBlue,
                                     ),
                           ),
@@ -255,7 +258,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                   'Or',
                                   style: Theme.of(context)
                                       .textTheme
-                                      .caption
+                                      .bodySmall
                                       ?.copyWith(
                                         color: const Color(0xffD1D3D9),
                                       ),
@@ -280,10 +283,12 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             child: Text(
                               cancelText,
                               textAlign: TextAlign.center,
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: CustomColors.appColorBlue,
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: CustomColors.appColorBlue,
+                                  ),
                             ),
                           ),
                         ),
