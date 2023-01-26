@@ -178,10 +178,12 @@ class _DashboardViewState extends State<DashboardView>
                           final items = [
                             Text(
                               DateTime.now().timelineString(),
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: Colors.black.withOpacity(0.5),
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
                             ),
                             const SizedBox(
                               height: 4,

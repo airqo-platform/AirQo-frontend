@@ -78,7 +78,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   TextStyle? _setUpCompleteTextStyle() {
-    return Theme.of(context).textTheme.bodyText1?.copyWith(
+    return Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.bold,
           fontStyle: FontStyle.normal,
           fontSize: 48,

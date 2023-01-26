@@ -129,7 +129,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: Text(
                     'No, thanks',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.caption?.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: CustomColors.appColorBlue,
                         ),
                   ),
@@ -153,7 +153,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },
           child: AutoSizeText(
             option.displayValue,
-            style: Theme.of(context).textTheme.bodyText1?.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: _title.displayValue == option.value
                       ? CustomColors.appColorBlack
                       : CustomColors.appColorBlack.withOpacity(0.32),
