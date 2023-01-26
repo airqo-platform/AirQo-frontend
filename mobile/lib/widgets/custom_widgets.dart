@@ -348,8 +348,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         width: 0,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.only(bottomLeft: Radius.circular(widget.radius)),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(widget.radius),
+        ),
       ),
       backgroundColor: Colors.white,
       padding: EdgeInsets.zero,
@@ -363,8 +364,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         width: 0,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.only(bottomRight: Radius.circular(widget.radius)),
+        borderRadius: BorderRadius.only(
+          bottomRight: Radius.circular(widget.radius),
+        ),
       ),
       backgroundColor: Colors.white,
       padding: EdgeInsets.zero,

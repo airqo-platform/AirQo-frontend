@@ -64,10 +64,6 @@ class RateService {
 }
 
 class ShareService {
-  // TODO replace with minimum versions
-  static String get iosMinimumShareVersion => '2.0.0';
-  static int get androidMinimumShareVersion => 30;
-
   // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri?> createShareLink({
     Kya? kya,
@@ -101,6 +97,7 @@ class ShareService {
       params = '${airQualityReading.shareLinkParams()}&page=insights';
       title = airQualityReading.name;
       description = airQualityReading.location;
+      shareImage = Uri.parse(Config.airqoSecondaryLogo);
     }
 
     if (kya != null) {
@@ -121,7 +118,7 @@ class ShareService {
         packageName: Platform.isAndroid
             ? packageInfo.packageName
             : Config.androidPackageName,
-        minimumVersion: androidMinimumShareVersion,
+        minimumVersion: Config.androidMinimumShareVersion,
         fallbackUrl: Uri.parse(
           'https://play.google.com/store/apps/details?id=com.airqo.app',
         ),
@@ -132,7 +129,7 @@ class ShareService {
           'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
         ),
         appStoreId: Config.iosStoreId,
-        // minimumVersion: iosMinimumShareVersion,
+        minimumVersion: Config.iosMinimumShareVersion,
       ),
       googleAnalyticsParameters: const GoogleAnalyticsParameters(
         source: 'airqo-app',

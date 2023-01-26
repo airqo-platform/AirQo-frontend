@@ -1055,6 +1055,7 @@ SPEC CHECKSUMS:
   firebase_auth: 3bab991fe1df91c2f948156e9dee976e01a19ab9
   firebase_core: bf59c32d2e53814f558efa20840c1902fa2fe461
   firebase_crashlytics: b19405931669c882e0d08542e69ae9e86633c636
+  firebase_dynamic_links: e5ca49679928f5d46e2db5168656975eae39d379
   firebase_in_app_messaging: 0b143b35807ab8403247c9cfd059533bc70e9595
   firebase_messaging: ee597229fc260f8fa491fa8f2d4a32dfbfa406fa
   firebase_storage: 8b85bf19de50a1886f9387924fbddf066a718965

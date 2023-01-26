@@ -1468,10 +1468,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
             ),
           ),
           Expanded(
-            child: InkWell(
-              onTap: () => _updateFavPlace(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 21),
+            child: OutlinedButton(
+              style: _rightButtonStyle,
+              onPressed: () => _updateFavPlace(),
+              child: Center(
                 child: IconTextButton(
                   iconWidget: HeartIcon(
                     showAnimation: _showHeartAnimation,
