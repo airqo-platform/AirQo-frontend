@@ -6,9 +6,11 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -379,13 +381,13 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
-          child: FutureBuilder<Uri?>(
+          child: FutureBuilder<Uri>(
             future: ShareService.createShareLink(
               airQualityReading: widget.airQualityReading,
             ),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                // TODO implement this functionality
+                showSnackBar(context, 'Could not create a share link.');
               }
               if (snapshot.hasData) {
                 Uri? link = snapshot.data;
@@ -393,10 +395,18 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   return OutlinedButton(
                     style: _leftButtonStyle,
                     onPressed: () async {
-                      await ShareService.shareLink(
-                        link,
-                        airQualityReading: widget.airQualityReading,
-                      );
+                      if (link.toString().length > 15) {
+                        await Clipboard.setData(
+                          ClipboardData(text: link.toString()),
+                        ).then((_) {
+                          showSnackBar(context, 'Copied to your clipboard !');
+                        });
+                      } else {
+                        await ShareService.shareLink(
+                          link,
+                          airQualityReading: widget.airQualityReading,
+                        );
+                      }
                     },
                     child: Center(
                       child: IconTextButton(
@@ -414,7 +424,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 
               return OutlinedButton(
                 style: _leftButtonStyle,
-                onPressed: () {},
+                onPressed: () {
+                  showSnackBar(context, 'Creating share link. Hold on tight');
+                },
                 child: const Center(
                   child: LoadingIcon(radius: 14),
                 ),

@@ -6,6 +6,7 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -66,21 +67,29 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 width: 40,
               ),
             ),
-            FutureBuilder<Uri?>(
+            FutureBuilder<Uri>(
               future: ShareService.createShareLink(kya: widget.kya),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Container();
+                  showSnackBar(context, 'Could not create a share link.');
                 }
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
                       Uri? link = snapshot.data;
                       if (link != null) {
-                        await ShareService.shareLink(
-                          link,
-                          kya: widget.kya,
-                        );
+                        if (link.toString().length > 15) {
+                          await Clipboard.setData(
+                            ClipboardData(text: link.toString()),
+                          ).then((_) {
+                            showSnackBar(context, 'Copied to your clipboard !');
+                          });
+                        } else {
+                          await ShareService.shareLink(
+                            link,
+                            kya: widget.kya,
+                          );
+                        }
                       }
                     },
                     child: SvgPicture.asset(
@@ -92,7 +101,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   );
                 }
 
-                return const LoadingIcon(radius: 20);
+                return GestureDetector(
+                  onTap: () {
+                    showSnackBar(context, 'Creating share link. Hold on tight');
+                  },
+                  child: const Center(
+                    child: LoadingIcon(radius: 20),
+                  ),
+                );
               },
             ),
           ],

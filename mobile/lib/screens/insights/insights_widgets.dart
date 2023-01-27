@@ -7,6 +7,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -1424,13 +1425,13 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: FutureBuilder<Uri?>(
+            child: FutureBuilder<Uri>(
               future: ShareService.createShareLink(
                 airQualityReading: widget.airQualityReading,
               ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  // TODO implement this functionality
+                  showSnackBar(context, 'Could not create a share link.');
                 }
                 if (snapshot.hasData) {
                   Uri? link = snapshot.data;
@@ -1438,10 +1439,18 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                     return OutlinedButton(
                       style: _leftButtonStyle,
                       onPressed: () async {
-                        await ShareService.shareLink(
-                          link,
-                          airQualityReading: widget.airQualityReading,
-                        );
+                        if (link.toString().length > 15) {
+                          await Clipboard.setData(
+                            ClipboardData(text: link.toString()),
+                          ).then((_) {
+                            showSnackBar(context, 'Copied to your clipboard !');
+                          });
+                        } else {
+                          await ShareService.shareLink(
+                            link,
+                            airQualityReading: widget.airQualityReading,
+                          );
+                        }
                       },
                       child: Center(
                         child: IconTextButton(
@@ -1459,7 +1468,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
 
                 return OutlinedButton(
                   style: _leftButtonStyle,
-                  onPressed: () {},
+                  onPressed: () {
+                    showSnackBar(context, 'Creating share link. Hold on tight');
+                  },
                   child: const Center(
                     child: LoadingIcon(radius: 14),
                   ),
