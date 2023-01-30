@@ -127,7 +127,7 @@ class _ForYouPageState extends State<ForYouPage>
   }
 
   void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ShowCaseWidget.of(_showcaseContext).startShowCase(
         [
           _analyticsTabShowcaseKey,

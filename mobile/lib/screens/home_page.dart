@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ShowCaseWidget.of(_showcaseContext).startShowCase(
         [
           _homeShowcaseKey,

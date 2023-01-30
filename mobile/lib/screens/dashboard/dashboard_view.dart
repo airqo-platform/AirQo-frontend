@@ -431,7 +431,7 @@ class _DashboardViewState extends State<DashboardView>
       globalKeys.add(_nearestLocationShowcaseKey);
     }
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
+      (_) {
         ShowCaseWidget.of(context).startShowCase(globalKeys);
       },
     );
@@ -442,7 +442,7 @@ class _DashboardViewState extends State<DashboardView>
     if (prefs.getBool(Config.homePageShowcase) == null) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             _startShowcase();
             _appService.stopShowcase(Config.homePageShowcase);
           });
