@@ -9,5 +9,5 @@ class RefreshDashboard extends DashboardEvent {
   final bool? reload;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [reload];
 }
