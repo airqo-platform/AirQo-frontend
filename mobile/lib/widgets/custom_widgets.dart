@@ -347,7 +347,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   radius: widget.loadingRadius ?? 14,
                 )
               : InkWell(
-                  onTap: () async => _share(),
+                  onTap: () async {
+                    await _share();
+                  },
                   child: IconTextButton(
                     iconWidget: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
@@ -424,6 +426,46 @@ class AppSafeArea extends StatelessWidget {
         ),
         child: widget,
       ),
+    );
+  }
+}
+
+class BottomNavIcon extends StatelessWidget {
+  const BottomNavIcon({
+    super.key,
+    required this.svg,
+    required this.selectedIndex,
+    required this.label,
+    required this.index,
+  });
+  final String svg;
+  final int selectedIndex;
+  final String label;
+  final int index;
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        SvgPicture.asset(
+          svg,
+          color: selectedIndex == index
+              ? CustomColors.appColorBlue
+              : CustomColors.appColorBlack.withOpacity(0.3),
+          semanticsLabel: label,
+        ),
+        const SizedBox(height: 3),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: selectedIndex == index
+                ? CustomColors.appColorBlue
+                : CustomColors.appColorBlack.withOpacity(0.3),
+            fontSize: 9,
+          ),
+        ),
+      ],
     );
   }
 }

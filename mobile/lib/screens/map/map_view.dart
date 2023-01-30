@@ -82,11 +82,14 @@ class MapLandscape extends StatefulWidget {
 }
 
 class _MapLandscapeState extends State<MapLandscape> {
-  late GoogleMapController _mapController;
+  final Completer<GoogleMapController> _mapController =
+      Completer<GoogleMapController>();
   Map<String, Marker> _markers = {};
   final double zoom = 6;
-  final _defaultCameraPosition =
-      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6);
+  final _defaultCameraPosition = const CameraPosition(
+    target: LatLng(1.6183002, 32.504365),
+    zoom: 6,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +99,6 @@ class _MapLandscapeState extends State<MapLandscape> {
       child: GoogleMap(
         compassEnabled: false,
         onMapCreated: _onMapCreated,
-        mapType: MapType.normal,
         myLocationButtonEnabled: false,
         myLocationEnabled: false,
         rotateGesturesEnabled: false,
@@ -110,13 +112,14 @@ class _MapLandscapeState extends State<MapLandscape> {
   }
 
   Future<void> _loadTheme() async {
-    await _mapController.setMapStyle(
+    final GoogleMapController controller = await _mapController.future;
+    await controller.setMapStyle(
       jsonEncode(googleMapsTheme),
     );
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
-    _mapController = controller;
+    _mapController.complete(controller);
     await _loadTheme();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = BlocProvider.of<MapBloc>(context).state;
@@ -161,8 +164,7 @@ class _MapLandscapeState extends State<MapLandscape> {
     if (!mounted) {
       return;
     }
-
-    final controller = _mapController;
+    final GoogleMapController controller = await _mapController.future;
 
     if (airQualityReadings.isEmpty) {
       await controller.animateCamera(
@@ -189,40 +191,39 @@ class _MapLandscapeState extends State<MapLandscape> {
           airQualityReading.longitude,
         ),
         onTap: () {
-          if (!mounted) return;
           context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
         },
       );
       markers[airQualityReading.placeId] = marker;
     }
 
-    if (mounted) {
-      if (airQualityReadings.length == 1) {
-        final latLng = LatLng(
-          airQualityReadings.first.latitude,
-          airQualityReadings.first.longitude,
-        );
+    if (!mounted) return;
 
-        final cameraPosition = CameraPosition(
-          target: latLng,
-          zoom: 10,
-        );
+    if (airQualityReadings.length == 1) {
+      final latLng = LatLng(
+        airQualityReadings.first.latitude,
+        airQualityReadings.first.longitude,
+      );
 
-        await controller.animateCamera(
-          CameraUpdate.newCameraPosition(cameraPosition),
-        );
-      } else {
-        final latLngBounds = _getBounds(
-          markers.values.toList(),
-        );
+      final cameraPosition = CameraPosition(
+        target: latLng,
+        zoom: 10,
+      );
 
-        await controller.animateCamera(
-          CameraUpdate.newLatLngBounds(latLngBounds, 100),
-        );
-      }
+      await controller.animateCamera(
+        CameraUpdate.newCameraPosition(cameraPosition),
+      );
+    } else {
+      final latLngBounds = _getBounds(
+        markers.values.toList(),
+      );
 
-      setState(() => _markers = markers);
+      await controller.animateCamera(
+        CameraUpdate.newLatLngBounds(latLngBounds, 100),
+      );
     }
+
+    setState(() => _markers = markers);
   }
 
   LatLngBounds _getBounds(List<Marker> markers) {

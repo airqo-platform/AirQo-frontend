@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.13+20025
+version: 2.0.15+20028
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -75,8 +75,7 @@ dependencies:
   drift: ^2.4.2
   sqlite3_flutter_libs: ^0.5.12
   appinio_swiper: ^1.1.1
-  app_repository:
-    path: packages/app_repository
+  showcaseview: ^1.1.8
   # https://pub.dev/packages/retry
   
 dev_dependencies:

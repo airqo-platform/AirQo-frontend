@@ -1,10 +1,10 @@
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
@@ -106,7 +106,7 @@ class AppService {
     String siteId, {
     Frequency? frequency,
   }) async {
-    final insights = await AirqoApiClient().fetchInsightsData(siteId);
+    InsightData insights = await AirqoApiClient().fetchInsightsData(siteId);
 
     await AirQoDatabase().insertHistoricalInsights(insights.historical);
     await AirQoDatabase().insertForecastInsights(insights.forecast);
@@ -127,11 +127,9 @@ class AppService {
 
   Future<bool> refreshAirQualityReadings() async {
     try {
-      final siteReadings = await AppRepository(
-        airqoApiKey: Config.airqoApiToken,
-        baseUrl: Config.airqoApiUrl,
-      ).getSitesReadings();
-      await HiveService.updateAirQualityReadings(siteReadings);
+      final airQualityReadings =
+          await AirqoApiClient().fetchAirQualityReadings();
+      await HiveService.updateAirQualityReadings(airQualityReadings);
 
       return true;
     } catch (exception, stackTrace) {
@@ -166,6 +164,22 @@ class AppService {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  Future<void> setShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showcase', true);
+  }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
   }
 
   Future<void> _postSignUpActions() async {

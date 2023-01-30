@@ -59,8 +59,10 @@ class FavouritePlacesPage extends StatelessWidget {
                 },
                 childCount: state.favouritePlaces.length,
               ),
-              onRefresh: () async {
+              onRefresh: () {
                 _refresh(context);
+
+                return Future(() => null);
               },
             );
           },

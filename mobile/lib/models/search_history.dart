@@ -7,7 +7,6 @@ import 'hive_type_id.dart';
 
 part 'search_history.g.dart';
 
-@JsonSerializable()
 @HiveType(typeId: searchHistoryTypeId)
 class SearchHistory extends HiveObject with EquatableMixin {
   SearchHistory({
@@ -31,9 +30,6 @@ class SearchHistory extends HiveObject with EquatableMixin {
         placeId: airQualityReading.placeId,
       );
 
-  factory SearchHistory.fromJson(Map<String, dynamic> json) =>
-      _$SearchHistoryFromJson(json);
-
   @HiveField(0)
   @JsonKey()
   final String placeId;
@@ -56,8 +52,6 @@ class SearchHistory extends HiveObject with EquatableMixin {
 
   @HiveField(5)
   final DateTime dateTime;
-
-  Map<String, dynamic> toJson() => _$SearchHistoryToJson(this);
 
   @override
   List<Object?> get props => [

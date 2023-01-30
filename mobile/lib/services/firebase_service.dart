@@ -696,7 +696,7 @@ class CustomAuth {
 
         throw exception;
       },
-      codeSent: (String verificationId, int? resendToken) async {
+      codeSent: (String verificationId, int? resendToken) {
         buildContext
             .read<AuthCodeBloc>()
             .add(UpdateVerificationId(verificationId));
@@ -719,7 +719,7 @@ class CustomAuth {
             break;
         }
       },
-      codeAutoRetrievalTimeout: (String verificationId) async {
+      codeAutoRetrievalTimeout: (String verificationId) {
         buildContext
             .read<AuthCodeBloc>()
             .add(UpdateVerificationId(verificationId));
