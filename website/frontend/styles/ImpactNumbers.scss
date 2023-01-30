@@ -2,82 +2,46 @@
 @import "lib/variables";
 
 .impact-numbers{
-    max-width: $columnWidth;
-    padding:60px 0 0 0;
-    margin-top:70px;
+    padding:60px 20px 0 40px;
     display: flex;
     flex-flow: row wrap;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
-    .list-card{
-        width: 500px;
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-        padding: 15px 17px;
-        background-color: #fff;
-        border-radius: 16px;
-        margin-bottom: 18px;
-        height:145px;
-        .left{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            svg{
-                margin-bottom: 10px;
-            }
-        }
-        .right{
-            width:90%;
-            margin-top:12px;
-        }
+    background-color: #fff;
+    .impact-card{
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        height:164px;
+        min-width: 158px;
         p{
+            padding: none;
             margin: 0;
-            padding: 0;
-            font-weight: 500;
-            font-size: 15px;
-            line-height: 17px;
         }
-        .subtext{
+        .numbers{
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 28px;
+            padding: 22px 0;
+        }
+        .category{
+            font-size: 16px;
             font-weight: 400;
-            color: $aq-grey-3;
-            font-size: 13px;
-            line-height: 16px;
-            width:80%;
-
-            margin-top: 20px;
+            line-height: 24px;
+            text-transform: capitalize;
         }
     }
 }
 
 @media(max-width: $mainBreakPoint){
     .impact-numbers{
-        padding: 0 16px;
-        .list-card{
-            grid-template-columns: 1fr;
-            height: auto;
-            .left{
-                flex-direction: row;
-                justify-content: flex-start;
-            }
-            .right{
-                width: 100%;
-            }
-            p{
-                font-size: 18px;
-                padding-left: 15px;
-                line-height: 23px;
-                font-weight: 700;
-            }
-            p:first-child{
-                font-size: 22px;
-                font-weight: 500;
-            }
-            .subtext{
-                padding-left: 15px;
-                font-size: 14.5px;
-                margin-top: 12px;
+        padding: 40px 0px 0 35px;
+        align-items: flex-start;
+        justify-content: space-around;
+        .impact-card{
+            .numbers{
+                padding: 12px 0;
             }
         }
     }
