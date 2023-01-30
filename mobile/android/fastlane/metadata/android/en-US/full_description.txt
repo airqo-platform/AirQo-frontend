@@ -1,0 +1,39 @@
+Season’s greetings. A gift of something new!
+We’ve redesigned the AirQo App to improve your experience with simple to use air quality analytics features. 
+
+USER PROFILES
++ Registered users
+You can now create an account to enjoy a personalized experience with either your email or mobile number.
++ Guest users
+Yes no pressure, you can still enjoy the AirQo experience as a guest user 
+
+SEARCH
++ Search location by location name
+You can now search your village/zone on any location within our coverage
++ Search location by map
+You can search locations by navigating the map
+
+FAVORITES
+Interested in a few locations, no worries you can now add and remove locations to your favorites list.
+
+
+FOR YOU
++ Air quality analytics: Personalized air quality recommendations based on what you share frequently, what you favorite, and your location.
++ Know your air: A simple gamified way of learning about air quality
+
+SHARE
+You can share air quality information with friends by either image or text
+
+AIR QUALITY ANALYTICS
++ You can focus on what’s important, view air quality by day/week
++ You can now enjoy a simple experience with Historical/Real-time/Forecast air quality analytics on one chart
+
+COVERAGE
+AirQo is based in Africa and currently displays data from 5 countries including;
++ Uganda: Covers most of the major cities in all regions including Kampala, Fort Portal, Gulu, Jinja, Wakiso, Kabale etc.
++ Kenya: Currently covers Nairobi and Kisumu.
++ Cameroon: Currently in Douala
++ Senegal: Currently in Dakar
++ Guinea
+
+That’s it for now. Send a Boda Boda if you have any suggestions or comments. But seriously you can submit your suggestions for improvements to support@airqo.net we value your feedback”

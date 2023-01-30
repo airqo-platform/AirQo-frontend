@@ -1,7 +1,10 @@
 import 'package:app/models/database.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'enum_constants.dart';
+
+part 'chart_data.g.dart';
 
 class ChartData extends Equatable {
   const ChartData({
@@ -53,12 +56,44 @@ class ChartData extends Equatable {
   List<Object?> get props => [dateTime, frequency, siteId];
 }
 
+@JsonSerializable(
+  explicitToJson: true,
+  createToJson: false,
+)
 class InsightData {
   const InsightData({
     required this.forecast,
     required this.historical,
   });
 
+  factory InsightData.fromJson(Map<String, dynamic> json) =>
+      _$InsightDataFromJson(json);
+
+  @JsonKey(fromJson: _forecastInsightListFromJson)
   final List<ForecastInsight> forecast;
+
+  @JsonKey(fromJson: _historicalInsightListFromJson)
   final List<HistoricalInsight> historical;
+
+  static List<HistoricalInsight> _historicalInsightListFromJson(dynamic json) {
+    List<HistoricalInsight> data = [];
+    for (final value in json) {
+      try {
+        data.add(HistoricalInsight.fromJson(value as Map<String, dynamic>));
+      } catch (_, __) {}
+    }
+
+    return data;
+  }
+
+  static List<ForecastInsight> _forecastInsightListFromJson(dynamic json) {
+    List<ForecastInsight> data = [];
+    for (final value in json) {
+      try {
+        data.add(ForecastInsight.fromJson(value as Map<String, dynamic>));
+      } catch (_, __) {}
+    }
+
+    return data;
+  }
 }

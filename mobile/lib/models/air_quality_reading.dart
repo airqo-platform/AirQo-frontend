@@ -1,6 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app_repository/app_repository.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -8,7 +8,6 @@ import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
-@JsonSerializable()
 @HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject {
   AirQualityReading({
@@ -27,24 +26,34 @@ class AirQualityReading extends HiveObject {
     required this.placeId,
   });
 
-  factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
-      _$AirQualityReadingFromJson(json);
+  factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
+    DateTime dateTime = DateTime.parse(json["time"] as String);
+    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
+    PollutantValue pm2_5 =
+        PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
+    PollutantValue pm10 =
+        PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
 
-  factory AirQualityReading.fromSiteReading(SiteReading siteReading) {
+    Site site = Site.fromJson(json["siteDetails"] as Map<String, dynamic>);
+
+    if (pm2_5.displayValue() == null) {
+      throw Exception("pm2.5 is null for site ${site.getName()}");
+    }
+
     return AirQualityReading(
-      referenceSite: siteReading.siteId,
-      latitude: siteReading.latitude,
-      longitude: siteReading.longitude,
-      country: siteReading.country,
-      name: siteReading.name,
-      location: siteReading.location,
-      region: siteReading.region,
-      source: siteReading.source,
-      dateTime: siteReading.dateTime,
-      pm2_5: siteReading.pm2_5,
-      pm10: siteReading.pm10,
       distanceToReferenceSite: 0.0,
-      placeId: siteReading.siteId,
+      dateTime: dateTime,
+      placeId: site.id,
+      referenceSite: site.id,
+      latitude: site.latitude,
+      longitude: site.longitude,
+      country: site.country,
+      region: site.region,
+      source: site.source,
+      pm2_5: pm2_5.displayValue()!,
+      pm10: pm10.displayValue(),
+      name: site.getName(),
+      location: site.getLocation(),
     );
   }
 
@@ -114,55 +123,137 @@ class AirQualityReading extends HiveObject {
   }
 
   @HiveField(0, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String referenceSite;
 
   @HiveField(1)
-  @JsonKey(defaultValue: 0.0)
   final double latitude;
 
   @HiveField(2)
-  @JsonKey(defaultValue: 0.0)
   final double longitude;
 
   @HiveField(3, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String country;
 
   @HiveField(4, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String name;
 
   @HiveField(5, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String source;
 
   @HiveField(6, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String location;
 
   @HiveField(8)
   final DateTime dateTime;
 
-  @HiveField(9, defaultValue: 0.0)
-  @JsonKey(defaultValue: 0.0)
+  @HiveField(9)
   final double pm2_5;
 
-  @HiveField(10, defaultValue: 0.0)
-  @JsonKey(defaultValue: 0.0)
-  final double pm10;
+  @HiveField(10)
+  final double? pm10;
 
   @HiveField(11, defaultValue: 0.0)
-  @JsonKey(defaultValue: 0.0)
   final double distanceToReferenceSite;
 
   @HiveField(12, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String placeId;
 
   @HiveField(13, defaultValue: '')
-  @JsonKey(defaultValue: '')
+  final String region;
+}
+
+@JsonSerializable(createToJson: false)
+class PollutantValue {
+  factory PollutantValue.fromJson(Map<String, dynamic> json) =>
+      _$PollutantValueFromJson(json);
+
+  const PollutantValue({
+    required this.value,
+    required this.calibratedValue,
+  });
+
+  @JsonKey(
+    required: false,
+    name: 'calibratedValue',
+    fromJson: _valueFromJson,
+    includeIfNull: true,
+  )
+  final double? calibratedValue;
+
+  @JsonKey(required: false, name: 'value', fromJson: _valueFromJson)
+  final double? value;
+
+  double? displayValue() {
+    return calibratedValue ?? value;
+  }
+
+  static double? _valueFromJson(dynamic json) {
+    return json == null
+        ? null
+        : double.parse(double.parse("$json").toStringAsFixed(2));
+  }
+}
+
+@JsonSerializable(createToJson: false)
+class Site {
+  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
+
+  const Site({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.name,
+    required this.description,
+    required this.searchName,
+    required this.searchLocation,
+    required this.country,
+    required this.region,
+    required this.source,
+    required this.shareLinks,
+  });
+
+  @JsonKey(required: true, name: '_id')
+  final String id;
+
+  @JsonKey(required: true, name: 'approximate_latitude')
+  final double latitude;
+
+  @JsonKey(required: true, name: 'approximate_longitude')
+  final double longitude;
+
+  @JsonKey(required: true)
+  final String name;
+
+  @JsonKey(required: true)
+  final String description;
+
+  @JsonKey(required: false, defaultValue: '', name: 'search_name')
+  final String searchName;
+
+  @JsonKey(required: false, defaultValue: '', name: 'location_name')
+  final String searchLocation;
+
+  @JsonKey(required: false, defaultValue: '')
+  final String country;
+
+  @JsonKey(required: false, defaultValue: '')
   final String region;
 
-  Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
+  @JsonKey(required: false, defaultValue: '', name: 'network')
+  final String source;
+
+  @JsonKey(required: false, defaultValue: {}, name: "share_links")
+  final Map<String, dynamic> shareLinks;
+
+  String getName() {
+    return searchName.isEmpty ? name : searchName;
+  }
+
+  String getLocation() {
+    return searchLocation.isEmpty ? description : searchLocation;
+  }
+
+  String getShareLink() {
+    return (shareLinks["short_link"] ?? "") as String;
+  }
 }

@@ -1,5 +1,4 @@
 import 'package:app/models/air_quality_reading.dart';
-import 'package:app/models/place_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -50,17 +49,6 @@ class FavouritePlace extends HiveObject {
       placeId: data['placeId'] as String,
       latitude: data['latitude'] as double,
       longitude: data['longitude'] as double,
-    );
-  }
-
-  factory FavouritePlace.fromPlaceDetails(PlaceDetails placeDetails) {
-    return FavouritePlace(
-      name: placeDetails.name,
-      location: placeDetails.location,
-      referenceSite: placeDetails.siteId,
-      placeId: placeDetails.placeId,
-      latitude: placeDetails.latitude,
-      longitude: placeDetails.longitude,
     );
   }
 

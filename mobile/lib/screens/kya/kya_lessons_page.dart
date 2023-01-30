@@ -70,7 +70,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             InkWell(
-              onTap: () async => _share(),
+              onTap: () async {
+                await _share();
+              },
               child: _shareLoading
                   ? const LoadingIcon(radius: 20)
                   : SvgPicture.asset(
@@ -117,11 +119,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 15,
-            ),
+            const Spacer(),
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: 400,
               child: AppinioSwiper(
                 padding: EdgeInsets.zero,
                 cards: _kyaCards,
@@ -197,7 +197,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _kyaCards = widget.kya.lessons.reversed.map((e) => _kyaCard(e)).toList();
+    _kyaCards = widget.kya.lessons.map((e) => _kyaCard(e)).toList();
   }
 
   Future<void> _share() async {
