@@ -76,8 +76,6 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.12
   appinio_swiper: ^1.1.1
   showcaseview: ^1.1.8
-  app_repository:
-    path: packages/app_repository
   # https://pub.dev/packages/retry
   
 dev_dependencies:
