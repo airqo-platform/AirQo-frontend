@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ImpactNumbers from '../ImpactNumbers';
 import AfricanCities from './AfricanCities';
 import Communities from './Communities';
 
@@ -38,7 +37,6 @@ const AirQuality = () => {
         <div className="content">
           {selectedTab === 'AfricanCities' ? <AfricanCities /> : <Communities />}
         </div>
-        <ImpactNumbers />
       </div>
     </div>
   );
