@@ -74,11 +74,15 @@ class ShareService {
     }
 
     try {
-      if (airQualityReading != null && airQualityReading.shareLink.isNotEmpty) {
+      if (airQualityReading != null &&
+          airQualityReading.shareLink.isNotEmpty &&
+          airQualityReading.shareLink.length < Config.shareLinkMaxLength) {
         return Uri.parse(airQualityReading.shareLink);
       }
 
-      if (kya != null && kya.shareLink.isNotEmpty) {
+      if (kya != null &&
+          kya.shareLink.isNotEmpty &&
+          kya.shareLink.length < Config.shareLinkMaxLength) {
         return Uri.parse(kya.shareLink);
       }
     } catch (exception, stackTrace) {

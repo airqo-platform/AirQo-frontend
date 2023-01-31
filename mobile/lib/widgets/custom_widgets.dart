@@ -395,7 +395,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                   return OutlinedButton(
                     style: _leftButtonStyle,
                     onPressed: () async {
-                      if (link.toString().length > 15) {
+                      if (link.toString().length > Config.shareLinkMaxLength) {
                         await Clipboard.setData(
                           ClipboardData(text: link.toString()),
                         ).then((_) {
