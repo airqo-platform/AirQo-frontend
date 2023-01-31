@@ -115,7 +115,8 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return GestureDetector(
+      onTap: nextScreenClickHandler,
       key: widgetKey,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
