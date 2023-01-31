@@ -126,4 +126,15 @@ class AppService {
     }
     await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
   }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
+  }
 }
