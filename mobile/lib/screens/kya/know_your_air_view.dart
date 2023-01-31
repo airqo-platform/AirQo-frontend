@@ -47,8 +47,10 @@ class KnowYourAirView extends StatelessWidget {
             },
             childCount: completeKya.length,
           ),
-          onRefresh: () async {
+          onRefresh: () {
             _refresh(context);
+
+            return Future(() => null);
           },
         );
       },

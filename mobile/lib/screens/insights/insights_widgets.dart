@@ -1408,7 +1408,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                     radius: 10,
                   )
                 : InkWell(
-                    onTap: () async => _share(),
+                    onTap: () async {
+                      await _share();
+                    },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 21),
                       child: IconTextButton(
@@ -1424,7 +1426,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
           ),
           Expanded(
             child: InkWell(
-              onTap: () async => _updateFavPlace(),
+              onTap: () async {
+                await _updateFavPlace();
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 21),
                 child: IconTextButton(

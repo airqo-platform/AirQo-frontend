@@ -178,6 +178,9 @@
       max-width: 320px;
       margin: 0 auto 0 auto;
 
+      a{
+        text-decoration: underline;
+      }
 
       .register-form {
         width: 100%;
@@ -399,6 +402,7 @@
       display: flex;
       flex-wrap: wrap;
       width: 100%;
+      padding-bottom: 70px;
     }
   }
 
