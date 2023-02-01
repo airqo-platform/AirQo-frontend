@@ -79,19 +79,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     onTap: () async {
                       Uri? link = snapshot.data;
                       if (link != null) {
-                        if (link.toString().length >
-                            Config.shareLinkMaxLength) {
-                          await Clipboard.setData(
-                            ClipboardData(text: link.toString()),
-                          ).then((_) {
-                            showSnackBar(context, 'Copied to your clipboard !');
-                          });
-                        } else {
-                          await ShareService.shareLink(
-                            link,
-                            kya: widget.kya,
-                          );
-                        }
+                        await ShareService.shareLink(
+                          link,
+                          kya: widget.kya,
+                        );
+                        // disabling copying to clipboard
+                        // if (link.toString().length >
+                        //     Config.shareLinkMaxLength) {
+                        //   await Clipboard.setData(
+                        //     ClipboardData(text: link.toString()),
+                        //   ).then((_) {
+                        //     showSnackBar(context, 'Copied to your clipboard !');
+                        //   });
+                        // } else {
+                        //   await ShareService.shareLink(
+                        //     link,
+                        //     kya: widget.kya,
+                        //   );
+                        // }
                       }
                     },
                     child: SvgPicture.asset(

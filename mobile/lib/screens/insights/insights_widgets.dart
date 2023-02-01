@@ -1440,19 +1440,24 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                     return OutlinedButton(
                       style: _leftButtonStyle,
                       onPressed: () async {
-                        if (link.toString().length >
-                            Config.shareLinkMaxLength) {
-                          await Clipboard.setData(
-                            ClipboardData(text: link.toString()),
-                          ).then((_) {
-                            showSnackBar(context, 'Copied to your clipboard !');
-                          });
-                        } else {
-                          await ShareService.shareLink(
-                            link,
-                            airQualityReading: widget.airQualityReading,
-                          );
-                        }
+                        await ShareService.shareLink(
+                          link,
+                          airQualityReading: widget.airQualityReading,
+                        );
+                        // disabling copying to clipboard
+                        // if (link.toString().length >
+                        //     Config.shareLinkMaxLength) {
+                        //   await Clipboard.setData(
+                        //     ClipboardData(text: link.toString()),
+                        //   ).then((_) {
+                        //     showSnackBar(context, 'Copied to your clipboard !');
+                        //   });
+                        // } else {
+                        //   await ShareService.shareLink(
+                        //     link,
+                        //     airQualityReading: widget.airQualityReading,
+                        //   );
+                        // }
                       },
                       child: Center(
                         child: IconTextButton(
