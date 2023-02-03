@@ -81,8 +81,6 @@ jobs:
           bundle install --jobs 4 --retry 3
           
       - name: Deploy to play store
-        run: 
+        run: |
           cd android/
           bundle exec fastlane android production
-
-  
