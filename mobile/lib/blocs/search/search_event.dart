@@ -4,15 +4,22 @@ abstract class SearchEvent extends Equatable {
   const SearchEvent();
 }
 
-class InitializeSearchPage extends SearchEvent {
-  const InitializeSearchPage();
+class InitializeSearchFilter extends SearchEvent {
+  const InitializeSearchFilter();
 
   @override
   List<Object> get props => [];
 }
 
-class ReloadSearchPage extends SearchEvent {
-  const ReloadSearchPage();
+class ReloadSearchFilter extends SearchEvent {
+  const ReloadSearchFilter();
+
+  @override
+  List<Object> get props => [];
+}
+
+class InitializeSearchView extends SearchEvent {
+  const InitializeSearchView();
 
   @override
   List<Object> get props => [];
@@ -20,10 +27,10 @@ class ReloadSearchPage extends SearchEvent {
 
 class FilterByAirQuality extends SearchEvent {
   const FilterByAirQuality(this.airQuality);
-  final AirQuality? airQuality;
+  final AirQuality airQuality;
 
   @override
-  List<Object?> get props => [airQuality];
+  List<Object> get props => [airQuality];
 }
 
 class SearchTermChanged extends SearchEvent {
@@ -35,16 +42,8 @@ class SearchTermChanged extends SearchEvent {
   List<Object> get props => [text];
 }
 
-class SearchAirQuality extends SearchEvent {
-  const SearchAirQuality(this.searchResult);
-  final SearchResult searchResult;
-
-  @override
-  List<Object> get props => [searchResult];
-}
-
-class ClearSearchResult extends SearchEvent {
-  const ClearSearchResult();
+class GetSearchRecommendations extends SearchEvent {
+  const GetSearchRecommendations();
 
   @override
   List<Object> get props => [];

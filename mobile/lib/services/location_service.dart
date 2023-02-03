@@ -238,4 +238,25 @@ class LocationService {
             element.distanceToReferenceSite < Config.searchRadius.toDouble())
         .toList();
   }
+
+  static Future<AirQualityReading?> getSearchAirQuality(
+      SearchResult result) async {
+    final SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(result);
+
+    if (searchResult == null) {
+      return null;
+    }
+
+    AirQualityReading? airQualityReading = await LocationService.getNearestSite(
+      searchResult.latitude,
+      searchResult.longitude,
+    );
+
+    if (airQualityReading != null) {
+      await HiveService.updateSearchHistory(airQualityReading);
+    }
+
+    return airQualityReading;
+  }
 }
