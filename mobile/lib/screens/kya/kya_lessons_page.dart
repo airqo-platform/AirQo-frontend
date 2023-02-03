@@ -302,7 +302,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 minFontSize: 16,
-                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.5),
                     ),
               ),

@@ -10,7 +10,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'hive_service.dart';
@@ -218,9 +217,8 @@ class LocationService {
     double latitude,
     double longitude,
   ) async {
-    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.toList();
+    List<AirQualityReading> airQualityReadings =
+        HiveService.getAirQualityReadings();
 
     airQualityReadings = airQualityReadings.map((element) {
       final double distanceInMeters = metersToKmDouble(
@@ -235,8 +233,9 @@ class LocationService {
       return element.copyWith(distanceToReferenceSite: distanceInMeters);
     }).toList();
 
-    return airQualityReadings.where((element) {
-      return element.distanceToReferenceSite < Config.searchRadius.toDouble();
-    }).toList();
+    return airQualityReadings
+        .where((element) =>
+            element.distanceToReferenceSite < Config.searchRadius.toDouble())
+        .toList();
   }
 }
