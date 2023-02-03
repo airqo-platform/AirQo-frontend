@@ -6,7 +6,7 @@ const Layout = ({ children }) => (
     <TopBar />
     <div className='relative md:flex w-screen h-screen pt-16'>
       <SideBar />
-      <div className='w-auto'>{children}</div>
+      <div className='w-full overflow-x-hidden'>{children}</div>
     </div>
   </div>
 );

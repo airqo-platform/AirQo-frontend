@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "github.vscode-pull-request-github",
+    "firsttris.vscode-jest-runner",
+    "christian-kohler.npm-intellisense",
+    "wakatime.vscode-wakatime",
+    "willstakayama.vscode-nextjs-snippets",
+    "dsznajder.es7-react-js-snippets"
+  ]
+}
