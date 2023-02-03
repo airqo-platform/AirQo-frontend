@@ -1,4 +1,4 @@
-name: deploy-mobile-android-to-firebase-app-distribution
+name: deploy-android-to-firebase-app-distribution
 
 on:
   workflow_dispatch:
@@ -71,7 +71,7 @@ jobs:
         uses: ruby/setup-ruby@v1.123.0
         with:
           ruby-version: "2.6"
-          working-directory: android
+          working-directory: mobile/android
       
       - name: Install bundle
         run: |
