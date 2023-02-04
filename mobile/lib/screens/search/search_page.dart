@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -6,43 +7,30 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'search_widgets.dart';
 
-enum SearchPageState {
-  searching,
-  filtering;
-}
-
-class SearchPageCubit extends Cubit<SearchPageState> {
-  SearchPageCubit() : super(SearchPageState.filtering);
-
-  void showFiltering() => emit(SearchPageState.filtering);
-  void showSearching() => emit(SearchPageState.searching);
-}
-
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     Future.delayed(Duration.zero, () {
+      context.read<SearchPageCubit>().showFiltering();
       context.read<SearchBloc>().add(const InitializeSearchView());
       context.read<SearchFilterBloc>().add(const InitializeSearchFilter());
     });
 
-    return BlocProvider(
-      create: (_) => SearchPageCubit(),
-      child: Scaffold(
-        appBar: const SearchBar(),
-        body: AppSafeArea(
-          widget: BlocBuilder<SearchPageCubit, SearchPageState>(
-            builder: (context, state) {
-              switch (state) {
-                case SearchPageState.filtering:
-                  return const SearchFilterView();
-                case SearchPageState.searching:
-                  return const SearchView();
-              }
-            },
-          ),
+    return Scaffold(
+      appBar: const SearchBar(),
+      body: AppSafeArea(
+        horizontalPadding: 18,
+        widget: BlocBuilder<SearchPageCubit, SearchPageState>(
+          builder: (context, state) {
+            switch (state) {
+              case SearchPageState.filtering:
+                return const SearchFilterView();
+              case SearchPageState.searching:
+                return const SearchView();
+            }
+          },
         ),
       ),
     );
@@ -79,7 +67,6 @@ class SearchFilterView extends StatelessWidget {
             return ListView(
               children: [
                 SearchSection(
-                  maximumElements: 3,
                   title: state.filteredAirQuality?.searchNearbyLocationsText
                           .toTitleCase() ??
                       '',
@@ -108,12 +95,9 @@ class SearchFilterView extends StatelessWidget {
               ],
             );
           case SearchFilterStatus.filterFailed:
-            return NoAirQualityDataWidget(
-              callBack: () {
-                context
-                    .read<SearchFilterBloc>()
-                    .add(const ReloadSearchFilter());
-              },
+            return const NoSearchResultsWidget(
+              message:
+                  'Try adjusting your filters to find what you’re looking for.',
             );
         }
       },
@@ -130,10 +114,13 @@ class SearchView extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case SearchStatus.initial:
-            return SearchSection(
-              maximumElements: 3,
-              title: 'Recent Searches',
-              airQualityReadings: state.searchHistory,
+            return Container(
+              color: CustomColors.appBodyColor,
+              height: double.infinity,
+              child: SearchSection(
+                title: 'Suggestions',
+                airQualityReadings: state.searchHistory,
+              ),
             );
           case SearchStatus.noAirQualityData:
             return NoAirQualityDataWidget(
@@ -152,10 +139,14 @@ class SearchView extends StatelessWidget {
           case SearchStatus.autoCompleteFinished:
             return const AutoCompleteResultsWidget();
           case SearchStatus.searchComplete:
-            return SearchSection(
-              maximumElements: 3,
-              title: 'Other related places',
-              airQualityReadings: state.recommendations,
+            return Container(
+              color: CustomColors.appBodyColor,
+              height: double.infinity,
+              child: SearchSection(
+                title:
+                    'Failed to get the air quality of ${state.searchTerm}. Other places to explore.',
+                airQualityReadings: state.recommendations,
+              ),
             );
         }
       },

@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/screens/search/search_page.dart';
 import 'package:app/services/location_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
@@ -498,7 +497,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
     Navigator.pop(context);
 
     if (airQualityReading == null) {
-      context.read<SearchBloc>().add(const GetSearchRecommendations());
+      context.read<SearchBloc>().add(GetSearchRecommendations(searchResult));
       return;
     }
 

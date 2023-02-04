@@ -43,8 +43,9 @@ class SearchTermChanged extends SearchEvent {
 }
 
 class GetSearchRecommendations extends SearchEvent {
-  const GetSearchRecommendations();
+  const GetSearchRecommendations(this.searchResult);
+  final SearchResult searchResult;
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [searchResult];
 }

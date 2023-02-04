@@ -185,6 +185,26 @@ extension SearchHistoryListExt on List<SearchHistory> {
   }
 }
 
+extension AirQualityReadingExt on AirQualityReading {
+  bool containsSearchResult(SearchResult searchResult) {
+    List<String> searchTerms = searchResult.name.toLowerCase().split(" ")
+      ..addAll(searchResult.location.toLowerCase().split(" "));
+
+    List<String> readingsTerms = name.toLowerCase().split(" ")
+      ..addAll(location.toLowerCase().split(" "))
+      ..addAll(region.toLowerCase().split(" "))
+      ..addAll(country.toLowerCase().split(" "));
+
+    List<String> commonTerms = searchTerms
+        .toSet()
+        .toList()
+        .where((element) => readingsTerms.toSet().toList().contains(element))
+        .toList();
+
+    return commonTerms.isNotEmpty;
+  }
+}
+
 extension AirQualityReadingListExt on List<AirQualityReading> {
   List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
     List<AirQualityReading> data = List.of(this);

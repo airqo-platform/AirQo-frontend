@@ -34,6 +34,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => SearchFilterBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => SearchPageCubit(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => WebViewLoadingCubit(),
         ),
         BlocProvider(

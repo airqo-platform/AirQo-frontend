@@ -240,7 +240,8 @@ class LocationService {
   }
 
   static Future<AirQualityReading?> getSearchAirQuality(
-      SearchResult result) async {
+    SearchResult result,
+  ) async {
     final SearchResult? searchResult =
         await SearchApiClient().getPlaceDetails(result);
 
@@ -254,6 +255,12 @@ class LocationService {
     );
 
     if (airQualityReading != null) {
+      airQualityReading = airQualityReading.copyWith(
+        name: searchResult.name,
+        location: searchResult.location,
+        latitude: searchResult.latitude,
+        longitude: searchResult.longitude,
+      );
       await HiveService.updateSearchHistory(airQualityReading);
     }
 

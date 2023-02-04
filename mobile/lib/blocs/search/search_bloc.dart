@@ -1,8 +1,10 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 part 'search_event.dart';
@@ -33,14 +35,51 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     InitializeSearchView _,
     Emitter<SearchState> emit,
   ) async {
+    List<AirQualityReading> airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+            .values
+            .toList();
+
     List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
-    searchHistory = searchHistory.sortByDateTime().take(3).toList();
-    List<AirQualityReading> searchHistoryAirQuality =
+        Hive.box<SearchHistory>(HiveBox.searchHistory)
+            .values
+            .toList()
+            .sortByDateTime()
+            .toList();
+
+    List<AirQualityReading> searchHistoryReadings =
         await searchHistory.attachedAirQualityReadings();
 
+    airQualityReadings.addAll(searchHistoryReadings);
+
+    if (airQualityReadings.isEmpty) {
+      List<AirQualityReading> readings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+
+      final List<String> countries =
+          readings.map((e) => e.country).toSet().toList();
+
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = readings
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .toList();
+        countryReadings.shuffle();
+        airQualityReadings
+            .addAll(countryReadings.take(2).toList().sortByAirQuality());
+      }
+
+      airQualityReadings.shuffle();
+      readings.removeWhere((e) => airQualityReadings
+          .map((e) => e.placeId)
+          .toList()
+          .contains(e.placeId));
+      airQualityReadings.addAll(readings);
+    }
+
     emit(const SearchState().copyWith(
-      searchHistory: searchHistoryAirQuality,
+      searchHistory: airQualityReadings,
     ));
 
     _onLoadCountries(emit);
@@ -91,23 +130,33 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<void> _onGetSearchRecommendations(
-    GetSearchRecommendations _,
+    GetSearchRecommendations event,
     Emitter<SearchState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    if (airQualityReadings.isEmpty) {
-      airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-    }
+    List<AirQualityReading> recommendations = airQualityReadings
+        .where(
+          (e) =>
+              metersToKmDouble(Geolocator.distanceBetween(
+                e.latitude,
+                e.longitude,
+                event.searchResult.latitude,
+                event.searchResult.longitude,
+              )) <=
+              Config.searchRadius * 2,
+        )
+        .toList();
 
-    return emit(const SearchState().copyWith(
-      recommendations: airQualityReadings,
+    recommendations.addAll(airQualityReadings
+        .where((e) => e.containsSearchResult(event.searchResult))
+        .toList());
+
+    return emit(state.copyWith(
+      recommendations: recommendations,
+      status: SearchStatus.searchComplete,
+      searchTerm: event.searchResult.name,
     ));
   }
 }
@@ -187,10 +236,15 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
         .toList()
         .contains(element.placeId));
 
+    SearchFilterStatus status =
+        nearbyAirQualityLocations.isEmpty && otherAirQualityLocations.isEmpty
+            ? SearchFilterStatus.filterFailed
+            : SearchFilterStatus.filterSuccessful;
+
     return emit(state.copyWith(
       nearbyLocations: nearbyAirQualityLocations.sortByAirQuality(),
       otherLocations: otherAirQualityLocations.sortByAirQuality(),
-      status: SearchFilterStatus.initial,
+      status: status,
       filteredAirQuality: event.airQuality,
     ));
   }
@@ -215,8 +269,9 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
     africanCities.shuffle();
 
     if (africanCities.isEmpty) {
-      return emit(const SearchFilterState()
-          .copyWith(status: SearchFilterStatus.noAirQualityData));
+      return emit(const SearchFilterState().copyWith(
+        status: SearchFilterStatus.noAirQualityData,
+      ));
     }
 
     emit(const SearchFilterState().copyWith(
@@ -228,4 +283,11 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
 
     return;
   }
+}
+
+class SearchPageCubit extends Cubit<SearchPageState> {
+  SearchPageCubit() : super(SearchPageState.filtering);
+
+  void showFiltering() => emit(SearchPageState.filtering);
+  void showSearching() => emit(SearchPageState.searching);
 }

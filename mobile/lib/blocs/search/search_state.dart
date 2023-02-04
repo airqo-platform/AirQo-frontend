@@ -115,3 +115,8 @@ class SearchFilterState extends Equatable {
         filteredAirQuality,
       ];
 }
+
+enum SearchPageState {
+  searching,
+  filtering;
+}
