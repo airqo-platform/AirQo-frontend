@@ -25,3 +25,23 @@ class UpdateLocationPref extends SettingsEvent {
   @override
   List<Object?> get props => [enable];
 }
+
+class DeleteAccount extends SettingsEvent {
+  const DeleteAccount(this.context);
+  final BuildContext context;
+
+  @override
+  List<Object?> get props => [context];
+}
+
+class AccountDeletionCheck extends SettingsEvent {
+  const AccountDeletionCheck({
+    this.error,
+    required this.passed,
+  });
+
+  final bool passed;
+  final AuthenticationError? error;
+  @override
+  List<Object?> get props => [passed, error];
+}

@@ -28,7 +28,6 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     on<PhoneVerificationCodeSent>(_onPhoneVerificationCodeSent);
     on<PhoneAutoVerificationTimeout>(_onPhoneAutoVerificationTimeout);
     on<VerifyPhoneAuthCode>(_onVerifyPhoneAuthCode);
-    on<ClearPhoneAuthCode>(_onClearPhoneAuthCode);
     on<UpdatePhoneCountDown>(_onUpdatePhoneCountDown);
     on<InitializePhoneAuth>(_onInitializePhoneAuth);
   }
@@ -38,15 +37,6 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     Emitter<PhoneAuthState> emit,
   ) {
     emit(state.copyWith(codeCountDown: event.countDown));
-  }
-
-  void _onClearPhoneAuthCode(
-    ClearPhoneAuthCode _,
-    Emitter<PhoneAuthState> emit,
-  ) {
-    return emit(state.copyWith(
-      inputAuthCode: "",
-    ));
   }
 
   Future<void> _onVerifyPhoneAuthCode(
@@ -176,14 +166,15 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     VerifyPhoneNumber event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    emit(state.copyWith(
-      status: PhoneBlocStatus.initial,
-      error: PhoneBlocError.none,
-      errorMessage: "",
-    ));
+    emit(
+      state.copyWith(
+        status: PhoneBlocStatus.initial,
+        error: PhoneBlocError.none,
+        errorMessage: "",
+      ),
+    );
 
-    final phoneNumber =
-        "${state.countryCode} ${state.phoneNumber}".replaceAll(" ", "");
+    final phoneNumber = state.fullPhoneNumber().replaceAll(" ", "");
 
     if (!phoneNumber.isValidPhoneNumber()) {
       return emit(state.copyWith(
@@ -222,14 +213,17 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
 
     if (state.authProcedure == AuthProcedure.signup) {
       try {
-        bool isTaken =
-            await AirqoApiClient().checkIfUserExists(phoneNumber: phoneNumber);
+        bool isTaken = await AirqoApiClient().checkIfUserExists(
+          phoneNumber: phoneNumber,
+        );
         if (isTaken) {
-          return emit(state.copyWith(
-            status: PhoneBlocStatus.error,
-            error: PhoneBlocError.phoneNumberTaken,
-            errorMessage: "Phone number taken",
-          ));
+          return emit(
+            state.copyWith(
+              status: PhoneBlocStatus.error,
+              error: PhoneBlocError.phoneNumberTaken,
+              errorMessage: "Phone number taken",
+            ),
+          );
         }
       } catch (exception, stackTrace) {
         emit(state.copyWith(

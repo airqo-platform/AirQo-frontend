@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -31,10 +30,12 @@ class EmailAuthWidget extends StatefulWidget {
 class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   DateTime? _exitTime;
   bool _keyboardVisible = false;
+  late BuildContext _loadingContext;
 
   @override
   void initState() {
     super.initState();
+    _loadingContext = context;
     context.read<EmailAuthBloc>().add(
           InitializeEmailAuth(
             emailAddress: widget.emailAddress ?? '',
@@ -70,23 +71,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                 children: [
                   MultiBlocListener(
                     listeners: [
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) async {
-                          await AppService.postSignInActions(
-                            context,
-                            state.authProcedure,
-                          );
-                        },
-                        listenWhen: (previous, current) {
-                          return previous.status != current.status &&
-                              current.status ==
-                                  EmailBlocStatus.verificationSuccessful;
-                        },
-                      ),
-
                       // verification failed listener
                       BlocListener<EmailAuthBloc, EmailAuthState>(
                         listener: (context, state) {
+                          _popLoadingScreen();
                           showSnackBar(context, state.errorMessage);
                         },
                         listenWhen: (previous, current) {
@@ -105,18 +93,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                           return current.status == EmailBlocStatus.processing;
                         },
                       ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          Navigator.pop(context);
-                        },
-                        listenWhen: (previous, current) {
-                          return previous.status == EmailBlocStatus.processing;
-                        },
-                      ),
 
-                      // auto verification listeners
+                      // verification listeners
                       BlocListener<EmailAuthBloc, EmailAuthState>(
                         listener: (context, state) async {
+                          _popLoadingScreen();
                           await Navigator.pushAndRemoveUntil(
                             context,
                             bottomNavigation(
@@ -196,6 +177,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         ),
       ),
     );
+  }
+
+  void _popLoadingScreen() {
+    if (Navigator.canPop(_loadingContext)) Navigator.pop(_loadingContext);
   }
 
   Future<bool> onWillPop() {

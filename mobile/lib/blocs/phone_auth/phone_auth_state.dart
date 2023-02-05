@@ -97,6 +97,10 @@ class PhoneAuthState extends Equatable {
   final String inputAuthCode;
   final int codeCountDown;
 
+  String fullPhoneNumber() {
+    return "$countryCode $phoneNumber";
+  }
+
   @override
   List<Object?> get props => [
         phoneNumber,

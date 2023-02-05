@@ -112,7 +112,7 @@ class HiveService {
         .putAll(searchHistoryMap);
   }
 
-  static Future<void> clearSearchHistory() async {
+  static Future<void> deleteSearchHistory() async {
     await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
   }
 
@@ -192,9 +192,17 @@ class HiveService {
     await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
 
-  static Future<void> loadFavouritePlaces(List<FavouritePlace> favouritePlaces,
-      {bool clear = false}) async {
-    if (favouritePlaces.isEmpty && !clear) {
+  static Future<void> deleteProfile() async {
+    await Hive.box<Profile>(HiveBox.profile).clear();
+  }
+
+  static Future<void> deleteFavouritePlaces() async {
+    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
+  }
+
+  static Future<void> loadFavouritePlaces(
+      List<FavouritePlace> favouritePlaces) async {
+    if (favouritePlaces.isEmpty) {
       return;
     }
     await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
@@ -216,6 +224,16 @@ class HiveService {
 
   static List<Analytics> getAnalytics() {
     return Hive.box<Analytics>(HiveBox.analytics).values.toList();
+  }
+
+  static Future<Profile> getProfile() async {
+    Profile? profile = Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+    profile = profile ?? await Profile.create();
+    return await profile.setUserCredentials();
+  }
+
+  static Future<void> deleteAnalytics() async {
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
   }
 
   static Future<void> loadAnalytics(List<Analytics> analytics,

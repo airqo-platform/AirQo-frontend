@@ -53,10 +53,7 @@ class FavouritePlacesPage extends StatelessWidget {
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(index),
                     ),
-                    child: MiniAnalyticsCard(
-                      airQualityReading,
-                      animateOnClick: false,
-                    ),
+                    child: FavouritePlaceCard(airQualityReading),
                   );
                 },
                 childCount: state.favouritePlaces.length,

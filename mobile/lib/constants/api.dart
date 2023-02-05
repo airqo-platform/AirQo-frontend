@@ -9,9 +9,6 @@ class AirQoUrls {
 
   static String get measurements => '${Config.airqoApiUrl}devices/events';
 
-  static String get placeSearchDetails =>
-      '${Config.placesSearchUrl}details/json';
-
   static String get requestEmailReAuthentication =>
       '${Config.airqoApiUrl}users/emailAuth';
 
@@ -19,9 +16,6 @@ class AirQoUrls {
       '${Config.airqoApiUrl}users/emailLogin';
 
   static String get feedback => '${Config.airqoApiUrl}users/feedback';
-
-  static String get searchSuggestions =>
-      '${Config.placesSearchUrl}autocomplete/json';
 
   static String get welcomeMessage =>
       '${Config.airqoApiUrl}notifications/welcomeMessage';

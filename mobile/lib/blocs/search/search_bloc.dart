@@ -27,7 +27,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     emit(const SearchState.initial());
-    await HiveService.clearSearchHistory();
+    await HiveService.deleteSearchHistory();
   }
 
   Future<void> _loadSearchHistory(Emitter<SearchState> emit) async {

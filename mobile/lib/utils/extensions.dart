@@ -355,9 +355,7 @@ extension DateTimeExt on DateTime {
     return firstDate.getDateOfFirstHourOfDay();
   }
 
-  Future<String> getGreetings() async {
-    final profile = await Profile.getProfile();
-
+  Future<String> getGreetings(Profile profile) async {
     if (00 <= hour && hour < 12) {
       return 'Good morning ${profile.firstName}'.trim();
     }

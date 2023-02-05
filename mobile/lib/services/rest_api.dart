@@ -162,9 +162,7 @@ class AirqoApiClient {
       final response = await http.post(
         Uri.parse(AirQoUrls.requestEmailVerification),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': emailAddress,
-        }),
+        body: jsonEncode({'email': emailAddress}),
       );
 
       return EmailAuthModel.fromJson(json.decode(response.body));
@@ -256,26 +254,17 @@ class AirqoApiClient {
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
-      final body = jsonEncode(
-        {
+      final response = await httpClient.post(
+        Uri.parse(AirQoUrls.feedback),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
           'email': feedback.contactDetails,
           'subject': feedback.feedbackType.toString(),
           'message': feedback.message,
-        },
+        }),
       );
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
-
-      final response = await httpClient.post(
-        Uri.parse(AirQoUrls.feedback),
-        headers: headers,
-        body: body,
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      }
+      if (response.statusCode == 200) return true;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -284,33 +273,6 @@ class AirqoApiClient {
     }
 
     return false;
-  }
-
-  @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeMessage(Profile userDetails) async {
-    try {
-      if (!userDetails.emailAddress.isValidEmail()) {
-        return;
-      }
-
-      final body = {
-        'firstName':
-            userDetails.firstName.isNull() ? '' : userDetails.firstName,
-        'platform': 'mobile',
-        'email': userDetails.emailAddress,
-      };
-
-      await _performPostRequest(
-        queryParams: <String, dynamic>{},
-        url: AirQoUrls.welcomeMessage,
-        body: jsonEncode(body),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
   }
 
   Future<dynamic> _performGetRequest(

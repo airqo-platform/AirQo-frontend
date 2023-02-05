@@ -1,6 +1,9 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -8,8 +11,9 @@ part 'settings_event.dart';
 part 'settings_state.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
-  SettingsBloc() : super(const SettingsState.initial()) {
+  SettingsBloc() : super(const SettingsState()) {
     on<InitializeSettings>(_onInitializeSettings);
+    on<DeleteAccount>(_onDeleteAccount);
     on<UpdateLocationPref>(_onUpdateLocationPref);
     on<UpdateNotificationPref>(_onUpdateNotificationPref);
   }
@@ -63,5 +67,41 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     if (event.enable) {
       await CloudAnalytics.logEvent(Event.allowNotification);
     }
+  }
+
+  Future<void> _onDeleteAccount(
+    DeleteAccount _,
+    Emitter<SettingsState> emit,
+  ) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: 'No Internet connection'));
+    }
+
+    emit(state.copyWith(status: SettingsStatus.processing, errorMessage: ''));
+
+    try {
+      final success = await CustomAuth.firebaseDeleteAccount();
+      if (success) {
+        emit(state.copyWith(status: SettingsStatus.accountDeletionSuccessful));
+      }
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      AuthenticationError error = CustomAuth.getFirebaseExceptionMessage(
+        exception,
+      );
+      if (error == AuthenticationError.logInRequired) {
+        return emit(state.copyWith(status: SettingsStatus.loginRequired));
+      } else {
+        logException(exception, stackTrace);
+      }
+    } catch (exception, stackTrace) {
+      logException(exception, stackTrace);
+    }
+
+    return emit(state.copyWith(
+        status: SettingsStatus.error,
+        errorMessage: 'Could not logout. Try again later'));
   }
 }

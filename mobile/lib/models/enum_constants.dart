@@ -400,6 +400,12 @@ enum AuthProcedure {
     confirmationOkayText: '',
     confirmationCancelText: '',
   ),
+  reAuthenticating(
+    confirmationTitle: '',
+    confirmationBody: '',
+    confirmationOkayText: '',
+    confirmationCancelText: '',
+  ),
   deleteAccount(
     confirmationTitle: 'Heads up!!!.. you are about to delete your account!',
     confirmationBody: 'You will lose all your saved places',

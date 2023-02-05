@@ -156,6 +156,7 @@ class CloudStore {
           userProgress.firstWhere((x) => x.id == element.id, orElse: () {
         return KyaProgress(id: element.id, progress: 0);
       });
+
       return element.copyWith(progress: kyaProgress.progress);
     }).toList();
 
@@ -225,7 +226,7 @@ class CloudStore {
   }
 
   static Future<Profile> getProfile() async {
-    Profile profile;
+    Profile? profile;
 
     try {
       final profileJson = await FirebaseFirestore.instance
@@ -234,22 +235,22 @@ class CloudStore {
           .get();
 
       final profileData = profileJson.data();
-      if (profileData == null) {
-        profile = await Profile.create();
-        await updateProfile(profile);
-        return profile;
-      } else {
+      if (profileData != null) {
         profile = Profile.fromJson(profileData);
       }
     } catch (exception, stackTrace) {
-      profile = await Profile.create();
       await logException(
         exception,
         stackTrace,
       );
     }
 
-    return profile.copyWith(user: CustomAuth.getUser());
+    if (profile == null) {
+      profile = await HiveService.getProfile();
+      await updateProfile(profile);
+    }
+
+    return await profile.setUserCredentials();
   }
 
   static Future<List<FavouritePlace>> getFavouritePlaces() async {
@@ -345,9 +346,7 @@ class CloudStore {
         FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(profile.userId)
-            .set(
-              profile.toJson(),
-            ),
+            .set(profile.toJson()),
       ]);
     } catch (exception, stackTrace) {
       await logException(
@@ -357,7 +356,7 @@ class CloudStore {
     }
   }
 
-  static Future<bool> updateCloudAnalytics() async {
+  static Future<bool> updateCloudAnalytics(Profile profile) async {
     final currentUser = CustomAuth.getUser();
     if (currentUser == null) {
       return true;
@@ -367,7 +366,6 @@ class CloudStore {
           .values
           .toList()
           .cast<Analytics>();
-      final profile = await Profile.getProfile();
       for (final x in analytics) {
         try {
           await FirebaseFirestore.instance
@@ -375,9 +373,7 @@ class CloudStore {
               .doc(profile.userId)
               .collection(profile.userId)
               .doc(x.site)
-              .set(
-                x.toJson(),
-              );
+              .set(x.toJson());
         } catch (exception) {
           debugPrint(exception.toString());
         }
@@ -394,11 +390,11 @@ class CloudStore {
 
   static Future<void> updateCloudNotification(
     AppNotification notification,
+    Profile profile,
   ) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        final profile = await Profile.getProfile();
         try {
           await FirebaseFirestore.instance
               .collection(Config.usersNotificationCollection)
@@ -477,22 +473,6 @@ class CloudMessaging {
 }
 
 class CustomAuth {
-  static Future<Profile> createProfile() async {
-    final profile = await Profile.create();
-
-    try {
-      await FirebaseAuth.instance.currentUser
-          ?.updateDisplayName(profile.firstName);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return profile;
-  }
-
   static Future<bool> firebaseGuestSignIn() async {
     UserCredential userCredential;
     User? user = getUser();
@@ -518,6 +498,15 @@ class CustomAuth {
       return userCredential.user != null;
     }
 
+    return false;
+  }
+
+  static Future<bool> firebaseDeleteAccount() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.delete();
+      return true;
+    }
     return false;
   }
 
@@ -565,7 +554,8 @@ class CustomAuth {
   }
 
   static AuthenticationError getFirebaseExceptionMessage(
-      FirebaseAuthException exception) {
+    FirebaseAuthException exception,
+  ) {
     String code = exception.code;
     switch (code) {
       case 'invalid-email':
@@ -633,11 +623,8 @@ class CustomAuth {
     );
   }
 
-  static Future<void> initiateEmailVerification({
-    required String emailAddress,
-    required BuildContext buildContext,
-    required AuthProcedure authProcedure,
-  }) async {
+  static Future<void> initiateEmailVerification(String emailAddress,
+      {required BuildContext buildContext}) async {
     await AirqoApiClient()
         .getEmailVerificationCode(emailAddress)
         .then((emailAuthModel) {
@@ -656,91 +643,7 @@ class CustomAuth {
     required String phoneNumber,
     required BuildContext buildContext,
     required AuthProcedure authProcedure,
-  }) async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext
-                .read<ProfileBloc>()
-                .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(VerifyAuthCode(credential: credential));
-      },
-      verificationFailed: (FirebaseAuthException exception) async {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext.read<ProfileBloc>().add(AccountDeletionCheck(
-                  passed: false,
-                  error: getFirebaseExceptionMessage(exception),
-                ));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-
-        throw exception;
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(UpdateVerificationId(verificationId));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext
-                .read<ProfileBloc>()
-                .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(UpdateVerificationId(verificationId));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            break;
-          case AuthProcedure.deleteAccount:
-            buildContext
-                .read<ProfileBloc>()
-                .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      },
-      timeout: const Duration(seconds: 30),
-    );
-  }
+  }) async {}
 
   static Future<void> sendEmailAuthCode({
     required String emailAddress,

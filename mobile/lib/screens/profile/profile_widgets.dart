@@ -63,8 +63,10 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 
   Future<void> _signOut() async {
-    bool hasConnection =
-        await checkNetworkConnection(context, notifyUser: true);
+    bool hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!hasConnection) {
       return;
     }

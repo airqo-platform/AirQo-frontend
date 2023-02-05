@@ -6,6 +6,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:stream_transform/stream_transform.dart';
 
+List<String> getNames(String fullName) {
+  final namesArray = fullName.split(' ');
+
+  switch (namesArray.length) {
+    case 0:
+      return ['', ''];
+    case 1:
+      return [namesArray.first, ''];
+    default:
+      return [namesArray.first, namesArray[1]];
+  }
+}
+
 String chartTitleDateTimeTitle({
   required DateTime dateTime,
   required Frequency frequency,

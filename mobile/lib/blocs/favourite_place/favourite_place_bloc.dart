@@ -67,9 +67,8 @@ class FavouritePlaceBloc
     ClearFavouritePlaces _,
     Emitter<FavouritePlaceState> emit,
   ) async {
-    // TODO  await CloudStore.updateFavouritePlaces()
     emit(const FavouritePlaceState.initial());
-    await HiveService.loadFavouritePlaces([], clear: true);
+    await HiveService.deleteFavouritePlaces();
   }
 
   Future<void> _onRefreshFavouritePlaces(

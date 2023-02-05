@@ -2,6 +2,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/screens/settings/settings_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -131,16 +132,17 @@ class _SettingsPageState extends State<SettingsPage>
                   child: ListTile(
                     tileColor: Colors.white,
                     onTap: () async {
-                      await AppService().clearShowcase();
-                      await Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const HomePage();
-                          },
-                        ),
-                        (r) => false,
-                      );
+                      await AppService().clearShowcase().then((_) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const HomePage();
+                            },
+                          ),
+                          (r) => false,
+                        );
+                      });
                     },
                     title: Text(
                       'Take a tour of the App',
@@ -194,88 +196,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                 ),
                 const Spacer(),
-                BlocBuilder<ProfileBloc, ProfileState>(
-                  builder: (context, state) {
-                    final profile = state.profile;
-                    if (profile == null || profile.isAQuest()) {
-                      return Container();
-                    }
-
-                    return MultiBlocListener(
-                      listeners: [
-                        BlocListener<ProfileBloc, ProfileState>(
-                          listener: (context, state) {
-                            loadingScreen(context);
-                          },
-                          listenWhen: (previous, current) {
-                            return current.blocStatus == BlocStatus.processing;
-                          },
-                        ),
-                        BlocListener<ProfileBloc, ProfileState>(
-                          listener: (context, state) {
-                            Navigator.pop(context);
-                          },
-                          listenWhen: (previous, current) {
-                            return previous.blocStatus == BlocStatus.processing;
-                          },
-                        ),
-                        BlocListener<ProfileBloc, ProfileState>(
-                          listener: (context, state) {
-                            showSnackBar(context, state.blocError.message);
-                          },
-                          listenWhen: (previous, current) {
-                            return current.blocStatus == BlocStatus.error &&
-                                current.blocError != AuthenticationError.none;
-                          },
-                        ),
-                        BlocListener<ProfileBloc, ProfileState>(
-                          listener: (context, state) {
-                            // TODO implement account deletion
-                          },
-                          listenWhen: (previous, current) {
-                            return current.blocStatus ==
-                                BlocStatus.accountDeletionCheckSuccess;
-                          },
-                        ),
-                      ],
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // TODO implement this functionality
-                          context
-                              .read<ProfileBloc>()
-                              .add(DeleteAccount(context: context));
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: CustomColors.aqiRed,
-                          minimumSize: const Size.fromHeight(60),
-                          alignment: Alignment.centerLeft,
-                          elevation: 0,
-                          side: const BorderSide(color: Colors.transparent),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                          ),
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 14,
-                          ),
-                        ),
-                        child: Text(
-                          'Delete your account',
-                          textAlign: TextAlign.start,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText2
-                              ?.copyWith(
-                                  color: CustomColors.aqiRed,
-                                  fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                const DeleteAccountButton(),
               ],
             );
           },

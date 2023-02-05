@@ -132,9 +132,8 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     ClearEmailAddress _,
     Emitter<EmailAuthState> emit,
   ) async {
-    return emit(state.copyWith(
-      emailAddress: '',
-      status: EmailBlocStatus.initial,
+    return emit(EmailAuthState.initial(
+      authProcedure: state.authProcedure,
     ));
   }
 
@@ -143,9 +142,10 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(
-        status: EmailBlocStatus.error,
-        error: EmailBlocError.verificationFailed,
-        errorMessage: "Verification failed. Try again later"));
+      status: EmailBlocStatus.error,
+      error: EmailBlocError.verificationFailed,
+      errorMessage: "Verification failed. Try again later",
+    ));
   }
 
   // Future<void> _onEmailValidationPassed(
@@ -211,9 +211,8 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     }
 
     await CustomAuth.initiateEmailVerification(
-      emailAddress: state.emailAddress,
+      state.emailAddress,
       buildContext: event.context,
-      authProcedure: state.authProcedure,
     );
 
     return;

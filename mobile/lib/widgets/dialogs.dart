@@ -437,6 +437,47 @@ class AuthMethodDialog extends StatelessWidget {
   }
 }
 
+class ReAuthenticationDialog extends StatelessWidget {
+  const ReAuthenticationDialog(this.message, {super.key});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: Text(
+        message,
+        textAlign: TextAlign.center,
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.cancel);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: true,
+          child: Text(
+            'Cancel',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            'Proceed',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class AuthProcedureDialog extends StatelessWidget {
   const AuthProcedureDialog({
     super.key,

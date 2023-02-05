@@ -15,7 +15,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
-    final greetings = await DateTime.now().getGreetings();
+    Profile profile = await HiveService.getProfile();
+    final greetings = await DateTime.now().getGreetings(profile);
     emit(state.copyWith(greetings: greetings));
   }
 
@@ -74,24 +75,28 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       _loadAirQualityReadings(emit);
     }
 
+    await _updateGreetings(emit);
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection && state.airQualityReadings.isEmpty) {
-      return emit(state.copyWith(
-        status: DashboardStatus.error,
-        error: DashboardError.noInternetConnection,
-      ));
+      return emit(
+        state.copyWith(
+          status: DashboardStatus.error,
+          error: DashboardError.noInternetConnection,
+        ),
+      );
     }
 
-    emit(state.copyWith(
-      status: state.airQualityReadings.isEmpty
-          ? DashboardStatus.loading
-          : DashboardStatus.refreshing,
-    ));
+    emit(
+      state.copyWith(
+        status: state.airQualityReadings.isEmpty
+            ? DashboardStatus.loading
+            : DashboardStatus.refreshing,
+      ),
+    );
 
     await Future.wait([
       AppService().refreshAirQualityReadings(),
       AppService().updateFavouritePlacesReferenceSites(),
-      _updateGreetings(emit),
     ]).whenComplete(() => _loadAirQualityReadings(emit));
   }
 }

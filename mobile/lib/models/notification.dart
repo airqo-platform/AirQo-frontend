@@ -57,7 +57,7 @@ class AppNotification extends HiveObject {
   AppNotificationType type;
 
   Future<void> saveNotification() async {
-    await Future.wait([save(), CloudStore.updateCloudNotification(this)]);
+    // await Future.wait([save(), CloudStore.updateCloudNotification(this)]);
   }
 
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);

@@ -31,28 +31,6 @@ class LogOutAccount extends ProfileEvent {
   List<Object?> get props => [];
 }
 
-class DeleteAccount extends ProfileEvent {
-  const DeleteAccount({
-    required this.context,
-  });
-  final BuildContext context;
-
-  @override
-  List<Object?> get props => [];
-}
-
-class AccountDeletionCheck extends ProfileEvent {
-  const AccountDeletionCheck({
-    this.error,
-    required this.passed,
-  });
-
-  final bool passed;
-  final AuthenticationError? error;
-  @override
-  List<Object?> get props => [passed, error];
-}
-
 class EditProfile extends ProfileEvent {
   const EditProfile({
     this.firstName,

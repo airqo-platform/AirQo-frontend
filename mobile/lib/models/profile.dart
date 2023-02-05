@@ -12,7 +12,7 @@ import 'enum_constants.dart';
 part 'profile.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 20, adapterName: 'ProfileAdapter')
+@HiveType(typeId: 20)
 class Profile extends HiveObject with EquatableMixin {
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
@@ -71,7 +71,7 @@ class Profile extends HiveObject with EquatableMixin {
   @JsonKey(required: false)
   final UserPreferences preferences;
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final User? user;
 
   Profile copyWith({
@@ -130,7 +130,6 @@ class Profile extends HiveObject with EquatableMixin {
   }
 
   static Future<Profile> create() async {
-    User? user = CustomAuth.getUser();
     Profile profile = Profile(
       title: TitleOptions.ms.value,
       firstName: '',
@@ -142,39 +141,13 @@ class Profile extends HiveObject with EquatableMixin {
       preferences: UserPreferences.initialize(),
       utcOffset: DateTime.now().getUtcOffset(),
       photoUrl: '',
-      user: user,
+      user: null,
     );
 
-    if (user != null) {
-      profile = profile.copyWith(
-        userId: user.uid,
-        phoneNumber: user.phoneNumber,
-        emailAddress: user.email,
-      );
-    }
-
-    return profile;
-  }
-
-  static Future<Profile> getProfile() async {
-    return Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ??
-        await create();
+    return await profile.setUserCredentials();
   }
 
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
-
-  static List<String> getNames(String fullName) {
-    final namesArray = fullName.split(' ');
-
-    switch (namesArray.length) {
-      case 0:
-        return ['', ''];
-      case 1:
-        return [namesArray.first, ''];
-      default:
-        return [namesArray.first, namesArray[1]];
-    }
-  }
 
   @override
   List<Object?> get props => [
@@ -188,11 +161,12 @@ class Profile extends HiveObject with EquatableMixin {
         utcOffset,
         device,
         preferences,
+        user,
       ];
 }
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 120, adapterName: 'UserPreferencesTypeAdapter')
+@HiveType(typeId: 120)
 class UserPreferences extends HiveObject with EquatableMixin {
   UserPreferences({
     required this.notifications,

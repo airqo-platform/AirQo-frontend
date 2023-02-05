@@ -31,7 +31,8 @@ class FavouritePlace extends HiveObject {
   }
 
   factory FavouritePlace.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
     final data = snapshot.data()!;
 
     var referenceSite = '';

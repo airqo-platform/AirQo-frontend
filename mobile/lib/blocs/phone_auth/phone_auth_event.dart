@@ -22,8 +22,10 @@ class ClearPhoneNumberEvent extends PhoneAuthEvent {
 }
 
 class VerifyPhoneNumber extends PhoneAuthEvent {
-  const VerifyPhoneNumber(this.buildContext,
-      {this.showConfirmationDialog = false});
+  const VerifyPhoneNumber(
+    this.buildContext, {
+    this.showConfirmationDialog = false,
+  });
   final BuildContext buildContext;
   final bool showConfirmationDialog;
   @override
@@ -35,12 +37,6 @@ class UpdatePhoneAuthCode extends PhoneAuthEvent {
   final String value;
   @override
   List<Object?> get props => [value];
-}
-
-class ClearPhoneAuthCode extends PhoneAuthEvent {
-  const ClearPhoneAuthCode();
-  @override
-  List<Object?> get props => [];
 }
 
 class VerifyPhoneAuthCode extends PhoneAuthEvent {

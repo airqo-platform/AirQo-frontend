@@ -1,5 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/profile/profile_edit_page.dart';
+import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,8 +49,20 @@ class AppService {
   }
 
   static Future<void> postSignInActions(
-      BuildContext context, AuthProcedure authProcedure,
-      {int delay = 2}) async {
+    BuildContext context,
+    AuthProcedure authProcedure, {
+    int delay = 2,
+  }) async {
+    if (authProcedure == AuthProcedure.deleteAccount) {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => const SettingsPage(),
+          ),
+          result: true);
+      return;
+    }
+
     context.read<ProfileBloc>().add(const FetchProfile());
     context.read<KyaBloc>().add(const FetchKya());
     context.read<AnalyticsBloc>().add(const FetchAnalytics());
@@ -70,6 +84,8 @@ class AppService {
               return const HomePage();
             case AuthProcedure.signup:
               return const ProfileSetupScreen();
+            case AuthProcedure.reAuthenticating:
+              return const ProfileEditPage();
           }
         }), (r) => true);
       },

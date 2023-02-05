@@ -37,6 +37,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
     Emitter<KyaState> emit,
   ) async {
     final kya = await CloudStore.getKya();
+
     return emit(const KyaState.initial().copyWith(kya: kya));
   }
 
