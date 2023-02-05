@@ -157,48 +157,14 @@ class AirqoApiClient {
     return const InsightData(forecast: [], historical: []);
   }
 
-  Future<EmailAuthModel?> getEmailVerificationCode(String emailAddress) async {
+  Future<EmailAuthModel?> requestEmailVerificationCode(
+    String emailAddress,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse(AirQoUrls.requestEmailVerification),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': emailAddress}),
-      );
-
-      return EmailAuthModel.fromJson(json.decode(response.body));
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return null;
-  }
-
-  Future<EmailAuthModel?> requestEmailVerificationCode(
-    String emailAddress,
-    bool reAuthenticate,
-  ) async {
-    try {
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent(
-          'Content-Type',
-          () => 'application/json',
-        );
-
-      final body = {
-        'email': emailAddress,
-      };
-
-      final uri = reAuthenticate
-          ? AirQoUrls.requestEmailReAuthentication
-          : AirQoUrls.requestEmailVerification;
-
-      final response = await http.post(
-        Uri.parse(uri),
-        headers: headers,
-        body: jsonEncode(body),
       );
 
       return EmailAuthModel.fromJson(json.decode(response.body));
@@ -221,9 +187,7 @@ class AirqoApiClient {
       ..putIfAbsent(
         'startTime',
         () => '${DateFormat('yyyy-MM-dd').format(
-          DateTime.now().toUtc().subtract(
-                const Duration(days: 1),
-              ),
+          DateTime.now().toUtc().subtract(const Duration(days: 1)),
         )}T00:00:00Z',
       )
       ..putIfAbsent('frequency', () => 'hourly')
@@ -302,39 +266,6 @@ class AirqoApiClient {
 
     return null;
   }
-
-  Future<bool> _performPostRequest({
-    required Map<String, dynamic> queryParams,
-    required String url,
-    required dynamic body,
-  }) async {
-    try {
-      url = addQueryParameters(
-        queryParams,
-        url,
-      );
-      headers.putIfAbsent(
-        'Content-Type',
-        () => 'application/json',
-      );
-
-      final response = await httpClient.post(
-        Uri.parse(url),
-        headers: headers,
-        body: body,
-      );
-      if (response.statusCode == 200) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
-  }
 }
 
 class SearchApiClient {
@@ -350,16 +281,6 @@ class SearchApiClient {
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
-  final _httpClient = SentryHttpClient(
-    client: http.Client(),
-    failedRequestStatusCodes: [
-      SentryStatusCode(503),
-      SentryStatusCode(400),
-      SentryStatusCode(404),
-    ],
-    captureFailedRequests: true,
-    networkTracing: true,
-  );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
@@ -368,7 +289,7 @@ class SearchApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await _httpClient.get(
+      final response = await http.Client().get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {

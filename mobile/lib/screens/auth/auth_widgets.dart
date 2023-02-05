@@ -5,7 +5,6 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
-import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -263,7 +262,7 @@ class _PhoneAuthVerificationWidgetState
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.6),
                         ),
                   ),
@@ -276,7 +275,7 @@ class _PhoneAuthVerificationWidgetState
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 18.0,
                         color: CustomColors.appColorBlue,
                       ),
@@ -309,7 +308,7 @@ class _PhoneAuthVerificationWidgetState
                   child: Text(
                     'The code should arrive with in ${state.codeCountDown} sec',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.caption?.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.5),
                         ),
                   ),
@@ -328,7 +327,7 @@ class _PhoneAuthVerificationWidgetState
                     child: Text(
                       'Resend code',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlue,
                           ),
                     ),
@@ -356,7 +355,7 @@ class _PhoneAuthVerificationWidgetState
                           child: Text(
                             'Or',
                             style:
-                                Theme.of(context).textTheme.caption?.copyWith(
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: const Color(0xffD1D3D9),
                                     ),
                           ),
@@ -381,7 +380,7 @@ class _PhoneAuthVerificationWidgetState
                       child: Text(
                         AuthMethod.phone.editEntryText,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.caption?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: CustomColors.appColorBlue,
                             ),
                       ),
@@ -558,7 +557,7 @@ class _EmailAuthVerificationWidgetState
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.6),
                         ),
                   ),
@@ -571,7 +570,7 @@ class _EmailAuthVerificationWidgetState
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 18.0,
                         color: CustomColors.appColorBlue,
                       ),
@@ -604,7 +603,7 @@ class _EmailAuthVerificationWidgetState
                   child: Text(
                     'The code should arrive with in ${state.codeCountDown} sec',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.caption?.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.5),
                         ),
                   ),
@@ -623,7 +622,7 @@ class _EmailAuthVerificationWidgetState
                     child: Text(
                       'Resend code',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlue,
                           ),
                     ),
@@ -651,7 +650,7 @@ class _EmailAuthVerificationWidgetState
                           child: Text(
                             'Or',
                             style:
-                                Theme.of(context).textTheme.caption?.copyWith(
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: const Color(0xffD1D3D9),
                                     ),
                           ),
@@ -676,7 +675,7 @@ class _EmailAuthVerificationWidgetState
                       child: Text(
                         cancelText,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.caption?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: CustomColors.appColorBlue,
                             ),
                       ),
@@ -977,7 +976,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
 
     loadingScreen(context);
 
-    final success = await CustomAuth.firebaseGuestSignIn();
+    final success = await CustomAuth.guestSignIn();
 
     if (!mounted) return;
 
@@ -1064,7 +1063,7 @@ class SignUpButton extends StatelessWidget {
         child: AutoSizeText(
           authMethod.optionsButtonText(authProcedure),
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.caption?.copyWith(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: CustomColors.appColorBlue,
               ),
         ),
@@ -1122,7 +1121,7 @@ class SignUpOptions extends StatelessWidget {
                     Text(
                       'Already have an account',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlack.withOpacity(0.6),
                           ),
                     ),
@@ -1132,7 +1131,7 @@ class SignUpOptions extends StatelessWidget {
                     Text(
                       'Log in',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlue,
                           ),
                     ),
@@ -1196,7 +1195,7 @@ class LoginOptions extends StatelessWidget {
                     Text(
                       'Don’t have an account',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlack.withOpacity(0.6),
                           ),
                     ),
@@ -1206,7 +1205,7 @@ class LoginOptions extends StatelessWidget {
                     Text(
                       'Sign up',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: CustomColors.appColorBlue,
                           ),
                     ),

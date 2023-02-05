@@ -71,7 +71,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       );
       // final authCredential = state.phoneAuthCredential ?? phoneCredential;
 
-      final signInSuccess = await CustomAuth.firebaseSignIn(authCredential);
+      final signInSuccess = await CustomAuth.signIn(authCredential);
 
       return emit(state.copyWith(
         error: signInSuccess
@@ -153,7 +153,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       status: PhoneBlocStatus.autoVerifying,
       error: PhoneBlocError.none,
     ));
-    bool success = await CustomAuth.firebaseSignIn(event.authCredential);
+    bool success = await CustomAuth.signIn(event.authCredential);
     if (success) {
       return emit(state.copyWith(
         authCredential: event.authCredential,

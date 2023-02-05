@@ -8,8 +8,6 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../auth/auth_widgets.dart';
-
 class DeleteAccountButton extends StatefulWidget {
   const DeleteAccountButton({super.key});
 
@@ -98,7 +96,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
             child: Text(
               'Delete your account',
               textAlign: TextAlign.start,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: CustomColors.aqiRed, fontWeight: FontWeight.w500),
             ),
           ),
@@ -116,7 +114,8 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const ReAuthenticationDialog('Login required to delete account');
+        return const ReAuthenticationDialog(
+            'Login is required to delete account');
       },
     );
 

@@ -3,18 +3,13 @@ import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:app/blocs/auth_code/auth_code_bloc.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  ProfileBloc() : super(const ProfileState.initial()) {
-    on<LogOutAccount>(_onLogOutAccount);
+  ProfileBloc() : super(const ProfileState()) {
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
     on<FetchProfile>(_onFetchProfile);
@@ -61,7 +56,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ClearProfile _,
     Emitter<ProfileState> emit,
   ) async {
-    emit(const ProfileState.initial());
+    emit(const ProfileState());
     await HiveService.deleteProfile();
     await SecureStorage().clearUserData();
   }
@@ -71,7 +66,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     Profile profile = await CloudStore.getProfile();
-    emit(const ProfileState.initial().copyWith(profile: profile));
+    emit(const ProfileState().copyWith(profile: profile));
     await HiveService.loadProfile(profile);
   }
 
@@ -107,39 +102,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (!hasConnection) {
       return;
     }
+
     await CloudStore.updateProfile(profile);
-    // TODO background task to upload image
-  }
-
-  Future<void> _uploadPicture({
-    required Emitter<ProfileState> emit,
-  }) async {
-    try {
-      final profile = await _getProfile(emit);
-
-      final imageUrl = await CloudStore.uploadProfilePicture(profile.photoUrl);
-      if (imageUrl.isNotEmpty) {
-        // TODO verify profile updating
-        emit(
-          state.copyWith(
-            profile: profile.copyWith(
-              photoUrl: imageUrl,
-            ),
-          ),
-        );
-
-        await Future.wait([
-          CloudAnalytics.logEvent(
-            Event.uploadProfilePicture,
-          ),
-          // TODO update profile
-        ]);
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+    if (profile.photoUrl.isNotEmpty && !profile.photoUrl.isValidUri()) {
+      await CloudStore.uploadProfilePicture(profile.photoUrl);
     }
   }
 
@@ -156,40 +122,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           lastName: event.lastName,
           photoUrl: event.photoUrl,
         ),
-      ),
-    );
-  }
-
-  Future<void> _onLogOutAccount(
-    LogOutAccount event,
-    Emitter<ProfileState> emit,
-  ) async {
-    final action = await showDialog<ConfirmationAction>(
-      context: event.context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const AuthProcedureDialog(
-          authProcedure: AuthProcedure.logout,
-        );
-      },
-    );
-
-    if (action == null || action == ConfirmationAction.cancel) {
-      return;
-    }
-
-    final bool hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    emit(
-      state.copyWith(
-        blocStatus: BlocStatus.processing,
-        blocError: AuthenticationError.none,
       ),
     );
   }

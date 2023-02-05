@@ -454,7 +454,23 @@ class CloudStore {
           .ref(docRef)
           .putFile(file);
 
-      return await task.storage.ref(docRef).getDownloadURL();
+      String photoUrl = await task.storage.ref(docRef).getDownloadURL();
+      if (photoUrl.isEmpty) {
+        return '';
+      }
+
+      Profile profile = await HiveService.getProfile();
+      profile = profile.copyWith(photoUrl: photoUrl);
+      HiveService.updateProfile(profile);
+
+      await Future.wait([
+        CloudAnalytics.logEvent(
+          Event.uploadProfilePicture,
+        ),
+        updateProfile(profile),
+      ]);
+
+      return photoUrl;
     } on Exception catch (exception, stackTrace) {
       await logException(
         exception,
@@ -473,7 +489,7 @@ class CloudMessaging {
 }
 
 class CustomAuth {
-  static Future<bool> firebaseGuestSignIn() async {
+  static Future<bool> guestSignIn() async {
     UserCredential userCredential;
     User? user = getUser();
     if (user != null && user.isAnonymous) {
@@ -484,13 +500,13 @@ class CustomAuth {
     return userCredential.user != null;
   }
 
-  static Future<bool> firebaseSignIn(AuthCredential authCredential) async {
+  static Future<bool> signIn(AuthCredential authCredential) async {
     UserCredential userCredential;
     User? user = getUser();
     bool isSignedOut = true;
 
     if (user != null) {
-      isSignedOut = await firebaseSignOut();
+      isSignedOut = await signOut();
     }
     if (isSignedOut) {
       userCredential =
@@ -501,7 +517,7 @@ class CustomAuth {
     return false;
   }
 
-  static Future<bool> firebaseDeleteAccount() async {
+  static Future<bool> deleteAccount() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await user.delete();
@@ -510,7 +526,7 @@ class CustomAuth {
     return false;
   }
 
-  static Future<bool> firebaseSignOut() async {
+  static Future<bool> signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
@@ -535,15 +551,6 @@ class CustomAuth {
 
   static bool isLoggedIn() {
     return getUser() != null;
-  }
-
-  static bool isGuestUser() {
-    final user = getUser();
-    if (user == null) {
-      return true;
-    }
-
-    return user.isAnonymous;
   }
 
   static Future<bool> reAuthenticate(AuthCredential authCredential) async {
@@ -623,10 +630,12 @@ class CustomAuth {
     );
   }
 
-  static Future<void> initiateEmailVerification(String emailAddress,
-      {required BuildContext buildContext}) async {
+  static Future<void> initiateEmailVerification(
+    String emailAddress, {
+    required BuildContext buildContext,
+  }) async {
     await AirqoApiClient()
-        .getEmailVerificationCode(emailAddress)
+        .requestEmailVerificationCode(emailAddress)
         .then((emailAuthModel) {
       if (emailAuthModel == null) {
         buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed());
@@ -637,86 +646,5 @@ class CustomAuth {
             ));
       }
     });
-  }
-
-  static Future<void> sendPhoneAuthCode({
-    required String phoneNumber,
-    required BuildContext buildContext,
-    required AuthProcedure authProcedure,
-  }) async {}
-
-  static Future<void> sendEmailAuthCode({
-    required String emailAddress,
-    required BuildContext buildContext,
-    required AuthProcedure authProcedure,
-  }) async {}
-
-  static Future<bool> updateCredentials({
-    required AuthMethod authMethod,
-    required BuildContext context,
-    String? emailAddress,
-    PhoneAuthCredential? phoneCredential,
-  }) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
-    try {
-      switch (authMethod) {
-        case AuthMethod.phone:
-          await FirebaseAuth.instance.currentUser!
-              .updatePhoneNumber(phoneCredential!)
-              .then(
-            (_) {
-              // TODO update profile
-            },
-          );
-          break;
-        case AuthMethod.email:
-          await FirebaseAuth.instance.currentUser!
-              .updateEmail(emailAddress!)
-              .then(
-            (_) {
-              // TODO update profile
-            },
-          );
-          break;
-        case AuthMethod.none:
-          break;
-      }
-
-      return true;
-    } on FirebaseAuthException catch (exception) {
-      var error = 'Failed to change credentials. Try again later';
-      switch (exception.code) {
-        case 'email-already-in-use':
-          error = 'Email Address already taken';
-          break;
-        case 'invalid-email':
-          error = 'Invalid email address';
-          break;
-        case 'credential-already-in-use':
-          error = 'Phone number already taken';
-          break;
-        case 'invalid-verification-id':
-          error = 'Failed to change phone number. Try again later';
-          break;
-        case 'session-expired':
-          error = 'Your code has expired. Try again later';
-          break;
-      }
-
-      showSnackBar(
-        context,
-        error,
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
   }
 }

@@ -74,7 +74,7 @@ class _SignOutButtonState extends State<SignOutButton> {
     if (!mounted) return;
 
     loadingScreen(context);
-    final success = await CustomAuth.firebaseSignOut();
+    final success = await CustomAuth.signOut();
 
     if (!mounted) return;
 
@@ -293,9 +293,7 @@ class DummyProfilePicture extends StatelessWidget {
 }
 
 class ViewProfilePicture extends StatelessWidget {
-  const ViewProfilePicture({
-    super.key,
-  });
+  const ViewProfilePicture({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -475,22 +473,55 @@ class CardSection extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.text,
+    required this.nextPage,
+    this.isTopItem = false,
+    this.isBottomItem = false,
   });
   final String icon;
   final String text;
   final Color? iconColor;
+  final Widget nextPage;
+  final bool isTopItem;
+  final bool isBottomItem;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
+    return OutlinedButton(
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return nextPage;
+            },
+          ),
+        );
+      },
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        side: const BorderSide(
+          color: Colors.transparent,
         ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight:
+                isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+            topLeft:
+                isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+            bottomRight: isBottomItem
+                ? const Radius.circular(8)
+                : const Radius.circular(0),
+            bottomLeft: isBottomItem
+                ? const Radius.circular(8)
+                : const Radius.circular(0),
+          ),
+        ),
+        foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
       ),
       child: ListTile(
+        isThreeLine: false,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: Container(
           height: 40,
           width: 40,
@@ -512,109 +543,125 @@ class CardSection extends StatelessWidget {
   }
 }
 
-class ProfileSection extends StatefulWidget {
-  const ProfileSection({super.key, required this.userDetails});
-  final Profile userDetails;
+class ProfileSection extends StatelessWidget {
+  const ProfileSection(this.profile, {super.key});
+  final Profile profile;
 
-  @override
-  State<ProfileSection> createState() => _ProfileSectionState();
-}
-
-class _ProfileSectionState extends State<ProfileSection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ProfileEditPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'Profile',
-              icon: 'assets/icon/profile.svg',
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'Profile',
+            icon: 'assets/icon/profile.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const ProfileEditPage(),
+            isTopItem: true,
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const FavouritePlacesPage();
-                  },
-                ),
-              );
-            },
-            child: const CardSection(
-              text: 'Favorites',
-              icon: 'assets/icon/heart.svg',
-              iconColor: null,
-            ),
+          const CardSection(
+            text: 'Favorites',
+            icon: 'assets/icon/heart.svg',
+            iconColor: null,
+            nextPage: FavouritePlacesPage(),
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ForYouPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'For you',
-              icon: 'assets/icon/sparkles.svg',
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'For you',
+            icon: 'assets/icon/sparkles.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const ForYouPage(analytics: false),
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const SettingsPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'Settings',
-              icon: 'assets/icon/cog.svg',
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'Settings',
+            icon: 'assets/icon/cog.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const SettingsPage(),
+            isBottomItem: true,
           ),
         ],
       ),
     );
   }
+}
+
+class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ProfileViewAppBar(this.profile, {super.key});
+  final Profile profile;
+  final double toolbarHeight = 110;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: toolbarHeight,
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: CustomColors.appBodyColor,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () async {
+              await _editProfile(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ViewProfilePicture(),
+                const SizedBox(height: 8),
+                AutoSizeText(
+                  profile.displayName(),
+                  maxLines: 2,
+                  style: CustomTextStyle.headline9(context),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Edit profile',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const ViewNotificationIcon(),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editProfile(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const ProfileEditPage();
+        },
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
 }
 
 class EditProfilePicSection extends StatelessWidget {
@@ -707,25 +754,8 @@ class EditProfilePicSection extends StatelessWidget {
   }
 }
 
-class EditCredentialsIcon extends StatelessWidget {
-  const EditCredentialsIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SvgPicture.asset(
-        'assets/icon/profile_edit.svg',
-        height: 27,
-        width: 27,
-      ),
-    );
-  }
-}
-
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const EditProfileAppBar({
-    super.key,
-  });
+  const EditProfileAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -763,17 +793,6 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               );
             },
-            buildWhen: (previous, current) {
-              final hiveProfile =
-                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
-
-              if (hiveProfile == null) {
-                return true;
-              }
-
-              return previous.profile != hiveProfile ||
-                  current.profile != hiveProfile;
-            },
           ),
         ],
       ),
@@ -809,55 +828,31 @@ class EditCredentialsField extends StatelessWidget {
         const SizedBox(
           height: 4,
         ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: TextFormField(
-                  initialValue: authMethod == AuthMethod.email
-                      ? profile.emailAddress
-                      : profile.phoneNumber,
-                  enableSuggestions: false,
-                  readOnly: true,
-                  style: TextStyle(
-                    color: CustomColors.inactiveColor,
-                  ),
-                  decoration: inactiveFormFieldDecoration(),
-                ),
-              ),
-              // const SizedBox(
-              //   width: 16,
-              // ),
-              GestureDetector(
-                onTap: () {
-                  //TODO: implement re authentication
-                  // _updateCredentials(context);
-                },
-                child: Container(),
-                // child: const EditCredentialsIcon(),
-              ),
-            ],
+        TextFormField(
+          initialValue: authMethod == AuthMethod.email
+              ? profile.emailAddress
+              : profile.phoneNumber,
+          enableSuggestions: false,
+          readOnly: true,
+          style: TextStyle(color: CustomColors.inactiveColor),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: '-',
+            focusedBorder: OutlineInputBorder(
+              borderSide:
+                  const BorderSide(color: Colors.transparent, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+                  const BorderSide(color: Colors.transparent, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
           ),
         ),
       ],
     );
-  }
-
-  void _updateCredentials(BuildContext context) async {
-    final action = await showDialog<ConfirmationAction>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return ChangeAuthCredentialsDialog(
-          authMethod: authMethod,
-        );
-      },
-    );
-
-    if (action == null || action == ConfirmationAction.cancel) {
-      return;
-    }
   }
 }
 
@@ -903,22 +898,6 @@ class NameEditField extends StatelessWidget {
       onChanged: valueChange,
     );
   }
-}
-
-InputDecoration inactiveFormFieldDecoration() {
-  return InputDecoration(
-    filled: true,
-    fillColor: Colors.white,
-    hintText: '-',
-    focusedBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-      borderRadius: BorderRadius.circular(8.0),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-      borderRadius: BorderRadius.circular(8.0),
-    ),
-  );
 }
 
 class GuestProfileView extends StatelessWidget {

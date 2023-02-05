@@ -83,7 +83,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(status: SettingsStatus.processing, errorMessage: ''));
 
     try {
-      final success = await CustomAuth.firebaseDeleteAccount();
+      final success = await CustomAuth.deleteAccount();
       if (success) {
         emit(state.copyWith(status: SettingsStatus.accountDeletionSuccessful));
       }

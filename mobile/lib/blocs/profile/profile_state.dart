@@ -1,19 +1,11 @@
 part of 'profile_bloc.dart';
 
 class ProfileState extends Equatable {
-  const ProfileState._({
-    this.profile,
-    this.blocStatus = BlocStatus.initial,
-    this.blocError = AuthenticationError.none,
-  });
-
   const ProfileState({
     this.profile,
     this.blocStatus = BlocStatus.initial,
     this.blocError = AuthenticationError.none,
   });
-
-  const ProfileState.initial() : this._();
 
   ProfileState copyWith({
     Profile? profile,

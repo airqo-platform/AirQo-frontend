@@ -359,6 +359,11 @@ ThemeData customTheme() {
   return base.copyWith(
     primaryColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      secondary: CustomColors.appColorBlue,
+      primary: CustomColors.appColorBlue,
+      background: CustomColors.appBodyColor,
+    ),
     textTheme: TextTheme(
       displayLarge: TextStyle(
         fontSize: 80.0,

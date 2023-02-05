@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                             index: 2,
                           ),
                         ),
-                        ValueListenableBuilder<Box>(
+                        ValueListenableBuilder<Box<AppNotification>>(
                           valueListenable: Hive.box<AppNotification>(
                             HiveBox.appNotifications,
                           ).listenable(),

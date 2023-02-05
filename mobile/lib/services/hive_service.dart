@@ -234,8 +234,12 @@ class HiveService {
 
   static Future<Profile> getProfile() async {
     Profile? profile = Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
-    profile = profile ?? await Profile.create();
-    return await profile.setUserCredentials();
+    if (profile == null) {
+      profile = await Profile.create();
+      profile = await profile.setUserCredentials();
+      await updateProfile(profile);
+    }
+    return profile;
   }
 
   static Future<void> deleteAnalytics() async {

@@ -1,6 +1,5 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
-import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/settings/settings_widgets.dart';
 import 'package:app/services/services.dart';
@@ -146,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Take a tour of the App',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),

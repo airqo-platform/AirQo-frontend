@@ -53,7 +53,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
         email: state.emailAddress,
       );
 
-      final signInSuccess = await CustomAuth.firebaseSignIn(emailCredential);
+      final signInSuccess = await CustomAuth.signIn(emailCredential);
 
       return emit(state.copyWith(
         error: signInSuccess
@@ -147,16 +147,6 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
       errorMessage: "Verification failed. Try again later",
     ));
   }
-
-  // Future<void> _onEmailValidationPassed(
-  //   EmailValidationPassed _,
-  //   Emitter<EmailAuthState> emit,
-  // ) async {
-  //   return emit(state.copyWith(
-  //     status: EmailBlocStatus.verificationSuccessful,
-  //     error: EmailBlocError.none,
-  //   ));
-  // }
 
   Future<void> _onValidateEmailAddress(
     ValidateEmailAddress event,

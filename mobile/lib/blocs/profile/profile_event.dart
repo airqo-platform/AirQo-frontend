@@ -22,15 +22,6 @@ class RefreshProfile extends ProfileEvent {
   List<Object?> get props => [];
 }
 
-class LogOutAccount extends ProfileEvent {
-  const LogOutAccount({
-    required this.context,
-  });
-  final BuildContext context;
-  @override
-  List<Object?> get props => [];
-}
-
 class EditProfile extends ProfileEvent {
   const EditProfile({
     this.firstName,
