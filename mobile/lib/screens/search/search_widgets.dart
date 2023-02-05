@@ -4,6 +4,7 @@ import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/location_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -487,6 +488,15 @@ class AutoCompleteResultsWidget extends StatefulWidget {
 
 class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
   Future<void> getAirQuality(SearchResult searchResult) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      if (!mounted) return;
+      context.read<SearchBloc>().add(const NoSearchInternetConnection());
+      return;
+    }
+
+    if (!mounted) return;
+
     loadingScreen(context);
 
     AirQualityReading? airQualityReading =

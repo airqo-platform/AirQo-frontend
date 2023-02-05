@@ -13,11 +13,12 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState()) {
     on<InitializeSearchView>(_onInitializeSearchView);
+    on<NoSearchInternetConnection>(_onNoSearchInternetConnection);
+    on<GetSearchRecommendations>(_onGetSearchRecommendations);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
-    on<GetSearchRecommendations>(_onGetSearchRecommendations);
   }
 
   void _onLoadCountries(
@@ -158,6 +159,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       status: SearchStatus.searchComplete,
       searchTerm: event.searchResult.name,
     ));
+  }
+
+  void _onNoSearchInternetConnection(
+    NoSearchInternetConnection _,
+    Emitter<SearchState> emit,
+  ) {
+    return emit(state.copyWith(status: SearchStatus.noInternetConnection));
   }
 }
 

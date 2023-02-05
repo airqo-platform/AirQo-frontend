@@ -49,3 +49,10 @@ class GetSearchRecommendations extends SearchEvent {
   @override
   List<Object> get props => [searchResult];
 }
+
+class NoSearchInternetConnection extends SearchEvent {
+  const NoSearchInternetConnection();
+
+  @override
+  List<Object> get props => [];
+}
