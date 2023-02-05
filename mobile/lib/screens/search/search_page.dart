@@ -7,18 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'search_widgets.dart';
 
-enum SearchPageState {
-  searching,
-  filtering;
-}
-
-class SearchPageCubit extends Cubit<SearchPageState> {
-  SearchPageCubit() : super(SearchPageState.filtering);
-
-  void showFiltering() => emit(SearchPageState.filtering);
-  void showSearching() => emit(SearchPageState.searching);
-}
-
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
@@ -124,16 +112,8 @@ class SearchView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) {
+        Widget widget;
         switch (state.status) {
-          case SearchStatus.initial:
-            return Container(
-              color: CustomColors.appBodyColor,
-              height: double.infinity,
-              child: SearchSection(
-                title: 'Suggestions',
-                airQualityReadings: state.searchHistory,
-              ),
-            );
           case SearchStatus.noAirQualityData:
             return NoAirQualityDataWidget(
               callBack: () {
@@ -150,17 +130,28 @@ class SearchView extends StatelessWidget {
             return const AutoCompleteLoadingWidget();
           case SearchStatus.autoCompleteFinished:
             return const AutoCompleteResultsWidget();
-          case SearchStatus.searchComplete:
-            return Container(
-              color: CustomColors.appBodyColor,
-              height: double.infinity,
-              child: SearchSection(
-                title:
-                    'Failed to get the air quality of ${state.searchTerm}. Other places to explore.',
-                airQualityReadings: state.recommendations,
-              ),
+          case SearchStatus.initial:
+            widget = SearchSection(
+              title: 'Suggestions',
+              airQualityReadings: state.searchHistory,
             );
+            break;
+          case SearchStatus.searchComplete:
+            widget = state.recommendations.isEmpty
+                ? const NoSearchResultsWidget()
+                : SearchSection(
+                    title:
+                        'Failed to get the air quality of ${state.searchTerm}. Other places to explore.',
+                    airQualityReadings: state.recommendations,
+                  );
+            break;
         }
+
+        return Container(
+          color: CustomColors.appBodyColor,
+          height: double.infinity,
+          child: widget,
+        );
       },
     );
   }

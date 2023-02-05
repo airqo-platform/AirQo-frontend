@@ -186,22 +186,45 @@ extension SearchHistoryListExt on List<SearchHistory> {
 }
 
 extension AirQualityReadingExt on AirQualityReading {
-  bool containsSearchResult(SearchResult searchResult) {
-    List<String> searchTerms = searchResult.name.toLowerCase().split(" ")
-      ..addAll(searchResult.location.toLowerCase().split(" "));
+  List<String> getSearchTerms(String parameter) {
+    List<String> searchTerms = [];
+    switch (parameter) {
+      case 'name':
+        searchTerms.addAll(name.trim().split(" "));
+        break;
+      case 'location':
+        searchTerms.addAll(location.trim().split(" "));
+        break;
+      case 'region':
+        searchTerms.addAll(region.trim().split(" "));
+        break;
+      case 'country':
+        searchTerms.addAll(country.trim().split(" "));
+        break;
+      default:
+        searchTerms
+          ..addAll(name.trim().split(" "))
+          ..addAll(location.trim().split(" "))
+          ..addAll(region.trim().split(" "))
+          ..addAll(country.trim().split(" "));
+    }
 
-    List<String> readingsTerms = name.toLowerCase().split(" ")
-      ..addAll(location.toLowerCase().split(" "))
-      ..addAll(region.toLowerCase().split(" "))
-      ..addAll(country.toLowerCase().split(" "));
-
-    List<String> commonTerms = searchTerms
+    return searchTerms
         .toSet()
-        .toList()
-        .where((element) => readingsTerms.toSet().toList().contains(element))
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
+  }
+}
 
-    return commonTerms.isNotEmpty;
+extension SearchResultExt on SearchResult {
+  List<String> getSearchTerms() {
+    List<String> searchTerms = name.trim().split(" ")
+      ..addAll(location.trim().split(" "));
+
+    return searchTerms
+        .toSet()
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
+        .toList();
   }
 }
 

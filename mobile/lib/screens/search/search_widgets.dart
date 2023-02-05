@@ -3,7 +3,6 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/location_service.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -492,6 +491,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
     if (!hasConnection) {
       if (!mounted) return;
       context.read<SearchBloc>().add(const NoSearchInternetConnection());
+
       return;
     }
 
@@ -508,6 +508,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
 
     if (airQualityReading == null) {
       context.read<SearchBloc>().add(GetSearchRecommendations(searchResult));
+
       return;
     }
 

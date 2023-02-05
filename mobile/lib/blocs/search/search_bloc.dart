@@ -19,12 +19,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
-    on<GetSearchRecommendations>(_onGetSearchRecommendations);
   }
 
-  void _onLoadCountries(
-    Emitter<SearchState> emit,
-  ) {
+  void _onLoadCountries(Emitter<SearchState> emit) {
     final airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
     final List<String> countries =
@@ -85,6 +82,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     ));
 
     _onLoadCountries(emit);
+
     return;
   }
 
@@ -138,6 +136,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
+    // Add sites within 4 kilometers
     List<AirQualityReading> recommendations = airQualityReadings
         .where(
           (e) =>
@@ -151,9 +150,22 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         )
         .toList();
 
-    recommendations.addAll(airQualityReadings
-        .where((e) => e.containsSearchResult(event.searchResult))
-        .toList());
+    airQualityReadings =
+        airQualityReadings.toSet().difference(recommendations.toSet()).toList();
+
+    List<String> queryTerms = event.searchResult.getSearchTerms();
+
+    for (String parameter in ['name', 'location', 'region', 'country']) {
+      recommendations.addAll(airQualityReadings
+          .where((reading) => queryTerms.any((queryTerm) =>
+              reading.getSearchTerms(parameter).contains(queryTerm)))
+          .toList());
+
+      airQualityReadings = airQualityReadings
+          .toSet()
+          .difference(recommendations.toSet())
+          .toList();
+    }
 
     return emit(state.copyWith(
       recommendations: recommendations,

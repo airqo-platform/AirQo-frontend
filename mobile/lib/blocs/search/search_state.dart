@@ -23,7 +23,6 @@ class SearchState extends Equatable {
   SearchState copyWith({
     String? searchTerm,
     List<SearchResult>? searchResults,
-    AirQuality? featuredAirQuality,
     AirQualityReading? searchAirQuality,
     SearchStatus? status,
     List<AirQualityReading>? recommendations,
