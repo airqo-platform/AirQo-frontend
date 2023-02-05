@@ -283,7 +283,7 @@ class FeedbackCard extends StatelessWidget {
           ),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),
@@ -324,7 +324,7 @@ class FeedbackForm extends StatelessWidget {
               child: Center(
                 child: TextFormField(
                   initialValue: state.feedback,
-                  style: Theme.of(context).textTheme.bodyText2,
+                  style: Theme.of(context).textTheme.bodyMedium,
                   enableSuggestions: false,
                   cursorWidth: 1,
                   maxLines: 12,
@@ -344,10 +344,10 @@ class FeedbackForm extends StatelessWidget {
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     hintText: 'Please tell us the details',
-                    hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.32),
                         ),
-                    counterStyle: Theme.of(context).textTheme.bodyText2,
+                    counterStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
               ),
@@ -544,7 +544,7 @@ class FeedbackChannelStep extends StatelessWidget {
                         SetFeedbackContact(email),
                       );
                 },
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
                 enableSuggestions: true,
                 cursorWidth: 1,
                 autofocus: false,
@@ -574,10 +574,10 @@ class FeedbackChannelStep extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   hintText: 'Enter your email',
-                  hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.32),
                       ),
-                  prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.32),
                       ),
                   errorStyle: const TextStyle(

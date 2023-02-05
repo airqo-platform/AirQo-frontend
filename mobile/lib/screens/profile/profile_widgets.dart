@@ -128,7 +128,7 @@ class SignUpSection extends StatelessWidget {
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.subtitle2?.copyWith(
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.4),
                   ),
             ),
@@ -242,7 +242,7 @@ class SettingsButton extends StatelessWidget {
         title: AutoSizeText(
           'Settings',
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     );
@@ -505,7 +505,7 @@ class CardSection extends StatelessWidget {
         title: AutoSizeText(
           text,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     );
@@ -755,7 +755,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 },
                 child: Text(
                   'Save',
-                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: profile != hiveProfile
                             ? CustomColors.appColorBlue
                             : CustomColors.appColorBlack.withOpacity(0.2),

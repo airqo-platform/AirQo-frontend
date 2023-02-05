@@ -51,7 +51,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 child: Text(
                   'Get notified when air quality is getting better or worse',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const Spacer(),
@@ -81,7 +81,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 child: Text(
                   'No, thanks',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),

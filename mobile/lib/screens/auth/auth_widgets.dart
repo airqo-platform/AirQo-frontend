@@ -98,7 +98,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
           },
           style:
-              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
+              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
           enableSuggestions: false,
           cursorWidth: 1,
           autofocus: false,
@@ -118,15 +118,15 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
               padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
               child: Text(
                 '${state.countryCode} ',
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.32),
                     ),
               ),
             ),
-            hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
-            prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
             suffixIcon: GestureDetector(
@@ -815,7 +815,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             context.read<EmailAuthBloc>().add(ValidateEmailAddress(context));
           },
           style:
-              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
+              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
           enableSuggestions: true,
           cursorWidth: 1,
           autofocus: false,
@@ -831,10 +831,10 @@ class _EmailInputFieldState extends State<EmailInputField> {
             border: inputBorder,
             suffixIconColor: formColor,
             hintText: 'Enter your email',
-            hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
-            prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
             suffixIcon: GestureDetector(
@@ -885,7 +885,7 @@ class InputValidationErrorMessage extends StatelessWidget {
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: CustomColors.appColorInvalid,
                       fontSize: 14,
                     ),
@@ -914,7 +914,7 @@ class VerificationCodeMessage extends StatelessWidget {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyText2?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.6),
               ),
         ),
@@ -946,7 +946,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
             Text(
               'Proceed as',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.caption?.copyWith(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.6),
                   ),
             ),
@@ -956,7 +956,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
             Text(
               'Guest',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.caption?.copyWith(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: CustomColors.appColorBlue,
                   ),
             ),
@@ -1221,267 +1221,3 @@ class LoginOptions extends StatelessWidget {
     );
   }
 }
-
-// class ReAuthenticateWidget extends StatefulWidget {
-//   const ReAuthenticateWidget({super.key});
-//
-//   @override
-//   State<ReAuthenticateWidget> createState() => _ReAuthenticateWidgetState();
-// }
-//
-// class _ReAuthenticateWidgetState extends State<ReAuthenticateWidget> {
-//   late BuildContext _loadingContext;
-//
-//   void _startCodeSentCountDown() {
-//     context.read<PhoneAuthBloc>().add(const UpdatePhoneCountDown(5));
-//
-//     Timer.periodic(
-//       const Duration(milliseconds: 1200),
-//           (Timer timer) {
-//         if (mounted) {
-//           final count = context.read<PhoneAuthBloc>().state.codeCountDown - 1;
-//           context.read<PhoneAuthBloc>().add(UpdatePhoneCountDown(count));
-//           if (count == 0) {
-//             setState(() => timer.cancel());
-//           }
-//         }
-//       },
-//     );
-//   }
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadingContext = context;
-//     // TODO initialize bloc
-//     _startCodeSentCountDown();
-//   }
-//
-//   void _popLoadingScreen() {
-//     if (Navigator.canPop(_loadingContext)) Navigator.pop(_loadingContext);
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-//       body: AppSafeArea(
-//         horizontalPadding: 24,
-//         backgroundColor: Colors.white,
-//         widget: BlocBuilder<ProfileBloc, ProfileState>(
-//           builder: (context, state) {
-//             Profile? profile = state.profile;
-//             if(profile == null){
-//               return Container();
-//             }
-//
-//             AuthMethod authMethod = profile.phoneNumber.isEmpty ? AuthMethod.email : AuthMethod.phone;
-//             String credentials = profile.phoneNumber.isEmpty ? profile.emailAddress : profile.phoneNumber;
-//
-//             return Column(
-//               crossAxisAlignment: CrossAxisAlignment.center,
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 MultiBlocListener(
-//                   listeners: [
-//                     BlocListener<PhoneAuthBloc, PhoneAuthState>(
-//                       listener: (context, state) {
-//                         _popLoadingScreen();
-//                         Navigator.pop(context, true);
-//                       },
-//                       listenWhen: (previous, current) {
-//                         return previous.status != current.status &&
-//                             current.status ==
-//                                 PhoneBlocStatus.verificationSuccessful;
-//                       },
-//                     ),
-//
-//                     BlocListener<PhoneAuthBloc, PhoneAuthState>(
-//                       listener: (context, state) async {
-//                         _popLoadingScreen();
-//                         _startCodeSentCountDown();
-//                       },
-//                       listenWhen: (previous, current) {
-//                         return previous.status != current.status &&
-//                             current.status ==
-//                                 EmailBlocStatus.verificationCodeSent;
-//                       },
-//                     ),
-//
-//                     BlocListener<PhoneAuthBloc, PhoneAuthState>(
-//                       listener: (context, state) {
-//                         loadingScreen(context);
-//                       },
-//                       listenWhen: (previous, current) {
-//                         return current.status == PhoneBlocStatus.processing;
-//                       },
-//                     ),
-//                   ],
-//                   child: Container(),
-//                 ),
-//                 AutoSizeText(
-//                   'Verify your action',
-//                   textAlign: TextAlign.center,
-//                   maxLines: 1,
-//                   overflow: TextOverflow.ellipsis,
-//                   style: CustomTextStyle.headline7(context),
-//                 ),
-//                 const SizedBox(
-//                   height: 14,
-//                 ),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 16),
-//                   child: AutoSizeText(
-//                     authMethod.codeVerificationText,
-//                     textAlign: TextAlign.center,
-//                     maxLines: 2,
-//                     overflow: TextOverflow.ellipsis,
-//                     style: Theme.of(context).textTheme.bodyText2?.copyWith(
-//                       color: CustomColors.appColorBlack.withOpacity(0.6),
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(
-//                   height: 5,
-//                 ),
-//                 AutoSizeText(
-//                   credentials,
-//                   textAlign: TextAlign.center,
-//                   maxLines: 1,
-//                   overflow: TextOverflow.ellipsis,
-//                   style: Theme.of(context).textTheme.bodyText2?.copyWith(
-//                     fontSize: 18.0,
-//                     color: CustomColors.appColorBlue,
-//                   ),
-//                 ),
-//                 const SizedBox(
-//                   height: 15,
-//                 ),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 36),
-//                   child: PhoneOptField(
-//                     callbackFn: (String value) {
-//                       context.read<PhoneAuthBloc>().add(UpdatePhoneAuthCode(
-//                         value,
-//                       ));
-//                     },
-//                     status: state.status,
-//                     codeCountDown: state.codeCountDown,
-//                   ),
-//                 ),
-//                 InputValidationErrorMessage(
-//                   visible: state.status == PhoneBlocStatus.error &&
-//                       state.error == PhoneBlocError.verificationFailed,
-//                   message: state.errorMessage,
-//                 ),
-//                 const SizedBox(
-//                   height: 16,
-//                 ),
-//                 Visibility(
-//                   visible: state.codeCountDown > 0,
-//                   child: Text(
-//                     'The code should arrive with in ${state.codeCountDown} sec',
-//                     textAlign: TextAlign.center,
-//                     style: Theme.of(context).textTheme.caption?.copyWith(
-//                       color: CustomColors.appColorBlack.withOpacity(0.5),
-//                     ),
-//                   ),
-//                 ),
-//                 Visibility(
-//                   visible: state.codeCountDown <= 0 &&
-//                       state.status != PhoneBlocStatus.verificationSuccessful,
-//                   child: GestureDetector(
-//                     onTap: () {
-//                       FocusManager.instance.primaryFocus?.unfocus();
-//                       context.read<PhoneAuthBloc>().add(VerifyPhoneNumber(
-//                         context,
-//                         showConfirmationDialog: false,
-//                       ));
-//                     },
-//                     child: Text(
-//                       'Resend code',
-//                       textAlign: TextAlign.center,
-//                       style: Theme.of(context).textTheme.caption?.copyWith(
-//                         color: CustomColors.appColorBlue,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 Visibility(
-//                   visible: state.codeCountDown <= 0 &&
-//                       state.status != PhoneBlocStatus.verificationSuccessful,
-//                   child: Padding(
-//                     padding: const EdgeInsets.only(
-//                       left: 36,
-//                       right: 36,
-//                       top: 19,
-//                     ),
-//                     child: Stack(
-//                       alignment: AlignmentDirectional.center,
-//                       children: [
-//                         Container(
-//                           height: 1.09,
-//                           color: Colors.black.withOpacity(0.05),
-//                         ),
-//                         Container(
-//                           color: Colors.white,
-//                           padding: const EdgeInsets.symmetric(horizontal: 5),
-//                           child: Text(
-//                             'Or',
-//                             style:
-//                             Theme.of(context).textTheme.caption?.copyWith(
-//                               color: const Color(0xffD1D3D9),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//                 Visibility(
-//                   visible: state.codeCountDown <= 0 &&
-//                       state.status != PhoneBlocStatus.verificationSuccessful,
-//                   child: Padding(
-//                     padding: const EdgeInsets.only(top: 19),
-//                     child: GestureDetector(
-//                       onTap: () {
-//                         FocusManager.instance.primaryFocus?.unfocus();
-//                         Navigator.pop(context, false);
-//                       },
-//                       child: Text(
-//                         'Cancel',
-//                         textAlign: TextAlign.center,
-//                         style: Theme.of(context).textTheme.caption?.copyWith(
-//                           color: CustomColors.appColorBlue,
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//
-//                 const Spacer(),
-//                 Visibility(
-//                   visible: state.codeCountDown <= 0,
-//                   child: NextButton(
-//                     buttonColor: state.inputAuthCode.length >= 6
-//                         ? CustomColors.appColorBlue
-//                         : CustomColors.appColorDisabled,
-//                     callBack: () {
-//                       FocusManager.instance.primaryFocus?.unfocus();
-//                       context
-//                           .read<PhoneAuthBloc>()
-//                           .add(const VerifyPhoneAuthCode());
-//                     },
-//                   ),
-//                 ),
-//                 const SizedBox(
-//                   height: 12,
-//                 ),
-//               ],
-//             );
-//           },
-//         ),
-//       ),
-//     );
-//   }
-// }

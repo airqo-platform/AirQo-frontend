@@ -72,7 +72,7 @@ jobs:
         uses: ruby/setup-ruby@v1.123.0
         with:
           ruby-version: "2.6"
-          working-directory: android
+          working-directory: mobile/android
       
       - name: Install bundle
         run: |
@@ -81,8 +81,6 @@ jobs:
           bundle install --jobs 4 --retry 3
           
       - name: Deploy to play store
-        run: 
+        run: |
           cd android/
           bundle exec fastlane android production
-
-  

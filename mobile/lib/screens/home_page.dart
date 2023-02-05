@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
           canvasColor: CustomColors.appBodyColor,
           primaryColor: CustomColors.appColorBlack,
           textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(
+                bodySmall: TextStyle(
                   color: CustomColors.appColorBlack,
                 ),
               ),

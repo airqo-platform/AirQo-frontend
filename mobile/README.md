@@ -128,7 +128,7 @@ flutter run --flavor airqo -t lib/main.dart --release
 flutter packages pub run build_runner build --delete-conflicting-outputs
 dart fix --dry-run
 dart fix --apply
-flutter format lib/
+dart format lib/
 flutter pub run dart_code_metrics:metrics analyze lib --reporter=html
 flutter pub run dart_code_metrics:metrics check-unused-files lib
 flutter pub run dart_code_metrics:metrics check-unused-code lib
@@ -137,6 +137,8 @@ flutter pub run dart_code_metrics:metrics check-unused-code lib
 ### **Building for release**
 
 ```bash
+flutter build appbundle --build-name 1.0.0 --build-number 20025 --flavor airqo
+flutter build ipa --build-name 1.0.0 --build-number 1 --flavor airqo
 flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]

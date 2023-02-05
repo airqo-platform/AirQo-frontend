@@ -43,10 +43,12 @@ void main() async {
       runApp(configuredApp);
     }
   } catch (exception, stackTrace) {
-    runApp(MaterialApp(
-      title: 'AirQo',
-      theme: customTheme(),
-      home: AppCrushWidget(exception, stackTrace),
-    ));
+    runApp(
+      MaterialApp(
+        title: 'AirQo',
+        theme: customTheme(),
+        home: AppCrushWidget(exception, stackTrace),
+      ),
+    );
   }
 }

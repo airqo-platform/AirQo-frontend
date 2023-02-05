@@ -34,11 +34,11 @@ class IntroductionScreenState extends State<IntroductionScreen> {
             children: [
               Text(
                 'Welcome to',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               Text(
                 'AirQo',
-                style: Theme.of(context).textTheme.headline6?.copyWith(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: CustomColors.appColorBlue,
                     ),
               ),
@@ -148,7 +148,7 @@ class WelcomeSection extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4.0),
         child: Text(
           body,
-          style: Theme.of(context).textTheme.bodyText2?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.5),
               ),
         ),

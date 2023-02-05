@@ -108,7 +108,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 child: Text(
                   'No, thanks',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),

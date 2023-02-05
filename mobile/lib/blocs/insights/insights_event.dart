@@ -61,26 +61,26 @@ class UpdateSelectedInsight extends InsightsEvent {
   final ChartData selectedInsight;
 
   @override
-  List<Object?> get props => [selectedInsight];
+  List<Object> get props => [selectedInsight];
 }
 
 class ClearInsightsTab extends InsightsEvent {
   const ClearInsightsTab();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class ToggleForecast extends InsightsEvent {
   const ToggleForecast();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class DeleteOldInsights extends InsightsEvent {
   const DeleteOldInsights();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }

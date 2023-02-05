@@ -313,7 +313,7 @@ class _OptFieldState extends State<OptField> {
             autofocus: true,
             cursorColor: textColor,
             keyboardType: TextInputType.number,
-            style: Theme.of(context).textTheme.bodyText1?.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontSize: 32,
                   fontWeight: FontWeight.w500,
                   color: textColor,

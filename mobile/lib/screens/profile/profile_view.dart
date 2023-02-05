@@ -103,7 +103,7 @@ class _ProfileViewState extends State<ProfileView> {
                   },
                   child: Text(
                     'Edit profile',
-                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: CustomColors.appColorBlue,
                         ),
                   ),

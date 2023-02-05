@@ -93,6 +93,12 @@ class HiveService {
     await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
 
+  static List<AirQualityReading> getAirQualityReadings() {
+    return Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.toList();
+  }
+
   static Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {
