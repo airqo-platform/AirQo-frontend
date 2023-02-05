@@ -7,6 +7,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'search_widgets.dart';
 
+enum SearchPageState {
+  searching,
+  filtering;
+}
+
+class SearchPageCubit extends Cubit<SearchPageState> {
+  SearchPageCubit() : super(SearchPageState.filtering);
+
+  void showFiltering() => emit(SearchPageState.filtering);
+  void showSearching() => emit(SearchPageState.searching);
+}
+
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 

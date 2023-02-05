@@ -19,6 +19,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
+    on<GetSearchRecommendations>(_onGetSearchRecommendations);
   }
 
   void _onLoadCountries(
