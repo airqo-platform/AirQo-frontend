@@ -301,7 +301,7 @@ class Register extends Component {
                     }}
                   >
                     {countryArr.map(({ label, value }) => (
-                      <option key={value} value={value}>
+                      <option key={value} value={label}>
                         {label}
                       </option>
                     ))}
