@@ -157,7 +157,7 @@ const Topbar = (props) => {
     setAnchorEl(null);
   };
   const handleDocsClick = () => {
-    window.open('https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/', '_blank');
+    window.open('https://staging-docs.airqo.net/#/platform/analytics/', '_blank');
     setAnchorEl(null);
   };
 
@@ -389,7 +389,7 @@ const Topbar = (props) => {
             <Hidden mdDown>
               <IconButton
                 color="inherit"
-                href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/"
+                href="https://staging-docs.airqo.net/#/platform/analytics/"
                 target="_blank"
               >
                 <Badge badgeContent={notifications.length} color="primary" variant="dot">
