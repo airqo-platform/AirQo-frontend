@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Default App Name</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="configure">Configure</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
+    <string name="app_name">AirQo</string>
+    <string name="airqo_widget_description">This is the AirQo application homescreen widget</string>
+    <string name="wandegeya">Wandegeya</string>
+    <string name="pm">12/12, 3:06pm</string>
+    <string name="pm_scale">PM<sub>2.5</sub></string>
+    <string name="forecast_value1">22</string>
+    <string name="time1">4pm</string>
 </resources>

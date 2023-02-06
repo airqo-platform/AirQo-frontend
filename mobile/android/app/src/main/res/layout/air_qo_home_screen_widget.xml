@@ -1,19 +1,204 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.Android.AppWidget.Container"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_bg"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:theme="@style/Theme.Android.AppWidgetContainer">
+    android:layout_height="250dp"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/appwidget_text"
-        style="@style/Widget.Android.AppWidget.InnerView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
-        android:contentDescription="@string/appwidget_text"
-        android:text="@string/appwidget_text"
-        android:textSize="24sp"
-        android:textStyle="bold|italic" />
-</RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/location_box"
+        android:layout_width="308dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp">
+
+        <RelativeLayout
+            android:id="@+id/location_date"
+            android:layout_width="181dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true">
+
+            <TextView
+                android:id="@+id/location"
+                android:layout_width="250dp"
+                android:layout_height="49dp"
+                android:gravity="top"
+                android:text="@string/wandegeya"
+                android:textAppearance="@style/wandegeya" />
+
+            <RelativeLayout
+                android:id="@+id/frame_946"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true">
+
+                <TextView
+                    android:id="@+id/pm"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:lineSpacingExtra="-1sp"
+                    android:text="@string/pm"
+                    android:textAppearance="@style/pm" />
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/index_box"
+        android:layout_width="312dp"
+        android:layout_height="82dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="40dp">
+
+        <View
+            android:id="@+id/index_color"
+            android:layout_width="90dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/index_color" />
+
+        <LinearLayout
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="20dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/pm_scale"
+                android:layout_width="32dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="10dp"
+                android:gravity="top"
+                android:text="@string/pm_scale"
+                android:textAppearance="@style/pm_scale" />
+
+            <TextView
+                android:id="@+id/pm_value"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="-10dp"
+                android:gravity="top"
+                android:text="@string/pm_value"
+                android:textAppearance="@style/pm_value" />
+
+            <TextView
+                android:id="@+id/pm_unit"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="@string/pm_unit"
+                android:textAppearance="@style/pm_unit" />
+
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true">
+
+            <LinearLayout
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentStart="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/forecast_value1"
+                    android:layout_width="match_parent"
+                    android:layout_height="20.88dp"
+                    android:gravity="top"
+                    android:text="@string/forecast_value1"
+                    android:textAppearance="@style/forecast_value" />
+
+                <TextView
+                    android:id="@+id/pm_unit2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:text="@string/pm_unit"
+                    android:textAppearance="@style/pm_unit2" />
+
+                <TextView
+                    android:id="@+id/time1"
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="bottom"
+                    android:text="@string/time1"
+                    android:textAppearance="@style/time" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="60dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/forecast_value2"
+                    android:layout_width="match_parent"
+                    android:layout_height="20.88dp"
+                    android:gravity="top"
+                    android:text="@string/forecast_value1"
+                    android:textAppearance="@style/forecast_value" />
+
+                <TextView
+                    android:id="@+id/pm_unit3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:text="@string/pm_unit"
+                    android:textAppearance="@style/pm_unit2" />
+
+                <TextView
+                    android:id="@+id/time2"
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="bottom"
+                    android:text="@string/time1"
+                    android:textAppearance="@style/time" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/forecast_value3"
+                    android:layout_width="match_parent"
+                    android:layout_height="20.88dp"
+                    android:gravity="top"
+                    android:text="@string/forecast_value1"
+                    android:textAppearance="@style/forecast_value" />
+
+                <TextView
+                    android:id="@+id/pm_unit4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:text="@string/pm_unit"
+                    android:textAppearance="@style/pm_unit2" />
+
+                <TextView
+                    android:id="@+id/time3"
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="bottom"
+                    android:text="@string/time1"
+                    android:textAppearance="@style/time" />
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+
+</LinearLayout>
