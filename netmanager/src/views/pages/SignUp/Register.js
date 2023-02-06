@@ -284,14 +284,13 @@ class Register extends Component {
                     variant="outlined"
                     helperText={errors.email}
                   />
-
                   <TextField
                     onChange={this.onChange}
                     select
                     value={this.state.country}
                     error={!!errors.country}
                     id="country"
-                    label="Country"
+                    label="Choose your country"
                     fullWidth
                     margin="normal"
                     variant="outlined"
