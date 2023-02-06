@@ -62,12 +62,12 @@ class AirQoHomeScreenWidgetConfigureActivity : Activity() {
             return
         }
 
-        appWidgetText.setText(
-            loadTitlePref(
-                this@AirQoHomeScreenWidgetConfigureActivity,
-                appWidgetId
-            )
-        )
+//        appWidgetText.setText(
+//            loadTitlePref(
+//                this@AirQoHomeScreenWidgetConfigureActivity,
+//                appWidgetId
+//            )
+//        )
     }
 
 }
@@ -84,14 +84,14 @@ internal fun saveTitlePref(context: Context, appWidgetId: Int, text: String) {
 
 // Read the prefix from the SharedPreferences object for this widget.
 // If there is no preference saved, get the default from a resource
-internal fun loadTitlePref(context: Context, appWidgetId: Int): String {
-    val prefs = context.getSharedPreferences(PREFS_NAME, 0)
-    val titleValue = prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
-    return titleValue ?: context.getString(R.string.appwidget_text)
-}
+//internal fun loadTitlePref(context: Context, appWidgetId: Int): String {
+//    val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+//    val titleValue = prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
+//    return titleValue ?: context.getString(R.string.appwidget_text)
+//}
 
-internal fun deleteTitlePref(context: Context, appWidgetId: Int) {
-    val prefs = context.getSharedPreferences(PREFS_NAME, 0).edit()
-    prefs.remove(PREF_PREFIX_KEY + appWidgetId)
-    prefs.apply()
-}
+//internal fun deleteTitlePref(context: Context, appWidgetId: Int) {
+//    val prefs = context.getSharedPreferences(PREFS_NAME, 0).edit()
+//    prefs.remove(PREF_PREFIX_KEY + appWidgetId)
+//    prefs.apply()
+//}

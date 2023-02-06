@@ -21,12 +21,12 @@ class AirQoHomeScreenWidget : AppWidgetProvider() {
         }
     }
 
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        // When the user deletes the widget, delete the preference associated with it.
-        for (appWidgetId in appWidgetIds) {
-            deleteTitlePref(context, appWidgetId)
-        }
-    }
+//    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+//        // When the user deletes the widget, delete the preference associated with it.
+//        for (appWidgetId in appWidgetIds) {
+//            deleteTitlePref(context, appWidgetId)
+//        }
+//    }
 
     override fun onEnabled(context: Context) {
         // Enter relevant functionality for when the first widget is created
@@ -42,10 +42,10 @@ internal fun updateAppWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    val widgetText = loadTitlePref(context, appWidgetId)
+//    val widgetText = loadTitlePref(context, appWidgetId)
     // Construct the RemoteViews object
     val views = RemoteViews(context.packageName, R.layout.air_qo_home_screen_widget)
-    views.setTextViewText(R.id.appwidget_text, widgetText)
+//    views.setTextViewText(R.id.appwidget_text, widgetText)
 
     // Instruct the widget manager to update the widget
     appWidgetManager.updateAppWidget(appWidgetId, views)
