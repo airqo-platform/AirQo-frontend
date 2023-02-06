@@ -79,6 +79,12 @@ const AppRoutes = () => {
           <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
           <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
           <PrivateRoute exact path="/manager/stats" component={ManagerStats} layout={MainLayout} />
+          <PrivateRoute
+            exact
+            path="/manager/fault-detection"
+            component={ManagerFault}
+            layout={MainLayout}
+          />
           <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
           <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
           <PrivateRoute exact path="/airqlouds" component={AirQloudRegistry} layout={MainLayout} />
