@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -24,6 +25,7 @@ class AirQualityReading extends HiveObject {
     required this.pm10,
     required this.distanceToReferenceSite,
     required this.placeId,
+    required this.shareLink,
   });
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
@@ -54,6 +56,7 @@ class AirQualityReading extends HiveObject {
       pm10: pm10.displayValue(),
       name: site.getName(),
       location: site.getLocation(),
+      shareLink: site.getShareLink(),
     );
   }
 
@@ -77,6 +80,7 @@ class AirQualityReading extends HiveObject {
           pm10: 0,
           distanceToReferenceSite: 0,
           placeId: favouritePlace.placeId,
+          shareLink: '',
         );
       },
     );
@@ -91,6 +95,74 @@ class AirQualityReading extends HiveObject {
     );
   }
 
+  factory AirQualityReading.fromDynamicLink(
+    PendingDynamicLinkData dynamicLinkData,
+  ) {
+    String referenceSite =
+        dynamicLinkData.link.queryParameters['referenceSite'] ?? '';
+    String placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
+    String name = dynamicLinkData.link.queryParameters['name'] ?? '';
+    String location = dynamicLinkData.link.queryParameters['location'] ?? '';
+    String latitude = dynamicLinkData.link.queryParameters['latitude'] ?? '0.0';
+    String longitude =
+        dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
+
+    AirQualityReading airQualityReading =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .values
+            .firstWhere(
+      (element) => element.referenceSite == referenceSite,
+      orElse: () {
+        String country = dynamicLinkData.link.queryParameters['country'] ?? '';
+        String source = dynamicLinkData.link.queryParameters['source'] ?? '';
+        String shareLink =
+            dynamicLinkData.link.queryParameters['shareLink'] ?? '';
+        String region = dynamicLinkData.link.queryParameters['region'] ?? '';
+        String distanceToReferenceSite =
+            dynamicLinkData.link.queryParameters['distanceToReferenceSite'] ??
+                '';
+
+        return AirQualityReading(
+          referenceSite: referenceSite,
+          source: source,
+          latitude: latitude as double,
+          longitude: longitude as double,
+          country: country,
+          name: name,
+          location: location,
+          region: region,
+          dateTime: DateTime.now(),
+          pm2_5: 0.0,
+          pm10: 0.0,
+          distanceToReferenceSite: distanceToReferenceSite as double,
+          placeId: placeId,
+          shareLink: shareLink,
+        );
+      },
+    );
+
+    return airQualityReading.copyWith(
+      placeId: placeId,
+      name: name,
+      location: location,
+      latitude: double.parse(latitude),
+      longitude: double.parse(longitude),
+    );
+  }
+
+  String shareLinkParams() {
+    return 'placeId=$placeId'
+        '&referenceSite=$referenceSite'
+        '&name=$name'
+        '&location=$location'
+        '&latitude=$latitude'
+        '&longitude=$longitude'
+        '&country=$country'
+        '&source=$source'
+        '&distanceToReferenceSite=$distanceToReferenceSite'
+        '&region=$region';
+  }
+
   AirQualityReading copyWith({
     double? distanceToReferenceSite,
     String? placeId,
@@ -103,6 +175,7 @@ class AirQualityReading extends HiveObject {
     DateTime? dateTime,
     double? pm2_5,
     double? pm10,
+    String? shareLink,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
@@ -119,6 +192,7 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
+      shareLink: shareLink ?? this.shareLink,
     );
   }
 
@@ -160,6 +234,10 @@ class AirQualityReading extends HiveObject {
 
   @HiveField(13, defaultValue: '')
   final String region;
+
+  @HiveField(14, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareLink;
 }
 
 @JsonSerializable(createToJson: false)

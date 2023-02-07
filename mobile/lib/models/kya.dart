@@ -1,4 +1,6 @@
+import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -19,6 +21,7 @@ class Kya extends HiveObject with EquatableMixin {
     required this.progress,
     required this.completionMessage,
     required this.secondaryImageUrl,
+    required this.shareLink,
   });
 
   @HiveField(2)
@@ -48,7 +51,50 @@ class Kya extends HiveObject with EquatableMixin {
   @JsonKey(defaultValue: 0)
   double progress;
 
+  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
+  @HiveField(9, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareLink;
+
   Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+    final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
+
+    return Hive.box<Kya>(HiveBox.kya)
+        .values
+        .firstWhere((element) => element.id == id, orElse: () {
+      return Kya(
+        title: '',
+        imageUrl: '',
+        id: id,
+        lessons: [],
+        progress: 0,
+        completionMessage: '',
+        secondaryImageUrl: '',
+        shareLink: '',
+      );
+    });
+  }
+
+  Kya copyWith({
+    String? shareLink,
+  }) {
+    return Kya(
+      title: title,
+      completionMessage: completionMessage,
+      imageUrl: imageUrl,
+      secondaryImageUrl: secondaryImageUrl,
+      id: id,
+      lessons: lessons,
+      progress: progress,
+      shareLink: shareLink ?? this.shareLink,
+    );
+  }
+
+  String shareLinkParams() {
+    return 'kyaId=$id';
+  }
 
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';

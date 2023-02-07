@@ -25,7 +25,7 @@ on:
         type: boolean
 
 env:
-  REGISTRY_URL: gcr.io
+  REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
 
 jobs:
