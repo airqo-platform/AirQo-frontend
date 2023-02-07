@@ -5,7 +5,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'notification_event.dart';
 part 'notification_state.dart';
@@ -31,6 +30,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     RefreshNotifications _,
     Emitter<NotificationState> emit,
   ) async {
+    final notifications = HiveService.getNotifications();
+    emit(const NotificationState().copyWith(notifications: notifications));
+
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       // return emit(state.copyWith(
@@ -38,9 +40,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       //   blocError: AuthenticationError.noInternetConnection,
       // ));
     }
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
 
     final cloudNotifications = await CloudStore.getNotifications();
     final notificationsIds = notifications.map((e) => e.id).toList();

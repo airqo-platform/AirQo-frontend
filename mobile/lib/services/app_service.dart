@@ -64,8 +64,8 @@ class AppService {
     }
 
     context.read<ProfileBloc>().add(const FetchProfile());
-    context.read<KyaBloc>().add(const FetchKya());
-    context.read<AnalyticsBloc>().add(const FetchAnalytics());
+    context.read<KyaBloc>().add(const RefreshKya());
+    context.read<AnalyticsBloc>().add(const RefreshAnalytics());
     context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
     context.read<NotificationBloc>().add(const FetchNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());

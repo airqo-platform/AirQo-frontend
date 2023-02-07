@@ -13,16 +13,6 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
   AnalyticsBloc() : super(const AnalyticsState.initial()) {
     on<RefreshAnalytics>(_onRefreshAnalytics);
     on<ClearAnalytics>(_onClearAnalytics);
-    on<FetchAnalytics>(_fetchAnalytics);
-  }
-
-  Future<void> _fetchAnalytics(
-    FetchAnalytics _,
-    Emitter<AnalyticsState> emit,
-  ) async {
-    final analytics = await CloudStore.getCloudAnalytics();
-    emit(const AnalyticsState.initial().copyWith(analytics: analytics));
-    await HiveService.loadAnalytics(analytics);
   }
 
   Future<void> _onClearAnalytics(
@@ -37,6 +27,9 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     RefreshAnalytics _,
     Emitter<AnalyticsState> emit,
   ) async {
+    List<Analytics> analytics = HiveService.getAnalytics();
+    emit(const AnalyticsState().copyWith(analytics: analytics));
+
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
@@ -47,5 +40,9 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
 
     await AppService().refreshAirQualityReadings();
     // TODO: update cloud Analytics
+
+    final cloudAnalytics = await CloudStore.getCloudAnalytics();
+    emit(const AnalyticsState.initial().copyWith(analytics: cloudAnalytics));
+    await HiveService.loadAnalytics(cloudAnalytics);
   }
 }

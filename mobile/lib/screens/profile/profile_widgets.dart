@@ -17,6 +17,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
+import '../feedback/feedback_page.dart';
 import '../for_you_page.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
@@ -53,10 +54,9 @@ class _SignOutButtonState extends State<SignOutButton> {
         ),
         child: Text(
           'Log Out',
-          style: TextStyle(
-            fontSize: 16,
-            color: CustomColors.appColorBlue,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: CustomColors.appColorBlue,
+              ),
         ),
       ),
     );
@@ -518,15 +518,16 @@ class CardSection extends StatelessWidget {
           ),
         ),
         foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
+        backgroundColor: Colors.white,
       ),
       child: ListTile(
         isThreeLine: false,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: Container(
-          height: 40,
+          height: 56,
           width: 40,
           decoration: BoxDecoration(
-            color: CustomColors.appColorBlue.withOpacity(0.15),
+            color: CustomColors.appBodyColor,
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -589,10 +590,10 @@ class ProfileSection extends StatelessWidget {
             height: 0,
           ),
           CardSection(
-            text: 'Settings',
-            icon: 'assets/icon/cog.svg',
+            text: 'Send Feedback',
+            icon: 'assets/icon/feedback.svg',
             iconColor: CustomColors.appColorBlue,
-            nextPage: const SettingsPage(),
+            nextPage: const FeedbackPage(),
             isBottomItem: true,
           ),
         ],
@@ -767,6 +768,24 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
+          MultiBlocListener(listeners: [
+            BlocListener<ProfileBloc, ProfileState>(
+              listener: (context, state) async {
+                Navigator.pop(context);
+              },
+              listenWhen: (previous, current) {
+                return current.status == ProfileStatus.success;
+              },
+            ),
+            BlocListener<ProfileBloc, ProfileState>(
+              listener: (context, state) async {
+                showSnackBar(context, state.message);
+              },
+              listenWhen: (previous, current) {
+                return current.status == ProfileStatus.error;
+              },
+            ),
+          ], child: Container()),
           const AppBackButton(),
           const Spacer(),
           BlocBuilder<ProfileBloc, ProfileState>(
@@ -779,21 +798,46 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 return const SizedBox();
               }
 
-              return GestureDetector(
-                onTap: () {
-                  context.read<ProfileBloc>().add(const UpdateProfile());
-                },
-                child: Text(
-                  'Save',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: profile != hiveProfile
-                            ? CustomColors.appColorBlue
-                            : CustomColors.appColorBlack.withOpacity(0.2),
+              return SizedBox(
+                height: 40,
+                width: 70,
+                child: OutlinedButton(
+                  onPressed: () {
+                    if (state.status != ProfileStatus.processing &&
+                        profile != hiveProfile) {
+                      context.read<ProfileBloc>().add(const UpdateProfile());
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    elevation: 0,
+                    side: const BorderSide(
+                      color: Colors.transparent,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8),
                       ),
+                    ),
+                    backgroundColor: profile != hiveProfile
+                        ? CustomColors.appColorBlue.withOpacity(0.1)
+                        : Colors.transparent,
+                    foregroundColor: profile != hiveProfile
+                        ? CustomColors.appColorBlue
+                        : Colors.transparent,
+                  ),
+                  child: Text(
+                    'Save',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: profile != hiveProfile
+                              ? CustomColors.appColorBlue
+                              : CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
+                  ),
                 ),
               );
             },
-          ),
+          )
         ],
       ),
     );

@@ -4,6 +4,12 @@ abstract class FavouritePlaceEvent extends Equatable {
   const FavouritePlaceEvent();
 }
 
+class LoadFavouritePlaces extends FavouritePlaceEvent {
+  const LoadFavouritePlaces();
+  @override
+  List<Object?> get props => [];
+}
+
 class RefreshFavouritePlaces extends FavouritePlaceEvent {
   const RefreshFavouritePlaces();
   @override

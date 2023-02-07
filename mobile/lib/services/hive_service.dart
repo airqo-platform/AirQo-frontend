@@ -99,6 +99,16 @@ class HiveService {
     ).values.toList();
   }
 
+  static List<AppNotification> getNotifications() {
+    return Hive.box<AppNotification>(
+      HiveBox.appNotifications,
+    ).values.toList();
+  }
+
+  static List<FavouritePlace> getFavouritePlaces() {
+    return Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+  }
+
   static Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {
@@ -220,8 +230,7 @@ class HiveService {
     }
 
     await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .putAll(favouritePlacesMap)
-        .then((value) => CloudStore.updateFavouritePlaces());
+        .putAll(favouritePlacesMap);
   }
 
   static List<SearchHistory> getSearchHistory() {
@@ -236,10 +245,14 @@ class HiveService {
     Profile? profile = Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
     if (profile == null) {
       profile = await Profile.create();
-      profile = await profile.setUserCredentials();
       await updateProfile(profile);
     }
-    return profile;
+
+    return await profile.setUserCredentials();
+  }
+
+  static List<Kya> getKya() {
+    return Hive.box<Kya>(HiveBox.kya).values.toList();
   }
 
   static Future<void> deleteAnalytics() async {

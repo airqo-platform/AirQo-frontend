@@ -37,13 +37,12 @@ class FavouritePlaceBloc
 
     await HiveService.loadFavouritePlaces(favouritePlaces);
 
-    emit(state.copyWith(
-      favouritePlaces: favouritePlaces,
-    ));
+    emit(state.copyWith(favouritePlaces: favouritePlaces));
 
     final hasConnection = await hasNetworkConnection();
     if (hasConnection) {
-      await CloudStore.updateFavouritePlaces();
+      Profile profile = await HiveService.getProfile();
+      await CloudStore.updateFavouritePlaces(profile);
       if (favouritePlaces.length >= 5) {
         await CloudAnalytics.logEvent(
           Event.savesFiveFavorites,
@@ -75,6 +74,9 @@ class FavouritePlaceBloc
     RefreshFavouritePlaces _,
     Emitter<FavouritePlaceState> emit,
   ) async {
+    List<FavouritePlace> places = HiveService.getFavouritePlaces();
+    emit(const FavouritePlaceState().copyWith(favouritePlaces: places));
+
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(

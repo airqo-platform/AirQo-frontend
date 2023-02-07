@@ -77,7 +77,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
               await _deleteAccount();
             },
             style: OutlinedButton.styleFrom(
-              foregroundColor: CustomColors.aqiRed,
+              foregroundColor: CustomColors.appColorBlue,
               minimumSize: const Size.fromHeight(60),
               alignment: Alignment.centerLeft,
               elevation: 0,
@@ -97,7 +97,8 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
               'Delete your account',
               textAlign: TextAlign.start,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: CustomColors.aqiRed, fontWeight: FontWeight.w500),
+                  color: CustomColors.appBodyColor,
+                  fontWeight: FontWeight.w500),
             ),
           ),
         );

@@ -55,16 +55,11 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
-
-    final isLoggedIn = CustomAuth.isLoggedIn();
-
-    if (isLoggedIn) {
-      context.read<ProfileBloc>().add(const RefreshProfile());
-      context.read<KyaBloc>().add(const RefreshKya());
-      context.read<AnalyticsBloc>().add(const RefreshAnalytics());
-      context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
-      context.read<NotificationBloc>().add(const RefreshNotifications());
-    }
+    context.read<ProfileBloc>().add(const RefreshProfile());
+    context.read<KyaBloc>().add(const RefreshKya());
+    context.read<AnalyticsBloc>().add(const RefreshAnalytics());
+    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
+    context.read<NotificationBloc>().add(const RefreshNotifications());
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
@@ -75,7 +70,7 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
         builder: (context) {
-          if (isLoggedIn) {
+          if (CustomAuth.isLoggedIn()) {
             return const HomePage();
           } else {
             switch (nextPage) {

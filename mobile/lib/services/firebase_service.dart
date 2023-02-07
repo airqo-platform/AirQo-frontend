@@ -5,7 +5,6 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -282,62 +281,35 @@ class CloudStore {
     return favouritePlaces;
   }
 
-  static Future<bool> updateFavouritePlaces() async {
-    final hasConnection = await hasNetworkConnection();
-    final userId = CustomAuth.getUserId();
-    if (!hasConnection || userId.trim().isEmpty) {
-      return true;
-    }
-
+  static Future<bool> updateFavouritePlaces(Profile profile) async {
     final batch = FirebaseFirestore.instance.batch();
 
-    final cloudFavPlaces = await getFavouritePlaces();
-    for (final favouritePlace in cloudFavPlaces) {
-      try {
-        final document = FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(favouritePlace.placeId);
-        batch.delete(document);
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
+    batch.delete(FirebaseFirestore.instance
+        .collection(Config.favPlacesCollection)
+        .doc(profile.userId));
 
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+    final favouritePlaces = HiveService.getFavouritePlaces();
     for (final favouritePlace in favouritePlaces) {
-      try {
-        final document = FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(favouritePlace.placeId);
-        batch.set(
-          document,
-          favouritePlace.toJson(),
-        );
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+      final document = FirebaseFirestore.instance
+          .collection(Config.favPlacesCollection)
+          .doc(profile.userId)
+          .collection(profile.userId)
+          .doc(favouritePlace.placeId);
+      batch.set(
+        document,
+        favouritePlace.toJson(),
+      );
     }
 
-    batch.commit();
+    await batch.commit();
 
     return true;
   }
 
-  static Future<void> updateProfile(Profile profile) async {
+  static Future<bool> updateProfile(Profile profile) async {
     final user = profile.user;
     if (user == null) {
-      return;
+      return false;
     }
     try {
       await Future.wait([
@@ -348,24 +320,45 @@ class CloudStore {
             .doc(profile.userId)
             .set(profile.toJson()),
       ]);
+      return true;
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
+      return false;
     }
   }
 
-  static Future<bool> updateCloudAnalytics(Profile profile) async {
-    final currentUser = CustomAuth.getUser();
-    if (currentUser == null) {
-      return true;
+  static Future<bool> updateKya(Profile profile) async {
+    final batch = FirebaseFirestore.instance.batch();
+    batch.delete(FirebaseFirestore.instance
+        .collection(Config.usersKyaCollection)
+        .doc(profile.userId));
+
+    List<KyaProgress> userProgress =
+        HiveService.getKya().map((e) => KyaProgress.fromKya(e)).toList();
+
+    for (final progress in userProgress) {
+      final document = FirebaseFirestore.instance
+          .collection(Config.usersKyaCollection)
+          .doc(profile.userId)
+          .collection(profile.userId)
+          .doc(progress.id);
+      batch.set(
+        document,
+        progress.toJson(),
+      );
     }
+
+    await batch.commit();
+
+    return true;
+  }
+
+  static Future<bool> updateCloudAnalytics(Profile profile) async {
     try {
-      final analytics = Hive.box<Analytics>(HiveBox.analytics)
-          .values
-          .toList()
-          .cast<Analytics>();
+      final analytics = HiveService.getAnalytics();
       for (final x in analytics) {
         try {
           await FirebaseFirestore.instance
@@ -528,6 +521,17 @@ class CustomAuth {
 
   static Future<bool> signOut() async {
     try {
+      Profile profile = await HiveService.getProfile();
+
+      final profileSuccess = await CloudStore.updateProfile(profile);
+      final analytics = await CloudStore.updateCloudAnalytics(profile);
+      final favouritePlaces = await CloudStore.updateFavouritePlaces(profile);
+      final kya = await CloudStore.updateKya(profile);
+
+      if (!kya || !analytics || !profileSuccess || !favouritePlaces) {
+        return false;
+      }
+
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
       await logException(

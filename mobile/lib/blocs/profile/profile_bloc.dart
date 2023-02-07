@@ -71,39 +71,31 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onRefreshProfile(
-    RefreshProfile _,
-    Emitter<ProfileState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
+      RefreshProfile _, Emitter<ProfileState> emit) async {
     final profile = await _getProfile(emit);
-    return emit(state.copyWith(
-      profile: profile,
-      blocStatus: BlocStatus.initial,
-    ));
+    return emit(const ProfileState().copyWith(profile: profile));
   }
 
   Future<void> _onUpdateProfile(
     UpdateProfile _,
     Emitter<ProfileState> emit,
   ) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(status: ProfileStatus.noInternetConnection));
+    }
+
+    emit(state.copyWith(status: ProfileStatus.processing));
+
     Profile profile = await _getProfile(emit);
 
     await HiveService.updateProfile(profile);
 
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
+    bool success = await CloudStore.updateProfile(profile);
+    emit(state.copyWith(
+      status: success ? ProfileStatus.success : ProfileStatus.error,
+    ));
 
-    await CloudStore.updateProfile(profile);
     if (profile.photoUrl.isNotEmpty && !profile.photoUrl.isValidUri()) {
       await CloudStore.uploadProfilePicture(profile.photoUrl);
     }

@@ -167,7 +167,7 @@ class _MapLandscapeState extends State<MapLandscape> {
     final GoogleMapController controller = await _mapController.future;
 
     if (airQualityReadings.isEmpty) {
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newCameraPosition(_defaultCameraPosition),
       );
 

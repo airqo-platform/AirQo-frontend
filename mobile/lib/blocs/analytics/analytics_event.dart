@@ -10,12 +10,6 @@ class RefreshAnalytics extends AnalyticsEvent {
   List<Object?> get props => [];
 }
 
-class FetchAnalytics extends AnalyticsEvent {
-  const FetchAnalytics();
-  @override
-  List<Object?> get props => [];
-}
-
 class ClearAnalytics extends AnalyticsEvent {
   const ClearAnalytics();
   @override

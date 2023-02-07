@@ -1,32 +1,40 @@
 part of 'profile_bloc.dart';
 
+enum ProfileStatus {
+  initial,
+  processing,
+  error,
+  success,
+  noInternetConnection,
+}
+
 class ProfileState extends Equatable {
   const ProfileState({
     this.profile,
-    this.blocStatus = BlocStatus.initial,
-    this.blocError = AuthenticationError.none,
+    this.status = ProfileStatus.initial,
+    this.message = '',
   });
 
   ProfileState copyWith({
     Profile? profile,
-    BlocStatus? blocStatus,
+    ProfileStatus? status,
     AuthenticationError? blocError,
+    String? message,
   }) {
     return ProfileState(
       profile: profile ?? this.profile,
-      blocStatus: blocStatus ?? this.blocStatus,
-      blocError: blocError ?? this.blocError,
+      status: status ?? this.status,
+      message: message ?? this.message,
     );
   }
 
   final Profile? profile;
-  final BlocStatus blocStatus;
-  final AuthenticationError blocError;
+  final ProfileStatus status;
+  final String message;
 
   @override
   List<Object?> get props => [
         profile,
-        blocStatus,
-        blocError,
+        status,
       ];
 }

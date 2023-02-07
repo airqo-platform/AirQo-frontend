@@ -11,10 +11,9 @@ part 'kya_event.dart';
 part 'kya_state.dart';
 
 class KyaBloc extends Bloc<KyaEvent, KyaState> {
-  KyaBloc() : super(const KyaState.initial()) {
+  KyaBloc() : super(const KyaState()) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<ClearKya>(_onClearKya);
-    on<FetchKya>(_onFetchKya);
     on<RefreshKya>(_onRefreshKya);
   }
 
@@ -22,23 +21,21 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
     RefreshKya _,
     Emitter<KyaState> emit,
   ) async {
-    List<Kya> kya = Hive.box<Kya>(HiveBox.kya).values.toList();
+    List<Kya> kya = HiveService.getKya();
+    emit(const KyaState().copyWith(kya: kya));
+
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection && kya.isEmpty) {
+      emit(state.copyWith(status: KyaStatus.noInternetConnection));
+      return;
+    }
+
     if (kya.isEmpty) {
       final cloudKya = await CloudStore.getKya();
       kya.addAll(cloudKya);
     }
-    kya = kya.map((e) => e.copyWith(progress: 0)).toList();
-    emit(const KyaState.initial().copyWith(kya: kya));
+    emit(const KyaState().copyWith(kya: kya));
     await HiveService.loadKya(kya);
-  }
-
-  Future<void> _onFetchKya(
-    FetchKya _,
-    Emitter<KyaState> emit,
-  ) async {
-    final kya = await CloudStore.getKya();
-
-    return emit(const KyaState.initial().copyWith(kya: kya));
   }
 
   Future<void> _onClearKya(
@@ -47,7 +44,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
   ) async {
     List<Kya> kya = Hive.box<Kya>(HiveBox.kya).values.toList();
     kya = kya.map((e) => e.copyWith(progress: 0)).toList();
-    emit(const KyaState.initial().copyWith(kya: kya));
+    emit(const KyaState().copyWith(kya: kya));
     await HiveService.loadKya(kya);
   }
 

@@ -1,10 +1,12 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../settings/settings_page.dart';
 import 'profile_widgets.dart';
 
 class ProfileView extends StatelessWidget {
@@ -27,6 +29,15 @@ class ProfileView extends StatelessWidget {
               children: <Widget>[
                 const SizedBox(height: 10),
                 ProfileSection(profile),
+                const SizedBox(height: 16),
+                CardSection(
+                  text: 'Settings',
+                  icon: 'assets/icon/cog.svg',
+                  iconColor: CustomColors.appColorBlue,
+                  nextPage: const SettingsPage(),
+                  isBottomItem: true,
+                  isTopItem: true,
+                ),
                 const Spacer(),
                 const SignOutButton(),
                 const SizedBox(height: 10),

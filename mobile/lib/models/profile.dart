@@ -161,7 +161,7 @@ class Profile extends HiveObject with EquatableMixin {
         utcOffset,
         device,
         preferences,
-        user,
+        // user, intentionally left out
       ];
 }
 
