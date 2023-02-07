@@ -141,12 +141,7 @@ class KyaCardWidget extends StatelessWidget {
         ),
         onPressed: () async {
           if (kya.isPartiallyComplete()) {
-            context.read<KyaBloc>().add(
-                  UpdateKyaProgress(
-                    visibleCardIndex: kya.lessons.length - 1,
-                    kya: kya,
-                  ),
-                );
+            context.read<KyaBloc>().add(CompleteKya(kya));
           } else {
             await Navigator.push(
               context,
@@ -312,7 +307,7 @@ class KyaLessonCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               minFontSize: 16,
-              style: Theme.of(context).textTheme.subtitle1?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.5),
                   ),
             ),

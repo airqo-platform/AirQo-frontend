@@ -33,7 +33,7 @@ class KyaState extends Equatable {
   @override
   List<Object?> get props => [
         kya,
-        kya.filterIncompleteKya().length,
+        kya.filterInProgressKya().length,
         kya.filterCompleteKya().length,
         status,
       ];

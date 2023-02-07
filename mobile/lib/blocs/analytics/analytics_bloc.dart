@@ -33,16 +33,10 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        error: AnalyticsError.noInternetConnection,
-        status: AnalyticsStatus.error,
+        status: AnalyticsStatus.noInternetConnection,
       ));
     }
 
     await AppService().refreshAirQualityReadings();
-    // TODO: update cloud Analytics
-
-    final cloudAnalytics = await CloudStore.getCloudAnalytics();
-    emit(const AnalyticsState.initial().copyWith(analytics: cloudAnalytics));
-    await HiveService.loadAnalytics(cloudAnalytics);
   }
 }

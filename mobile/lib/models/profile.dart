@@ -134,7 +134,7 @@ class Profile extends HiveObject with EquatableMixin {
       title: TitleOptions.ms.value,
       firstName: '',
       lastName: '',
-      userId: const Uuid().v4(),
+      userId: '',
       emailAddress: '',
       phoneNumber: '',
       device: await CloudMessaging.getDeviceToken() ?? '',

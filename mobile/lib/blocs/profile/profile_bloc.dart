@@ -88,13 +88,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.processing));
 
     Profile profile = await _getProfile(emit);
-
     await HiveService.updateProfile(profile);
 
-    bool success = await CloudStore.updateProfile(profile);
-    emit(state.copyWith(
-      status: success ? ProfileStatus.success : ProfileStatus.error,
-    ));
+    await CloudStore.updateProfile().then((value) {
+      emit(state.copyWith(
+        status: value ? ProfileStatus.success : ProfileStatus.error,
+      ));
+    });
 
     if (profile.photoUrl.isNotEmpty && !profile.photoUrl.isValidUri()) {
       await CloudStore.uploadProfilePicture(profile.photoUrl);

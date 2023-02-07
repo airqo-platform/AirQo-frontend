@@ -45,6 +45,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
       appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
       body: WillPopScope(

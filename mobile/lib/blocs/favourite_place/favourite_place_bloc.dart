@@ -11,12 +11,14 @@ part 'favourite_place_state.dart';
 
 class FavouritePlaceBloc
     extends Bloc<FavouritePlaceEvent, FavouritePlaceState> {
-  FavouritePlaceBloc() : super(const FavouritePlaceState.initial()) {
+  FavouritePlaceBloc() : super(const FavouritePlaceState()) {
     on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
     on<FetchFavouritePlaces>(_fetchFavouritePlaces);
     on<ClearFavouritePlaces>(_onClearFavouritePlaces);
     on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
   }
+
+  final AppService appService = AppService();
 
   Future<void> _onUpdateFavouritePlace(
     UpdateFavouritePlace event,
@@ -37,12 +39,11 @@ class FavouritePlaceBloc
 
     await HiveService.loadFavouritePlaces(favouritePlaces);
 
-    emit(state.copyWith(favouritePlaces: favouritePlaces));
+    emit(state.copyWith(favouritePlaces: favouritePlaces.sortByName()));
 
     final hasConnection = await hasNetworkConnection();
     if (hasConnection) {
-      Profile profile = await HiveService.getProfile();
-      await CloudStore.updateFavouritePlaces(profile);
+      await CloudStore.updateFavouritePlaces();
       if (favouritePlaces.length >= 5) {
         await CloudAnalytics.logEvent(
           Event.savesFiveFavorites,
@@ -55,18 +56,16 @@ class FavouritePlaceBloc
     FetchFavouritePlaces _,
     Emitter<FavouritePlaceState> emit,
   ) async {
-    final favouritePlaces = await CloudStore.getFavouritePlaces();
-    emit(const FavouritePlaceState.initial().copyWith(
-      favouritePlaces: favouritePlaces,
-    ));
-    await HiveService.loadFavouritePlaces(favouritePlaces);
+    List<FavouritePlace> places = await CloudStore.getFavouritePlaces();
+    emit(const FavouritePlaceState().copyWith(favouritePlaces: places));
+    await HiveService.loadFavouritePlaces(places);
   }
 
   Future<void> _onClearFavouritePlaces(
     ClearFavouritePlaces _,
     Emitter<FavouritePlaceState> emit,
   ) async {
-    emit(const FavouritePlaceState.initial());
+    emit(const FavouritePlaceState());
     await HiveService.deleteFavouritePlaces();
   }
 
@@ -75,29 +74,22 @@ class FavouritePlaceBloc
     Emitter<FavouritePlaceState> emit,
   ) async {
     List<FavouritePlace> places = HiveService.getFavouritePlaces();
-    emit(const FavouritePlaceState().copyWith(favouritePlaces: places));
+    emit(const FavouritePlaceState().copyWith(
+      favouritePlaces: places.sortByName(),
+    ));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(
-        state.copyWith(
-          status: FavouritePlaceStatus.error,
-          error: FavouritePlaceError.noInternetConnection,
-        ),
+        state.copyWith(status: FavouritePlaceStatus.noInternetConnection),
       );
     }
 
-    final AppService appService = AppService();
     await appService.updateFavouritePlacesReferenceSites();
     await _onRefreshFavouritePlacesInsights();
   }
 
   Future<void> _onRefreshFavouritePlacesInsights() async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-    final AppService appService = AppService();
     for (final favouritePlace in state.favouritePlaces) {
       await appService.fetchInsightsData(favouritePlace.referenceSite);
     }

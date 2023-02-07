@@ -260,7 +260,6 @@ class _HomePageState extends State<HomePage> {
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     context.read<MapBloc>().add(const InitializeMapState());
-    // TODO sync profile
   }
 
   Future<bool> _onWillPop() {

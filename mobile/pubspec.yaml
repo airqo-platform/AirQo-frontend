@@ -36,7 +36,7 @@ dependencies:
   path_provider: ^2.0.12
   animations: ^2.0.7
   provider: ^6.0.5
-  charts_flutter: ^0.12.0 # TODO: Use another package. charts_flutter is discontinued. https://pub.dev/packages/charts_flutter
+  charts_flutter: ^0.12.0
   intl: ^0.17.0
   uuid: ^3.0.7
   flutter_svg: ^1.1.6

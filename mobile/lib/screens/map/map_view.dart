@@ -210,7 +210,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         zoom: 10,
       );
 
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newCameraPosition(cameraPosition),
       );
     } else {
@@ -218,7 +218,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         markers.values.toList(),
       );
 
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newLatLngBounds(latLngBounds, 100),
       );
     }

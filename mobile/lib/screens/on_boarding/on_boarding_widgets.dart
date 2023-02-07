@@ -184,7 +184,8 @@ class TitleDropDown extends StatelessWidget {
         Profile? profile = state.profile;
 
         if (profile == null) {
-          return Container(); // TODO replace with error widget
+          context.read<ProfileBloc>().add(const FetchProfile());
+          return const LoadingIcon();
         }
 
         return PopupMenuButton<TitleOptions>(

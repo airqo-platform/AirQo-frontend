@@ -170,26 +170,18 @@ class HiveService {
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings).clear();
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
         .putAll(airQualityReadingsMap);
-    await updateAnalytics(nearbyAirQualityReadings);
   }
 
-  static Future<void> updateAnalytics(
-    List<AirQualityReading> airQualityReadings,
-  ) async {
-    List<Analytics> analytics = airQualityReadings
-        .map((e) => Analytics.fromAirQualityReading(e))
-        .toList();
+  static Future<void> addAnalytics(AirQualityReading airQualityReading) async {
+    Analytics analytics = Analytics.fromAirQualityReading(airQualityReading);
 
-    analytics.addAll(Hive.box<Analytics>(HiveBox.analytics).values.toList());
+    List<Analytics> analyticsList = getAnalytics();
 
-    final analyticsMap = <String, Analytics>{};
-
-    for (final element in analytics) {
-      analyticsMap[element.id] = element;
+    if (analyticsList.map((e) => e.id).toList().contains(analytics.id)) {
+      return;
     }
-
-    await Hive.box<Analytics>(HiveBox.analytics).clear();
-    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
+    await Hive.box<Analytics>(HiveBox.analytics).put(analytics.id, analytics);
+    await CloudStore.updateCloudAnalytics();
   }
 
   static Future<void> loadNotifications(List<AppNotification> notifications,

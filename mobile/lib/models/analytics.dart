@@ -1,5 +1,3 @@
-import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -8,7 +6,7 @@ import 'air_quality_reading.dart';
 part 'analytics.g.dart';
 
 @JsonSerializable()
-@HiveType(typeId: 40, adapterName: 'AnalyticsAdapter')
+@HiveType(typeId: 40)
 class Analytics extends HiveObject {
   factory Analytics.fromAirQualityReading(AirQualityReading airQualityReading) {
     return Analytics(
@@ -16,7 +14,7 @@ class Analytics extends HiveObject {
       site: airQualityReading.referenceSite,
       name: airQualityReading.name,
       location: airQualityReading.location,
-      createdAt: airQualityReading.dateTime,
+      createdAt: DateTime.now().toUtc(),
       longitude: airQualityReading.longitude,
       latitude: airQualityReading.latitude,
     );
@@ -57,23 +55,4 @@ class Analytics extends HiveObject {
   DateTime createdAt;
 
   Map<String, dynamic> toJson() => _$AnalyticsToJson(this);
-
-  static Analytics? parseAnalytics(Map<String, dynamic> jsonBody) {
-    try {
-      return Analytics.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-
-      return null;
-    }
-  }
-
-  static List<Analytics> fromAirQualityReadings() {
-    return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-        .values
-        .map((airQualityReading) => Analytics.fromAirQualityReading(
-              airQualityReading,
-            ))
-        .toList();
-  }
 }

@@ -97,8 +97,9 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
               'Delete your account',
               textAlign: TextAlign.start,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: CustomColors.appBodyColor,
-                  fontWeight: FontWeight.w500),
+                    color: CustomColors.appBodyColor,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ),
         );
@@ -116,7 +117,8 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return const ReAuthenticationDialog(
-            'Login is required to delete account');
+          'Login is required to delete account',
+        );
       },
     );
 

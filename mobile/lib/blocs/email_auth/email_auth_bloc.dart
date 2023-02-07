@@ -65,6 +65,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
       ));
     } on FirebaseAuthException catch (exception, _) {
       final error = CustomAuth.getFirebaseExceptionMessage(exception);
+
       return emit(state.copyWith(
         errorMessage: error.message,
         status: EmailBlocStatus.error,

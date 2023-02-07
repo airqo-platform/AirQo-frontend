@@ -28,7 +28,7 @@ enum Event {
   mtnUser('mtn_user'),
   airtelUser('airtel_user'),
   otherNetwork('other_network'),
-  deletedAccount('deleted_account'), // TODO Transfer to backend
+  deletedAccount('deleted_account'),
   notificationOpen('notification_open'),
   notificationReceive('notification_receive');
 

@@ -30,7 +30,6 @@ class AnalyticsView extends StatelessWidget {
         if (analytics.isEmpty) {
           return NoAnalyticsWidget(
             callBack: () async {
-              // TODO implement method using the bloc pattern
               await Navigator.push(
                 context,
                 MaterialPageRoute(

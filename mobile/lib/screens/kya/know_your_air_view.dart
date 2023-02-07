@@ -18,7 +18,7 @@ class KnowYourAirView extends StatelessWidget {
       builder: (context, state) {
         final completeKya = state.kya.filterCompleteKya();
         if (completeKya.isEmpty) {
-          final inCompleteKya = state.kya.filterIncompleteKya();
+          final inCompleteKya = state.kya.filterInProgressKya();
 
           if (inCompleteKya.isEmpty &&
               state.status == KyaStatus.noInternetConnection) {

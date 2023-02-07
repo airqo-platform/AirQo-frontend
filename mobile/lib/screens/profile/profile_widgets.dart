@@ -299,7 +299,6 @@ class ViewProfilePicture extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
       final profile = state.profile;
-      // TODO check user profile
       if (profile == null) {
         return Stack(
           alignment: AlignmentDirectional.center,
@@ -768,24 +767,27 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          MultiBlocListener(listeners: [
-            BlocListener<ProfileBloc, ProfileState>(
-              listener: (context, state) async {
-                Navigator.pop(context);
-              },
-              listenWhen: (previous, current) {
-                return current.status == ProfileStatus.success;
-              },
-            ),
-            BlocListener<ProfileBloc, ProfileState>(
-              listener: (context, state) async {
-                showSnackBar(context, state.message);
-              },
-              listenWhen: (previous, current) {
-                return current.status == ProfileStatus.error;
-              },
-            ),
-          ], child: Container()),
+          MultiBlocListener(
+            listeners: [
+              BlocListener<ProfileBloc, ProfileState>(
+                listener: (context, state) {
+                  Navigator.pop(context);
+                },
+                listenWhen: (previous, current) {
+                  return current.status == ProfileStatus.success;
+                },
+              ),
+              BlocListener<ProfileBloc, ProfileState>(
+                listener: (context, state) {
+                  showSnackBar(context, state.message);
+                },
+                listenWhen: (previous, current) {
+                  return current.status == ProfileStatus.error;
+                },
+              ),
+            ],
+            child: Container(),
+          ),
           const AppBackButton(),
           const Spacer(),
           BlocBuilder<ProfileBloc, ProfileState>(
@@ -837,7 +839,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               );
             },
-          )
+          ),
         ],
       ),
     );

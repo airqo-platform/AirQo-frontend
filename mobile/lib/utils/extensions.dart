@@ -104,14 +104,38 @@ extension KyaExt on Kya {
   }
 }
 
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  List<FavouritePlace> sortByName() {
+    List<FavouritePlace> data = List.of(this);
+
+    data.sort((x, y) => x.name.compareTo(y.name));
+    return data;
+  }
+}
+
 extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) => -(x.progress.compareTo(y.progress)));
+  List<Kya> sortByProgress() {
+    List<Kya> data = List.of(this);
+
+    data.sort((x, y) {
+      if (x.progress == -1) return 1;
+
+      if (y.progress == -1) return -1;
+
+      return -(x.progress.compareTo(y.progress));
+    });
+    return data;
   }
 
-  List<Kya> filterIncompleteKya() {
+  List<Kya> filterInProgressKya() {
     return where((element) {
-      return !element.isComplete();
+      return element.isInProgress();
+    }).toList();
+  }
+
+  List<Kya> filterPartiallyCompleteKya() {
+    return where((element) {
+      return element.isPartiallyComplete();
     }).toList();
   }
 
@@ -122,16 +146,27 @@ extension KyaListExt on List<Kya> {
   }
 
   List<Kya> removeDuplicates() {
-    List<Kya> cleanedKya = [];
-    for (final kya in this) {
-      final duplicates = where((e) => e.id == kya.id).toList();
-      duplicates.sortByProgress();
-      if (!cleanedKya.contains(duplicates.first)) {
-        cleanedKya.add(duplicates.first);
-      }
-    }
+    List<Kya> completeKya = filterCompleteKya().toSet().toList();
 
-    return cleanedKya;
+    List<Kya> kya = completeKya
+        .map((e) => e.id)
+        .toSet()
+        .map((e) => completeKya.firstWhere((element) => element.id == e))
+        .toList();
+
+    List<Kya> partiallyCompleteKya =
+        filterPartiallyCompleteKya().toSet().toList();
+    List<Kya> inProgressKya = filterInProgressKya().toSet().toList();
+
+    partiallyCompleteKya.removeWhere(
+        (element) => kya.map((e) => e.id).toList().contains(element.id));
+    kya.addAll(partiallyCompleteKya);
+
+    inProgressKya.removeWhere(
+        (element) => kya.map((e) => e.id).toList().contains(element.id));
+    kya.addAll(inProgressKya);
+
+    return kya.toSet().toList();
   }
 }
 
@@ -638,14 +673,6 @@ extension StringExt on String {
     return false;
   }
 
-  bool isValidName() {
-    if (trim().isNull()) {
-      return false;
-    }
-
-    return true;
-  }
-
   bool equalsIgnoreCase(String value) {
     if (toLowerCase() == value.toLowerCase()) {
       return true;
@@ -697,7 +724,7 @@ extension StringExt on String {
     }
 
     return RegExp(
-      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
+      r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$',
     ).hasMatch(this);
   }
 

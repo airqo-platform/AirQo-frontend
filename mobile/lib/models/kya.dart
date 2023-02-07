@@ -164,6 +164,13 @@ class KyaProgress {
         progress: kya.progress,
       );
 
+  KyaProgress copyWith({double? progress}) {
+    return KyaProgress(
+      id: id,
+      progress: progress ?? this.progress,
+    );
+  }
+
   final String id;
   final double progress;
 

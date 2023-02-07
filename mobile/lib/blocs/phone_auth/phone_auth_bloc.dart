@@ -16,8 +16,9 @@ part 'phone_auth_state.dart';
 
 class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   PhoneAuthBloc()
-      : super(
-            const PhoneAuthState.initial(authProcedure: AuthProcedure.signup)) {
+      : super(const PhoneAuthState.initial(
+          authProcedure: AuthProcedure.signup,
+        )) {
     on<UpdatePhoneAuthCode>(_onUpdatePhoneAuthCode);
     on<VerifyPhoneNumber>(_onVerifyPhoneNumber);
     on<UpdateCountryCode>(_onUpdateCountryCode);
@@ -45,9 +46,10 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   ) async {
     if (state.inputAuthCode.length != 6) {
       return emit(state.copyWith(
-          status: PhoneBlocStatus.error,
-          error: PhoneBlocError.invalidCode,
-          errorMessage: "Invalid code"));
+        status: PhoneBlocStatus.error,
+        error: PhoneBlocError.invalidCode,
+        errorMessage: "Invalid code",
+      ));
     }
 
     final hasConnection = await hasNetworkConnection();
@@ -83,6 +85,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       ));
     } on FirebaseAuthException catch (exception, _) {
       final error = CustomAuth.getFirebaseExceptionMessage(exception);
+
       return emit(state.copyWith(
         errorMessage: error.message,
         status: PhoneBlocStatus.error,
@@ -138,10 +141,12 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     Emitter<PhoneAuthState> emit,
   ) {
     final error = CustomAuth.getFirebaseExceptionMessage(event.exception);
+
     return emit(state.copyWith(
-        status: PhoneBlocStatus.error,
-        error: PhoneBlocError.verificationFailed,
-        errorMessage: error.message));
+      status: PhoneBlocStatus.error,
+      error: PhoneBlocError.verificationFailed,
+      errorMessage: error.message,
+    ));
   }
 
   Future<void> _onPhoneAutoVerificationCompleted(
@@ -232,6 +237,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
           errorMessage: "Error occurred. Try again later",
         ));
         await logException(exception, stackTrace);
+
         return;
       }
     }
@@ -257,8 +263,10 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     UpdateCountryCode event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    return emit(
-        state.copyWith(countryCode: event.code, error: PhoneBlocError.none));
+    return emit(state.copyWith(
+      countryCode: event.code,
+      error: PhoneBlocError.none,
+    ));
   }
 
   Future<void> _onInitializePhoneAuth(
@@ -276,6 +284,8 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     Emitter<PhoneAuthState> emit,
   ) async {
     return emit(state.copyWith(
-        phoneNumber: event.phoneNumber, error: PhoneBlocError.none));
+      phoneNumber: event.phoneNumber,
+      error: PhoneBlocError.none,
+    ));
   }
 }

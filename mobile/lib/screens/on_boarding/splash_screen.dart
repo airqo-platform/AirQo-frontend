@@ -119,30 +119,34 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 
     Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-        builder: (context) {
-          if (CustomAuth.isLoggedIn()) {
-            return const HomePage();
-          } else {
-            switch (nextPage) {
-              case OnBoardingPage.signup:
-                return const PhoneSignUpWidget();
-              case OnBoardingPage.profile:
-                return const ProfileSetupScreen();
-              case OnBoardingPage.notification:
-                return const NotificationsSetupScreen();
-              case OnBoardingPage.location:
-                return const LocationSetupScreen();
-              case OnBoardingPage.complete:
-                return const SetUpCompleteScreen();
-              case OnBoardingPage.home:
-                return const HomePage();
-              default:
-                return const IntroductionScreen();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            if (CustomAuth.isLoggedIn()) {
+              return const HomePage();
+            } else {
+              switch (nextPage) {
+                case OnBoardingPage.signup:
+                  return const PhoneSignUpWidget();
+                case OnBoardingPage.profile:
+                  return const ProfileSetupScreen();
+                case OnBoardingPage.notification:
+                  return const NotificationsSetupScreen();
+                case OnBoardingPage.location:
+                  return const LocationSetupScreen();
+                case OnBoardingPage.complete:
+                  return const SetUpCompleteScreen();
+                case OnBoardingPage.home:
+                  return const HomePage();
+                default:
+                  return const IntroductionScreen();
+              }
             }
-          }
-        },
-      ), (r) => true);
+          },
+        ),
+        (r) => true,
+      );
     });
   }
 

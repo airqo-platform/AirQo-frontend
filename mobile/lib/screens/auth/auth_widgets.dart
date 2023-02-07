@@ -510,7 +510,7 @@ class _EmailAuthVerificationWidgetState
                     ),
 
                     BlocListener<EmailAuthBloc, EmailAuthState>(
-                      listener: (context, state) async {
+                      listener: (context, state) {
                         _startCodeSentCountDown();
                       },
                       listenWhen: (previous, current) {
@@ -970,6 +970,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
     if (!hasConnection) {
       if (!mounted) return;
       showSnackBar(context, "Check your internet connection");
+
       return;
     }
     if (!mounted) return;
@@ -1165,26 +1166,27 @@ class LoginOptions extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 Navigator.pushAndRemoveUntil(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) {
-                        switch (authMethod) {
-                          case AuthMethod.none:
-                          case AuthMethod.phone:
-                            return const PhoneSignUpWidget();
-                          case AuthMethod.email:
-                            return const EmailSignUpWidget();
-                        }
-                      },
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        return FadeTransition(
-                          opacity: animation.drive(tween),
-                          child: child,
-                        );
-                      },
-                    ),
-                    (r) => false);
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      switch (authMethod) {
+                        case AuthMethod.none:
+                        case AuthMethod.phone:
+                          return const PhoneSignUpWidget();
+                        case AuthMethod.email:
+                          return const EmailSignUpWidget();
+                      }
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                  (r) => false,
+                );
               },
               child: SizedBox(
                 width: double.infinity,

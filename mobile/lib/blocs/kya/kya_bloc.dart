@@ -13,6 +13,8 @@ part 'kya_state.dart';
 class KyaBloc extends Bloc<KyaEvent, KyaState> {
   KyaBloc() : super(const KyaState()) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
+    on<CompleteKya>(_onCompleteKya);
+    on<PartiallyCompleteKya>(_onPartiallyCompleteKya);
     on<ClearKya>(_onClearKya);
     on<RefreshKya>(_onRefreshKya);
   }
@@ -30,12 +32,9 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
       return;
     }
 
-    if (kya.isEmpty) {
-      final cloudKya = await CloudStore.getKya();
-      kya.addAll(cloudKya);
-    }
-    emit(const KyaState().copyWith(kya: kya));
-    await HiveService.loadKya(kya);
+    final cloudKya = await CloudStore.getKya();
+    kya.addAll(cloudKya);
+    _updateState(emit, kya);
   }
 
   Future<void> _onClearKya(
@@ -49,36 +48,56 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
   }
 
   Future<void> _updateState(Emitter<KyaState> emit, List<Kya> kya) async {
-    kya = kya.removeDuplicates();
-    emit(state.copyWith(kya: kya));
-    await HiveService.loadKya(kya);
+    List<Kya> updatedKya = kya.removeDuplicates();
+    emit(state.copyWith(kya: updatedKya));
+    await HiveService.loadKya(updatedKya);
+  }
+
+  Future<void> _onPartiallyCompleteKya(
+    PartiallyCompleteKya event,
+    Emitter<KyaState> emit,
+  ) async {
+    Kya kya = event.kya.copyWith().copyWith(progress: 1);
+    List<Kya> stateKya = List.of(state.kya);
+    stateKya.add(kya);
+
+    await _updateState(emit, stateKya);
+    await CloudStore.updateKyaProgress(kya);
+  }
+
+  Future<void> _onCompleteKya(CompleteKya event, Emitter<KyaState> emit) async {
+    Kya kya = event.kya.copyWith(progress: -1);
+    List<Kya> stateKya = List.of(state.kya);
+    stateKya.add(kya);
+
+    await _updateState(emit, stateKya);
+
+    await hasNetworkConnection().then((hasConnection) {
+      if (hasConnection) {
+        Future.wait([
+          CloudAnalytics.logEvent(Event.completeOneKYA),
+          CloudStore.updateKyaProgress(kya),
+        ]);
+      }
+    });
   }
 
   Future<void> _onUpdateKyaProgress(
     UpdateKyaProgress event,
     Emitter<KyaState> emit,
   ) async {
-    Kya kya = event.kya;
-    if (kya.isComplete()) {
-      return;
-    }
-    double progress = kya.isPartiallyComplete()
-        ? -1
-        : kya.getProgress(event.visibleCardIndex);
-    kya = kya.copyWith(progress: progress);
+    Kya kya = event.kya.copyWith();
 
-    List<Kya> stateKya = state.kya;
-    stateKya.add(kya);
+    if (kya.isPartiallyComplete() || kya.isComplete()) return;
+    int index = event.visibleCardIndex;
+
+    if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
+
+    List<Kya> stateKya = List.of(state.kya);
+    stateKya
+        .add(kya.copyWith(progress: kya.getProgress(event.visibleCardIndex)));
+
     await _updateState(emit, stateKya);
-
-    if (kya.isComplete()) {
-      final hasConnection = await hasNetworkConnection();
-      if (hasConnection) {
-        await Future.wait([
-          CloudAnalytics.logEvent(Event.completeOneKYA),
-          CloudStore.updateKyaProgress(kya),
-        ]);
-      }
-    }
+    await CloudStore.updateKyaProgress(kya);
   }
 }

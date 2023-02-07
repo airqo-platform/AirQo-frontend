@@ -52,6 +52,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   Future<void> _initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
     await Future.delayed(const Duration(seconds: 3), _goToHome);
+    await CloudAnalytics.logSignUpEvents();
   }
 
   @override

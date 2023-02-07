@@ -101,7 +101,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                           await Navigator.pushAndRemoveUntil(
                             context,
                             bottomNavigation(
-                                const EmailAuthVerificationWidget()),
+                              const EmailAuthVerificationWidget(),
+                            ),
                             (r) => false,
                           );
                         },

@@ -58,7 +58,6 @@ class RateService {
 }
 
 class ShareService {
-  // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri> createShareLink({
     Kya? kya,
     AirQualityReading? airQualityReading,
@@ -296,11 +295,6 @@ void backgroundCallbackDispatcher() {
             );
             if (sendPort != null) {
               sendPort.send(airQualityReadings);
-            } else {
-              // TODO: implement saving
-              // final SharedPreferences prefs = await
-              // SharedPreferences.getInstance();
-              // await prefs.setString('measurements', 'measurements');
             }
             break;
         }

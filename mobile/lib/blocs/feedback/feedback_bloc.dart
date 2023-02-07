@@ -8,7 +8,7 @@ part 'feedback_event.dart';
 part 'feedback_state.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
-  FeedbackBloc() : super(const FeedbackState.initial()) {
+  FeedbackBloc() : super(const FeedbackState()) {
     on<InitializeFeedback>(_onInitializeFeedback);
     on<SetFeedbackType>(_onSetFeedbackType);
     on<GoToChannelStep>(_onGoToChannelStep);
@@ -24,17 +24,11 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
-    // TODO initialize feedback on loading
-    if (state.blocStatus == BlocStatus.success) {
-      return emit(const FeedbackState.initial());
-    }
+    Profile profile = await HiveService.getProfile();
 
-    return emit(
-      state.copyWith(
-        emailAddress: "",
-        feedbackChannel: FeedbackChannel.email,
-      ),
-    );
+    return emit(const FeedbackState().copyWith(
+      emailAddress: profile.emailAddress,
+    ));
   }
 
   Future<void> _onSubmitFeedback(
@@ -46,7 +40,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedback.isEmpty) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          status: FeedbackStatus.error,
           errorMessage: 'Please type your message.',
         ),
       );
@@ -56,13 +50,13 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (!hasConnection) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          status: FeedbackStatus.error,
           errorMessage: AuthenticationError.noInternetConnection.message,
         ),
       );
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(status: FeedbackStatus.processing));
 
     final bool success = await AirqoApiClient().sendFeedback(
       UserFeedback(
@@ -74,7 +68,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
 
     return emit(
       state.copyWith(
-        blocStatus: success ? BlocStatus.success : BlocStatus.error,
+        status: success ? FeedbackStatus.success : FeedbackStatus.error,
         errorMessage:
             success ? '' : 'Failed to submit feedback. Try again later.',
       ),
@@ -90,7 +84,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedbackType == FeedbackType.none) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          status: FeedbackStatus.error,
           errorMessage: 'Please select a feedback type.',
         ),
       );
@@ -108,7 +102,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedbackChannel == FeedbackChannel.none) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          status: FeedbackStatus.error,
           errorMessage: 'Please select a communication channel.',
         ),
       );
@@ -117,7 +111,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (!state.emailAddress.isValidEmail()) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          status: FeedbackStatus.error,
           errorMessage: AuthenticationError.invalidEmailAddress.message,
         ),
       );
@@ -165,7 +159,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   void _onClearErrors(Emitter<FeedbackState> emit) {
     emit(
       state.copyWith(
-        blocStatus: BlocStatus.initial,
+        status: FeedbackStatus.initial,
         errorMessage: '',
       ),
     );

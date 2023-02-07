@@ -1,27 +1,22 @@
 part of 'feedback_bloc.dart';
 
+enum FeedbackStatus {
+  initial,
+  processing,
+  error,
+  success,
+}
+
 class FeedbackState extends Equatable {
   const FeedbackState({
-    required this.feedbackType,
-    required this.feedbackChannel,
-    required this.emailAddress,
-    required this.feedback,
-    required this.step,
-    required this.errorMessage,
-    required this.blocStatus,
-  });
-
-  const FeedbackState._({
     this.feedbackType = FeedbackType.none,
     this.feedbackChannel = FeedbackChannel.none,
     this.emailAddress = '',
     this.feedback = '',
     this.step = FeedbackStep.typeStep,
     this.errorMessage = '',
-    this.blocStatus = BlocStatus.initial,
+    this.status = FeedbackStatus.initial,
   });
-
-  const FeedbackState.initial() : this._();
 
   FeedbackState copyWith({
     FeedbackType? feedbackType,
@@ -30,14 +25,14 @@ class FeedbackState extends Equatable {
     String? feedback,
     FeedbackStep? step,
     String? errorMessage,
-    BlocStatus? blocStatus,
+    FeedbackStatus? status,
   }) {
     return FeedbackState(
       feedbackType: feedbackType ?? this.feedbackType,
       feedbackChannel: feedbackChannel ?? this.feedbackChannel,
       emailAddress: emailAddress ?? this.emailAddress,
       feedback: feedback ?? this.feedback,
-      blocStatus: blocStatus ?? this.blocStatus,
+      status: status ?? this.status,
       step: step ?? this.step,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -49,7 +44,7 @@ class FeedbackState extends Equatable {
   final String feedback;
   final FeedbackStep step;
   final String errorMessage;
-  final BlocStatus blocStatus;
+  final FeedbackStatus status;
 
   @override
   List<Object> get props => [
@@ -59,6 +54,6 @@ class FeedbackState extends Equatable {
         feedback,
         step,
         errorMessage,
-        blocStatus,
+        status,
       ];
 }

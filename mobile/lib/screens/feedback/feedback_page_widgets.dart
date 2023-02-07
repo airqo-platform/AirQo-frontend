@@ -540,18 +540,14 @@ class FeedbackChannelStep extends StatelessWidget {
               child: TextFormField(
                 initialValue: state.emailAddress,
                 onFieldSubmitted: (String email) {
-                  context.read<FeedbackBloc>().add(
-                        SetFeedbackContact(email),
-                      );
+                  context.read<FeedbackBloc>().add(SetFeedbackContact(email));
                 },
                 style: Theme.of(context).textTheme.bodyLarge,
                 enableSuggestions: true,
                 cursorWidth: 1,
                 autofocus: false,
                 onChanged: (String email) {
-                  context.read<FeedbackBloc>().add(
-                        SetFeedbackContact(email),
-                      );
+                  context.read<FeedbackBloc>().add(SetFeedbackContact(email));
                 },
                 cursorColor: CustomColors.appColorBlue,
                 keyboardType: TextInputType.emailAddress,

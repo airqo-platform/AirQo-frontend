@@ -96,9 +96,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       ),
     );
 
-    await Future.wait([
-      AppService().refreshAirQualityReadings(),
-      AppService().updateFavouritePlacesReferenceSites(),
-    ]).whenComplete(() => _loadAirQualityReadings(emit));
+    await AppService()
+        .refreshAirQualityReadings()
+        .whenComplete(() => _loadAirQualityReadings(emit));
   }
 }

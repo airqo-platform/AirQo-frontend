@@ -72,6 +72,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   if (currentProfile == null || previousProfile == null) {
                     return true;
                   }
+
                   return previousProfile.fullName() !=
                       currentProfile.fullName();
                 },
@@ -79,7 +80,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   Profile? profile = state.profile;
 
                   if (profile == null) {
-                    return Container(); // TODO replace with error widget
+                    context.read<ProfileBloc>().add(const FetchProfile());
+
+                    return const LoadingIcon();
                   }
 
                   return NextButton(
@@ -141,9 +144,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return Future.value(false);
     }
 
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
-    }), (r) => false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }),
+      (r) => false,
+    );
 
     return Future.value(false);
   }

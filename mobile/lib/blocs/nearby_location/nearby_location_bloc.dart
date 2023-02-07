@@ -125,7 +125,9 @@ class NearbyLocationBloc
       locationAirQuality:
           airQualityReadings.isEmpty ? null : airQualityReadings.first,
     ));
-
+    if (airQualityReadings.isNotEmpty) {
+      await HiveService.addAnalytics(airQualityReadings.first);
+    }
     await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
   }
 }

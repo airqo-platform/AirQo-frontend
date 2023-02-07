@@ -30,7 +30,6 @@ class CloudAnalytics {
   }
 
   static Future<void> logSignUpEvents() async {
-    // TODO add to final on boarding screen
     try {
       await Future.wait([
         logEvent(Event.createUserProfile),
@@ -44,7 +43,6 @@ class CloudAnalytics {
   }
 
   static Future<void> logSignInEvents() async {
-    // TODO add to final on boarding screen
     try {
       await Future.wait([
         logPlatformType(),
@@ -134,12 +132,16 @@ class CloudStore {
       }
     }
 
-    final userId = CustomAuth.getUserId();
+    final profile = await HiveService.getProfile();
+    if (profile.userId.isEmpty || profile.user == null) {
+      return kya;
+    }
+
     List<KyaProgress> userProgress = <KyaProgress>[];
     final kyaProgressCollection = await FirebaseFirestore.instance
         .collection(Config.usersKyaCollection)
-        .doc(userId)
-        .collection(userId)
+        .doc(profile.userId)
+        .collection(profile.userId)
         .get();
 
     for (final doc in kyaProgressCollection.docs) {
@@ -163,31 +165,28 @@ class CloudStore {
   }
 
   static Future<List<AppNotification>> getNotifications() async {
-    final userId = CustomAuth.getUserId();
     final notifications = <AppNotification>[];
 
-    try {
-      final notificationsCollection = await FirebaseFirestore.instance
-          .collection(Config.usersNotificationCollection)
-          .doc(userId)
-          .collection(userId)
-          .get();
+    final profile = await HiveService.getProfile();
+    if (profile.userId.isEmpty || profile.user == null) {
+      return notifications;
+    }
 
-      for (final doc in notificationsCollection.docs) {
-        try {
-          notifications.add(AppNotification.fromJson(doc.data()));
-        } catch (exception, stackTrace) {
-          await logException(
-            exception,
-            stackTrace,
-          );
-        }
+    final notificationsCollection = await FirebaseFirestore.instance
+        .collection(Config.usersNotificationCollection)
+        .doc(profile.userId)
+        .collection(profile.userId)
+        .get();
+
+    for (final doc in notificationsCollection.docs) {
+      try {
+        notifications.add(AppNotification.fromJson(doc.data()));
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
     }
 
     return notifications;
@@ -246,7 +245,7 @@ class CloudStore {
 
     if (profile == null) {
       profile = await HiveService.getProfile();
-      await updateProfile(profile);
+      await updateProfile();
     }
 
     return await profile.setUserCredentials();
@@ -281,7 +280,9 @@ class CloudStore {
     return favouritePlaces;
   }
 
-  static Future<bool> updateFavouritePlaces(Profile profile) async {
+  static Future<bool> updateFavouritePlaces() async {
+    Profile profile = await HiveService.getProfile();
+
     final batch = FirebaseFirestore.instance.batch();
 
     batch.delete(FirebaseFirestore.instance
@@ -295,10 +296,7 @@ class CloudStore {
           .doc(profile.userId)
           .collection(profile.userId)
           .doc(favouritePlace.placeId);
-      batch.set(
-        document,
-        favouritePlace.toJson(),
-      );
+      batch.set(document, favouritePlace.toJson());
     }
 
     await batch.commit();
@@ -306,31 +304,26 @@ class CloudStore {
     return true;
   }
 
-  static Future<bool> updateProfile(Profile profile) async {
+  static Future<bool> updateProfile() async {
+    Profile profile = await HiveService.getProfile();
     final user = profile.user;
     if (user == null) {
       return false;
     }
-    try {
-      await Future.wait([
-        user.updateDisplayName(profile.firstName),
-        user.updatePhotoURL(profile.photoUrl),
-        FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(profile.userId)
-            .set(profile.toJson()),
-      ]);
-      return true;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-      return false;
-    }
+
+    await Future.wait([
+      user.updateDisplayName(profile.firstName),
+      user.updatePhotoURL(profile.photoUrl),
+      FirebaseFirestore.instance
+          .collection(Config.usersCollection)
+          .doc(profile.userId)
+          .set(profile.toJson()),
+    ]);
+    return true;
   }
 
-  static Future<bool> updateKya(Profile profile) async {
+  static Future<bool> updateKya() async {
+    Profile profile = await HiveService.getProfile();
     final batch = FirebaseFirestore.instance.batch();
     batch.delete(FirebaseFirestore.instance
         .collection(Config.usersKyaCollection)
@@ -345,10 +338,7 @@ class CloudStore {
           .doc(profile.userId)
           .collection(profile.userId)
           .doc(progress.id);
-      batch.set(
-        document,
-        progress.toJson(),
-      );
+      batch.set(document, progress.toJson());
     }
 
     await batch.commit();
@@ -356,27 +346,21 @@ class CloudStore {
     return true;
   }
 
-  static Future<bool> updateCloudAnalytics(Profile profile) async {
-    try {
-      final analytics = HiveService.getAnalytics();
-      for (final x in analytics) {
-        try {
-          await FirebaseFirestore.instance
-              .collection(Config.usersAnalyticsCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(x.site)
-              .set(x.toJson());
-        } catch (exception) {
-          debugPrint(exception.toString());
-        }
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+  static Future<bool> updateCloudAnalytics() async {
+    final batch = FirebaseFirestore.instance.batch();
+    Profile profile = await HiveService.getProfile();
+    final analytics = HiveService.getAnalytics();
+
+    for (final x in analytics) {
+      final document = FirebaseFirestore.instance
+          .collection(Config.usersAnalyticsCollection)
+          .doc(profile.userId)
+          .collection(profile.userId)
+          .doc(x.site);
+      batch.set(document, x.toJson());
     }
+
+    await batch.commit();
 
     return true;
   }
@@ -460,7 +444,7 @@ class CloudStore {
         CloudAnalytics.logEvent(
           Event.uploadProfilePicture,
         ),
-        updateProfile(profile),
+        updateProfile(),
       ]);
 
       return photoUrl;
@@ -521,14 +505,12 @@ class CustomAuth {
 
   static Future<bool> signOut() async {
     try {
-      Profile profile = await HiveService.getProfile();
+      final profile = await CloudStore.updateProfile();
+      final analytics = await CloudStore.updateCloudAnalytics();
+      final favouritePlaces = await CloudStore.updateFavouritePlaces();
+      final kya = await CloudStore.updateKya();
 
-      final profileSuccess = await CloudStore.updateProfile(profile);
-      final analytics = await CloudStore.updateCloudAnalytics(profile);
-      final favouritePlaces = await CloudStore.updateFavouritePlaces(profile);
-      final kya = await CloudStore.updateKya(profile);
-
-      if (!kya || !analytics || !profileSuccess || !favouritePlaces) {
+      if (!kya || !analytics || !profile || !favouritePlaces) {
         return false;
       }
 

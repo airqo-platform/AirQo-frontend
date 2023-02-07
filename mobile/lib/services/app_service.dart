@@ -70,7 +70,7 @@ class AppService {
     context.read<FavouritePlaceBloc>().add(const FetchFavouritePlaces());
     context.read<NotificationBloc>().add(const FetchNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
-
+    await CloudAnalytics.logSignInEvents();
     await Future.delayed(
       Duration(seconds: delay),
       () {
@@ -148,11 +148,7 @@ class AppService {
     }
   }
 
-  // TODO listen to internet connection and sync data for all screens https://pub.dev/packages/connectivity_plus
-  // TODO update other online collection in the background whenever changes are made
-
   Future<void> updateFavouritePlacesReferenceSites() async {
-    // TODO Add to favourite places init bloc method
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
