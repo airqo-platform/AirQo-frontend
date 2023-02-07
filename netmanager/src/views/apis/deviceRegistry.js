@@ -18,7 +18,8 @@ import {
   DECRYPT,
   QRCODE,
   REFRESH_AIRQLOUD,
-  SOFT_EDIT_DEVICE_URI
+  SOFT_EDIT_DEVICE_URI,
+  DASHBOARD_AIRQLOUDS
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
@@ -159,6 +160,10 @@ export const deleteSiteApi = async (siteId) => {
 
 export const getAirQloudsApi = async (params) => {
   return await axios.get(AIRQLOUDS, { params }).then((response) => response.data);
+};
+
+export const getDashboardAirQloudsApi = async (params) => {
+  return await axios.get(DASHBOARD_AIRQLOUDS, { params }).then((response) => response.data);
 };
 
 export const decryptKeyApi = async (encrypted_key) => {
