@@ -12,6 +12,7 @@ import 'package:app/constants/constants.dart';
 import '../screens/auth/phone_auth_widget.dart';
 import '../screens/home_page.dart';
 import '../screens/on_boarding/profile_setup_screen.dart';
+import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'location_service.dart';
 import 'rest_api.dart';
@@ -104,6 +105,33 @@ class AppService {
         MaterialPageRoute(builder: (context) {
       return const PhoneLoginWidget();
     }), (r) => true);
+  }
+
+  static Future<Kya?> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+
+      return null;
+    }
   }
 
   Future<bool> refreshAirQualityReadings() async {

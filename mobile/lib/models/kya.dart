@@ -51,24 +51,10 @@ class Kya extends HiveObject with EquatableMixin {
   @JsonKey(defaultValue: 0)
   final double progress;
 
-  Kya copyWith({double? progress}) {
-    return Kya(
-      title: title,
-      completionMessage: completionMessage,
-      imageUrl: imageUrl,
-      secondaryImageUrl: secondaryImageUrl,
-      id: id,
-      lessons: lessons,
-      progress: progress ?? this.progress,
-    );
-  }
-
   // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
   @HiveField(9, defaultValue: '')
   @JsonKey(defaultValue: '')
   final String shareLink;
-
-  Map<String, dynamic> toJson() => _$KyaToJson(this);
 
   factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
     final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
@@ -89,9 +75,9 @@ class Kya extends HiveObject with EquatableMixin {
     });
   }
 
-  Kya copyWith({
-    String? shareLink,
-  }) {
+  Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  Kya copyWith({String? shareLink, double? progress}) {
     return Kya(
       title: title,
       completionMessage: completionMessage,
@@ -99,7 +85,7 @@ class Kya extends HiveObject with EquatableMixin {
       secondaryImageUrl: secondaryImageUrl,
       id: id,
       lessons: lessons,
-      progress: progress,
+      progress: progress ?? this.progress,
       shareLink: shareLink ?? this.shareLink,
     );
   }

@@ -227,6 +227,19 @@ class ShareService {
       subject: subject,
     ).then((_) => {updateUserShares()});
   }
+
+  static Future<void> updateUserShares() async {
+    Profile profile = await HiveService.getProfile();
+    UserPreferences preferences = profile.preferences;
+    profile = profile.copyWith(
+      preferences: preferences.copyWith(
+        aqShares: preferences.aqShares + 1,
+      ),
+    );
+    if (profile.preferences.aqShares >= 5) {
+      await CloudAnalytics.logAirQualitySharing();
+    }
+  }
 }
 
 class PermissionService {

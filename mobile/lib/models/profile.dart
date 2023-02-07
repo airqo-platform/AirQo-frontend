@@ -176,6 +176,19 @@ class UserPreferences extends HiveObject with EquatableMixin {
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);
+
+  UserPreferences copyWith({
+    int? aqShares,
+    bool? location,
+    bool? notifications,
+  }) {
+    return UserPreferences(
+      notifications: notifications ?? this.notifications,
+      location: location ?? this.location,
+      aqShares: aqShares ?? this.aqShares,
+    );
+  }
+
   @HiveField(0, defaultValue: false)
   @JsonKey(defaultValue: false, required: false)
   bool notifications;

@@ -78,8 +78,10 @@ class KyaNotFoundWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {
+                NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  text: 'Return home',
+                  callBack: () {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -90,10 +92,6 @@ class KyaNotFoundWidget extends StatelessWidget {
                       (r) => false,
                     );
                   },
-                  child: NextButton(
-                    buttonColor: CustomColors.appColorBlue,
-                    text: 'Return home',
-                  ),
                 ),
               ],
             ),
