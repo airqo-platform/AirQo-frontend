@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -7,6 +8,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -1372,13 +1374,8 @@ class InsightsToggleBar extends StatelessWidget {
 }
 
 class InsightsActionBar extends StatefulWidget {
-  const InsightsActionBar({
-    super.key,
-    required this.shareKey,
-    required this.airQualityReading,
-  });
+  const InsightsActionBar(this.airQualityReading, {super.key});
 
-  final GlobalKey shareKey;
   final AirQualityReading? airQualityReading;
 
   @override
@@ -1387,50 +1384,112 @@ class InsightsActionBar extends StatefulWidget {
 
 class _InsightsActionBarState extends State<InsightsActionBar> {
   bool _showHeartAnimation = false;
-  bool _shareLoading = false;
+
+  final ButtonStyle _leftButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: CustomColors.appColorBlue,
+    elevation: 0,
+    side: const BorderSide(
+      color: Colors.transparent,
+      width: 0,
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(8),
+        topLeft: Radius.circular(8),
+      ),
+    ),
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.zero,
+  );
+  final ButtonStyle _rightButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: CustomColors.appColorBlue,
+    elevation: 0,
+    side: const BorderSide(
+      color: Colors.transparent,
+      width: 0,
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        bottomRight: Radius.circular(8),
+        topRight: Radius.circular(8),
+      ),
+    ),
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.zero,
+  );
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.all(color: Colors.transparent),
-      ),
+    return SizedBox(
+      height: 60,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: _shareLoading
-                ? const LoadingIcon(
-                    radius: 10,
-                  )
-                : InkWell(
-                    onTap: () async {
-                      await _share();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 21),
-                      child: IconTextButton(
-                        iconWidget: SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
-                          semanticsLabel: 'Share',
+            child: FutureBuilder<Uri>(
+              future: ShareService.createShareLink(
+                airQualityReading: widget.airQualityReading,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  showSnackBar(context, 'Could not create a share link.');
+                }
+                if (snapshot.hasData) {
+                  Uri? link = snapshot.data;
+                  if (link != null) {
+                    return OutlinedButton(
+                      style: _leftButtonStyle,
+                      onPressed: () async {
+                        await ShareService.shareLink(
+                          link,
+                          airQualityReading: widget.airQualityReading,
+                        );
+                        // disabling copying to clipboard
+                        // if (link.toString().length >
+                        //     Config.shareLinkMaxLength) {
+                        //   await Clipboard.setData(
+                        //     ClipboardData(text: link.toString()),
+                        //   ).then((_) {
+                        //     showSnackBar(context, 'Copied to your clipboard !');
+                        //   });
+                        // } else {
+                        //   await ShareService.shareLink(
+                        //     link,
+                        //     airQualityReading: widget.airQualityReading,
+                        //   );
+                        // }
+                      },
+                      child: Center(
+                        child: IconTextButton(
+                          iconWidget: SvgPicture.asset(
+                            'assets/icon/share_icon.svg',
+                            color: CustomColors.greyColor,
+                            semanticsLabel: 'Share',
+                          ),
+                          text: 'Share',
                         ),
-                        text: 'Share',
                       ),
-                    ),
+                    );
+                  }
+                }
+
+                return OutlinedButton(
+                  style: _leftButtonStyle,
+                  onPressed: () {
+                    showSnackBar(context, 'Creating share link. Hold on tight');
+                  },
+                  child: const Center(
+                    child: LoadingIcon(radius: 14),
                   ),
+                );
+              },
+            ),
           ),
           Expanded(
-            child: InkWell(
-              onTap: () async {
-                await _updateFavPlace();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 21),
+            child: OutlinedButton(
+              style: _rightButtonStyle,
+              onPressed: () => _updateFavPlace(),
+              child: Center(
                 child: IconTextButton(
                   iconWidget: HeartIcon(
                     showAnimation: _showHeartAnimation,
@@ -1446,29 +1505,13 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     );
   }
 
-  Future<void> _share() async {
-    if (_shareLoading) {
-      return;
-    }
-    setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: widget.shareKey,
-      imageName: 'airqo_air_quality_graph',
-    );
-    if (complete && mounted) {
-      setState(() => _shareLoading = false);
-    }
-  }
-
-  Future<void> _updateFavPlace() async {
+  void _updateFavPlace() {
     final airQualityReading = widget.airQualityReading;
     if (airQualityReading == null) {
       return;
     }
-
     setState(() => _showHeartAnimation = true);
-    await Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }

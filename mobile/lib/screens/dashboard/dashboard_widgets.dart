@@ -118,16 +118,24 @@ class DashboardTopCard extends StatelessWidget {
     return GestureDetector(
       onTap: nextScreenClickHandler,
       key: widgetKey,
-      child: Container(
-        height: 56,
-        width: 162,
-        padding: const EdgeInsets.all(12.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          foregroundColor: CustomColors.appColorBlue,
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+            width: 0,
           ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.zero,
         ),
+        onPressed: nextScreenClickHandler,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
