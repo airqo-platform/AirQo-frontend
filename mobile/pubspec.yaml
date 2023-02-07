@@ -76,6 +76,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.12
   appinio_swiper: ^1.1.1
   connectivity_plus: ^3.0.2
+  firebase_dynamic_links: ^5.0.11
   showcaseview: ^1.1.8
   # https://pub.dev/packages/retry
   

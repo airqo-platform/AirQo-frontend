@@ -7,7 +7,6 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -105,115 +104,6 @@ class AnalyticsMoreInsights extends StatelessWidget {
   }
 }
 
-class AnalyticsShareCard extends StatelessWidget {
-  const AnalyticsShareCard({
-    super.key,
-    required this.airQualityReading,
-  });
-
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 200,
-        maxWidth: 300,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(16.0),
-        ),
-        border: Border.fromBorderSide(
-          BorderSide(color: Colors.transparent),
-        ),
-      ),
-      child: Column(
-        children: [
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnalyticsAvatar(airQualityReading),
-              const SizedBox(width: 10.0),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AutoSizeText(
-                      airQualityReading.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 17,
-                      style: CustomTextStyle.headline9(context),
-                    ),
-                    AutoSizeText(
-                      airQualityReading.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 12,
-                      style: CustomTextStyle.bodyText4(context)?.copyWith(
-                        color: appColors.appColorBlack.withOpacity(0.3),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    AqiStringContainer(airQualityReading),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      airQualityReading.dateTime.shareString(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.black.withOpacity(0.3),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© ${DateTime.now().year} AirQo',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: appColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'www.airqo.africa',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: appColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class AnalyticsCard extends StatelessWidget {
   AnalyticsCard(
     this.airQualityReading,
@@ -222,47 +112,38 @@ class AnalyticsCard extends StatelessWidget {
   });
   final AirQualityReading airQualityReading;
   final bool showHelpTip;
-  final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 251,
-        minHeight: 251,
-        minWidth: 328,
-        maxWidth: 328,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(
-            16.0,
-          ),
-        ),
-      ),
-      child: Stack(
+    return SizedBox(
+      height: 251,
+      width: double.infinity,
+      child: Column(
         children: [
-          RepaintBoundary(
-            key: _shareWidgetKey,
-            child: AnalyticsShareCard(
-              airQualityReading: airQualityReading,
-            ),
-          ),
-          InkWell(
-            onTap: () async {
-              await _goToInsights(context);
-            },
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(16.0),
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: CustomColors.appColorBlue,
+                elevation: 0,
+                side: const BorderSide(
+                  color: Colors.transparent,
+                  width: 0,
                 ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.zero,
               ),
+              onPressed: () async {
+                await _goToInsights(context);
+              },
               child: Column(
                 children: [
                   Row(
@@ -317,7 +198,6 @@ class AnalyticsCard extends StatelessWidget {
                               const SizedBox(
                                 width: 16.0,
                               ),
-                              // TODO : investigate ellipsis
                               Flexible(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,22 +296,19 @@ class AnalyticsCard extends StatelessWidget {
                         ),
                         child: AnalyticsMoreInsights(),
                       ),
-                      const SizedBox(height: 12),
-                      const Divider(
-                        color: Color(0xffC4C4C4),
-                        height: 1.0,
-                      ),
                     ],
-                  ),
-                  Expanded(
-                    child: AnalyticsCardFooter(
-                      shareKey: _shareWidgetKey,
-                      airQualityReading: airQualityReading,
-                    ),
                   ),
                 ],
               ),
             ),
+          ),
+          const Divider(
+            color: Color(0xffC4C4C4),
+            height: 1.0,
+          ),
+          SizedBox(
+            height: 57,
+            child: AnalyticsCardFooter(airQualityReading),
           ),
         ],
       ),

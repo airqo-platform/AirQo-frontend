@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,7 +21,8 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen(this.initialLink, {super.key});
+  final PendingDynamicLinkData? initialLink;
 
   @override
   State<SplashScreen> createState() => SplashScreenState();
@@ -25,6 +31,7 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
+  late StreamSubscription<PendingDynamicLinkData> _dynamicLinkSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +68,50 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
     context.read<NotificationBloc>().add(const RefreshNotifications());
 
+    _dynamicLinkSubscription =
+        FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (mounted && navigatorBuildContext != null) {
+        await ShareService.navigateToSharedFeature(
+          linkData: linkData,
+          context: navigatorBuildContext,
+        );
+      }
+    });
+
+    _dynamicLinkSubscription.onError((error) async {
+      await logException(error, null);
+    });
+
+    PendingDynamicLinkData? dynamicLinkData = widget.initialLink;
+    if (dynamicLinkData != null) {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (mounted && navigatorBuildContext != null) {
+        await ShareService.navigateToSharedFeature(
+          linkData: dynamicLinkData,
+          context: navigatorBuildContext,
+        );
+      } else {
+        await _proceedWithSplashAnimation();
+      }
+    } else {
+      await _proceedWithSplashAnimation();
+    }
+  }
+
+  @override
+  void dispose() {
+    _dynamicLinkSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _proceedWithSplashAnimation() async {
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
     );
@@ -93,12 +144,6 @@ class SplashScreenState extends State<SplashScreen> {
         },
       ), (r) => true);
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
   }
 
   void _updateWidget() {

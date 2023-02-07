@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -10,6 +11,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -196,7 +198,22 @@ class _HomePageState extends State<HomePage> {
       context,
       notifyUser: true,
     );
+    await _initializeDynamicLinks();
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+  }
+
+  Future<void> _initializeDynamicLinks() async {
+    FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (navigatorBuildContext != null) {
+        await ShareService.navigateToSharedFeature(
+          linkData: linkData,
+          context: navigatorBuildContext,
+        );
+      }
+    }).onError((error) async {
+      await logException(error, null);
+    });
   }
 
   @override
