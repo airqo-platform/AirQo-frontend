@@ -85,7 +85,7 @@ class _InsightsPageState extends State<InsightsPage>
                 child: TabBarView(
                   controller: _tabController,
                   physics: const NeverScrollableScrollPhysics(),
-                  children: <Widget>[
+                  children: const <Widget>[
                     HourlyInsightsTab(),
                     DailyInsightsTab(),
                   ],
