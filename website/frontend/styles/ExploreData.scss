@@ -36,8 +36,16 @@
     justify-content: center;
     flex-wrap: wrap;
     width: 100%;
-    height: 100vh;
+    height: 100%;
     outline: none;
+    z-index: 999;
+    overflow-x: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 auto;
+    background-color: rgba(12, 30, 68, 0.39);
+    transition: opacity 250ms 750ms ease;
 }
 
 .ExploreData {
@@ -105,33 +113,36 @@
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-between;
         width: 55%;
         height: 100%;
         background-color: $aq-white-0;
+        padding: 0 22px;
 
         .nav-icon {
-            position: absolute;
-            top: 24px;
-            right: 24px;
             color: $aq-blue-2;
             font-size: 13px;
+            text-align: right;
+            position: relative;
+            top: 20px;
         }
 
         .nav {
             display: flex;
-            
+            overflow-x: scroll;
+            position: relative;
+            top: -18%;
             .nav-option {
                 border: 1px solid $aq-blue-8;
                 border-radius: 16px;
-                padding: 20px;
+                padding: 20px 15px 0 15px;
                 width: 304px;
                 height: 404px;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                margin: 0 12px;
+                margin: 0 12px 20px 12px;
 
                 .img-wrapper {
                     width: 264px;
@@ -140,7 +151,6 @@
                     border-radius: 8px;
                     overflow: hidden;
                     margin-bottom: 20px;
-
                     .img-1 {
                         width: 176.77px;
                         padding-top: 38px;
@@ -168,6 +178,14 @@
                     width: 264px;
                 }
             }
+        }
+        ::-webkit-scrollbar{
+            height:8px;
+            background: $aq-white-3;
+        }
+        ::-webkit-scrollbar-thumb:horizontal{
+            background: $aq-blue-0;
+            border-radius: 10px;
         }
     }
 }
@@ -462,6 +480,7 @@
 @media(max-width: $mainBreakPoint) {
     .ExploreDataModal {
         max-height: none;
+        background-color: #fff
     }
 
     .ExploreData {
@@ -481,12 +500,14 @@
             .content {
                 h2, p {
                     width: 100%;
+                    text-align: center;
                 }
             }
         }
 
         .right-section {
             width: 100%;
+            height: auto;
             .nav-icon {
                 position: absolute;
                 top: 15px;
@@ -496,6 +517,7 @@
                 flex-direction: column;
                 justify-content: center;
                 align-items:  center;
+                top: 0;
 
                 .nav-option {
                     margin-bottom: 24px;
