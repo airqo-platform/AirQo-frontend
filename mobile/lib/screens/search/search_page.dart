@@ -141,7 +141,7 @@ class SearchView extends StatelessWidget {
                 ? const NoSearchResultsWidget()
                 : SearchSection(
                     title:
-                        'Failed to get the air quality of ${state.searchTerm}. Other places to explore.',
+                        'Can\'t find air quality of ${state.searchTerm}? Explore these locations related to your search.',
                     airQualityReadings: state.recommendations,
                   );
             break;
