@@ -255,6 +255,10 @@ const CandidatesTable = (props) => {
             field: 'email'
           },
           {
+            title: 'Country',
+            field: 'country'
+          },
+          {
             title: 'Category',
             field: 'category'
           },
