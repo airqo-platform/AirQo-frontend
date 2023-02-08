@@ -11,7 +11,8 @@ import BrokenImage from 'assets/img/BrokenImage';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { deleteDevicePhotos } from 'views/apis/deviceRegistry';
 import ImagePreview from 'views/containers/ImagePreview';
-import { softCreateDevicePhoto } from '../../../apis/deviceRegistry';
+import { getDevicePhotos, softCreateDevicePhoto } from '../../../apis/deviceRegistry';
+import { isEmpty } from 'underscore';
 
 const galleryContainerStyles = {
   display: 'flex',
@@ -159,7 +160,7 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
 
 export default function DevicePhotos({ deviceData }) {
   const dispatch = useDispatch();
-  const [images, setImages] = useState(deviceData.pictures || []);
+  const [images, setImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
     open: false,
@@ -170,6 +171,31 @@ export default function DevicePhotos({ deviceData }) {
     url: null
   });
   const maxNumber = 69;
+
+  const loadDevicePhotos = async () => {
+    await getDevicePhotos(deviceData._id)
+      .then((responseData) => {
+        const photosList = responseData.photos;
+        setImages(photosList);
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message: 'Unable to load images',
+            show: true,
+            severity: 'error'
+          })
+        );
+      });
+  };
+
+  useEffect(() => {
+    if (!isEmpty(deviceData)) {
+      if (isEmpty(images)) {
+        loadDevicePhotos();
+      }
+    }
+  }, [images, deviceData]);
 
   const onChange = async (imageFiles) => {
     const uploadImages = [];

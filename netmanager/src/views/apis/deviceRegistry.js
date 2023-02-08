@@ -23,7 +23,7 @@ import {
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
-import { SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
+import { GET_DEVICE_IMAGES, SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
 
 export const getAllDevicesApi = async () => {
   return await axios.get(ALL_DEVICES_URI).then((response) => response.data);
@@ -175,4 +175,10 @@ export const refreshAirQloudApi = async (params) => {
 
 export const softCreateDevicePhoto = async (data) => {
   return await axios.post(SOFT_EDIT_DEVICE_IMAGE, data).then((response) => response.data);
+};
+
+export const getDevicePhotos = async (params) => {
+  return await axios
+    .get(GET_DEVICE_IMAGES, { params: { device_id: params } })
+    .then((response) => response.data);
 };
