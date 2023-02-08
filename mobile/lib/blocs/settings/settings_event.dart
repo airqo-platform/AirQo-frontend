@@ -33,4 +33,3 @@ class DeleteAccount extends SettingsEvent {
   @override
   List<Object?> get props => [context];
 }
-

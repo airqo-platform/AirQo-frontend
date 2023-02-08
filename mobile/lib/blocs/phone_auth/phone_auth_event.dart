@@ -75,7 +75,10 @@ class UpdatePhoneCountDown extends PhoneAuthEvent {
 }
 
 class PhoneVerificationCodeSent extends PhoneAuthEvent {
-  const PhoneVerificationCodeSent(this.verificationId, {this.resendingToken,});
+  const PhoneVerificationCodeSent(
+    this.verificationId, {
+    this.resendingToken,
+  });
   final String verificationId;
   final int? resendingToken;
 

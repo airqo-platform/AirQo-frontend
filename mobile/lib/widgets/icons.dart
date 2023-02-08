@@ -23,6 +23,17 @@ class SvgIcons {
     );
   }
 
+  static Widget validInputField() {
+    return Padding(
+      padding: const EdgeInsets.all(14),
+      child: SvgPicture.asset(
+        'assets/icon/valid_input_icon.svg',
+        height: 1,
+        width: 1,
+      ),
+    );
+  }
+
   static Widget pmUnit(double value) {
     return SvgPicture.asset(
       'assets/icon/unit.svg',

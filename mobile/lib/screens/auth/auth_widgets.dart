@@ -50,11 +50,16 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             ? formColor
             : CustomColors.greyColor.withOpacity(0.7);
 
+        Widget suffixIcon = state.phoneNumber.isValidPhoneNumber()
+            ? SvgIcons.validInputField()
+            : TextInputCloseButton(color: suffixIconColor);
+
         if (state.status == PhoneBlocStatus.error) {
           formColor = CustomColors.appColorInvalid;
           textColor = formColor;
           suffixIconColor = formColor;
           fillColor = formColor.withOpacity(0.05);
+          suffixIcon = TextInputCloseButton(color: suffixIconColor);
         }
 
         InputBorder inputBorder = OutlineInputBorder(
@@ -62,24 +67,11 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
           borderRadius: BorderRadius.circular(8.0),
         );
 
-        Widget suffixIcon = state.phoneNumber.isValidEmail()
-            ? Padding(
-                padding: const EdgeInsets.all(14),
-                child: SvgPicture.asset(
-                  'assets/icon/valid_input_icon.svg',
-                  height: 1,
-                  width: 1,
-                ),
-              )
-            : TextInputCloseButton(
-                color: suffixIconColor,
-              );
-
         return TextFormField(
           controller: _phoneInputController,
           inputFormatters: [
             FilteringTextInputFormatter.allow(
-              RegExp(r'[0-9]'),
+              RegExp(r'\d'),
             ),
             PhoneNumberInputFormatter(),
           ],
@@ -141,9 +133,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
               },
               child: suffixIcon,
             ),
-            errorStyle: const TextStyle(
-              fontSize: 0,
-            ),
+            errorStyle: const TextStyle(fontSize: 0),
           ),
         );
       },
@@ -775,30 +765,22 @@ class _EmailInputFieldState extends State<EmailInputField> {
             ? formColor
             : CustomColors.greyColor.withOpacity(0.7);
 
+        Widget suffixIcon = state.emailAddress.isValidEmail()
+            ? SvgIcons.validInputField()
+            : TextInputCloseButton(color: suffixIconColor);
+
         if (state.status == EmailBlocStatus.error) {
           formColor = CustomColors.appColorInvalid;
           textColor = formColor;
           suffixIconColor = formColor;
           fillColor = formColor.withOpacity(0.05);
+          suffixIcon = TextInputCloseButton(color: suffixIconColor);
         }
 
         InputBorder inputBorder = OutlineInputBorder(
           borderSide: BorderSide(color: formColor, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         );
-
-        Widget suffixIcon = state.emailAddress.isValidEmail()
-            ? Padding(
-                padding: const EdgeInsets.all(14),
-                child: SvgPicture.asset(
-                  'assets/icon/valid_input_icon.svg',
-                  height: 1,
-                  width: 1,
-                ),
-              )
-            : TextInputCloseButton(
-                color: suffixIconColor,
-              );
 
         return TextFormField(
           controller: _emailInputController,
@@ -844,9 +826,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
               },
               child: suffixIcon,
             ),
-            errorStyle: const TextStyle(
-              fontSize: 0,
-            ),
+            errorStyle: const TextStyle(fontSize: 0),
           ),
         );
       },
