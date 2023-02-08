@@ -102,10 +102,12 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
             );
             closeLoader();
           })
-          .catch(() => {
+          .catch((err) => {
+            const errors = err.response.data.errors.message;
+
             dispatch(
               updateMainAlert({
-                message: 'Could not persist images',
+                message: errors,
                 show: true,
                 severity: 'error'
               })
