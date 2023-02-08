@@ -109,6 +109,7 @@ extension FavouritePlaceListExt on List<FavouritePlace> {
     List<FavouritePlace> data = List.of(this);
 
     data.sort((x, y) => x.name.compareTo(y.name));
+
     return data;
   }
 }
@@ -124,6 +125,7 @@ extension KyaListExt on List<Kya> {
 
       return -(x.progress.compareTo(y.progress));
     });
+
     return data;
   }
 
@@ -159,11 +161,13 @@ extension KyaListExt on List<Kya> {
     List<Kya> inProgressKya = filterInProgressKya().toSet().toList();
 
     partiallyCompleteKya.removeWhere(
-        (element) => kya.map((e) => e.id).toList().contains(element.id));
+      (element) => kya.map((e) => e.id).toList().contains(element.id),
+    );
     kya.addAll(partiallyCompleteKya);
 
     inProgressKya.removeWhere(
-        (element) => kya.map((e) => e.id).toList().contains(element.id));
+      (element) => kya.map((e) => e.id).toList().contains(element.id),
+    );
     kya.addAll(inProgressKya);
 
     return kya.toSet().toList();

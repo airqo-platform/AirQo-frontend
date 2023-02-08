@@ -41,7 +41,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   }
 
   Future<void> _onVerifyPhoneAuthCode(
-    VerifyPhoneAuthCode event,
+    VerifyPhoneAuthCode _,
     Emitter<PhoneAuthState> emit,
   ) async {
     if (state.inputAuthCode.length != 6) {
@@ -71,8 +71,6 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
         verificationId: state.verificationId,
         smsCode: state.inputAuthCode,
       );
-      // final authCredential = state.phoneAuthCredential ?? phoneCredential;
-
       final signInSuccess = await CustomAuth.signIn(authCredential);
 
       return emit(state.copyWith(

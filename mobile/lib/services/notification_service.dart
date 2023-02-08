@@ -104,7 +104,7 @@ class NotificationService {
       FirebaseMessaging.onMessageOpenedApp.listen((_) {
         CloudAnalytics.logEvent(Event.notificationOpen);
       });
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
         // TODO update hive service and cloud storage
       }).onError(
         (exception) {

@@ -34,14 +34,3 @@ class DeleteAccount extends SettingsEvent {
   List<Object?> get props => [context];
 }
 
-class AccountDeletionCheck extends SettingsEvent {
-  const AccountDeletionCheck({
-    this.error,
-    required this.passed,
-  });
-
-  final bool passed;
-  final AuthenticationError? error;
-  @override
-  List<Object?> get props => [passed, error];
-}

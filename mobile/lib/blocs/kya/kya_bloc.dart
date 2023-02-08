@@ -29,6 +29,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection && kya.isEmpty) {
       emit(state.copyWith(status: KyaStatus.noInternetConnection));
+
       return;
     }
 

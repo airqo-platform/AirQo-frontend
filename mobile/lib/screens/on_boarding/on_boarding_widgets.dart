@@ -88,7 +88,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
 
     return TextFormField(
       controller: controller,
-      onEditingComplete: () async {
+      onEditingComplete: () {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
@@ -178,6 +178,7 @@ class TitleDropDown extends StatelessWidget {
         if (currentProfile == null || previousProfile == null) {
           return true;
         }
+
         return previousProfile.title != currentProfile.title;
       },
       builder: (context, state) {
@@ -185,6 +186,7 @@ class TitleDropDown extends StatelessWidget {
 
         if (profile == null) {
           context.read<ProfileBloc>().add(const FetchProfile());
+
           return const LoadingIcon();
         }
 

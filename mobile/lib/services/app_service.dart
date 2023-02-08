@@ -56,11 +56,13 @@ class AppService {
   }) async {
     if (authProcedure == AuthProcedure.deleteAccount) {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => const SettingsPage(),
-          ),
-          result: true);
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => const SettingsPage(),
+        ),
+        result: true,
+      );
+
       return;
     }
 
@@ -74,21 +76,24 @@ class AppService {
     await Future.delayed(
       Duration(seconds: delay),
       () {
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          switch (authProcedure) {
-            case AuthProcedure.anonymousLogin:
-            case AuthProcedure.deleteAccount:
-            case AuthProcedure.login:
-            case AuthProcedure.none:
-            case AuthProcedure.logout:
-              return const HomePage();
-            case AuthProcedure.signup:
-              return const ProfileSetupScreen();
-            case AuthProcedure.reAuthenticating:
-              return const ProfileEditPage();
-          }
-        }), (r) => true);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            switch (authProcedure) {
+              case AuthProcedure.anonymousLogin:
+              case AuthProcedure.deleteAccount:
+              case AuthProcedure.login:
+              case AuthProcedure.none:
+              case AuthProcedure.logout:
+                return const HomePage();
+              case AuthProcedure.signup:
+                return const ProfileSetupScreen();
+              case AuthProcedure.reAuthenticating:
+                return const ProfileEditPage();
+            }
+          }),
+          (r) => true,
+        );
       },
     );
   }
@@ -101,10 +106,13 @@ class AppService {
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
 
-    await Navigator.pushAndRemoveUntil(context,
-        MaterialPageRoute(builder: (context) {
-      return const PhoneLoginWidget();
-    }), (r) => true);
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const PhoneLoginWidget();
+      }),
+      (r) => true,
+    );
   }
 
   static Future<Kya?> getKya(String id) async {

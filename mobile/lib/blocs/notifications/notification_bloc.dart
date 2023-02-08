@@ -33,14 +33,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final notifications = HiveService.getNotifications();
     emit(const NotificationState().copyWith(notifications: notifications));
 
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      // return emit(state.copyWith(
-      //   blocStatus: BlocStatus.error,
-      //   blocError: AuthenticationError.noInternetConnection,
-      // ));
-    }
-
     final cloudNotifications = await CloudStore.getNotifications();
     final notificationsIds = notifications.map((e) => e.id).toList();
 

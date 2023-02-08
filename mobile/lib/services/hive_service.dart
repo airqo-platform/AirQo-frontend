@@ -184,8 +184,10 @@ class HiveService {
     await CloudStore.updateCloudAnalytics();
   }
 
-  static Future<void> loadNotifications(List<AppNotification> notifications,
-      {bool clear = false}) async {
+  static Future<void> loadNotifications(
+    List<AppNotification> notifications, {
+    bool clear = false,
+  }) async {
     if (notifications.isEmpty && !clear) {
       return;
     }
@@ -240,7 +242,8 @@ class HiveService {
   }
 
   static Future<void> loadFavouritePlaces(
-      List<FavouritePlace> favouritePlaces) async {
+    List<FavouritePlace> favouritePlaces,
+  ) async {
     if (favouritePlaces.isEmpty) {
       return;
     }
@@ -282,8 +285,10 @@ class HiveService {
     await Hive.box<Analytics>(HiveBox.analytics).clear();
   }
 
-  static Future<void> loadAnalytics(List<Analytics> analytics,
-      {bool clear = false}) async {
+  static Future<void> loadAnalytics(
+    List<Analytics> analytics, {
+    bool clear = false,
+  }) async {
     if (analytics.isEmpty && !clear) {
       return;
     }

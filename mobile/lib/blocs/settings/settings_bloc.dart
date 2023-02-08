@@ -76,8 +76,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-          status: SettingsStatus.error,
-          errorMessage: 'No Internet connection'));
+        status: SettingsStatus.error,
+        errorMessage: 'No Internet connection',
+      ));
     }
 
     emit(state.copyWith(status: SettingsStatus.processing, errorMessage: ''));
@@ -101,7 +102,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
 
     return emit(state.copyWith(
-        status: SettingsStatus.error,
-        errorMessage: 'Could not logout. Try again later'));
+      status: SettingsStatus.error,
+      errorMessage: 'Could not logout. Try again later',
+    ));
   }
 }

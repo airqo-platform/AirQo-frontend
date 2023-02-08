@@ -22,6 +22,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<Profile> _getProfile(Emitter<ProfileState> emit) async {
     Profile profile = state.profile ?? await HiveService.getProfile();
     emit(state.copyWith(profile: profile));
+
     return profile;
   }
 
@@ -71,8 +72,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onRefreshProfile(
-      RefreshProfile _, Emitter<ProfileState> emit) async {
+    RefreshProfile _,
+    Emitter<ProfileState> emit,
+  ) async {
     final profile = await _getProfile(emit);
+
     return emit(const ProfileState().copyWith(profile: profile));
   }
 

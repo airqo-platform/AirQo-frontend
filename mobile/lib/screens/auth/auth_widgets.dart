@@ -215,7 +215,7 @@ class _PhoneAuthVerificationWidgetState
                     ),
 
                     BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                      listener: (context, state) async {
+                      listener: (context, state) {
                         _startCodeSentCountDown();
                       },
                       listenWhen: (previous, current) {

@@ -56,16 +56,6 @@ enum AppPermission {
   photosStorage,
 }
 
-enum BlocStatus {
-  initial,
-  editing,
-  processing,
-  updatingData,
-  error,
-  success,
-  accountDeletionCheckSuccess,
-}
-
 enum FeedbackStep {
   channelStep,
   typeStep,

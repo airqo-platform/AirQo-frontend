@@ -18,7 +18,6 @@ class ProfileState extends Equatable {
   ProfileState copyWith({
     Profile? profile,
     ProfileStatus? status,
-    AuthenticationError? blocError,
     String? message,
   }) {
     return ProfileState(

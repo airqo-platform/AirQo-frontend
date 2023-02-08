@@ -319,6 +319,7 @@ class CloudStore {
           .doc(profile.userId)
           .set(profile.toJson()),
     ]);
+
     return true;
   }
 
@@ -474,6 +475,7 @@ class CustomAuth {
     }
 
     userCredential = await FirebaseAuth.instance.signInAnonymously();
+
     return userCredential.user != null;
   }
 
@@ -488,6 +490,7 @@ class CustomAuth {
     if (isSignedOut) {
       userCredential =
           await FirebaseAuth.instance.signInWithCredential(authCredential);
+
       return userCredential.user != null;
     }
 
@@ -498,8 +501,10 @@ class CustomAuth {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await user.delete();
+
       return true;
     }
+
     return false;
   }
 
@@ -510,9 +515,7 @@ class CustomAuth {
       final favouritePlaces = await CloudStore.updateFavouritePlaces();
       final kya = await CloudStore.updateKya();
 
-      if (!kya || !analytics || !profile || !favouritePlaces) {
-        return false;
-      }
+      if (!kya || !analytics || !profile || !favouritePlaces) return false;
 
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
@@ -520,6 +523,7 @@ class CustomAuth {
         exception,
         stackTrace,
       );
+
       return false;
     }
 
@@ -532,6 +536,7 @@ class CustomAuth {
 
   static String getUserId() {
     User? user = getUser();
+
     return user == null ? '' : user.uid;
   }
 

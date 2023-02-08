@@ -93,6 +93,6 @@ class EmailAuthState extends Equatable {
         status,
         verificationLink,
         validAuthCode,
-        errorMessage
+        errorMessage,
       ];
 }
