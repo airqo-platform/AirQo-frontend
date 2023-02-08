@@ -151,17 +151,15 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     };
   }
 
-  void _onToggleForecast(
+  Future<void> _onToggleForecast(
     ToggleForecast _,
     Emitter<InsightsState> emit,
-  ) {
+  ) async {
     final bool isShowingForecast = !state.isShowingForecast;
     emit(state.copyWith(
       isShowingForecast: isShowingForecast,
       pollutant: isShowingForecast ? Pollutant.pm2_5 : state.pollutant,
     ));
-
-    return _updateHealthTips(emit);
   }
 
   Future<void> _onSetScrolling(
@@ -195,68 +193,54 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     return;
   }
 
-  void _onUpdateHistoricalChartIndex(
+  Future<void> _onUpdateHistoricalChartIndex(
     UpdateHistoricalChartIndex event,
     Emitter<InsightsState> emit,
-  ) {
+  ) async {
     emit(state.copyWith(
       historicalChartIndex: event.index,
     ));
-
-    return _updateHealthTips(emit);
   }
 
-  void _onUpdateForecastChartIndex(
+  Future<void> _onUpdateForecastChartIndex(
     UpdateForecastChartIndex event,
     Emitter<InsightsState> emit,
-  ) {
+  ) async {
     emit(state.copyWith(
       forecastChartIndex: event.index,
     ));
-
-    return _updateHealthTips(emit);
   }
 
-  void _updateHealthTips(Emitter<InsightsState> emit) {
-    if (state.frequency != Frequency.hourly) {
-      return;
-    }
+  Future<void> _updateHealthTips(Emitter<InsightsState> emit) async {
+    List<HealthTip> healthTips = getHealthTips(null);
+    String healthTipsTitle = 'Default tips';
 
-    int chartIndex;
+    // get the air quality of the site
+    AirQualityReading airQualityReading = HiveService.getAirQualityReadings()
+        .firstWhere((e) => e.referenceSite == state.siteId);
 
-    Map<Pollutant, List<List<charts.Series<ChartData, String>>>> chart;
+    // if the time is less than 2 hours, get the current forecast value
+    if (airQualityReading.dateTime
+        .isBefore(DateTime.now().subtract(const Duration(hours: 2)))) {
+      List<ForecastInsight> forecastData =
+          await AirQoDatabase().getForecastInsights(state.siteId);
+      forecastData.sort((x, y) => x.time.compareTo(
+          y.time)); // TODO confirm that is sorts from the morning to evening
 
-    if (state.isShowingForecast) {
-      chartIndex = state.forecastChartIndex;
-      chart = state.forecastCharts;
+      ForecastInsight? forecast = forecastData.firstWhere(
+          (element) => element.time.isAfterOrEqualTo(DateTime.now()));
+
+      // if forecast is not available return an appropriate message to the user
+      if (forecast != null && forecast.available) {
+        healthTips = getHealthTips(forecast.pm2_5);
+        healthTipsTitle = 'Tips for forecast';
+      }
     } else {
-      chartIndex = state.historicalChartIndex;
-      chart = state.historicalCharts;
+      healthTips = getHealthTips(airQualityReading.pm2_5);
+      healthTipsTitle = 'Tips for current air quality';
     }
 
-    List<HealthTip> healthTips = [];
-    String healthTipsTitle = '';
-
-    ChartData chartData = chart[state.pollutant]![chartIndex].first.data.first;
-
-    chartData = chart[state.pollutant]![chartIndex]
-        .first
-        .data
-        .firstWhere((element) => element.available, orElse: () => chartData);
-
-    if (state.frequency == Frequency.hourly &&
-        chartData.available &&
-        (chartData.dateTime.isToday() || chartData.dateTime.isTomorrow())) {
-      healthTips = getHealthTips(
-        chartData.pm2_5,
-        state.pollutant,
-      );
-      healthTipsTitle = chartData.dateTime.isToday()
-          ? 'Today’s health tips'
-          : 'Tomorrow’s health tips';
-    }
-
-    return emit(state.copyWith(
+    emit(state.copyWith(
       healthTips: healthTips,
       healthTipsTitle: healthTipsTitle,
     ));
@@ -369,8 +353,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         .toList();
 
     await _updateForecastCharts(emit);
-
-    return _updateHistoricalCharts(emit, historicalCharts);
+    await _updateHistoricalCharts(emit, historicalCharts);
+    await _updateHealthTips(emit);
   }
 
   Future<void> _updateHistoricalCharts(
@@ -438,6 +422,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
           .toList();
       await _updateHistoricalCharts(emit, chartData);
       await _updateForecastCharts(emit);
+      await _updateHealthTips(emit);
     }
 
     return _refreshCharts(emit);

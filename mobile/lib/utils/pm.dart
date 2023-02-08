@@ -5,12 +5,19 @@ import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<HealthTip> getHealthTips(
-  double pm2_5,
-  Pollutant _,
-) {
-  // TODO add healthTips for pm10
+List<HealthTip> getHealthTips(double? pm2_5) {
   final healthTips = <HealthTip>[];
+  if (pm2_5 == null) {
+    return [
+      HealthTip(
+        'Default tip',
+        'It\'s a terrific day to go outside and exercise,'
+            ' Reduce the number of car trips you make.',
+        'assets/images/family.png',
+      )
+    ]; // TODO return default health tips
+  }
+
   if (pm2_5 <= 12.09) {
     //good
     healthTips.add(
