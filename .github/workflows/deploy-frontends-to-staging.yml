@@ -8,7 +8,7 @@ on:
       - closed
 
 env:
-  REGISTRY_URL: gcr.io
+  REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
 
 jobs:
@@ -120,7 +120,7 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
@@ -168,7 +168,7 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
@@ -267,7 +267,7 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
@@ -325,7 +325,7 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
@@ -372,7 +372,7 @@ jobs:
       - name: Login to GCR
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 

@@ -216,7 +216,7 @@ class TaglineWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
-                  .headline4
+                  .headlineMedium
                   ?.copyWith(color: Colors.white),
             ),
           ],

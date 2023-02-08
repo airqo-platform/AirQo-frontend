@@ -4,6 +4,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -28,8 +31,14 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
-  final GlobalKey _favToolTipKey = GlobalKey();
-  final GlobalKey _kyaToolTipKey = GlobalKey();
+  late GlobalKey _favToolTipKey;
+  late GlobalKey _kyaToolTipKey;
+  late GlobalKey _favoritesShowcaseKey;
+  late GlobalKey _forYouShowcaseKey;
+  late GlobalKey _kyaShowcaseKey;
+  late GlobalKey _analyticsShowcaseKey;
+  late GlobalKey _nearestLocationShowcaseKey;
+  bool _kyaExists = true, _nearbyLocationExists = true;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -38,6 +47,7 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<int> _timeSubscription;
   late StreamSubscription<ServiceStatus> _locationServiceStream;
   late StreamSubscription<Position> _locationPositionStream;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -85,21 +95,28 @@ class _DashboardViewState extends State<DashboardView>
                         state.favouritePlaces.take(3).toList(),
                       );
 
-                      return DashboardTopCard(
-                        toolTipType: ToolTipType.favouritePlaces,
-                        title: 'Favorites',
-                        widgetKey: _favToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const FavouritePlacesPage();
-                              },
-                            ),
-                          );
-                        },
-                        children: favouritePlaces,
+                      return Expanded(
+                        child: Showcase(
+                          key: _favoritesShowcaseKey,
+                          description:
+                              'Find the latest air quality from your favorite locations',
+                          child: DashboardTopCard(
+                            toolTipType: ToolTipType.favouritePlaces,
+                            title: 'Favorites',
+                            widgetKey: _favToolTipKey,
+                            nextScreenClickHandler: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const FavouritePlacesPage();
+                                  },
+                                ),
+                              );
+                            },
+                            children: favouritePlaces,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -112,21 +129,28 @@ class _DashboardViewState extends State<DashboardView>
                         state.kya.filterCompleteKya().take(3).toList(),
                       );
 
-                      return DashboardTopCard(
-                        toolTipType: ToolTipType.forYou,
-                        title: 'For You',
-                        widgetKey: _kyaToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ForYouPage(analytics: false);
-                              },
-                            ),
-                          );
-                        },
-                        children: kyaWidgets,
+                      return Expanded(
+                        child: Showcase(
+                          key: _forYouShowcaseKey,
+                          description:
+                              'Find amazing content specifically designed for you here.',
+                          child: DashboardTopCard(
+                            toolTipType: ToolTipType.forYou,
+                            title: 'For You',
+                            widgetKey: _kyaToolTipKey,
+                            nextScreenClickHandler: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const ForYouPage(analytics: false);
+                                  },
+                                ),
+                              );
+                            },
+                            children: kyaWidgets,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -178,10 +202,12 @@ class _DashboardViewState extends State<DashboardView>
                           final items = [
                             Text(
                               DateTime.now().timelineString(),
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: Colors.black.withOpacity(0.5),
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
                             ),
                             const SizedBox(
                               height: 4,
@@ -195,6 +221,7 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 if (state.blocStatus ==
                                     NearbyLocationStatus.error) {
+                                  _nearbyLocationExists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
                                       return Padding(
@@ -225,9 +252,14 @@ class _DashboardViewState extends State<DashboardView>
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    nearbyAirQuality,
-                                    false,
+                                  child: Showcase(
+                                    key: _nearestLocationShowcaseKey,
+                                    description:
+                                        'This card shows the air quality of your nearest location',
+                                    child: AnalyticsCard(
+                                      nearbyAirQuality,
+                                      false,
+                                    ),
                                   ),
                                 );
                               },
@@ -236,13 +268,20 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 List<Kya> kya = state.kya.filterIncompleteKya();
                                 if (kya.isEmpty) {
+                                  _kyaExists = false;
+
                                   return const SizedBox();
                                 }
                                 kya.sortByProgress();
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: KyaCardWidget(kya.first),
+                                  child: Showcase(
+                                    key: _kyaShowcaseKey,
+                                    description:
+                                        'Do you want to know more about air quality? Know your air in this section',
+                                    child: KyaCardWidget(kya.first),
+                                  ),
                                 );
                               },
                             ),
@@ -251,13 +290,26 @@ class _DashboardViewState extends State<DashboardView>
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: state.airQualityReadings.length,
                               itemBuilder: (BuildContext context, int index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    state.airQualityReadings[index],
-                                    false,
-                                  ),
-                                );
+                                return (index == 0)
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: Showcase(
+                                          key: _analyticsShowcaseKey,
+                                          description:
+                                              'Find the air quality of different locations across Africa here.',
+                                          child: AnalyticsCard(
+                                            state.airQualityReadings[index],
+                                            false,
+                                          ),
+                                        ),
+                                      )
+                                    : Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: AnalyticsCard(
+                                          state.airQualityReadings[index],
+                                          false,
+                                        ),
+                                      );
                               },
                             ),
                           ];
@@ -308,6 +360,14 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
+    _favToolTipKey = GlobalKey();
+    _kyaToolTipKey = GlobalKey();
+    _favoritesShowcaseKey = GlobalKey();
+    _forYouShowcaseKey = GlobalKey();
+    _kyaShowcaseKey = GlobalKey();
+    _analyticsShowcaseKey = GlobalKey();
+    _nearestLocationShowcaseKey = GlobalKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
@@ -356,6 +416,40 @@ class _DashboardViewState extends State<DashboardView>
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
+    }
+  }
+
+  void _startShowcase() {
+    List<GlobalKey> globalKeys = [
+      _favoritesShowcaseKey,
+      _forYouShowcaseKey,
+      _analyticsShowcaseKey,
+    ];
+    if (_kyaExists) {
+      globalKeys.add(_kyaShowcaseKey);
+    }
+
+    if (_nearbyLocationExists) {
+      globalKeys.add(_nearestLocationShowcaseKey);
+    }
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        ShowCaseWidget.of(context).startShowCase(globalKeys);
+      },
+    );
+  }
+
+  Future<void> _showcaseToggle() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(Config.homePageShowcase) == null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _startShowcase();
+            _appService.stopShowcase(Config.homePageShowcase);
+          });
+        }
+      });
     }
   }
 }

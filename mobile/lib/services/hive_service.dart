@@ -72,14 +72,37 @@ class HiveService {
     ]);
   }
 
+  static Future<void> updateAirQualityReading(
+    AirQualityReading airQualityReading,
+  ) async {
+    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+        .put(airQualityReading.placeId, airQualityReading);
+  }
+
+  static Future<void> updateKya(Kya kya) async {
+    await Hive.box<Kya>(HiveBox.kya).put(kya.id, kya);
+  }
+
   static Future<void> updateAirQualityReadings(
     List<AirQualityReading> airQualityReadings, {
     bool reload = false,
   }) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
-
-    for (final airQualityReading in airQualityReadings) {
-      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
+    final currentReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    for (final reading in airQualityReadings) {
+      if (reading.shareLink.isEmpty) {
+        AirQualityReading airQualityReading = currentReadings.firstWhere(
+          (element) => element.placeId == reading.placeId,
+          orElse: () {
+            return reading;
+          },
+        );
+        airQualityReadingsMap[reading.placeId] =
+            reading.copyWith(shareLink: airQualityReading.shareLink);
+      } else {
+        airQualityReadingsMap[reading.placeId] = reading;
+      }
     }
 
     if (reload) {
@@ -87,6 +110,12 @@ class HiveService {
     }
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .putAll(airQualityReadingsMap);
+  }
+
+  static List<AirQualityReading> getAirQualityReadings() {
+    return Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.toList();
   }
 
   static Future<void> updateSearchHistory(
@@ -162,23 +191,31 @@ class HiveService {
         .putAll(notificationsMap);
   }
 
-  static Future<void> loadKya(List<Kya> kya) async {
-    if (kya.isEmpty) {
+  static Future<void> loadKya(List<Kya> kyaList) async {
+    if (kyaList.isEmpty) {
       return;
     }
 
-    await Hive.box<Kya>(HiveBox.kya).clear();
+    final currentKya = Hive.box<Kya>(HiveBox.kya).values.toList();
     final kyaMap = <String, Kya>{};
-
-    for (final x in kya) {
-      kyaMap[x.id] = x;
+    for (final x in kyaList) {
+      if (x.shareLink.isEmpty) {
+        Kya kya =
+            currentKya.firstWhere((element) => element.id == x.id, orElse: () {
+          return x;
+        });
+        kyaMap[x.id] = x.copyWith(shareLink: kya.shareLink);
+      } else {
+        kyaMap[x.id] = x;
+      }
     }
 
+    await Hive.box<Kya>(HiveBox.kya).clear();
     await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
 
-    for (final kya in kya) {
-      CacheService.cacheKyaImages(kya);
-    }
+    kyaMap.forEach((_, value) {
+      CacheService.cacheKyaImages(value);
+    });
   }
 
   static Future<void> loadProfile(Profile profile) async {

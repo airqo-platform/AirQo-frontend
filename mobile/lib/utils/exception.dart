@@ -5,6 +5,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+class NetworkConnectionException implements Exception {
+  String cause;
+  NetworkConnectionException(this.cause);
+}
+
 Future<void> logException(
   exception,
   StackTrace? stackTrace,

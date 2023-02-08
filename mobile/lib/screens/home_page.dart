@@ -1,14 +1,20 @@
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
@@ -23,12 +29,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
+  late bool refresh;
+  late GlobalKey _homeShowcaseKey;
+  late GlobalKey _mapShowcaseKey;
+  late GlobalKey _profileShowcaseKey;
+  late BuildContext _showcaseContext;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    const DashboardView(),
-    const MapView(),
-    const ProfileView(),
-  ];
+  late List<Widget> _widgetOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -59,100 +66,120 @@ class _HomePageState extends State<HomePage> {
           canvasColor: CustomColors.appBodyColor,
           primaryColor: CustomColors.appColorBlack,
           textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(
+                bodySmall: TextStyle(
                   color: CustomColors.appColorBlack,
                 ),
               ),
         ),
-        child: BottomNavigationBar(
-          selectedIconTheme: Theme.of(context)
-              .iconTheme
-              .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
-          unselectedIconTheme: Theme.of(context)
-              .iconTheme
-              .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/icon/home_icon.svg',
-                semanticsLabel: 'Home',
-                color: _selectedIndex == 0
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorBlack.withOpacity(0.3),
+        child: ShowCaseWidget(
+          onFinish: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ForYouPage(),
               ),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/icon/location.svg',
-                color: _selectedIndex == 1
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorBlack.withOpacity(0.3),
-                semanticsLabel: 'AirQo Map',
-              ),
-              label: 'AirQo Map',
-            ),
-            BottomNavigationBarItem(
-              icon: Stack(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icon/profile.svg',
-                    color: _selectedIndex == 2
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorBlack.withOpacity(0.3),
-                    semanticsLabel: 'Profile',
+            );
+          },
+          builder: Builder(
+            builder: (context) {
+              _showcaseContext = context;
+
+              return BottomNavigationBar(
+                selectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
+                unselectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Showcase(
+                      showArrow: false,
+                      key: _homeShowcaseKey,
+                      description: 'Home',
+                      child: BottomNavIcon(
+                        selectedIndex: _selectedIndex,
+                        svg: 'assets/icon/home_icon.svg',
+                        label: 'Home',
+                        index: 0,
+                      ),
+                    ),
+                    label: '',
                   ),
-                  BlocBuilder<AccountBloc, AccountState>(
-                    buildWhen: (previous, current) {
-                      final previousNotifications = previous.notifications
-                          .where((element) => !element.read)
-                          .toList()
-                          .length;
-
-                      final currentNotifications = previous.notifications
-                          .where((element) => !element.read)
-                          .toList()
-                          .length;
-
-                      return previousNotifications != currentNotifications;
-                    },
-                    builder: (context, state) {
-                      final Color color = state.notifications
-                              .where((element) => !element.read)
-                              .toList()
-                              .isEmpty
-                          ? Colors.transparent
-                          : CustomColors.aqiRed;
-
-                      return Positioned(
-                        right: 0.0,
-                        child: Container(
-                          height: 4,
-                          width: 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: color,
+                  BottomNavigationBarItem(
+                    icon: Showcase(
+                      key: _mapShowcaseKey,
+                      showArrow: false,
+                      description: 'This is the AirQo map',
+                      child: BottomNavIcon(
+                        svg: 'assets/icon/location.svg',
+                        selectedIndex: _selectedIndex,
+                        label: 'AirQo Map',
+                        index: 1,
+                      ),
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Stack(
+                      children: [
+                        Showcase(
+                          key: _profileShowcaseKey,
+                          showArrow: false,
+                          description: 'Access your Profile details here',
+                          child: BottomNavIcon(
+                            svg: 'assets/icon/profile.svg',
+                            selectedIndex: _selectedIndex,
+                            label: 'Profile',
+                            index: 2,
                           ),
                         ),
-                      );
-                    },
+                        ValueListenableBuilder<Box>(
+                          valueListenable: Hive.box<AppNotification>(
+                            HiveBox.appNotifications,
+                          ).listenable(),
+                          builder: (context, box, widget) {
+                            final unreadNotifications = box.values
+                                .toList()
+                                .cast<AppNotification>()
+                                .where((element) => !element.read)
+                                .toList();
+
+                            return Positioned(
+                              right: 0.0,
+                              child: Container(
+                                height: 4,
+                                width: 4,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: unreadNotifications.isEmpty
+                                      ? Colors.transparent
+                                      : CustomColors.aqiRed,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    label: '',
                   ),
                 ],
-              ),
-              label: 'Profile',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: CustomColors.appColorBlue,
-          unselectedItemColor: CustomColors.appColorBlack.withOpacity(0.3),
-          elevation: 0.0,
-          backgroundColor: CustomColors.appBodyColor,
-          onTap: _onItemTapped,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
+                currentIndex: _selectedIndex,
+                selectedItemColor: CustomColors.appColorBlue,
+                unselectedItemColor:
+                    CustomColors.appColorBlack.withOpacity(0.3),
+                elevation: 0.0,
+                backgroundColor: CustomColors.appBodyColor,
+                onTap: _onItemTapped,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                type: BottomNavigationBarType.fixed,
+                selectedFontSize: 10,
+                unselectedFontSize: 10,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -161,18 +188,43 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
-    context.read<SearchBloc>().add(const InitializeSearchPage());
     await checkNetworkConnection(
       context,
       notifyUser: true,
     );
+    await _initializeDynamicLinks();
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+  }
+
+  Future<void> _initializeDynamicLinks() async {
+    FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
+      BuildContext? navigatorBuildContext = navigatorKey.currentContext;
+      if (navigatorBuildContext != null) {
+        await ShareService.navigateToSharedFeature(
+          linkData: linkData,
+          context: navigatorBuildContext,
+        );
+      }
+    }).onError((error) async {
+      await logException(error, null);
+    });
   }
 
   @override
   void initState() {
     super.initState();
     _initialize();
+    _homeShowcaseKey = GlobalKey();
+    _mapShowcaseKey = GlobalKey();
+    _profileShowcaseKey = GlobalKey();
+    _widgetOptions = <Widget>[
+      ShowCaseWidget(
+        onFinish: _startShowcase,
+        builder: Builder(builder: (context) => const DashboardView()),
+      ),
+      const MapView(),
+      const ProfileView(),
+    ];
   }
 
   Future<bool> _onWillPop() {
@@ -212,5 +264,17 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() => _selectedIndex = index);
+  }
+
+  void _startShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ShowCaseWidget.of(_showcaseContext).startShowCase(
+        [
+          _homeShowcaseKey,
+          _mapShowcaseKey,
+          _profileShowcaseKey,
+        ],
+      );
+    });
   }
 }

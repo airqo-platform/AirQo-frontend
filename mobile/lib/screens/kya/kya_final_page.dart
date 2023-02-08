@@ -1,7 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -53,7 +53,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
                 child: Text(
                   widget.kya.completionMessage,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.5),
                       ),
                 ),
@@ -78,8 +78,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   Future<void> _initialize() async {
     await Future.delayed(
       const Duration(seconds: 4),
-      () {
-        Navigator.pop(context);
+      () async {
+        await popNavigation(context);
       },
     );
   }

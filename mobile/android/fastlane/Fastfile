@@ -1,49 +1,38 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:android)
 
 platform :android do
-  desc "Runs all the tests"
-  lane :test do
-    gradle(task: "test")
+
+  desc "Deploy a new version to play store"
+  lane :production do
+  
+    sh "flutter build appbundle --flavor airqo"
+    upload_to_play_store(
+      version_name: "2.0.15",
+      version_code: "20027",
+      track: "production",
+      release_status: "draft",
+      metadata_path:"metadata",
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      aab: "../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      validate_only: true,
+      skip_upload_apk: true,
+    )
   end
-
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    crashlytics
-  end
-
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
-  end
-
-
 
   desc "Deploy to new version to Firebase App Distribution"
   lane :distribute do
+    sh "flutter build appbundle --flavor airqo" 
     firebase_app_distribution(
       app: ENV['MOBILE_ANDROID_ID_FIREBASE'],
-      android_artifact_path:"/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
-      release_notes_file: "/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/android/release_notes.txt",
-      service_credentials_file: "/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/android/firebase_distributor.json",
+      android_artifact_path:"../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
+      release_notes_file: "fastlane/release_notes.txt",
+      service_credentials_file: "fastlane/firebase-app-distribution.json",
       android_artifact_type: "AAB",
-      testers_file: "/home/runner/work/AirQo-frontend/AirQo-frontend/mobile/android/testers.txt"
+      groups: "airqo-team",
       )
   end
 end

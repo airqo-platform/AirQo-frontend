@@ -1,8 +1,9 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/services/location_service.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -206,7 +207,7 @@ class SearchPageFilterTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 2),
-          BlocBuilder<SearchBloc, SearchState>(
+          BlocBuilder<SearchFilterBloc, SearchFilterState>(
             builder: (context, state) {
               return Container(
                 height: 24,
@@ -225,7 +226,7 @@ class SearchPageFilterTile extends StatelessWidget {
                   height: 12,
                   width: 12,
                   decoration: BoxDecoration(
-                    color: state.featuredAirQuality == airQuality
+                    color: state.filteredAirQuality == airQuality
                         ? CustomColors.appColorBlue
                         : Colors.transparent,
                     shape: BoxShape.circle,
@@ -417,7 +418,7 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SearchBloc, SearchState>(
+    return BlocBuilder<SearchFilterBloc, SearchFilterState>(
       builder: (context, state) {
         if (state.africanCities.isEmpty) {
           return Container();
@@ -476,8 +477,50 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
   }
 }
 
-class AutoCompleteResultsWidget extends StatelessWidget {
+class AutoCompleteResultsWidget extends StatefulWidget {
   const AutoCompleteResultsWidget({super.key});
+
+  @override
+  State<AutoCompleteResultsWidget> createState() =>
+      _AutoCompleteResultsWidgetState();
+}
+
+class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
+  Future<void> getAirQuality(SearchResult searchResult) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      if (!mounted) return;
+      context.read<SearchBloc>().add(const NoSearchInternetConnection());
+
+      return;
+    }
+
+    if (!mounted) return;
+
+    loadingScreen(context);
+
+    AirQualityReading? airQualityReading =
+        await LocationService.getSearchAirQuality(searchResult);
+
+    if (!mounted) return;
+
+    Navigator.pop(context);
+
+    if (airQualityReading == null) {
+      context.read<SearchBloc>().add(GetSearchRecommendations(searchResult));
+
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return InsightsPage(airQualityReading);
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -487,80 +530,19 @@ class AutoCompleteResultsWidget extends StatelessWidget {
           return const NoSearchResultsWidget();
         }
 
-        return MultiBlocListener(
-          listeners: [
-            BlocListener<SearchBloc, SearchState>(
-              listener: (context, state) {
-                loadingScreen(context);
+        return ListView.builder(
+          itemCount: state.searchResults.length,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () async {
+                await getAirQuality(state.searchResults[index]);
               },
-              listenWhen: (previous, current) {
-                return current.searchStatus == SearchStatus.searchingAirQuality;
-              },
-            ),
-            BlocListener<SearchBloc, SearchState>(
-              listener: (context, state) {
-                Navigator.pop(context);
-              },
-              listenWhen: (previous, current) {
-                return previous.searchStatus ==
-                    SearchStatus.searchingAirQuality;
-              },
-            ),
-            BlocListener<SearchBloc, SearchState>(
-              listener: (context, state) {
-                showSnackBar(
-                  context,
-                  'Oops!!.. Failed to retrieve air quality readings.',
-                  durationInSeconds: 3,
-                );
-              },
-              listenWhen: (previous, current) {
-                return current.searchStatus ==
-                    SearchStatus.airQualitySearchFailed;
-              },
-            ),
-            BlocListener<SearchBloc, SearchState>(
-              listener: (context, state) async {
-                AirQualityReading? airQualityReading = state.searchAirQuality;
-                if (airQualityReading != null) {
-                  context.read<SearchBloc>().add(const ClearSearchResult());
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return InsightsPage(airQualityReading);
-                      },
-                    ),
-                  );
-                }
-              },
-              listenWhen: (previous, current) {
-                return (previous.searchStatus ==
-                            SearchStatus.airQualitySearchFailed ||
-                        previous.searchStatus ==
-                            SearchStatus.searchingAirQuality) &&
-                    current.searchStatus ==
-                        SearchStatus.autoCompleteSearchSuccess &&
-                    current.searchAirQuality != null;
-              },
-            ),
-          ],
-          child: ListView.builder(
-            itemCount: state.searchResults.length,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  context
-                      .read<SearchBloc>()
-                      .add(SearchAirQuality(state.searchResults[index]));
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: AutoCompleteResultTile(state.searchResults[index]),
-                ),
-              );
-            },
-          ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: AutoCompleteResultTile(state.searchResults[index]),
+              ),
+            );
+          },
         );
       },
     );
@@ -657,10 +639,13 @@ class SearchInputField extends StatelessWidget {
             : null;
 
         return TextFormField(
+          onTap: () {
+            context.read<SearchPageCubit>().showSearching();
+          },
           onChanged: (value) {
             context.read<SearchBloc>().add(SearchTermChanged(value));
           },
-          style: Theme.of(context).textTheme.caption?.copyWith(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontSize: 16,
               ),
           enableSuggestions: true,
@@ -679,7 +664,7 @@ class SearchInputField extends StatelessWidget {
             enabledBorder: border,
             border: border,
             hintText: 'Search for Air Quality by location',
-            hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -704,6 +689,141 @@ class AutoCompleteLoadingWidget extends StatelessWidget {
           child: ContainerLoadingAnimation(
             height: 60,
             radius: 8.0,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class SearchBar extends StatelessWidget implements PreferredSizeWidget {
+  const SearchBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: 72,
+      elevation: 0,
+      backgroundColor: CustomColors.appBodyColor,
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      title: Row(
+        children: [
+          const AppBackButton(),
+          const SizedBox(
+            width: 6,
+          ),
+          const Expanded(
+            child: SizedBox(
+              height: 40,
+              child: SearchInputField(),
+            ),
+          ),
+          BlocBuilder<SearchFilterBloc, SearchFilterState>(
+            builder: (context, state) {
+              Color foregroundColor = Colors.white;
+              Color backgroundColor = CustomColors.appColorBlue;
+              if (state.filteredAirQuality == null) {
+                foregroundColor = CustomColors.appColorBlue;
+                backgroundColor = CustomColors.appColorBlue.withOpacity(0.1);
+              }
+
+              return InkWell(
+                onTap: () {
+                  FocusScope.of(context).requestFocus(
+                    FocusNode(),
+                  );
+                  _openAirQualityFilters(context);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: MaterialIcons.searchFilter(
+                    foregroundColor: foregroundColor,
+                    backgroundColor: backgroundColor,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
+
+  void _openAirQualityFilters(BuildContext context) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      isDismissible: false,
+      elevation: 0.0,
+      backgroundColor: CustomColors.appBodyColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const SizedBox(
+                height: 27,
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Filter By Air Quality Range',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyle.headline8(context)?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.3),
+                    ),
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () {
+                      context
+                          .read<SearchFilterBloc>()
+                          .add(const InitializeSearchFilter());
+                      Navigator.pop(context);
+                    },
+                    child: MaterialIcons.closeSearchFilter(),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (_, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: InkWell(
+                      onTap: () {
+                        context.read<SearchPageCubit>().showFiltering();
+                        context.read<SearchFilterBloc>().add(
+                              FilterByAirQuality(AirQuality.values[index]),
+                            );
+                        Navigator.pop(context);
+                      },
+                      child: SearchPageFilterTile(AirQuality.values[index]),
+                    ),
+                  );
+                },
+                itemCount: AirQuality.values.length,
+              ),
+            ],
           ),
         );
       },

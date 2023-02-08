@@ -3,6 +3,8 @@ import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
@@ -75,6 +77,33 @@ class AppService {
     }
 
     return authSuccessful;
+  }
+
+  static Future<Kya?> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+
+      return null;
+    }
   }
 
   Future<bool> doesUserExist({
@@ -162,6 +191,22 @@ class AppService {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  Future<void> setShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showcase', true);
+  }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
   }
 
   Future<void> _postSignUpActions() async {

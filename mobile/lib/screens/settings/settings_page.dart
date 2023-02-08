@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -69,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage>
                     shape: topBorder,
                     title: Text(
                       'Location',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
@@ -88,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage>
                     tileColor: Colors.white,
                     title: Text(
                       'Notification',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     trailing: CupertinoSwitch(
                       activeColor: CustomColors.appColorBlue,
@@ -120,7 +121,31 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Send feedback',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                ),
+                divider,
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    onTap: () async {
+                      await AppService().clearShowcase();
+                      await Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return const HomePage();
+                          },
+                        ),
+                        (r) => false,
+                      );
+                    },
+                    title: Text(
+                      'Take a tour of the App',
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -141,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Rate the AirQo App',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -165,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'About',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -238,11 +263,13 @@ class _SettingsPageState extends State<SettingsPage>
                           title: Text(
                             'Delete your account',
                             overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.bodyText2?.copyWith(
-                                      color: CustomColors.appColorBlack
-                                          .withOpacity(0.6),
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.6),
+                                ),
                           ),
                         ),
                       ),

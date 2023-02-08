@@ -54,15 +54,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     airQualityCards = airQualityCards.shuffleByCountry();
 
-    return emit(state.copyWith(
-      airQualityReadings: airQualityCards,
-      status: airQualityCards.isEmpty
-          ? DashboardStatus.error
-          : DashboardStatus.loaded,
-      error: airQualityCards.isEmpty
-          ? DashboardError.noAirQuality
-          : DashboardError.none,
-    ));
+    return emit(
+      state.copyWith(
+        airQualityReadings: airQualityCards,
+        status: airQualityCards.isEmpty
+            ? DashboardStatus.error
+            : DashboardStatus.loaded,
+        error: airQualityCards.isEmpty
+            ? DashboardError.noAirQuality
+            : DashboardError.none,
+      ),
+    );
   }
 
   Future<void> _onRefreshDashboard(
@@ -76,17 +78,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection && state.airQualityReadings.isEmpty) {
-      return emit(state.copyWith(
-        status: DashboardStatus.error,
-        error: DashboardError.noInternetConnection,
-      ));
+      return emit(
+        state.copyWith(
+          status: DashboardStatus.error,
+          error: DashboardError.noInternetConnection,
+        ),
+      );
     }
 
-    emit(state.copyWith(
-      status: state.airQualityReadings.isEmpty
-          ? DashboardStatus.loading
-          : DashboardStatus.refreshing,
-    ));
+    emit(
+      state.copyWith(
+        status: state.airQualityReadings.isEmpty
+            ? DashboardStatus.loading
+            : DashboardStatus.refreshing,
+      ),
+    );
 
     await Future.wait([
       AppService().refreshAirQualityReadings(),
