@@ -122,11 +122,11 @@ export const deleteComponentApi = async (deviceName, componentName) => {
     .then((response) => response.data);
 };
 
-export const deleteDevicePhotos = async (deviceName, pictures) => {
+export const deleteDevicePhotos = async (deviceId, urls) => {
   return await axios
     .delete(DELETE_DEVICE_PHOTO, {
-      params: { device: deviceName },
-      data: { photos: pictures }
+      params: { id: deviceId },
+      data: { photos: urls }
     })
     .then((response) => response.data);
 };

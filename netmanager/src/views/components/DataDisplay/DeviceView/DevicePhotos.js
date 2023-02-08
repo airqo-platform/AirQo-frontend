@@ -166,7 +166,8 @@ export default function DevicePhotos({ deviceData }) {
   const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
     open: false,
-    url: null
+    url: null,
+    id: null
   });
   const [photoPreview, setPhotoPreview] = useState({
     open: false,
@@ -211,7 +212,7 @@ export default function DevicePhotos({ deviceData }) {
   const handlePictureDeletion = async () => {
     await setPhotoDelState({ ...photoDelState, open: false });
     if (photoDelState.url) {
-      await deleteDevicePhotos(deviceData.name, [photoDelState.url])
+      await deleteDevicePhotos(photoDelState.id, [photoDelState.url])
         .then((responseData) => {
           setImages((responseData.updatedDevice && responseData.updatedDevice.pictures) || []);
           setNewImages([]);
@@ -224,9 +225,10 @@ export default function DevicePhotos({ deviceData }) {
           );
         })
         .catch((err) => {
+          const errors = err.response.data.message;
           dispatch(
             updateMainAlert({
-              message: 'Could not delete image',
+              message: errors,
               show: true,
               severity: 'error'
             })
@@ -234,7 +236,8 @@ export default function DevicePhotos({ deviceData }) {
         });
       setPhotoDelState({
         open: false,
-        url: null
+        url: null,
+        id: null
       });
     }
   };
@@ -286,8 +289,14 @@ export default function DevicePhotos({ deviceData }) {
         )}
         {images.map((src, index) => (
           <Img
-            src={src}
-            setDelState={setPhotoDelState}
+            src={src.image_url}
+            setDelState={() => {
+              setPhotoDelState({
+                open: true,
+                url: src.image_url,
+                id: src._id
+              });
+            }}
             setPreviewState={setPhotoPreview}
             key={index}
           />
@@ -296,11 +305,12 @@ export default function DevicePhotos({ deviceData }) {
       <ConfirmDialog
         open={photoDelState.open}
         title={'Delete photo?'}
-        message={`Are you sure delete this ${photoDelState.url} photo?`}
+        message={`Are you sure delete this photo?`}
         close={() =>
           setPhotoDelState({
             open: false,
-            url: null
+            url: null,
+            id: null
           })
         }
         confirm={handlePictureDeletion}
