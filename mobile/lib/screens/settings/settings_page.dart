@@ -145,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage>
                     },
                     title: Text(
                       'Take a tour of the App',
-                      style: Theme.of(context).textTheme.bodyText1,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                 ),
