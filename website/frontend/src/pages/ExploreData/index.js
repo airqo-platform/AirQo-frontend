@@ -20,7 +20,7 @@ import { isEmpty, isEqual } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
-import UserManual from 'assets/docs/AirQo Analytics Platform User Guide.pdf';
+import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import DownloadIcon from 'assets/svg/explore/download.svg'
 
 const CATEGORY_TYPE = {
