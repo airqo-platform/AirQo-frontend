@@ -11,7 +11,8 @@ import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
-  const NoSearchResultsWidget({super.key});
+  const NoSearchResultsWidget({super.key, this.message});
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,8 @@ class NoSearchResultsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 23),
             Text(
-              'Try adjusting your search to find what you’re looking for.',
+              message ??
+                  'Try adjusting your search to find what you’re looking for.',
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),

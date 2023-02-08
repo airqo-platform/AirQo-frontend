@@ -1,5 +1,5 @@
 // take a slice of the application state and return some data based on that
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
 export const _useAirqloudsData = () => {
   return useSelector((state) => state.airqloudRegistry.airqlouds);
@@ -7,4 +7,8 @@ export const _useAirqloudsData = () => {
 
 export const useCurrentAirQloudData = () => {
   return useSelector((state) => state.airqloudRegistry.currentAirQloud);
+};
+
+export const useDashboardAirqloudsData = () => {
+  return useSelector((state) => state.airqloudRegistry.dashboardAirQlouds);
 };
