@@ -129,9 +129,6 @@
 
         .nav {
             display: flex;
-            overflow-x: scroll;
-            position: relative;
-            top: -18%;
             .nav-option {
                 border: 1px solid $aq-blue-8;
                 border-radius: 16px;
@@ -186,6 +183,25 @@
         ::-webkit-scrollbar-thumb:horizontal{
             background: $aq-blue-0;
             border-radius: 10px;
+        }
+        .user-manual{
+            position: relative;
+            top: -12%;
+            width: 50%;
+            align-self: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            outline: none;
+            border:none;
+            border-radius: 5px;
+            padding: 10px 5px;
+            border: 1px solid $aq-grey-4;
+            background-color: #fff;
+            a{
+                width: 90%;
+            }
         }
     }
 }
@@ -522,6 +538,11 @@
                 .nav-option {
                     margin-bottom: 24px;
                 }
+            }
+            .user-manual{
+                top: 0;
+                width: 100%;
+                margin-bottom: 30px;
             }
         }
     }
