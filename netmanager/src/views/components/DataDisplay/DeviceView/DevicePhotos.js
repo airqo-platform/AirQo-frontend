@@ -1,46 +1,47 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import ImageUploading from "react-images-uploading";
-import { Button } from "@material-ui/core";
-import { cloudinaryImageUpload } from "views/apis/cloudinary";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import ClearIcon from "@material-ui/icons/Clear";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateDeviceDetails } from "views/apis/deviceRegistry";
-import BrokenImage from "assets/img/BrokenImage";
-import ConfirmDialog from "views/containers/ConfirmDialog";
-import { deleteDevicePhotos } from "views/apis/deviceRegistry";
-import ImagePreview from "views/containers/ImagePreview";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import ImageUploading from 'react-images-uploading';
+import { Button } from '@material-ui/core';
+import { cloudinaryImageUpload } from 'views/apis/cloudinary';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import ClearIcon from '@material-ui/icons/Clear';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateDeviceDetails } from 'views/apis/deviceRegistry';
+import BrokenImage from 'assets/img/BrokenImage';
+import ConfirmDialog from 'views/containers/ConfirmDialog';
+import { deleteDevicePhotos } from 'views/apis/deviceRegistry';
+import ImagePreview from 'views/containers/ImagePreview';
+import { softCreateDevicePhoto } from '../../../apis/deviceRegistry';
 
 const galleryContainerStyles = {
-  display: "flex",
-  flexWrap: "wrap",
+  display: 'flex',
+  flexWrap: 'wrap'
 };
 
 const ImgLoadStatus = ({ message, error, onClose }) => {
   const moreStyles = error
-    ? { background: "rgb(252, 235, 234)", color: "rgb(91, 22, 21)" }
-    : { background: "rgb(232, 243, 252)", color: "rgb(12, 54, 91)" };
+    ? { background: 'rgb(252, 235, 234)', color: 'rgb(91, 22, 21)' }
+    : { background: 'rgb(232, 243, 252)', color: 'rgb(12, 54, 91)' };
   return (
     <div
       style={{
-        display: "flex",
-        width: "100%",
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 10px",
-        textTransform: "capitalize",
-        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-        fontSize: "12px",
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 10px',
+        textTransform: 'capitalize',
+        fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+        fontSize: '12px',
         fontWeight: 400,
-        lineHeight: "18px",
-        letterSpacing: "-0.04px",
-        ...moreStyles,
+        lineHeight: '18px',
+        letterSpacing: '-0.04px',
+        ...moreStyles
       }}
     >
       {message}
-      <ClearIcon className={"d-img"} onClick={onClose} />
+      <ClearIcon className={'d-img'} onClick={onClose} />
     </div>
   );
 };
@@ -48,8 +49,8 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
 const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
   const { upload, deviceName, deviceId } = uploadOptions || {
     upload: false,
-    deviceName: "",
-    deviceId: "",
+    deviceName: '',
+    deviceId: ''
   };
   const [url, setUrl] = useState(src);
   const [broken, setBroken] = useState(false);
@@ -74,21 +75,28 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
 
   const uploadImage = async (src) => {
     const formData = new FormData();
-    formData.append("file", src);
-    formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-    formData.append("folder", `devices/${deviceName}`);
+    formData.append('file', src);
+    formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_PRESET);
+    formData.append('folder', `devices/${deviceName}`);
     showUploading();
     return await cloudinaryImageUpload(formData)
       .then((responseData) => {
-        const pictures = [responseData.secure_url];
-        setUrl(responseData.secure_url);
-        updateDeviceDetails(deviceId, { pictures })
+        const img_url = responseData.secure_url;
+        setUrl(img_url);
+
+        const deviceImgData = {
+          device_name: deviceName,
+          device_id: deviceId,
+          image_url: img_url
+        };
+
+        softCreateDevicePhoto(deviceImgData)
           .then((responseData) => {
             dispatch(
               updateMainAlert({
                 message: responseData.message,
                 show: true,
-                severity: "success",
+                severity: 'success'
               })
             );
             closeLoader();
@@ -96,9 +104,9 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
           .catch(() => {
             dispatch(
               updateMainAlert({
-                message: "Could not persist images",
+                message: 'Could not persist images',
                 show: true,
-                severity: "error",
+                severity: 'error'
               })
             );
             showUploadError();
@@ -116,42 +124,34 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
   }, []);
 
   return (
-    <div className={"device-image-wrapper"}>
-      <div className={"img-wrapper"}>
+    <div className={'device-image-wrapper'}>
+      <div className={'img-wrapper'}>
         {!broken && src && (
           <img
-            className={"image"}
+            className={'image'}
             src={src}
-            alt={"image"}
+            alt={'image'}
             // style={{background: `url(${src})`}}
             onError={() => setBroken(true)}
             onClick={() => setPreviewState({ open: true, url: url })}
           />
         )}
-        {(!src || broken) && <BrokenImage className={"broken-image"} />}
+        {(!src || broken) && <BrokenImage className={'broken-image'} />}
       </div>
-      <div className={"image-controls"}>
+      <div className={'image-controls'}>
         {!uploading && !uploadError && (
           <DeleteOutlineIcon
-            className={"image-del"}
+            className={'image-del'}
             onClick={() =>
               setDelState({
                 open: true,
-                url: url,
+                url: url
               })
             }
           />
         )}
-        {uploading && (
-          <ImgLoadStatus message={"uploading image..."} onClose={closeLoader} />
-        )}
-        {uploadError && (
-          <ImgLoadStatus
-            message={"upload failed"}
-            error
-            onClose={closeLoader}
-          />
-        )}
+        {uploading && <ImgLoadStatus message={'uploading image...'} onClose={closeLoader} />}
+        {uploadError && <ImgLoadStatus message={'upload failed'} error onClose={closeLoader} />}
       </div>
     </div>
   );
@@ -163,11 +163,11 @@ export default function DevicePhotos({ deviceData }) {
   const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
     open: false,
-    url: null,
+    url: null
   });
   const [photoPreview, setPhotoPreview] = useState({
     open: false,
-    url: null,
+    url: null
   });
   const maxNumber = 69;
 
@@ -185,32 +185,28 @@ export default function DevicePhotos({ deviceData }) {
     if (photoDelState.url) {
       await deleteDevicePhotos(deviceData.name, [photoDelState.url])
         .then((responseData) => {
-          setImages(
-            (responseData.updatedDevice &&
-              responseData.updatedDevice.pictures) ||
-              []
-          );
+          setImages((responseData.updatedDevice && responseData.updatedDevice.pictures) || []);
           setNewImages([]);
           dispatch(
             updateMainAlert({
               message: responseData.message,
               show: true,
-              severity: "success",
+              severity: 'success'
             })
           );
         })
         .catch((err) => {
           dispatch(
             updateMainAlert({
-              message: "Could not delete image",
+              message: 'Could not delete image',
               show: true,
-              severity: "error",
+              severity: 'error'
             })
           );
         });
       setPhotoDelState({
         open: false,
-        url: null,
+        url: null
       });
     }
   };
@@ -227,9 +223,9 @@ export default function DevicePhotos({ deviceData }) {
         {({ onImageUpload }) => (
           <div
             style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              margin: "10px 0",
+              display: 'flex',
+              justifyContent: 'flex-end',
+              margin: '10px 0'
             }}
           >
             <Button variant="contained" color="primary" onClick={onImageUpload}>
@@ -240,14 +236,14 @@ export default function DevicePhotos({ deviceData }) {
       </ImageUploading>
       {newImages.length > 0 && (
         <div style={galleryContainerStyles}>
-          <div style={{ width: "100%", color: "blue" }}>New Image(s)</div>
+          <div style={{ width: '100%', color: 'blue' }}>New Image(s)</div>
           {newImages.map((src, index) => (
             <Img
               src={src}
               uploadOptions={{
                 upload: true,
                 deviceName: deviceData.name,
-                deviceId: deviceData._id,
+                deviceId: deviceData._id
               }}
               setDelState={setPhotoDelState}
               setPreviewState={setPhotoPreview}
@@ -258,7 +254,7 @@ export default function DevicePhotos({ deviceData }) {
       )}
       <div style={galleryContainerStyles}>
         {newImages.length > 0 && images.length > 0 && (
-          <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
+          <div style={{ width: '100%', color: 'blue' }}>Old Image(s)</div>
         )}
         {images.map((src, index) => (
           <Img
@@ -271,12 +267,12 @@ export default function DevicePhotos({ deviceData }) {
       </div>
       <ConfirmDialog
         open={photoDelState.open}
-        title={"Delete photo?"}
+        title={'Delete photo?'}
         message={`Are you sure delete this ${photoDelState.url} photo?`}
         close={() =>
           setPhotoDelState({
             open: false,
-            url: null,
+            url: null
           })
         }
         confirm={handlePictureDeletion}

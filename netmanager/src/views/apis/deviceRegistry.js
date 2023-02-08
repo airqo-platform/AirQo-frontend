@@ -23,6 +23,7 @@ import {
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
+import { SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
 
 export const getAllDevicesApi = async () => {
   return await axios.get(ALL_DEVICES_URI).then((response) => response.data);
@@ -170,4 +171,8 @@ export const QRCodeApi = async (params) => {
 
 export const refreshAirQloudApi = async (params) => {
   return await axios.put(REFRESH_AIRQLOUD, {}, { params }).then((response) => response.data);
+};
+
+export const softCreateDevicePhoto = async (data) => {
+  return await axios.post(SOFT_EDIT_DEVICE_IMAGE, data).then((response) => response.data);
 };
