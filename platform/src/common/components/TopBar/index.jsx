@@ -1,7 +1,7 @@
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import HelpCenterIcon from '@/icons/help_center.svg';
 import NotificationsIcon from '@/icons/notifications.svg';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { useState } from 'react';
 
 const TopBar = () => {
@@ -33,9 +33,7 @@ const TopBar = () => {
               <div className='bg-[#DDDDDD] w-6 h-6 p-[5px] rounded-full mr-3'>
                 <h3 className='text-[10px] font-normal'>DO</h3>
               </div>
-              <h3 className='hidden md:block text-[11px] font-normal'>
-                Deo Okedi
-              </h3>
+              <h3 className='hidden md:block text-[11px] font-normal'>Deo Okedi</h3>
             </div>
             <ArrowDropDownIcon />
           </div>

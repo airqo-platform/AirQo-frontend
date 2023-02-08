@@ -1,18 +1,16 @@
 import BarChartIcon from '@/icons/bar_chart.svg';
 
-import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import MenuBarIcon from '@/icons/menu_bar';
 import { useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 
-import CollocationIcon from '@/icons/Collocation/collocation.svg'
+import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
 const SideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  const sideBarDisplayStyle = toggleDrawer
-    ? 'flex absolute top-16 left-0 z-10'
-    : 'hidden';
+  const sideBarDisplayStyle = toggleDrawer ? 'flex absolute top-16 left-0 z-10' : 'hidden';
   const size = useWindowSize();
 
   return (
@@ -37,10 +35,7 @@ const SideBar = () => {
             <SideBarItem label='Notifications' Icon={BarChartIcon} />
             <SideBarItem label='Analytics' Icon={BarChartIcon} dropdown>
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
-              <SideBarDropdownItem
-                itemLabel='AirQlouds'
-                itemPath='/analytics/airqlouds'
-              />
+              <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
               <SideBarDropdownItem itemLabel='Reports' itemPath='' />
             </SideBarItem>
@@ -49,14 +44,8 @@ const SideBar = () => {
 
             <SideBarItem label='Network' Icon={BarChartIcon} />
             <SideBarItem label='Collocation' Icon={CollocationIcon} dropdown>
-              <SideBarDropdownItem
-                itemLabel='Overview'
-                itemPath='/collocation/overview'
-              />
-              <SideBarDropdownItem
-                itemLabel='Collocate'
-                itemPath='/collocation/collocate'
-              />
+              <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
+              <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
             <SideBarItem label='Calibrate' Icon={BarChartIcon} />
             <SideBarItem label='All tools' Icon={BarChartIcon} />
