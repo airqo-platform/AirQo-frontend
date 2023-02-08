@@ -21,6 +21,7 @@ import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
 import UserManual from 'assets/docs/AirQo Analytics Platform User Guide.pdf';
+import DownloadIcon from 'assets/svg/explore/download.svg'
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
@@ -640,20 +641,13 @@ const ExploreData = () => {
                 <button className="nav-button">Air Quality Dashboard</button>
               </Link>
             </div>
-            <div className="nav-option">
-              <div className="img-wrapper">
-                <div className="img-1">
-                  <AirqualityPlatform />
-                </div>
-              </div>
-              <h6>Learn how to access air quality data.</h6>
-              <button className="nav-button">
-                <a href={UserManual} download="AirQo Analytics Platform User Manual">
-                  Download User Manual
-                </a>
-              </button>
-            </div>
           </div>
+          <button className='user-manual'>
+            <DownloadIcon />
+            <a href={UserManual} download="AirQo Analytics Platform User Manual">
+              Air Quality Platform User Manual
+            </a>
+          </button>
         </div>
       </div>
     </ExploreDataModal>
