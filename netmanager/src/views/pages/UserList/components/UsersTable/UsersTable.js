@@ -173,6 +173,10 @@ const UsersTable = (props) => {
             field: 'email'
           },
           {
+            title: 'Country',
+            field: 'country'
+          },
+          {
             title: 'Username',
             field: 'userName'
           },

@@ -35,6 +35,12 @@ export const createDeviceComponentApi = async (deviceName, componentType, data) 
     .then((response) => response.data);
 };
 
+export const softCreateDeviceApi = async (data, ctype) => {
+  return await axios
+    .post(SOFT_EDIT_DEVICE_URI, data, { params: { ctype } })
+    .then((response) => response.data);
+};
+
 export const getDeviceComponentsApi = async (deviceName) => {
   return await axios
     .get(GET_COMPONENTS_URI, { params: { device: deviceName } })
