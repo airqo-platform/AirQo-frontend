@@ -318,7 +318,7 @@ class SearchSection extends StatelessWidget {
         children: [
           Text(
             title,
-            maxLines: 2,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.headline8(context)?.copyWith(
               color: CustomColors.appColorBlack.withOpacity(0.3),
