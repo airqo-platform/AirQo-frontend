@@ -4,6 +4,7 @@ import Layout from '../../common/components/Layout';
 import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
+import Button from '../../common/components/Button';
 
 const collocate = () => {
   return (
@@ -22,14 +23,27 @@ const collocate = () => {
               </p>
             </div>
             <div className='flex justify-center items-center mt-6'>
-              <button className='flex justify-center items-center btn btn-blue normal-case gap-2 rounded-none bg-blue border-transparent hover:bg-dark-blue hover:border-dark-blue mx-[7px]'>
-                <BoxedAddIcon />
+              <Button
+                className={
+                  'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
+                }
+              >
+                <div className='mr-[10px]'>
+                  <BoxedAddIcon />
+                </div>
                 Test monitor
-              </button>
-              <button className='flex justify-center items-center btn btn-disabled normal-case gap-2 rounded-none opacity-30 text-[#1C1B1F] bg-transparent border-[#20222333] mx-[7px]'>
-                <UploadIcon />
+              </Button>
+              <div className='mr-[14px]'></div>
+              <Button
+                className={
+                  'bg-white text-[#1C1B1F] border border-[#20222333] opacity-30 hover:cursor-not-allowed font-medium'
+                }
+              >
+                <div className='mr-[10px]'>
+                  <UploadIcon />
+                </div>
                 Import data
-              </button>
+              </Button>
             </div>
           </div>
         </div>

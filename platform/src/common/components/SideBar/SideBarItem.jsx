@@ -1,24 +1,28 @@
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { theme } from '../../../../tailwind.config';
+import { useRouter } from 'next/router';
 
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
+
+  const changePath = (e) => {
+    e.preventDefault();
+
+    router.push(itemPath);
+  };
   return (
-    <>
-      <Link href={itemPath} scroll={false}>
-        <span
-          className={`h-10 pl-12 flex items-center ${
-            itemPath
-              ? 'hover:bg-light-blue hover:text-blue'
-              : 'hover:bg-grey hover:opacity-50 hover:cursor-not-allowed'
-          }`}
-        >
-          <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
-        </span>
-      </Link>
-    </>
+    <a href={itemPath} onClick={changePath}>
+      <span
+        className={`h-10 pl-12 flex items-center ${
+          itemPath
+            ? 'hover:bg-light-blue hover:text-blue'
+            : 'hover:bg-grey hover:opacity-50 hover:cursor-not-allowed'
+        }`}
+      >
+        <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
+      </span>
+    </a>
   );
 };
 
