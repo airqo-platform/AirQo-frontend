@@ -29,7 +29,7 @@ spec:
       containers:
         - name: sta-docs
           image: us.gcr.io/airqo-250220/airqo-stage-docs:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               name: docs
