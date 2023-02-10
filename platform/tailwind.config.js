@@ -30,7 +30,7 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui')],
+  plugins: [require('@tailwindcss/typography'), require('daisyui'), require('flowbite/plugin')],
   daisyui: {
     themes: [
       // Platform themes extending default daisy themes (can be further adapted)
