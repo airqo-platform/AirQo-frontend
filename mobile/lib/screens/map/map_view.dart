@@ -85,10 +85,9 @@ class _MapLandscapeState extends State<MapLandscape> {
   final Completer<GoogleMapController> _mapController =
       Completer<GoogleMapController>();
   Map<String, Marker> _markers = {};
-  final double zoom = 6;
   final _defaultCameraPosition = const CameraPosition(
-    target: LatLng(1.6183002, 32.504365),
-    zoom: 6,
+    target: LatLng(-0.323128, 18.218491),
+    zoom: 3,
   );
 
   @override
