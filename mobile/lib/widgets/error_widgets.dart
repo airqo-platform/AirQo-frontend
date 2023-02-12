@@ -11,7 +11,8 @@ import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
-  const NoSearchResultsWidget({super.key});
+  const NoSearchResultsWidget({super.key, this.message});
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +35,71 @@ class NoSearchResultsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 23),
             Text(
-              'Try adjusting your search to find what you’re looking for.',
+              message ??
+                  'Try adjusting your search to find what you’re looking for.',
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class KyaNotFoundWidget extends StatelessWidget {
+  const KyaNotFoundWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: AppSafeArea(
+        widget: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 33),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(),
+                SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+                const SizedBox(
+                  height: 50,
+                ),
+                Text(
+                  'We can’t seem to find the KYA content you’re looking for.',
+                  style: CustomTextStyle.errorTitle(context),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 23,
+                ),
+                Text(
+                  'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                  style: CustomTextStyle.errorSubTitle(context),
+                  textAlign: TextAlign.center,
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const HomePage();
+                        },
+                      ),
+                      (r) => false,
+                    );
+                  },
+                  child: NextButton(
+                    buttonColor: CustomColors.appColorBlue,
+                    text: 'Return home',
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
