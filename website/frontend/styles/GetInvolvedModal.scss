@@ -131,26 +131,8 @@
     //max-width: 800px;
     height: 100%;
     background: white;
-    padding: 30px;
+    padding: 16px;
     overflow-y: scroll;
-
-    ::-webkit-scrollbar{
-        width:10px;
-    }
-    ::-webkit-scrollbar-button{
-        display:none;
-    }
-    ::-webkit-scrollbar-track{
-        background: $aq-white-3;
-        opacity:0.2;
-    }
-    ::-webkit-scrollbar-thumb{
-        background: $aq-blue-0;
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-corner{
-        border-radius: 10px;
-    }
 
     >span {
       display: flex;
@@ -297,6 +279,24 @@
     }
   }
 
+  ::-webkit-scrollbar{
+        width:8px;
+    }
+    ::-webkit-scrollbar-button{
+        display:none;
+    }
+    ::-webkit-scrollbar-track{
+        background: $aq-white-3;
+        opacity:0.2;
+    }
+    ::-webkit-scrollbar-thumb{
+        background: $aq-blue-0;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-corner{
+        border-radius: 10px;
+    }
+
   .complete {
     //display: flex;
     //flex-wrap: wrap;
@@ -378,6 +378,9 @@
 }
 
 @media(max-width: $mainBreakPoint) {
+  ::-webkit-scrollbar{
+        display: none;
+    }
   .GetInvolvedModalWrapper {
     display: flex;
     width: 100vw;
@@ -386,10 +389,13 @@
   }
 
   .GetInvolvedTab {
-    //padding: 0;
+    height: auto;
+    padding: 0 0px 5px 12px;
+    overflow-y: hidden;
     .img-placeholder {
       display: none;
     }
+
   }
 
   .GetInvolvedModal {
@@ -403,6 +409,27 @@
       flex-wrap: wrap;
       width: 100%;
       padding-bottom: 70px;
+
+      .form-section {
+        .register-form {
+          width: 100vw;
+          padding: 0 16px;
+            .form-field{ 
+              input[type="text"], input[type="email"] {
+              width: auto;
+            }
+          }
+        }
+        .section-button-row{
+          .register-btn{
+            width: 128px;
+            min-width: 0px;
+            margin-left: 16px;
+            height: 48px;
+          }
+        }
+      }
+
     }
   }
 

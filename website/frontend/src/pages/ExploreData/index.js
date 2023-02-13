@@ -642,9 +642,13 @@ const ExploreData = () => {
               </Link>
             </div>
           </div>
-          <button className='user-manual'>
+          <button className="user-manual">
             <DownloadIcon />
-            <a href={UserManual} download="AirQo Analytics Platform User Manual">
+            <a
+              href={UserManual}
+              download="AirQo Analytics Platform User Manual"
+              target="_blank"
+              rel="noopener norefferer">
               Air Quality Platform User Manual
             </a>
           </button>
