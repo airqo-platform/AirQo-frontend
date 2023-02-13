@@ -85,7 +85,9 @@ class _SettingsPageState extends State<SettingsPage>
                             activeColor: CustomColors.appColorBlue,
                             onChanged: (bool value) async {
                               await LocationService.requestLocation(
-                                  context, value);
+                                context,
+                                value,
+                              );
                             },
                             value: state.location,
                           ),
@@ -176,7 +178,9 @@ class _SettingsPageState extends State<SettingsPage>
                                 await RateService.rateApp();
                               } else {
                                 showSnackBar(
-                                    context, Config.connectionErrorMessage);
+                                  context,
+                                  Config.connectionErrorMessage,
+                                );
                               }
                             });
                           },
@@ -241,7 +245,10 @@ class _SettingsPageState extends State<SettingsPage>
                                 },
                               ),
                               BlocListener<AccountBloc, AccountState>(
-                                listener: (context, state) {
+                                listener: (
+                                  context,
+                                  state,
+                                ) {
                                   showSnackBar(
                                       context, state.blocError.message);
                                 },
@@ -262,6 +269,7 @@ class _SettingsPageState extends State<SettingsPage>
                                   );
                                 },
                                 listenWhen: (previous, current) {
+
                                   return current.blocStatus ==
                                       BlocStatus.accountDeletionCheckSuccess;
                                 },
