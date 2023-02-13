@@ -74,9 +74,7 @@ class _DashboardViewState extends State<DashboardView>
                 child: IconButton(
                   tooltip: "Skip Showcase",
                   icon: const Icon(Icons.skip_next),
-                  onPressed: () => {
-                    ShowCaseWidget.of(context).dismiss(),
-                  },
+                  onPressed: () => ShowCaseWidget.of(context).dismiss(),
                   color: CustomColors.appColorBlue,
                 ),
               ),
@@ -84,7 +82,7 @@ class _DashboardViewState extends State<DashboardView>
                 height: 10,
               ),
               const Text(
-                "Click to Skip Tutorial ",
+                "Click to Skip Tutorial",
                 textAlign: TextAlign.left,
                 style: TextStyle(color: Colors.white),
               ),
@@ -489,6 +487,13 @@ class _DashboardViewState extends State<DashboardView>
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _startShowcase();
             _appService.stopShowcase(Config.homePageShowcase);
+          });
+        }
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ShowCaseWidget.of(context).next();
           });
         }
       });
