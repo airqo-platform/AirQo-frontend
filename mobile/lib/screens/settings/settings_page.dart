@@ -40,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    
+
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
@@ -69,6 +69,7 @@ class _SettingsPageState extends State<SettingsPage>
                       bottomRight: Radius.circular(8),
                     ),
                   );
+                  
                   return Column(
                     children: <Widget>[
                       Card(
