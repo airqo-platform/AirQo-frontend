@@ -8,7 +8,7 @@ export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities`;
 
 export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
-export const ALL_DEVICES_URI = `https://platform.airqo.net/api/v1/devices`;
+export const ALL_DEVICES_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
 export const EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 

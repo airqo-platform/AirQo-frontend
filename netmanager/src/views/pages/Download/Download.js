@@ -133,7 +133,7 @@ const Download = (props) => {
 
   const typeOutputFormatOptions = [
     { value: 'aqcsv', label: 'AQCSV' },
-    { value: 'usual', label: 'AirQo Standard' }
+    { value: 'airqo-standard', label: 'AirQo Standard' }
   ];
 
   function TabPanel(props) {
@@ -259,9 +259,19 @@ const Download = (props) => {
         if (fileType.value === 'csv') {
           // Convert JSON data to CSV using Papa Parse
           const csvData = Papa.unparse(resData);
-          console.log(csvData);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
+
+        setLoading(false);
+        setStartDate(null);
+        setEndDate(null);
+        setFileType(null);
+        setSelectedAirqlouds([]);
+        setSelectedDevices([]);
+        setSelectedSites([]);
+        setPollutants([]);
+        setOutputFormat(null);
+        setFrequency(null);
       })
       .catch((err) => {
         dispatch(
@@ -271,6 +281,17 @@ const Download = (props) => {
             severity: 'error'
           })
         );
+
+        setLoading(false);
+        setStartDate(null);
+        setEndDate(null);
+        setFileType(null);
+        setSelectedAirqlouds([]);
+        setSelectedDevices([]);
+        setSelectedSites([]);
+        setPollutants([]);
+        setOutputFormat(null);
+        setFrequency(null);
       });
   };
 
@@ -290,17 +311,6 @@ const Download = (props) => {
     };
 
     downloadDataFunc(data);
-
-    setLoading(false);
-    setStartDate(null);
-    setEndDate(null);
-    setFileType(null);
-    setSelectedAirqlouds([]);
-    setSelectedDevices([]);
-    setSelectedSites([]);
-    setPollutants([]);
-    setOutputFormat(null);
-    setFrequency(null);
   };
 
   const exportDataByDevice = (e) => {
@@ -319,17 +329,6 @@ const Download = (props) => {
     };
 
     downloadDataFunc(body);
-
-    setLoading(false);
-    setStartDate(null);
-    setEndDate(null);
-    setFileType(null);
-    setSelectedAirqlouds([]);
-    setSelectedDevices([]);
-    setSelectedSites([]);
-    setPollutants([]);
-    setOutputFormat(null);
-    setFrequency(null);
   };
 
   const exportDataByAirqloud = (e) => {
@@ -348,17 +347,6 @@ const Download = (props) => {
     };
 
     downloadDataFunc(body);
-
-    setLoading(false);
-    setStartDate(null);
-    setEndDate(null);
-    setFileType(null);
-    setSelectedAirqlouds([]);
-    setSelectedDevices([]);
-    setSelectedSites([]);
-    setPollutants([]);
-    setOutputFormat(null);
-    setFrequency(null);
   };
 
   return (
