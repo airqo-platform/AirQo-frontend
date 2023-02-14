@@ -21,7 +21,6 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
-
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="com.airqo.app.AirQoHomeScreenWidgetConfigureActivity"
     android:description="@string/app_widget_description"
     android:initialKeyguardLayout="@layout/air_qo_home_screen_widget"
     android:initialLayout="@layout/air_qo_home_screen_widget"
