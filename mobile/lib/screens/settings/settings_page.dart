@@ -40,6 +40,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
@@ -217,6 +218,7 @@ class _SettingsPageState extends State<SettingsPage>
                       const Spacer(),
                       BlocBuilder<AccountBloc, AccountState>(
                         buildWhen: (previous, current) {
+
                           return previous.guestUser != current.guestUser;
                         },
                         builder: (context, state) {
@@ -250,7 +252,9 @@ class _SettingsPageState extends State<SettingsPage>
                                   state,
                                 ) {
                                   showSnackBar(
-                                      context, state.blocError.message);
+                                    context,
+                                    state.blocError.message,
+                                  );
                                 },
                                 listenWhen: (previous, current) {
                                   return current.blocStatus ==
