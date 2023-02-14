@@ -23,7 +23,6 @@ import Papa from 'papaparse';
 import moment from 'moment';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
-import { useAirQloudsData } from 'utils/customHooks/AirQloudsHooks';
 import { downloadDataApi } from 'views/apis/analytics';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -31,6 +30,8 @@ import { useInitScrollTop, usePollutantsOptions } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { useDashboardAirqloudsData } from '../../../redux/AirQloud/selectors';
+import { fetchDashboardAirQloudsData } from '../../../redux/AirQloud/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,6 +61,24 @@ const createDeviceOptions = (devices) => {
   return options;
 };
 
+const createAirqloudOptions = (airqlouds) => {
+  const options = [];
+
+  airqlouds.sort((a, b) => {
+    if (a.long_name < b.long_name) return -1;
+    if (a.long_name > b.long_name) return 1;
+    return 0;
+  });
+
+  airqlouds.map((airqloud) =>
+    options.push({
+      value: airqloud._id,
+      label: `${airqloud.long_name} | ${airqloud.sites.length} sites`
+    })
+  );
+  return options;
+};
+
 const getValues = (options) => {
   const values = [];
   options.map((option) => values.push(option.value));
@@ -79,6 +98,14 @@ const Download = (props) => {
   const [siteOptions, setSiteOptions] = useState([]);
   const [selectedSites, setSelectedSites] = useState([]);
 
+  const deviceList = useDevicesData();
+  const [deviceOptions, setDeviceOptions] = useState([]);
+  const [selectedDevices, setSelectedDevices] = useState([]);
+
+  const airqlouds = useDashboardAirqloudsData();
+  const [airqloudOptions, setAirqloudOptions] = useState([]);
+  const [selectedAirqlouds, setSelectedAirqlouds] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -86,19 +113,6 @@ const Download = (props) => {
   const [frequency, setFrequency] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [outputFormat, setOutputFormat] = useState(null);
-
-  const deviceList = useDevicesData();
-  const [deviceOptions, setDeviceOptions] = useState([]);
-  const [selectedDevices, setSelectedDevices] = useState([]);
-
-  const airqlouds = Object.values(useAirQloudsData());
-  airqlouds.sort((a, b) => {
-    if (a.long_name < b.long_name) return -1;
-    if (a.long_name > b.long_name) return 1;
-    return 0;
-  });
-  const [airqloudOptions, setAirqloudOptions] = useState([]);
-  const [selectedAirqlouds, setSelectedAirqlouds] = useState([]);
 
   // Tabs
   const [value, setValue] = useState(0);
@@ -162,15 +176,36 @@ const Download = (props) => {
   useEffect(() => {
     setSiteOptions(createSiteOptions(Object.values(sites)));
     setDeviceOptions(createDeviceOptions(Object.values(deviceList)));
-  }, [sites, deviceList]);
+    setAirqloudOptions(createAirqloudOptions(Object.values(airqlouds)));
+  }, [sites, deviceList, airqlouds]);
 
-  const disableDownloadBtn = (tenant) => {
-    if (tenant === 'airqo') {
+  useEffect(() => {
+    if (isEmpty(airqlouds)) {
+      dispatch(fetchDashboardAirQloudsData());
+    }
+  }, []);
+
+  const disableDownloadBtn = (exportType) => {
+    if (exportType === 'sites') {
       return (
         !(
           startDate &&
           endDate &&
           !isEmpty(selectedSites) &&
+          fileType &&
+          fileType.value &&
+          frequency &&
+          frequency.value &&
+          outputFormat
+        ) || loading
+      );
+    }
+
+    if (exportType === 'devices') {
+      return (
+        !(
+          startDate &&
+          endDate &&
           !isEmpty(selectedDevices) &&
           !isEmpty(pollutants) &&
           fileType &&
@@ -180,78 +215,23 @@ const Download = (props) => {
           outputFormat
         ) || loading
       );
-    } else if (tenant === 'urbanBetter') {
-      return !(startDate && endDate && fileType && selectedDevices && fileType.value) || loading;
     }
-  };
 
-  const exportDataBySite = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    let data = {
-      sites: getValues(selectedSites),
-      startDate: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDate: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      fileType: fileType.value,
-      fromBigQuery: true,
-      outputFormat: outputFormat.value
-    };
-
-    await downloadDataApi(fileType.value, data, fileType.value === 'csv', outputFormat.value)
-      .then((response) => response.data)
-      .then((resData) => {
-        let filename = `airquality-${frequency.value}-data.${fileType.value}`;
-        if (fileType.value === 'json') {
-          let contentType = 'application/json;charset=utf-8;';
-
-          if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            var blob = new Blob([decodeURIComponent(encodeURI(JSON.stringify(resData)))], {
-              type: contentType
-            });
-            navigator.msSaveOrOpenBlob(blob, filename);
-          } else {
-            var a = document.createElement('a');
-            a.download = filename;
-            a.href = 'data:' + contentType + ',' + encodeURIComponent(JSON.stringify(resData));
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
-        } else {
-          const downloadUrl = window.URL.createObjectURL(resData);
-          const link = document.createElement('a');
-
-          link.href = downloadUrl;
-          link.setAttribute('download', filename); //any other extension
-
-          document.body.appendChild(link);
-
-          link.click();
-          link.remove();
-        }
-      })
-      .catch((err) => {
-        console.log(err && err.response && err.response.data);
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: 'Unable to fetch data. Please try again',
-            severity: 'error'
-          })
-        );
-      });
-    setLoading(false);
-    setStartDate(null);
-    setEndDate(null);
-    setFileType(null);
-    setSelectedSites([]);
-    setPollutants([]);
-    setOutputFormat(null);
+    if (exportType === 'airqlouds') {
+      return (
+        !(
+          startDate &&
+          endDate &&
+          !isEmpty(selectedAirqlouds) &&
+          !isEmpty(pollutants) &&
+          fileType &&
+          fileType.value &&
+          frequency &&
+          frequency.value &&
+          outputFormat
+        ) || loading
+      );
+    }
   };
 
   // Function to export data as a file
@@ -265,7 +245,65 @@ const Download = (props) => {
     window.URL.revokeObjectURL(url);
   };
 
-  const exportDataByDevice = async (e) => {
+  const downloadDataFunc = async (body) => {
+    await downloadDataApi(body)
+      .then((response) => response.data)
+      .then((resData) => {
+        let filename = `airquality-data.${fileType.value}`;
+
+        if (fileType.value === 'json') {
+          const jsonString = JSON.stringify(resData);
+          exportData(jsonString, filename, 'application/json');
+        }
+
+        if (fileType.value === 'csv') {
+          // Convert JSON data to CSV using Papa Parse
+          const csvData = Papa.unparse(resData);
+          console.log(csvData);
+          exportData(csvData, filename, 'text/csv;charset=utf-8;');
+        }
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message: err.response.data.message,
+            show: true,
+            severity: 'error'
+          })
+        );
+      });
+  };
+
+  const exportDataBySite = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let data = {
+      sites: getValues(selectedSites),
+      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+      frequency: frequency.value,
+      pollutants: getValues(pollutants),
+      downloadType: 'json',
+      outputFormat: outputFormat.value
+    };
+
+    downloadDataFunc(data);
+
+    setLoading(false);
+    setStartDate(null);
+    setEndDate(null);
+    setFileType(null);
+    setSelectedAirqlouds([]);
+    setSelectedDevices([]);
+    setSelectedSites([]);
+    setPollutants([]);
+    setOutputFormat(null);
+    setFrequency(null);
+  };
+
+  const exportDataByDevice = (e) => {
     e.preventDefault();
 
     setLoading(true);
@@ -276,46 +314,25 @@ const Download = (props) => {
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: frequency.value,
       pollutants: getValues(pollutants),
-      downloadType: fileType.value,
+      downloadType: 'json',
       outputFormat: outputFormat.value
     };
 
-    await downloadDataApi(body)
-      .then((response) => {
-        const exportContent = response.data;
-
-        let filename = `airquality-data.${fileType.value}`;
-
-        if (body.downloadType === 'json') {
-          const jsonString = JSON.stringify(exportContent);
-          exportData(jsonString, filename, 'application/json');
-        }
-
-        if (body.downloadType === 'csv') {
-          exportData(exportContent, filename, 'text/csv;charset=utf-8;');
-        }
-      })
-      .catch((err) => {
-        console.log('Unable to fetch data');
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: 'Unable to fetch data. Please try again',
-            severity: 'error'
-          })
-        );
-      });
+    downloadDataFunc(body);
 
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
     setFileType(null);
+    setSelectedAirqlouds([]);
     setSelectedDevices([]);
+    setSelectedSites([]);
     setPollutants([]);
     setOutputFormat(null);
+    setFrequency(null);
   };
 
-  const exportDataByAirqloud = async (e) => {
+  const exportDataByAirqloud = (e) => {
     e.preventDefault();
 
     setLoading(true);
@@ -326,43 +343,22 @@ const Download = (props) => {
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: frequency.value,
       pollutants: getValues(pollutants),
-      downloadType: fileType.value,
+      downloadType: 'json',
       outputFormat: outputFormat.value
     };
 
-    await downloadDataApi(body)
-      .then((response) => {
-        const exportContent = response.data;
-
-        let filename = `airquality-data.${fileType.value}`;
-
-        if (body.downloadType === 'json') {
-          const jsonString = JSON.stringify(exportContent);
-          exportData(jsonString, filename, 'application/json');
-        }
-
-        if (body.downloadType === 'csv') {
-          exportData(exportContent, filename, 'text/csv;charset=utf-8;');
-        }
-      })
-      .catch((err) => {
-        console.log('Unable to fetch data');
-        dispatch(
-          updateMainAlert({
-            show: true,
-            message: 'Unable to fetch data. Please try again',
-            severity: 'error'
-          })
-        );
-      });
+    downloadDataFunc(body);
 
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
     setFileType(null);
+    setSelectedAirqlouds([]);
     setSelectedDevices([]);
+    setSelectedSites([]);
     setPollutants([]);
     setOutputFormat(null);
+    setFrequency(null);
   };
 
   return (
@@ -513,7 +509,7 @@ const Download = (props) => {
                         color="primary"
                         variant="outlined"
                         type="submit"
-                        disabled={disableDownloadBtn('airqo')}
+                        disabled={disableDownloadBtn('sites')}
                       >
                         {' '}
                         Download Data
@@ -655,7 +651,7 @@ const Download = (props) => {
                         color="primary"
                         variant="outlined"
                         type="submit"
-                        disabled={disableDownloadBtn('urbanBetter')}
+                        disabled={disableDownloadBtn('devices')}
                       >
                         {' '}
                         Download Data
@@ -796,7 +792,7 @@ const Download = (props) => {
                         color="primary"
                         variant="outlined"
                         type="submit"
-                        disabled={disableDownloadBtn('airqo')}
+                        disabled={disableDownloadBtn('airqlouds')}
                       >
                         {' '}
                         Download Data
