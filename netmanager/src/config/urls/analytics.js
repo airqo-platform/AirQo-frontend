@@ -8,7 +8,7 @@ export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics
 
 export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/historical/daily-averages`;
 
-export const DOWNLOAD_CUSTOMISED_DATA_URI = `https://an-272-refactoring-data-export-api-analytics-prev-w7kzhvlewq-ew.a.run.app/api/v1/analytics/data-download`;
+export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data-download`;
 
 export const D3_CHART_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/d3/data`;
 

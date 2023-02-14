@@ -23,16 +23,14 @@ import Papa from 'papaparse';
 import moment from 'moment';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
+import { useAirQloudsData } from 'utils/customHooks/AirQloudsHooks';
 import { downloadDataApi } from 'views/apis/analytics';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { useInitScrollTop, usePollutantsOptions } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { downloadUrbanBetterDataApi } from '../../apis/analytics';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-
-const { Parser } = require('json2csv');
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -85,18 +83,22 @@ const Download = (props) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [pollutants, setPollutants] = useState([]);
-  const [frequency, setFrequency] = useState({
-    value: 'hourly',
-    label: 'Hourly'
-  });
+  const [frequency, setFrequency] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [outputFormat, setOutputFormat] = useState(null);
-
-  const [parsedCsvData, setParsedCsvData] = useState([]);
 
   const deviceList = useDevicesData();
   const [deviceOptions, setDeviceOptions] = useState([]);
   const [selectedDevices, setSelectedDevices] = useState([]);
+
+  const airqlouds = Object.values(useAirQloudsData());
+  airqlouds.sort((a, b) => {
+    if (a.long_name < b.long_name) return -1;
+    if (a.long_name > b.long_name) return 1;
+    return 0;
+  });
+  const [airqloudOptions, setAirqloudOptions] = useState([]);
+  const [selectedAirqlouds, setSelectedAirqlouds] = useState([]);
 
   // Tabs
   const [value, setValue] = useState(0);
@@ -183,7 +185,7 @@ const Download = (props) => {
     }
   };
 
-  let handleAirqoFormSubmit = async (e) => {
+  const exportDataBySite = async (e) => {
     e.preventDefault();
 
     setLoading(true);
@@ -252,12 +254,23 @@ const Download = (props) => {
     setOutputFormat(null);
   };
 
-  const exportDataByDevices = async (e) => {
+  // Function to export data as a file
+  const exportData = (data, fileName, type) => {
+    const blob = new Blob([data], { type });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportDataByDevice = async (e) => {
     e.preventDefault();
 
     setLoading(true);
 
-    let data = {
+    let body = {
       devices: getValues(selectedDevices),
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
@@ -267,42 +280,23 @@ const Download = (props) => {
       outputFormat: outputFormat.value
     };
 
-    await downloadDataApi(data)
-      .then((response) => response.data)
-      .then((resData) => {
-        let filename = `airquality-${frequency.value}-data.${fileType.value}`;
-        if (fileType.value === 'json') {
-          let contentType = 'application/json;charset=utf-8;';
+    await downloadDataApi(body)
+      .then((response) => {
+        const exportContent = response.data;
 
-          if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            var blob = new Blob([decodeURIComponent(encodeURI(JSON.stringify(resData)))], {
-              type: contentType
-            });
-            navigator.msSaveOrOpenBlob(blob, filename);
-          } else {
-            var a = document.createElement('a');
-            a.download = filename;
-            a.href = 'data:' + contentType + ',' + encodeURIComponent(JSON.stringify(resData));
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
-        } else {
-          const downloadUrl = window.URL.createObjectURL(resData);
-          const link = document.createElement('a');
+        let filename = `airquality-data.${fileType.value}`;
 
-          link.href = downloadUrl;
-          link.setAttribute('download', filename); //any other extension
+        if (body.downloadType === 'json') {
+          const jsonString = JSON.stringify(exportContent);
+          exportData(jsonString, filename, 'application/json');
+        }
 
-          document.body.appendChild(link);
-
-          link.click();
-          link.remove();
+        if (body.downloadType === 'csv') {
+          exportData(exportContent, filename, 'text/csv;charset=utf-8;');
         }
       })
       .catch((err) => {
-        console.log(err && err.response && err.response.data);
+        console.log('Unable to fetch data');
         dispatch(
           updateMainAlert({
             show: true,
@@ -311,6 +305,57 @@ const Download = (props) => {
           })
         );
       });
+
+    setLoading(false);
+    setStartDate(null);
+    setEndDate(null);
+    setFileType(null);
+    setSelectedDevices([]);
+    setPollutants([]);
+    setOutputFormat(null);
+  };
+
+  const exportDataByAirqloud = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let body = {
+      airqlouds: getValues(selectedAirqlouds),
+      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+      frequency: frequency.value,
+      pollutants: getValues(pollutants),
+      downloadType: fileType.value,
+      outputFormat: outputFormat.value
+    };
+
+    await downloadDataApi(body)
+      .then((response) => {
+        const exportContent = response.data;
+
+        let filename = `airquality-data.${fileType.value}`;
+
+        if (body.downloadType === 'json') {
+          const jsonString = JSON.stringify(exportContent);
+          exportData(jsonString, filename, 'application/json');
+        }
+
+        if (body.downloadType === 'csv') {
+          exportData(exportContent, filename, 'text/csv;charset=utf-8;');
+        }
+      })
+      .catch((err) => {
+        console.log('Unable to fetch data');
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: 'Unable to fetch data. Please try again',
+            severity: 'error'
+          })
+        );
+      });
+
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
@@ -350,7 +395,7 @@ const Download = (props) => {
               </Tabs>
 
               <TabPanel value={value} index={0}>
-                <form onSubmit={handleAirqoFormSubmit}>
+                <form onSubmit={exportDataBySite}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -491,7 +536,7 @@ const Download = (props) => {
               </TabPanel>
 
               <TabPanel value={value} index={1}>
-                <form onSubmit={exportDataByDevices}>
+                <form onSubmit={exportDataByDevice}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -633,7 +678,7 @@ const Download = (props) => {
               </TabPanel>
 
               <TabPanel value={value} index={2}>
-                <form onSubmit={handleAirqoFormSubmit}>
+                <form onSubmit={exportDataByAirqloud}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -666,11 +711,11 @@ const Download = (props) => {
                         <Select
                           fullWidth
                           className="reactSelect"
-                          name="location"
-                          placeholder="Location(s)"
-                          value={selectedSites}
-                          options={siteOptions}
-                          onChange={(options) => setSelectedSites(options)}
+                          name="airqloud"
+                          placeholder="AirQloud(s)"
+                          value={selectedAirqlouds}
+                          options={airqloudOptions}
+                          onChange={(options) => setSelectedAirqlouds(options)}
                           isMulti
                           variant="outlined"
                           margin="dense"
@@ -690,7 +735,6 @@ const Download = (props) => {
                           onChange={(options) => setFrequency(options)}
                           variant="outlined"
                           margin="dense"
-                          isDisabled
                           required
                         />
                       </Grid>
