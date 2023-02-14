@@ -413,7 +413,7 @@ const Download = (props) => {
                           fullWidth
                           className="reactSelect"
                           name="location"
-                          placeholder="Location(s)"
+                          placeholder="Select Site(s)"
                           value={selectedSites}
                           options={siteOptions}
                           onChange={(options) => setSelectedSites(options)}
@@ -696,7 +696,7 @@ const Download = (props) => {
                           fullWidth
                           className="reactSelect"
                           name="airqloud"
-                          placeholder="AirQloud(s)"
+                          placeholder="Select AirQloud(s)"
                           value={selectedAirqlouds}
                           options={airqloudOptions}
                           onChange={(options) => setSelectedAirqlouds(options)}
