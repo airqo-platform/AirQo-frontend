@@ -15,7 +15,7 @@ const collocate = () => {
           <Collocate />
           <div className='flex flex-col justify-center text-center mt-10'>
             <h4 className='text-xl font-normal mb-6'>
-              This is where you’ll manage your collocated monitors
+              This is where you will manage your collocated monitors
             </h4>
             <div>
               <p className='text-grey-300 text-sm font-light'>
