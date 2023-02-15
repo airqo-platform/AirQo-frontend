@@ -27,7 +27,7 @@ const collocate = () => {
                 className={
                   'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
                 }
-                path='/collocation/devices'
+                path='/collocation/add_monitor'
               >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
