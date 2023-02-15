@@ -40,7 +40,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
@@ -69,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage>
                       bottomRight: Radius.circular(8),
                     ),
                   );
-                  
+
                   return Column(
                     children: <Widget>[
                       Card(
@@ -163,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage>
                             },
                             title: Text(
                               'Take a tour of the App',
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
                         ),
@@ -219,7 +218,6 @@ class _SettingsPageState extends State<SettingsPage>
                       const Spacer(),
                       BlocBuilder<AccountBloc, AccountState>(
                         buildWhen: (previous, current) {
-
                           return previous.guestUser != current.guestUser;
                         },
                         builder: (context, state) {
@@ -274,7 +272,6 @@ class _SettingsPageState extends State<SettingsPage>
                                   );
                                 },
                                 listenWhen: (previous, current) {
-
                                   return current.blocStatus ==
                                       BlocStatus.accountDeletionCheckSuccess;
                                 },
