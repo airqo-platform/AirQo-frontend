@@ -164,7 +164,7 @@ export const DeviceTable = ({ collocationDevices }) => {
   );
 };
 
-const CollocateDevice = () => {
+const AddMonitor = () => {
   const {
     data: data,
     isLoading,
@@ -213,4 +213,4 @@ const CollocateDevice = () => {
   );
 };
 
-export default CollocateDevice;
+export default AddMonitor;
