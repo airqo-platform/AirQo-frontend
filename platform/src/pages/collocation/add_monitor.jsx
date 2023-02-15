@@ -3,7 +3,6 @@ import Layout from '../../common/components/Layout';
 import ContentBox from '../../common/components/Layout/content_box';
 import NavigationBreadCrumb from '../../common/components/Navigation/breadcrumb';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
 import ArrowRight from '@/icons/Common/arrow_right_blue.svg'
 
@@ -42,7 +41,7 @@ const AddMonitor = () => {
                 <input type='radio' />
               </div>
             </div>
-            <div className='my-8 flex flex-row justify-between items-center'>
+            <div className='my-8 flex flex-row justify-between items-center flex-wrap'>
               {/* TODO: Duration upon range selection */}
               <span className='border border-grey-100 rounded-md py-1 px-3 opacity-50 tracking-wide'>
                 {value}
