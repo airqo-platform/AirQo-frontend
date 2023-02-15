@@ -2,15 +2,16 @@ import React from 'react';
 import HeaderNav from '../../common/components/Collocation/header';
 import Layout from '../../common/components/Layout';
 import CollocationNone from '@/icons/Collocation/overview.svg';
+import ContentBox from '../../common/components/Layout/content_box';
+
+// AVOID USING ABSOLUTE NAMING FOR CLASSES e.g text-[#1C1B1F]. CONFIGURE STYLES IN THE tailwind.config.js FILE TO ENCOURAGE REUSABILITY AND EASY MAINTENANCE
+// CREATE COMPONENTS FOR REPETITIVE LAYOUTS. FOLDER: src/common/components/Layout 
 
 const CollocationOverview = () => {
   return (
     <Layout>
       <HeaderNav component={'Overview'} />
-      <div
-        className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429]
- flex justify-center items-center'
-      >
+      <ContentBox>
         <div className='flex justify-center items-center flex-col py-28'>
           <CollocationNone />
           <div className='flex flex-col justify-center text-center mt-10'>
@@ -22,7 +23,7 @@ const CollocationOverview = () => {
             </div>
           </div>
         </div>
-      </div>
+      </ContentBox>
     </Layout>
   );
 };

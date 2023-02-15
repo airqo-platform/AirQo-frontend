@@ -4,12 +4,17 @@ import Layout from '../../common/components/Layout';
 import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
+import Link from 'next/link';
+import ContentBox from '../../common/components/Layout/content_box';
 
-const collocate = () => {
+// AVOID USING ABSOLUTE NAMING FOR CLASSES e.g text-[#1C1B1F]. CONFIGURE STYLES IN THE tailwind.config.js FILE TO ENCOURAGE REUSABILITY AND EASY MAINTENANCE
+// CREATE COMPONENTS FOR REPETITIVE LAYOUTS. FOLDER: src/common/components/Layout
+
+const Collocation = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'} />
-      <div className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429] flex justify-center items-center'>
+      <ContentBox>
         <div className='flex justify-center items-center flex-col py-20'>
           <Collocate />
           <div className='flex flex-col justify-center text-center mt-10'>
@@ -24,7 +29,7 @@ const collocate = () => {
             <div className='flex justify-center items-center mt-6'>
               <button className='flex justify-center items-center btn btn-blue normal-case gap-2 rounded-none bg-blue border-transparent hover:bg-dark-blue hover:border-dark-blue mx-[7px]'>
                 <BoxedAddIcon />
-                Test monitor
+                <Link href='/collocation/add_monitor'>Test monitor</Link>
               </button>
               <button className='flex justify-center items-center btn btn-disabled normal-case gap-2 rounded-none opacity-30 text-[#1C1B1F] bg-transparent border-[#20222333] mx-[7px]'>
                 <UploadIcon />
@@ -33,9 +38,9 @@ const collocate = () => {
             </div>
           </div>
         </div>
-      </div>
+      </ContentBox>
     </Layout>
   );
 };
 
-export default collocate;
+export default Collocation;
