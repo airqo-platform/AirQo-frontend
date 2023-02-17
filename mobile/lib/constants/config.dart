@@ -42,10 +42,10 @@ class Config {
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get iosMinimumShareVersion =>
-      dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.15';
+      dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.17';
 
   static int get androidMinimumShareVersion =>
-      int.parse(dotenv.env['ANDROID_MINIMUM_SHARE_VERSION'] ?? '20025');
+      int.parse(dotenv.env['ANDROID_MINIMUM_SHARE_VERSION'] ?? '20029');
 
   static String get airqoSecondaryLogo =>
       'https://storage.cloud.google.com/airqo-app/public-images/airqo_logo.png';
