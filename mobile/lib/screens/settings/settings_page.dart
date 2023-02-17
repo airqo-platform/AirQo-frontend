@@ -149,16 +149,19 @@ class _SettingsPageState extends State<SettingsPage>
                           child: ListTile(
                             tileColor: Colors.white,
                             onTap: () async {
-                              await AppService().clearShowcase();
-                              await Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const HomePage();
-                                  },
-                                ),
-                                (r) => false,
-                              );
+                              await AppService()
+                                  .clearShowcase()
+                                  .then((value) async {
+                                await Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const HomePage();
+                                    },
+                                  ),
+                                  (r) => false,
+                                );
+                              });
                             },
                             title: Text(
                               'Take a tour of the App',
