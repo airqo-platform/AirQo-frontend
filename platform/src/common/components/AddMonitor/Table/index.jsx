@@ -19,31 +19,26 @@ const Table = ({ collocationDevices }) => {
     setCurrentPage(currentPage + 1);
   };
 
+  const pageSize = 8;
+  let startIndex = (currentPage - 1) * pageSize;
+  let endIndex = startIndex + pageSize;
+
   const handleSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
     setCurrentPage(1);
   };
 
-  const pageSize = 8;
-
-  // Filter data based on search term
-  let filteredData =
-    collocationDevices.length > 0 &&
-    collocationDevices.filter((device) =>
-      Object.values(device).join('').toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-
-  let startIndex = (currentPage - 1) * pageSize;
-  let endIndex = startIndex + pageSize;
-  let paginatedData = collocationDevices.length > 0 && filteredData.slice(startIndex, endIndex);
+  let filteredData = collocationDevices.filter((row) =>
+    Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   // Check if last page is empty and adjust pagination if necessary
-  if (paginatedData.length === 0 && collocationDevices.length > 0) {
-    setCurrentPage(currentPage - 1);
-    startIndex = (currentPage - 1) * pageSize;
-    endIndex = startIndex + pageSize;
-    paginatedData = collocationDevices.length > 0 && filteredData.slice(startIndex, endIndex);
+  if (filteredData.length > 0 && endIndex > filteredData.length) {
+    startIndex = Math.max(filteredData.length - pageSize, 0);
+    endIndex = filteredData.length;
   }
+
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   return (
     <div className='w-full'>
@@ -63,15 +58,14 @@ const Table = ({ collocationDevices }) => {
               <ArrowDropDownIcon />
             </div>
           </Button>
-          <Button
-            className={
-              'h-9 w-full max-w-[114px] bg-[#0000000A] rounded-[4px] text-black font-medium'
-            }
-          >
+          <Button className={'h-9 w-auto bg-[#0000000A] rounded-[4px] text-black font-medium'}>
             <div className='mr-1'>
               <SortByAlphaIcon />
             </div>
             Sort by
+            <div className='ml-1'>
+              <ArrowDropDownIcon />
+            </div>
           </Button>
         </div>
       </div>
