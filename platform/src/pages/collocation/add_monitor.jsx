@@ -8,6 +8,7 @@ import {
 } from '@/lib/store/services/deviceRegistry';
 import { wrapper } from '@/lib/store';
 import Table from '../../common/components/AddMonitor/Table';
+import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -34,7 +35,8 @@ const AddMonitor = () => {
   let collocationDevices = !isLoading && data.devices;
   return (
     <>
-      {isLoading && !isError ? (
+      <SkeletonFrame />
+      {/* {isLoading && !isError ? (
         <div className='fixed top-0 left-0 w-full h-full flex items-center justify-center'>
           <progress className='progress w-56'></progress>
         </div>
@@ -93,7 +95,7 @@ const AddMonitor = () => {
             </div>
           </div>
         </Layout>
-      )}
+      )} */}
     </>
   );
 };

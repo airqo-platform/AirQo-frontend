@@ -18,6 +18,7 @@ module.exports = {
         grey: {
           300: '#6D7175',
         },
+        skeleton: '#363A4429',
       },
     },
     container: {
