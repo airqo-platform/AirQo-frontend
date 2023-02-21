@@ -5,9 +5,10 @@ import 'package:flutter_svg/svg.dart';
 
 class SvgIcons {
   static Widget location() {
-    return SvgPicture.asset(
-      'assets/icon/location.svg',
+    return Icon(
+      Icons.location_on_rounded,
       color: CustomColors.appColorBlue,
+      size: 27,
     );
   }
 

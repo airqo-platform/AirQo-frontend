@@ -10,9 +10,9 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
 
@@ -506,28 +506,32 @@ class AppSafeArea extends StatelessWidget {
 class BottomNavIcon extends StatelessWidget {
   const BottomNavIcon({
     super.key,
-    required this.svg,
     required this.selectedIndex,
     required this.label,
     required this.index,
+    required this.icon,
   });
-  final String svg;
   final int selectedIndex;
   final String label;
   final int index;
+  final IconData icon;
   @override
   Widget build(BuildContext context) {
     return ListView(
       shrinkWrap: true,
       children: [
-        SvgPicture.asset(
-          svg,
-          color: selectedIndex == index
-              ? CustomColors.appColorBlue
-              : CustomColors.appColorBlack.withOpacity(0.3),
-          semanticsLabel: label,
+        Theme(
+          data: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+          child: Icon(
+            icon,
+            grade: 700,
+            color: selectedIndex == index
+                ? CustomColors.appColorBlue
+                : CustomColors.appColorBlack.withOpacity(0.3),
+            semanticLabel: label,
+            size: 24,
+          ),
         ),
-        const SizedBox(height: 3),
         Text(
           label,
           textAlign: TextAlign.center,
