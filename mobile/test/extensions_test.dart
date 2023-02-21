@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AppStoreVersion', () {
-    test('store version should be greater', () {
+    test('store version should be greater than user version', () {
       const String userAppVersion = '1.0.0';
 
       AppStoreVersion appStoreVersion = AppStoreVersion.fromJson({
@@ -26,7 +26,7 @@ void main() {
       expect(appStoreVersion.compareVersion(userAppVersion), 1);
     });
 
-    test('store version should be lesser', () {
+    test('store version should be lesser than user version', () {
       final AppStoreVersion appStoreVersion = AppStoreVersion.fromJson({
         'version': '1.0.0',
         'url': 'https://airqo.net',

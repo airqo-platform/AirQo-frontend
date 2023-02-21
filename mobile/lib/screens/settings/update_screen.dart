@@ -69,9 +69,10 @@ Future<void> openUpdateScreen(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50.0),
             child: Text(
-                "AirQo version ${appStoreVersion.version} is now available to keep you up to date on the latest air quality data.",
-                style: CustomTextStyle.errorSubTitle(context),
-                textAlign: TextAlign.center),
+              "AirQo version ${appStoreVersion.version} is now available to keep you up to date on the latest air quality data.",
+              style: CustomTextStyle.errorSubTitle(context),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(
             height: 23,
