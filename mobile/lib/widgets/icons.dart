@@ -11,6 +11,18 @@ class SvgIcons {
     );
   }
 
+  static Widget close() {
+    return SvgPicture.asset(
+      'assets/icon/close.svg',
+      height: 40,
+      width: 40,
+    );
+  }
+
+  static Widget update() {
+    return SvgPicture.asset('assets/icon/update_icon.svg');
+  }
+
   static Widget pm2_5(double value) {
     return SvgPicture.asset(
       Pollutant.pm2_5.svg,
