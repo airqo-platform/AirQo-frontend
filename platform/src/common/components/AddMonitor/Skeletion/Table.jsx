@@ -1,7 +1,7 @@
 const Table = () => {
   return (
     <div className='w-full'>
-      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-auto mb-[26px] px-6'>
+      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-auto mb-3 px-6'>
         <div className='md:mb-0 w-[280px] h-9'>
           <div className='h-9 w-full bg-skeleton md:max-w-[280px] rounded-[4px]' />
         </div>
@@ -13,7 +13,7 @@ const Table = () => {
       <div className='overflow-x-scroll md:overflow-x-hidden'>
         <div className='w-full mb-6'>
           <div>
-            <div className='flex pl-[21px] border-b border-b-skeleton pb-[14px]'>
+            <div className='flex items-center pl-[21px] h-10 border-b border-b-skeleton pb-[14px]'>
               <div className='w-5 h-[15px] mr-[31px] rounded bg-skeleton'></div>
               <div className='w-[84px] h-3 mr-[60px] rounded bg-skeleton'></div>
               <div className='w-[84px] h-3 mr-[55px] rounded bg-skeleton'></div>

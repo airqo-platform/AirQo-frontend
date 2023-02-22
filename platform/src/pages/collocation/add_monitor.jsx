@@ -35,11 +35,8 @@ const AddMonitor = () => {
   let collocationDevices = !isLoading && data.devices;
   return (
     <>
-      <SkeletonFrame />
-      {/* {isLoading && !isError ? (
-        <div className='fixed top-0 left-0 w-full h-full flex items-center justify-center'>
-          <progress className='progress w-56'></progress>
-        </div>
+      {isLoading && !isError ? (
+        <SkeletonFrame />
       ) : (
         <Layout>
           <div className='flex justify-between px-6 py-8'>
@@ -95,7 +92,7 @@ const AddMonitor = () => {
             </div>
           </div>
         </Layout>
-      )} */}
+      )}
     </>
   );
 };
