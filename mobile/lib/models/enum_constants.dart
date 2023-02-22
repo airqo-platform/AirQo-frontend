@@ -158,7 +158,7 @@ enum NearbyAirQualityError {
   ),
   noNearbyAirQualityReadings(
     message:
-        'Unable to get your location\'s air quality. Explore the locations below as we expand our network.',
+        'Unable to get your location\'s air quality. Explore locations below as we expand our network.',
   );
 
   const NearbyAirQualityError({required this.message});
