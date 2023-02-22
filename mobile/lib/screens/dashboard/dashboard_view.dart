@@ -58,7 +58,6 @@ class _DashboardViewState extends State<DashboardView>
         child: Showcase.withWidget(
           key: _skipShowcaseKey,
           overlayOpacity: 0.6,
-          shapeBorder: const RoundedRectangleBorder(),
           width: 50,
           height: 50,
           container: Column(
@@ -254,6 +253,9 @@ class _DashboardViewState extends State<DashboardView>
                               'Today’s air quality',
                               style: CustomTextStyle.headline11(context),
                             ),
+                            const SizedBox(
+                              height: 16,
+                            ),
                             BlocBuilder<NearbyLocationBloc,
                                 NearbyLocationState>(
                               builder: (context, state) {
@@ -262,42 +264,37 @@ class _DashboardViewState extends State<DashboardView>
                                   _nearbyLocationExists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
                                     case NearbyAirQualityError.locationDisabled:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
-                                    case NearbyAirQualityError.none:
                                     case NearbyAirQualityError
                                         .noNearbyAirQualityReadings:
-                                      return Container();
+                                      return NoLocationAirQuality(state.error);
+                                    case NearbyAirQualityError.none:
+                                      break;
                                   }
                                 }
 
                                 final AirQualityReading? nearbyAirQuality =
                                     state.locationAirQuality;
                                 if (nearbyAirQuality == null) {
-                                  return Container();
+                                  return const NoLocationAirQuality(
+                                    NearbyAirQualityError
+                                        .noNearbyAirQualityReadings,
+                                  );
                                 }
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: Showcase(
-                                    key: _nearestLocationShowcaseKey,
-                                    description:
-                                        'This card shows the air quality of your nearest location',
-                                    child: AnalyticsCard(
-                                      nearbyAirQuality,
-                                      false,
-                                    ),
+                                return Showcase(
+                                  key: _nearestLocationShowcaseKey,
+                                  description:
+                                      'This card shows the air quality of your nearest location',
+                                  child: AnalyticsCard(
+                                    nearbyAirQuality,
+                                    false,
                                   ),
                                 );
                               },
@@ -354,7 +351,7 @@ class _DashboardViewState extends State<DashboardView>
 
                           return items[index];
                         },
-                        childCount: 6,
+                        childCount: 7,
                       ),
                       onRefresh: () {
                         _refresh();

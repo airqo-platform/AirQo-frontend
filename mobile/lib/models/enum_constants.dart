@@ -149,34 +149,21 @@ enum AuthenticationError {
 enum NearbyAirQualityError {
   none(
     message: '',
-    snackBarActionLabel: '',
-    snackBarDuration: 5,
   ),
   locationDenied(
     message: 'Enable location to get air quality near you',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
   ),
   locationDisabled(
     message: 'Turn on location to get air quality near you',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
   ),
   noNearbyAirQualityReadings(
-    message: 'Cannot get nearby air quality readings',
-    snackBarActionLabel: 'Close',
-    snackBarDuration: 2,
+    message:
+        'Unable to get your location\'s air quality. Explore the locations below as we expand our network.',
   );
 
-  const NearbyAirQualityError({
-    required this.message,
-    required this.snackBarActionLabel,
-    required this.snackBarDuration,
-  });
+  const NearbyAirQualityError({required this.message});
 
   final String message;
-  final String snackBarActionLabel;
-  final int snackBarDuration;
 
   @override
   String toString() => message;

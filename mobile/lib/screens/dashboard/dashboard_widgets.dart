@@ -46,6 +46,40 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
+class NoLocationAirQuality extends StatelessWidget {
+  const NoLocationAirQuality(this.error, {super.key});
+  final NearbyAirQualityError error;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 10,
+        horizontal: 20,
+      ),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: const Border.fromBorderSide(BorderSide(
+          color: Colors.transparent,
+        )),
+      ),
+      child: Center(
+        child: Text(
+          error.message,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class DashboardLocationButton extends StatelessWidget {
   const DashboardLocationButton(this.error, {super.key});
   final NearbyAirQualityError error;
@@ -74,12 +108,7 @@ class DashboardLocationButton extends StatelessWidget {
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          height: 22 / 14,
-          letterSpacing: 16 * -0.022,
-        ),
+        style: const TextStyle(color: Colors.white),
       ),
     );
   }
