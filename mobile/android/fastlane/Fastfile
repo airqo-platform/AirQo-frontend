@@ -7,8 +7,8 @@ platform :android do
   
     sh "flutter build appbundle --flavor airqo"
     upload_to_play_store(
-      version_name: "2.0.15",
-      version_code: "20027",
+      version_name: "2.0.16",
+      version_code: "20031",
       track: "production",
       release_status: "draft",
       metadata_path:"metadata",
