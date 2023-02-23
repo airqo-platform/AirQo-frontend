@@ -9,6 +9,8 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
@@ -27,7 +29,13 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     context.read<SettingsBloc>().add(const InitializeSettings());
+    _appTourShowcaseKey = GlobalKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
   }
+
+  late GlobalKey _appTourShowcaseKey;
+  late BuildContext _showcaseContext;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -36,169 +44,179 @@ class _SettingsPageState extends State<SettingsPage>
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
-        widget: BlocBuilder<SettingsBloc, SettingsState>(
-          builder: (context, state) {
-            final Widget divider = Divider(
-              height: 1,
-              thickness: 0,
-              color: CustomColors.appBodyColor,
-            );
+        widget: ShowCaseWidget(
+          builder: Builder(builder: (context) {
+            return BlocBuilder<SettingsBloc, SettingsState>(
+                builder: (context, state) {
+              _showcaseContext = context;
+              final Widget divider = Divider(
+                height: 1,
+                thickness: 0,
+                color: CustomColors.appBodyColor,
+              );
+              const ShapeBorder topBorder = RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                ),
+              );
+              const ShapeBorder bottomBorder = RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+              );
 
-            const ShapeBorder topBorder = RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-            );
-
-            const ShapeBorder bottomBorder = RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(8),
-                bottomRight: Radius.circular(8),
-              ),
-            );
-
-            return Column(
-              children: <Widget>[
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  shape: topBorder,
-                  child: ListTile(
-                    tileColor: Colors.white,
+              return Column(
+                children: <Widget>[
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
                     shape: topBorder,
-                    title: Text(
-                      'Location',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    trailing: CupertinoSwitch(
-                      activeColor: CustomColors.appColorBlue,
-                      onChanged: (bool value) async {
-                        await LocationService.requestLocation(context, value);
-                      },
-                      value: state.location,
-                    ),
-                  ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    title: Text(
-                      'Notification',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    trailing: CupertinoSwitch(
-                      activeColor: CustomColors.appColorBlue,
-                      onChanged: (bool value) async {
-                        await NotificationService.requestNotification(
-                          context,
-                          value,
-                        );
-                      },
-                      value: state.notifications,
+                    child: ListTile(
+                      tileColor: Colors.white,
+                      shape: topBorder,
+                      title: Text(
+                        'Location',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      trailing: CupertinoSwitch(
+                        activeColor: CustomColors.appColorBlue,
+                        onChanged: (bool value) async {
+                          await LocationService.requestLocation(context, value);
+                        },
+                        value: state.location,
+                      ),
                     ),
                   ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const FeedbackPage();
-                          },
-                        ),
-                      );
-                    },
-                    title: Text(
-                      'Send feedback',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                  divider,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    child: ListTile(
+                      tileColor: Colors.white,
+                      title: Text(
+                        'Notification',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      trailing: CupertinoSwitch(
+                        activeColor: CustomColors.appColorBlue,
+                        onChanged: (bool value) async {
+                          await NotificationService.requestNotification(
+                            context,
+                            value,
+                          );
+                        },
+                        value: state.notifications,
+                      ),
                     ),
                   ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    onTap: () async {
-                      await AppService().clearShowcase().then((_) {
-                        Navigator.pushAndRemoveUntil(
+                  divider,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    child: ListTile(
+                      tileColor: Colors.white,
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return const HomePage();
+                              return const FeedbackPage();
                             },
                           ),
-                          (r) => false,
                         );
-                      });
-                    },
-                    title: Text(
-                      'Take a tour of the App',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      },
+                      title: Text(
+                        'Send feedback',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                   ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    onTap: () async {
-                      await hasNetworkConnection().then((value) async {
-                        if (value) {
-                          await RateService.rateApp();
-                        } else {
-                          showSnackBar(context, Config.connectionErrorMessage);
-                        }
-                      });
-                    },
-                    title: Text(
-                      'Rate the AirQo App',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                ),
-                divider,
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 0,
-                  shape: bottomBorder,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    shape: bottomBorder,
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const AboutAirQo();
-                          },
+                  divider,
+                  Showcase(
+                    key: _appTourShowcaseKey,
+                    description:
+                        "You can always restart the App Tour from here anytime.",
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      elevation: 0,
+                      child: ListTile(
+                        tileColor: Colors.white,
+                        onTap: () async {
+                          await AppService()
+                              .clearShowcase()
+                              .then((value) async {
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const HomePage();
+                                },
+                              ),
+                              (r) => false,
+                            );
+                          });
+                        },
+                        title: Text(
+                          'Take a tour of the App',
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                      );
-                    },
-                    title: Text(
-                      'About',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(),
-                const DeleteAccountButton(),
-              ],
-            );
-          },
+                  divider,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    child: ListTile(
+                      tileColor: Colors.white,
+                      onTap: () async {
+                        await hasNetworkConnection().then((value) async {
+                          if (value) {
+                            await RateService.rateApp();
+                          } else {
+                            showSnackBar(
+                                context, Config.connectionErrorMessage);
+                          }
+                        });
+                      },
+                      title: Text(
+                        'Rate the AirQo App',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                  divider,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    shape: bottomBorder,
+                    child: ListTile(
+                      tileColor: Colors.white,
+                      shape: bottomBorder,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const AboutAirQo();
+                            },
+                          ),
+                        );
+                      },
+                      title: Text(
+                        'About',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  const DeleteAccountButton(),
+                ],
+              );
+            });
+          }),
         ),
       ),
     );
@@ -223,6 +241,24 @@ class _SettingsPageState extends State<SettingsPage>
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
         break;
+    }
+  }
+
+  void _startShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ShowCaseWidget.of(_showcaseContext).startShowCase(
+        [
+          _appTourShowcaseKey,
+        ],
+      );
+    });
+  }
+
+  Future<void> _showcaseToggle() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(Config.homePageShowcase) == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
+      _appService.stopShowcase(Config.settingsPageShowcase);
     }
   }
 }

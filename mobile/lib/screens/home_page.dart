@@ -241,6 +241,7 @@ class _HomePageState extends State<HomePage> {
     _widgetOptions = <Widget>[
       ShowCaseWidget(
         onFinish: _startShowcase,
+        enableAutoScroll: true,
         builder: Builder(builder: (context) => const DashboardView()),
       ),
       const MapView(),
