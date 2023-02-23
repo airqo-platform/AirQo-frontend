@@ -15,8 +15,12 @@ module.exports = {
         'light-blue': '#135DFF14',
         'sidebar-blue': '#135DFF0A',
         'dark-blue': '#0F4ACC',
+        'light-text': '#6D7175',
+        'baby-blue': '#F5F8FF',
         grey: {
           300: '#6D7175',
+          150: '#363A4429',
+          100: '#363A4414',
         },
       },
     },
