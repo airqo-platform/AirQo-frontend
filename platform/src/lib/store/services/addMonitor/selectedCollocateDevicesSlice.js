@@ -11,10 +11,8 @@ const selectedCollocateDevicesSlice = createSlice({
   reducers: {
     addDevices: (state, action) => {
       state.isLoading = true;
-      console.log(state.isLoading);
-      const devices = action.payload;
-      const newDevices = new Set([...state.selectedCollocateDevices, ...devices]);
-      state.selectedCollocateDevices = [...newDevices];
+      const devices = [...action.payload];
+      state.selectedCollocateDevices = [...new Set([...state.selectedCollocateDevices, ...devices])];
       state.isLoading = false;
       console.log(state.isLoading);
     },
@@ -27,9 +25,10 @@ const selectedCollocateDevicesSlice = createSlice({
     },
     removeDevices: (state, action) => {
       state.isLoading = true;
-      const stateDevices = new Set(state.selectedCollocateDevices);
+      const stateDevices = new Set([...state.selectedCollocateDevices]);
       const devicesToRemove = new Set(action.payload);
-      state.selectedCollocateDevices = [stateDevices.difference(devicesToRemove)];
+      devicesToRemove.forEach((device) => stateDevices.delete(device));
+      state.selectedCollocateDevices = [...stateDevices];
       state.isLoading = false;
     },
   },

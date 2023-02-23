@@ -8,31 +8,26 @@ import {
 } from '@/lib/store/services/addMonitor/selectedCollocateDevicesSlice';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
-  const [Checked, setChecked] = useState(false);
-  const [checkAll, setCheckAll] = useState(false);
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
 
   const handleSelectAllDevices = (e) => {
-    setCheckAll(!checkAll);
-    setChecked(!checkAll);
+    
     const allDevices = [];
     collocationDevices.map((device) => allDevices.push(device._id));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
-      dispatch(removeDevices(selectedCollocateDevices.map((device) => device._id)));
+      dispatch(removeDevices(allDevices));
     }
   };
 
   const handleSelectDevice = (e, device) => {
-    setChecked(!Checked);
-
     const isChecked = e.target.checked;
     if (isChecked) {
-      dispatch(addDevice(device._id));
+      dispatch(addDevices([device._id]));
     } else {
       dispatch(removeDevices([device._id]));
     }
@@ -43,7 +38,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] py-3 px-6'>
-            <input type='checkbox' checked={checkAll} onChange={handleSelectAllDevices} />
+            <input type='checkbox' checked={selectedCollocateDevices.length === collocationDevices.length} onChange={handleSelectAllDevices} />
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 py-3 opacity-40'>
             Monitor name
