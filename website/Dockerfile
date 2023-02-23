@@ -1,5 +1,5 @@
 # Building frontend
-FROM node:12-slim as frontend
+FROM node:18-slim as frontend
 
 WORKDIR /app
 

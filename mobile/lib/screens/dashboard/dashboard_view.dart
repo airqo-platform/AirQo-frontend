@@ -37,6 +37,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _kyaShowcaseKey;
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
+  late GlobalKey _skipShowcaseKey;
   bool _kyaExists = true, _nearbyLocationExists = true;
 
   final Stream<int> _timeStream =
@@ -51,17 +52,54 @@ class _DashboardViewState extends State<DashboardView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        title: SvgPicture.asset(
-          'assets/icon/airqo_logo.svg',
-          height: 40,
-          width: 58,
-          semanticsLabel: 'AirQo',
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: Showcase.withWidget(
+          key: _skipShowcaseKey,
+          overlayOpacity: 0.6,
+          targetShapeBorder: const RoundedRectangleBorder(),
+          width: 50,
+          height: 50,
+          container: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 45,
+                height: 45,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: IconButton(
+                  tooltip: "Skip Showcase",
+                  icon: const Icon(Icons.skip_next),
+                  onPressed: () => ShowCaseWidget.of(context).dismiss(),
+                  color: CustomColors.appColorBlue,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              const Text(
+                "Click to Skip Tutorial",
+                textAlign: TextAlign.left,
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            centerTitle: false,
+            title: SvgPicture.asset(
+              'assets/icon/airqo_logo.svg',
+              height: 40,
+              width: 58,
+              semanticsLabel: 'AirQo',
+            ),
+            elevation: 0,
+            backgroundColor: CustomColors.appBodyColor,
+          ),
         ),
-        elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
       ),
       body: AppSafeArea(
         horizontalPadding: 16.0,
@@ -366,6 +404,7 @@ class _DashboardViewState extends State<DashboardView>
     _kyaShowcaseKey = GlobalKey();
     _analyticsShowcaseKey = GlobalKey();
     _nearestLocationShowcaseKey = GlobalKey();
+    _skipShowcaseKey = GlobalKey();
     WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
@@ -420,6 +459,7 @@ class _DashboardViewState extends State<DashboardView>
 
   void _startShowcase() {
     List<GlobalKey> globalKeys = [
+      _skipShowcaseKey,
       _favoritesShowcaseKey,
       _forYouShowcaseKey,
       _analyticsShowcaseKey,
@@ -446,6 +486,13 @@ class _DashboardViewState extends State<DashboardView>
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _startShowcase();
             _appService.stopShowcase(Config.homePageShowcase);
+          });
+        }
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ShowCaseWidget.of(context).next();
           });
         }
       });

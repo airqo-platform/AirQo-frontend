@@ -1,19 +1,38 @@
 import BarChartIcon from '@/icons/bar_chart.svg';
-
-import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import MenuBarIcon from '@/icons/menu_bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 
-import CollocationIcon from '@/icons/Collocation/collocation.svg'
+import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
 const SideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  const sideBarDisplayStyle = toggleDrawer
-    ? 'flex absolute top-16 left-0 z-10'
-    : 'hidden';
+  const sideBarDisplayStyle = toggleDrawer ? 'flex absolute top-16 left-0 z-10' : 'hidden';
   const size = useWindowSize();
+
+  // Toggle Dropdown open and close
+  const [collocationOpen, setCollocationOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+
+  useEffect(() => {
+    const collocationOpenState = localStorage.getItem('collocationOpen');
+    const analyticsOpenState = localStorage.getItem('analyticsOpen');
+
+    if (collocationOpenState) {
+      setCollocationOpen(JSON.parse(collocationOpenState));
+    }
+
+    if (analyticsOpenState) {
+      setAnalyticsOpen(JSON.parse(analyticsOpenState));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('collocationOpen', JSON.stringify(collocationOpen));
+    localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
+  }, [collocationOpen, analyticsOpen]);
 
   return (
     <div className='w-64'>
@@ -35,12 +54,15 @@ const SideBar = () => {
           <div className='mt-5 mx-2'>
             <SideBarItem label='Home' Icon={BarChartIcon} navPath='/' />
             <SideBarItem label='Notifications' Icon={BarChartIcon} />
-            <SideBarItem label='Analytics' Icon={BarChartIcon} dropdown>
+            <SideBarItem
+              label='Analytics'
+              Icon={BarChartIcon}
+              dropdown
+              toggleMethod={() => setAnalyticsOpen(!analyticsOpen)}
+              toggleState={analyticsOpen}
+            >
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
-              <SideBarDropdownItem
-                itemLabel='AirQlouds'
-                itemPath='/analytics/airqlouds'
-              />
+              <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
               <SideBarDropdownItem itemLabel='Reports' itemPath='' />
             </SideBarItem>
@@ -48,15 +70,15 @@ const SideBar = () => {
             <hr className='my-3 border border-[#00000014]' />
 
             <SideBarItem label='Network' Icon={BarChartIcon} />
-            <SideBarItem label='Collocation' Icon={CollocationIcon} dropdown>
-              <SideBarDropdownItem
-                itemLabel='Overview'
-                itemPath='/collocation/overview'
-              />
-              <SideBarDropdownItem
-                itemLabel='Collocate'
-                itemPath='/collocation/collocate'
-              />
+            <SideBarItem
+              label='Collocation'
+              Icon={CollocationIcon}
+              dropdown
+              toggleMethod={() => setCollocationOpen(!collocationOpen)}
+              toggleState={collocationOpen}
+            >
+              <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
+              <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
             <SideBarItem label='Calibrate' Icon={BarChartIcon} />
             <SideBarItem label='All tools' Icon={BarChartIcon} />
