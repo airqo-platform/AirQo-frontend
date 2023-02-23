@@ -82,4 +82,5 @@ jobs:
       - name: Deploy to play store
         run: |
           cd android/
+          bundle exec fastlane supply init
           bundle exec fastlane android production
