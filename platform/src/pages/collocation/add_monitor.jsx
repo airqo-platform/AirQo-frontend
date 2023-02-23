@@ -9,6 +9,8 @@ import {
 import { wrapper } from '@/lib/store';
 import Table from '../../common/components/AddMonitor/Table';
 import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
+import { useSelector } from 'react-redux';
+import CheckCircleIcon from '@/icons/check_circle';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -33,6 +35,15 @@ const AddMonitor = () => {
   } = useGetCollocationDevicesQuery();
 
   let collocationDevices = !isLoading && data.devices;
+
+  const selectedCollocateDevices = useSelector(
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
+  );
+  const onUpdateSelectedCollocateDevices = useSelector(
+    (state) => state.selectedCollocateDevices.isLoading,
+  );
+  // console.log(onUpdateSelectedCollocateDevices)
+
   return (
     <>
       {isLoading && !isError ? (
@@ -49,13 +60,25 @@ const AddMonitor = () => {
 
               <span className='text-xl font-semibold'>Add Device</span>
             </div>
-            <Button
-              className={
-                'rounded-none text-white bg-blue border border-blue font-medium opacity-40 cursor-not-allowed'
-              }
-            >
-              Start collocation
-            </Button>
+            <div className='flex'>
+              {onUpdateSelectedCollocateDevices && (
+                <Button className={'mr-1'}>
+                  <div className='mr-1'>
+                    <CheckCircleIcon />
+                  </div>{' '}
+                  Saved
+                </Button>
+              )}
+              <Button
+                className={`rounded-none text-white bg-blue border border-blue font-medium ${
+                  selectedCollocateDevices.length > 0
+                    ? 'cursor-pointer'
+                    : 'opacity-40 cursor-not-allowed'
+                }`}
+              >
+                Start collocation
+              </Button>
+            </div>
           </div>
           <div className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429] md:max-w-[704px] w-auto'>
             <div className='mb-6 p-6'>

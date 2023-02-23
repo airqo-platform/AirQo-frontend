@@ -1,12 +1,49 @@
 import { humanReadableDate } from '@/core/utils/dateTime';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addDevices,
+  removeDevices,
+  addDevice,
+} from '@/lib/store/services/addMonitor/selectedCollocateDevicesSlice';
 
-const DataTable = ({ paginatedData }) => {
+const DataTable = ({ paginatedData, collocationDevices }) => {
+  const [Checked, setChecked] = useState(false);
+  const [checkAll, setCheckAll] = useState(false);
+  const dispatch = useDispatch();
+  const selectedCollocateDevices = useSelector(
+    (state) => state.selectedCollocateDevices.selectedCollocateDevices,
+  );
+
+  const handleSelectAllDevices = (e) => {
+    setCheckAll(!checkAll);
+    setChecked(!checkAll);
+    const allDevices = [];
+    collocationDevices.map((device) => allDevices.push(device._id));
+    if (e.target.checked) {
+      dispatch(addDevices(allDevices));
+    } else {
+      dispatch(removeDevices(selectedCollocateDevices.map((device) => device._id)));
+    }
+  };
+
+  const handleSelectDevice = (e, device) => {
+    setChecked(!Checked);
+
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      dispatch(addDevice(device._id));
+    } else {
+      dispatch(removeDevices([device._id]));
+    }
+  };
+
   return (
     <table className='border-collapse text-sm text-left w-full mb-6'>
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] py-3 px-6'>
-            <input type='checkbox' />
+            <input type='checkbox' checked={checkAll} onChange={handleSelectAllDevices} />
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 py-3 opacity-40'>
             Monitor name
@@ -28,7 +65,12 @@ const DataTable = ({ paginatedData }) => {
             return (
               <tr className='border-b border-b-slate-300' key={device._id}>
                 <td scope='row' className='w-[61px] py-3 px-6'>
-                  <input type='checkbox' />
+                  <input
+                    type='checkbox'
+                    checked={selectedCollocateDevices.includes(device._id)}
+                    value={device}
+                    onChange={(e) => handleSelectDevice(e, device)}
+                  />
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
                   {device.long_name}

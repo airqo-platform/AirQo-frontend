@@ -154,7 +154,10 @@ const Table = ({ collocationDevices }) => {
         </div>
       </div>
       <div className='overflow-x-scroll md:overflow-x-hidden'>
-        <DataTable paginatedData={paginatedData.length > 0 && paginatedData} />
+        <DataTable
+          paginatedData={paginatedData.length > 0 && paginatedData}
+          collocationDevices={collocationDevices}
+        />
         <Pagination
           currentPage={currentPage}
           pageSize={pageSize}
