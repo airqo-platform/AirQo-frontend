@@ -25,7 +25,7 @@
                 android:layout_height="49dp"
                 android:gravity="top"
                 android:text="@string/wandegeya"
-                android:textAppearance="@style/wandegeya" />
+                android:textAppearance="@style/wandegeya"/>
 
             <RelativeLayout
                 android:id="@+id/frame_946"

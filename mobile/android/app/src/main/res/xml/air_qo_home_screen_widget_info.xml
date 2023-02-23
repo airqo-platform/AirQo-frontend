@@ -7,6 +7,7 @@
     android:minHeight="110dp"
     android:previewImage="@drawable/airqo_widget_preview"
     android:previewLayout="@layout/air_qo_home_screen_widget"
+    android:resizeMode="horizontal|vertical"
     android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:updatePeriodMillis="86400000"

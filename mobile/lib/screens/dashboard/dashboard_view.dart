@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -21,6 +22,7 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
 
@@ -425,6 +427,39 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
+  Future<void> _sendData() async {
+    AirQualityReading? airQualityReading =
+        context.read<NearbyLocationBloc>().state.locationAirQuality;
+    if (airQualityReading == null) {
+      List<AirQualityReading> airQualityReadings =
+          HiveService.getAirQualityReadings();
+      if (airQualityReadings.isNotEmpty) {
+        airQualityReading = airQualityReadings.first;
+      }
+    }
+
+    // if(airQualityReading == null) return;
+
+    return Future.wait([
+      HomeWidget.saveWidgetData<String>('location', airQualityReading?.location),
+      HomeWidget.saveWidgetData<DateTime>('dateTime', airQualityReading?.dateTime),
+      HomeWidget.saveWidgetData<double>('pm2_5', airQualityReading?.pm2_5)
+      // HomeWidget.saveWidgetData<>('location', airQualityReading?.location)
+      // HomeWidget.saveWidgetData<String>('message', _messageController.text),
+    ]).then((value) => value);
+  }
+
+  Future<void> _updateWidget() async {
+    return HomeWidget.updateWidget(
+            name: 'AirQoHomeScreenWidget', iOSName: 'AirQoHomeScreenWidget')
+        .then((value) => value);
+  }
+
+  Future<void> _sendAndUpdate() async {
+    await _sendData();
+    await _updateWidget();
+  }
+
   void _listenToStreams() {
     _timeSubscription = _timeStream.listen((_) {
       _refresh(refreshMap: false);
@@ -455,6 +490,7 @@ class _DashboardViewState extends State<DashboardView>
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
+    _sendAndUpdate();
   }
 
   void _startShowcase() {
