@@ -4,22 +4,18 @@ import Layout from '../../common/components/Layout';
 import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
-import Link from 'next/link';
-import ContentBox from '../../common/components/Layout/content_box';
+import Button from '../../common/components/Button';
 
-// AVOID USING ABSOLUTE NAMING FOR CLASSES e.g text-[#1C1B1F]. CONFIGURE STYLES IN THE tailwind.config.js FILE TO ENCOURAGE REUSABILITY AND EASY MAINTENANCE
-// CREATE COMPONENTS FOR REPETITIVE LAYOUTS. FOLDER: src/common/components/Layout
-
-const Collocation = () => {
+const collocate = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'} />
-      <ContentBox>
+      <div className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429] flex justify-center items-center'>
         <div className='flex justify-center items-center flex-col py-20'>
           <Collocate />
           <div className='flex flex-col justify-center text-center mt-10'>
             <h4 className='text-xl font-normal mb-6'>
-              This is where you’ll manage your collocated monitors
+              This is where you will manage your collocated monitors
             </h4>
             <div>
               <p className='text-grey-300 text-sm font-light'>
@@ -27,20 +23,34 @@ const Collocation = () => {
               </p>
             </div>
             <div className='flex justify-center items-center mt-6'>
-              <button className='flex justify-center items-center btn btn-blue normal-case gap-2 rounded-none bg-blue border-transparent hover:bg-dark-blue hover:border-dark-blue mx-[7px]'>
-                <BoxedAddIcon />
-                <Link href='/collocation/add_monitor'>Test monitor</Link>
-              </button>
-              <button className='flex justify-center items-center btn btn-disabled normal-case gap-2 rounded-none opacity-30 text-[#1C1B1F] bg-transparent border-[#20222333] mx-[7px]'>
-                <UploadIcon />
+              <Button
+                className={
+                  'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
+                }
+                path='/collocation/add_monitor'
+              >
+                <div className='mr-[10px]'>
+                  <BoxedAddIcon />
+                </div>
+                Test monitor
+              </Button>
+              <div className='mr-[14px]'></div>
+              <Button
+                className={
+                  'bg-white text-[#1C1B1F] border border-[#20222333] opacity-30 hover:cursor-not-allowed font-medium'
+                }
+              >
+                <div className='mr-[10px]'>
+                  <UploadIcon />
+                </div>
                 Import data
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-      </ContentBox>
+      </div>
     </Layout>
   );
 };
 
-export default Collocation;
+export default collocate;
