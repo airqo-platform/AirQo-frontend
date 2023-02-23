@@ -76,20 +76,20 @@ class _ForYouPageState extends State<ForYouPage>
                           );
                         },
                         tabs: <Widget>[
-                          Showcase(
-                            key: _analyticsTabShowcaseKey,
-                            description: 'This is the analytics Tab',
-                            child: TabButton(
+                          CustomShowcaseWidget(
+                            showcaseKey: _analyticsTabShowcaseKey,
+                            description: "This is the analytics Tab",
+                            childWidget: TabButton(
                               text: 'Analytics',
                               index: 0,
                               tabController: _tabController,
                             ),
                           ),
-                          Showcase(
-                            key: _kyaTabShowcaseKey,
+                          CustomShowcaseWidget(
+                            showcaseKey: _kyaTabShowcaseKey,
                             description:
-                                'Do you want to know more about air quality? Know your air in this section',
-                            child: TabButton(
+                                "Do you want to know more about air quality? Know your air in this section",
+                            childWidget: TabButton(
                               text: 'Know your Air',
                               index: 1,
                               tabController: _tabController,

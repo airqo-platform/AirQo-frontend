@@ -134,11 +134,11 @@ class _DashboardViewState extends State<DashboardView>
                       );
 
                       return Expanded(
-                        child: Showcase(
-                          key: _favoritesShowcaseKey,
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _favoritesShowcaseKey,
                           description:
-                              'Find the latest air quality from your favorite locations',
-                          child: DashboardTopCard(
+                              "Find the latest air quality from your favorite locations",
+                          childWidget: DashboardTopCard(
                             toolTipType: ToolTipType.favouritePlaces,
                             title: 'Favorites',
                             widgetKey: _favToolTipKey,
@@ -168,11 +168,11 @@ class _DashboardViewState extends State<DashboardView>
                       );
 
                       return Expanded(
-                        child: Showcase(
-                          key: _forYouShowcaseKey,
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _forYouShowcaseKey,
                           description:
-                              'Find amazing content specifically designed for you here.',
-                          child: DashboardTopCard(
+                              "Find amazing content specifically designed for you here.",
+                          childWidget: DashboardTopCard(
                             toolTipType: ToolTipType.forYou,
                             title: 'For You',
                             widgetKey: _kyaToolTipKey,
@@ -290,11 +290,11 @@ class _DashboardViewState extends State<DashboardView>
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Showcase(
-                                    key: _nearestLocationShowcaseKey,
+                                  child: CustomShowcaseWidget(
+                                    showcaseKey: _nearestLocationShowcaseKey,
                                     description:
-                                        'This card shows the air quality of your nearest location',
-                                    child: AnalyticsCard(
+                                        "This card shows the air quality of your nearest location",
+                                    childWidget: AnalyticsCard(
                                       nearbyAirQuality,
                                       false,
                                     ),
@@ -314,11 +314,11 @@ class _DashboardViewState extends State<DashboardView>
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Showcase(
-                                    key: _kyaShowcaseKey,
+                                  child: CustomShowcaseWidget(
+                                    showcaseKey: _kyaShowcaseKey,
                                     description:
-                                        'Do you want to know more about air quality? Know your air in this section',
-                                    child: KyaCardWidget(kya.first),
+                                        "Do you want to know more about air quality? Know your air in this section",
+                                    childWidget: KyaCardWidget(kya.first),
                                   ),
                                 );
                               },
@@ -331,11 +331,11 @@ class _DashboardViewState extends State<DashboardView>
                                 return (index == 0)
                                     ? Padding(
                                         padding: const EdgeInsets.only(top: 16),
-                                        child: Showcase(
-                                          key: _analyticsShowcaseKey,
+                                        child: CustomShowcaseWidget(
+                                          showcaseKey: _analyticsShowcaseKey,
                                           description:
-                                              'Find the air quality of different locations across Africa here.',
-                                          child: AnalyticsCard(
+                                              "Find the air quality of different locations across Africa here.",
+                                          childWidget: AnalyticsCard(
                                             state.airQualityReadings[index],
                                             false,
                                           ),

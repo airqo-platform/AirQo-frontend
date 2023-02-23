@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'buttons.dart';
 import 'custom_shimmer.dart';
@@ -539,6 +540,77 @@ class BottomNavIcon extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class CustomShowcaseWidget extends StatelessWidget {
+  const CustomShowcaseWidget({
+    super.key,
+    required this.showcaseKey,
+    required this.description,
+    required this.childWidget,
+    this.direction,
+  });
+
+  final GlobalKey showcaseKey;
+  final String description;
+  final Widget childWidget;
+  final String? direction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Showcase.withWidget(
+      key: showcaseKey,
+      width: 120,
+      height: 45,
+      overlayColor: Colors.black,
+      overlayOpacity: 0.9,
+      container: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          direction != "up"
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+          const SizedBox(
+            height: 10,
+          ),
+          Text(
+            description,
+            textAlign: TextAlign.left,
+            style: TextStyle(color: Colors.white),
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          direction == "up"
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+        ],
+      ),
+      targetShapeBorder: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+              color: CustomColors.appColorBlue, width: 3, strokeAlign: -5)),
+      child: childWidget,
     );
   }
 }

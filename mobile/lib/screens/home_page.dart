@@ -93,11 +93,11 @@ class _HomePageState extends State<HomePage> {
                     .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      showArrow: false,
-                      key: _homeShowcaseKey,
+                    icon: CustomShowcaseWidget(
+                      direction: "up",
+                      showcaseKey: _homeShowcaseKey,
                       description: 'Home',
-                      child: BottomNavIcon(
+                      childWidget: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         svg: 'assets/icon/home_icon.svg',
                         label: 'Home',
@@ -107,11 +107,11 @@ class _HomePageState extends State<HomePage> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      key: _mapShowcaseKey,
-                      showArrow: false,
+                    icon: CustomShowcaseWidget(
+                      direction: "up",
+                      showcaseKey: _mapShowcaseKey,
                       description: 'This is the AirQo map',
-                      child: BottomNavIcon(
+                      childWidget: BottomNavIcon(
                         svg: 'assets/icon/location.svg',
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
@@ -123,11 +123,11 @@ class _HomePageState extends State<HomePage> {
                   BottomNavigationBarItem(
                     icon: Stack(
                       children: [
-                        Showcase(
-                          key: _profileShowcaseKey,
-                          showArrow: false,
+                        CustomShowcaseWidget(
+                          direction: "up",
+                          showcaseKey: _profileShowcaseKey,
                           description: 'Access your Profile details here',
-                          child: BottomNavIcon(
+                          childWidget: BottomNavIcon(
                             svg: 'assets/icon/profile.svg',
                             selectedIndex: _selectedIndex,
                             label: 'Profile',

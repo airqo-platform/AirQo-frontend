@@ -139,11 +139,11 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                       ),
                       divider,
-                      Showcase(
-                        key: _appTourShowcaseKey,
+                      CustomShowcaseWidget(
+                        showcaseKey: _appTourShowcaseKey,
                         description:
                             "You can always restart the App Tour from here anytime.",
-                        child: Card(
+                        childWidget: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
                           child: ListTile(
@@ -361,7 +361,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(Config.homePageShowcase) == null) {
+    if (prefs.getBool(Config.settingsPageShowcase) == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
       _appService.stopShowcase(Config.settingsPageShowcase);
     }
