@@ -85,10 +85,9 @@ class _MapLandscapeState extends State<MapLandscape> {
   final Completer<GoogleMapController> _mapController =
       Completer<GoogleMapController>();
   Map<String, Marker> _markers = {};
-  final double zoom = 6;
   final _defaultCameraPosition = const CameraPosition(
-    target: LatLng(1.6183002, 32.504365),
-    zoom: 6,
+    target: LatLng(-0.323128, 18.218491),
+    zoom: 3,
   );
 
   @override
@@ -113,7 +112,7 @@ class _MapLandscapeState extends State<MapLandscape> {
 
   Future<void> _loadTheme() async {
     final GoogleMapController controller = await _mapController.future;
-    await controller.setMapStyle(
+    controller.setMapStyle(
       jsonEncode(googleMapsTheme),
     );
   }
@@ -167,7 +166,7 @@ class _MapLandscapeState extends State<MapLandscape> {
     final GoogleMapController controller = await _mapController.future;
 
     if (airQualityReadings.isEmpty) {
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newCameraPosition(_defaultCameraPosition),
       );
 
@@ -210,7 +209,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         zoom: 10,
       );
 
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newCameraPosition(cameraPosition),
       );
     } else {
@@ -218,7 +217,7 @@ class _MapLandscapeState extends State<MapLandscape> {
         markers.values.toList(),
       );
 
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newLatLngBounds(latLngBounds, 100),
       );
     }
