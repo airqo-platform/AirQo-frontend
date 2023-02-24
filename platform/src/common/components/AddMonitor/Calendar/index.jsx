@@ -43,13 +43,15 @@ const ScheduleCalendar = () => {
         <div className='mb-8 flex flex-row justify-between items-center px-6'>
           {/* TODO: Duration upon range selection */}
           <Datepicker
-            classNames={'prose'}
             value={value}
             onChange={handleValueChange}
             showShortcuts={true}
             primaryColor={'#F5F8FF'}
             placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
             separator={'to'}
+            readOnly={true}
+            inputClassName='font-sans text-xs text-grey-300 font-normal'
+            minDate={new Date()}
           />
         </div>
       </div>
