@@ -1,3 +1,4 @@
+import 'package:app/screens/settings/settings_page.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -49,6 +50,14 @@ class _ForYouPageState extends State<ForYouPage>
                       _tabController.animateTo(1);
                       setState(() => _analytics = false);
                     }
+                  },
+                  onFinish: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsPage(),
+                      ),
+                    );
                   },
                   builder: Builder(
                     builder: (context) {

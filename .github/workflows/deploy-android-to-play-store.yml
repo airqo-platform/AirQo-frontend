@@ -55,7 +55,7 @@ jobs:
         run: |
           cd lib/
           gcloud secrets versions access latest --secret="prod-key-mobile-firebase-options-dev" > firebase_options_dev.dart
-          gcloud secrets versions access latest --secret="prod-key-mobile-firebase_options" > firebase_options.dart
+          gcloud secrets versions access latest --secret="prod-key-mobile-firebase-options" > firebase_options.dart
 
       - name: Add .env files
         run: |
@@ -82,4 +82,5 @@ jobs:
       - name: Deploy to play store
         run: |
           cd android/
+          bundle exec fastlane supply init
           bundle exec fastlane android production
