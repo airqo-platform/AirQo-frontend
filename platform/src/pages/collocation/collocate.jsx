@@ -12,7 +12,7 @@ const collocate = () => {
     <Layout>
       <HeaderNav component={'Collocate'} />
       <ContentBox>
-        <div className='flex justify-center items-center flex-col py-20'>
+        <div className='flex justify-center items-center flex-col mx-auto py-20'>
           <Collocate />
           <div className='flex flex-col justify-center text-center mt-10'>
             <h4 className='text-xl font-normal mb-6'>

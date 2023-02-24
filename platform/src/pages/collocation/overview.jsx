@@ -9,7 +9,7 @@ const CollocationOverview = () => {
     <Layout>
       <HeaderNav component={'Overview'} />
       <ContentBox>
-        <div className='flex justify-center items-center flex-col py-28'>
+        <div className='flex justify-center items-center flex-col mx-auto py-28'>
           <CollocationNone />
           <div className='flex flex-col justify-center text-center mt-10'>
             <h4 className='text-xl font-normal mb-6'>You have no devices under collocation</h4>
