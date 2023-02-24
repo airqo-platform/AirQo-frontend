@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                       description: 'Home',
                       child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
-                        svg: 'assets/icon/home_icon.svg',
+                        icon: Icons.home_rounded,
                         label: 'Home',
                         index: 0,
                       ),
@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                       showArrow: false,
                       description: 'This is the AirQo map',
                       child: BottomNavIcon(
-                        svg: 'assets/icon/location.svg',
+                        icon: Icons.location_on_rounded,
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
                         index: 1,
@@ -128,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                           showArrow: false,
                           description: 'Access your Profile details here',
                           child: BottomNavIcon(
-                            svg: 'assets/icon/profile.svg',
+                            icon: Icons.person_rounded,
                             selectedIndex: _selectedIndex,
                             label: 'Profile',
                             index: 2,
