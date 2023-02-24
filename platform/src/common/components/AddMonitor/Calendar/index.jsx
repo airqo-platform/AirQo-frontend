@@ -47,7 +47,7 @@ const ScheduleCalendar = () => {
   };
 
   return (
-    <div className='border-[0.5px] rounded-tr-lg rounded-br-lg border-skeleton md:max-w-[304px] w-full h-full pt-[23px] mr-6'>
+    <div>
       <div className='px-6 pb-7'>
         <h3 className='font-medium text-xl'>Choose collocation period</h3>
         <h5 className='text-light-text text-sm mb-4'>Select your collocation period.</h5>

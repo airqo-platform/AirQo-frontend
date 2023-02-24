@@ -1,6 +1,7 @@
 import Button from '../../common/components/Button';
 import Layout from '../../common/components/Layout';
-import ArrowLeftIcon from '@/icons/keyboard_backspace.svg';
+import ContentBox from '../../common/components/Layout/content_box';
+import NavigationBreadCrumb from '../../common/components/Navigation/breadcrumb';
 import {
   useGetCollocationDevicesQuery,
   getCollocationDevices,
@@ -69,21 +70,12 @@ const AddMonitor = () => {
   };
 
   return (
-    <>
+    <Layout>
       {isLoading && !isError ? (
         <SkeletonFrame />
       ) : (
-        <Layout>
-          <div className='flex justify-between px-6 py-8'>
-            <div className='flex items-center'>
-              <div className='border border-grey rounded-[4px] w-7 h-7 flex items-center justify-center mr-4'>
-                <span className='text-xl opacity-50'>
-                  <ArrowLeftIcon />
-                </span>
-              </div>
-
-              <span className='text-xl font-semibold'>Add Device</span>
-            </div>
+        <>
+          <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
             <div className='flex'>
               {onUpdateSelectedCollocateDevices && (
                 <Button className={'mr-1'}>
@@ -104,47 +96,17 @@ const AddMonitor = () => {
                 Start collocation
               </Button>
             </div>
-          </div>
-          <div className='flex'>
-            <div className='ml-6 mb-6 border-[0.5px] rounded-tl-lg rounded-bl-lg border-skeleton md:max-w-[704px] w-auto h-auto'>
-              <div className='mb-6 p-6'>
-                <h3 className='text-xl mb-[2px] text-[#202223]'>Select monitor to collocate</h3>
-                <h4 className='text-sm text-[#6D7175]'>
-                  You can choose more than one monitor to collocate{' '}
-                </h4>
-              </div>
+          </NavigationBreadCrumb>
+          <ContentBox>
+            <div className='grid grid-cols-1 md:grid-cols-3'>
               <Table collocationDevices={!isLoading && collocationDevices} />
+              {/* CALENDAR */}
+              <ScheduleCalendar />
             </div>
-            <ScheduleCalendar />
-          </div>
-        </Layout>
+          </ContentBox>
+        </>
       )}
-
-      {isError && (
-        <Layout>
-          <div className='fixed top-0 left-0 w-full h-full flex items-center justify-center'>
-            <div className='alert alert-error shadow-lg'>
-              <div>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='stroke-current flex-shrink-0 h-6 w-6'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
-                <span>Unable to return data</span>
-              </div>
-            </div>
-          </div>
-        </Layout>
-      )}
-    </>
+    </Layout>
   );
 };
 

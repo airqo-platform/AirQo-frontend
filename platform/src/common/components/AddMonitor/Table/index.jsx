@@ -87,8 +87,8 @@ const Table = ({ collocationDevices }) => {
   };
 
   return (
-    <div className='w-full'>
-      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-auto mb-3 px-6'>
+    <div className='border-r border-grey-150 col-span-2 gap-0 pt-6'>
+      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-full mb-3'>
         <SearchBar onSearch={handleSearch} />
         <div className='flex justify-end items-center w-full'>
           <Button
