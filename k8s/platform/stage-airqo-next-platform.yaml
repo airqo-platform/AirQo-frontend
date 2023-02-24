@@ -19,7 +19,7 @@ spec:
       containers:
         - name: sta-next-platform
           image: eu.gcr.io/airqo-250220/airqo-stage-next-platform:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
               name: next-platform

@@ -58,6 +58,7 @@ class _DashboardViewState extends State<DashboardView>
         child: Showcase.withWidget(
           key: _skipShowcaseKey,
           overlayOpacity: 0.6,
+          targetShapeBorder: const RoundedRectangleBorder(),
           width: 50,
           height: 50,
           container: Column(
