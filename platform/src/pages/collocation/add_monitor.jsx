@@ -11,6 +11,8 @@ import Table from '../../common/components/AddMonitor/Table';
 import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
 import { useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
+import ScheduleCalendar from '../../common/components/AddMonitor/Calendar';
+import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -34,7 +36,8 @@ const AddMonitor = () => {
     // error,
   } = useGetCollocationDevicesQuery();
 
-  let collocationDevices = !isLoading && data.devices;
+  let collocationDevices = (!isLoading && data.devices) || [];
+  const [collocateDevices, { isLoading: isCollocating }] = useCollocateDevicesMutation();
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -42,7 +45,28 @@ const AddMonitor = () => {
   const onUpdateSelectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.isLoading,
   );
-  // console.log(onUpdateSelectedCollocateDevices)
+  const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
+  const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
+  const collocationData = useSelector((state) => state.collocationData.collocationData);
+
+  const handleCollocation = () => {
+    if (startDate && endDate && selectedCollocateDevices) {
+      const body = {
+        startDate,
+        endDate,
+        devices: selectedCollocateDevices,
+        expectedRecordsPerDay: 24,
+        completenessThreshold: 0.5,
+        correlationThreshold: 0.4,
+        verbose: true,
+      };
+
+      collocateDevices(body);
+      // console.log(collocationData);
+    } else {
+      console.log('Oops not data found');
+    }
+  };
 
   return (
     <>
@@ -75,19 +99,23 @@ const AddMonitor = () => {
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}
+                onClick={handleCollocation}
               >
                 Start collocation
               </Button>
             </div>
           </div>
-          <div className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429] md:max-w-[704px] w-auto'>
-            <div className='mb-6 p-6'>
-              <h3 className='text-xl mb-[2px] text-[#202223]'>Select monitor to collocate</h3>
-              <h4 className='text-sm text-[#6D7175]'>
-                You can choose more than one monitor to collocate{' '}
-              </h4>
+          <div className='flex'>
+            <div className='ml-6 mb-6 border-[0.5px] rounded-tl-lg rounded-bl-lg border-skeleton md:max-w-[704px] w-auto h-auto'>
+              <div className='mb-6 p-6'>
+                <h3 className='text-xl mb-[2px] text-[#202223]'>Select monitor to collocate</h3>
+                <h4 className='text-sm text-[#6D7175]'>
+                  You can choose more than one monitor to collocate{' '}
+                </h4>
+              </div>
+              <Table collocationDevices={!isLoading && collocationDevices} />
             </div>
-            <Table collocationDevices={!isLoading && collocationDevices} />
+            <ScheduleCalendar />
           </div>
         </Layout>
       )}

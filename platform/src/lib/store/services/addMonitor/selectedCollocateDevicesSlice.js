@@ -3,6 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   selectedCollocateDevices: [],
   isLoading: false,
+  startDate: null,
+  endDate: null,
 };
 
 const selectedCollocateDevicesSlice = createSlice({
@@ -12,9 +14,10 @@ const selectedCollocateDevicesSlice = createSlice({
     addDevices: (state, action) => {
       state.isLoading = true;
       const devices = [...action.payload];
-      state.selectedCollocateDevices = [...new Set([...state.selectedCollocateDevices, ...devices])];
+      state.selectedCollocateDevices = [
+        ...new Set([...state.selectedCollocateDevices, ...devices]),
+      ];
       state.isLoading = false;
-      console.log(state.isLoading);
     },
     addDevice(state, action) {
       state.isLoading = true;
@@ -31,9 +34,16 @@ const selectedCollocateDevicesSlice = createSlice({
       state.selectedCollocateDevices = [...stateDevices];
       state.isLoading = false;
     },
+    addStartDate: (state, action) => {
+      state.startDate = action.payload;
+    },
+    addEndDate: (state, action) => {
+      state.endDate = action.payload;
+    },
   },
 });
 
-export const { addDevices, removeDevices, addDevice } = selectedCollocateDevicesSlice.actions;
+export const { addDevices, removeDevices, addDevice, addStartDate, addEndDate } =
+  selectedCollocateDevicesSlice.actions;
 
 export default selectedCollocateDevicesSlice.reducer;
