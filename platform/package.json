@@ -18,6 +18,7 @@
     "autoprefixer": "^10.4.12",
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
+    "dayjs": "^1.11.7",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
     "moment": "^2.29.4",
@@ -29,6 +30,7 @@
     "react-calendar": "^4.0.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
+    "react-tailwindcss-datepicker": "^1.4.2",
     "sass": "^1.54.3",
     "tailwindcss": "^3.1.8"
   },

@@ -23,7 +23,10 @@ const Table = () => {
           </div>
           <div>
             {Array.from({ length: 8 }).map((_, index) => (
-              <div className='flex pl-[21px] items-center border-b border-b-skeleton h-14'>
+              <div
+                className='flex pl-[21px] items-center border-b border-b-skeleton h-14'
+                key={index}
+              >
                 <div className='w-5 h-[15px] mr-[31px] rounded bg-skeleton'></div>
                 <div className='w-[62px] h-3 mr-[60px] rounded bg-skeleton'></div>
                 <div className='w-[88px] h-3 mr-[55px] rounded bg-skeleton'></div>
