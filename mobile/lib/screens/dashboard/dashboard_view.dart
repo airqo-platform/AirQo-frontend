@@ -253,8 +253,41 @@ class _DashboardViewState extends State<DashboardView>
                               'Today’s air quality',
                               style: CustomTextStyle.headline11(context),
                             ),
-                            const SizedBox(
-                              height: 16,
+                            BlocBuilder<NearbyLocationBloc,
+                                NearbyLocationState>(
+                              builder: (context, state) {
+                                switch (state.blocStatus) {
+                                  case NearbyLocationStatus.initial:
+                                  case NearbyLocationStatus.searching:
+                                    return const ContainerLoadingAnimation(
+                                      radius: 16,
+                                      height: 251,
+                                    );
+                                  case NearbyLocationStatus.loaded:
+                                    return const SizedBox(
+                                      height: 16,
+                                    );
+                                  case NearbyLocationStatus.error:
+                                    switch (state.error) {
+                                      case NearbyAirQualityError.none:
+                                        return const SizedBox(
+                                          height: 0,
+                                        );
+                                      case NearbyAirQualityError.locationDenied:
+                                      case NearbyAirQualityError
+                                          .locationDisabled:
+                                        return const SizedBox(
+                                          height: 16,
+                                        );
+                                      case NearbyAirQualityError
+                                          .noNearbyAirQualityReadings:
+                                        return SizedBox(
+                                          height:
+                                              state.showErrorMessage ? 16 : 0,
+                                        );
+                                    }
+                                }
+                              },
                             ),
                             BlocBuilder<NearbyLocationBloc,
                                 NearbyLocationState>(
@@ -273,7 +306,12 @@ class _DashboardViewState extends State<DashboardView>
                                       );
                                     case NearbyAirQualityError
                                         .noNearbyAirQualityReadings:
-                                      return NoLocationAirQuality(state.error);
+                                      return state.showErrorMessage
+                                          ? const NoLocationAirQualityMessage(
+                                              NearbyAirQualityError
+                                                  .noNearbyAirQualityReadings,
+                                            )
+                                          : Container();
                                     case NearbyAirQualityError.none:
                                       break;
                                   }
@@ -282,10 +320,12 @@ class _DashboardViewState extends State<DashboardView>
                                 final AirQualityReading? nearbyAirQuality =
                                     state.locationAirQuality;
                                 if (nearbyAirQuality == null) {
-                                  return const NoLocationAirQuality(
-                                    NearbyAirQualityError
-                                        .noNearbyAirQualityReadings,
-                                  );
+                                  return state.showErrorMessage
+                                      ? const NoLocationAirQualityMessage(
+                                          NearbyAirQualityError
+                                              .noNearbyAirQualityReadings,
+                                        )
+                                      : Container();
                                 }
 
                                 return Showcase(

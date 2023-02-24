@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -5,6 +6,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -46,35 +48,62 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
-class NoLocationAirQuality extends StatelessWidget {
-  const NoLocationAirQuality(this.error, {super.key});
+class NoLocationAirQualityMessage extends StatelessWidget {
+  const NoLocationAirQualityMessage(this.error, {super.key});
   final NearbyAirQualityError error;
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 10,
-        horizontal: 20,
-      ),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: CustomColors.appColorBlue.withOpacity(0.1),
         borderRadius: const BorderRadius.all(
           Radius.circular(13.0),
         ),
-        border: const Border.fromBorderSide(BorderSide(
-          color: Colors.transparent,
-        )),
-      ),
-      child: Center(
-        child: Text(
-          error.message,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: TextStyle(
+        border: Border.fromBorderSide(
+          BorderSide(
             color: CustomColors.appColorBlue,
           ),
         ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/info_icon.svg',
+            height: 10,
+            width: 10,
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          Expanded(
+            child: Text(
+              error.message,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context
+                  .read<NearbyLocationBloc>()
+                  .add(const DismissErrorMessage());
+            },
+            child: SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/icon/close.svg',
+                height: 20,
+                width: 20,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
