@@ -47,10 +47,10 @@ const ScheduleCalendar = () => {
   };
 
   return (
-    <div>
+    <div className='pt-6'>
       <div className='px-6 pb-7'>
-        <h3 className='font-medium text-xl'>Choose collocation period</h3>
-        <h5 className='text-light-text text-sm mb-4'>Select your collocation period.</h5>
+        <h3 className='text-xl'>Choose collocation period</h3>
+        <h5 className='text-grey-300 text-sm mb-4'>Select your collocation period</h5>
         {collationDurations.map((duration) => (
           <div className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center'>
             {duration} {'days'}

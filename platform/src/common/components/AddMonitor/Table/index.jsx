@@ -88,7 +88,11 @@ const Table = ({ collocationDevices }) => {
 
   return (
     <div className='border-r border-grey-150 col-span-2 gap-0 pt-6'>
-      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-full mb-3'>
+      <div className='px-6 pb-6'>
+        <h3 className='text-xl text-black-600 pb-[2px]'>Select monitor to collocate</h3>
+        <h6 className='text-sm text-grey-300'>You can more than one monitor to collocate </h6>
+      </div>
+      <div className='flex justify-between items-center flex-wrap md:flex-nowrap w-full px-6 pb-6'>
         <SearchBar onSearch={handleSearch} />
         <div className='flex justify-end items-center w-full'>
           <Button

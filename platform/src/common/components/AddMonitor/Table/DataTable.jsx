@@ -14,7 +14,6 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   );
 
   const handleSelectAllDevices = (e) => {
-    
     const allDevices = [];
     collocationDevices.map((device) => allDevices.push(device._id));
     if (e.target.checked) {
@@ -37,19 +36,23 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
     <table className='border-collapse text-sm text-left w-full mb-6'>
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
-          <th scope='col' className='font-normal w-[61px] py-3 px-6'>
-            <input type='checkbox' checked={selectedCollocateDevices.length === collocationDevices.length} onChange={handleSelectAllDevices} />
+          <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
+            <input
+              type='checkbox'
+              checked={selectedCollocateDevices.length === collocationDevices.length}
+              onChange={handleSelectAllDevices}
+            />
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 py-3 opacity-40'>
+          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
             Monitor name
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 py-3 opacity-40'>
+          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
             Date added
           </th>
-          <th scope='col' className='font-normal w-[145px] px-4 py-3 opacity-40'>
+          <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
             Added by
           </th>
-          <th scope='col' className='font-normal w-[209px] px-4 py-3 opacity-40'>
+          <th scope='col' className='font-normal w-[209px] px-4 pb-3 opacity-40'>
             Comments
           </th>
         </tr>

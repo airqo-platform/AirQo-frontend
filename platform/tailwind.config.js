@@ -25,6 +25,9 @@ module.exports = {
           100: '#363A4414',
         },
         skeleton: '#363A4429',
+        black: {
+          600: '#202223',
+        },
       },
     },
     container: {

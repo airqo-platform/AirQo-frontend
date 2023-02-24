@@ -71,6 +71,7 @@ const AddMonitor = () => {
 
   return (
     <Layout>
+      {/* SKELETON LOADER */}
       {isLoading && !isError ? (
         <SkeletonFrame />
       ) : (
@@ -99,6 +100,7 @@ const AddMonitor = () => {
           </NavigationBreadCrumb>
           <ContentBox>
             <div className='grid grid-cols-1 md:grid-cols-3'>
+              {/* DEVICE TABLE */}
               <Table collocationDevices={!isLoading && collocationDevices} />
               {/* CALENDAR */}
               <ScheduleCalendar />
