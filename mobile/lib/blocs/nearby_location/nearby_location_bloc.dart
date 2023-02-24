@@ -21,7 +21,10 @@ class NearbyLocationBloc
     DismissErrorMessage _,
     Emitter<NearbyLocationState> emit,
   ) {
-    return emit(state.copyWith(showErrorMessage: false));
+    return emit(state.copyWith(
+      showErrorMessage: false,
+      locationAirQuality: state.locationAirQuality,
+    ));
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
@@ -109,6 +112,7 @@ class NearbyLocationBloc
           ? NearbyLocationStatus.searching
           : state.blocStatus,
       error: NearbyAirQualityError.none,
+      locationAirQuality: state.locationAirQuality,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
