@@ -24,30 +24,23 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                     MainActivity::class.java
                 )
                 setOnClickPendingIntent(R.id.widget_bg, pendingIntent)
-
-                // Swap Title Text by calling Dart Code in the Background
                 setTextViewText(
                     R.id.location, widgetData.getString("location", null)
                         ?: "None"
                 )
-//                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
-//                    context,
-//                    Uri.parse("homeWidgetExample://titleClicked")
-//                )
-//                setOnClickPendingIntent(R.id.widget_title, backgroundIntent)
 
-                val message = widgetData.getString("message", null)
                 setTextViewText(
-                    R.id.pm, message
+                    R.id.date, widgetData.getString("date", null)
+                        ?: "None"
+                )
+
+
+                setTextViewText(
+                    R.id.pm_value, widgetData.getString("pm_value", null)
                         ?: "None"
                 )
                 // Detect App opened via Click inside Flutter
 //                val pendingIntentWithData = HomeWidgetLaunchIntent.getActivity(
-//                    context,
-//                    MainActivity::class.java,
-//                    Uri.parse("homeWidgetExample://message?message=$message")
-//                )
-//                setOnClickPendingIntent(R.id.widget_message, pendingIntentWithData)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

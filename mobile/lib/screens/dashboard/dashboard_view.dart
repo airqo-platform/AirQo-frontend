@@ -441,9 +441,12 @@ class _DashboardViewState extends State<DashboardView>
     // if(airQualityReading == null) return;
 
     return Future.wait([
-      HomeWidget.saveWidgetData<String>('location', airQualityReading?.location),
-      HomeWidget.saveWidgetData<DateTime>('dateTime', airQualityReading?.dateTime),
-      HomeWidget.saveWidgetData<double>('pm2_5', airQualityReading?.pm2_5)
+      HomeWidget.saveWidgetData<String>('location', airQualityReading?.name),
+      HomeWidget.saveWidgetData<String>(
+          'date', airQualityReading?.dateTime.toString()),
+      HomeWidget.saveWidgetData<double>('pm_value', airQualityReading?.pm2_5),
+
+      // HomeWidget.saveWidgetData<double>('pm2_5', airQualityReading?.pm2_5)
       // HomeWidget.saveWidgetData<>('location', airQualityReading?.location)
       // HomeWidget.saveWidgetData<String>('message', _messageController.text),
     ]).then((value) => value);

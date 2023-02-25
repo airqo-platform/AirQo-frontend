@@ -5,7 +5,7 @@
     <string name="wandegeya">Wandegeya</string>
     <string name="configure">Configure Screen</string>
     <string name="add_widget">AirQo Widget</string>
-    <string name="pm">12/12, 3:06pm</string>
+    <string name="date">12/12, 3:06pm</string>
     <string name="pm_scale">PM<sub>2.5</sub></string>
     <string name="pm_value">40</string>
     <string name="pm_unit">µg/m<sup>3</sup></string>
