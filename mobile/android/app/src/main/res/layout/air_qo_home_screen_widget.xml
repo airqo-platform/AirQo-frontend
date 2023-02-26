@@ -1,7 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_bg"
-    android:layout_width="wrap_content"
-    android:layout_height="250dp"
+    android:layout_width="300dp"
+    android:layout_height="200dp"
     android:background="@drawable/widget_bg"
     android:orientation="vertical">
 
@@ -9,71 +11,100 @@
         android:id="@+id/location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="20dp"
         android:gravity="top"
-        android:paddingTop="10dp"
-        android:paddingStart="30dp"
+        android:letterSpacing="0.005"
         android:text="@string/wandegeya"
-        android:textAppearance="@style/wandegeya" />
+        android:textAppearance="@style/wandegeya"
+        android:textFontWeight="500"
+        tools:targetApi="p" />
 
 
     <TextView
         android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/date"
         android:layout_below="@+id/location"
-        android:paddingStart="30dp"
+        android:layout_marginStart="30dp"
+        android:text="@string/date"
         android:textAppearance="@style/date" />
 
+    <ImageView
+        android:id="@+id/refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/location"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/date"
+        android:src="@drawable/refresh" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/air" />
 
     <RelativeLayout
         android:id="@+id/index_color"
         android:layout_width="109dp"
         android:layout_height="99dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginStart="30dp"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/index_color">
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/circle">
 
 
         <TextView
             android:id="@+id/pm_scale"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
             android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:paddingTop="15dp"
+            android:paddingBottom="5dp"
             android:text="@string/pm_scale"
             android:textAppearance="@style/pm_scale" />
 
-                <TextView
-                    android:id="@+id/pm_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:gravity="center"
-                    android:text="@string/pm_value"
-                    android:textAppearance="@style/pm_value" />
+        <TextView
+            android:id="@+id/pm_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="@string/pm_value"
+            android:textAppearance="@style/pm_value"
+            android:textFontWeight="600"
+            tools:targetApi="p" />
 
-                <TextView
-                    android:id="@+id/pm_unit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_centerInParent="true"
-                    android:text="@string/pm_unit"
-                    android:textAppearance="@style/pm_unit" />
+        <TextView
+            android:id="@+id/pm_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:paddingBottom="15dp"
+            android:text="@string/pm_unit"
+            android:textAppearance="@style/pm_unit" />
 
 
     </RelativeLayout>
+
     <RelativeLayout
-        android:layout_width="150dp"
-        android:layout_height="50dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true">
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="30dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_toEndOf="@id/index_color">
 
         <LinearLayout
-            android:layout_width="25dp"
+            android:id="@+id/forecast1"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
             android:orientation="vertical">
@@ -81,7 +112,7 @@
             <TextView
                 android:id="@+id/forecast_value1"
                 android:layout_width="match_parent"
-                android:layout_height="20.88dp"
+                android:layout_height="wrap_content"
                 android:gravity="top"
                 android:text="@string/forecast_value1"
                 android:textAppearance="@style/forecast_value" />
@@ -105,17 +136,19 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="25dp"
+            android:id="@+id/forecast2"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginStart="60dp"
+            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@+id/forecast1"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/forecast_value2"
                 android:layout_width="match_parent"
-                android:layout_height="20.88dp"
+                android:layout_height="wrap_content"
                 android:gravity="top"
-                android:text="@string/forecast_value1"
+                android:text="@string/forecast_value2"
                 android:textAppearance="@style/forecast_value" />
 
             <TextView
@@ -132,22 +165,24 @@
                 android:layout_height="14dp"
                 android:layout_marginTop="5dp"
                 android:gravity="bottom"
-                android:text="@string/time1"
+                android:text="@string/time2"
                 android:textAppearance="@style/time" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="25dp"
+            android:id="@+id/forecast3"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_alignParentEnd="true"
+            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@+id/forecast2"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/forecast_value3"
                 android:layout_width="match_parent"
-                android:layout_height="20.88dp"
+                android:layout_height="wrap_content"
                 android:gravity="top"
-                android:text="@string/forecast_value1"
+                android:text="@string/forecast_value3"
                 android:textAppearance="@style/forecast_value" />
 
             <TextView
@@ -164,9 +199,11 @@
                 android:layout_height="14dp"
                 android:layout_marginTop="5dp"
                 android:gravity="bottom"
-                android:text="@string/time1"
+                android:text="@string/time3"
                 android:textAppearance="@style/time" />
         </LinearLayout>
+
+
     </RelativeLayout>
 
 </RelativeLayout>

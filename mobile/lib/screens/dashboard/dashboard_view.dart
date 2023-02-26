@@ -12,6 +12,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -438,23 +439,23 @@ class _DashboardViewState extends State<DashboardView>
       }
     }
 
-    // if(airQualityReading == null) return;
+    if (airQualityReading == null) return;
 
+    String formattedDateTime = DateFormat('dd/MM, h:mm a')
+        .format(airQualityReading.dateTime.toLocal());
     return Future.wait([
-      HomeWidget.saveWidgetData<String>('location', airQualityReading?.name),
+      HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
+      HomeWidget.saveWidgetData<String>('date', formattedDateTime),
       HomeWidget.saveWidgetData<String>(
-          'date', airQualityReading?.dateTime.toString()),
-      HomeWidget.saveWidgetData<double>('pm_value', airQualityReading?.pm2_5),
-
-      // HomeWidget.saveWidgetData<double>('pm2_5', airQualityReading?.pm2_5)
-      // HomeWidget.saveWidgetData<>('location', airQualityReading?.location)
-      // HomeWidget.saveWidgetData<String>('message', _messageController.text),
+          'pm_value', airQualityReading.pm2_5.toString()),
     ]).then((value) => value);
   }
 
   Future<void> _updateWidget() async {
     return HomeWidget.updateWidget(
-            name: 'AirQoHomeScreenWidget', iOSName: 'AirQoHomeScreenWidget')
+            name: 'AirQoHomeScreenWidget',
+            iOSName: 'AirQoHomeScreenWidget',
+            qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget')
         .then((value) => value);
   }
 

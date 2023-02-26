@@ -11,4 +11,8 @@
     <string name="pm_unit">µg/m<sup>3</sup></string>
     <string name="forecast_value1">22</string>
     <string name="time1">4pm</string>
+    <string name="forecast_value2">23</string>
+    <string name="time2">5pm</string>
+    <string name="forecast_value3">24</string>
+    <string name="time3">6pm</string>
 </resources>
