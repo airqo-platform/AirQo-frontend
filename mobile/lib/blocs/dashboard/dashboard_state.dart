@@ -15,6 +15,7 @@ class DashboardState extends Equatable {
     this.airQualityReadings = const [],
     this.status = DashboardStatus.loading,
     this.error = DashboardError.none,
+    this.checkForUpdates = true,
   });
 
   const DashboardState({
@@ -22,6 +23,7 @@ class DashboardState extends Equatable {
     this.airQualityReadings = const [],
     this.status = DashboardStatus.loading,
     this.error = DashboardError.none,
+    this.checkForUpdates = true,
   });
 
   DashboardState copyWith({
@@ -29,12 +31,14 @@ class DashboardState extends Equatable {
     List<AirQualityReading>? airQualityReadings,
     DashboardStatus? status,
     DashboardError? error,
+    bool? checkForUpdates,
   }) {
     return DashboardState(
       greetings: greetings ?? this.greetings,
       airQualityReadings: airQualityReadings ?? this.airQualityReadings,
       status: status ?? this.status,
       error: error ?? this.error,
+      checkForUpdates: checkForUpdates ?? this.checkForUpdates,
     );
   }
 
@@ -44,6 +48,7 @@ class DashboardState extends Equatable {
   final List<AirQualityReading> airQualityReadings;
   final DashboardStatus status;
   final DashboardError error;
+  final bool checkForUpdates;
 
   @override
   List<Object?> get props => [
@@ -51,5 +56,6 @@ class DashboardState extends Equatable {
         airQualityReadings,
         status,
         error,
+        checkForUpdates,
       ];
 }

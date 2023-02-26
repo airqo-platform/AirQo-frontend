@@ -259,47 +259,85 @@ class _DashboardViewState extends State<DashboardView>
                             BlocBuilder<NearbyLocationBloc,
                                 NearbyLocationState>(
                               builder: (context, state) {
+                                switch (state.blocStatus) {
+                                  case NearbyLocationStatus.initial:
+                                  case NearbyLocationStatus.searching:
+                                    return const ContainerLoadingAnimation(
+                                      radius: 16,
+                                      height: 251,
+                                    );
+                                  case NearbyLocationStatus.loaded:
+                                    return const SizedBox(
+                                      height: 16,
+                                    );
+                                  case NearbyLocationStatus.error:
+                                    switch (state.error) {
+                                      case NearbyAirQualityError.none:
+                                        return const SizedBox(
+                                          height: 0,
+                                        );
+                                      case NearbyAirQualityError.locationDenied:
+                                      case NearbyAirQualityError
+                                          .locationDisabled:
+                                        return const SizedBox(
+                                          height: 16,
+                                        );
+                                      case NearbyAirQualityError
+                                          .noNearbyAirQualityReadings:
+                                        return SizedBox(
+                                          height:
+                                              state.showErrorMessage ? 16 : 0,
+                                        );
+                                    }
+                                }
+                              },
+                            ),
+                            BlocBuilder<NearbyLocationBloc,
+                                NearbyLocationState>(
+                              builder: (context, state) {
                                 if (state.blocStatus ==
                                     NearbyLocationStatus.error) {
                                   _nearbyLocationExists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
                                     case NearbyAirQualityError.locationDisabled:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
-                                    case NearbyAirQualityError.none:
                                     case NearbyAirQualityError
                                         .noNearbyAirQualityReadings:
-                                      return Container();
+                                      return state.showErrorMessage
+                                          ? const NoLocationAirQualityMessage(
+                                              NearbyAirQualityError
+                                                  .noNearbyAirQualityReadings,
+                                            )
+                                          : Container();
+                                    case NearbyAirQualityError.none:
+                                      break;
                                   }
                                 }
 
                                 final AirQualityReading? nearbyAirQuality =
                                     state.locationAirQuality;
                                 if (nearbyAirQuality == null) {
-                                  return Container();
+                                  return state.showErrorMessage
+                                      ? const NoLocationAirQualityMessage(
+                                          NearbyAirQualityError
+                                              .noNearbyAirQualityReadings,
+                                        )
+                                      : Container();
                                 }
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: Showcase(
-                                    key: _nearestLocationShowcaseKey,
-                                    description:
-                                        'This card shows the air quality of your nearest location',
-                                    child: AnalyticsCard(
-                                      nearbyAirQuality,
-                                      false,
-                                    ),
+                                return Showcase(
+                                  key: _nearestLocationShowcaseKey,
+                                  description:
+                                      'This card shows the air quality of your nearest location',
+                                  child: AnalyticsCard(
+                                    nearbyAirQuality,
+                                    false,
                                   ),
                                 );
                               },
@@ -356,7 +394,7 @@ class _DashboardViewState extends State<DashboardView>
 
                           return items[index];
                         },
-                        childCount: 6,
+                        childCount: 7,
                       ),
                       onRefresh: () {
                         _refresh();

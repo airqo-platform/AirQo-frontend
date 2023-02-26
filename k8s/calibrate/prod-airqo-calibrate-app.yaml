@@ -36,7 +36,7 @@ spec:
       containers:
         - name: prod-calibrate-app
           image: eu.gcr.io/airqo-250220/airqo-calibrate-app:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
               name: prod-calibrate
