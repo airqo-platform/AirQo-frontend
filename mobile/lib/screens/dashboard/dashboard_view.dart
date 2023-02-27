@@ -479,11 +479,27 @@ class _DashboardViewState extends State<DashboardView>
 
     if (airQualityReading == null) return;
 
+    List<ForecastInsight> forecastDbData = await AirQoDatabase()
+        .getForecastInsights(airQualityReading.referenceSite);
+    forecastDbData = forecastDbData
+        .where((element) => element.time.compareTo(DateTime.now()) > 1)
+        .take(3)
+        .toList();
+
+    Map<String, double> forecastData = {};
+
+    for (var element in forecastDbData) {
+      forecastData.putIfAbsent(
+          DateFormat('h:mm a').format(element.time.toLocal()),
+          () => element.pm2_5);
+    }
+
     String formattedDateTime = DateFormat('dd/MM, h:mm a')
         .format(airQualityReading.dateTime.toLocal());
     return Future.wait([
       HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
       HomeWidget.saveWidgetData<String>('date', formattedDateTime),
+      HomeWidget.saveWidgetData<Map<String, double>>('forecast', forecastData),
       HomeWidget.saveWidgetData<String>(
           'pm_value', airQualityReading.pm2_5.toString()),
     ]).then((value) => value);

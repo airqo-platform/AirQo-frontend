@@ -81,7 +81,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: CustomColors.appColorBlue,
+            color: CustomColors.appColorBlue,
             borderRadius: BorderRadius.circular(4),
           ),
           child: const Icon(
