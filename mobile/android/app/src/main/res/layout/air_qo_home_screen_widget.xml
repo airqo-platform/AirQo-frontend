@@ -2,8 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_bg"
-    android:layout_width="300dp"
-    android:layout_height="200dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:background="@drawable/widget_bg"
     android:orientation="vertical">
 
@@ -11,10 +11,11 @@
         android:id="@+id/location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="20dp"
         android:gravity="top"
         android:letterSpacing="0.005"
+        android:maxWidth="150dp"
         android:text="@string/wandegeya"
         android:textAppearance="@style/wandegeya"
         android:textFontWeight="500"
@@ -26,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/location"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="15dp"
         android:text="@string/date"
         android:textAppearance="@style/date" />
 
@@ -43,39 +44,41 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="20dp"
+        android:layout_marginStart="80dp"
         android:layout_marginTop="20dp"
+        android:layout_toEndOf="@+id/refresh"
         android:src="@drawable/air" />
 
     <RelativeLayout
         android:id="@+id/index_color"
         android:layout_width="109dp"
         android:layout_height="99dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="30dp"
+        android:layout_below="@+id/date"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/circle">
 
 
         <TextView
-            android:id="@+id/pm_scale"
+            android:id="@+id/pmScale"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerInParent="true"
             android:paddingTop="15dp"
             android:paddingBottom="5dp"
-            android:text="@string/pm_scale"
-            android:textAppearance="@style/pm_scale" />
+            android:text="@string/pmScale"
+            android:textAppearance="@style/pmScale" />
 
         <TextView
-            android:id="@+id/pm_value"
+            android:id="@+id/pmValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:gravity="center"
-            android:text="@string/pm_value"
+            android:maxWidth="80dp"
+            android:text="@string/pmValue"
             android:textAppearance="@style/pm_value"
             android:textFontWeight="600"
             tools:targetApi="p" />
@@ -87,7 +90,7 @@
             android:layout_alignParentBottom="true"
             android:layout_centerInParent="true"
             android:paddingBottom="15dp"
-            android:text="@string/pm_unit"
+            android:text="@string/pmUnit"
             android:textAppearance="@style/pm_unit" />
 
 
@@ -95,40 +98,41 @@
 
     <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="30dp"
-        android:layout_marginRight="20dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/date"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_toEndOf="@id/index_color">
+        android:layout_toEndOf="@+id/index_color">
 
         <LinearLayout
             android:id="@+id/forecast1"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/forecast_value1"
+                android:id="@+id/forecastValue1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
-                android:text="@string/forecast_value1"
-                android:textAppearance="@style/forecast_value" />
+                android:text="@string/forecastValue1"
+                android:textAppearance="@style/forecastValue" />
 
             <TextView
                 android:id="@+id/pm_unit2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
-                android:text="@string/pm_unit"
-                android:textAppearance="@style/pm_unit2" />
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pmUnit2" />
 
             <TextView
                 android:id="@+id/time1"
                 android:layout_width="match_parent"
-                android:layout_height="14dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="bottom"
                 android:text="@string/time1"
@@ -138,33 +142,31 @@
         <LinearLayout
             android:id="@+id/forecast2"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_toEndOf="@+id/forecast1"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/forecast_value2"
-                android:layout_width="match_parent"
+                android:id="@+id/forecastValue2"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="top"
-                android:text="@string/forecast_value2"
-                android:textAppearance="@style/forecast_value" />
+                android:text="@string/forecastValue2"
+                android:textAppearance="@style/forecastValue" />
 
             <TextView
                 android:id="@+id/pm_unit3"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="top"
-                android:text="@string/pm_unit"
-                android:textAppearance="@style/pm_unit2" />
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pmUnit2" />
 
             <TextView
                 android:id="@+id/time2"
                 android:layout_width="match_parent"
-                android:layout_height="14dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:gravity="bottom"
                 android:text="@string/time2"
                 android:textAppearance="@style/time" />
         </LinearLayout>
@@ -172,31 +174,29 @@
         <LinearLayout
             android:id="@+id/forecast3"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_toEndOf="@+id/forecast2"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/forecast_value3"
-                android:layout_width="match_parent"
+                android:id="@+id/forecastValue3"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="top"
-                android:text="@string/forecast_value3"
+                android:text="@string/forecastValue3"
                 android:textAppearance="@style/forecast_value" />
 
             <TextView
-                android:id="@+id/pm_unit4"
-                android:layout_width="match_parent"
+                android:id="@+id/pmUnit4"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="top"
-                android:text="@string/pm_unit"
-                android:textAppearance="@style/pm_unit2" />
+                android:text="@string/pmUnit"
+                android:textAppearance="@style/pmUnit2" />
 
             <TextView
                 android:id="@+id/time3"
-                android:layout_width="match_parent"
-                android:layout_height="14dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="bottom"
                 android:text="@string/time3"

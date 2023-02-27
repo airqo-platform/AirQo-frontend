@@ -493,15 +493,26 @@ class _DashboardViewState extends State<DashboardView>
           DateFormat('h:mm a').format(element.time.toLocal()),
           () => element.pm2_5);
     }
+    List<String> forecastValues = [];
+    List<String> times = [];
 
+    forecastData.forEach((key, value) {
+      times.add(key);
+      forecastValues.add(value.toString());
+    });
     String formattedDateTime = DateFormat('dd/MM, h:mm a')
         .format(airQualityReading.dateTime.toLocal());
     return Future.wait([
       HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
-      HomeWidget.saveWidgetData<String>('date', formattedDateTime),
-      HomeWidget.saveWidgetData<Map<String, double>>('forecast', forecastData),
       HomeWidget.saveWidgetData<String>(
           'pm_value', airQualityReading.pm2_5.toString()),
+      HomeWidget.saveWidgetData<String>('date', formattedDateTime),
+      HomeWidget.saveWidgetData<String>('forecastValue1', forecastValues[0]),
+      HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
+      HomeWidget.saveWidgetData<String>('forecastValue3', forecastValues[2]),
+      HomeWidget.saveWidgetData<String>('time1', times[0]),
+      HomeWidget.saveWidgetData<String>('time2', times[1]),
+      HomeWidget.saveWidgetData<String>('time3', times[2]),
     ]).then((value) => value);
   }
 

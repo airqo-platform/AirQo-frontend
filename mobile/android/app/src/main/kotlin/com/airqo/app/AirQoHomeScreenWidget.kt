@@ -25,17 +25,36 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_bg, pendingIntent)
                 setTextViewText(
-                    R.id.location, widgetData.getString("location", null) ?: "None"
+                    R.id.location, widgetData.getString("location", null) ?: "--"
                 )
 
                 setTextViewText(
-                    R.id.date, widgetData.getString("date", null) ?: "None"
+                    R.id.date, widgetData.getString("date", null) ?: "--"
                 )
 
 
-                val pmValue = widgetData.getString("pm_value", null)
+                val pmValue = widgetData.getString("pmValue", null)
                 setTextViewText(
-                    R.id.pm_value, pmValue ?: "None"
+                    R.id.pmValue, pmValue ?: "--"
+                )
+
+                setTextViewText(
+                    R.id.forecastValue1, widgetData.getString("forecastValue1", null) ?: "--"
+                )
+                setTextViewText(
+                    R.id.forecastValue2, widgetData.getString("forecastValue2", null) ?: "--"
+                )
+                setTextViewText(
+                    R.id.forecastValue3, widgetData.getString("forecastValue3", null) ?: "--"
+                )
+                setTextViewText(
+                    R.id.time1, widgetData.getString("time1", null) ?: "--"
+                )
+                setTextViewText(
+                    R.id.time2, widgetData.getString("time2", null) ?: "--"
+                )
+                setTextViewText(
+                    R.id.time3, widgetData.getString("time3", null) ?: "--"
                 )
 //                if (pmValue != null) {
 //                    when (pmValue.toDouble()) {

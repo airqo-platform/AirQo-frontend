@@ -28,28 +28,28 @@
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 
-    <style name="pm_scale">
+    <style name="pmScale">
         <item name="android:textSize">11.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
 
     </style>
 
-    <style name="pm_value">
+    <style name="pmValue">
         <item name="android:textSize">25.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 
-    <style name="pm_unit">
+    <style name="pmUnit">
         <item name="android:textSize">9.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 
-    <style name="forecast_value">
+    <style name="forecastValue">
         <item name="android:textSize">15.84sp</item>
         <item name="android:textColor">#49494A</item>
     </style>
 
-    <style name="pm_unit2">
+    <style name="pmUnit2">
         <item name="android:textSize">6.84sp</item>
         <item name="android:textColor">#49494A</item>
     </style>
