@@ -16,7 +16,7 @@
     </style>
 
     <style name="pm_value">
-        <item name="android:textSize">35.45sp</item>
+        <item name="android:textSize">25.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 

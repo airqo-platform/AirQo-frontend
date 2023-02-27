@@ -505,7 +505,7 @@ class _DashboardViewState extends State<DashboardView>
     return Future.wait([
       HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
       HomeWidget.saveWidgetData<String>(
-          'pm_value', airQualityReading.pm2_5.toString()),
+          'pmValue', airQualityReading.pm2_5.toString()),
       HomeWidget.saveWidgetData<String>('date', formattedDateTime),
       HomeWidget.saveWidgetData<String>('forecastValue1', forecastValues[0]),
       HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
