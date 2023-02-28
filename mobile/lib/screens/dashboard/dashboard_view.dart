@@ -15,6 +15,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
+
+import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -468,14 +470,8 @@ class _DashboardViewState extends State<DashboardView>
 
   Future<void> _sendData() async {
     AirQualityReading? airQualityReading =
-        context.read<NearbyLocationBloc>().state.locationAirQuality;
-    if (airQualityReading == null) {
-      List<AirQualityReading> airQualityReadings =
-          HiveService.getAirQualityReadings();
-      if (airQualityReadings.isNotEmpty) {
-        airQualityReading = airQualityReadings.first;
-      }
-    }
+        context.read<NearbyLocationBloc>().state.locationAirQuality ??
+            HiveService.getAirQualityReadings().firstOrNull;
 
     if (airQualityReading == null) return;
 
@@ -490,38 +486,50 @@ class _DashboardViewState extends State<DashboardView>
 
     for (var element in forecastDbData) {
       forecastData.putIfAbsent(
-          DateFormat('h:mm a').format(element.time.toLocal()),
-          () => element.pm2_5);
+        DateFormat('h:mm a').format(element.time.toLocal()),
+        () => element.pm2_5,
+      );
     }
-    List<String> forecastValues = [];
-    List<String> times = [];
+    print("Data is $forecastData");
+    List<String> forecastValues =
+        forecastData.values.map((value) => value.toString()).toList();
+    List<String> times = forecastData.keys.toList();
 
-    forecastData.forEach((key, value) {
-      times.add(key);
-      forecastValues.add(value.toString());
-    });
     String formattedDateTime = DateFormat('dd/MM, h:mm a')
         .format(airQualityReading.dateTime.toLocal());
+
+    List<String> keys = [
+      'location',
+      'pmValue',
+      'date',
+      'forecastValue1',
+      'forecastValue2',
+      'forecastValue3',
+      'time1',
+      'time2',
+      'time3',
+    ];
+    List<dynamic> values = [
+      airQualityReading.name,
+      airQualityReading.pm2_5.toString(),
+      formattedDateTime,
+      ...forecastValues,
+      ...times
+    ];
     return Future.wait([
-      HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
-      HomeWidget.saveWidgetData<String>(
-          'pmValue', airQualityReading.pm2_5.toString()),
-      HomeWidget.saveWidgetData<String>('date', formattedDateTime),
-      HomeWidget.saveWidgetData<String>('forecastValue1', forecastValues[0]),
-      HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
-      HomeWidget.saveWidgetData<String>('forecastValue3', forecastValues[2]),
-      HomeWidget.saveWidgetData<String>('time1', times[0]),
-      HomeWidget.saveWidgetData<String>('time2', times[1]),
-      HomeWidget.saveWidgetData<String>('time3', times[2]),
-    ]).then((value) => value);
+      keys.asMap().forEach((index, key) {
+        HomeWidget.saveWidgetData<String>(key, values[index].toString());
+      })
+    ] as Iterable<Future>)
+        .then((value) => value);
   }
 
-  Future<void> _updateWidget() async {
+  Future<void> _updateWidget() {
     return HomeWidget.updateWidget(
-            name: 'AirQoHomeScreenWidget',
-            iOSName: 'AirQoHomeScreenWidget',
-            qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget')
-        .then((value) => value);
+      name: 'AirQoHomeScreenWidget',
+      iOSName: 'AirQoHomeScreenWidget',
+      qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
+    ).then((value) => value);
   }
 
   Future<void> _sendAndUpdate() async {
