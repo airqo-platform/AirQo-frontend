@@ -495,8 +495,8 @@ class _DashboardViewState extends State<DashboardView>
         forecastData.values.map((value) => value.toString()).toList();
     List<String> times = forecastData.keys.toList();
 
-    String formattedDateTime = DateFormat('dd/MM, h:mm a')
-        .format(airQualityReading.dateTime.toLocal());
+    String formattedDateTime =
+        DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal());
 
     List<String> keys = [
       'location',
