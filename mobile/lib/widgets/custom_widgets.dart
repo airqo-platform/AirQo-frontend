@@ -550,26 +550,29 @@ class CustomShowcaseWidget extends StatelessWidget {
     required this.showcaseKey,
     required this.description,
     required this.childWidget,
-    this.direction,
+    this.customize,
+    this.descriptionWidth,
+    this.descriptionHeight,
   });
 
   final GlobalKey showcaseKey;
-  final String description;
   final Widget childWidget;
-  final String? direction;
+  final String? customize;
+  final String description;
+  final double? descriptionWidth, descriptionHeight;
 
   @override
   Widget build(BuildContext context) {
     return Showcase.withWidget(
       key: showcaseKey,
-      width: 120,
+      width: 12,
       height: 45,
       overlayColor: Colors.black,
       overlayOpacity: 0.9,
       container: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          direction != "up"
+          customize != "up"
               ? SizedBox(
                   width: 45,
                   height: 45,
@@ -583,17 +586,48 @@ class CustomShowcaseWidget extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          Text(
-            description,
-            textAlign: TextAlign.left,
-            style: TextStyle(color: Colors.white),
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
+          customize == "skip"
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: IconButton(
+                        tooltip: "Skip Showcase",
+                        icon: const Icon(Icons.skip_next),
+                        onPressed: () => ShowCaseWidget.of(context).dismiss(),
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                )
+              : const SizedBox(),
+          Container(
+            constraints: BoxConstraints.expand(
+                width: descriptionWidth ?? 200,
+                height: descriptionHeight ?? 20),
+            child: Text(
+              description,
+              textAlign: TextAlign.left,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              softWrap: true,
+            ),
           ),
           const SizedBox(
             height: 10,
           ),
-          direction == "up"
+          customize == "up"
               ? SizedBox(
                   width: 45,
                   height: 45,
@@ -609,7 +643,8 @@ class CustomShowcaseWidget extends StatelessWidget {
       targetShapeBorder: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-              color: CustomColors.appColorBlue, width: 3, strokeAlign: -5)),
+            color: CustomColors.appColorBlue, width: 3, strokeAlign: -5),
+      ),
       child: childWidget,
     );
   }

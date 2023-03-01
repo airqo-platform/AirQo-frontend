@@ -55,40 +55,11 @@ class _DashboardViewState extends State<DashboardView>
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
-        child: Showcase.withWidget(
-          key: _skipShowcaseKey,
-          overlayOpacity: 0.6,
-          targetShapeBorder: const RoundedRectangleBorder(),
-          width: 50,
-          height: 50,
-          container: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: 45,
-                height: 45,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: IconButton(
-                  tooltip: "Skip Showcase",
-                  icon: const Icon(Icons.skip_next),
-                  onPressed: () => ShowCaseWidget.of(context).dismiss(),
-                  color: CustomColors.appColorBlue,
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                "Click to Skip Tutorial",
-                textAlign: TextAlign.left,
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-          child: AppBar(
+        child: CustomShowcaseWidget(
+          showcaseKey: _skipShowcaseKey,
+          description: "Click to Skip Tutorial",
+          customize: "skip",
+          childWidget: AppBar(
             automaticallyImplyLeading: false,
             centerTitle: false,
             title: SvgPicture.asset(
@@ -136,6 +107,7 @@ class _DashboardViewState extends State<DashboardView>
                       return Expanded(
                         child: CustomShowcaseWidget(
                           showcaseKey: _favoritesShowcaseKey,
+                          descriptionHeight: 120,
                           description:
                               "Find the latest air quality from your favorite locations",
                           childWidget: DashboardTopCard(
@@ -170,6 +142,8 @@ class _DashboardViewState extends State<DashboardView>
                       return Expanded(
                         child: CustomShowcaseWidget(
                           showcaseKey: _forYouShowcaseKey,
+                          descriptionWidth: 100,
+                          descriptionHeight: 130,
                           description:
                               "Find amazing content specifically designed for you here.",
                           childWidget: DashboardTopCard(
@@ -316,6 +290,7 @@ class _DashboardViewState extends State<DashboardView>
                                   padding: const EdgeInsets.only(top: 16),
                                   child: CustomShowcaseWidget(
                                     showcaseKey: _kyaShowcaseKey,
+                                    descriptionHeight: 100,
                                     description:
                                         "Do you want to know more about air quality? Know your air in this section",
                                     childWidget: KyaCardWidget(kya.first),
@@ -333,6 +308,7 @@ class _DashboardViewState extends State<DashboardView>
                                         padding: const EdgeInsets.only(top: 16),
                                         child: CustomShowcaseWidget(
                                           showcaseKey: _analyticsShowcaseKey,
+                                          descriptionHeight: 120,
                                           description:
                                               "Find the air quality of different locations across Africa here.",
                                           childWidget: AnalyticsCard(
@@ -490,7 +466,7 @@ class _DashboardViewState extends State<DashboardView>
           });
         }
       });
-      Future.delayed(const Duration(seconds: 5), () {
+      Future.delayed(const Duration(seconds: 8), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ShowCaseWidget.of(context).next();

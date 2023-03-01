@@ -87,6 +87,8 @@ class _ForYouPageState extends State<ForYouPage>
                           ),
                           CustomShowcaseWidget(
                             showcaseKey: _kyaTabShowcaseKey,
+                            descriptionHeight: 160,
+                            descriptionWidth: 100,
                             description:
                                 "Do you want to know more about air quality? Know your air in this section",
                             childWidget: TabButton(

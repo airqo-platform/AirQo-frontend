@@ -141,6 +141,7 @@ class _SettingsPageState extends State<SettingsPage>
                       divider,
                       CustomShowcaseWidget(
                         showcaseKey: _appTourShowcaseKey,
+                        descriptionHeight: 120,
                         description:
                             "You can always restart the App Tour from here anytime.",
                         childWidget: Card(

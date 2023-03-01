@@ -94,9 +94,9 @@ class _HomePageState extends State<HomePage> {
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: CustomShowcaseWidget(
-                      direction: "up",
+                      customize: "up",
                       showcaseKey: _homeShowcaseKey,
-                      description: 'Home',
+                      description: 'Explore air quality here',
                       childWidget: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         svg: 'assets/icon/home_icon.svg',
@@ -108,9 +108,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   BottomNavigationBarItem(
                     icon: CustomShowcaseWidget(
-                      direction: "up",
+                      customize: "up",
                       showcaseKey: _mapShowcaseKey,
-                      description: 'This is the AirQo map',
+                      descriptionWidth: 90,
+                      descriptionHeight: 110,
+                      description: 'See readings from our monitors here',
                       childWidget: BottomNavIcon(
                         svg: 'assets/icon/location.svg',
                         selectedIndex: _selectedIndex,
@@ -124,9 +126,12 @@ class _HomePageState extends State<HomePage> {
                     icon: Stack(
                       children: [
                         CustomShowcaseWidget(
-                          direction: "up",
+                          customize: "up",
                           showcaseKey: _profileShowcaseKey,
-                          description: 'Access your Profile details here',
+                          descriptionHeight: 110,
+                          descriptionWidth: 80,
+                          description:
+                              'Change your preferences and settings here',
                           childWidget: BottomNavIcon(
                             svg: 'assets/icon/profile.svg',
                             selectedIndex: _selectedIndex,
