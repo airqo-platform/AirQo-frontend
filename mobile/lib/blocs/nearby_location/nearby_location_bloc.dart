@@ -21,18 +21,14 @@ class NearbyLocationBloc
     DismissErrorMessage _,
     Emitter<NearbyLocationState> emit,
   ) {
-    return emit(state.copyWith(
-      showErrorMessage: false,
-      locationAirQuality: state.locationAirQuality,
-    ));
+    return emit(state.copyWith(showErrorMessage: false));
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
     final locationGranted = await LocationService.locationGranted();
     if (!locationGranted) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.error,
-        error: NearbyAirQualityError.locationDenied,
+        blocStatus: NearbyLocationStatus.locationDenied,
       ));
 
       return false;
@@ -41,8 +37,7 @@ class NearbyLocationBloc
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.error,
-        error: NearbyAirQualityError.locationDisabled,
+        blocStatus: NearbyLocationStatus.locationDisabled,
       ));
 
       return false;
@@ -88,12 +83,7 @@ class NearbyLocationBloc
 
     if (isLocationEnabled) {
       emit(state.copyWith(
-        blocStatus: nearByAirQualityReadings.isEmpty
-            ? NearbyLocationStatus.error
-            : NearbyLocationStatus.loaded,
-        error: nearByAirQualityReadings.isEmpty
-            ? NearbyAirQualityError.noNearbyAirQualityReadings
-            : NearbyAirQualityError.none,
+        blocStatus: NearbyLocationStatus.searchComplete,
         locationAirQuality: nearByAirQualityReadings.isEmpty
             ? null
             : nearByAirQualityReadings.first,
@@ -111,8 +101,6 @@ class NearbyLocationBloc
       blocStatus: state.locationAirQuality == null
           ? NearbyLocationStatus.searching
           : state.blocStatus,
-      error: NearbyAirQualityError.none,
-      locationAirQuality: state.locationAirQuality,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
@@ -130,12 +118,7 @@ class NearbyLocationBloc
     airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
 
     emit(state.copyWith(
-      blocStatus: airQualityReadings.isEmpty
-          ? NearbyLocationStatus.error
-          : NearbyLocationStatus.loaded,
-      error: airQualityReadings.isEmpty
-          ? NearbyAirQualityError.noNearbyAirQualityReadings
-          : NearbyAirQualityError.none,
+      blocStatus: NearbyLocationStatus.searchComplete,
       locationAirQuality:
           airQualityReadings.isEmpty ? null : airQualityReadings.first,
     ));
