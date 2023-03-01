@@ -3,8 +3,7 @@
     android:id="@+id/widget_bg"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/widget_bg"
-    android:orientation="vertical">
+    android:background="@drawable/widget_bg">
 
     <TextView
         android:id="@+id/location"
@@ -12,12 +11,13 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
         android:layout_marginTop="20dp"
-        android:gravity="top"
+        android:fontFamily="@font/roboto_medium"
         android:letterSpacing="0.005"
         android:maxWidth="150dp"
         android:text="@string/wandegeya"
         android:textAppearance="@style/wandegeya"
         android:textFontWeight="500"
+        android:textStyle="normal"
         tools:targetApi="p" />
 
 
@@ -27,6 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/location"
         android:layout_marginStart="15dp"
+        android:fontFamily="@font/roboto_regular"
         android:text="@string/date"
         android:textAppearance="@style/date" />
 
@@ -43,7 +44,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="70dp"
         android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/refresh"
         android:src="@drawable/air" />
@@ -65,6 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_mono_medium"
             android:paddingTop="15dp"
             android:paddingBottom="5dp"
             android:text="@string/pmScale"
@@ -75,6 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_mono_medium"
             android:gravity="center"
             android:text="@string/pmValue"
             android:textAppearance="@style/pmValue"
@@ -87,7 +90,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerInParent="true"
-            android:paddingBottom="15dp"
+            android:fontFamily="@font/roboto_mono_medium"
+            android:paddingTop="3dp"
+            android:paddingBottom="12dp"
             android:text="@string/pmUnit"
             android:textAppearance="@style/pm_unit" />
 
@@ -115,14 +120,17 @@
                 android:id="@+id/forecastValue1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:gravity="top"
                 android:text="@string/forecastValue1"
-                android:textAppearance="@style/forecastValue" />
+                android:textAppearance="@style/forecastValue"
+                android:textStyle="normal" />
 
             <TextView
                 android:id="@+id/pm_unit2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:gravity="top"
                 android:text="@string/pmUnit"
                 android:textAppearance="@style/pmUnit2" />
@@ -132,9 +140,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
                 android:gravity="bottom"
                 android:text="@string/time1"
-                android:textAppearance="@style/time" />
+                android:textAppearance="@style/time"
+                android:textStyle="normal" />
         </LinearLayout>
 
         <LinearLayout
@@ -149,24 +159,29 @@
                 android:id="@+id/forecastValue2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:text="@string/forecastValue2"
-                android:textAppearance="@style/forecastValue" />
+                android:textAppearance="@style/forecastValue"
+                android:textStyle="normal" />
 
             <TextView
                 android:id="@+id/pm_unit3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:gravity="top"
                 android:text="@string/pmUnit"
                 android:textAppearance="@style/pmUnit2" />
 
             <TextView
                 android:id="@+id/time2"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
                 android:text="@string/time2"
-                android:textAppearance="@style/time" />
+                android:textAppearance="@style/time"
+                android:textStyle="normal" />
         </LinearLayout>
 
         <LinearLayout
@@ -181,13 +196,16 @@
                 android:id="@+id/forecastValue3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:text="@string/forecastValue3"
-                android:textAppearance="@style/forecast_value" />
+                android:textAppearance="@style/forecast_value"
+                android:textStyle="normal" />
 
             <TextView
                 android:id="@+id/pmUnit4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_bold"
                 android:text="@string/pmUnit"
                 android:textAppearance="@style/pmUnit2" />
 
@@ -196,9 +214,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto_bold"
                 android:gravity="bottom"
                 android:text="@string/time3"
-                android:textAppearance="@style/time" />
+                android:textAppearance="@style/time"
+                android:textStyle="normal" />
         </LinearLayout>
 
 

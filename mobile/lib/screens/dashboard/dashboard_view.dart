@@ -490,46 +490,48 @@ class _DashboardViewState extends State<DashboardView>
         () => element.pm2_5,
       );
     }
-    print("Data is $forecastData");
+    // print("Data is $forecastData");
     List<String> forecastValues =
         forecastData.values.map((value) => value.toString()).toList();
     List<String> times = forecastData.keys.toList();
 
-    String formattedDateTime =
+    String rectangleWidgetTime =
         DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal());
+    String circularWidgetTime =
+        DateFormat('h:mm a').format(DateTime.now().toLocal());
 
-    List<String> keys = [
-      'location',
-      'pmValue',
-      'date',
-      'forecastValue1',
-      'forecastValue2',
-      'forecastValue3',
-      'time1',
-      'time2',
-      'time3',
-    ];
-    List<dynamic> values = [
-      airQualityReading.name,
-      airQualityReading.pm2_5.toString(),
-      formattedDateTime,
-      ...forecastValues,
-      ...times
-    ];
     return Future.wait([
-      keys.asMap().forEach((index, key) {
-        HomeWidget.saveWidgetData<String>(key, values[index].toString());
-      })
-    ] as Iterable<Future>)
-        .then((value) => value);
+      HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
+      HomeWidget.saveWidgetData('circular_location', airQualityReading.name),
+      HomeWidget.saveWidgetData<String>('date', rectangleWidgetTime),
+      HomeWidget.saveWidgetData<String>('circular_date', circularWidgetTime),
+      HomeWidget.saveWidgetData<String>(
+          'pmValue', airQualityReading.pm2_5.toString()),
+      HomeWidget.saveWidgetData<String>(
+          'circular_pm_value', airQualityReading.pm2_5.toString()),
+      HomeWidget.saveWidgetData<String>('forecastValue1', forecastValues[0]),
+      HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
+      HomeWidget.saveWidgetData<String>('forecastValue3', forecastValues[2]),
+      HomeWidget.saveWidgetData<String>('time1', times[0]),
+      HomeWidget.saveWidgetData<String>('time2', times[1]),
+      HomeWidget.saveWidgetData<String>('time3', times[2]),
+    ]).then((value) => value);
   }
 
   Future<void> _updateWidget() {
-    return HomeWidget.updateWidget(
+    final rectangleWidgetUpdate = HomeWidget.updateWidget(
       name: 'AirQoHomeScreenWidget',
       iOSName: 'AirQoHomeScreenWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
-    ).then((value) => value);
+    );
+
+    final circularWidgetUpdate = HomeWidget.updateWidget(
+      name: 'AirQoCircularWidget',
+      iOSName: 'AirQoCircularWidget',
+      qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
+    );
+
+    return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
   }
 
   Future<void> _sendAndUpdate() async {

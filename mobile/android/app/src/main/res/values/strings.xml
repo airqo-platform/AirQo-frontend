@@ -3,10 +3,9 @@
     <string name="app_name">AirQo</string>
     <string name="app_widget_description">This is the AirQo application homescreen widget</string>
     <string name="wandegeya">Wandegeya</string>
-    <string name="configure">Configure Screen</string>
-    <string name="add_widget">AirQo Widget</string>
-    <string name="date">12/12, 3:06pm</string>
     <string name="pmScale">PM<sub>2.5</sub></string>
+    <string name="date">12/12, 3:06pm</string>
+    <string name="dateCircle">14:45</string>
     <string name="pmValue">40</string>
     <string name="pmUnit">µg/m<sup>3</sup></string>
     <string name="forecastValue1">22</string>
@@ -15,4 +14,6 @@
     <string name="time2">5pm</string>
     <string name="forecastValue3">24</string>
     <string name="time3">6pm</string>
+    <string name="refresh_icon">Refresh icon</string>
+    <string name="location_icon">Location icon</string>
 </resources>
