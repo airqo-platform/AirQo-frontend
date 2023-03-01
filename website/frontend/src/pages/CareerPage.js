@@ -138,7 +138,7 @@ const CareerPage = () => {
                                     );
                                 })
                             ) : (
-                                <div className="no-listing">Currently, we have no open position.</div>
+                                <div className="no-listing">We currently have no open positions.    </div>
                             )}
 
                             <div className="self-intro">
