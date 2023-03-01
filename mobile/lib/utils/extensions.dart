@@ -214,6 +214,42 @@ extension AirQualityReadingExt on AirQualityReading {
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
   }
+
+  String insightsShortDate() {
+    if (dateTime.isToday()) {
+      return 'Today';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow';
+    }
+
+    return 'This week';
+  }
+
+  String insightsLongDate() {
+    if (dateTime.isToday()) {
+      return 'Today';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow';
+    }
+
+    return 'This week';
+  }
+
+  String insightsHealthTipsTitle() {
+    if (dateTime.isToday()) {
+      return 'Today’s health tips';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s health tips';
+    }
+
+    return dateTime.getWeekday().toTitleCase();
+  }
 }
 
 extension SearchResultExt on SearchResult {

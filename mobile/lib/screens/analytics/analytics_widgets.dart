@@ -81,7 +81,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: CustomColors.appColorBlue,
+            color: CustomColors.appColorBlue,
             borderRadius: BorderRadius.circular(4),
           ),
           child: const Icon(
@@ -324,6 +324,8 @@ class AnalyticsCard extends StatelessWidget {
   }
 
   Future<void> _goToInsights(BuildContext context) async {
+    context.read<InsightsBloc>().add(InitializeInsightsPage(airQualityReading));
+
     await Navigator.push(
       context,
       MaterialPageRoute(

@@ -49,13 +49,10 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => FeedbackBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => DailyInsightsBloc(),
+          create: (BuildContext context) => InsightsBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => KyaBloc(),
-        ),
-        BlocProvider(
-          create: (BuildContext context) => HourlyInsightsBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => NearbyLocationBloc(),
