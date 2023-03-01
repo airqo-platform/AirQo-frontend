@@ -20,10 +20,9 @@ const TweetsComponent = () => {
           <a
             className="twitter-timeline"
             data-theme="light"
-            data-tweet-limit="5"
+            data-tweet-limit="6"
             data-chrome="noheader nofooter transparent"
             data-height="560"
-            border-color="#eee"
             href="https://twitter.com/AirQoProject"
             style={{ fontWeight: '500', fontSize: '22px', fontFamily: 'Inter', opacity: '0.7' }}>
             Tweets by @AirQoProject
