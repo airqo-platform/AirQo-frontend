@@ -479,9 +479,13 @@ class _DashboardViewState extends State<DashboardView>
     List<String> forecastValues =
         forecastDbData.map((e) => e.pm2_5.toString()).take(3).toList();
     List<String> forecastTimes = List.generate(
-        3,
-        (index) => DateFormat('h a')
-            .format(DateTime.now().toLocal().add(Duration(hours: index + 1))));
+      3,
+      (index) => DateFormat('h a').format(
+        DateTime.now().toLocal().add(
+              Duration(hours: index + 1),
+            ),
+      ),
+    );
 
     String rectangleWidgetTime =
         DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal());
@@ -512,11 +516,22 @@ class _DashboardViewState extends State<DashboardView>
     //     .then((value) => value);
 
     return Future.wait([
-      HomeWidget.saveWidgetData<String>('location', airQualityReading.name),
       HomeWidget.saveWidgetData<String>(
-          'circular_location', airQualityReading.name),
-      HomeWidget.saveWidgetData<String>('date', rectangleWidgetTime),
-      HomeWidget.saveWidgetData<String>('circular_date', circularWidgetTime),
+        'location',
+        airQualityReading.name,
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'circular_location',
+        airQualityReading.name,
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'date',
+        rectangleWidgetTime,
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'circular_date',
+        circularWidgetTime,
+      ),
       HomeWidget.saveWidgetData<String>(
         'pmValue',
         airQualityReading.pm2_5.toInt().toString(),
@@ -525,12 +540,27 @@ class _DashboardViewState extends State<DashboardView>
         'circular_pm_value',
         airQualityReading.pm2_5.toInt().toString(),
       ),
-      HomeWidget.saveWidgetData<String>('forecastValue1', forecastValues.first),
+      HomeWidget.saveWidgetData<String>(
+        'forecastValue1',
+        forecastValues.first,
+      ),
       HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
-      HomeWidget.saveWidgetData<String>('forecastValue3', forecastValues.last),
-      HomeWidget.saveWidgetData<String>('time1', forecastTimes.first),
-      HomeWidget.saveWidgetData<String>('time2', forecastTimes[1]),
-      HomeWidget.saveWidgetData<String>('time3', forecastTimes.last),
+      HomeWidget.saveWidgetData<String>(
+        'forecastValue3',
+        forecastValues.last,
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'time1',
+        forecastTimes.first,
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'time2',
+        forecastTimes[1],
+      ),
+      HomeWidget.saveWidgetData<String>(
+        'time3',
+        forecastTimes.last,
+      ),
     ]).then((value) => value);
   }
 
