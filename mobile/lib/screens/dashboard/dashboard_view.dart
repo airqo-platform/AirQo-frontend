@@ -507,7 +507,7 @@ class _DashboardViewState extends State<DashboardView>
           });
         }
       });
-      Future.delayed(const Duration(seconds: 8), () {
+      Future.delayed(const Duration(seconds: 5), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ShowCaseWidget.of(context).next();
