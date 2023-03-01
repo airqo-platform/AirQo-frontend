@@ -39,9 +39,33 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 val pmValue = widgetData.getString("circular_pm_value", null)
 
-
                 fun setIndexColor(pmValue: String?) {
-                    if (pmValue == null) {
+                    data class ColorRange(
+                        val minValue: Int,
+                        val maxValue: Int,
+                        val resourceId: Int,
+                        val textColor: Int
+                    )
+
+                    val colorRanges = listOf(
+                        ColorRange(0, 12, R.drawable.green_circle, 0xff03B600.toInt()),
+                        ColorRange(13, 35, R.drawable.yellow_circle, 0xffA8A800.toInt()),
+                        ColorRange(36, 55, R.drawable.orange_circle, 0xffB86000.toInt()),
+                        ColorRange(56, 150, R.drawable.red_circle, 0xffB80B00.toInt()),
+                        ColorRange(151, 250, R.drawable.purple_circle, 0xff8E00AC.toInt()),
+                        ColorRange(
+                            Int.MAX_VALUE,
+                            Int.MAX_VALUE,
+                            R.drawable.maroon_circle,
+                            0xffDBA5B2.toInt()
+                        )
+                    )
+
+                    val colorRange =
+                        colorRanges.firstOrNull { pmValue?.toIntOrNull()!! in it.minValue..it.maxValue }
+
+                    if (colorRange == null) {
+                        // handle null or invalid pmValue
                         setInt(
                             R.id.circular_index_color,
                             "setBackgroundResource",
@@ -50,78 +74,18 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                         setTextColor(R.id.circular_pm_scale, 0xff03B600.toInt())
                         setTextColor(R.id.circular_pm_value, 0xff03B600.toInt())
                         setTextColor(R.id.circular_pm_unit, 0xff03B600.toInt())
-
                     } else {
-                        val pmValueDouble = pmValue.toDoubleOrNull()
-                        if (pmValueDouble != null) {
-                            when (pmValueDouble) {
-                                in 0.0..12.0 -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.green_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xff03B600.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xff03B600.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xff03B600.toInt())
-                                }
-
-                                in 12.1..35.4 -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.yellow_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xffA8A800.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xffA8A800.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xffA8A800.toInt())
-                                }
-                                in 35.5..55.4 -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.orange_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xffB86000.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xffB86000.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xffB86000.toInt())
-                                }
-                                in 55.5..150.4 -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.red_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xffB80B00.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xffB80B00.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xffB80B00.toInt())
-                                }
-                                in 150.5..250.4 -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.purple_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xff8E00AC.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xff8E00AC.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xff8E00AC.toInt())
-
-                                }
-                                else -> {
-                                    setInt(
-                                        R.id.circular_index_color,
-                                        "setBackgroundResource",
-                                        R.drawable.maroon_circle
-                                    )
-                                    setTextColor(R.id.circular_pm_scale, 0xffDBA5B2.toInt())
-                                    setTextColor(R.id.circular_pm_value, 0xffDBA5B2.toInt())
-                                    setTextColor(R.id.circular_pm_unit, 0xffDBA5B2.toInt())
-
-                                }
-                            }
-                        }
+                        setInt(
+                            R.id.circular_index_color,
+                            "setBackgroundResource",
+                            colorRange.resourceId
+                        )
+                        setTextColor(R.id.circular_pm_scale, colorRange.textColor)
+                        setTextColor(R.id.circular_pm_value, colorRange.textColor)
+                        setTextColor(R.id.circular_pm_unit, colorRange.textColor)
                     }
                 }
+
 
                 setIndexColor(pmValue)
             }
