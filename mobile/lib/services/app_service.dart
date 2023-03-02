@@ -211,6 +211,20 @@ class AppService {
     await prefs.remove(Config.homePageShowcase);
     await prefs.remove(Config.forYouPageShowcase);
     await prefs.remove(Config.settingsPageShowcase);
+    await prefs.remove(Config.restartTourShowcase);
+  }
+
+  Future<void> navigateShowcaseToScreen(
+      BuildContext context, Widget screen) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(Config.restartTourShowcase) == null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => screen,
+        ),
+      );
+    }
   }
 
   Future<void> _postSignUpActions() async {

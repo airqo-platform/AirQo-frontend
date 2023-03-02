@@ -51,13 +51,17 @@ class _ForYouPageState extends State<ForYouPage>
                       setState(() => _analytics = false);
                     }
                   },
-                  onFinish: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsPage(),
-                      ),
-                    );
+                  onFinish: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    if (prefs.getBool(Config.restartTourShowcase) == null) {
+                      Future.delayed(
+                        Duration.zero,
+                        () => _appService.navigateShowcaseToScreen(
+                          context,
+                          const SettingsPage(),
+                        ),
+                      );
+                    }
                   },
                   builder: Builder(
                     builder: (context) {

@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
   late GlobalKey _mapShowcaseKey;
   late GlobalKey _profileShowcaseKey;
   late BuildContext _showcaseContext;
+  final AppService _appService = AppService();
 
   late List<Widget> _widgetOptions;
 
@@ -73,13 +75,17 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         child: ShowCaseWidget(
-          onFinish: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ForYouPage(),
-              ),
-            );
+          onFinish: () async {
+            final prefs = await SharedPreferences.getInstance();
+            if (prefs.getBool(Config.restartTourShowcase) == null) {
+              Future.delayed(
+                Duration.zero,
+                () => _appService.navigateShowcaseToScreen(
+                  context,
+                  const ForYouPage(),
+                ),
+              );
+            }
           },
           builder: Builder(
             builder: (context) {
