@@ -53,7 +53,7 @@ class _ForYouPageState extends State<ForYouPage>
                   },
                   onFinish: () async {
                     final prefs = await SharedPreferences.getInstance();
-                    if (prefs.getBool(Config.restartTourShowcase) == null) {
+                    if (prefs.getBool(Config.restartTourShowcase) == true) {
                       Future.delayed(
                         Duration.zero,
                         () => _appService.navigateShowcaseToScreen(

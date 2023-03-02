@@ -151,6 +151,8 @@ class _SettingsPageState extends State<SettingsPage>
                             tileColor: Colors.white,
                             onTap: () async {
                               await AppService()
+                                  .setShowcase(Config.restartTourShowcase);
+                              await AppService()
                                   .clearShowcase()
                                   .then((value) async {
                                 await Navigator.pushAndRemoveUntil(

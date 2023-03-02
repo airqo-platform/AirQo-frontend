@@ -196,9 +196,9 @@ class AppService {
     }
   }
 
-  Future<void> setShowcase() async {
+  Future<void> setShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showcase', true);
+    await prefs.setBool(key, true);
   }
 
   Future<void> stopShowcase(String key) async {
@@ -211,20 +211,18 @@ class AppService {
     await prefs.remove(Config.homePageShowcase);
     await prefs.remove(Config.forYouPageShowcase);
     await prefs.remove(Config.settingsPageShowcase);
-    await prefs.remove(Config.restartTourShowcase);
+    await prefs.setBool(Config.restartTourShowcase, true);
   }
 
   Future<void> navigateShowcaseToScreen(
       BuildContext context, Widget screen) async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(Config.restartTourShowcase) == null) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => screen,
         ),
-      );
-    }
+    );
   }
 
   Future<void> _postSignUpActions() async {

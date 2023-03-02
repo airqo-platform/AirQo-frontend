@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
         child: ShowCaseWidget(
           onFinish: () async {
             final prefs = await SharedPreferences.getInstance();
-            if (prefs.getBool(Config.restartTourShowcase) == null) {
+            if (prefs.getBool(Config.restartTourShowcase) == true) {
               Future.delayed(
                 Duration.zero,
                 () => _appService.navigateShowcaseToScreen(
