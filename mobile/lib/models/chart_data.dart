@@ -16,15 +16,6 @@ class ChartData extends Equatable {
     required this.pm10,
   });
 
-  factory ChartData.fromHistoricalInsight(HistoricalInsight insight) =>
-      ChartData(
-        frequency: insight.frequency,
-        available: insight.available,
-        dateTime: insight.time,
-        siteId: insight.siteId,
-        pm2_5: insight.pm2_5,
-        pm10: insight.pm10,
-      );
   factory ChartData.fromForecastInsight(ForecastInsight insight) => ChartData(
         frequency: insight.frequency,
         available: insight.available,
@@ -63,7 +54,6 @@ class ChartData extends Equatable {
 class InsightData {
   const InsightData({
     required this.forecast,
-    required this.historical,
   });
 
   factory InsightData.fromJson(Map<String, dynamic> json) =>
@@ -71,20 +61,6 @@ class InsightData {
 
   @JsonKey(fromJson: _forecastInsightListFromJson)
   final List<ForecastInsight> forecast;
-
-  @JsonKey(fromJson: _historicalInsightListFromJson)
-  final List<HistoricalInsight> historical;
-
-  static List<HistoricalInsight> _historicalInsightListFromJson(dynamic json) {
-    List<HistoricalInsight> data = [];
-    for (final value in json) {
-      try {
-        data.add(HistoricalInsight.fromJson(value as Map<String, dynamic>));
-      } catch (_, __) {}
-    }
-
-    return data;
-  }
 
   static List<ForecastInsight> _forecastInsightListFromJson(dynamic json) {
     List<ForecastInsight> data = [];

@@ -138,18 +138,14 @@ class AppService {
   }) async {
     InsightData insights = await AirqoApiClient().fetchInsightsData(siteId);
 
-    await AirQoDatabase().insertHistoricalInsights(insights.historical);
     await AirQoDatabase().insertForecastInsights(insights.forecast);
 
     if (frequency != null) {
-      final historical = insights.historical
-          .where((element) => element.frequency == frequency)
-          .toList();
       final forecast = insights.forecast
           .where((element) => element.frequency == frequency)
           .toList();
 
-      return InsightData(forecast: forecast, historical: historical);
+      return InsightData(forecast: forecast);
     }
 
     return insights;

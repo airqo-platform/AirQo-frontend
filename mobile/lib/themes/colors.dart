@@ -218,27 +218,27 @@ class CustomColors {
 
   static Color get pollutantToggleBgColor => const Color(0xffF5F8FF);
 
-  static Color get aqiGreen => const Color(0xff3AFF38);
+  static const Color aqiGreen = Color(0xff3AFF38);
 
   static Color get aqiGreenTextColor => const Color(0xff03B600);
 
-  static Color get aqiYellow => const Color(0xffFFFF35);
+  static const Color aqiYellow = Color(0xffFFFF35);
 
   static Color get aqiYellowTextColor => const Color(0xffA8A800);
 
-  static Color get aqiOrange => const Color(0xffFE9E35);
+  static const Color aqiOrange = Color(0xffFE9E35);
 
   static Color get aqiOrangeTextColor => const Color(0xffB86000);
 
-  static Color get aqiRed => const Color(0xffFF4034);
+  static const Color aqiRed = Color(0xffFF4034);
 
   static Color get aqiRedTextColor => const Color(0xffB80B00);
 
-  static Color get aqiPurple => const Color(0xFFDD38FF);
+  static const Color aqiPurple = Color(0xFFDD38FF);
 
   static Color get aqiPurpleTextColor => const Color(0xff8E00AC);
 
-  static Color get aqiMaroon => const Color(0xffA51F3F);
+  static const Color aqiMaroon = Color(0xffA51F3F);
 
   static Color get aqiMaroonTextColor => const Color(0xffDBA5B2);
 

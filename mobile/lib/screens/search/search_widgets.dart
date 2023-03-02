@@ -133,7 +133,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: airQuality.color(),
+        color: airQuality.color,
         border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),

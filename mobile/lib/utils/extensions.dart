@@ -215,7 +215,21 @@ extension AirQualityReadingExt on AirQualityReading {
         .toList();
   }
 
-  String insightsShortDate() {
+  AirQuality airQuality() {
+    return Pollutant.pm2_5.airQuality(pm2_5);
+  }
+}
+
+extension InsightExt on Insight {
+  String shortDate() {
+    if (dateTime.isWithInPreviousWeek()) {
+      return 'Last Week';
+    }
+
+    if (dateTime.isWithInNextWeek()) {
+      return 'Next Week';
+    }
+
     if (dateTime.isToday()) {
       return 'Today';
     }
@@ -224,22 +238,14 @@ extension AirQualityReadingExt on AirQualityReading {
       return 'Tomorrow';
     }
 
-    return 'This week';
-  }
-
-  String insightsLongDate() {
-    if (dateTime.isToday()) {
-      return 'Today';
+    if (dateTime.isWithInCurrentWeek()) {
+      return 'This week';
     }
 
-    if (dateTime.isTomorrow()) {
-      return 'Tomorrow';
-    }
-
-    return 'This week';
+    return '';
   }
 
-  String insightsHealthTipsTitle() {
+  String healthTipsTitle() {
     if (dateTime.isToday()) {
       return 'Today’s health tips';
     }
@@ -565,29 +571,35 @@ extension DateTimeExt on DateTime {
     }
   }
 
-  bool isInWeek(String referenceWeek) {
+  bool isWithInCurrentWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay;
-    DateTime lastDay;
-    switch (referenceWeek.toLowerCase()) {
-      case 'last':
-        firstDay =
-            now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay =
-            now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      case 'next':
-        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      default:
-        firstDay = now.getDateOfFirstDayOfWeek();
-        lastDay = now.getDateOfLastDayOfWeek();
-        break;
-    }
+    DateTime firstDay = now.getDateOfFirstDayOfWeek();
+    DateTime lastDay = now.getDateOfLastDayOfWeek();
+    final date = formatter.parse(formatter.format(this));
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
 
-    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
+  bool isWithInPreviousWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek()));
+    DateTime lastDay = formatter.parse(formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek()));
+    final date = formatter.parse(formatter.format(this));
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInNextWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(formatter
+        .format(now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek()));
+    DateTime lastDay = formatter.parse(formatter
+        .format(now.add(const Duration(days: 7)).getDateOfLastDayOfWeek()));
+    final date = formatter.parse(formatter.format(this));
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {

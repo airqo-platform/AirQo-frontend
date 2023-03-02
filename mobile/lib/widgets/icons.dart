@@ -12,6 +12,24 @@ class SvgIcons {
     );
   }
 
+  static Widget airQualityEmoji(AirQuality airQuality,
+      {double height = 22, double width = 28, bool isEmpty = false}) {
+    if (isEmpty) {
+      return Text(
+        "--",
+        style: TextStyle(
+          color: CustomColors.greyColor,
+        ),
+      );
+    }
+
+    return SvgPicture.asset(
+      airQuality.svgEmoji,
+      height: height,
+      width: width,
+    );
+  }
+
   static Widget close() {
     return SvgPicture.asset(
       'assets/icon/close.svg',

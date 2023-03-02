@@ -1,6 +1,5 @@
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -182,6 +181,8 @@ enum AppNotificationType {
 enum AirQuality {
   good(
     string: 'Good',
+    color: CustomColors.aqiGreen,
+    svgEmoji: 'assets/icon/good_emoji.svg',
     searchNearbyLocationsText: 'Good Quality Air around you',
     searchOtherLocationsText: 'Locations with Good Quality Air',
     value: 6,
@@ -190,6 +191,8 @@ enum AirQuality {
   ),
   moderate(
     string: 'Moderate',
+    color: CustomColors.aqiYellow,
+    svgEmoji: 'assets/icon/moderate_emoji.svg',
     searchNearbyLocationsText: 'Moderate Quality Air around you',
     searchOtherLocationsText: 'Locations with Moderate Quality Air',
     value: 23.8,
@@ -198,6 +201,8 @@ enum AirQuality {
   ),
   ufsgs(
     string: 'Unhealthy For Sensitive Groups',
+    color: CustomColors.aqiOrange,
+    svgEmoji: 'assets/icon/ufgs_emoji.svg',
     searchNearbyLocationsText:
         'Nearby locations with air quality Unhealthy For Sensitive Groups',
     searchOtherLocationsText:
@@ -208,6 +213,8 @@ enum AirQuality {
   ),
   unhealthy(
     string: 'Unhealthy',
+    color: CustomColors.aqiRed,
+    svgEmoji: 'assets/icon/unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Unhealthy Quality Air around you',
     searchOtherLocationsText: 'Locations with Unhealthy Quality Air',
     value: 103,
@@ -216,6 +223,8 @@ enum AirQuality {
   ),
   veryUnhealthy(
     string: 'Very Unhealthy',
+    color: CustomColors.aqiPurple,
+    svgEmoji: 'assets/icon/very_unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
     searchOtherLocationsText: 'Locations with Very Unhealthy Quality Air',
     value: 200.5,
@@ -224,6 +233,8 @@ enum AirQuality {
   ),
   hazardous(
     string: 'Hazardous',
+    color: CustomColors.aqiMaroon,
+    svgEmoji: 'assets/icon/hazardous_emoji.svg',
     searchNearbyLocationsText: 'Hazardous Quality Air around you',
     searchOtherLocationsText: 'Locations with Hazardous Quality Air',
     value: 300,
@@ -233,6 +244,8 @@ enum AirQuality {
 
   const AirQuality({
     required this.string,
+    required this.color,
+    required this.svgEmoji,
     required this.searchNearbyLocationsText,
     required this.searchOtherLocationsText,
     required this.value,
@@ -241,28 +254,13 @@ enum AirQuality {
   });
 
   final String string;
+  final String svgEmoji;
+  final Color color;
   final String searchOtherLocationsText;
   final String searchNearbyLocationsText;
   final double value;
   final double minimumValue;
   final double maximumValue;
-
-  Color color() {
-    switch (this) {
-      case AirQuality.good:
-        return CustomColors.aqiGreen;
-      case AirQuality.moderate:
-        return CustomColors.aqiYellow;
-      case AirQuality.ufsgs:
-        return CustomColors.aqiOrange;
-      case AirQuality.unhealthy:
-        return CustomColors.aqiRed;
-      case AirQuality.veryUnhealthy:
-        return CustomColors.aqiPurple;
-      case AirQuality.hazardous:
-        return CustomColors.aqiMaroon;
-    }
-  }
 
   @override
   String toString() => string;
@@ -431,54 +429,6 @@ enum Frequency {
 
   @override
   String toString() => string;
-
-  List<charts.TickSpec<String>> staticTicks() {
-    switch (this) {
-      case Frequency.daily:
-        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            .map(
-              (day) => charts.TickSpec(
-                day,
-                label: day,
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
-                ),
-              ),
-            )
-            .toList();
-
-      case Frequency.hourly:
-        final labels = <int>[0, 6, 12, 18];
-        final hours = List<int>.generate(24, (index) => index + 1)
-          ..removeWhere(labels.contains);
-
-        final List<charts.TickSpec<String>> hourlyTicks = labels
-            .map(
-              (hour) => charts.TickSpec(
-                hour.toStringLength(),
-                label: hour.toStringLength(),
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
-                ),
-              ),
-            )
-            .toList();
-
-        hourlyTicks.addAll(hours
-            .map(
-              (hour) => charts.TickSpec(
-                hour.toStringLength(),
-                label: hour.toStringLength(),
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Colors.transparent),
-                ),
-              ),
-            )
-            .toList());
-
-        return hourlyTicks;
-    }
-  }
 }
 
 enum Gender {
@@ -600,23 +550,6 @@ enum Pollutant {
 
   String stringValue(double value) {
     return airQuality(value).toString();
-  }
-
-  charts.Color chartColor(double value) {
-    switch (airQuality(value)) {
-      case AirQuality.good:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
-      case AirQuality.moderate:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiYellow);
-      case AirQuality.ufsgs:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiOrange);
-      case AirQuality.unhealthy:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiRed);
-      case AirQuality.veryUnhealthy:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiPurple);
-      case AirQuality.hazardous:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiMaroon);
-    }
   }
 
   Color textColor({required double value, bool graph = false}) {

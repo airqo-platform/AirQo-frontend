@@ -8,6 +8,4 @@ part of 'chart_data.dart';
 
 InsightData _$InsightDataFromJson(Map<String, dynamic> json) => InsightData(
       forecast: InsightData._forecastInsightListFromJson(json['forecast']),
-      historical:
-          InsightData._historicalInsightListFromJson(json['historical']),
     );

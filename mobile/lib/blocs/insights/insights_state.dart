@@ -2,30 +2,26 @@ part of 'insights_bloc.dart';
 
 class InsightsState extends Equatable {
   const InsightsState({
-    this.healthTips = const [],
-    this.forecast = const [],
-    this.airQualityReading,
+    this.insights = const [],
+    this.selectedInsight,
   });
 
   InsightsState copyWith({
-    AirQualityReading? airQualityReading,
-    List<HealthTip>? healthTips,
-    List<AirQualityReading>? forecast,
+    Insight? selectedInsight,
+    List<Insight>? insights,
   }) {
     return InsightsState(
-      healthTips: healthTips ?? this.healthTips,
-      forecast: forecast ?? this.forecast,
-      airQualityReading: airQualityReading ?? this.airQualityReading,
+      insights: insights ?? this.insights,
+      selectedInsight: selectedInsight ?? this.selectedInsight,
     );
   }
 
-  final AirQualityReading? airQualityReading;
-  final List<HealthTip> healthTips;
-  final List<AirQualityReading> forecast;
+  final Insight? selectedInsight;
+  final List<Insight> insights;
 
   @override
   List<Object?> get props => [
-        airQualityReading,
-        healthTips,
+        selectedInsight,
+        insights,
       ];
 }

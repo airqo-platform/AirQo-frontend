@@ -38,6 +38,7 @@ class _InsightsPageState extends State<InsightsPage> {
           children: [
             InkWell(
               onTap: () async {
+                context.read<InsightsBloc>().add(const ClearInsight());
                 await popNavigation(context);
               },
               child: SvgPicture.asset(
@@ -67,7 +68,7 @@ class _InsightsPageState extends State<InsightsPage> {
                     },
                     child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
-                      color: CustomColors.greyColor,
+                      theme: SvgTheme(currentColor: CustomColors.greyColor),
                       height: 26,
                       width: 26,
                     ),
@@ -91,8 +92,8 @@ class _InsightsPageState extends State<InsightsPage> {
         widget: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
-              AirQualityReading? airQualityReading = state.airQualityReading;
-              if (airQualityReading == null) {
+              Insight? selectedInsight = state.selectedInsight;
+              if (selectedInsight == null) {
                 return Container(); // TODO  replace with error widget;
               }
 
@@ -105,9 +106,11 @@ class _InsightsPageState extends State<InsightsPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(airQualityReading.insightsShortDate(),
-                        style: CustomTextStyle.headline8(context)
-                            ?.copyWith(fontSize: 20)),
+                    child: Text(
+                      selectedInsight.shortDate(),
+                      style: CustomTextStyle.headline8(context)
+                          ?.copyWith(fontSize: 20),
+                    ),
                   ),
                   const SizedBox(
                     height: 14,
@@ -115,7 +118,7 @@ class _InsightsPageState extends State<InsightsPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      airQualityReading.dateTime.timelineString(),
+                      selectedInsight.dateTime.timelineString(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
@@ -141,37 +144,34 @@ class _InsightsPageState extends State<InsightsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 21,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: state.forecast
-                                .map((e) => InsightsDayReading(e))
+                            children: state.insights
+                                .map((e) => InsightsDayReading(e,
+                                    isActive: e == selectedInsight))
                                 .toList(),
                           ),
                           const SizedBox(
                             height: 21,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 11,
-                            ),
-                            height: 62,
-                            decoration: const BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(16.0),
-                              ),
-                            ),
-                          ),
+                          InsightContainer(selectedInsight),
                           const SizedBox(
                             height: 21,
                           ),
-                          const Text(
-                              'The hourly air quality average in Wandegeya is currently Unhealthy for Sensitive Groups.'),
-                          SizedBox(
+                          Visibility(
+                            visible: selectedInsight.available,
+                            child: Text(
+                                'The hourly air quality average in ${selectedInsight.name} is currently ${selectedInsight.airQuality.string}.'),
+                          ),
+                          Visibility(
+                            visible: !selectedInsight.available,
+                            child: const Text(
+                                'We’re having issues with our network no worries, we’ll be back up soon.'),
+                          ),
+                          const SizedBox(
                             height: 12,
                           ),
                         ],
@@ -181,38 +181,11 @@ class _InsightsPageState extends State<InsightsPage> {
                   const SizedBox(
                     height: 36,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text('Forecast',
-                        style: CustomTextStyle.headline8(context)
-                            ?.copyWith(fontSize: 20)),
-                  ),
-                  const SizedBox(
-                    height: 14,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(16.0),
-                        ),
-                      ),
-                      child: Center(
-                          child: Text(
-                              'Expect conditions to range from good to moderate today.')),
-                    ),
-                  ),
+                  ForecastContainer(selectedInsight),
                   const SizedBox(
                     height: 32,
                   ),
-                  const HealthTipsWidget(),
+                  HealthTipsWidget(selectedInsight),
                   const SizedBox(
                     height: 21,
                   ),
@@ -226,12 +199,10 @@ class _InsightsPageState extends State<InsightsPage> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   void initState() {
     super.initState();
+    context
+        .read<InsightsBloc>()
+        .add(InitializeInsightsPage(widget.airQualityReading));
   }
 }

@@ -324,8 +324,6 @@ class AnalyticsCard extends StatelessWidget {
   }
 
   Future<void> _goToInsights(BuildContext context) async {
-    context.read<InsightsBloc>().add(InitializeInsightsPage(airQualityReading));
-
     await Navigator.push(
       context,
       MaterialPageRoute(

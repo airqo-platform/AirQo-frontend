@@ -194,7 +194,7 @@ class AirqoApiClient {
       );
     }
 
-    return const InsightData(forecast: [], historical: []);
+    return const InsightData(forecast: []);
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
