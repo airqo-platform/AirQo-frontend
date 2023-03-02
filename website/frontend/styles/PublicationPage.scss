@@ -8,16 +8,16 @@ $tab_width: 160px;
     .nav{
         grid-column: 2 / 3;
         position: relative;
+        height: auto;
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-end;
         span{
-            position: absolute;
-            bottom:0px;
-        }
-        #tab1{
-            left: 0;
-            width: $tab_width -100px;
-        }
-        #tab2{
-            left:$tab_width + 10px;
+            padding: 0;
+            width: fit-content;
+            height: fit-content;
+            margin-right: 25px;
         }
         button{
             border:0px;
@@ -32,6 +32,7 @@ $tab_width: 160px;
             flex-grow: 0;
             border-bottom: 0px;
             color:$aq-grey-0;
+            text-align: left;
         }
         button.selected{
             border-bottom: 2px solid $aq-black-0;
@@ -109,6 +110,7 @@ $tab_width: 160px;
         display: flex;
         flex-direction: row;
         justify-content: center;
+        align-items: center;
         text-align: center;
         font-family: 'Inter';
         li{
@@ -123,10 +125,13 @@ $tab_width: 160px;
             .page-number{
                 font-weight: 400;
                 font-size:25px;
+                color: $aq-black-0;
+                padding: 6px 12px;
+                border-radius: 8px;
+            }
+            .page-link.page-number:active{
                 background-color: $aq-blue-4;
                 color: #fff;
-                padding: 8px 16px;
-                border-radius: 8px;
             }
         }
     }
@@ -135,12 +140,21 @@ $tab_width: 160px;
 @media (max-width: $mainBreakPoint) {
     .list-page{
         .nav{
-            #tab2{
-                left:$tab_width;
+            padding: 0 12px;
+            span{
+                padding-bottom: 2px;
+                margin-right: 10px;
             }
             button{
-                font-size: 12px;
+                height: auto;
+                width: 92%;
             }
+            button.selected{
+                border-bottom: 1px solid $aq-black-0;
+            }
+        }
+        .report-card{
+            padding: 60px 20px;
         }
     }
 }
