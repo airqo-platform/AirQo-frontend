@@ -23,13 +23,13 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                 val dataKeys = arrayOf(
                     "location",
                     "date",
-                    "pmValue",
-                    "forecastValue1",
-                    "forecastValue2",
-                    "forecastValue3",
-                    "time1",
-                    "time2",
-                    "time3"
+                    "pm_value",
+                    "forecast_value1",
+                    "forecast_value2",
+                    "forecast_value3",
+                    "forecast_time1",
+                    "forecast_time2",
+                    "forecast_time3"
                 )
 
                 val viewIds = arrayOf(
