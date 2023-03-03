@@ -481,8 +481,10 @@ class _DashboardViewState extends State<DashboardView>
 
   Future<void> _sendData() async {
     AirQualityReading? airQualityReading =
-        context.read<NearbyLocationBloc>().state.locationAirQuality ??
-            HiveService.getAirQualityReadings().firstOrNull;
+        context.read<NearbyLocationBloc>().state.locationAirQuality;
+    // ??
+    // HiveService.getAirQualityReadings().lastOrNull;
+    airQualityReading ??= HiveService.getAirQualityReadings()[5];
     if (airQualityReading == null) return;
 
     List<ForecastInsight> forecastData = await AirQoDatabase()
@@ -491,70 +493,23 @@ class _DashboardViewState extends State<DashboardView>
     WidgetData widgetData =
         WidgetData.initializeFromAirQualityReading(airQualityReading);
     widgetData = widgetData.copyWith(forecastData);
-
+    print(widgetData);
+    print(widgetData.idMapping());
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });
 
     return;
-
-    // return Future.wait([
-    //   HomeWidget.saveWidgetData<String>(
-    //     'location',
-    //     widgetData.location,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'circular_location',
-    //     widgetData.circularLocation,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'date',
-    //     widgetData.date,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'circular_date',
-    //     widgetData.circularDate,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'pmValue',
-    //       widgetData.pmValue
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'circular_pm_value',
-    //       widgetData.circularPmValue
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'forecastValue1',
-    //     widgetData.forecastValue1,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>('forecastValue2', widgetData.forecastValue2,),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'forecastValue3',
-    //     widgetData.forecastValue3,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'time1',
-    //     widgetData.forecastTime1,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'time2',
-    //     widgetData.forecastTime2,
-    //   ),
-    //   HomeWidget.saveWidgetData<String>(
-    //     'time3',
-    //     widgetData.forecastTime3,
-    //   ),
-    // ]).then((value) => value);
   }
 
   Future<void> _updateWidget() {
-    final rectangleWidgetUpdate = HomeWidget.updateWidget(
+    var rectangleWidgetUpdate = HomeWidget.updateWidget(
       name: 'AirQoHomeScreenWidget',
       iOSName: 'AirQoHomeScreenWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
     );
 
-    final circularWidgetUpdate = HomeWidget.updateWidget(
+    var circularWidgetUpdate = HomeWidget.updateWidget(
       name: 'AirQoCircularWidget',
       iOSName: 'AirQoCircularWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
