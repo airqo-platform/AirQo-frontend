@@ -468,100 +468,83 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
+  // List<String> forecastValues =
+  //     forecastDbData.map((e) => e.pm2_5.toString()).take(3).toList();
+  // List<String> forecastTimes = List.generate(
+  //   3,
+  //   (index) => DateFormat('h a').format(
+  //     DateTime.now().toLocal().add(
+  //           Duration(hours: index + 1),
+  //         ),
+  //   ),
+  // );
+
   Future<void> _sendData() async {
     AirQualityReading? airQualityReading =
         context.read<NearbyLocationBloc>().state.locationAirQuality ??
             HiveService.getAirQualityReadings().firstOrNull;
     if (airQualityReading == null) return;
 
-    List<ForecastInsight> forecastDbData = await AirQoDatabase()
+    List<ForecastInsight> forecastData = await AirQoDatabase()
         .getForecastInsights(airQualityReading.referenceSite);
-    List<String> forecastValues =
-        forecastDbData.map((e) => e.pm2_5.toString()).take(3).toList();
-    List<String> forecastTimes = List.generate(
-      3,
-      (index) => DateFormat('h a').format(
-        DateTime.now().toLocal().add(
-              Duration(hours: index + 1),
-            ),
-      ),
-    );
 
-    String rectangleWidgetTime =
-        DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal());
-    String circularWidgetTime =
-        DateFormat('h:mm a').format(DateTime.now().toLocal());
+    WidgetData widgetData =
+        WidgetData.initializeFromAirQualityReading(airQualityReading);
+    widgetData = widgetData.copyWith(forecastData);
 
-    //TODO: Not working, review later, using manual approach for now
-    // Map<String, String> widgetData = {
-    //   'location': airQualityReading.name,
-    //   'circular_location': airQualityReading.name,
-    //   'date': rectangleWidgetTime,
-    //   'circular_date': circularWidgetTime,
-    //   'pmValue': airQualityReading.pm2_5.toInt().toString(),
-    //   'circular_pm_value': airQualityReading.pm2_5.toInt().toString(),
-    //   'forecastValue1': forecastValues.first,
-    //   'forecastValue2': forecastValues[1],
-    //   'forecastValue3': forecastValues.last,
-    //   'time1': forecastTimes.first,
-    //   'time2': forecastTimes[1],
-    //   'time3': forecastTimes.last,
-    // };
+    widgetData.idMapping().forEach((key, value) async {
+      await HomeWidget.saveWidgetData<String>(key, value);
+    });
+
+    return;
 
     // return Future.wait([
-    //   widgetData.forEach((key, value) {
-    //     HomeWidget.saveWidgetData<String>(key, value);
-    //   })
-    // ] as Iterable<Future>)
-    //     .then((value) => value);
-
-    return Future.wait([
-      HomeWidget.saveWidgetData<String>(
-        'location',
-        airQualityReading.name,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'circular_location',
-        airQualityReading.name,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'date',
-        rectangleWidgetTime,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'circular_date',
-        circularWidgetTime,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'pmValue',
-        airQualityReading.pm2_5.toInt().toString(),
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'circular_pm_value',
-        airQualityReading.pm2_5.toInt().toString(),
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'forecastValue1',
-        forecastValues.first,
-      ),
-      HomeWidget.saveWidgetData<String>('forecastValue2', forecastValues[1]),
-      HomeWidget.saveWidgetData<String>(
-        'forecastValue3',
-        forecastValues.last,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'time1',
-        forecastTimes.first,
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'time2',
-        forecastTimes[1],
-      ),
-      HomeWidget.saveWidgetData<String>(
-        'time3',
-        forecastTimes.last,
-      ),
-    ]).then((value) => value);
+    //   HomeWidget.saveWidgetData<String>(
+    //     'location',
+    //     widgetData.location,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'circular_location',
+    //     widgetData.circularLocation,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'date',
+    //     widgetData.date,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'circular_date',
+    //     widgetData.circularDate,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'pmValue',
+    //       widgetData.pmValue
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'circular_pm_value',
+    //       widgetData.circularPmValue
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'forecastValue1',
+    //     widgetData.forecastValue1,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>('forecastValue2', widgetData.forecastValue2,),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'forecastValue3',
+    //     widgetData.forecastValue3,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'time1',
+    //     widgetData.forecastTime1,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'time2',
+    //     widgetData.forecastTime2,
+    //   ),
+    //   HomeWidget.saveWidgetData<String>(
+    //     'time3',
+    //     widgetData.forecastTime3,
+    //   ),
+    // ]).then((value) => value);
   }
 
   Future<void> _updateWidget() {
