@@ -83,7 +83,7 @@ class _ForYouPageState extends State<ForYouPage>
                           CustomShowcaseWidget(
                             showcaseKey: _analyticsTabShowcaseKey,
                             description: "This is the analytics Tab",
-                            childWidget: TabButton(
+                            child: TabButton(
                               text: 'Analytics',
                               index: 0,
                               tabController: _tabController,
@@ -95,7 +95,7 @@ class _ForYouPageState extends State<ForYouPage>
                             descriptionWidth: 100,
                             description:
                                 "Do you want to know more about air quality? Know your air in this section",
-                            childWidget: TabButton(
+                            child: TabButton(
                               text: 'Know your Air',
                               index: 1,
                               tabController: _tabController,

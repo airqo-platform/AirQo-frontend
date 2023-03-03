@@ -58,8 +58,8 @@ class _DashboardViewState extends State<DashboardView>
         child: CustomShowcaseWidget(
           showcaseKey: _skipShowcaseKey,
           description: "Click to Skip Tutorial",
-          customize: "skip",
-          childWidget: AppBar(
+          customize: ShowcaseOptions.skip,
+          child: AppBar(
             automaticallyImplyLeading: false,
             centerTitle: false,
             title: SvgPicture.asset(
@@ -110,7 +110,7 @@ class _DashboardViewState extends State<DashboardView>
                           descriptionHeight: 120,
                           description:
                               "Find the latest air quality from your favorite locations",
-                          childWidget: DashboardTopCard(
+                          child: DashboardTopCard(
                             toolTipType: ToolTipType.favouritePlaces,
                             title: 'Favorites',
                             widgetKey: _favToolTipKey,
@@ -146,7 +146,7 @@ class _DashboardViewState extends State<DashboardView>
                           descriptionHeight: 130,
                           description:
                               "Find amazing content specifically designed for you here.",
-                          childWidget: DashboardTopCard(
+                          child: DashboardTopCard(
                             toolTipType: ToolTipType.forYou,
                             title: 'For You',
                             widgetKey: _kyaToolTipKey,
@@ -309,7 +309,7 @@ class _DashboardViewState extends State<DashboardView>
                                     showcaseKey: _nearestLocationShowcaseKey,
                                     description:
                                         "This card shows the air quality of your nearest location",
-                                    childWidget: AnalyticsCard(
+                                    child: AnalyticsCard(
                                       nearbyAirQuality,
                                       false,
                                     ),
@@ -334,7 +334,7 @@ class _DashboardViewState extends State<DashboardView>
                                     descriptionHeight: 100,
                                     description:
                                         "Do you want to know more about air quality? Know your air in this section",
-                                    childWidget: KyaCardWidget(kya.first),
+                                    child: KyaCardWidget(kya.first),
                                   ),
                                 );
                               },
@@ -352,7 +352,7 @@ class _DashboardViewState extends State<DashboardView>
                                           descriptionHeight: 120,
                                           description:
                                               "Find the air quality of different locations across Africa here.",
-                                          childWidget: AnalyticsCard(
+                                          child: AnalyticsCard(
                                             state.airQualityReadings[index],
                                             false,
                                           ),

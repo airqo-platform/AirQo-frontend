@@ -553,17 +553,17 @@ class CustomShowcaseWidget extends StatelessWidget {
     super.key,
     required this.showcaseKey,
     required this.description,
-    required this.childWidget,
+    required this.child,
     this.customize,
-    this.descriptionWidth,
-    this.descriptionHeight,
+    this.descriptionWidth = 200,
+    this.descriptionHeight = 20,
   });
 
   final GlobalKey showcaseKey;
-  final Widget childWidget;
-  final String? customize;
+  final Widget child;
+  final ShowcaseOptions? customize;
   final String description;
-  final double? descriptionWidth, descriptionHeight;
+  final double descriptionWidth, descriptionHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -576,7 +576,7 @@ class CustomShowcaseWidget extends StatelessWidget {
       container: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          customize != "up"
+          customize != ShowcaseOptions.up
               ? SizedBox(
                   width: 45,
                   height: 45,
@@ -590,7 +590,7 @@ class CustomShowcaseWidget extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          customize == "skip"
+          customize == ShowcaseOptions.skip
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -604,7 +604,11 @@ class CustomShowcaseWidget extends StatelessWidget {
                       child: IconButton(
                         tooltip: "Skip Showcase",
                         icon: const Icon(Icons.skip_next),
-                        onPressed: () => ShowCaseWidget.of(context).dismiss(),
+                        onPressed: () async {
+                          ShowCaseWidget.of(context).dismiss();
+                          await AppService()
+                              .stopShowcase(Config.restartTourShowcase);
+                        },
                         color: CustomColors.appColorBlue,
                       ),
                     ),
@@ -616,8 +620,8 @@ class CustomShowcaseWidget extends StatelessWidget {
               : const SizedBox(),
           Container(
             constraints: BoxConstraints.expand(
-                width: descriptionWidth ?? 200,
-              height: descriptionHeight ?? 20,
+              width: descriptionWidth,
+              height: descriptionHeight,
             ),
             child: Text(
               description,
@@ -632,7 +636,7 @@ class CustomShowcaseWidget extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          customize == "up"
+          customize == ShowcaseOptions.up
               ? SizedBox(
                   width: 45,
                   height: 45,
@@ -646,14 +650,14 @@ class CustomShowcaseWidget extends StatelessWidget {
         ],
       ),
       targetShapeBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
           color: CustomColors.appColorBlue,
           width: 3,
           strokeAlign: -5,
         ),
       ),
-      child: childWidget,
+      child: child,
     );
   }
 }

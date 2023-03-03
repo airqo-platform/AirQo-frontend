@@ -215,7 +215,9 @@ class AppService {
   }
 
   Future<void> navigateShowcaseToScreen(
-      BuildContext context, Widget screen) async {
+    BuildContext context,
+    Widget screen,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
       Navigator.push(
         context,

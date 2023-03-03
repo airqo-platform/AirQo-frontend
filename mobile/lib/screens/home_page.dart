@@ -101,10 +101,10 @@ class _HomePageState extends State<HomePage> {
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: CustomShowcaseWidget(
-                      customize: "up",
+                      customize: ShowcaseOptions.up,
                       showcaseKey: _homeShowcaseKey,
                       description: 'Explore air quality here',
-                      childWidget: BottomNavIcon(
+                      child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         icon: Icons.home_rounded,
                         label: 'Home',
@@ -115,12 +115,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                   BottomNavigationBarItem(
                     icon: CustomShowcaseWidget(
-                      customize: "up",
+                      customize: ShowcaseOptions.up,
                       showcaseKey: _mapShowcaseKey,
                       descriptionWidth: 90,
                       descriptionHeight: 110,
                       description: 'See readings from our monitors here',
-                      childWidget: BottomNavIcon(
+                      child: BottomNavIcon(
                         icon: Icons.location_on_rounded,
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
@@ -133,13 +133,13 @@ class _HomePageState extends State<HomePage> {
                     icon: Stack(
                       children: [
                         CustomShowcaseWidget(
-                          customize: "up",
+                          customize: ShowcaseOptions.up,
                           showcaseKey: _profileShowcaseKey,
                           descriptionHeight: 110,
                           descriptionWidth: 80,
                           description:
                               'Change your preferences and settings here',
-                          childWidget: BottomNavIcon(
+                          child: BottomNavIcon(
                             icon: Icons.person_rounded,
                             selectedIndex: _selectedIndex,
                             label: 'Profile',

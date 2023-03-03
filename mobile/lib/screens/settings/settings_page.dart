@@ -144,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage>
                         descriptionHeight: 120,
                         description:
                             "You can always restart the App Tour from here anytime.",
-                        childWidget: Card(
+                        child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
                           child: ListTile(
