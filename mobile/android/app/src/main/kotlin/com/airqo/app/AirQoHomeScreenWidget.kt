@@ -35,13 +35,13 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                 val viewIds = arrayOf(
                     R.id.location,
                     R.id.date,
-                    R.id.pmValue,
-                    R.id.forecastValue1,
-                    R.id.forecastValue2,
-                    R.id.forecastValue3,
-                    R.id.time1,
-                    R.id.time2,
-                    R.id.time3,
+                    R.id.pm_value,
+                    R.id.forecast_value1,
+                    R.id.forecast_value2,
+                    R.id.forecast_value3,
+                    R.id.forecast_time1,
+                    R.id.forecast_time2,
+                    R.id.forecast_time3,
                 )
 
                 for (i in dataKeys.indices) {
@@ -81,8 +81,8 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                             "setBackgroundResource",
                             R.drawable.green_circle
                         )
-                        setTextColor(R.id.pmScale, 0xff03B600.toInt())
-                        setTextColor(R.id.pmValue, 0xff03B600.toInt())
+                        setTextColor(R.id.pm_scale, 0xff03B600.toInt())
+                        setTextColor(R.id.pm_value, 0xff03B600.toInt())
                         setTextColor(R.id.pm_unit, 0xff03B600.toInt())
                     } else {
                         setInt(
@@ -90,8 +90,8 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                             "setBackgroundResource",
                             colorRange.resourceId
                         )
-                        setTextColor(R.id.pmScale, colorRange.textColor)
-                        setTextColor(R.id.pmValue, colorRange.textColor)
+                        setTextColor(R.id.pm_scale, colorRange.textColor)
+                        setTextColor(R.id.pm_value, colorRange.textColor)
                         setTextColor(R.id.pm_unit, colorRange.textColor)
                     }
                 }

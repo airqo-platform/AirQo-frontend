@@ -22,8 +22,8 @@
             android:fontFamily="@font/roboto_mono_medium"
             android:paddingTop="5dp"
             android:paddingBottom="10dp"
-            android:text="@string/pmScale"
-            android:textAppearance="@style/pmScaleCircle" />
+            android:text="@string/pm_scale"
+            android:textAppearance="@style/circle_pm_scale" />
 
         <TextView
             android:id="@+id/circular_pm_value"
@@ -32,8 +32,8 @@
             android:layout_centerInParent="true"
             android:fontFamily="@font/roboto_mono_medium"
             android:gravity="center"
-            android:text="@string/pmValue"
-            android:textAppearance="@style/pmValueCircle"
+            android:text="@string/pm_value"
+            android:textAppearance="@style/circle_pm_value"
             android:textFontWeight="600"
             tools:targetApi="p" />
 
@@ -47,7 +47,7 @@
             android:paddingTop="10dp"
             android:paddingBottom="20dp"
             android:text="@string/pmUnit"
-            android:textAppearance="@style/pmUnitCircle" />
+            android:textAppearance="@style/circle_pm_unit" />
 
 
     </RelativeLayout>
@@ -60,8 +60,8 @@
         android:layout_marginStart="50dp"
         android:layout_marginTop="15dp"
         android:fontFamily="@font/roboto_medium"
-        android:text="@string/wandegeya"
-        android:textAppearance="@style/wandegeyaCircle"
+        android:text="@string/location"
+        android:textAppearance="@style/circle_location"
         android:textFontWeight="500"
         tools:targetApi="p" />
 
@@ -70,10 +70,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_index_color"
-        android:layout_toStartOf="@+id/circular_location"
         android:layout_marginTop="15dp"
-        android:contentDescription="@string/location_icon"
         android:layout_marginEnd="-50dp"
+        android:layout_toStartOf="@+id/circular_location"
+        android:contentDescription="@string/location_icon"
         android:src="@drawable/location_icon" />
 
     <TextView
@@ -83,8 +83,8 @@
         android:layout_below="@+id/circular_location"
         android:layout_marginStart="50dp"
         android:fontFamily="@font/roboto_medium"
-        android:text="@string/dateCircle"
-        android:textAppearance="@style/wandegeyaCircle" />
+        android:text="@string/date_circle"
+        android:textAppearance="@style/circle_location" />
 
     <ImageView
         android:id="@+id/refresh"
