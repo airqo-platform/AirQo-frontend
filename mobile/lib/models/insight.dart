@@ -13,8 +13,11 @@ class Insight with EquatableMixin {
   });
 
   factory Insight.fromAirQualityReading(AirQualityReading airQualityReading) {
-    List<HealthTip> healthTips =
-        getHealthTips(airQualityReading.pm2_5, Pollutant.pm2_5);
+    List<HealthTip> healthTips = getHealthTips(
+      airQualityReading.pm2_5,
+      Pollutant.pm2_5,
+    );
+
     return Insight(
       name: airQualityReading.name,
       pm2_5: airQualityReading.pm2_5,
@@ -26,7 +29,9 @@ class Insight with EquatableMixin {
   }
 
   factory Insight.initializeEmpty(
-      AirQualityReading airQualityReading, DateTime dateTime) {
+    AirQualityReading airQualityReading,
+    DateTime dateTime,
+  ) {
     return Insight(
       name: airQualityReading.name,
       pm2_5: airQualityReading.pm2_5,

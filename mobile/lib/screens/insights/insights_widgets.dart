@@ -56,8 +56,12 @@ class InsightContainer extends StatelessWidget {
               ],
             ),
           ),
-          SvgIcons.airQualityEmoji(insight.airQuality,
-              height: 38, width: 48, isEmpty: !insight.available)
+          SvgIcons.airQualityEmoji(
+            insight.airQuality,
+            height: 38,
+            width: 48,
+            isEmpty: !insight.available,
+          ),
         ],
       ),
     );
@@ -65,7 +69,11 @@ class InsightContainer extends StatelessWidget {
 }
 
 class InsightsDayReading extends StatelessWidget {
-  const InsightsDayReading(this.insight, {super.key, required this.isActive});
+  const InsightsDayReading(
+    this.insight, {
+    super.key,
+    required this.isActive,
+  });
   final Insight insight;
   final bool isActive;
 
@@ -114,8 +122,10 @@ class InsightsDayReading extends StatelessWidget {
           const SizedBox(
             height: 7,
           ),
-          SvgIcons.airQualityEmoji(insight.airQuality,
-              isEmpty: !insight.available),
+          SvgIcons.airQualityEmoji(
+            insight.airQuality,
+            isEmpty: !insight.available,
+          ),
         ],
       ),
     );
@@ -162,7 +172,8 @@ class ForecastContainer extends StatelessWidget {
             ),
             child: const Center(
               child: Text(
-                  'Expect conditions to range from good to moderate today.'),
+                'Expect conditions to range from good to moderate today.',
+              ),
             ),
           ),
         ),

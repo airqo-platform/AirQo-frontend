@@ -577,28 +577,43 @@ extension DateTimeExt on DateTime {
     DateTime firstDay = now.getDateOfFirstDayOfWeek();
     DateTime lastDay = now.getDateOfLastDayOfWeek();
     final date = formatter.parse(formatter.format(this));
+
     return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isWithInPreviousWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay = formatter.parse(formatter.format(
-        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek()));
-    DateTime lastDay = formatter.parse(formatter.format(
-        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
     final date = formatter.parse(formatter.format(this));
+
     return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isWithInNextWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay = formatter.parse(formatter
-        .format(now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek()));
-    DateTime lastDay = formatter.parse(formatter
-        .format(now.add(const Duration(days: 7)).getDateOfLastDayOfWeek()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
     final date = formatter.parse(formatter.format(this));
+
     return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 

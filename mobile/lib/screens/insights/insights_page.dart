@@ -50,7 +50,8 @@ class _InsightsPageState extends State<InsightsPage> {
             Text('More Insights', style: CustomTextStyle.headline8(context)),
             FutureBuilder<Uri>(
               future: ShareService.createShareLink(
-                  airQualityReading: widget.airQualityReading),
+                airQualityReading: widget.airQualityReading,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   showSnackBar(context, 'Could not create a share link.');
@@ -150,8 +151,12 @@ class _InsightsPageState extends State<InsightsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: state.insights
-                                .map((e) => InsightsDayReading(e,
-                                    isActive: e == selectedInsight))
+                                .map(
+                                  (e) => InsightsDayReading(
+                                    e,
+                                    isActive: e == selectedInsight,
+                                  ),
+                                )
                                 .toList(),
                           ),
                           const SizedBox(
@@ -164,12 +169,14 @@ class _InsightsPageState extends State<InsightsPage> {
                           Visibility(
                             visible: selectedInsight.available,
                             child: Text(
-                                'The hourly air quality average in ${selectedInsight.name} is currently ${selectedInsight.airQuality.string}.'),
+                              'The hourly air quality average in ${selectedInsight.name} is currently ${selectedInsight.airQuality.string}.',
+                            ),
                           ),
                           Visibility(
                             visible: !selectedInsight.available,
                             child: const Text(
-                                'We’re having issues with our network no worries, we’ll be back up soon.'),
+                              'We’re having issues with our network no worries, we’ll be back up soon.',
+                            ),
                           ),
                           const SizedBox(
                             height: 12,
