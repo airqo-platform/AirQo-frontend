@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/location"
         android:layout_marginStart="15dp"
-        android:fontFamily="@font/roboto_regular"
+        android:fontFamily="@font/roboto"
         android:text="@string/date"
         android:textAppearance="@style/date" />
 
