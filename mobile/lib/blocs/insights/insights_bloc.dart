@@ -22,10 +22,10 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     return emit(const InsightsState());
   }
 
-  Future<void> _onInitializeInsightsPage(
+  void _onInitializeInsightsPage(
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
-  ) async {
+  ) {
     emit(const InsightsState());
 
     Set<Insight> insights = {};
@@ -39,7 +39,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     emit(
       state.copyWith(
         selectedInsight: insights.firstWhere(
-            (element) => element.dateTime == event.airQualityReading.dateTime),
+          (element) => element.dateTime == event.airQualityReading.dateTime,
+        ),
         insights: insights.toList(),
       ),
     );

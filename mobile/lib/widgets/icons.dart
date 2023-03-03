@@ -12,8 +12,12 @@ class SvgIcons {
     );
   }
 
-  static Widget airQualityEmoji(AirQuality airQuality,
-      {double height = 22, double width = 28, bool isEmpty = false}) {
+  static Widget airQualityEmoji(
+    AirQuality airQuality, {
+    double height = 22,
+    double width = 28,
+    bool isEmpty = false,
+  }) {
     if (isEmpty) {
       return Text(
         "--",
