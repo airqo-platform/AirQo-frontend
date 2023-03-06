@@ -8,7 +8,7 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       </div>
       <div className="sub-title">{authors} </div>
       <div className="cta-links">
-        <a className="a-link" href={link} target="_blank">
+        <a className="a-link" href={link} target="_blank" rel='noreferrer noopener'>
           <small>
             {linkTitle || 'Read More'} {'->'}
           </small>

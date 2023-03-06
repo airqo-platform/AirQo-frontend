@@ -1,17 +1,20 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../auth/phone_auth_widget.dart';
+import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class IntroductionScreen extends StatefulWidget {
-  const IntroductionScreen({
-    super.key,
-  });
+  const IntroductionScreen({super.key});
 
   @override
   IntroductionScreenState createState() => IntroductionScreenState();
@@ -95,6 +98,17 @@ class IntroductionScreenState extends State<IntroductionScreen> {
   void initState() {
     super.initState();
     updateOnBoardingPage();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (context.read<DashboardBloc>().state.checkForUpdates) {
+        await AppService().latestVersion().then((version) async {
+          if (version != null && mounted) {
+            await canLaunchUrl(version.url).then((bool result) async {
+              await openUpdateScreen(context, version);
+            });
+          }
+        });
+      }
+    });
   }
 
   Future<bool> onWillPop() {
