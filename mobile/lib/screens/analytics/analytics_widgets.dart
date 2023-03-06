@@ -77,19 +77,11 @@ class AnalyticsMoreInsights extends StatelessWidget {
 
     return Row(
       children: [
-        Container(
+        SvgPicture.asset(
+          'assets/icon/chart.svg',
+          semanticsLabel: 'chart',
           height: 16,
           width: 16,
-          decoration: BoxDecoration(
-              color: CustomColors.appColorBlue,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Icon(
-            color: Colors.white,
-            size: 15,
-            Icons.bar_chart_rounded,
-            semanticLabel: 'Chart',
-          ),
         ),
         const SizedBox(
           width: 8.0,
@@ -101,11 +93,11 @@ class AnalyticsMoreInsights extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 10,
-          semanticLabel: 'more',
-          weight: 1000,
+        SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
         ),
       ],
     );
@@ -505,10 +497,11 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                               ),
                             ),
                           ),
-                          child: const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 10,
-                            semanticLabel: 'more',
+                          child: SvgPicture.asset(
+                            'assets/icon/more_arrow.svg',
+                            semanticsLabel: 'more',
+                            height: 6.99,
+                            width: 4,
                           ),
                         ),
                       ],

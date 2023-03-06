@@ -12,7 +12,6 @@ part 'dashboard_state.dart';
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc() : super(const DashboardState.initial()) {
     on<RefreshDashboard>(_onRefreshDashboard);
-    on<CancelCheckForUpdates>(_onCancelCheckForUpdates);
   }
 
   Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
@@ -100,12 +99,5 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       AppService().updateFavouritePlacesReferenceSites(),
       _updateGreetings(emit),
     ]).whenComplete(() => _loadAirQualityReadings(emit));
-  }
-
-  void _onCancelCheckForUpdates(
-    CancelCheckForUpdates _,
-    Emitter<DashboardState> emit,
-  ) {
-    return emit(state.copyWith(checkForUpdates: false));
   }
 }

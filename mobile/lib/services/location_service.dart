@@ -6,7 +6,6 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
@@ -130,14 +129,22 @@ class LocationService {
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 60),
+        timeLimit: const Duration(seconds: 20),
       );
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
-    } on PlatformException catch (exception, stackTrace) {
-      debugPrint(exception.message);
-      debugPrintStack(stackTrace: stackTrace);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    try {
+      return await Geolocator.getLastKnownPosition(
+        forceAndroidLocationManager: true,
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,

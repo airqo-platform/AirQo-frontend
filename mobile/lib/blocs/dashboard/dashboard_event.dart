@@ -11,10 +11,3 @@ class RefreshDashboard extends DashboardEvent {
   @override
   List<Object?> get props => [reload];
 }
-
-class CancelCheckForUpdates extends DashboardEvent {
-  const CancelCheckForUpdates();
-
-  @override
-  List<Object?> get props => [];
-}

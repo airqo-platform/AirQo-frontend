@@ -9,8 +9,6 @@ class Publication(BaseModel):
         Research = "research", "Research"
         Technical = "technical", "Technical"
         Policy = "policy", "Policy"
-        Guide = "guide", "Guide"
-        Manual = "manual", "Manual"
 
     title = models.CharField(max_length=255)
     authors = models.TextField(null=True, blank=True)

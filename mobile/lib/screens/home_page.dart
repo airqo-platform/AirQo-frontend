@@ -3,7 +3,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
-import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -13,8 +12,8 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
@@ -100,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                       description: 'Home',
                       child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
-                        icon: Icons.home_rounded,
+                        svg: 'assets/icon/home_icon.svg',
                         label: 'Home',
                         index: 0,
                       ),
@@ -113,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                       showArrow: false,
                       description: 'This is the AirQo map',
                       child: BottomNavIcon(
-                        icon: Icons.location_on_rounded,
+                        svg: 'assets/icon/location.svg',
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
                         index: 1,
@@ -129,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                           showArrow: false,
                           description: 'Access your Profile details here',
                           child: BottomNavIcon(
-                            icon: Icons.person_rounded,
+                            svg: 'assets/icon/profile.svg',
                             selectedIndex: _selectedIndex,
                             label: 'Profile',
                             index: 2,
@@ -195,17 +194,6 @@ class _HomePageState extends State<HomePage> {
     );
     await _initializeDynamicLinks();
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AppService().latestVersion().then((version) async {
-          if (version != null && mounted) {
-            await canLaunchUrl(version.url).then((bool result) async {
-              await openUpdateScreen(context, version);
-            });
-          }
-        });
-      }
-    });
   }
 
   Future<void> _initializeDynamicLinks() async {

@@ -11,20 +11,9 @@ part 'nearby_location_state.dart';
 
 class NearbyLocationBloc
     extends Bloc<NearbyLocationEvent, NearbyLocationState> {
-  NearbyLocationBloc() : super(const NearbyLocationState()) {
+  NearbyLocationBloc() : super(const NearbyLocationState.initial()) {
     on<SearchLocationAirQuality>(_onSearchLocationAirQuality);
     on<UpdateLocationAirQuality>(_onUpdateLocationAirQuality);
-    on<DismissErrorMessage>(_onDismissErrorMessage);
-  }
-
-  void _onDismissErrorMessage(
-    DismissErrorMessage _,
-    Emitter<NearbyLocationState> emit,
-  ) {
-    return emit(state.copyWith(
-      showErrorMessage: false,
-      locationAirQuality: state.locationAirQuality,
-    ));
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
@@ -108,11 +97,8 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     emit(state.copyWith(
-      blocStatus: state.locationAirQuality == null
-          ? NearbyLocationStatus.searching
-          : state.blocStatus,
+      blocStatus: NearbyLocationStatus.searching,
       error: NearbyAirQualityError.none,
-      locationAirQuality: state.locationAirQuality,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);

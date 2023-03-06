@@ -174,8 +174,8 @@ class SettingsButton extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Icon(
-                Icons.settings_rounded,
+              child: SvgPicture.asset(
+                'assets/icon/cog.svg',
                 color: CustomColors.appColorBlue,
               ),
             ),
@@ -413,15 +413,13 @@ class ViewNotificationIcon extends StatelessWidget {
 class CardSection extends StatelessWidget {
   const CardSection({
     super.key,
-    this.icon,
+    required this.icon,
     required this.iconColor,
     required this.text,
-    this.materialIcon,
   });
-  final String? icon;
+  final String icon;
   final String text;
   final Color? iconColor;
-  final IconData? materialIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -442,12 +440,7 @@ class CardSection extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: icon != null
-                ? SvgPicture.asset(icon!, color: iconColor)
-                : Icon(
-                    materialIcon,
-                    color: iconColor,
-                  ),
+            child: SvgPicture.asset(icon, color: iconColor),
           ),
         ),
         title: AutoSizeText(
@@ -495,7 +488,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             },
             child: CardSection(
               text: 'Profile',
-              materialIcon: Icons.person_rounded,
+              icon: 'assets/icon/profile.svg',
               iconColor: CustomColors.appColorBlue,
             ),
           ),
@@ -555,7 +548,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             },
             child: CardSection(
               text: 'Settings',
-              materialIcon: Icons.settings_rounded,
+              icon: 'assets/icon/cog.svg',
               iconColor: CustomColors.appColorBlue,
             ),
           ),

@@ -15,11 +15,11 @@ class Tag(BaseModel):
 
 @with_author
 class Highlight(BaseModel):
-    title = models.CharField(max_length=110)
+    title = models.CharField(max_length=200)
     tags = models.ManyToManyField(Tag)
     image = CloudinaryField("Image", overwrite=True, resource_type="image")
     link = models.URLField()
-    link_title = models.CharField(max_length=20, blank=True)
+    link_title = models.CharField(max_length=100, blank=True)
     order = models.IntegerField(default=1)
 
     class Meta:

@@ -637,7 +637,7 @@ const ExploreData = () => {
                 </div>
               </div>
               <h6>An interactive air quality analytics platform</h6>
-              <Link to={`${NETMANAGER_URL}`}>
+              <Link to="/explore-data/get-started">
                 <button className="nav-button">Air Quality Dashboard</button>
               </Link>
             </div>

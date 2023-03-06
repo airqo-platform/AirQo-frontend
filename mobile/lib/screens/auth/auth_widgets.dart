@@ -63,10 +63,14 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
           borderRadius: BorderRadius.circular(8.0),
         );
 
-        Widget suffixIcon = state.phoneNumber.isValidPhoneNumber()
-            ? const Padding(
-                padding: EdgeInsets.all(14),
-                child: Icon(Icons.check_circle_rounded),
+        Widget suffixIcon = state.phoneNumber.isValidEmail()
+            ? Padding(
+                padding: const EdgeInsets.all(14),
+                child: SvgPicture.asset(
+                  'assets/icon/valid_input_icon.svg',
+                  height: 1,
+                  width: 1,
+                ),
               )
             : TextInputCloseButton(
                 color: suffixIconColor,
@@ -202,9 +206,13 @@ class _EmailInputFieldState extends State<EmailInputField> {
         );
 
         Widget suffixIcon = state.emailAddress.isValidEmail()
-            ? const Padding(
-                padding: EdgeInsets.all(14),
-                child: Icon(Icons.check_circle_rounded),
+            ? Padding(
+                padding: const EdgeInsets.all(14),
+                child: SvgPicture.asset(
+                  'assets/icon/valid_input_icon.svg',
+                  height: 1,
+                  width: 1,
+                ),
               )
             : TextInputCloseButton(
                 color: suffixIconColor,

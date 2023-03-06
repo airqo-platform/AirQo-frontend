@@ -1,21 +1,18 @@
-
 default_platform(:android)
 
 platform :android do
 
   desc "Deploy a new version to play store"
   lane :production do
-    update_fastlane
-    sh "fastlane supply init"
-    sh "bundle exec fastlane update_plugins"
+  
     sh "flutter build appbundle --flavor airqo"
     upload_to_play_store(
       version_name: "2.0.16",
       version_code: "20031",
       track: "production",
       release_status: "draft",
-      metadata_path:"fastlane/metadata",
-      json_key: "fastlane/play-store-service-account.json",
+      metadata_path:"metadata",
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
       package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
       aab: "../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
       skip_upload_metadata: true,
@@ -28,8 +25,6 @@ platform :android do
 
   desc "Deploy to new version to Firebase App Distribution"
   lane :distribute do
-    update_fastlane
-    sh "bundle exec fastlane update_plugins"
     sh "flutter build appbundle --flavor airqo" 
     firebase_app_distribution(
       app: ENV['MOBILE_ANDROID_ID_FIREBASE'],

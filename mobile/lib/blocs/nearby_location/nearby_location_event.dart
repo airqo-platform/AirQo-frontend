@@ -18,10 +18,3 @@ class UpdateLocationAirQuality extends NearbyLocationEvent {
   @override
   List<Object> get props => [];
 }
-
-class DismissErrorMessage extends NearbyLocationEvent {
-  const DismissErrorMessage();
-
-  @override
-  List<Object> get props => [];
-}

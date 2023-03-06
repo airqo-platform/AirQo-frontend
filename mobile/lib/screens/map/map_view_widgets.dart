@@ -43,10 +43,9 @@ class RegionAvatar extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Icon(
-          Icons.location_on_rounded,
+        child: SvgPicture.asset(
+          'assets/icon/location.svg',
           color: CustomColors.appColorBlue,
-          size: 27,
         ),
       ),
     );
@@ -105,11 +104,11 @@ class SiteTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.4),
         ),
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 10,
-        semanticLabel: 'more',
-        weight: 1000,
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
       leading: MiniAnalyticsAvatar(airQualityReading: airQualityReading),
     );
@@ -147,11 +146,11 @@ class SearchTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 10,
-        semanticLabel: 'more',
-        weight: 1000,
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
     );
   }
@@ -226,11 +225,11 @@ class CountryTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 10,
-        semanticLabel: 'more',
-        weight: 1000,
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
     );
   }
@@ -381,11 +380,11 @@ class RegionTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios_rounded,
-        size: 10,
-        semanticLabel: 'more',
-        weight: 1000,
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
     );
   }
@@ -756,14 +755,14 @@ class SearchWidget extends StatelessWidget {
                   cursorColor: CustomColors.appColorBlack,
                   decoration: InputDecoration(
                     fillColor: Colors.white,
-                    prefixIcon: const Padding(
-                      padding: EdgeInsets.symmetric(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 0,
                         vertical: 7,
                       ),
-                      child: Icon(
-                        Icons.search_rounded,
-                        semanticLabel: 'Search',
+                      child: SvgPicture.asset(
+                        'assets/icon/search.svg',
+                        semanticsLabel: 'Search',
                       ),
                     ),
                     contentPadding: EdgeInsets.zero,

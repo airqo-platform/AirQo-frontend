@@ -4,6 +4,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 class EmptyFavouritePlace extends StatelessWidget {
   const EmptyFavouritePlace(this.airQualityReading, {super.key});
@@ -128,10 +129,11 @@ class EmptyFavouritePlace extends StatelessWidget {
                           BorderSide(color: Colors.transparent),
                         ),
                       ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 10,
-                        semanticLabel: 'more',
+                      child: SvgPicture.asset(
+                        'assets/icon/more_arrow.svg',
+                        semanticsLabel: 'more',
+                        height: 6.99,
+                        width: 4,
                       ),
                     ),
                   ],

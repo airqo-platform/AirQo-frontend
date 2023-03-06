@@ -609,41 +609,6 @@ extension FileExt on File {
   }
 }
 
-extension AppStoreVersionExt on AppStoreVersion {
-  int compareVersion(String checkVersion) {
-    List<int> versionSections =
-        version.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (versionSections.length != 3) {
-      throw Exception('Invalid version $this');
-    }
-
-    List<int> candidateSections =
-        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (candidateSections.length != 3) {
-      throw Exception('Invalid version $checkVersion');
-    }
-
-    // checking first code
-    if (versionSections.first > candidateSections.first) return 1;
-
-    if (versionSections.first < candidateSections.first) return -1;
-
-    // checking second code
-    if (versionSections[1] > candidateSections[1]) return 1;
-
-    if (versionSections[1] < candidateSections[1]) return -1;
-
-    // checking last code
-    if (versionSections.last > candidateSections.last) return 1;
-
-    if (versionSections.last < candidateSections.last) return -1;
-
-    return 0;
-  }
-}
-
 extension StringExt on String {
   bool inStatement(String statement) {
     final terms = toLowerCase().split(' ');
