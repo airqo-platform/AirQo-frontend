@@ -32,13 +32,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 
 const AddMonitor = () => {
   const router = useRouter();
-  const {
-    data: data,
-    isLoading,
-    // isSuccess,
-    isError,
-    error,
-  } = useGetCollocationDevicesQuery();
+  const { data: data, isLoading, isSuccess, isError, error } = useGetCollocationDevicesQuery();
 
   let collocationDevices = data ? data.devices : [];
   const [collocateDevices, { errorValue }] = useCollocateDevicesMutation();
