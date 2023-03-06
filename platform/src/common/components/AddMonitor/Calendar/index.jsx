@@ -87,6 +87,7 @@ const ScheduleCalendar = () => {
               separator={'to'}
               readOnly={true}
               inputClassName='font-sans text-xs text-grey-300 font-normal'
+              useRange={true}
             />
           </div>
         </div>
