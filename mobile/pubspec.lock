@@ -833,10 +833,10 @@ packages:
     dependency: transitive
     description:
       name: google_maps_flutter_android
-      sha256: "7829c13b90edb8b31861bf496616cf8582618f617951d16cb1e191699c586dfc"
+      sha256: "88d0ed9ef7be4ba4839b85e67bd305ba1c5141e23b6fd1e665ef257755d8fef6"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.7"
+    version: "2.4.8"
   google_maps_flutter_ios:
     dependency: transitive
     description:
@@ -937,10 +937,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: "845f793834d5d3af887ce39e3c97186996928cd43c8350a23e5499268398cc16"
+      sha256: ca14b663fecbe7f5ddda83782abfb2e1dd2a23d6da49b6ed344bf8cf3871225a
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.5+8"
+    version: "0.8.5+9"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -1678,26 +1678,26 @@ packages:
     dependency: transitive
     description:
       name: vector_graphics
-      sha256: "254348b40251c995cf8301ac715486c8cfa0a93b7fdc4dbd495a30f04db1fb44"
+      sha256: e43c38822e7d2facd790fd617ce16b10cc359a4b094d5772e3198904270918ef
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   vector_graphics_codec:
     dependency: transitive
     description:
       name: vector_graphics_codec
-      sha256: "143c290b762646c696c63be5d976bde7379ea892cb6868ddc5a17cbc56e71411"
+      sha256: "4a85a8563405bfe223052a85d6f8bc276ba3a22e12acfa3fd9a7108c67b32076"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   vector_graphics_compiler:
     dependency: transitive
     description:
       name: vector_graphics_compiler
-      sha256: "3190cc26d9ebda686bafb9721bb6a74c6d358700f4fc978a0f2cba6912daff86"
+      sha256: "9e8066d2f18e88f2fb1cf6c8ca567417bdfb0145ac28519dcca3c15d42a10b3e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   vector_math:
     dependency: transitive
     description:
@@ -1742,10 +1742,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_android
-      sha256: "48c8cfb023168473c0a3a4c21ffea6c23a32cc7156701c39f618b303c6a3c96e"
+      sha256: "5dd3f32b5c2d8f4bf9d05a349e4a65fa718eb137f396f336c3893d558a58fe84"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.1"
+    version: "3.3.2"
   webview_flutter_platform_interface:
     dependency: transitive
     description:

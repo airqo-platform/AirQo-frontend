@@ -3,7 +3,9 @@ package com.airqo.app
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
@@ -51,10 +53,10 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                 val pmValue = widgetData.getString("pmValue", null)
                 fun setIndexColor(pmValue: String?) {
                     data class ColorRange(
-                        val minValue: Int,
-                        val maxValue: Int,
-                        val resourceId: Int,
-                        val textColor: Int
+                        val min_value: Int,
+                        val max_value: Int,
+                        val resource_id: Int,
+                        val text_color: Int
                     )
 
                     val colorRanges = listOf(
@@ -72,7 +74,7 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                     )
 
                     val colorRange =
-                        colorRanges.firstOrNull { pmValue?.toIntOrNull()!! in it.minValue..it.maxValue }
+                        colorRanges.firstOrNull { pmValue?.toIntOrNull()!! in it.min_value..it.max_value }
 
                     if (colorRange == null) {
                         // handle null or invalid pmValue
@@ -88,14 +90,20 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                         setInt(
                             R.id.index_color,
                             "setBackgroundResource",
-                            colorRange.resourceId
+                            colorRange.resource_id
                         )
-                        setTextColor(R.id.pm_scale, colorRange.textColor)
-                        setTextColor(R.id.pm_value, colorRange.textColor)
-                        setTextColor(R.id.pm_unit, colorRange.textColor)
+                        setTextColor(R.id.pm_scale, colorRange.text_color)
+                        setTextColor(R.id.pm_value, colorRange.text_color)
+                        setTextColor(R.id.pm_unit, colorRange.text_color)
                     }
                 }
                 setIndexColor(pmValue)
+
+                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("AirQo://Refresh")
+                )
+                setOnClickPendingIntent(R.id.refresh_icon, backgroundIntent)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

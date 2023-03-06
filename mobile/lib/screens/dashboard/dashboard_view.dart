@@ -12,19 +12,45 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
 
-import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:collection/collection.dart';
+import 'package:workmanager/workmanager.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+
+@pragma("vm:entry-point")
+void backgroundCallback(Uri? data) {
+  Workmanager().executeTask((taskName, inputData) async {
+    final nearbyLocationBloc = NearbyLocationBloc();
+    AirQualityReading? airQualityReading =
+        nearbyLocationBloc.state.locationAirQuality ??
+            HiveService.getAirQualityReadings().firstOrNull;
+
+    List<ForecastInsight> forecastData = await AirQoDatabase()
+        .getForecastInsights(airQualityReading!.referenceSite);
+
+    WidgetData widgetData =
+        WidgetData.initializeFromAirQualityReading(airQualityReading);
+    widgetData = widgetData.copyWith(forecastData);
+
+    List<bool> results = await Future.wait<bool>(
+      widgetData.idMapping().entries.map((entry) async {
+        await HomeWidget.saveWidgetData<String>(entry.key, entry.value);
+        return true;
+      }).toList(),
+    );
+
+    return !results.contains(false);
+  });
+}
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -452,6 +478,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
@@ -481,20 +508,16 @@ class _DashboardViewState extends State<DashboardView>
 
   Future<void> _sendData() async {
     AirQualityReading? airQualityReading =
-        context.read<NearbyLocationBloc>().state.locationAirQuality;
-    // ??
-    // HiveService.getAirQualityReadings().lastOrNull;
-    airQualityReading ??= HiveService.getAirQualityReadings()[5];
-    if (airQualityReading == null) return;
+        context.read<NearbyLocationBloc>().state.locationAirQuality ??
+            HiveService.getAirQualityReadings().firstOrNull;
 
+    if (airQualityReading == null) return;
     List<ForecastInsight> forecastData = await AirQoDatabase()
         .getForecastInsights(airQualityReading.referenceSite);
 
     WidgetData widgetData =
         WidgetData.initializeFromAirQualityReading(airQualityReading);
     widgetData = widgetData.copyWith(forecastData);
-    print(widgetData);
-    print(widgetData.idMapping());
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });

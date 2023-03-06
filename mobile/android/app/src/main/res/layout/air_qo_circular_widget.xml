@@ -87,7 +87,7 @@
         android:textAppearance="@style/circle_location" />
 
     <ImageView
-        android:id="@+id/refresh"
+        android:id="@+id/circular_refresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/circular_location"
