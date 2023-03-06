@@ -6,11 +6,10 @@ const collocationDataSlice = createSlice({
   initialState: {
     collocationData: null,
     isLoading: false,
-    error: null,
+    errorValue: null,
   },
   reducers: {
     addCollocationData(state, action) {
-      console.log(action.payload);
       state.collocationData = action.payload;
     },
   },
@@ -18,18 +17,18 @@ const collocationDataSlice = createSlice({
     builder
       .addMatcher(collocateDevices.matchPending, (state, action) => {
         state.isLoading = true;
-        state.error = null;
+        state.errorValue = null;
       })
       .addMatcher(collocateDevices.matchFulfilled, (state, action) => {
         state.isLoading = false;
-        state.error = null;
+        state.errorValue = null;
         const collocationData = action.payload;
         // Dispatch the 'addCollocationData' action to update the state with the new post data
         collocationDataSlice.actions.addCollocationData(collocationData);
       })
       .addMatcher(collocateDevices.matchRejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message;
+        state.errorValue = action.error.message;
       });
   },
 });

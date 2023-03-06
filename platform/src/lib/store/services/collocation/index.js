@@ -22,30 +22,11 @@ export const collocateApi = createApi({
   },
   endpoints: (builder) => ({
     collocateDevices: builder.mutation({
-      queryFn: async (newInput) => {
-        try {
-          const response = await fetch('/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newInput),
-          });
-
-          if (!response.ok) {
-            const text = await response.text();
-            const errorRegex = /<pre>(.*?)<\/pre>/gs;
-            const match = errorRegex.exec(text);
-            const errorMessage = match ? match[1] : 'Unknown error';
-            throw new Error(errorMessage);
-          }
-
-          const data = await response.json();
-          return data;
-        } catch (error) {
-          console.log(error.message);
-        }
-      },
+      query: (addMonitorInput) => ({
+        url: '',
+        method: 'POST',
+        body: addMonitorInput,
+      }),
       onQueryFulfilled: (data, { dispatch }) => {
         dispatch(addCollocationData(data));
       },
