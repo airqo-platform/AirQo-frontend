@@ -5,13 +5,14 @@ import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '../../common/components/Button';
+import ContentBox from '../../common/components/Layout/content_box';
 
 const collocate = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'} />
-      <div className='mx-6 mb-6 border-[0.5px] rounded-lg border-[#363A4429] flex justify-center items-center'>
-        <div className='flex justify-center items-center flex-col py-20'>
+      <ContentBox>
+        <div className='flex justify-center items-center flex-col mx-auto py-20'>
           <Collocate />
           <div className='flex flex-col justify-center text-center mt-10'>
             <h4 className='text-xl font-normal mb-6'>
@@ -48,7 +49,7 @@ const collocate = () => {
             </div>
           </div>
         </div>
-      </div>
+      </ContentBox>
     </Layout>
   );
 };
