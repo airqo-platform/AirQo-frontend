@@ -32,6 +32,9 @@ module.exports = {
         black: {
           600: '#202223',
         },
+        black: {
+          600: '#353E52',
+        },
       },
     },
     container: {
