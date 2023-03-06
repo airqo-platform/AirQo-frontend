@@ -17,7 +17,7 @@ const CollocationOverview = () => {
             <h4 className='text-xl font-normal mb-6'>You have no devices under collocation</h4>
             <div>
               <p className='text-grey-300 text-sm font-light max-w-96'>
-                This is where youll find quick highlights of your collocated monitors
+                This is where you'll find quick highlights of your collocated monitors
               </p>
             </div>
           </div>
