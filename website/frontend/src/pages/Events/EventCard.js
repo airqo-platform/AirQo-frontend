@@ -1,22 +1,23 @@
 import { CalendarTodayOutlined } from '@mui/icons-material'
 import React from 'react'
+import { format } from 'date-fns';
 
 const EventCard = ({image, title, subText, startDate, link}) => {
   return (
-    <div>
-      <img src={image} alt={title} height={250} width={300}/>
+    <div className="card">
+      <img src={image} alt={title} height={250} width={300} />
       <div>
         <h1>{title}</h1>
         <h5>{subText}</h5>
-        <div>
+        <div className="duration">
           <CalendarTodayOutlined />
-          <span>{startDate}</span>
+          <span>{format(new Date(startDate), 'do MMMM, yyyy')}</span>
         </div>
-        <span className="cta-link">
+        <div className="cta">
           <a className="link" href={link}>
             Read More {'-->'}
           </a>
-        </span>
+        </div>
       </div>
     </div>
   );
