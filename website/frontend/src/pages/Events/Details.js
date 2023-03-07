@@ -51,8 +51,8 @@ const EventDetails = () => {
               {/* Google maps location link */}
               <div className="item">
                 <PlaceOutlined />
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  <span>Makerere University</span>
+                <a target="_blank" rel="noopener noreferrer">
+                  <span>Kampala, Uganda</span>
                 </a>
               </div>
             </div>
