@@ -1,32 +1,29 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setNavTab } from '../../../reduxStore/EventsNav/NavigationSlice';
 
-const EventsNavigation = () => {
-  const [selectedTab, setSelectedTab] = useState('upcoming');
+const EventsNavigation = ({ navTabs }) => {
+  const [selectedTab, setSelectedTab] = useState(navTabs[0]);
   const onClickTabItem = (tab) => setSelectedTab(tab);
+  const dispatch = useDispatch();
+
   return (
-    <div>
+    <>
       <div className="nav">
-        <span id="tab1">
-          <button
-            className={selectedTab === 'upcoming' ? 'selected' : 'unselected'}
-            onClick={() => {
-              onClickTabItem('upcoming');
-            }}>
-            Upcoming Events
-          </button>
-        </span>
-        <span id="tab2">
-          <button
-            className={selectedTab === 'past' ? 'selected' : 'unselected'}
-            onClick={() => {
-              paginate(1);
-              onClickTabItem('past');
-            }}>
-            Past Events
-          </button>
-        </span>
+        {navTabs.map((tab) => (
+          <span>
+            <button
+              className={selectedTab === tab ? 'selected' : 'unselected'}
+              onClick={() => {
+                onClickTabItem(tab);
+                dispatch(setNavTab(tab));
+              }}>
+              {tab}
+            </button>
+          </span>
+        ))}
       </div>
-    </div>
+    </>
   );
 };
 
