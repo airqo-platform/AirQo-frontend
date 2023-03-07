@@ -1,8 +1,8 @@
 import React from 'react';
-import HeaderNav from '../../common/components/Collocation/header';
-import Layout from '../../common/components/Layout';
+import HeaderNav from '@/components/Collocation/header';
+import Layout from '@/components/Layout';
 import CollocationNone from '@/icons/Collocation/overview.svg';
-import ContentBox from '../../common/components/Layout/content_box';
+import ContentBox from '@/components/Layout/content_box';
 
 const CollocationOverview = () => {
   return (

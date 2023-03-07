@@ -1,20 +1,20 @@
-import Button from '../../common/components/Button';
-import Layout from '../../common/components/Layout';
-import ContentBox from '../../common/components/Layout/content_box';
-import NavigationBreadCrumb from '../../common/components/Navigation/breadcrumb';
+import Button from '@/components/Button';
+import Layout from '@/components/Layout';
+import ContentBox from '@/components/Layout/content_box';
+import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
   useGetCollocationDevicesQuery,
   getCollocationDevices,
   getRunningQueriesThunk,
 } from '@/lib/store/services/deviceRegistry';
 import { wrapper } from '@/lib/store';
-import Table from '../../common/components/AddMonitor/Table';
-import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
+import Table from '@/components/AddMonitor/Table';
+import SkeletonFrame from '@/components/AddMonitor/Skeletion';
 import { useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
-import ScheduleCalendar from '../../common/components/AddMonitor/Calendar';
+import ScheduleCalendar from '@/components/AddMonitor/Calendar';
 import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
-import Toast from '../../common/components/Toast';
+import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -67,7 +67,7 @@ const AddMonitor = () => {
       collocateDevices(body);
 
       if (!errorValue) {
-        router.push('/collocation/collocate');
+        router.push('/collocation/collocate_success');
       }
     }
   };
