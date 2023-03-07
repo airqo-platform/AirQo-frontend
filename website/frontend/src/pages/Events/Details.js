@@ -51,7 +51,7 @@ const EventDetails = () => {
               {/* Google maps location link */}
               <div className="item">
                 <PlaceOutlined />
-                <a target="_blank" rel="noopener noreferrer">
+                <a>
                   <span>Kampala, Uganda</span>
                 </a>
               </div>
