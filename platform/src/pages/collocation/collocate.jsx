@@ -7,11 +7,10 @@ import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
 import ContentBox from '@/components/Layout/content_box';
 import { useDispatch } from 'react-redux';
-import { useGetDeviceStatusSummaryQuery } from '../../lib/store/services/collocation';
+import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
 import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
-import collocationDataSlice from '../../lib/store/services/collocation/collocationDataSlice';
 
 const collocate = () => {
   const dispatch = useDispatch();
@@ -61,10 +60,10 @@ const collocate = () => {
               <Tab label='All'>
                 <Table collocationDevices={deviceStatusSummary} />
               </Tab>
-              <Tab label='Passed'>I am the second tab</Tab>
-              <Tab label='Failed'>I am the third tab</Tab>
-              <Tab label='Running'>I am the third tab</Tab>
-              <Tab label='Scheduled'>I am the third tab</Tab>
+              <Tab label='Passed'></Tab>
+              <Tab label='Failed'></Tab>
+              <Tab label='Running'></Tab>
+              <Tab label='Scheduled'></Tab>
             </Tabs>
           </div>
         ) : (

@@ -4,7 +4,7 @@ import SortByAlphaIcon from '@/icons/Actions/sort_by_alpha.svg';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
-import Button from '../../Button';
+import Button from '../../../Button';
 import DataTable from './DataTable';
 
 const Table = ({ collocationDevices }) => {

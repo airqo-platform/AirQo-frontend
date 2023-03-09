@@ -8,11 +8,11 @@ import {
   getRunningQueriesThunk,
 } from '@/lib/store/services/deviceRegistry';
 import { wrapper } from '@/lib/store';
-import Table from '@/components/AddMonitor/Table';
-import SkeletonFrame from '@/components/AddMonitor/Skeletion';
+import Table from '@/components/Collocation/AddMonitor/Table';
+import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
 import { useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
-import ScheduleCalendar from '@/components/AddMonitor/Calendar';
+import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
 import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';

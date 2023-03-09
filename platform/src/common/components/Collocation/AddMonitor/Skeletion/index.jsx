@@ -1,5 +1,5 @@
 import ArrowLeftIcon from '@/icons/keyboard_backspace.svg';
-import Layout from '../../Layout';
+import Layout from '../../../Layout';
 import Calendar from './Calendar';
 import Table from './Table';
 

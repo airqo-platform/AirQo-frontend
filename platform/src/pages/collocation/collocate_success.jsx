@@ -1,6 +1,4 @@
 import React from 'react';
-import HeaderNav from '@/components/Collocation/header';
-import Layout from '@/components/Layout';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import Link from 'next/link';
 import ContentLessTopBar from '@/components/TopBar/content_less_header';
