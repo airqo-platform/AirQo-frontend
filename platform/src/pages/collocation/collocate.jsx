@@ -10,6 +10,8 @@ import { useDispatch } from 'react-redux';
 import { useGetDeviceStatusSummaryQuery } from '../../lib/store/services/collocation';
 import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
 import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
+import Table from '@/components/Collocation/DeviceStatus/Table';
+import collocationDataSlice from '../../lib/store/services/collocation/collocationDataSlice';
 
 const collocate = () => {
   const dispatch = useDispatch();
@@ -20,7 +22,7 @@ const collocate = () => {
     isError,
     error,
   } = useGetDeviceStatusSummaryQuery();
-  let deviceStatusSummary = data ? data.devices : [];
+  let deviceStatusSummary = data ? data.data : [];
 
   return (
     <Layout>
@@ -54,9 +56,11 @@ const collocate = () => {
       </HeaderNav>
       <ContentBox>
         {deviceStatusSummary ? (
-          <div className='m-6 w-full'>
+          <div className='w-full'>
             <Tabs>
-              <Tab label='All'>I am the first tab</Tab>
+              <Tab label='All'>
+                <Table collocationDevices={deviceStatusSummary} />
+              </Tab>
               <Tab label='Passed'>I am the second tab</Tab>
               <Tab label='Failed'>I am the third tab</Tab>
               <Tab label='Running'>I am the third tab</Tab>
