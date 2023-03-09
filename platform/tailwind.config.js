@@ -30,6 +30,7 @@ module.exports = {
           300: '#6D7175',
           400: '#B0B0B0',
           700: '#DDDDDD',
+          750: '#E8E8E8',
         },
         skeleton: '#363A4429',
         black: '#000000',
