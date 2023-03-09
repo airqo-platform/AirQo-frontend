@@ -10,10 +10,11 @@ import {
 import { wrapper } from '@/lib/store';
 import Table from '@/components/Collocation/AddMonitor/Table';
 import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
 import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
 import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
+import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 
@@ -32,6 +33,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 
 const AddMonitor = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const {
     data: data,
     isLoading,
@@ -67,6 +69,7 @@ const AddMonitor = () => {
       collocateDevices(body);
 
       if (!errorValue) {
+        dispatch(removeDevices(selectedCollocateDevices));
         router.push('/collocation/collocate_success');
       }
     }

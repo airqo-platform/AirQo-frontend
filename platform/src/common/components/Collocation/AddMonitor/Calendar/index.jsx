@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import {
   addEndDate,
   addStartDate,
-} from '@/lib/store/services/addMonitor/selectedCollocateDevicesSlice';
+} from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Datepicker from 'react-tailwindcss-datepicker';
 import moment from 'moment';
 

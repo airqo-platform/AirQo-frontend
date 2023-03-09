@@ -1,11 +1,11 @@
 import { humanReadableDate } from '@/core/utils/dateTime';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addDevices,
   removeDevices,
   addDevice,
-} from '@/lib/store/services/addMonitor/selectedCollocateDevicesSlice';
+} from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
