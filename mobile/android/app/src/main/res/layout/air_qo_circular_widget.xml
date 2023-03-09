@@ -57,7 +57,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_index_color"
-        android:layout_marginStart="50dp"
+        android:layout_marginStart="70dp"
         android:layout_marginTop="15dp"
         android:fontFamily="@font/roboto_medium"
         android:text="@string/location"
@@ -71,7 +71,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_index_color"
         android:layout_marginTop="15dp"
-        android:layout_marginEnd="-50dp"
+        android:layout_marginEnd="-65dp"
         android:layout_toStartOf="@+id/circular_location"
         android:contentDescription="@string/location_icon"
         android:src="@drawable/location_icon" />
@@ -81,7 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_location"
-        android:layout_marginStart="50dp"
+        android:layout_marginStart="70dp"
         android:fontFamily="@font/roboto_medium"
         android:text="@string/date_circle"
         android:textAppearance="@style/circle_location" />
