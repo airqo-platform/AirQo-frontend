@@ -8,7 +8,7 @@ import SearchBar from './SearchBar';
 import Button from '../../../Button';
 import DataTable from './DataTable';
 
-const Table = ({ collocationDevices }) => {
+const Table = ({ collocationDevices, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
 
@@ -49,8 +49,8 @@ const Table = ({ collocationDevices }) => {
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? new Date(a.createdAt) - new Date(b.createdAt)
-        : new Date(b.createdAt) - new Date(a.createdAt),
+        ? new Date(a.start_date) - new Date(b.start_date)
+        : new Date(b.start_date) - new Date(a.start_date),
     );
 
     return sortedData;
@@ -59,8 +59,8 @@ const Table = ({ collocationDevices }) => {
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? a.long_name.localeCompare(b.long_name)
-        : b.long_name.localeCompare(a.long_name),
+        ? a.device_id.localeCompare(b.device_id)
+        : b.device_id.localeCompare(a.device_id),
     );
     return sortedData;
   };
@@ -190,6 +190,7 @@ const Table = ({ collocationDevices }) => {
         <DataTable
           filteredData={filteredData.length > 0 && filteredData}
           collocationDevices={collocationDevices}
+          isLoading={isLoading}
         />
       </div>
     </div>

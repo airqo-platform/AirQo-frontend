@@ -1,5 +1,5 @@
 import { humanReadableDate } from '@/core/utils/dateTime';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addDevices,
@@ -12,6 +12,12 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
+
+  useEffect(() => {
+    if (selectedCollocateDevices.length > 0) {
+      dispatch(removeDevices());
+    }
+  }, []);
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];

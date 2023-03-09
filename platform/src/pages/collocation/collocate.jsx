@@ -58,7 +58,7 @@ const collocate = () => {
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>
-                <Table collocationDevices={deviceStatusSummary} />
+                <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
               </Tab>
               <Tab label='Passed'></Tab>
               <Tab label='Failed'></Tab>
