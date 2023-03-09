@@ -1,11 +1,13 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import './styles/index.scss';
 
 import App from './App';
 
-const root = document.getElementById('app');
+const app = document.getElementById('app');
+
+const root = createRoot(app)
 
 // Bootstrap the main app
-render(<App />, root);
+root.render(<App />);

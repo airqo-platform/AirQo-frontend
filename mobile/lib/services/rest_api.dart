@@ -48,6 +48,30 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
+  Future<AppStoreVersion?> getAppVersion({
+    String bundleId = "",
+    String packageName = "",
+  }) async {
+    try {
+      final body = await _performGetRequest(
+        {
+          "bundleId": bundleId,
+          "packageName": packageName,
+        },
+        AirQoUrls.appVersion,
+      );
+
+      return AppStoreVersion.fromJson(body['data']);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
   Future<Map<String, double>> getLocation() async {
     String ipAddress = '';
     try {

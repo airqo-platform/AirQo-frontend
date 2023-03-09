@@ -67,9 +67,11 @@
 
 @import "Modal";
 
-@import "ImpactNumbers.scss";
+@import "ImpactNumbers";
 
 @import "PublicationPage";
+
+@import "Events";
 
 *, *::before, *::after {
   box-sizing: inherit;
