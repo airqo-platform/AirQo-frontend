@@ -19,7 +19,8 @@ const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
 const CareerDetailPage = React.lazy(() => import('src/pages/CareerDetailPage'));
 const PublicationsPage = React.lazy(() => import('src/pages/Publications/Publications'));
 const EventsPage = React.lazy(() => import('src/pages/Events'));
-const EventsDetailsPage = React.lazy(()=>import('src/pages/Events/Details'))
+const EventsDetailsPage = React.lazy(() => import('src/pages/Events/Details'));
+const MonitorPage = React.lazy(() => import('src/pages/OurProducts/MonitorPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import { ContentUganda, ContentKenya } from 'src/pages/OurSolutions/AfricanCitiesPage';
@@ -92,7 +93,8 @@ const App = () => {
             <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/details" element={<EventsDetailsPage/>}/>
+            <Route path="/events/details" element={<EventsDetailsPage />} />
+            <Route path="/products/monitor" element={<MonitorPage />} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </Suspense>
