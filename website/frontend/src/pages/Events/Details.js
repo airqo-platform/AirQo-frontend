@@ -42,7 +42,7 @@ const EventDetails = () => {
               <h3>Event Details</h3>
               <span className="item">
                 <CalendarMonth />
-                <span>20th April 2023</span>
+                <span>3rd - 5th April 2023</span>
               </span>
               <div className="item">
                 <AccessTimeOutlined />
