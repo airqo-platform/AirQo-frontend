@@ -646,9 +646,9 @@ const ExploreData = () => {
             <DownloadIcon />
             <a
               href={UserManual}
-              download="AirQo_Analytics_Platform_User_Manual.pdf"
+              download="AirQo Analytics Platform User Manual"
               target="_blank"
-              rel="noopener noreferrer">
+              rel="noopener norefferer">
               Air Quality Platform User Manual
             </a>
           </button>
