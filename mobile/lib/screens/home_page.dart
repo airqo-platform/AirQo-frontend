@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
   late GlobalKey _mapShowcaseKey;
   late GlobalKey _profileShowcaseKey;
   late BuildContext _showcaseContext;
+  final AppService _appService = AppService();
 
   late List<Widget> _widgetOptions;
 
@@ -73,13 +75,17 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         child: ShowCaseWidget(
-          onFinish: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ForYouPage(),
-              ),
-            );
+          onFinish: () async {
+            final prefs = await SharedPreferences.getInstance();
+            if (prefs.getBool(Config.restartTourShowcase) == true) {
+              Future.delayed(
+                Duration.zero,
+                () => _appService.navigateShowcaseToScreen(
+                  context,
+                  const ForYouPage(),
+                ),
+              );
+            }
           },
           builder: Builder(
             builder: (context) {
@@ -94,10 +100,10 @@ class _HomePageState extends State<HomePage> {
                     .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      showArrow: false,
-                      key: _homeShowcaseKey,
-                      description: 'Home',
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _homeShowcaseKey,
+                      description: 'Explore air quality here',
                       child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         icon: Icons.home_rounded,
@@ -108,10 +114,12 @@ class _HomePageState extends State<HomePage> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      key: _mapShowcaseKey,
-                      showArrow: false,
-                      description: 'This is the AirQo map',
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _mapShowcaseKey,
+                      descriptionWidth: 90,
+                      descriptionHeight: 110,
+                      description: 'See readings from our monitors here',
                       child: BottomNavIcon(
                         icon: Icons.location_on_rounded,
                         selectedIndex: _selectedIndex,
@@ -124,10 +132,13 @@ class _HomePageState extends State<HomePage> {
                   BottomNavigationBarItem(
                     icon: Stack(
                       children: [
-                        Showcase(
-                          key: _profileShowcaseKey,
-                          showArrow: false,
-                          description: 'Access your Profile details here',
+                        CustomShowcaseWidget(
+                          customize: ShowcaseOptions.up,
+                          showcaseKey: _profileShowcaseKey,
+                          descriptionHeight: 110,
+                          descriptionWidth: 80,
+                          description:
+                              'Change your preferences and settings here',
                           child: BottomNavIcon(
                             icon: Icons.person_rounded,
                             selectedIndex: _selectedIndex,

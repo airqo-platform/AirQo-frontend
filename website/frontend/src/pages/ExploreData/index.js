@@ -637,7 +637,7 @@ const ExploreData = () => {
                 </div>
               </div>
               <h6>An interactive air quality analytics platform</h6>
-              <Link to="/explore-data/get-started">
+              <Link to={`${NETMANAGER_URL}`}>
                 <button className="nav-button">Air Quality Dashboard</button>
               </Link>
             </div>
@@ -646,9 +646,9 @@ const ExploreData = () => {
             <DownloadIcon />
             <a
               href={UserManual}
-              download="AirQo Analytics Platform User Manual"
+              download="AirQo_Analytics_Platform_User_Manual.pdf"
               target="_blank"
-              rel="noopener norefferer">
+              rel="noopener noreferrer">
               Air Quality Platform User Manual
             </a>
           </button>

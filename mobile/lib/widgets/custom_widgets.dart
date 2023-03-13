@@ -15,6 +15,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'buttons.dart';
 import 'custom_shimmer.dart';
@@ -469,7 +470,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
@@ -543,6 +544,120 @@ class BottomNavIcon extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class CustomShowcaseWidget extends StatelessWidget {
+  const CustomShowcaseWidget({
+    super.key,
+    required this.showcaseKey,
+    required this.description,
+    required this.child,
+    this.customize,
+    this.descriptionWidth = 200,
+    this.descriptionHeight = 20,
+  });
+
+  final GlobalKey showcaseKey;
+  final Widget child;
+  final ShowcaseOptions? customize;
+  final String description;
+  final double descriptionWidth, descriptionHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Showcase.withWidget(
+      key: showcaseKey,
+      width: 12,
+      height: 45,
+      overlayColor: Colors.black,
+      overlayOpacity: 0.9,
+      container: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          customize != ShowcaseOptions.up
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+          const SizedBox(
+            height: 10,
+          ),
+          customize == ShowcaseOptions.skip
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: IconButton(
+                        tooltip: "Skip Showcase",
+                        icon: const Icon(Icons.skip_next),
+                        onPressed: () async {
+                          ShowCaseWidget.of(context).dismiss();
+                          await AppService()
+                              .stopShowcase(Config.restartTourShowcase);
+                        },
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                )
+              : const SizedBox(),
+          Container(
+            constraints: BoxConstraints.expand(
+              width: descriptionWidth,
+              height: descriptionHeight,
+            ),
+            child: Text(
+              description,
+              textAlign: TextAlign.left,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              softWrap: true,
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          customize == ShowcaseOptions.up
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+        ],
+      ),
+      targetShapeBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: CustomColors.appColorBlue,
+          width: 3,
+          strokeAlign: -5,
+        ),
+      ),
+      child: child,
     );
   }
 }

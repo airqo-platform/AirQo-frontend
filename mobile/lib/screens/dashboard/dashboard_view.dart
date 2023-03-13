@@ -55,39 +55,10 @@ class _DashboardViewState extends State<DashboardView>
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
-        child: Showcase.withWidget(
-          key: _skipShowcaseKey,
-          overlayOpacity: 0.6,
-          targetShapeBorder: const RoundedRectangleBorder(),
-          width: 50,
-          height: 50,
-          container: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: 45,
-                height: 45,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: IconButton(
-                  tooltip: "Skip Showcase",
-                  icon: const Icon(Icons.skip_next),
-                  onPressed: () => ShowCaseWidget.of(context).dismiss(),
-                  color: CustomColors.appColorBlue,
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                "Click to Skip Tutorial",
-                textAlign: TextAlign.left,
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
+        child: CustomShowcaseWidget(
+          showcaseKey: _skipShowcaseKey,
+          description: "Click to Skip Tutorial",
+          customize: ShowcaseOptions.skip,
           child: AppBar(
             automaticallyImplyLeading: false,
             centerTitle: false,
@@ -134,10 +105,11 @@ class _DashboardViewState extends State<DashboardView>
                       );
 
                       return Expanded(
-                        child: Showcase(
-                          key: _favoritesShowcaseKey,
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _favoritesShowcaseKey,
+                          descriptionHeight: 120,
                           description:
-                              'Find the latest air quality from your favorite locations',
+                              "Find the latest air quality from your favorite locations",
                           child: DashboardTopCard(
                             toolTipType: ToolTipType.favouritePlaces,
                             title: 'Favorites',
@@ -168,10 +140,12 @@ class _DashboardViewState extends State<DashboardView>
                       );
 
                       return Expanded(
-                        child: Showcase(
-                          key: _forYouShowcaseKey,
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _forYouShowcaseKey,
+                          descriptionWidth: 100,
+                          descriptionHeight: 130,
                           description:
-                              'Find amazing content specifically designed for you here.',
+                              "Find amazing content specifically designed for you here.",
                           child: DashboardTopCard(
                             toolTipType: ToolTipType.forYou,
                             title: 'For You',
@@ -329,20 +303,27 @@ class _DashboardViewState extends State<DashboardView>
                                       : Container();
                                 }
 
-                                return Showcase(
-                                  key: _nearestLocationShowcaseKey,
-                                  description:
-                                      'This card shows the air quality of your nearest location',
-                                  child: AnalyticsCard(
-                                    nearbyAirQuality,
-                                    false,
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: CustomShowcaseWidget(
+                                    showcaseKey: _nearestLocationShowcaseKey,
+                                    description:
+                                        "This card shows the air quality of your nearest location",
+                                    child: AnalyticsCard(
+                                      nearbyAirQuality,
+                                      false,
+                                    ),
                                   ),
                                 );
                               },
                             ),
                             BlocBuilder<KyaBloc, KyaState>(
                               builder: (context, state) {
-                                List<Kya> kya = state.kya.filterIncompleteKya();
+                                List<Kya> kya =
+                                    state.kya.filterPartiallyCompleteKya();
+                                if (kya.isEmpty) {
+                                  kya = state.kya.filterInProgressKya();
+                                }
                                 if (kya.isEmpty) {
                                   _kyaExists = false;
 
@@ -352,10 +333,11 @@ class _DashboardViewState extends State<DashboardView>
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: Showcase(
-                                    key: _kyaShowcaseKey,
+                                  child: CustomShowcaseWidget(
+                                    showcaseKey: _kyaShowcaseKey,
+                                    descriptionHeight: 100,
                                     description:
-                                        'Do you want to know more about air quality? Know your air in this section',
+                                        "Do you want to know more about air quality? Know your air in this section",
                                     child: KyaCardWidget(kya.first),
                                   ),
                                 );
@@ -369,10 +351,11 @@ class _DashboardViewState extends State<DashboardView>
                                 return (index == 0)
                                     ? Padding(
                                         padding: const EdgeInsets.only(top: 16),
-                                        child: Showcase(
-                                          key: _analyticsShowcaseKey,
+                                        child: CustomShowcaseWidget(
+                                          showcaseKey: _analyticsShowcaseKey,
+                                          descriptionHeight: 120,
                                           description:
-                                              'Find the air quality of different locations across Africa here.',
+                                              "Find the air quality of different locations across Africa here.",
                                           child: AnalyticsCard(
                                             state.airQualityReadings[index],
                                             false,

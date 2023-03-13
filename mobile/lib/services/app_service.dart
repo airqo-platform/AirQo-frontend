@@ -44,7 +44,7 @@ class AppService {
         if (reAuthentication) {
           final cloudStoreDeletion = await CloudStore.deleteAccount();
           final logging =
-              await CloudAnalytics.logEvent(AnalyticsEvent.deletedAccount);
+              await CloudAnalytics.logEvent(CloudAnalyticsEvent.deletedAccount);
           final localStorageDeletion = await _clearUserLocalStorage();
           if (cloudStoreDeletion && logging && localStorageDeletion) {
             authSuccessful = await CustomAuth.deleteAccount();
@@ -192,9 +192,9 @@ class AppService {
     }
   }
 
-  Future<void> setShowcase() async {
+  Future<void> setShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showcase', true);
+    await prefs.setBool(key, true);
   }
 
   Future<void> stopShowcase(String key) async {
@@ -206,6 +206,21 @@ class AppService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(Config.homePageShowcase);
     await prefs.remove(Config.forYouPageShowcase);
+    await prefs.remove(Config.settingsPageShowcase);
+    await prefs.setBool(Config.restartTourShowcase, true);
+  }
+
+  Future<void> navigateShowcaseToScreen(
+    BuildContext context,
+    Widget screen,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => screen,
+        ),
+    );
   }
 
   Future<void> _postSignUpActions() async {
@@ -213,7 +228,7 @@ class AppService {
       await Future.wait([
         Profile.getProfile(),
         CloudAnalytics.logEvent(
-          AnalyticsEvent.createUserProfile,
+          CloudAnalyticsEvent.createUserProfile,
         ),
         CloudAnalytics.logNetworkProvider(),
         CloudAnalytics.logPlatformType(),

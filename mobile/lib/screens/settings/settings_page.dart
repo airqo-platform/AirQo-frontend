@@ -139,8 +139,9 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                       ),
                       divider,
-                      Showcase(
-                        key: _appTourShowcaseKey,
+                      CustomShowcaseWidget(
+                        showcaseKey: _appTourShowcaseKey,
+                        descriptionHeight: 120,
                         description:
                             "You can always restart the App Tour from here anytime.",
                         child: Card(
@@ -149,6 +150,8 @@ class _SettingsPageState extends State<SettingsPage>
                           child: ListTile(
                             tileColor: Colors.white,
                             onTap: () async {
+                              await AppService()
+                                  .setShowcase(Config.restartTourShowcase);
                               await AppService()
                                   .clearShowcase()
                                   .then((value) async {
@@ -361,7 +364,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(Config.homePageShowcase) == null) {
+    if (prefs.getBool(Config.settingsPageShowcase) == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
       _appService.stopShowcase(Config.settingsPageShowcase);
     }
