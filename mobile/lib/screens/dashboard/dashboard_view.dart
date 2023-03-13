@@ -307,6 +307,10 @@ class _DashboardViewState extends State<DashboardView>
                                 List<Kya> kya =
                                     state.kya.filterPartiallyCompleteKya();
                                 if (kya.isEmpty) {
+                                  kya = state.kya.filterInProgressKya();
+                                }
+
+                                if (kya.isEmpty) {
                                   _kyaExists = false;
 
                                   return const SizedBox();

@@ -46,7 +46,7 @@ class FavouritePlaceBloc
       await CloudStore.updateFavouritePlaces();
       if (favouritePlaces.length >= 5) {
         await CloudAnalytics.logEvent(
-          CloudAnalyticsEvent.savesFiveFavorites,
+          Event.savesFiveFavorites,
         );
       }
     }

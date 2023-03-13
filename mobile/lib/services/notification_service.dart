@@ -101,16 +101,11 @@ class NotificationService {
       // Temporarily disabling on notification listeners
       // FirebaseMessaging.onMessage
       // .listen(NotificationService.notificationHandler);
-      FirebaseMessaging.onMessageOpenedApp.listen(
-        (_) {
-          CloudAnalytics.logEvent(
-            CloudAnalyticsEvent.notificationOpen,
-          );
-        },
-      );
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-        final profile = await Profile.getProfile();
-        await profile.update();
+      FirebaseMessaging.onMessageOpenedApp.listen((_) {
+        CloudAnalytics.logEvent(Event.notificationOpen);
+      });
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+        // TODO update hive service and cloud storage
       }).onError(
         (exception) {
           logException(exception, null);
@@ -162,7 +157,7 @@ class NotificationService {
               ),
             ),
             CloudAnalytics.logEvent(
-              CloudAnalyticsEvent.notificationReceive,
+              Event.notificationReceive,
             ),
           ],
         );
