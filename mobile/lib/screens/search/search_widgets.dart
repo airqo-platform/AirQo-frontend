@@ -441,7 +441,9 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                   return InkWell(
                     onTap: () async {
                       await navigateToInsights(
-                          context, state.africanCities[index]);
+                        context,
+                        state.africanCities[index],
+                      );
                     },
                     child: ExploreAfricanCityCard(state.africanCities[index]),
                   );

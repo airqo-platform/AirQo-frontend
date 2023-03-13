@@ -184,14 +184,15 @@ class SearchTile extends StatelessWidget {
       }
 
       await navigateToInsights(
-          context,
-          nearestSite.copyWith(
-            name: searchResult.name,
-            location: searchResult.location,
-            placeId: searchResult.id,
-            latitude: place.latitude,
-            longitude: place.longitude,
-          ));
+        context,
+        nearestSite.copyWith(
+          name: searchResult.name,
+          location: searchResult.location,
+          placeId: searchResult.id,
+          latitude: place.latitude,
+          longitude: place.longitude,
+        ),
+      );
     } else {
       showSnackBar(
         context,

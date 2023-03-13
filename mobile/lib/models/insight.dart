@@ -14,8 +14,10 @@ class Insight with EquatableMixin {
     required this.isAvailable,
   });
 
-  factory Insight.fromAirQualityReading(AirQualityReading airQualityReading,
-      {double? forecastValue}) {
+  factory Insight.fromAirQualityReading(
+    AirQualityReading airQualityReading, {
+    double? forecastValue,
+  }) {
     List<HealthTip> healthTips = [];
     String airQualityMessage = '';
     String forecastMessage = '';

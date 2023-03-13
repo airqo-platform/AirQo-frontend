@@ -324,7 +324,9 @@ class HealthTipsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (insight.healthTips.isEmpty) {
       return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250), child: Container());
+        duration: const Duration(milliseconds: 250),
+        child: Container(),
+      );
     }
 
     return AnimatedSwitcher(
