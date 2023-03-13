@@ -19,7 +19,7 @@ class InsightContainer extends StatelessWidget {
       ),
       height: 70,
       decoration: BoxDecoration(
-        color: insight.available
+        color: insight.isAvailable
             ? insight.airQuality.color.withOpacity(0.2)
             : CustomColors.greyColor.withOpacity(0.2),
         borderRadius: const BorderRadius.all(
@@ -27,7 +27,8 @@ class InsightContainer extends StatelessWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: Column(
@@ -40,14 +41,14 @@ class InsightContainer extends StatelessWidget {
                   height: 7,
                 ),
                 Visibility(
-                  visible: insight.available,
+                  visible: insight.isAvailable,
                   child: Text(
-                    insight.airQuality.string,
+                    insight.airQuality.title,
                     style: CustomTextStyle.headline8(context),
                   ),
                 ),
                 Visibility(
-                  visible: !insight.available,
+                  visible: !insight.isAvailable,
                   child: Text(
                     'No air quality data available',
                     style: CustomTextStyle.headline8(context),
@@ -60,7 +61,7 @@ class InsightContainer extends StatelessWidget {
             insight.airQuality,
             height: 38,
             width: 48,
-            isEmpty: !insight.available,
+            isEmpty: !insight.isAvailable,
           ),
         ],
       ),
@@ -79,54 +80,56 @@ class InsightsDayReading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color =
-        insight.available ? CustomColors.appColorBlack : CustomColors.greyColor;
+    Color color = insight.isAvailable
+        ? CustomColors.appColorBlack
+        : CustomColors.greyColor;
 
     return InkWell(
       onTap: () => context.read<InsightsBloc>().add(SwitchInsight(insight)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: 4,
-            ),
-            height: 22,
-            width: 17,
-            decoration: BoxDecoration(
-              color: isActive ? CustomColors.appColorBlue : Colors.transparent,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(27.0),
+      child: SizedBox(
+        height: 73,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 4,
               ),
-            ),
-            child: Center(
-              child: Text(
-                insight.dateTime.getWeekday().characters.first.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 8,
-                  color: isActive ? Colors.white : color,
+              height: 22,
+              width: 17,
+              decoration: BoxDecoration(
+                color:
+                    isActive ? CustomColors.appColorBlue : Colors.transparent,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(27.0),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  insight.dateTime.getWeekday().characters.first.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: isActive ? Colors.white : color,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(
-            height: 11,
-          ),
-          Text(
-            '${insight.dateTime.day}',
-            style: TextStyle(
-              color: color,
+            const SizedBox(
+              height: 7,
             ),
-          ),
-          const SizedBox(
-            height: 7,
-          ),
-          SvgIcons.airQualityEmoji(
-            insight.airQuality,
-            isEmpty: !insight.available,
-          ),
-        ],
+            Text(
+              '${insight.dateTime.day}',
+              style: TextStyle(
+                color: color,
+              ),
+            ),
+            const Spacer(),
+            SvgIcons.airQualityEmoji(
+              insight.airQuality,
+              isEmpty: !insight.isAvailable,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -138,7 +141,7 @@ class ForecastContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!insight.available) {
+    if (insight.forecastMessage.isEmpty) {
       return Container();
     }
 
@@ -170,9 +173,9 @@ class ForecastContainer extends StatelessWidget {
                 Radius.circular(16.0),
               ),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'Expect conditions to range from good to moderate today.',
+                insight.forecastMessage,
               ),
             ),
           ),

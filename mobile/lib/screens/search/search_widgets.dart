@@ -194,7 +194,7 @@ class SearchPageFilterTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  airQuality.string.toTitleCase(),
+                  airQuality.title.toTitleCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),

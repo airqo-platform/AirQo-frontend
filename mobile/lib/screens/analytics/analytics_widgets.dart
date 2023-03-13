@@ -174,11 +174,7 @@ class AnalyticsCard extends StatelessWidget {
                           child: SizedBox(
                             height: 20,
                             width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/info_icon.svg',
-                              height: 20,
-                              width: 20,
-                            ),
+                            child: SvgIcons.information(),
                           ),
                         ),
                       ),

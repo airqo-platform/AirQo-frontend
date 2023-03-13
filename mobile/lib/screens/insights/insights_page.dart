@@ -4,6 +4,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -70,7 +71,8 @@ class _InsightsPageState extends State<InsightsPage> {
                     child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
                       theme: SvgTheme(currentColor: CustomColors.greyColor),
-                      colorFilter: ColorFilter.mode(CustomColors.greyColor, BlendMode.srcIn),
+                      colorFilter: ColorFilter.mode(
+                          CustomColors.greyColor, BlendMode.srcIn),
                       height: 26,
                       width: 26,
                     ),
@@ -134,9 +136,8 @@ class _InsightsPageState extends State<InsightsPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 8,
+                        vertical: 12,
                       ),
-                      height: 290,
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.all(
@@ -146,19 +147,19 @@ class _InsightsPageState extends State<InsightsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(
-                            height: 21,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: state.insights
-                                .map(
-                                  (e) => InsightsDayReading(
-                                    e,
-                                    isActive: e == selectedInsight,
-                                  ),
-                                )
-                                .toList(),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: state.insights
+                                  .map(
+                                    (e) => InsightsDayReading(
+                                      e,
+                                      isActive: e == selectedInsight,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
                           ),
                           const SizedBox(
                             height: 21,
@@ -167,20 +168,42 @@ class _InsightsPageState extends State<InsightsPage> {
                           const SizedBox(
                             height: 21,
                           ),
-                          Visibility(
-                            visible: selectedInsight.available,
-                            child: Text(
-                              'The hourly air quality average in ${selectedInsight.name} is currently ${selectedInsight.airQuality.string}.',
+                          InkWell(
+                            onTap: () async {
+                              if (selectedInsight.isAvailable) {
+                                await airQualityInfoDialog(context);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              height: 64,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Visibility(
+                                    visible: !selectedInsight.isAvailable,
+                                    child: const Expanded(
+                                      child: Text(
+                                        'We’re having issues with our network no worries, we’ll be back up soon.',
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: selectedInsight.isAvailable,
+                                    child: Expanded(
+                                      child: AutoSizeText(
+                                        selectedInsight.airQualityMessage,
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: selectedInsight.isAvailable,
+                                    child: SvgIcons.information(),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Visibility(
-                            visible: !selectedInsight.available,
-                            child: const Text(
-                              'We’re having issues with our network no worries, we’ll be back up soon.',
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
                           ),
                         ],
                       ),

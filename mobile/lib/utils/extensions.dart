@@ -261,23 +261,17 @@ extension AirQualityReadingExt on AirQualityReading {
 
 extension InsightExt on Insight {
   String shortDate() {
-    if (dateTime.isWithInPreviousWeek()) {
+    if (dateTime.isYesterday()) {
+      return 'Yesterday';
+    } else if (dateTime.isWithInPreviousWeek()) {
       return 'Last Week';
-    }
-
-    if (dateTime.isWithInNextWeek()) {
+    } else if (dateTime.isWithInNextWeek()) {
       return 'Next Week';
-    }
-
-    if (dateTime.isToday()) {
+    } else if (dateTime.isToday()) {
       return 'Today';
-    }
-
-    if (dateTime.isTomorrow()) {
+    } else if (dateTime.isTomorrow()) {
       return 'Tomorrow';
-    }
-
-    if (dateTime.isWithInCurrentWeek()) {
+    } else if (dateTime.isWithInCurrentWeek()) {
       return 'This week';
     }
 
@@ -661,6 +655,28 @@ extension DateTimeExt on DateTime {
     final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
     return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
+  }
+
+  bool isAPastDate() {
+    if (isYesterday()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) < 0;
+  }
+
+  bool isAFutureDate() {
+    if (isTomorrow()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) > 0;
   }
 
   bool isTomorrow() {

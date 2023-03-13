@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'icons.dart';
+
 Future<void> openPhoneSettings(BuildContext context, String message) async {
   final confirmation = await showDialog<ConfirmationAction>(
     context: context,
@@ -281,6 +283,142 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> airQualityInfoDialog(BuildContext context) async {
+  List<Widget> widgets = [];
+  widgets.add(
+    Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Text(
+        'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ',
+        style: TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.w500,
+          height: 13 / 8,
+          color: CustomColors.appColorBlack,
+        ),
+      ),
+    ),
+  );
+  widgets.addAll(
+    AirQuality.values.map(
+      (airQuality) => Padding(
+        padding: const EdgeInsets.only(top: 13.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SvgIcons.airQualityEmoji(airQuality),
+            const SizedBox(
+              width: 5,
+            ),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "${airQuality.title}. ",
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                        height: 13 / 8,
+                        color: CustomColors.appColorBlack,
+                      ),
+                    ),
+                    TextSpan(
+                      text: airQuality.description,
+                      style: TextStyle(
+                        color: CustomColors.appColorBlack.withOpacity(0.7),
+                        fontSize: 8,
+                        height: 13 / 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  return showDialog<void>(
+    context: context,
+    barrierColor: CustomColors.appColorBlue.withOpacity(0.03),
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        scrollable: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+        ),
+        contentPadding: const EdgeInsets.all(0),
+        content: Container(
+          width: 280.0,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Text(
+                      'Know Your Air',
+                      style: CustomTextStyle.headline10(context)
+                          ?.copyWith(color: CustomColors.appColorBlue),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: SvgIcons.close(size: 20),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              Divider(
+                height: 1,
+                color: CustomColors.appColorBlack.withOpacity(0.2),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 26, vertical: 0),
+                height: 150,
+                child: RawScrollbar(
+                  thumbColor: CustomColors.appColorBlue.withOpacity(0.1),
+                  radius: const Radius.circular(4),
+                  thickness: 4,
+                  thumbVisibility: true,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: widgets,
+                  ),
                 ),
               ),
             ],

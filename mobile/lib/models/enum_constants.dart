@@ -180,7 +180,8 @@ enum AppNotificationType {
 
 enum AirQuality {
   good(
-    string: 'Good',
+    title: 'Good',
+    description: 'The air is clean and healthy to breathe.',
     color: CustomColors.aqiGreen,
     svgEmoji: 'assets/icon/good_emoji.svg',
     searchNearbyLocationsText: 'Good Quality Air around you',
@@ -190,7 +191,9 @@ enum AirQuality {
     maximumValue: 12.09,
   ),
   moderate(
-    string: 'Moderate',
+    title: 'Moderate',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
     color: CustomColors.aqiYellow,
     svgEmoji: 'assets/icon/moderate_emoji.svg',
     searchNearbyLocationsText: 'Moderate Quality Air around you',
@@ -200,7 +203,9 @@ enum AirQuality {
     maximumValue: 35.49,
   ),
   ufsgs(
-    string: 'Unhealthy For Sensitive Groups',
+    title: 'Unhealthy For Sensitive Groups',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
     color: CustomColors.aqiOrange,
     svgEmoji: 'assets/icon/ufgs_emoji.svg',
     searchNearbyLocationsText:
@@ -212,7 +217,9 @@ enum AirQuality {
     maximumValue: 55.49,
   ),
   unhealthy(
-    string: 'Unhealthy',
+    title: 'Unhealthy',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
     color: CustomColors.aqiRed,
     svgEmoji: 'assets/icon/unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Unhealthy Quality Air around you',
@@ -222,7 +229,9 @@ enum AirQuality {
     maximumValue: 150.49,
   ),
   veryUnhealthy(
-    string: 'Very Unhealthy',
+    title: 'Very Unhealthy',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
     color: CustomColors.aqiPurple,
     svgEmoji: 'assets/icon/very_unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
@@ -232,7 +241,9 @@ enum AirQuality {
     maximumValue: 250.49,
   ),
   hazardous(
-    string: 'Hazardous',
+    title: 'Hazardous',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
     color: CustomColors.aqiMaroon,
     svgEmoji: 'assets/icon/hazardous_emoji.svg',
     searchNearbyLocationsText: 'Hazardous Quality Air around you',
@@ -243,7 +254,8 @@ enum AirQuality {
   );
 
   const AirQuality({
-    required this.string,
+    required this.title,
+    required this.description,
     required this.color,
     required this.svgEmoji,
     required this.searchNearbyLocationsText,
@@ -253,7 +265,8 @@ enum AirQuality {
     required this.maximumValue,
   });
 
-  final String string;
+  final String title;
+  final String description;
   final String svgEmoji;
   final Color color;
   final String searchOtherLocationsText;
@@ -263,7 +276,7 @@ enum AirQuality {
   final double maximumValue;
 
   @override
-  String toString() => string;
+  String toString() => title;
 }
 
 enum FeedbackType {

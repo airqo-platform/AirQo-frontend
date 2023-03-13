@@ -19,10 +19,28 @@ class SvgIcons {
     bool isEmpty = false,
   }) {
     if (isEmpty) {
-      return Text(
-        "--",
-        style: TextStyle(
-          color: CustomColors.greyColor,
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 3.0),
+        child: SizedBox(
+          height: 4,
+          width: width,
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  color: CustomColors.greyColor,
+                ),
+              ),
+              const SizedBox(
+                width: 2,
+              ),
+              Expanded(
+                child: Container(
+                  color: CustomColors.greyColor,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -34,16 +52,24 @@ class SvgIcons {
     );
   }
 
-  static Widget close() {
+  static Widget close({double size = 40}) {
     return SvgPicture.asset(
       'assets/icon/close.svg',
-      height: 40,
-      width: 40,
+      height: size,
+      width: size,
     );
   }
 
   static Widget update() {
     return SvgPicture.asset('assets/icon/update_icon.svg');
+  }
+
+  static Widget information() {
+    return SvgPicture.asset(
+      'assets/icon/info_icon.svg',
+      height: 20,
+      width: 20,
+    );
   }
 
   static Widget pm2_5(double value) {

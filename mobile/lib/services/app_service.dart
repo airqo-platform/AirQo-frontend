@@ -215,11 +215,11 @@ class AppService {
     Widget screen,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => screen,
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => screen,
+      ),
     );
   }
 
