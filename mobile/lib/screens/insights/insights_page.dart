@@ -72,7 +72,9 @@ class _InsightsPageState extends State<InsightsPage> {
                       'assets/icon/share_icon.svg',
                       theme: SvgTheme(currentColor: CustomColors.greyColor),
                       colorFilter: ColorFilter.mode(
-                          CustomColors.greyColor, BlendMode.srcIn),
+                        CustomColors.greyColor,
+                        BlendMode.srcIn,
+                      ),
                       height: 26,
                       width: 26,
                     ),

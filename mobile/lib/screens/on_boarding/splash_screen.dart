@@ -66,6 +66,7 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
     context.read<NotificationBloc>().add(const RefreshNotifications());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    AirQoDatabase().deleteOldForecast();
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;

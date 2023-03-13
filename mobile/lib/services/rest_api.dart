@@ -165,28 +165,26 @@ class AirqoApiClient {
     return json.decode(response.body)['status'] as bool;
   }
 
-  Future<InsightData> fetchInsightsData(String siteId) async {
+  Future<List<Forecast>> fetchForecastData(String siteId) async {
     try {
-      final now = DateTime.now();
-      final utcNow = now.toUtc();
-      final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
-      final endDateTime = '${DateFormat('yyyy-MM-dd').format(
-        utcNow.getLastDateOfCalendarMonth(),
-      )}T23:59:59Z';
+      final body =
+          await _performGetRequest({}, "${AirQoUrls.forecast}/$siteId");
 
-      final queryParams = <String, dynamic>{
-        'siteId': siteId,
-        'utcOffset': now.getUtcOffset(),
-        'startDateTime': startDateTime,
-        'endDateTime': endDateTime,
-      };
+      final forecast = <Forecast>[];
 
-      final body = await _performGetRequest(
-        queryParams,
-        AirQoUrls.insights,
-      );
+      for (final prediction in body['predictions']) {
+        try {
+          forecast.add(
+            Forecast.fromJson({
+              'pm2_5': prediction['prediction_time'],
+              'time': prediction['prediction_value'],
+              'siteId': siteId,
+            }),
+          );
+        } catch (_, __) {}
+      }
 
-      return InsightData.fromJson(body['data']);
+      return forecast;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -194,7 +192,7 @@ class AirqoApiClient {
       );
     }
 
-    return const InsightData(forecast: []);
+    return [];
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(

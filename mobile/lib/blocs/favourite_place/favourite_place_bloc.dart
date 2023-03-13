@@ -91,7 +91,7 @@ class FavouritePlaceBloc
 
   Future<void> _onRefreshFavouritePlacesInsights() async {
     for (final favouritePlace in state.favouritePlaces) {
-      await appService.fetchInsightsData(favouritePlace.referenceSite);
+      await AppService.fetchInsightsData(favouritePlace.referenceSite);
     }
   }
 }

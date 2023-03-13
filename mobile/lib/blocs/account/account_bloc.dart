@@ -99,9 +99,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     if (!hasConnection) {
       return;
     }
-    final AppService appService = AppService();
+
     for (final favouritePlace in state.favouritePlaces) {
-      await appService.fetchInsightsData(favouritePlace.referenceSite);
+      await AppService.fetchInsightsData(favouritePlace.referenceSite);
     }
   }
 

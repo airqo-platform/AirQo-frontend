@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -19,6 +18,16 @@ extension IntExt on int {
   }
 }
 
+extension InsightListExt on List<Insight> {
+  List<Insight> sortByDateTime() {
+    List<Insight> data = List.of(this);
+
+    data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
+
+    return data;
+  }
+}
+
 extension FavouritePlaceListExt on List<FavouritePlace> {
   List<FavouritePlace> sortByName() {
     List<FavouritePlace> data = List.of(this);
@@ -26,62 +35,6 @@ extension FavouritePlaceListExt on List<FavouritePlace> {
     data.sort((x, y) => x.name.compareTo(y.name));
 
     return data;
-  }
-}
-
-extension ChartDataExt on ChartData {
-  String chartDomainFn() {
-    switch (frequency) {
-      case Frequency.daily:
-        return DateFormat('EEE').format(dateTime);
-      case Frequency.hourly:
-        final hour = dateTime.hour;
-
-        return hour.toString().length == 1 ? '0$hour' : '$hour';
-    }
-  }
-
-  double chartValue(Pollutant pollutant) {
-    return pollutant == Pollutant.pm2_5
-        ? double.parse(pm2_5.toStringAsFixed(2))
-        : double.parse(pm10.toStringAsFixed(2));
-  }
-
-  String lastUpdated(Frequency frequency) {
-    String lastUpdated = '';
-
-    if (dateTime.isToday()) {
-      lastUpdated = 'Updated Today';
-
-      return available ? lastUpdated : '$lastUpdated - Not Available';
-    }
-
-    switch (frequency) {
-      case Frequency.daily:
-        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
-        break;
-      case Frequency.hourly:
-        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
-        break;
-    }
-
-    return available ? lastUpdated : '$lastUpdated - Not Available';
-  }
-
-  Color chartAvatarContainerColor(Pollutant pollutant) {
-    return available
-        ? pollutant.color(chartValue(pollutant))
-        : CustomColors.greyColor;
-  }
-
-  String chartAvatarValue(Pollutant pollutant) {
-    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
-  }
-
-  Color chartAvatarValueColor(Pollutant pollutant) {
-    return available
-        ? pollutant.textColor(value: chartValue(pollutant))
-        : CustomColors.darkGreyColor;
   }
 }
 
