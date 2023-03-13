@@ -6,11 +6,11 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'hive_service.dart';
@@ -130,22 +130,14 @@ class LocationService {
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 20),
+        timeLimit: const Duration(seconds: 60),
       );
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    try {
-      return await Geolocator.getLastKnownPosition(
-        forceAndroidLocationManager: true,
-      );
+    } on PlatformException catch (exception, stackTrace) {
+      debugPrint(exception.message);
+      debugPrintStack(stackTrace: stackTrace);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -218,9 +210,8 @@ class LocationService {
     double latitude,
     double longitude,
   ) async {
-    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.toList();
+    List<AirQualityReading> airQualityReadings =
+        HiveService.getAirQualityReadings();
 
     airQualityReadings = airQualityReadings.map((element) {
       final double distanceInMeters = metersToKmDouble(
@@ -235,8 +226,37 @@ class LocationService {
       return element.copyWith(distanceToReferenceSite: distanceInMeters);
     }).toList();
 
-    return airQualityReadings.where((element) {
-      return element.distanceToReferenceSite < Config.searchRadius.toDouble();
-    }).toList();
+    return airQualityReadings
+        .where((element) =>
+            element.distanceToReferenceSite < Config.searchRadius.toDouble())
+        .toList();
+  }
+
+  static Future<AirQualityReading?> getSearchAirQuality(
+    SearchResult result,
+  ) async {
+    final SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(result);
+
+    if (searchResult == null) {
+      return null;
+    }
+
+    AirQualityReading? airQualityReading = await LocationService.getNearestSite(
+      searchResult.latitude,
+      searchResult.longitude,
+    );
+
+    if (airQualityReading != null) {
+      airQualityReading = airQualityReading.copyWith(
+        name: searchResult.name,
+        location: searchResult.location,
+        latitude: searchResult.latitude,
+        longitude: searchResult.longitude,
+      );
+      await HiveService.updateSearchHistory(airQualityReading);
+    }
+
+    return airQualityReading;
   }
 }

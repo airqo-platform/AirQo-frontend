@@ -1,0 +1,5 @@
+{
+  "scss.lint.unknownAtRules": "ignore",
+  "svg.preview.background": "editor",
+  "githubPullRequests.ignoredPullRequestBranches": ["staging"]
+}

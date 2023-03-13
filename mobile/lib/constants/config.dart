@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
@@ -36,7 +38,22 @@ class Config {
   static String get prefOnBoardingPage =>
       dotenv.env['PREF_ON_BOARDING_PAGE'] ?? '';
 
+  static String get homePageShowcase => 'homePageShowcase';
+
+  static String get settingsPageShowcase => 'settingsPageShowcase';
+
+  static String get forYouPageShowcase => 'forYouPageShowcase';
+
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
+
+  static String get iosMinimumShareVersion =>
+      dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.17';
+
+  static int get androidMinimumShareVersion =>
+      int.parse(dotenv.env['ANDROID_MINIMUM_SHARE_VERSION'] ?? '20029');
+
+  static String get airqoSecondaryLogo =>
+      'https://storage.cloud.google.com/airqo-app/public-images/airqo_logo.png';
 
   static String get placesSearchUrl =>
       'https://maps.googleapis.com/maps/api/place/';
@@ -46,16 +63,20 @@ class Config {
 
   static String get iosStoreId => '1337573091';
 
+  static String get iosBundleId => 'com.airqo.net';
+
+  static String get androidPackageName => 'com.airqo.app';
+
   static String get connectionErrorMessage => 'No internet connection';
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
-
-  static String get shareFailedMessage => 'Couldn\'t share image.';
 
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
 
   static int get searchRadius => 4;
+
+  static int get shareLinkMaxLength => 56;
 
   static String get termsUrl =>
       'https://docs.airqo.net/#/mobile_app/privacy_policy';

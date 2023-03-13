@@ -4,6 +4,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -28,8 +31,15 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
-  final GlobalKey _favToolTipKey = GlobalKey();
-  final GlobalKey _kyaToolTipKey = GlobalKey();
+  late GlobalKey _favToolTipKey;
+  late GlobalKey _kyaToolTipKey;
+  late GlobalKey _favoritesShowcaseKey;
+  late GlobalKey _forYouShowcaseKey;
+  late GlobalKey _kyaShowcaseKey;
+  late GlobalKey _analyticsShowcaseKey;
+  late GlobalKey _nearestLocationShowcaseKey;
+  late GlobalKey _skipShowcaseKey;
+  bool _kyaExists = true, _nearbyLocationExists = true;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -38,21 +48,59 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<int> _timeSubscription;
   late StreamSubscription<ServiceStatus> _locationServiceStream;
   late StreamSubscription<Position> _locationPositionStream;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        title: SvgPicture.asset(
-          'assets/icon/airqo_logo.svg',
-          height: 40,
-          width: 58,
-          semanticsLabel: 'AirQo',
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: Showcase.withWidget(
+          key: _skipShowcaseKey,
+          overlayOpacity: 0.6,
+          targetShapeBorder: const RoundedRectangleBorder(),
+          width: 50,
+          height: 50,
+          container: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 45,
+                height: 45,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: IconButton(
+                  tooltip: "Skip Showcase",
+                  icon: const Icon(Icons.skip_next),
+                  onPressed: () => ShowCaseWidget.of(context).dismiss(),
+                  color: CustomColors.appColorBlue,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              const Text(
+                "Click to Skip Tutorial",
+                textAlign: TextAlign.left,
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            centerTitle: false,
+            title: SvgPicture.asset(
+              'assets/icon/airqo_logo.svg',
+              height: 40,
+              width: 58,
+              semanticsLabel: 'AirQo',
+            ),
+            elevation: 0,
+            backgroundColor: CustomColors.appBodyColor,
+          ),
         ),
-        elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
       ),
       body: AppSafeArea(
         horizontalPadding: 16.0,
@@ -85,21 +133,28 @@ class _DashboardViewState extends State<DashboardView>
                         state.favouritePlaces.take(3).toList(),
                       );
 
-                      return DashboardTopCard(
-                        toolTipType: ToolTipType.favouritePlaces,
-                        title: 'Favorites',
-                        widgetKey: _favToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const FavouritePlacesPage();
-                              },
-                            ),
-                          );
-                        },
-                        children: favouritePlaces,
+                      return Expanded(
+                        child: Showcase(
+                          key: _favoritesShowcaseKey,
+                          description:
+                              'Find the latest air quality from your favorite locations',
+                          child: DashboardTopCard(
+                            toolTipType: ToolTipType.favouritePlaces,
+                            title: 'Favorites',
+                            widgetKey: _favToolTipKey,
+                            nextScreenClickHandler: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const FavouritePlacesPage();
+                                  },
+                                ),
+                              );
+                            },
+                            children: favouritePlaces,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -112,21 +167,28 @@ class _DashboardViewState extends State<DashboardView>
                         state.kya.filterCompleteKya().take(3).toList(),
                       );
 
-                      return DashboardTopCard(
-                        toolTipType: ToolTipType.forYou,
-                        title: 'For You',
-                        widgetKey: _kyaToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ForYouPage(analytics: false);
-                              },
-                            ),
-                          );
-                        },
-                        children: kyaWidgets,
+                      return Expanded(
+                        child: Showcase(
+                          key: _forYouShowcaseKey,
+                          description:
+                              'Find amazing content specifically designed for you here.',
+                          child: DashboardTopCard(
+                            toolTipType: ToolTipType.forYou,
+                            title: 'For You',
+                            widgetKey: _kyaToolTipKey,
+                            nextScreenClickHandler: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const ForYouPage(analytics: false);
+                                  },
+                                ),
+                              );
+                            },
+                            children: kyaWidgets,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -177,11 +239,13 @@ class _DashboardViewState extends State<DashboardView>
                         (context, index) {
                           final items = [
                             Text(
-                              getDateTime(),
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: Colors.black.withOpacity(0.5),
-                                      ),
+                              DateTime.now().timelineString(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
                             ),
                             const SizedBox(
                               height: 4,
@@ -193,38 +257,82 @@ class _DashboardViewState extends State<DashboardView>
                             BlocBuilder<NearbyLocationBloc,
                                 NearbyLocationState>(
                               builder: (context, state) {
+                                switch (state.blocStatus) {
+                                  case NearbyLocationStatus.initial:
+                                  case NearbyLocationStatus.searching:
+                                    return const ContainerLoadingAnimation(
+                                      radius: 16,
+                                      height: 251,
+                                    );
+                                  case NearbyLocationStatus.loaded:
+                                    return const SizedBox(
+                                      height: 16,
+                                    );
+                                  case NearbyLocationStatus.error:
+                                    switch (state.error) {
+                                      case NearbyAirQualityError.none:
+                                        return const SizedBox(
+                                          height: 0,
+                                        );
+                                      case NearbyAirQualityError.locationDenied:
+                                      case NearbyAirQualityError
+                                          .locationDisabled:
+                                        return const SizedBox(
+                                          height: 16,
+                                        );
+                                      case NearbyAirQualityError
+                                          .noNearbyAirQualityReadings:
+                                        return SizedBox(
+                                          height:
+                                              state.showErrorMessage ? 16 : 0,
+                                        );
+                                    }
+                                }
+                              },
+                            ),
+                            BlocBuilder<NearbyLocationBloc,
+                                NearbyLocationState>(
+                              builder: (context, state) {
                                 if (state.blocStatus ==
                                     NearbyLocationStatus.error) {
+                                  _nearbyLocationExists = false;
                                   switch (state.error) {
                                     case NearbyAirQualityError.locationDenied:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
                                     case NearbyAirQualityError.locationDisabled:
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: DashboardLocationButton(
-                                          state.error,
-                                        ),
+                                      return DashboardLocationButton(
+                                        state.error,
                                       );
-                                    case NearbyAirQualityError.none:
                                     case NearbyAirQualityError
                                         .noNearbyAirQualityReadings:
-                                      return Container();
+                                      return state.showErrorMessage
+                                          ? const NoLocationAirQualityMessage(
+                                              NearbyAirQualityError
+                                                  .noNearbyAirQualityReadings,
+                                            )
+                                          : Container();
+                                    case NearbyAirQualityError.none:
+                                      break;
                                   }
                                 }
 
                                 final AirQualityReading? nearbyAirQuality =
                                     state.locationAirQuality;
                                 if (nearbyAirQuality == null) {
-                                  return Container();
+                                  return state.showErrorMessage
+                                      ? const NoLocationAirQualityMessage(
+                                          NearbyAirQualityError
+                                              .noNearbyAirQualityReadings,
+                                        )
+                                      : Container();
                                 }
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 16),
+                                return Showcase(
+                                  key: _nearestLocationShowcaseKey,
+                                  description:
+                                      'This card shows the air quality of your nearest location',
                                   child: AnalyticsCard(
                                     nearbyAirQuality,
                                     false,
@@ -236,13 +344,20 @@ class _DashboardViewState extends State<DashboardView>
                               builder: (context, state) {
                                 List<Kya> kya = state.kya.filterIncompleteKya();
                                 if (kya.isEmpty) {
+                                  _kyaExists = false;
+
                                   return const SizedBox();
                                 }
                                 kya.sortByProgress();
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
-                                  child: KyaCardWidget(kya.first),
+                                  child: Showcase(
+                                    key: _kyaShowcaseKey,
+                                    description:
+                                        'Do you want to know more about air quality? Know your air in this section',
+                                    child: KyaCardWidget(kya.first),
+                                  ),
                                 );
                               },
                             ),
@@ -251,23 +366,38 @@ class _DashboardViewState extends State<DashboardView>
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: state.airQualityReadings.length,
                               itemBuilder: (BuildContext context, int index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    state.airQualityReadings[index],
-                                    false,
-                                  ),
-                                );
+                                return (index == 0)
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: Showcase(
+                                          key: _analyticsShowcaseKey,
+                                          description:
+                                              'Find the air quality of different locations across Africa here.',
+                                          child: AnalyticsCard(
+                                            state.airQualityReadings[index],
+                                            false,
+                                          ),
+                                        ),
+                                      )
+                                    : Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: AnalyticsCard(
+                                          state.airQualityReadings[index],
+                                          false,
+                                        ),
+                                      );
                               },
                             ),
                           ];
 
                           return items[index];
                         },
-                        childCount: 6,
+                        childCount: 7,
                       ),
-                      onRefresh: () async {
+                      onRefresh: () {
                         _refresh();
+
+                        return Future(() => null);
                       },
                     ),
                   );
@@ -306,6 +436,15 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
+    _favToolTipKey = GlobalKey();
+    _kyaToolTipKey = GlobalKey();
+    _favoritesShowcaseKey = GlobalKey();
+    _forYouShowcaseKey = GlobalKey();
+    _kyaShowcaseKey = GlobalKey();
+    _analyticsShowcaseKey = GlobalKey();
+    _nearestLocationShowcaseKey = GlobalKey();
+    _skipShowcaseKey = GlobalKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
@@ -354,6 +493,48 @@ class _DashboardViewState extends State<DashboardView>
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
+    }
+  }
+
+  void _startShowcase() {
+    List<GlobalKey> globalKeys = [
+      _skipShowcaseKey,
+      _favoritesShowcaseKey,
+      _forYouShowcaseKey,
+      _analyticsShowcaseKey,
+    ];
+    if (_kyaExists) {
+      globalKeys.add(_kyaShowcaseKey);
+    }
+
+    if (_nearbyLocationExists) {
+      globalKeys.add(_nearestLocationShowcaseKey);
+    }
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        ShowCaseWidget.of(context).startShowCase(globalKeys);
+      },
+    );
+  }
+
+  Future<void> _showcaseToggle() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(Config.homePageShowcase) == null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _startShowcase();
+            _appService.stopShowcase(Config.homePageShowcase);
+          });
+        }
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ShowCaseWidget.of(context).next();
+          });
+        }
+      });
     }
   }
 }

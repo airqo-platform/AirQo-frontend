@@ -63,14 +63,10 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
           borderRadius: BorderRadius.circular(8.0),
         );
 
-        Widget suffixIcon = state.phoneNumber.isValidEmail()
-            ? Padding(
-                padding: const EdgeInsets.all(14),
-                child: SvgPicture.asset(
-                  'assets/icon/valid_input_icon.svg',
-                  height: 1,
-                  width: 1,
-                ),
+        Widget suffixIcon = state.phoneNumber.isValidPhoneNumber()
+            ? const Padding(
+                padding: EdgeInsets.all(14),
+                child: Icon(Icons.check_circle_rounded),
               )
             : TextInputCloseButton(
                 color: suffixIconColor,
@@ -84,7 +80,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             ),
             PhoneNumberInputFormatter(),
           ],
-          onEditingComplete: () async {
+          onEditingComplete: () {
             FocusScope.of(context).requestFocus(
               FocusNode(),
             );
@@ -98,7 +94,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
           },
           style:
-              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
+              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
           enableSuggestions: false,
           cursorWidth: 1,
           autofocus: false,
@@ -118,15 +114,15 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
               padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
               child: Text(
                 '${state.countryCode} ',
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.32),
                     ),
               ),
             ),
-            hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
-            prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
             suffixIcon: GestureDetector(
@@ -206,13 +202,9 @@ class _EmailInputFieldState extends State<EmailInputField> {
         );
 
         Widget suffixIcon = state.emailAddress.isValidEmail()
-            ? Padding(
-                padding: const EdgeInsets.all(14),
-                child: SvgPicture.asset(
-                  'assets/icon/valid_input_icon.svg',
-                  height: 1,
-                  width: 1,
-                ),
+            ? const Padding(
+                padding: EdgeInsets.all(14),
+                child: Icon(Icons.check_circle_rounded),
               )
             : TextInputCloseButton(
                 color: suffixIconColor,
@@ -228,13 +220,13 @@ class _EmailInputFieldState extends State<EmailInputField> {
           onChanged: (value) {
             context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
           },
-          onEditingComplete: () async {
+          onEditingComplete: () {
             context
                 .read<EmailAuthBloc>()
                 .add(ValidateEmailAddress(context: context));
           },
           style:
-              Theme.of(context).textTheme.bodyText1?.copyWith(color: textColor),
+              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
           enableSuggestions: true,
           cursorWidth: 1,
           autofocus: false,
@@ -250,10 +242,10 @@ class _EmailInputFieldState extends State<EmailInputField> {
             border: inputBorder,
             suffixIconColor: formColor,
             hintText: 'Enter your email',
-            hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
-            prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                 ),
             suffixIcon: GestureDetector(
@@ -307,7 +299,7 @@ class InputValidationErrorMessage extends StatelessWidget {
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: CustomColors.appColorInvalid,
                       fontSize: 14,
                     ),
@@ -336,7 +328,7 @@ class InputValidationCodeMessage extends StatelessWidget {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyText2?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.6),
               ),
         ),
@@ -367,7 +359,7 @@ class ProceedAsGuest extends StatelessWidget {
           Text(
             'Proceed as',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.6),
                 ),
           ),
@@ -377,7 +369,7 @@ class ProceedAsGuest extends StatelessWidget {
           Text(
             'Guest',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlue,
                 ),
           ),
@@ -416,7 +408,7 @@ class SignUpButton extends StatelessWidget {
           child: AutoSizeText(
             text,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.caption?.copyWith(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlue,
                 ),
           ),
@@ -468,7 +460,7 @@ class SignUpOptions extends StatelessWidget {
               Text(
                 'Already have an account',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.6),
                     ),
               ),
@@ -478,7 +470,7 @@ class SignUpOptions extends StatelessWidget {
               Text(
                 'Log in',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlue,
                     ),
               ),
@@ -560,7 +552,7 @@ class LoginOptions extends StatelessWidget {
               Text(
                 'Don’t have an account',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.6),
                     ),
               ),
@@ -570,7 +562,7 @@ class LoginOptions extends StatelessWidget {
               Text(
                 'Sign up',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlue,
                     ),
               ),

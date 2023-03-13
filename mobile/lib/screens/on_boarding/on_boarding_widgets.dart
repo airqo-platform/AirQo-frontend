@@ -89,7 +89,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
+        await Future.delayed(
           const Duration(milliseconds: 250),
           () {
             showTileOptionsCallBack(true);
@@ -216,7 +216,7 @@ class TaglineWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
-                  .headline4
+                  .headlineMedium
                   ?.copyWith(color: Colors.white),
             ),
           ],

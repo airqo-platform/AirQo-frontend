@@ -185,6 +185,49 @@ extension SearchHistoryListExt on List<SearchHistory> {
   }
 }
 
+extension AirQualityReadingExt on AirQualityReading {
+  List<String> getSearchTerms(String parameter) {
+    List<String> searchTerms = [];
+    switch (parameter) {
+      case 'name':
+        searchTerms.addAll(name.trim().split(" "));
+        break;
+      case 'location':
+        searchTerms.addAll(location.trim().split(" "));
+        break;
+      case 'region':
+        searchTerms.addAll(region.trim().split(" "));
+        break;
+      case 'country':
+        searchTerms.addAll(country.trim().split(" "));
+        break;
+      default:
+        searchTerms
+          ..addAll(name.trim().split(" "))
+          ..addAll(location.trim().split(" "))
+          ..addAll(region.trim().split(" "))
+          ..addAll(country.trim().split(" "));
+    }
+
+    return searchTerms
+        .toSet()
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
+        .toList();
+  }
+}
+
+extension SearchResultExt on SearchResult {
+  List<String> getSearchTerms() {
+    List<String> searchTerms = name.trim().split(" ")
+      ..addAll(location.trim().split(" "));
+
+    return searchTerms
+        .toSet()
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
+        .toList();
+  }
+}
+
 extension AirQualityReadingListExt on List<AirQualityReading> {
   List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
     List<AirQualityReading> data = List.of(this);
@@ -265,6 +308,28 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
+  String shareString() {
+    return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
+  }
+
+  String analyticsCardString() {
+    String dateString = DateFormat('hh:mm a').format(this);
+    if (isYesterday()) {
+      return 'Updated yesterday at $dateString';
+    } else if (isToday()) {
+      return 'Updated today at $dateString';
+    } else if (isTomorrow()) {
+      return 'Tomorrow, $dateString';
+    } else {
+      return DateFormat('d MMM, hh:mm a').format(this);
+    }
+  }
+
+  String timelineString() {
+    return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
+        .toUpperCase();
+  }
+
   DateTime getDateOfFirstDayOfWeek() {
     DateTime firstDate = this;
     while (firstDate.weekday != 1) {
@@ -541,6 +606,41 @@ extension DateTimeExt on DateTime {
 extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
+  }
+}
+
+extension AppStoreVersionExt on AppStoreVersion {
+  int compareVersion(String checkVersion) {
+    List<int> versionSections =
+        version.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (versionSections.length != 3) {
+      throw Exception('Invalid version $this');
+    }
+
+    List<int> candidateSections =
+        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (candidateSections.length != 3) {
+      throw Exception('Invalid version $checkVersion');
+    }
+
+    // checking first code
+    if (versionSections.first > candidateSections.first) return 1;
+
+    if (versionSections.first < candidateSections.first) return -1;
+
+    // checking second code
+    if (versionSections[1] > candidateSections[1]) return 1;
+
+    if (versionSections[1] < candidateSections[1]) return -1;
+
+    // checking last code
+    if (versionSections.last > candidateSections.last) return 1;
+
+    if (versionSections.last < candidateSections.last) return -1;
+
+    return 0;
   }
 }
 

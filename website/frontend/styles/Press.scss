@@ -1,5 +1,5 @@
-@import "lib/variables";
 @import "lib/colors";
+@import "lib/variables";
 
 .list-page{
     background-color: $aq-white-0;
@@ -169,7 +169,7 @@
 }
 
 @media (max-width: $mainBreakPoint) {
-    .press-page {
+    .list-page {
         .content {
             display: grid;
             grid-template-columns: 1fr;
@@ -183,7 +183,9 @@
                 padding: 0 10px;
             }
         }
-        .page-header{
+        .page-header{  
+            height: auto;
+            max-height: 380px;
             .content{
                 height: 292px;
                 h2{

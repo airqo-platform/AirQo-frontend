@@ -68,8 +68,10 @@ class AnalyticsView extends StatelessWidget {
             },
             childCount: analytics.length,
           ),
-          onRefresh: () async {
+          onRefresh: () {
             _refresh(context);
+
+            return Future(() => null);
           },
         );
       },

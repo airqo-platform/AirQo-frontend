@@ -7,9 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'insights_widgets.dart';
 
 class HourlyInsightsTab extends StatelessWidget {
-  HourlyInsightsTab({super.key});
-
-  final GlobalKey _globalKey = GlobalKey();
+  const HourlyInsightsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -63,17 +61,11 @@ class HourlyInsightsTab extends StatelessWidget {
                         const SizedBox(
                           height: 12,
                         ),
-                        RepaintBoundary(
-                          key: _globalKey,
-                          child: const HourlyInsightsGraph(),
-                        ),
+                        const HourlyInsightsGraph(),
                         const SizedBox(
                           height: 16,
                         ),
-                        InsightsActionBar(
-                          shareKey: _globalKey,
-                          airQualityReading: state.airQualityReading,
-                        ),
+                        InsightsActionBar(state.airQualityReading),
                         const SizedBox(
                           height: 32,
                         ),
@@ -87,10 +79,12 @@ class HourlyInsightsTab extends StatelessWidget {
               },
               childCount: 2,
             ),
-            onRefresh: () async {
+            onRefresh: () {
               context
                   .read<HourlyInsightsBloc>()
                   .add(const RefreshInsightsCharts());
+
+              return Future(() => null);
             },
           );
         },

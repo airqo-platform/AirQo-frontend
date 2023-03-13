@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
@@ -75,6 +80,33 @@ class AppService {
     }
 
     return authSuccessful;
+  }
+
+  static Future<Kya?> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+
+      return null;
+    }
   }
 
   Future<bool> doesUserExist({
@@ -164,6 +196,22 @@ class AppService {
     }
   }
 
+  Future<void> setShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showcase', true);
+  }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
+  }
+
   Future<void> _postSignUpActions() async {
     try {
       await Future.wait([
@@ -222,5 +270,36 @@ class AppService {
       }
     }
     await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
+  }
+
+  Future<AppStoreVersion?> latestVersion() async {
+    AppStoreVersion? appStoreVersion;
+
+    try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      if (Platform.isAndroid) {
+        appStoreVersion = await AirqoApiClient()
+            .getAppVersion(packageName: packageInfo.packageName);
+      } else if (Platform.isIOS) {
+        appStoreVersion = await AirqoApiClient()
+            .getAppVersion(bundleId: packageInfo.packageName);
+      } else {
+        return appStoreVersion;
+      }
+
+      if (appStoreVersion == null) return null;
+
+      return appStoreVersion.compareVersion(packageInfo.version) >= 1
+          ? appStoreVersion
+          : null;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return appStoreVersion;
   }
 }

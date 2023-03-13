@@ -118,19 +118,18 @@ const ResearchPage = () => {
         <SEO
           title="Our Solutions"
           siteTitle="For Research"
-          description="With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges."
+          description="AirQo actively collaborates with researchers across the world to jointly tackle air quality research challenges."
         />
         <ResearchHeroSection />
-        <div>
-          <ResearchContent />
-          <PublicationsSection />
-          <section className="bottom-hero-section">
-            <h3>Explore our digital air quality tools.</h3>
-            <Link to="/explore-data" className="section-link">
-              <span>Explore data {'-->'}</span>
-            </Link>
-          </section>
-        </div>
+        <ResearchContent />
+        <PublicationsSection />
+
+        <section className="bottom-hero-section">
+          <h3>Explore our digital air quality tools.</h3>
+          <Link to="/explore-data" className="section-link">
+            <span>Explore data {'-->'}</span>
+          </Link>
+        </section>
       </div>
     </Page>
   );

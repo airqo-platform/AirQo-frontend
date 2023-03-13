@@ -1,41 +1,46 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { isEmpty } from "underscore";
-import { Button, Grid, Paper, TableContainer, Table, TableBody, TableCell } from "@material-ui/core";
-import TextField from "@material-ui/core/TextField";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'underscore';
 import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
-import MaintenanceLogsTable from "./Table";
-import LogDetails from "./Table";
+  Button,
+  Grid,
+  Paper,
+  TableContainer,
+  Table,
+  TableBody,
+  TableCell
+} from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import MaintenanceLogsTable from './Table';
+import LogDetails from './Table';
 import {
   forcedLoadDeviceMaintenanceLogs,
-  loadDeviceMaintenanceLogs,
-} from "redux/DeviceRegistry/operations";
-import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
+  loadDeviceMaintenanceLogs
+} from 'redux/DeviceRegistry/operations';
+import { useDeviceLogsData } from 'redux/DeviceRegistry/selectors';
 import {
   addMaintenanceLogApi,
   updateMaintenanceLogApi,
-  deleteMaintenanceLogApi,
-} from "../../../apis/deviceRegistry";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { CreatableLabelledSelect } from "views/components/CustomSelects/LabelledSelect";
-import Tooltip from "@material-ui/core/Tooltip";
-import EditIcon from "@material-ui/icons/EditOutlined";
-import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import ConfirmDialog from "views/containers/ConfirmDialog";
-import { humanReadableDate } from "utils/dateTime";
+  deleteMaintenanceLogApi
+} from '../../../apis/deviceRegistry';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { CreatableLabelledSelect } from 'views/components/CustomSelects/LabelledSelect';
+import Tooltip from '@material-ui/core/Tooltip';
+import EditIcon from '@material-ui/icons/EditOutlined';
+import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
+import ConfirmDialog from 'views/containers/ConfirmDialog';
+import { humanReadableDate } from 'utils/dateTime';
 
 const titleStyles = {
-  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+  fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
 };
 
 const TableTitle = ({ deviceName }) => {
   return (
     <div style={titleStyles}>
-      Maintenance logs for <strong>{deviceName || ""}</strong>
+      Maintenance logs for <strong>{deviceName || ''}</strong>
     </div>
   );
 };
@@ -43,8 +48,8 @@ const TableTitle = ({ deviceName }) => {
 const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
   const dispatch = useDispatch();
   const maintenanceTypeMapper = {
-    preventive: { value: "preventive", label: "Preventive" },
-    corrective: { value: "corrective", label: "Corrective" },
+    preventive: { value: 'preventive', label: 'Preventive' },
+    corrective: { value: 'corrective', label: 'Corrective' }
   };
   const createOption = (option) => ({ label: option, value: option });
   const createListOptions = (options) => {
@@ -66,22 +71,21 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
   const createTagOption = (tag) => ({ label: tag, value: tag });
 
   const tagsOptions = [
-    createTagOption("Dust blowing and sensor cleaning"),
-    createTagOption("Site update check"),
-    createTagOption("Device equipment check"),
-    createTagOption("Power circuitry and components works"),
-    createTagOption("GPS module works/replacement"),
-    createTagOption("GSM module works/replacement"),
-    createTagOption("Battery works/replacement"),
-    createTagOption("Power supply works/replacement"),
-    createTagOption("Antenna works/replacement"),
-    createTagOption("Mounts replacement"),
-    createTagOption("Software checks/re-installation"),
-    createTagOption("PCB works/replacement"),
-    createTagOption("Temp/humidity sensor works/replacement"),
-    createTagOption("Air quality sensor(s) works/replacement"),
+    createTagOption('Dust blowing and sensor cleaning'),
+    createTagOption('Site update check'),
+    createTagOption('Device equipment check'),
+    createTagOption('Power circuitry and components works'),
+    createTagOption('GPS module works/replacement'),
+    createTagOption('GSM module works/replacement'),
+    createTagOption('Battery works/replacement'),
+    createTagOption('Power supply works/replacement'),
+    createTagOption('Antenna works/replacement'),
+    createTagOption('Mounts replacement'),
+    createTagOption('Software checks/re-installation'),
+    createTagOption('PCB works/replacement'),
+    createTagOption('Temp/humidity sensor works/replacement'),
+    createTagOption('Air quality sensor(s) works/replacement')
   ];
-
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
@@ -92,7 +96,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description,
+      description: description
     };
 
     setLoading(true);
@@ -102,16 +106,16 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
           updateMainAlert({
             message: responseData.message,
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
         setTimeout(
           () =>
             dispatch(
               updateMainAlert({
-                message: "reloading maintenance logs",
+                message: 'reloading maintenance logs',
                 show: true,
-                severity: "info",
+                severity: 'info'
               })
             ),
           500
@@ -119,9 +123,9 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
         await dispatch(loadDeviceMaintenanceLogs(deviceName));
         dispatch(
           updateMainAlert({
-            message: "reload successful",
+            message: 'reload successful',
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
       })
@@ -129,12 +133,10 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
         dispatch(
           updateMainAlert({
             message:
-              (err.response &&
-                err.response.data &&
-                err.response.data.message) ||
-              "could not update log",
+              (err.response && err.response.data && err.response.data.message) ||
+              'could not update log',
             show: true,
-            severity: "error",
+            severity: 'error'
           })
         );
       });
@@ -143,10 +145,10 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
   };
 
   return (
-    <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
+    <Paper style={{ minHeight: '400px', padding: '5px 10px' }}>
       <h4>Edit Log</h4>
       <form>
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: '5px 0' }}>
           <TextField
             id="deviceName"
             label="Device Name"
@@ -156,7 +158,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             disabled
           />
         </div>
-        <div style={{ margin: "10px 0" }}>
+        <div style={{ margin: '10px 0' }}>
           <TextField
             id="deviceName"
             label="Description"
@@ -164,13 +166,13 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             multiline
             rows={10}
             fullWidth
-            value={description || ""}
+            value={description || ''}
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
-        <div style={{ marginTop: "5px" }}>
+        <div style={{ marginTop: '5px' }}>
           <CreatableLabelledSelect
-            label={"Tags"}
+            label={'Tags'}
             isMulti
             options={tagsOptions}
             isClearable
@@ -191,17 +193,12 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             value={selectedDate}
             onChange={(date) => setSelectedDate(date)}
             KeyboardButtonProps={{
-              "aria-label": "change date",
+              'aria-label': 'change date'
             }}
           />
         </MuiPickersUtilsProvider>
 
-        <Grid
-          container
-          alignItems="flex-end"
-          alignContent="flex-end"
-          justify="flex-end"
-        >
+        <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
           <Button variant="contained" onClick={toggleShow}>
             Cancel
           </Button>
@@ -210,7 +207,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: "10px" }}
+            style={{ marginLeft: '10px' }}
           >
             Save Changes
           </Button>
@@ -223,27 +220,27 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
 const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const createTagOption = (tag) => ({ label: tag, value: tag });
 
   const tagsOptions = [
-    createTagOption("Dust blowing and sensor cleaning"),
-    createTagOption("Site update check"),
-    createTagOption("Device equipment check"),
-    createTagOption("Power circuitry and components works"),
-    createTagOption("GPS module works/replacement"),
-    createTagOption("GSM module works/replacement"),
-    createTagOption("Battery works/replacement"),
-    createTagOption("Power supply works/replacement"),
-    createTagOption("Antenna works/replacement"),
-    createTagOption("Mounts replacement"),
-    createTagOption("Software checks/re-installation"),
-    createTagOption("PCB works/replacement"),
-    createTagOption("Temp/humidity sensor works/replacement"),
-    createTagOption("Air quality sensor(s) works/replacement"),
+    createTagOption('Dust blowing and sensor cleaning'),
+    createTagOption('Site update check'),
+    createTagOption('Device equipment check'),
+    createTagOption('Power circuitry and components works'),
+    createTagOption('GPS module works/replacement'),
+    createTagOption('GSM module works/replacement'),
+    createTagOption('Battery works/replacement'),
+    createTagOption('Power supply works/replacement'),
+    createTagOption('Antenna works/replacement'),
+    createTagOption('Mounts replacement'),
+    createTagOption('Software checks/re-installation'),
+    createTagOption('PCB works/replacement'),
+    createTagOption('Temp/humidity sensor works/replacement'),
+    createTagOption('Air quality sensor(s) works/replacement')
   ];
 
   const handleSubmit = async (evt) => {
@@ -253,7 +250,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     const logData = {
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description,
+      description: description
     };
 
     setLoading(true);
@@ -263,7 +260,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           updateMainAlert({
             message: responseData.message,
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
         toggleShow();
@@ -271,9 +268,9 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           () =>
             dispatch(
               updateMainAlert({
-                message: "reloading maintenance logs",
+                message: 'reloading maintenance logs',
                 show: true,
-                severity: "info",
+                severity: 'info'
               })
             ),
           500
@@ -281,18 +278,18 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         await dispatch(loadDeviceMaintenanceLogs(deviceName));
         dispatch(
           updateMainAlert({
-            message: "reload successful",
+            message: 'reload successful',
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
         setTimeout(
           () =>
             dispatch(
               updateMainAlert({
-                message: "reloading maintenance logs",
+                message: 'reloading maintenance logs',
                 show: false,
-                severity: "info",
+                severity: 'info'
               })
             ),
           500
@@ -302,12 +299,10 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         dispatch(
           updateMainAlert({
             message:
-              (err.response &&
-                err.response.data &&
-                err.response.data.message) ||
-              "could not add log",
+              (err.response && err.response.data && err.response.data.message) ||
+              'could not add log',
             show: true,
-            severity: "error",
+            severity: 'error'
           })
         );
       });
@@ -316,10 +311,10 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
   };
 
   return (
-    <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
+    <Paper style={{ minHeight: '400px', padding: '5px 10px' }}>
       <h4>Add Log</h4>
       <form>
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: '5px 0' }}>
           <TextField
             id="deviceName"
             label="Device Name"
@@ -329,7 +324,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             disabled
           />
         </div>
-        <div style={{ margin: "10px 0" }}>
+        <div style={{ margin: '10px 0' }}>
           <TextField
             id="deviceName"
             label="Description"
@@ -337,13 +332,13 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             multiline
             rows={10}
             fullWidth
-            value={description || ""}
+            value={description || ''}
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
-        <div style={{ marginTop: "5px" }}>
+        <div style={{ marginTop: '5px' }}>
           <CreatableLabelledSelect
-            label={"Tags"}
+            label={'Tags'}
             isMulti
             options={tagsOptions}
             isClearable
@@ -364,17 +359,12 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             value={selectedDate}
             onChange={(date) => setSelectedDate(date)}
             KeyboardButtonProps={{
-              "aria-label": "change date",
+              'aria-label': 'change date'
             }}
           />
         </MuiPickersUtilsProvider>
 
-        <Grid
-          container
-          alignItems="flex-end"
-          alignContent="flex-end"
-          justify="flex-end"
-        >
+        <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
           <Button variant="contained" onClick={toggleShow}>
             Cancel
           </Button>
@@ -383,7 +373,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: "10px" }}
+            style={{ marginLeft: '10px' }}
           >
             Add Log
           </Button>
@@ -401,49 +391,41 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
   const [show, setShow] = useState({
     logTable: true,
     addLog: false,
-    editLog: false,
+    editLog: false
   });
   const maintenanceLogs = useDeviceLogsData(deviceName);
 
   const logsColumns = [
     {
-      title: "Description",
-      field: "description",
+      title: 'Description',
+      field: 'description',
       cellStyle: { width: 100, maxWidth: 100 },
-      render: (rowData) => (
-        <div className={"table-truncate"}>{rowData.description}</div>
-      ),
+      render: (rowData) => <div className={'table-truncate'}>{rowData.description}</div>
     },
     {
-      title: "Tags",
-      field: "tags",
+      title: 'Tags',
+      field: 'tags',
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => {
-        return (
-          <div className={"table-truncate"}>
-            {rowData.tags && rowData.tags.join(", ")}
-          </div>
-        );
-      },
+        return <div className={'table-truncate'}>{rowData.tags && rowData.tags.join(', ')}</div>;
+      }
     },
     {
-      title: "Created On",
-      field: "createdAt",
+      title: 'Created On',
+      field: 'createdAt',
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => (
-        <div className={"table-truncate"}>
-          {humanReadableDate(rowData.createdAt)}
-        </div>
-      ),
+        <div className={'table-truncate'}>{humanReadableDate(rowData.createdAt)}</div>
+      )
     },
     {
-      title: "Actions",
+      title: 'Actions',
       render: (rowData) => (
         <div>
           <Tooltip title="Edit">
             <EditIcon
-              className={"hover-blue"}
-              style={{ margin: "0 5px" }}
+              className={'hover-blue'}
+              style={{ margin: '0 5px' }}
               onClick={() => {
                 setSelectedLog(rowData);
                 setSelectedRow(rowData.tableIndex);
@@ -453,17 +435,16 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           </Tooltip>
           <Tooltip title="Delete">
             <DeleteIcon
-              className={"hover-red"}
-              style={{ margin: "0 5px" }}
+              className={'hover-red'}
+              style={{ margin: '0 5px' }}
               onClick={() => setDelState({ open: true, data: rowData })}
             />
           </Tooltip>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
-  
   const handleLogDelete = async () => {
     setDelState({ ...delState, open: false });
     if (delState.data._id) {
@@ -473,16 +454,16 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             updateMainAlert({
               message: responseData.message,
               show: true,
-              severity: "success",
+              severity: 'success'
             })
           );
           setTimeout(
             () =>
               dispatch(
                 updateMainAlert({
-                  message: "refreshing page",
+                  message: 'refreshing page',
                   show: true,
-                  severity: "info",
+                  severity: 'info'
                 })
               ),
             500
@@ -492,9 +473,9 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
 
           dispatch(
             updateMainAlert({
-              message: "page refresh successful",
+              message: 'page refresh successful',
               show: true,
-              severity: "success",
+              severity: 'success'
             })
           );
 
@@ -502,9 +483,9 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             () =>
               dispatch(
                 updateMainAlert({
-                  message: "refreshing page",
+                  message: 'refreshing page',
                   show: false,
-                  severity: "info",
+                  severity: 'info'
                 })
               ),
             500
@@ -514,12 +495,10 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           dispatch(
             updateMainAlert({
               message:
-                (err.response &&
-                  err.response.data &&
-                  err.response.data.message) ||
-                "could not delete log",
+                (err.response && err.response.data && err.response.data.message) ||
+                'could not delete log',
               show: true,
-              severity: "error",
+              severity: 'error'
             })
           );
         });
@@ -528,7 +507,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
 
   useEffect(() => {
     if (isEmpty(maintenanceLogs)) {
-      if (typeof deviceName !== "undefined") {
+      if (typeof deviceName !== 'undefined') {
         dispatch(loadDeviceMaintenanceLogs(deviceName));
       }
     }
@@ -538,21 +517,19 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
     <>
       <div
         style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          margin: "10px 0",
+          display: 'flex',
+          justifyContent: 'flex-end',
+          margin: '10px 0'
         }}
       >
         <Button
-          style={{ marginRight: "5px" }}
+          style={{ marginRight: '5px' }}
           variant="contained"
           color="primary"
           disabled={show.logTable}
-          onClick={() =>
-            setShow({ logTable: true, addLog: false, editLog: false })
-          }
+          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}
         >
-          {" "}
+          {' '}
           Logs Table
         </Button>
         <Button
@@ -563,53 +540,57 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             setShow({ logTable: false, addLog: true, editLog: false });
           }}
         >
-          {" "}
+          {' '}
           Add Log
         </Button>
       </div>
       <div>
         {show.logTable && (
           <MaintenanceLogsTable
-            isLoading={isEmpty(maintenanceLogs)}
             title={<TableTitle deviceName={deviceName} />}
             columns={logsColumns}
             data={maintenanceLogs}
             options={{
               pageSize: 10,
               rowStyle: (rowData) => ({
-                backgroundColor:
-                  selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
-              }),
+                backgroundColor: selectedRow === rowData.tableData.id ? '#EEE' : '#FFF'
+              })
             }}
             detailPanel={[
               {
-                tooltip: "Show Details",
+                tooltip: 'Show Details',
                 render: (rowData) => {
                   return (
-                    <div style={{marginLeft:"40px"}}>
+                    <div style={{ marginLeft: '40px' }}>
                       <TableContainer>
                         <Table aria-label="log-details-table">
                           <TableBody>
-                            <TableCell width={270} fullWidth={270}>{rowData.description}</TableCell>
                             <TableCell width={270} fullWidth={270}>
-                            {rowData.tags &&
-                            rowData.tags.map((tag, key) => {
-                              return (
-                                <li className="li-circle" key={key}>
-                                  {tag}
-                                </li>
-                              );
-                            })}
+                              {rowData.description}
                             </TableCell>
-                            <TableCell width={270} fullWidth={270}>{humanReadableDate(rowData.nextMaintenance)}</TableCell>
-                            <TableCell width={270} fullWidth={270}>{rowData.maintenanceType}</TableCell>
+                            <TableCell width={270} fullWidth={270}>
+                              {rowData.tags &&
+                                rowData.tags.map((tag, key) => {
+                                  return (
+                                    <li className="li-circle" key={key}>
+                                      {tag}
+                                    </li>
+                                  );
+                                })}
+                            </TableCell>
+                            <TableCell width={270} fullWidth={270}>
+                              {humanReadableDate(rowData.nextMaintenance)}
+                            </TableCell>
+                            <TableCell width={270} fullWidth={270}>
+                              {rowData.maintenanceType}
+                            </TableCell>
                           </TableBody>
                         </Table>
                       </TableContainer>
                     </div>
                   );
-                },
-              },
+                }
+              }
             ]}
           />
         )}
@@ -617,18 +598,14 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           <AddLogForm
             deviceName={deviceName}
             deviceLocation={deviceLocation}
-            toggleShow={() =>
-              setShow({ logTable: true, addLog: false, editLog: false })
-            }
+            toggleShow={() => setShow({ logTable: true, addLog: false, editLog: false })}
           />
         )}
         {show.editLog && (
           <EditLog
             deviceName={deviceName}
             deviceLocation={deviceLocation}
-            toggleShow={() =>
-              setShow({ logTable: true, addLog: false, editLog: false })
-            }
+            toggleShow={() => setShow({ logTable: true, addLog: false, editLog: false })}
             log={selectedLog}
             updateSelectedRow={setSelectedRow}
           />
@@ -636,8 +613,8 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       </div>
       <ConfirmDialog
         open={delState.open}
-        title={"Delete a maintenance log?"}
-        message={"Are you sure you want to delete this maintenance log?"}
+        title={'Delete a maintenance log?'}
+        message={'Are you sure you want to delete this maintenance log?'}
         close={() => setDelState({ open: false, data: {} })}
         confirm={handleLogDelete}
         error

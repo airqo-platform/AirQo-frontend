@@ -8,7 +8,7 @@ class InitializeFeedback extends FeedbackEvent {
   const InitializeFeedback();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class SetFeedbackType extends FeedbackEvent {
@@ -17,7 +17,7 @@ class SetFeedbackType extends FeedbackEvent {
   final FeedbackType feedbackType;
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [feedbackType];
 }
 
 class GoToTypeStep extends FeedbackEvent {
@@ -54,7 +54,7 @@ class SetFeedbackContact extends FeedbackEvent {
   final String contact;
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [contact];
 }
 
 class SetFeedback extends FeedbackEvent {
@@ -62,7 +62,7 @@ class SetFeedback extends FeedbackEvent {
   final String feedback;
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [feedback];
 }
 
 class SetFeedbackChannel extends FeedbackEvent {
@@ -71,5 +71,5 @@ class SetFeedbackChannel extends FeedbackEvent {
   final FeedbackChannel feedbackChannel;
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [feedbackChannel];
 }

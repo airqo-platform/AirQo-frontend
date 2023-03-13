@@ -5,10 +5,23 @@ import 'package:flutter_svg/svg.dart';
 
 class SvgIcons {
   static Widget location() {
-    return SvgPicture.asset(
-      'assets/icon/location.svg',
+    return Icon(
+      Icons.location_on_rounded,
       color: CustomColors.appColorBlue,
+      size: 27,
     );
+  }
+
+  static Widget close() {
+    return SvgPicture.asset(
+      'assets/icon/close.svg',
+      height: 40,
+      width: 40,
+    );
+  }
+
+  static Widget update() {
+    return SvgPicture.asset('assets/icon/update_icon.svg');
   }
 
   static Widget pm2_5(double value) {

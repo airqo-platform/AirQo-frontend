@@ -9,5 +9,12 @@ class RefreshDashboard extends DashboardEvent {
   final bool? reload;
 
   @override
+  List<Object?> get props => [reload];
+}
+
+class CancelCheckForUpdates extends DashboardEvent {
+  const CancelCheckForUpdates();
+
+  @override
   List<Object?> get props => [];
 }

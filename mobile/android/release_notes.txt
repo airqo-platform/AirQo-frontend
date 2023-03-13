@@ -1,6 +1,0 @@
-Search redesign
-Map enhancements - Air quality for other african cities.
-Bug fixes
-Error pages and empty states
-KYA Animation
-In-app rating

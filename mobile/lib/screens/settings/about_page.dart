@@ -49,7 +49,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
               ),
               Text(
                 _packageInfo.version,
-                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.5),
                     ),
               ),
@@ -70,7 +70,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 },
                 child: Text(
                   'Terms & Privacy Policy',
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),

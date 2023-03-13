@@ -1,11 +1,15 @@
 {
-  "env": {
-    "browser": true,
-    "es2021": true,
-    "node": true
-  },
-  "extends": ["plugin:react/recommended", "airbnb", "prettier"],
+  "root": true,
+  "plugins": ["prettier"],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:import/recommended",
+    "prettier" // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
+  ],
   "settings": {
+    "react": {
+      "version": "detect"
+    },
     "import/resolver": {
       "node": {
         "paths": ["."],
@@ -17,15 +21,22 @@
       }
     }
   },
-  "parserOptions": {
-    "ecmaFeatures": { "jsx": true },
-    "ecmaVersion": "latest",
-    "sourceType": "module"
-  },
-  "plugins": ["react"],
   "rules": {
-    "react/react-in-jsx-scope": "off",
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "sort-class-members/sort-class-members": [
+      "error",
+      {
+        "order": [
+          "[static-properties]",
+          "[static-methods]",
+          "[properties]",
+          "[conventional-private-properties]",
+          "constructor",
+          "[methods]",
+          "[conventional-private-methods]"
+        ],
+        "accessorPairPositioning": "getThenSet"
+      }
+    ],
     "import/no-restricted-paths": [
       "error",
       {
@@ -39,19 +50,27 @@
       }
     ],
     "import/prefer-default-export": "off",
+    "import/no-duplicates": "error",
+    "import/no-unresolved": "off",
+    "import/no-named-as-default": "off",
+    "max-classes-per-file": "error",
+    "no-useless-escape": "off",
+    "react/display-name": "warn",
+    "react/jsx-no-target-blank": "warn",
+    // https://github.com/standard/eslint-config-standard-with-typescript/issues/248
+    "react/no-deprecated": "warn",
+    "react/no-unescaped-entities": "off",
+    "react/no-unknown-property": "warn",
+    // as of v17 no longer required
+    "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "react/jsx-props-no-spreading": "off",
-    "react/function-component-definition": [
+    // Filenames - https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/filename-case.md
+    "no-restricted-imports": [
       "error",
       {
-        "namedComponents": [
-          "function-declaration",
-          "function-expression",
-          "arrow-function"
-        ],
-        "unnamedComponents": ["function-expression", "arrow-function"]
+        "paths": []
       }
-    ],
-    "consistent-return": "off"
+    ]
   }
 }

@@ -26,17 +26,18 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       location: fields[6] == null ? '' : fields[6] as String,
       region: fields[13] == null ? '' : fields[13] as String,
       dateTime: fields[8] as DateTime,
-      pm2_5: fields[9] == null ? 0.0 : fields[9] as double,
-      pm10: fields[10] == null ? 0.0 : fields[10] as double,
+      pm2_5: fields[9] as double,
+      pm10: fields[10] as double?,
       distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
       placeId: fields[12] == null ? '' : fields[12] as String,
+      shareLink: fields[14] == null ? '' : fields[14] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, AirQualityReading obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.referenceSite)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(12)
       ..write(obj.placeId)
       ..writeByte(13)
-      ..write(obj.region);
+      ..write(obj.region)
+      ..writeByte(14)
+      ..write(obj.shareLink);
   }
 
   @override
@@ -82,7 +85,32 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
 
 PollutantValue _$PollutantValueFromJson(Map<String, dynamic> json) =>
     PollutantValue(
-      value: PollutantValue._valueFromJson(json['value'] as double),
-      calibratedValue:
-          PollutantValue._valueFromJson(json['calibratedValue'] as double),
+      value: PollutantValue._valueFromJson(json['value']),
+      calibratedValue: PollutantValue._valueFromJson(json['calibratedValue']),
     );
+
+Site _$SiteFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const [
+      '_id',
+      'approximate_latitude',
+      'approximate_longitude',
+      'name',
+      'description'
+    ],
+  );
+  return Site(
+    id: json['_id'] as String,
+    latitude: (json['approximate_latitude'] as num).toDouble(),
+    longitude: (json['approximate_longitude'] as num).toDouble(),
+    name: json['name'] as String,
+    description: json['description'] as String,
+    searchName: json['search_name'] as String? ?? '',
+    searchLocation: json['location_name'] as String? ?? '',
+    country: json['country'] as String? ?? '',
+    region: json['region'] as String? ?? '',
+    source: json['network'] as String? ?? '',
+    shareLinks: json['share_links'] as Map<String, dynamic>? ?? {},
+  );
+}

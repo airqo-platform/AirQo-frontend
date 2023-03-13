@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/airqo-250220/airqo-stage-docs
+  repository: eu.gcr.io/airqo-250220/airqo-stage-docs
   pullPolicy: Always
   tag: stage-090ad16f-1667922055
 

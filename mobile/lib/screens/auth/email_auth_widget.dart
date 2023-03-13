@@ -200,7 +200,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                       ),
                       const Spacer(),
                       GestureDetector(
-                        onTap: () async {
+                        onTap: () {
                           context
                               .read<EmailAuthBloc>()
                               .add(ValidateEmailAddress(context: context));
