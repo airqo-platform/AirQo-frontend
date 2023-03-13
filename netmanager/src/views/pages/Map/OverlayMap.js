@@ -362,7 +362,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     if (isEmpty(sitesData)) {
       dispatch(loadSites());
     }
-  }, []);
+  }, [sitesData]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -486,6 +486,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     <div className="overlay-map-container" ref={mapContainerRef}>
       {showSensors &&
         map &&
+        monitoringSiteData.features.length > 0 &&
         monitoringSiteData.features.forEach((feature) => {
           const [seconds, duration] = getFirstDuration(feature.properties.time);
           let pollutantValue =
