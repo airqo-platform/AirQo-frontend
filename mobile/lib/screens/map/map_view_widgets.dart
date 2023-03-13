@@ -183,22 +183,15 @@ class SearchTile extends StatelessWidget {
         return;
       }
 
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return InsightsPage(
-              nearestSite.copyWith(
-                name: searchResult.name,
-                location: searchResult.location,
-                placeId: searchResult.id,
-                latitude: place.latitude,
-                longitude: place.longitude,
-              ),
-            );
-          },
-        ),
-      );
+      await navigateToInsights(
+          context,
+          nearestSite.copyWith(
+            name: searchResult.name,
+            location: searchResult.location,
+            placeId: searchResult.id,
+            latitude: place.latitude,
+            longitude: place.longitude,
+          ));
     } else {
       showSnackBar(
         context,
@@ -441,7 +434,7 @@ class MapAnalyticsCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               onPressed: () async {
-                await _goToInsights(context);
+                await navigateToInsights(context, airQualityReading);
               },
               child: Column(
                 children: [
@@ -581,17 +574,6 @@ class MapAnalyticsCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _goToInsights(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
       ),
     );
   }

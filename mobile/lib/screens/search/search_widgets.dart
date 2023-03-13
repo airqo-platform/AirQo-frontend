@@ -334,15 +334,8 @@ class SearchSection extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return InsightsPage(data[index]);
-                        },
-                      ),
-                    );
+                  onTap: () async {
+                    await navigateToInsights(context, data[index]);
                   },
                   child: SearchPageAirQualityTile(data[index]),
                 ),
@@ -446,15 +439,9 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 itemBuilder: (_, index) {
                   return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return InsightsPage(state.africanCities[index]);
-                          },
-                        ),
-                      );
+                    onTap: () async {
+                      await navigateToInsights(
+                          context, state.africanCities[index]);
                     },
                     child: ExploreAfricanCityCard(state.africanCities[index]),
                   );
@@ -512,14 +499,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
       return;
     }
 
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
-      ),
-    );
+    await navigateToInsights(context, airQualityReading);
   }
 
   @override

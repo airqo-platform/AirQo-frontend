@@ -11,6 +11,31 @@ import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
 
+Future<void> navigateToInsights(
+    BuildContext context, AirQualityReading airQualityReading) async {
+  await Navigator.of(context).push(
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          InsightsPage(airQualityReading),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    ),
+  );
+}
+
 class InsightsPage extends StatefulWidget {
   const InsightsPage(
     this.airQualityReading, {
@@ -31,9 +56,8 @@ class _InsightsPageState extends State<InsightsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: CustomColors.appBodyColor,
         centerTitle: false,
-        titleSpacing: 20,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
