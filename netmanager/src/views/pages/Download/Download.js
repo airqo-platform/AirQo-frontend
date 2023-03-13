@@ -36,6 +36,22 @@ import { fetchDashboardAirQloudsData } from '../../../redux/AirQloud/operations'
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4)
+  },
+  tabs: {
+    display: 'flex',
+    justifyContent: 'center',
+    borderBottom: '1px solid #eee',
+    '& .MuiTabs-scrollable': {
+      borderBottom: 'none'
+    },
+    '& .MuiTab-root': {
+      minWidth: 0,
+      marginRight: theme.spacing(3),
+      '&:focus': {
+        outline: 'none',
+        backgroundColor: 'transparent'
+      }
+    }
   }
 }));
 
@@ -364,8 +380,6 @@ const Download = (props) => {
                 title="Data Download"
               />
 
-              <Divider />
-
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -373,10 +387,14 @@ const Download = (props) => {
                 indicatorColor="primary"
                 variant="scrollable"
                 scrollButtons="on"
+                classes={{
+                  root: classes.tabs, // Apply custom styles to the root element
+                  indicator: classes.indicator // Apply custom styles to the indicator element
+                }}
               >
-                <Tab disableRipple label="Export by Sites" {...a11yProps(0)} />
-                <Tab disableRipple label="Export by Devices" {...a11yProps(1)} />
-                <Tab disableRipple label="Export by AirQlouds" {...a11yProps(2)} />
+                <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
+                <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
+                <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
               </Tabs>
 
               <TabPanel value={value} index={0}>
