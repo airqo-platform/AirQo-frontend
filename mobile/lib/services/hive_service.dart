@@ -175,9 +175,10 @@ class HiveService {
   }
 
   static Future<void> loadNotifications(
-    List<AppNotification> notifications,
-  ) async {
-    if (notifications.isEmpty) {
+    List<AppNotification> notifications, {
+    bool clear = false,
+  }) async {
+    if (notifications.isEmpty && !clear) {
       return;
     }
     await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
@@ -189,6 +190,32 @@ class HiveService {
     }
     await Hive.box<AppNotification>(HiveBox.appNotifications)
         .putAll(notificationsMap);
+  }
+
+  static Future<void> deleteFavouritePlaces() async {
+    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
+  }
+
+  static List<FavouritePlace> getFavouritePlaces() {
+    return Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+  }
+
+  static Future<void> deleteAnalytics() async {
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
+  }
+
+  static List<Analytics> getAnalytics() {
+    return Hive.box<Analytics>(HiveBox.analytics).values.toList();
+  }
+
+  static List<Kya> getKya() {
+    return Hive.box<Kya>(HiveBox.kya).values.toList();
+  }
+
+  static List<AppNotification> getNotifications() {
+    return Hive.box<AppNotification>(
+      HiveBox.appNotifications,
+    ).values.toList();
   }
 
   static Future<void> loadKya(List<Kya> kyaList) async {

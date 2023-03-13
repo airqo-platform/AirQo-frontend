@@ -54,7 +54,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               onTap: () async {
                 context.read<KyaBloc>().add(
                       UpdateKyaProgress(
-                        kya: widget.kya,
+                        widget.kya,
                         visibleCardIndex: _visibleCardIndex,
                       ),
                     );

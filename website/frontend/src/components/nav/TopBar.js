@@ -6,7 +6,6 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -26,50 +25,62 @@ const TopBar = () => {
   };
 
   return (
-        <div className="TopBar">
-            <div className="wrapper">
-                <div className="logo">
-                    <Link to="/"><AirQo /></Link>
-                </div>
-                <div className="nav-center" id="nav-center">
-                    <div className="nav-dropdown-item">
-                        <NavTab
-                          text="Solutions"
-                        />
-                        <div className="dropdown" id="solutions-dropdown">
-                            <h3 className="title">Solutions</h3>
-                            <div className="dropdown-list">
-                                <div className="dropdown-list-item">
-                                    <Link to="/solutions/african-cities/uganda" style={{ textDecoration: 'none' }}>
-                                        <h3>For African Cities</h3>
-                                        <h4>Air quality analytics for city councils</h4>
-                                    </Link>
-
-                                </div>
-                                <div className="dropdown-list-item">
-                                    <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
-                                        <h3>For Communities</h3>
-                                        <h4>Recruiting locals to drive awareness</h4>
-                                    </Link>
-                                </div>
-                                <div className="dropdown-list-item">
-                                    <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
-                                        <h3>For Research</h3>
-                                        <h4>Free access to air quality analytics</h4>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <NavTab text="About" path="/about-us" hideArrow />
-                    <NavTab text="Get involved" hideArrow colored onClick={showModal} />
-                    <NavTab text="Explore data" path="/explore-data" hideArrow filled />
-                </div>
-
-            </div>
-            <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
-            <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
+    <div className="TopBar">
+      <div className="wrapper">
+        <div className="logo">
+          <Link to="/">
+            <AirQo />
+          </Link>
         </div>
+        <div className="nav-center" id="nav-center">
+          <div className="nav-dropdown-item">
+            <NavTab text="Products" />
+            <div className="dropdown" id="solutions-dropdown">
+              <h3 className="title">Products</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
+                    <h3>Binos Monitor</h3>
+                    <h4>Built in Africa for African cities</h4>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="nav-dropdown-item">
+            <NavTab text="Solutions" />
+            <div className="dropdown" id="solutions-dropdown">
+              <h3 className="title">Solutions</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/african-cities/uganda" style={{ textDecoration: 'none' }}>
+                    <h3>For African Cities</h3>
+                    <h4>Air quality analytics for city councils</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
+                    <h3>For Communities</h3>
+                    <h4>Recruiting locals to drive awareness</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
+                    <h3>For Research</h3>
+                    <h4>Free access to air quality analytics</h4>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+          <NavTab text="About" path="/about-us" hideArrow />
+          <NavTab text="Get involved" hideArrow colored onClick={showModal} />
+          <NavTab text="Explore data" path="/explore-data" hideArrow filled />
+        </div>
+      </div>
+      <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
+      <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
+    </div>
   );
 };
 

@@ -1515,7 +1515,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       }
     });
     if (mounted) {
-      context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
+      context
+          .read<FavouritePlaceBloc>()
+          .add(UpdateFavouritePlace(airQualityReading));
     }
   }
 }

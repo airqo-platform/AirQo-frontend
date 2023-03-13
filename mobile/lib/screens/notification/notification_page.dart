@@ -13,13 +13,15 @@ class NotificationPage extends StatelessWidget {
     return Scaffold(
       appBar: const AppTopBar('Notifications'),
       body: AppSafeArea(
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        widget: BlocBuilder<NotificationBloc, NotificationState>(
           buildWhen: (previous, current) {
             return previous.notifications != current.notifications;
           },
           builder: (context, state) {
             if (state.notifications.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshNotifications());
+              context
+                  .read<NotificationBloc>()
+                  .add(const RefreshNotifications());
 
               return const EmptyNotifications();
             }
@@ -64,6 +66,6 @@ class NotificationPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshNotifications());
+    context.read<NotificationBloc>().add(const RefreshNotifications());
   }
 }
