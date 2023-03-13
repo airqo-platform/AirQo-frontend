@@ -16,6 +16,13 @@ class KnowYourAirView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
+        if (state.kya.isEmpty) {
+          return NoKyaWidget(
+            callBack: () {
+              context.read<KyaBloc>().add(const RefreshKya());
+            },
+          );
+        }
         final completeKya = state.kya.filterCompleteKya();
         if (completeKya.isEmpty) {
           final inCompleteKya = state.kya.filterInProgressKya();
@@ -29,7 +36,16 @@ class KnowYourAirView extends StatelessWidget {
             );
           }
 
-          return NoKyaWidget(
+          if (inCompleteKya.isEmpty &&
+              state.status == KyaStatus.noInternetConnection) {
+            return NoInternetConnectionWidget(
+              callBack: () {
+                _refresh(context);
+              },
+            );
+          }
+
+          return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteKya.isEmpty) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
