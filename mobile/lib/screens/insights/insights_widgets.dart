@@ -1514,10 +1514,11 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         setState(() => _showHeartAnimation = false);
       }
     });
-
-    context
-        .read<FavouritePlaceBloc>()
-        .add(UpdateFavouritePlace(airQualityReading));
+    if (mounted) {
+      context
+          .read<FavouritePlaceBloc>()
+          .add(UpdateFavouritePlace(airQualityReading));
+    }
   }
 }
 

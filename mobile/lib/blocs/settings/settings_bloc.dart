@@ -55,7 +55,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     emit(state.copyWith(location: event.enable));
     if (event.enable) {
-      await CloudAnalytics.logEvent(Event.allowLocation);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowLocation);
     }
   }
 
@@ -65,7 +65,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     emit(state.copyWith(notifications: event.enable));
     if (event.enable) {
-      await CloudAnalytics.logEvent(Event.allowNotification);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowNotification);
     }
   }
 

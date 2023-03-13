@@ -87,16 +87,17 @@ class KyaTitlePage extends StatelessWidget {
                       child: NextButton(
                         text: buttonText,
                         buttonColor: CustomColors.appColorBlue,
-                        callBack: () async {
-                          await Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return KyaLessonsPage(kya);
-                              },
-                            ),
-                          );
-                        },
+                        // TODO: add callback function
+                        // callBack: () async {
+                        //   await Navigator.pushReplacement(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //       builder: (context) {
+                        //         return KyaLessonsPage(kya);
+                        //       },
+                        //     ),
+                        //   );
+                        // },
                       ),
                     ),
                   ),

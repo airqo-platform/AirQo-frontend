@@ -10,7 +10,7 @@ part 'enum_constants.g.dart';
 
 enum Environment { dev, prod }
 
-enum Event {
+enum CloudAnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
   createUserProfile('created_profile'),
   shareAirQualityInformation('share_air_quality_information'),
@@ -32,7 +32,7 @@ enum Event {
   notificationOpen('notification_open'),
   notificationReceive('notification_receive');
 
-  const Event(this.snakeCaseValue);
+  const CloudAnalyticsEvent(this.snakeCaseValue);
 
   final String snakeCaseValue;
 

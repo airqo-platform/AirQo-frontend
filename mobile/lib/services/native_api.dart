@@ -53,7 +53,12 @@ class RateService {
   static Future<void> rateApp() async {
     final InAppReview inAppReview = InAppReview.instance;
     await inAppReview.openStoreListing(appStoreId: Config.iosStoreId);
-    await CloudAnalytics.logAppRating();
+  }
+
+  static Future<void> logAppRating() async {
+    await CloudAnalytics.logEvent(
+      CloudAnalyticsEvent.rateApp,
+    );
   }
 }
 
@@ -228,15 +233,20 @@ class ShareService {
   }
 
   static Future<void> updateUserShares() async {
-    Profile profile = await HiveService.getProfile();
-    UserPreferences preferences = profile.preferences;
-    profile = profile.copyWith(
-      preferences: preferences.copyWith(
-        aqShares: preferences.aqShares + 1,
-      ),
-    );
-    if (profile.preferences.aqShares >= 5) {
-      await CloudAnalytics.logAirQualitySharing();
+    final preferences = await SharedPreferencesHelper.getPreferences();
+    final value = preferences.aqShares + 1;
+    if (CustomAuth.isLoggedIn()) {
+      final profile = await Profile.getProfile();
+      profile.preferences.aqShares = value;
+      await profile.update();
+    } else {
+      await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
+    }
+
+    if (value >= 5) {
+      await CloudAnalytics.logEvent(
+        CloudAnalyticsEvent.shareAirQualityInformation,
+      );
     }
   }
 }

@@ -15,7 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class CloudAnalytics {
-  static Future<bool> logEvent(Event analyticsEvent) async {
+  static Future<bool> logEvent(CloudAnalyticsEvent analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.snakeCase(),
     );
@@ -69,12 +69,12 @@ class CloudAnalytics {
     if (profile != null) {
       final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
       if (carrier.toLowerCase().contains('airtel')) {
-        await logEvent(Event.airtelUser);
+        await logEvent(CloudAnalyticsEvent.airtelUser);
       } else if (carrier.toLowerCase().contains('mtn')) {
-        await logEvent(Event.mtnUser);
+        await logEvent(CloudAnalyticsEvent.mtnUser);
       } else {
         await logEvent(
-          Event.otherNetwork,
+          CloudAnalyticsEvent.otherNetwork,
         );
       }
     }
@@ -83,11 +83,11 @@ class CloudAnalytics {
   static Future<void> logPlatformType() async {
     if (Platform.isAndroid) {
       await logEvent(
-        Event.androidUser,
+        CloudAnalyticsEvent.androidUser,
       );
     } else if (Platform.isIOS) {
       await logEvent(
-        Event.iosUser,
+        CloudAnalyticsEvent.iosUser,
       );
     } else {
       debugPrint('Unknown Platform');
@@ -99,15 +99,15 @@ class CloudAnalytics {
     if (profile != null) {
       if (profile.gender() == Gender.male) {
         await logEvent(
-          Event.maleUser,
+          CloudAnalyticsEvent.maleUser,
         );
       } else if (profile.gender() == Gender.female) {
         await logEvent(
-          Event.femaleUser,
+          CloudAnalyticsEvent.femaleUser,
         );
       } else {
         await logEvent(
-          Event.undefinedGender,
+          CloudAnalyticsEvent.undefinedGender,
         );
       }
     }
@@ -115,6 +115,25 @@ class CloudAnalytics {
 }
 
 class CloudStore {
+  static Future<void> updateKyaProgress(Kya kya) async {
+    final userId = CustomAuth.getUserId();
+    KyaProgress progress = KyaProgress.fromKya(kya);
+
+    try {
+      await FirebaseFirestore.instance
+          .collection(Config.usersKyaCollection)
+          .doc(userId)
+          .collection(userId)
+          .doc(progress.id)
+          .set(progress.toJson());
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+  }
+
   static Future<List<Kya>> getKya() async {
     List<Kya> kya = <Kya>[];
     final kyaCollection =
@@ -132,16 +151,16 @@ class CloudStore {
       }
     }
 
-    final profile = await HiveService.getProfile();
-    if (profile.userId.isEmpty || profile.user == null) {
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
       return kya;
     }
 
     List<KyaProgress> userProgress = <KyaProgress>[];
     final kyaProgressCollection = await FirebaseFirestore.instance
         .collection(Config.usersKyaCollection)
-        .doc(profile.userId)
-        .collection(profile.userId)
+        .doc(userId)
+        .collection(userId)
         .get();
 
     for (final doc in kyaProgressCollection.docs) {
@@ -162,6 +181,41 @@ class CloudStore {
     }).toList();
 
     return kya;
+  }
+
+  static Future<bool> deleteAccount() async {
+    try {
+      final id = CustomAuth.getUser()?.uid;
+      await Future.wait([
+        FirebaseFirestore.instance
+            .collection(Config.usersCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.usersKyaCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.usersNotificationCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.favPlacesCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.usersAnalyticsCollection)
+            .doc(id)
+            .delete(),
+      ]);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return true;
   }
 
   static Future<List<AppNotification>> getNotifications() async {

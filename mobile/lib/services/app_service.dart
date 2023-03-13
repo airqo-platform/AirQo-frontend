@@ -156,6 +156,90 @@ class AppService {
     }
   }
 
+  Future<bool> _clearUserLocalStorage() async {
+    await Future.wait([
+      SharedPreferencesHelper.clearPreferences(),
+      HiveService.clearUserData(),
+      SecureStorage().clearUserData(),
+    ]);
+
+    return true;
+  }
+
+  Future<void> _postAnonymousLoginActions() async {
+    await Profile.getProfile();
+  }
+
+  Future<void> _postLoginActions() async {
+    try {
+      await Future.wait([
+        Profile.syncProfile(),
+        CloudStore.getCloudAnalytics(),
+        CloudAnalytics.logPlatformType(),
+        updateFavouritePlacesReferenceSites(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> setShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showcase', true);
+  }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
+  }
+
+  Future<void> _postSignUpActions() async {
+    try {
+      await Future.wait([
+        Profile.getProfile(),
+        CloudAnalytics.logEvent(
+          CloudAnalyticsEvent.createUserProfile,
+        ),
+        CloudAnalytics.logNetworkProvider(),
+        CloudAnalytics.logPlatformType(),
+        CloudAnalytics.logGender(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<bool> _postLogOutActions() async {
+    // TODO Login anonymously
+    try {
+      final profile = await Profile.getProfile();
+      final placesUpdated = await CloudStore.updateFavouritePlaces();
+      final analyticsUpdated = await CloudStore.updateCloudAnalytics();
+      final profileUpdated = await profile.update(logout: true);
+      final localStorageCleared = await _clearUserLocalStorage();
+
+      if (placesUpdated &&
+          analyticsUpdated &&
+          profileUpdated &&
+          localStorageCleared) {
+        return CustomAuth.logOut();
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();

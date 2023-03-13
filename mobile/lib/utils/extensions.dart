@@ -20,6 +20,16 @@ extension IntExt on int {
   }
 }
 
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  List<FavouritePlace> sortByName() {
+    List<FavouritePlace> data = List.of(this);
+
+    data.sort((x, y) => x.name.compareTo(y.name));
+
+    return data;
+  }
+}
+
 extension ChartDataExt on ChartData {
   String chartDomainFn() {
     switch (frequency) {

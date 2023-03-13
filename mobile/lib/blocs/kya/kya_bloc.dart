@@ -58,7 +58,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
     PartiallyCompleteKya event,
     Emitter<KyaState> emit,
   ) async {
-    Kya kya = event.kya.copyWith().copyWith(progress: 1);
+    Kya kya = event.kya.copyWith(progress: 1);
     List<Kya> stateKya = List.of(state.kya);
     stateKya.add(kya);
 
@@ -76,7 +76,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> {
     await hasNetworkConnection().then((hasConnection) {
       if (hasConnection) {
         Future.wait([
-          CloudAnalytics.logEvent(Event.completeOneKYA),
+          CloudAnalytics.logEvent(CloudAnalyticsEvent.completeOneKYA),
           CloudStore.updateKyaProgress(kya),
         ]);
       }
