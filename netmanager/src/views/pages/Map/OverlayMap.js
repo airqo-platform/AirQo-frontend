@@ -359,6 +359,14 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   });
 
   useEffect(() => {
+    setShowPollutant({
+      pm2_5: localStorage.pollutant === 'pm2_5',
+      no2: localStorage.pollutant === 'no2',
+      pm10: localStorage.pollutant === 'pm10'
+    });
+  }, [localStorage.pollutant]);
+
+  useEffect(() => {
     if (isEmpty(sitesData)) {
       dispatch(loadSites());
     }
@@ -549,8 +557,8 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                     <div class="${`popup-aqi ${markerClass}`}"> 
                       <span>
                       ${
-                        (showPollutant.pm2_5 && feature.properties.pm2_5 && 'PM<sub>2.5<sub>') ||
-                        (showPollutant.pm10 && feature.properties.pm10 && 'PM<sub>10<sub>')
+                        (showPollutant.pm2_5 && 'PM<sub>2.5<sub>') ||
+                        (showPollutant.pm10 && 'PM<sub>10<sub>')
                       }
                       </span> </hr>  
                       <div class="pollutant-info">
