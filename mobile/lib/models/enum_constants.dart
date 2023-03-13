@@ -666,3 +666,9 @@ enum ToolTipType {
   forYou,
   forecast,
 }
+
+enum ShowcaseOptions {
+  up,
+  skip,
+  none,
+}
