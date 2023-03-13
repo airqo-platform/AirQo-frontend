@@ -206,11 +206,13 @@ const CreateDevice = ({ open, setOpen }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
-    long_name: ''
+    long_name: '',
+    category: ''
   };
 
   const initialErrors = {
-    long_name: ''
+    long_name: '',
+    category: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -284,6 +286,25 @@ const CreateDevice = ({ open, setOpen }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
+          <TextField
+            select
+            fullWidth
+            label="Category"
+            style={{ margin: '10px 0' }}
+            defaultValue={newDevice.category}
+            onChange={handleDeviceDataChange('category')}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' }
+            }}
+            variant="outlined"
+            error={!!errors.category}
+            helperText={errors.category}
+            required
+          >
+            <option value={'lowcost'}>Lowcost</option>
+            <option value={'bam'}>BAM</option>
+          </TextField>
         </form>
       </DialogContent>
 
@@ -312,11 +333,13 @@ const SoftCreateDevice = ({ open, setOpen }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
-    long_name: ''
+    long_name: '',
+    category: ''
   };
 
   const initialErrors = {
-    long_name: ''
+    long_name: '',
+    category: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -388,6 +411,25 @@ const SoftCreateDevice = ({ open, setOpen }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
+          <TextField
+            select
+            fullWidth
+            label="Category"
+            style={{ margin: '10px 0' }}
+            defaultValue={newDevice.category}
+            onChange={handleDeviceDataChange('category')}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' }
+            }}
+            variant="outlined"
+            error={!!errors.category}
+            helperText={errors.category}
+            required
+          >
+            <option value={'lowcost'}>Lowcost</option>
+            <option value={'bam'}>BAM</option>
+          </TextField>
         </form>
       </DialogContent>
 

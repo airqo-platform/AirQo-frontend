@@ -132,6 +132,20 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             <TextField
               autoFocus
               margin="dense"
+              id="device_number"
+              label="Device Number"
+              variant="outlined"
+              defaultValue={deviceData.device_number}
+              onChange={handleTextFieldChange}
+              error={!!errors.device_number}
+              helperText={errors.device_number}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
               variant="outlined"
               id="description"
               label="Description"
@@ -275,6 +289,27 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               fullWidth
               required
             />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Category"
+              style={{ margin: '10px 0' }}
+              defaultValue={deviceData.category}
+              onChange={handleSelectFieldChange('category')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.category}
+              helperText={errors.category}
+              required
+            >
+              <option value={'lowcost'}>Lowcost</option>
+              <option value={'bam'}>BAM</option>
+            </TextField>
           </Grid>
 
           <Grid
