@@ -68,10 +68,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KyaBloc>().add(UpdateKyaProgress(
-          kya: widget.kya,
-          visibleCardIndex: widget.kya.lessons.length - 1,
-        ));
+    context.read<KyaBloc>().add(PartiallyCompleteKya(widget.kya));
     _initialize();
   }
 

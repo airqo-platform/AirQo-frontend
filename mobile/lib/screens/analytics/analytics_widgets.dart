@@ -81,7 +81,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: CustomColors.appColorBlue,
+            color: CustomColors.appColorBlue,
             borderRadius: BorderRadius.circular(4),
           ),
           child: const Icon(
@@ -536,7 +536,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }

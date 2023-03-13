@@ -319,7 +319,11 @@ class _DashboardViewState extends State<DashboardView>
                             ),
                             BlocBuilder<KyaBloc, KyaState>(
                               builder: (context, state) {
-                                List<Kya> kya = state.kya.filterIncompleteKya();
+                                List<Kya> kya =
+                                    state.kya.filterPartiallyCompleteKya();
+                                if (kya.isEmpty) {
+                                  kya = state.kya.filterInProgressKya();
+                                }
                                 if (kya.isEmpty) {
                                   _kyaExists = false;
 

@@ -281,8 +281,8 @@ class NoAnalyticsWidget extends StatelessWidget {
   }
 }
 
-class NoKyaWidget extends StatelessWidget {
-  const NoKyaWidget({super.key, required this.callBack});
+class NoCompleteKyaWidget extends StatelessWidget {
+  const NoCompleteKyaWidget({super.key, required this.callBack});
   final Function() callBack;
 
   @override
@@ -324,6 +324,55 @@ class NoKyaWidget extends StatelessWidget {
                 buttonColor: CustomColors.appColorBlue,
                 text: 'Start learning',
               ),
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class NoKyaWidget extends StatelessWidget {
+  const NoKyaWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No lessons',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'We’re having issues with our network no worries, we’ll be back up soon.',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Reload',
             ),
           ),
           const Spacer(),
