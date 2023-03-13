@@ -545,7 +545,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                         }</b>
                       </span>
                     </div>
-                    <div class="${'popup-aqi ' + markerClass}"> 
+                    <div class="${`popup-aqi ${markerClass}`}"> 
                       <span>
                       ${
                         (showPollutant.pm2_5 && feature.properties.pm2_5 && 'PM<sub>2.5<sub>') ||
@@ -595,6 +595,9 @@ const MapContainer = () => {
     if (isEmpty(heatMapData.features)) {
       dispatch(loadPM25HeatMapData());
     }
+  }, [heatMapData]);
+
+  useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
       dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
     }
