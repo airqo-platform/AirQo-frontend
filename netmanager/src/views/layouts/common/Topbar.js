@@ -493,12 +493,14 @@ const Topbar = (props) => {
                 <Link
                   to="/request-access"
                   style={{
-                    borderRadius: '3px'
+                    borderRadius: '3px',
+                    marginBottom: '15px'
                   }}
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
                 >
                   Let's start!
                 </Link>
+                <Link to="/login">Already have an account? Log in here</Link>
               </div>
             </Menu>
           </div>
