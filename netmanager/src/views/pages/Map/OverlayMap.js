@@ -14,6 +14,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
+import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
 // css
@@ -339,6 +340,7 @@ const CustomMapControl = ({
 };
 
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
+  const dispatch = useDispatch();
   const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
@@ -355,6 +357,12 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     closeButton: false,
     offset: 25
   });
+
+  useEffect(() => {
+    if (isEmpty(sitesData)) {
+      dispatch(loadSites());
+    }
+  }, []);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
