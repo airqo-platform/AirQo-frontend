@@ -276,6 +276,27 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               required
             />
           </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Category"
+              style={{ margin: '10px 0' }}
+              defaultValue={deviceData.category}
+              onChange={handleSelectFieldChange('category')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.category}
+              helperText={errors.category}
+              required
+            >
+              <option value={'lowcost'}>Lowcost</option>
+              <option value={'bam'}>BAM</option>
+            </TextField>
+          </Grid>
 
           <Grid
             container
