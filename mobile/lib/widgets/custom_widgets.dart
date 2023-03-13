@@ -469,7 +469,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }

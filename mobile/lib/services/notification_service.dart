@@ -104,7 +104,7 @@ class NotificationService {
       FirebaseMessaging.onMessageOpenedApp.listen(
         (_) {
           CloudAnalytics.logEvent(
-            AnalyticsEvent.notificationOpen,
+            CloudAnalyticsEvent.notificationOpen,
           );
         },
       );
@@ -162,7 +162,7 @@ class NotificationService {
               ),
             ),
             CloudAnalytics.logEvent(
-              AnalyticsEvent.notificationReceive,
+              CloudAnalyticsEvent.notificationReceive,
             ),
           ],
         );
