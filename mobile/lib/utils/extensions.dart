@@ -28,6 +28,16 @@ extension InsightListExt on List<Insight> {
   }
 }
 
+extension ForecastListExt on List<Forecast> {
+  List<Forecast> sortByDateTime() {
+    List<Forecast> data = List.of(this);
+
+    data.sort((x, y) => x.time.compareTo(y.time));
+
+    return data;
+  }
+}
+
 extension FavouritePlaceListExt on List<FavouritePlace> {
   List<FavouritePlace> sortByName() {
     List<FavouritePlace> data = List.of(this);
@@ -240,7 +250,11 @@ extension InsightExt on Insight {
       return 'Tomorrow’s health tips';
     }
 
-    return dateTime.getWeekday().toTitleCase();
+    if (dateTime.isAFutureDate()) {
+      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+    }
+
+    return '';
   }
 }
 

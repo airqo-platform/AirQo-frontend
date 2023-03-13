@@ -133,7 +133,7 @@ class AppService {
   }
 
   static Future<List<Forecast>> fetchInsightsData(String siteId) async {
-    List<Forecast> forecast = await AirqoApiClient().fetchForecastData(siteId);
+    List<Forecast> forecast = await AirqoApiClient().fetchForecast(siteId);
     await AirQoDatabase().insertForecast(forecast);
 
     return forecast;

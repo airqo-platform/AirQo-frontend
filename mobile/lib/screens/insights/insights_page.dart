@@ -12,7 +12,11 @@ import 'package:flutter_svg/svg.dart';
 import 'insights_widgets.dart';
 
 Future<void> navigateToInsights(
-    BuildContext context, AirQualityReading airQualityReading) async {
+  BuildContext context,
+  AirQualityReading airQualityReading,
+) async {
+  context.read<InsightsBloc>().add(InitializeInsightsPage(airQualityReading));
+
   await Navigator.of(context).push(
     PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -36,19 +40,11 @@ Future<void> navigateToInsights(
   );
 }
 
-class InsightsPage extends StatefulWidget {
-  const InsightsPage(
-    this.airQualityReading, {
-    super.key,
-  });
+class InsightsPage extends StatelessWidget {
+  const InsightsPage(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
 
-  @override
-  State<InsightsPage> createState() => _InsightsPageState();
-}
-
-class _InsightsPageState extends State<InsightsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +59,6 @@ class _InsightsPageState extends State<InsightsPage> {
           children: [
             InkWell(
               onTap: () async {
-                context.read<InsightsBloc>().add(const ClearInsight());
                 await popNavigation(context);
               },
               child: SvgPicture.asset(
@@ -75,7 +70,7 @@ class _InsightsPageState extends State<InsightsPage> {
             Text('More Insights', style: CustomTextStyle.headline8(context)),
             FutureBuilder<Uri>(
               future: ShareService.createShareLink(
-                airQualityReading: widget.airQualityReading,
+                airQualityReading: airQualityReading,
               ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -88,7 +83,7 @@ class _InsightsPageState extends State<InsightsPage> {
                       if (link != null) {
                         await ShareService.shareLink(
                           link,
-                          airQualityReading: widget.airQualityReading,
+                          airQualityReading: airQualityReading,
                         );
                       }
                     },
@@ -124,7 +119,11 @@ class _InsightsPageState extends State<InsightsPage> {
             builder: (context, state) {
               Insight? selectedInsight = state.selectedInsight;
               if (selectedInsight == null) {
-                return Container(); // TODO  replace with error widget;
+                return NoAirQualityDataWidget(callBack: () {
+                  context
+                      .read<InsightsBloc>()
+                      .add(InitializeInsightsPage(airQualityReading));
+                });
               }
 
               return Column(
@@ -157,91 +156,8 @@ class _InsightsPageState extends State<InsightsPage> {
                   const SizedBox(
                     height: 8,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(16.0),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: state.insights
-                                  .map(
-                                    (e) => InsightsDayReading(
-                                      e,
-                                      isActive: e == selectedInsight,
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 21,
-                          ),
-                          InsightContainer(selectedInsight),
-                          const SizedBox(
-                            height: 21,
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              if (selectedInsight.isAvailable) {
-                                await airQualityInfoDialog(context);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              height: 64,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Visibility(
-                                    visible: !selectedInsight.isAvailable,
-                                    child: const Expanded(
-                                      child: Text(
-                                        'We’re having issues with our network no worries, we’ll be back up soon.',
-                                      ),
-                                    ),
-                                  ),
-                                  Visibility(
-                                    visible: selectedInsight.isAvailable,
-                                    child: Expanded(
-                                      child: AutoSizeText(
-                                        selectedInsight.airQualityMessage,
-                                      ),
-                                    ),
-                                  ),
-                                  Visibility(
-                                    visible: selectedInsight.isAvailable,
-                                    child: SvgIcons.information(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 36,
-                  ),
+                  const InsightsCalendar(),
                   ForecastContainer(selectedInsight),
-                  const SizedBox(
-                    height: 32,
-                  ),
                   HealthTipsWidget(selectedInsight),
                   const SizedBox(
                     height: 21,
@@ -253,13 +169,5 @@ class _InsightsPageState extends State<InsightsPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    context
-        .read<InsightsBloc>()
-        .add(InitializeInsightsPage(widget.airQualityReading));
   }
 }

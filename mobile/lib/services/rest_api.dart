@@ -165,7 +165,7 @@ class AirqoApiClient {
     return json.decode(response.body)['status'] as bool;
   }
 
-  Future<List<Forecast>> fetchForecastData(String siteId) async {
+  Future<List<Forecast>> fetchForecast(String siteId) async {
     try {
       final body =
           await _performGetRequest({}, "${AirQoUrls.forecast}/$siteId");

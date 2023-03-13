@@ -14,39 +14,44 @@ class Insight with EquatableMixin {
     required this.isAvailable,
   });
 
-  factory Insight.fromAirQualityReading(AirQualityReading airQualityReading) {
+  factory Insight.fromAirQualityReading(AirQualityReading airQualityReading,
+      {double? forecastValue}) {
     List<HealthTip> healthTips = [];
     String airQualityMessage = '';
     String forecastMessage = '';
+    AirQuality airQuality = airQualityReading.airQuality();
 
     if (airQualityReading.dateTime.isYesterday()) {
       airQualityMessage =
-          'The average air quality yesterday in ${airQualityReading.name} was ${airQualityReading.airQuality().title}.';
+          'The average air quality yesterday in ${airQualityReading.name} was ${airQuality.title}.';
     } else if (airQualityReading.dateTime.isAPastDate()) {
       airQualityMessage =
-          'The average air quality in ${airQualityReading.name} was ${airQualityReading.airQuality().title}.';
+          'The average air quality in ${airQualityReading.name} was ${airQuality.title}.';
     } else if (airQualityReading.dateTime.isToday()) {
       airQualityMessage =
-          'The average air quality in ${airQualityReading.name} is currently ${airQualityReading.airQuality().title}.';
-      forecastMessage =
-          'Expect today\'s conditions to range from good to moderate.';
+          'The average air quality in ${airQualityReading.name} is currently ${airQuality.title}.';
+      if (forecastValue != null) {
+        forecastMessage =
+            'Expect today\'s conditions to be ${Pollutant.pm2_5.airQuality(forecastValue).title.toLowerCase()}';
+      }
       healthTips = getHealthTips(
         airQualityReading.pm2_5,
         Pollutant.pm2_5,
       );
     } else if (airQualityReading.dateTime.isTomorrow()) {
       airQualityMessage =
-          'The average air quality tomorrow in ${airQualityReading.name} will be ${airQualityReading.airQuality().title}.';
+          'The average air quality tomorrow in ${airQualityReading.name} might be ${airQuality.title}.';
       forecastMessage =
-          'Expect conditions tomorrow to range from good to moderate.';
+          'Expect tomorrow\'s conditions to be ${airQuality.title.toLowerCase()}';
       healthTips = getHealthTips(
         airQualityReading.pm2_5,
         Pollutant.pm2_5,
       );
     } else if (airQualityReading.dateTime.isAFutureDate()) {
       airQualityMessage =
-          'The average air quality in ${airQualityReading.name} will be ${airQualityReading.airQuality().title}.';
-      forecastMessage = 'Expect conditions to range from good to moderate.';
+          'The average air quality in ${airQualityReading.name} might be ${airQuality.title}.';
+      forecastMessage =
+          'Expect conditions to be ${airQuality.title.toLowerCase()}';
       healthTips = getHealthTips(
         airQualityReading.pm2_5,
         Pollutant.pm2_5,
@@ -58,7 +63,7 @@ class Insight with EquatableMixin {
       forecastMessage: forecastMessage,
       airQualityMessage: airQualityMessage,
       pm2_5: airQualityReading.pm2_5,
-      airQuality: airQualityReading.airQuality(),
+      airQuality: airQuality,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
       isAvailable: true,

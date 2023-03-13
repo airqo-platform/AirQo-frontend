@@ -53,13 +53,13 @@ class AirQoDatabase extends _$AirQoDatabase {
   Future<List<Forecast>> getForecast(String siteId) => (select(forecastTable)
         ..where((element) {
           return element.siteId.equals(siteId) &
-              element.time.isBiggerThanValue(DateTime.now());
+              element.time.day.isBiggerOrEqualValue(DateTime.now().day);
         }))
       .get();
 
   void deleteOldForecast() {
     (delete(forecastTable)
-          ..where((i) => i.time.isSmallerOrEqualValue(DateTime.now())))
+          ..where((i) => i.time.day.isSmallerThanValue(DateTime.now().day)))
         .go();
   }
 
@@ -76,7 +76,7 @@ LazyDatabase _openConnection() {
         dbFolder.path,
         'airqo_app_db.sqlite',
       ),
-    ); // TODO delete database
+    );
 
     return NativeDatabase(file);
   });

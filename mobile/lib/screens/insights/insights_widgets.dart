@@ -3,6 +3,7 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,7 +18,6 @@ class InsightContainer extends StatelessWidget {
         horizontal: 14,
         vertical: 11,
       ),
-      height: 70,
       decoration: BoxDecoration(
         color: insight.isAvailable
             ? insight.airQuality.color.withOpacity(0.2)
@@ -27,30 +27,38 @@ class InsightContainer extends StatelessWidget {
         ),
       ),
       child: Row(
-        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(insight.name, style: CustomTextStyle.headline8(context)),
+                AutoSizeText(
+                  insight.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline8(context),
+                ),
                 const SizedBox(
                   height: 7,
                 ),
                 Visibility(
                   visible: insight.isAvailable,
-                  child: Text(
+                  child: AutoSizeText(
                     insight.airQuality.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline8(context),
                   ),
                 ),
                 Visibility(
                   visible: !insight.isAvailable,
-                  child: Text(
+                  child: AutoSizeText(
                     'No air quality data available',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline8(context),
                   ),
                 ),
@@ -91,24 +99,18 @@ class InsightsDayReading extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 4,
-                vertical: 4,
-              ),
-              height: 22,
-              width: 17,
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color:
                     isActive ? CustomColors.appColorBlue : Colors.transparent,
                 borderRadius: const BorderRadius.all(
-                  Radius.circular(27.0),
+                  Radius.circular(25.0),
                 ),
               ),
               child: Center(
                 child: Text(
                   insight.dateTime.getWeekday().characters.first.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 8,
                     color: isActive ? Colors.white : color,
                   ),
                 ),
@@ -135,6 +137,115 @@ class InsightsDayReading extends StatelessWidget {
   }
 }
 
+class InsightsCalendar extends StatelessWidget {
+  const InsightsCalendar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<InsightsBloc, InsightsState>(
+      builder: (context, state) {
+        Insight? selectedInsight = state.selectedInsight;
+        if (selectedInsight == null) {
+          return Container();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(16.0),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: state.insights
+                        .map(
+                          (e) => InsightsDayReading(
+                            e,
+                            isActive: e == selectedInsight,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 21,
+                ),
+                InsightContainer(selectedInsight),
+                const SizedBox(
+                  height: 21,
+                ),
+                InkWell(
+                  onTap: () async {
+                    if (selectedInsight.isAvailable) {
+                      await airQualityInfoDialog(context);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    height: 64,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Visibility(
+                          visible: !selectedInsight.isAvailable,
+                          child: Expanded(
+                            child: AutoSizeText(
+                              'We’re having issues with our network no worries, we’ll be back up soon.',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  CustomTextStyle.bodyText4(context)?.copyWith(
+                                color:
+                                    CustomColors.appColorBlack.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: selectedInsight.isAvailable,
+                          child: Expanded(
+                            child: AutoSizeText(
+                              selectedInsight.airQualityMessage,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  CustomTextStyle.bodyText4(context)?.copyWith(
+                                color:
+                                    CustomColors.appColorBlack.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: selectedInsight.isAvailable,
+                          child: SvgIcons.information(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ForecastContainer extends StatelessWidget {
   const ForecastContainer(this.insight, {super.key});
   final Insight insight;
@@ -142,45 +253,65 @@ class ForecastContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (insight.forecastMessage.isEmpty) {
-      return Container();
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: Container(),
+      );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Text(
-            'Forecast',
-            style: CustomTextStyle.headline8(context)?.copyWith(fontSize: 20),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 36,
           ),
-        ),
-        const SizedBox(
-          height: 14,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            height: 64,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(16.0),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                insight.forecastMessage,
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Text(
+              'Forecast',
+              style: CustomTextStyle.headline8(context)?.copyWith(fontSize: 20),
             ),
           ),
-        ),
-      ],
+          const SizedBox(
+            height: 14,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              height: 64,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(16.0),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: AutoSizeText(
+                      insight.forecastMessage,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.bodyText4(context)?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -192,118 +323,49 @@ class HealthTipsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (insight.healthTips.isEmpty) {
-      return Container();
+      return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250), child: Container());
     }
 
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            insight.healthTipsTitle(),
-            textAlign: TextAlign.left,
-            style: CustomTextStyle.headline7(context),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        children: [
+          const SizedBox(
+            height: 32,
           ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 12.0 : 6.0,
-                  right: index == (insight.healthTips.length - 1) ? 12.0 : 6.0,
-                ),
-                child: HealthTipContainer(insight.healthTips[index]),
-              );
-            },
-            itemCount: insight.healthTips.length,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              insight.healthTipsTitle(),
+              textAlign: TextAlign.left,
+              style: CustomTextStyle.headline7(context),
+            ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class InsightsLoadingWidget extends StatelessWidget {
-  const InsightsLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  SizedContainerLoadingAnimation(
-                    height: 32,
-                    width: 70,
-                    radius: 8.0,
+          const SizedBox(
+            height: 16,
+          ),
+          SizedBox(
+            height: 128,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == 0 ? 12.0 : 6.0,
+                    right:
+                        index == (insight.healthTips.length - 1) ? 12.0 : 6.0,
                   ),
-                  Spacer(),
-                  SizedContainerLoadingAnimation(
-                    height: 32,
-                    width: 32,
-                    radius: 8.0,
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
-              const SizedBox(
-                height: 16,
-              ),
-              const ContainerLoadingAnimation(
-                height: 60,
-                radius: 8.0,
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              const SizedContainerLoadingAnimation(
-                height: 32,
-                width: 216,
-                radius: 8.0,
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-            ],
+                  child: HealthTipContainer(insight.healthTips[index]),
+                );
+              },
+              itemCount: insight.healthTips.length,
+            ),
           ),
-        ),
-        SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 12.0 : 6.0,
-                  right: index == (4 - 1) ? 12.0 : 6.0,
-                ),
-                child: const SizedContainerLoadingAnimation(
-                  width: 304,
-                  height: 128,
-                  radius: 8.0,
-                ),
-              );
-            },
-            itemCount: 4,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -21,10 +21,3 @@ class SwitchInsight extends InsightsEvent {
   @override
   List<Object> get props => [insight];
 }
-
-class ClearInsight extends InsightsEvent {
-  const ClearInsight();
-
-  @override
-  List<Object> get props => [];
-}
