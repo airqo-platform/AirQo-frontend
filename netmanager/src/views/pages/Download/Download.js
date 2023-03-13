@@ -371,7 +371,8 @@ const Download = (props) => {
                 onChange={handleChangeTabPanel}
                 textColor="primary"
                 indicatorColor="primary"
-                centered
+                variant="scrollable"
+                scrollButtons="on"
               >
                 <Tab disableRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableRipple label="Export by Devices" {...a11yProps(1)} />
