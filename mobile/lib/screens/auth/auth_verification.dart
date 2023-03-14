@@ -106,8 +106,8 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           BlocListener<AuthCodeBloc, AuthCodeState>(
                             listener: (context, state) {
                               context
-                                  .read<AccountBloc>()
-                                  .add(const FetchAccountInfo());
+                                  .read<ProfileBloc>()
+                                  .add(const FetchProfile());
                               context.read<KyaBloc>().add(const RefreshKya());
                               context
                                   .read<AnalyticsBloc>()

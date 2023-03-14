@@ -24,7 +24,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
-    final profile = await Profile.getProfile();
+    final profile = await HiveService.getProfile();
 
     if (profile.emailAddress.isEmpty) {
       return;

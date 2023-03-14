@@ -13,12 +13,21 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState()) {
     on<InitializeSearchView>(_onInitializeSearchView);
+    on<ClearSearchHistory>(_onClearSearchHistory);
     on<NoSearchInternetConnection>(_onNoSearchInternetConnection);
     on<GetSearchRecommendations>(_onGetSearchRecommendations);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
+  }
+
+  Future<void> _onClearSearchHistory(
+      ClearSearchHistory _,
+      Emitter<SearchState> emit,
+      ) async {
+    emit(const SearchState());
+    await HiveService.deleteSearchHistory();
   }
 
   void _onLoadCountries(Emitter<SearchState> emit) {

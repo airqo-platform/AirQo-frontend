@@ -22,7 +22,7 @@ class LocationService {
       switch (status) {
         case PermissionStatus.granted:
         case PermissionStatus.limited:
-          context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+          context.read<ProfileBloc>().add(const UpdateLocation(true));
           context
               .read<NearbyLocationBloc>()
               .add(const SearchLocationAirQuality());
@@ -30,7 +30,7 @@ class LocationService {
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
-          context.read<SettingsBloc>().add(const UpdateLocationPref(false));
+          context.read<ProfileBloc>().add(const UpdateLocation(false));
           context
               .read<NearbyLocationBloc>()
               .add(const SearchLocationAirQuality());
@@ -92,7 +92,7 @@ class LocationService {
             await locationRequestDialog(context);
             break;
           case PermissionStatus.granted:
-            context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+            context.read<ProfileBloc>().add(const UpdateLocation(true));
             context
                 .read<NearbyLocationBloc>()
                 .add(const SearchLocationAirQuality());

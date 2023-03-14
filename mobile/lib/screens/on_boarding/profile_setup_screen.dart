@@ -243,8 +243,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
         setState(() => nextBtnColor = CustomColors.appColorDisabled);
 
-        final profile = await Profile.getProfile();
-        await profile.updateName(_fullName);
+
+        // final profile = await HiveService.getProfile();
+        // await profile.updateName(_fullName);
 
         Navigator.pop(context);
         await Navigator.pushAndRemoveUntil(

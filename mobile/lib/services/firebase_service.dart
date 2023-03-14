@@ -24,6 +24,46 @@ class CloudAnalytics {
     return true;
   }
 
+  static Future<void> logAppRating() async {
+    await CloudAnalytics.logEvent(
+      CloudAnalyticsEvent.rateApp,
+    );
+  }
+
+  static Future<void> logSignUpEvents() async {
+    try {
+      await Future.wait([
+        logEvent(CloudAnalyticsEvent.createUserProfile),
+        logNetworkProvider(),
+        logPlatformType(),
+        logGender(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  static Future<void> logSignInEvents() async {
+    try {
+      await Future.wait([
+        logPlatformType(),
+      ]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  static Future<void> logAirQualitySharing() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      if (profile.aqShares >= 5) {
+        await CloudAnalytics.logEvent(
+          CloudAnalyticsEvent.shareAirQualityInformation,
+        );
+      }
+    }
+  }
+
   static Future<void> logNetworkProvider() async {
     final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
@@ -57,11 +97,11 @@ class CloudAnalytics {
   static Future<void> logGender() async {
     final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
-      if (profile.getGender() == Gender.male) {
+      if (profile.gender() == Gender.male) {
         await logEvent(
           CloudAnalyticsEvent.maleUser,
         );
-      } else if (profile.getGender() == Gender.female) {
+      } else if (profile.gender() == Gender.female) {
         await logEvent(
           CloudAnalyticsEvent.femaleUser,
         );
@@ -269,7 +309,7 @@ class CloudStore {
       );
     }
 
-    return Profile.getProfile();
+    return HiveService.getProfile();
   }
 
   static Future<List<FavouritePlace>> getFavouritePlaces() async {
@@ -357,11 +397,13 @@ class CloudStore {
     return true;
   }
 
-  static Future<void> updateProfile(Profile profile) async {
-    final currentUser = CustomAuth.getUser();
-    if (currentUser == null || CustomAuth.isGuestUser()) {
-      return;
+  static Future<bool> updateProfile() async {
+    final profile = await HiveService.getProfile();
+    final User? currentUser = CustomAuth.getUser();
+    if (!profile.isSignedIn || currentUser == null) {
+      return false;
     }
+
     try {
       try {
         await Future.wait([
@@ -389,7 +431,10 @@ class CloudStore {
         exception,
         stackTrace,
       );
+      return false;
     }
+
+    return true;
   }
 
   static Future<bool> updateCloudAnalytics() async {
@@ -402,7 +447,7 @@ class CloudStore {
           .values
           .toList()
           .cast<Analytics>();
-      final profile = await Profile.getProfile();
+      final profile = await HiveService.getProfile();
       for (final x in analytics) {
         try {
           await FirebaseFirestore.instance
@@ -433,7 +478,7 @@ class CloudStore {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        final profile = await Profile.getProfile();
+        final profile = await HiveService.getProfile();
         try {
           await FirebaseFirestore.instance
               .collection(Config.usersNotificationCollection)
@@ -462,47 +507,29 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateKya(Kya kya) async {
-    if (CustomAuth.isGuestUser()) {
-      return;
-    }
+  static Future<bool> updateKya() async {
+    Profile profile = await HiveService.getProfile();
+    final batch = FirebaseFirestore.instance.batch();
+    batch.delete(FirebaseFirestore.instance
+        .collection(Config.usersKyaCollection)
+        .doc(profile.userId));
 
-    final userId = CustomAuth.getUserId();
+    List<KyaProgress> userProgress =
+    HiveService.getKya().map((e) => KyaProgress.fromKya(e)).toList();
 
-    try {
-      await FirebaseFirestore.instance
+    for (final progress in userProgress) {
+      final document = FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .doc(kya.id)
-          .update(
-            kya.toJson(),
-          );
-    } on FirebaseException catch (exception, stackTrace) {
-      // TODO : Add to authentication decryption enum
-      if (exception.code.contains('not-found')) {
-        await FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(kya.id)
-            .set(
-              kya.toJson(),
-            );
-      } else {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+          .doc(profile.userId)
+          .collection(profile.userId)
+          .doc(progress.id);
+      batch.set(document, progress.toJson());
     }
-  }
 
+    await batch.commit();
+
+    return true;
+  }
   static Future<String> uploadProfilePicture(String filePath) async {
     try {
       final userId = CustomAuth.getUserId();
@@ -534,8 +561,30 @@ class CloudMessaging {
 }
 
 class CustomAuth {
+  static Future<bool> signOut() async {
+    try {
+      final profile = await CloudStore.updateProfile();
+      final analytics = await CloudStore.updateCloudAnalytics();
+      final favouritePlaces = await CloudStore.updateFavouritePlaces();
+      final kya = await CloudStore.updateKya();
+
+      if (!kya || !analytics || !profile || !favouritePlaces) return false;
+
+      await FirebaseAuth.instance.signOut();
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
   static Future<Profile> createProfile() async {
-    final profile = await Profile.getProfile();
+    final profile = await HiveService.getProfile();
     try {
       await FirebaseAuth.instance.currentUser
           ?.updateDisplayName(profile.firstName);
@@ -550,8 +599,8 @@ class CustomAuth {
   }
 
   static Future<bool> deleteAccount() async {
-    final profile = await Profile.getProfile();
-    await getUser()?.delete().then((_) => profile.deleteAccount());
+    final profile = await HiveService.getProfile();
+    // await getUser()?.delete().then((_) => profile.deleteAccount());
 
     return true;
   }
@@ -662,9 +711,9 @@ class CustomAuth {
                 .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<AccountBloc>()
-                .add(const AccountDeletionCheck(passed: true));
+            // buildContext
+            //     .read<AccountBloc>()
+            //     .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -686,10 +735,10 @@ class CustomAuth {
                 ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext.read<AccountBloc>().add(AccountDeletionCheck(
-                  passed: false,
-                  error: getFirebaseErrorCodeMessage(exception.code),
-                ));
+            // buildContext.read<AccountBloc>().add(AccountDeletionCheck(
+            //       passed: false,
+            //       error: getFirebaseErrorCodeMessage(exception.code),
+            //     ));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -712,9 +761,9 @@ class CustomAuth {
                 .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<AccountBloc>()
-                .add(const AccountDeletionCheck(passed: true));
+            // buildContext
+            //     .read<AccountBloc>()
+            //     .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -735,9 +784,9 @@ class CustomAuth {
                 .add(const UpdateStatus(BlocStatus.success));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<AccountBloc>()
-                .add(const AccountDeletionCheck(passed: true));
+            // buildContext
+            //     .read<AccountBloc>()
+            //     .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -767,10 +816,10 @@ class CustomAuth {
                 ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
-                  error: AuthenticationError.authFailure,
-                  passed: false,
-                ));
+            // buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
+            //       error: AuthenticationError.authFailure,
+            //       passed: false,
+            //     ));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -791,9 +840,9 @@ class CustomAuth {
                 .add(const EmailValidationPassed());
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<AccountBloc>()
-                .add(const AccountDeletionCheck(passed: true));
+            // buildContext
+            //     .read<AccountBloc>()
+            //     .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -823,25 +872,25 @@ class CustomAuth {
       return false;
     }
     try {
-      final profile = await Profile.getProfile();
+      final profile = await HiveService.getProfile();
       switch (authMethod) {
         case AuthMethod.phone:
-          await FirebaseAuth.instance.currentUser!
-              .updatePhoneNumber(phoneCredential!)
-              .then(
-            (_) {
-              profile.update();
-            },
-          );
+          // await FirebaseAuth.instance.currentUser!
+          //     .updatePhoneNumber(phoneCredential!)
+          //     .then(
+          //   (_) {
+          //     profile.update();
+          //   },
+          // );
           break;
         case AuthMethod.email:
-          await FirebaseAuth.instance.currentUser!
-              .updateEmail(emailAddress!)
-              .then(
-            (_) {
-              profile.update();
-            },
-          );
+          // await FirebaseAuth.instance.currentUser!
+          //     .updateEmail(emailAddress!)
+          //     .then(
+          //   (_) {
+          //     profile.update();
+          //   },
+          // );
           break;
         case AuthMethod.none:
           break;

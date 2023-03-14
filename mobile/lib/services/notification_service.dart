@@ -19,12 +19,12 @@ class NotificationService {
       switch (status) {
         case PermissionStatus.granted:
         case PermissionStatus.limited:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(true));
+          context.read<ProfileBloc>().add(const UpdateNotification(true));
           break;
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(false));
+          context.read<ProfileBloc>().add(const UpdateNotification(false));
           break;
       }
     });
@@ -70,8 +70,8 @@ class NotificationService {
             break;
           case PermissionStatus.granted:
             context
-                .read<SettingsBloc>()
-                .add(const UpdateNotificationPref(true));
+                .read<ProfileBloc>()
+                .add(const UpdateNotification(true));
             break;
         }
       });
@@ -108,9 +108,7 @@ class NotificationService {
           );
         },
       );
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-        final profile = await Profile.getProfile();
-        await profile.update();
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
       }).onError(
         (exception) {
           logException(exception, null);

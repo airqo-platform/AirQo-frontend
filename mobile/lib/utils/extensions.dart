@@ -4,6 +4,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -327,6 +328,55 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 }
 
 extension ProfileExt on Profile {
+  String displayName() {
+    if (firstName != '') {
+      return firstName.trim();
+    } else if (lastName != '') {
+      return lastName.trim();
+    } else {
+      return 'Hello';
+    }
+  }
+
+  String fullName() {
+    return '$firstName $lastName'.trim();
+  }
+
+  TitleOptions getTitle() {
+    if (title == TitleOptions.ms.value) {
+      return TitleOptions.ms;
+    } else if (title == TitleOptions.mr.value) {
+      return TitleOptions.mr;
+    } else {
+      return TitleOptions.undefined;
+    }
+  }
+
+  Gender gender() {
+    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
+      return Gender.male;
+    } else if (title
+        .toLowerCase()
+        .contains(TitleOptions.ms.value.toLowerCase())) {
+      return Gender.female;
+    } else {
+      return Gender.undefined;
+    }
+  }
+
+  String initials() {
+    var initials = '';
+    if (firstName.isNotEmpty) {
+      initials = firstName[0].toUpperCase();
+    }
+
+    if (lastName.isNotEmpty) {
+      initials = '$initials${lastName[0].toUpperCase()}';
+    }
+
+    return initials.isEmpty ? 'A' : initials;
+  }
+
   String greetings() {
     final hour = DateTime.now().hour;
 
@@ -379,7 +429,7 @@ extension DateTimeExt on DateTime {
   }
 
   Future<String> getGreetings() async {
-    final profile = await Profile.getProfile();
+    final profile = await HiveService.getProfile();
 
     if (00 <= hour && hour < 12) {
       return 'Good morning ${profile.firstName}'.trim();

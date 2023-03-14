@@ -1,5 +1,4 @@
 export 'auth_code/auth_code_bloc.dart';
-export 'account/account_bloc.dart';
 export 'dashboard/dashboard_bloc.dart';
 export 'email_auth/email_auth_bloc.dart';
 export 'feedback/feedback_bloc.dart';
@@ -13,3 +12,4 @@ export 'kya/kya_bloc.dart';
 export 'favourite_place/favourite_place_bloc.dart';
 export 'analytics/analytics_bloc.dart';
 export 'notification/notification_bloc.dart';
+export 'profile/profile_bloc.dart';

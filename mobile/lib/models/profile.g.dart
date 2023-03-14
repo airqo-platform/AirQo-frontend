@@ -24,16 +24,20 @@ class ProfileAdapter extends TypeAdapter<Profile> {
       emailAddress: fields[4] == null ? '' : fields[4] as String,
       phoneNumber: fields[5] == null ? '' : fields[5] as String,
       device: fields[6] == null ? '' : fields[6] as String,
-      preferences: fields[9] as UserPreferences,
       photoUrl: fields[8] == null ? '' : fields[8] as String,
       utcOffset: fields[7] == null ? 0 : fields[7] as int,
+      notifications: fields[9] == null ? false : fields[9] as bool,
+      location: fields[10] == null ? false : fields[10] as bool,
+      aqShares: fields[11] == null ? 0 : fields[11] as int,
+      isAnonymous: fields[12] == null ? false : fields[12] as bool,
+      isSignedIn: fields[13] == null ? false : fields[13] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Profile obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -53,7 +57,15 @@ class ProfileAdapter extends TypeAdapter<Profile> {
       ..writeByte(8)
       ..write(obj.photoUrl)
       ..writeByte(9)
-      ..write(obj.preferences);
+      ..write(obj.notifications)
+      ..writeByte(10)
+      ..write(obj.location)
+      ..writeByte(11)
+      ..write(obj.aqShares)
+      ..writeByte(12)
+      ..write(obj.isAnonymous)
+      ..writeByte(13)
+      ..write(obj.isSignedIn);
   }
 
   @override
@@ -63,46 +75,6 @@ class ProfileAdapter extends TypeAdapter<Profile> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ProfileAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class UserPreferencesTypeAdapter extends TypeAdapter<UserPreferences> {
-  @override
-  final int typeId = 120;
-
-  @override
-  UserPreferences read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return UserPreferences(
-      notifications: fields[0] == null ? false : fields[0] as bool,
-      location: fields[1] == null ? false : fields[1] as bool,
-      aqShares: fields[2] == null ? 0 : fields[2] as int,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, UserPreferences obj) {
-    writer
-      ..writeByte(3)
-      ..writeByte(0)
-      ..write(obj.notifications)
-      ..writeByte(1)
-      ..write(obj.location)
-      ..writeByte(2)
-      ..write(obj.aqShares);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is UserPreferencesTypeAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
@@ -119,10 +91,13 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       emailAddress: json['emailAddress'] as String? ?? '',
       phoneNumber: json['phoneNumber'] as String? ?? '',
       device: json['device'] as String? ?? '',
-      preferences:
-          UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
       photoUrl: json['photoUrl'] as String? ?? '',
       utcOffset: json['utcOffset'] as int? ?? 0,
+      notifications: json['notifications'] as bool? ?? false,
+      location: json['location'] as bool? ?? false,
+      aqShares: json['aqShares'] as int? ?? 0,
+      isAnonymous: json['isAnonymous'] as bool? ?? false,
+      isSignedIn: json['isSignedIn'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
@@ -135,19 +110,9 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'device': instance.device,
       'utcOffset': instance.utcOffset,
       'photoUrl': instance.photoUrl,
-      'preferences': instance.preferences.toJson(),
-    };
-
-UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
-    UserPreferences(
-      notifications: json['notifications'] as bool? ?? false,
-      location: json['location'] as bool? ?? false,
-      aqShares: json['aqShares'] as int? ?? 0,
-    );
-
-Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>
-    <String, dynamic>{
       'notifications': instance.notifications,
       'location': instance.location,
       'aqShares': instance.aqShares,
+      'isAnonymous': instance.isAnonymous,
+      'isSignedIn': instance.isSignedIn,
     };

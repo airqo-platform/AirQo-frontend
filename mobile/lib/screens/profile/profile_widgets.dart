@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
@@ -16,34 +17,74 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
+import '../feedback/feedback_page.dart';
 import '../for_you_page.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
 
-class LogoutButton extends StatelessWidget {
-  const LogoutButton({super.key});
+class SignOutButton extends StatefulWidget {
+  const SignOutButton({super.key});
 
   @override
+  State<SignOutButton> createState() => _SignOutButtonState();
+}
+
+class _SignOutButtonState extends State<SignOutButton> {
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 48,
-      padding: const EdgeInsets.only(top: 12, bottom: 12),
-      decoration: BoxDecoration(
-        color: CustomColors.appColorBlue.withOpacity(0.1),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          await _signOut();
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: CustomColors.appColorBlue.withOpacity(0.1),
+          foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
         ),
-      ),
-      child: Center(
         child: Text(
           'Log Out',
-          style: TextStyle(
-            fontSize: 16,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: CustomColors.appColorBlue,
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _signOut() async {
+    bool hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
+    if (!hasConnection) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    loadingScreen(context);
+    final success = await CustomAuth.signOut();
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context);
+      await AppService.postSignOutActions(context);
+    } else {
+      Navigator.pop(context);
+      showSnackBar(context, Config.signOutFailed);
+    }
   }
 }
 
@@ -66,7 +107,7 @@ class SignUpSection extends StatelessWidget {
             height: 48,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 25.0, right: 25.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: AutoSizeText(
               'Personalise your\nexperience',
               maxLines: 3,
@@ -80,57 +121,24 @@ class SignUpSection extends StatelessWidget {
             height: 8,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 55.0, right: 55.0),
+            padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
               'Create your account today and enjoy air quality'
-              ' updates and health tips.',
+                  ' updates and health tips.',
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: CustomColors.appColorBlack.withOpacity(0.4),
-                  ),
+                color: CustomColors.appColorBlack.withOpacity(0.4),
+              ),
             ),
           ),
           const SizedBox(
             height: 24,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) {
-                  return const PhoneSignUpWidget();
-                }),
-                (r) => false,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 32, right: 32),
-              child: Container(
-                constraints: const BoxConstraints(minWidth: double.infinity),
-                decoration: BoxDecoration(
-                  color: CustomColors.appColorBlue,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 12, bottom: 14),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        height: 22 / 14,
-                        letterSpacing: 16 * -0.022,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: SignUpButton(),
           ),
           const SizedBox(
             height: 40,
@@ -141,13 +149,58 @@ class SignUpSection extends StatelessWidget {
   }
 }
 
+class SignUpButton extends StatelessWidget {
+  const SignUpButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              return const PhoneSignUpWidget();
+            }),
+                (r) => false,
+          );
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: CustomColors.appColorBlue,
+          foregroundColor: CustomColors.appColorBlue,
+        ),
+        child: const Text(
+          'Sign Up',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            height: 22 / 14,
+            letterSpacing: 16 * -0.022,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SettingsButton extends StatelessWidget {
   const SettingsButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
+    return OutlinedButton(
+      onPressed: () async {
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -157,34 +210,39 @@ class SettingsButton extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        height: 56,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+        ),
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
+            Radius.circular(8),
           ),
         ),
-        child: ListTile(
-          leading: Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: CustomColors.appColorBlue.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(
-                Icons.settings_rounded,
-                color: CustomColors.appColorBlue,
-              ),
+        backgroundColor: Colors.white,
+        foregroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      ),
+      child: ListTile(
+        leading: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icon/cog.svg',
+              color: CustomColors.appColorBlue,
             ),
           ),
-          title: AutoSizeText(
-            'Settings',
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+        ),
+        title: AutoSizeText(
+          'Settings',
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     );
@@ -235,15 +293,13 @@ class DummyProfilePicture extends StatelessWidget {
 }
 
 class ViewProfilePicture extends StatelessWidget {
-  const ViewProfilePicture({
-    super.key,
-  });
+  const ViewProfilePicture({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
+    return BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
       final profile = state.profile;
-      if (state.guestUser || profile == null) {
+      if (profile == null) {
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -300,7 +356,7 @@ class ViewProfilePicture extends StatelessWidget {
               ),
             ),
             Text(
-              profile.getInitials(),
+              profile.initials(),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -358,7 +414,7 @@ class ViewNotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<NotificationBloc, NotificationState>(
       buildWhen: (previous, current) {
         final previousUnReadNotifications = previous.notifications
             .where((element) => !element.read)
@@ -373,7 +429,7 @@ class ViewNotificationIcon extends StatelessWidget {
       },
       builder: (context, state) {
         final unReadNotifications =
-            state.notifications.where((element) => !element.read).toList();
+        state.notifications.where((element) => !element.read).toList();
 
         return GestureDetector(
           onTap: () async {
@@ -413,41 +469,68 @@ class ViewNotificationIcon extends StatelessWidget {
 class CardSection extends StatelessWidget {
   const CardSection({
     super.key,
-    this.icon,
+    required this.icon,
     required this.iconColor,
     required this.text,
-    this.materialIcon,
+    required this.nextPage,
+    this.isTopItem = false,
+    this.isBottomItem = false,
   });
-  final String? icon;
+  final String icon;
   final String text;
   final Color? iconColor;
-  final IconData? materialIcon;
+  final Widget nextPage;
+  final bool isTopItem;
+  final bool isBottomItem;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
+    return OutlinedButton(
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return nextPage;
+            },
+          ),
+        );
+      },
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        side: const BorderSide(
+          color: Colors.transparent,
         ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight:
+            isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+            topLeft:
+            isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+            bottomRight: isBottomItem
+                ? const Radius.circular(8)
+                : const Radius.circular(0),
+            bottomLeft: isBottomItem
+                ? const Radius.circular(8)
+                : const Radius.circular(0),
+          ),
+        ),
+        foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
+        backgroundColor: Colors.white,
       ),
       child: ListTile(
+        isThreeLine: false,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: Container(
-          height: 40,
+          height: 56,
           width: 40,
           decoration: BoxDecoration(
-            color: CustomColors.appColorBlue.withOpacity(0.15),
+            color: CustomColors.appBodyColor,
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: icon != null
-                ? SvgPicture.asset(icon!, color: iconColor)
-                : Icon(
-                    materialIcon,
-                    color: iconColor,
-                  ),
+            child: SvgPicture.asset(icon, color: iconColor),
           ),
         ),
         title: AutoSizeText(
@@ -460,109 +543,125 @@ class CardSection extends StatelessWidget {
   }
 }
 
-class ProfileSection extends StatefulWidget {
-  const ProfileSection({super.key, required this.userDetails});
-  final Profile userDetails;
+class ProfileSection extends StatelessWidget {
+  const ProfileSection(this.profile, {super.key});
+  final Profile profile;
 
-  @override
-  State<ProfileSection> createState() => _ProfileSectionState();
-}
-
-class _ProfileSectionState extends State<ProfileSection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(8.0),
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ProfileEditPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'Profile',
-              materialIcon: Icons.person_rounded,
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'Profile',
+            icon: 'assets/icon/profile.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const ProfileEditPage(),
+            isTopItem: true,
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const FavouritePlacesPage();
-                  },
-                ),
-              );
-            },
-            child: const CardSection(
-              text: 'Favorites',
-              icon: 'assets/icon/heart.svg',
-              iconColor: null,
-            ),
+          const CardSection(
+            text: 'Favorites',
+            icon: 'assets/icon/heart.svg',
+            iconColor: null,
+            nextPage: FavouritePlacesPage(),
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ForYouPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'For you',
-              icon: 'assets/icon/sparkles.svg',
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'For you',
+            icon: 'assets/icon/sparkles.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const ForYouPage(analytics: false),
           ),
           Divider(
             color: CustomColors.appBodyColor,
+            height: 0,
           ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const SettingsPage();
-                  },
-                ),
-              );
-            },
-            child: CardSection(
-              text: 'Settings',
-              materialIcon: Icons.settings_rounded,
-              iconColor: CustomColors.appColorBlue,
-            ),
+          CardSection(
+            text: 'Send Feedback',
+            icon: 'assets/icon/feedback.svg',
+            iconColor: CustomColors.appColorBlue,
+            nextPage: const FeedbackPage(),
+            isBottomItem: true,
           ),
         ],
       ),
     );
   }
+}
+
+class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ProfileViewAppBar(this.profile, {super.key});
+  final Profile profile;
+  final double toolbarHeight = 110;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: toolbarHeight,
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: CustomColors.appBodyColor,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () async {
+              await _editProfile(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ViewProfilePicture(),
+                const SizedBox(height: 8),
+                AutoSizeText(
+                  profile.displayName(),
+                  maxLines: 2,
+                  style: CustomTextStyle.headline9(context),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Edit profile',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const ViewNotificationIcon(),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editProfile(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const ProfileEditPage();
+        },
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
 }
 
 class EditProfilePicSection extends StatelessWidget {
@@ -585,40 +684,40 @@ class EditProfilePicSection extends StatelessWidget {
           children: [
             profile.photoUrl == ''
                 ? RotationTransition(
-                    turns: const AlwaysStoppedAnimation(-5 / 360),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.0),
-                      decoration: BoxDecoration(
-                        color: CustomColors.appPicColor,
-                        shape: BoxShape.rectangle,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(35.0),
-                        ),
-                      ),
-                      child: Container(
-                        height: 88,
-                        width: 88,
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  )
+              turns: const AlwaysStoppedAnimation(-5 / 360),
+              child: Container(
+                padding: const EdgeInsets.all(2.0),
+                decoration: BoxDecoration(
+                  color: CustomColors.appPicColor,
+                  shape: BoxShape.rectangle,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(35.0),
+                  ),
+                ),
+                child: Container(
+                  height: 88,
+                  width: 88,
+                  color: Colors.transparent,
+                ),
+              ),
+            )
                 : profile.photoUrl.isValidUri()
-                    ? CircleAvatar(
-                        radius: 44,
-                        backgroundColor: CustomColors.appPicColor,
-                        foregroundColor: CustomColors.appPicColor,
-                        backgroundImage: CachedNetworkImageProvider(
-                          profile.photoUrl,
-                        ),
-                      )
-                    : CircleAvatar(
-                        radius: 44,
-                        backgroundColor: CustomColors.appPicColor,
-                        foregroundColor: CustomColors.appPicColor,
-                        backgroundImage: FileImage(
-                          File(profile.photoUrl),
-                        ),
-                      ),
+                ? CircleAvatar(
+              radius: 44,
+              backgroundColor: CustomColors.appPicColor,
+              foregroundColor: CustomColors.appPicColor,
+              backgroundImage: CachedNetworkImageProvider(
+                profile.photoUrl,
+              ),
+            )
+                : CircleAvatar(
+              radius: 44,
+              backgroundColor: CustomColors.appPicColor,
+              foregroundColor: CustomColors.appPicColor,
+              backgroundImage: FileImage(
+                File(profile.photoUrl),
+              ),
+            ),
             if (profile.photoUrl == '')
               const Text(
                 'A',
@@ -655,25 +754,8 @@ class EditProfilePicSection extends StatelessWidget {
   }
 }
 
-class EditCredentialsIcon extends StatelessWidget {
-  const EditCredentialsIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SvgPicture.asset(
-        'assets/icon/profile_edit.svg',
-        height: 27,
-        width: 27,
-      ),
-    );
-  }
-}
-
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const EditProfileAppBar({
-    super.key,
-  });
+  const EditProfileAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -685,42 +767,77 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
+          MultiBlocListener(
+            listeners: [
+              BlocListener<ProfileBloc, ProfileState>(
+                listener: (context, state) {
+                  Navigator.pop(context);
+                },
+                listenWhen: (previous, current) {
+                  return current.status == ProfileStatus.success;
+                },
+              ),
+              BlocListener<ProfileBloc, ProfileState>(
+                listener: (context, state) {
+                  showSnackBar(context, state.message);
+                },
+                listenWhen: (previous, current) {
+                  return current.status == ProfileStatus.error;
+                },
+              ),
+            ],
+            child: Container(),
+          ),
           const AppBackButton(),
           const Spacer(),
-          BlocBuilder<AccountBloc, AccountState>(
+          BlocBuilder<ProfileBloc, ProfileState>(
             builder: (context, state) {
               final profile = state.profile;
               final hiveProfile =
-                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+              Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
 
               if (profile == null || hiveProfile == null) {
                 return const SizedBox();
               }
 
-              return GestureDetector(
-                onTap: () {
-                  context.read<AccountBloc>().add(const UpdateProfile());
-                },
-                child: Text(
-                  'Save',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: profile != hiveProfile
-                            ? CustomColors.appColorBlue
-                            : CustomColors.appColorBlack.withOpacity(0.2),
+              return SizedBox(
+                height: 40,
+                width: 70,
+                child: OutlinedButton(
+                  onPressed: () {
+                    if (state.status != ProfileStatus.processing &&
+                        profile != hiveProfile) {
+                      context.read<ProfileBloc>().add(const UpdateProfile());
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    elevation: 0,
+                    side: const BorderSide(
+                      color: Colors.transparent,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8),
                       ),
+                    ),
+                    backgroundColor: profile != hiveProfile
+                        ? CustomColors.appColorBlue.withOpacity(0.1)
+                        : Colors.transparent,
+                    foregroundColor: profile != hiveProfile
+                        ? CustomColors.appColorBlue
+                        : Colors.transparent,
+                  ),
+                  child: Text(
+                    'Save',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: profile != hiveProfile
+                          ? CustomColors.appColorBlue
+                          : CustomColors.appColorBlack.withOpacity(0.5),
+                    ),
+                  ),
                 ),
               );
-            },
-            buildWhen: (previous, current) {
-              final hiveProfile =
-                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
-
-              if (hiveProfile == null) {
-                return true;
-              }
-
-              return previous.profile != hiveProfile ||
-                  current.profile != hiveProfile;
             },
           ),
         ],
@@ -757,55 +874,31 @@ class EditCredentialsField extends StatelessWidget {
         const SizedBox(
           height: 4,
         ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: TextFormField(
-                  initialValue: authMethod == AuthMethod.email
-                      ? profile.emailAddress
-                      : profile.phoneNumber,
-                  enableSuggestions: false,
-                  readOnly: true,
-                  style: TextStyle(
-                    color: CustomColors.inactiveColor,
-                  ),
-                  decoration: inactiveFormFieldDecoration(),
-                ),
-              ),
-              // const SizedBox(
-              //   width: 16,
-              // ),
-              GestureDetector(
-                onTap: () {
-                  //TODO: implement re authentication
-                  // _updateCredentials(context);
-                },
-                child: Container(),
-                // child: const EditCredentialsIcon(),
-              ),
-            ],
+        TextFormField(
+          initialValue: authMethod == AuthMethod.email
+              ? profile.emailAddress
+              : profile.phoneNumber,
+          enableSuggestions: false,
+          readOnly: true,
+          style: TextStyle(color: CustomColors.inactiveColor),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: '-',
+            focusedBorder: OutlineInputBorder(
+              borderSide:
+              const BorderSide(color: Colors.transparent, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+              const BorderSide(color: Colors.transparent, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
           ),
         ),
       ],
     );
-  }
-
-  void _updateCredentials(BuildContext context) async {
-    final action = await showDialog<ConfirmationAction>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return ChangeAuthCredentialsDialog(
-          authMethod: authMethod,
-        );
-      },
-    );
-
-    if (action == null || action == ConfirmationAction.cancel) {
-      return;
-    }
   }
 }
 
@@ -853,22 +946,6 @@ class NameEditField extends StatelessWidget {
   }
 }
 
-InputDecoration inactiveFormFieldDecoration() {
-  return InputDecoration(
-    filled: true,
-    fillColor: Colors.white,
-    hintText: '-',
-    focusedBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-      borderRadius: BorderRadius.circular(8.0),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-      borderRadius: BorderRadius.circular(8.0),
-    ),
-  );
-}
-
 class GuestProfileView extends StatelessWidget {
   const GuestProfileView({super.key});
 
@@ -906,23 +983,20 @@ class GuestProfileView extends StatelessWidget {
           ],
         ),
       ),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: const <Widget>[
-              SizedBox(
-                height: 24,
-              ),
-              SignUpSection(),
-              SizedBox(
-                height: 16,
-              ),
-              SettingsButton(),
-              Spacer(),
-            ],
-          ),
+      body: AppSafeArea(
+        horizontalPadding: 16.0,
+        widget: Column(
+          children: const <Widget>[
+            SizedBox(
+              height: 24,
+            ),
+            SignUpSection(),
+            SizedBox(
+              height: 16,
+            ),
+            SettingsButton(),
+            Spacer(),
+          ],
         ),
       ),
     );

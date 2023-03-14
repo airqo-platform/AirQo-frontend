@@ -235,20 +235,12 @@ class ShareService {
   }
 
   static Future<void> updateUserShares() async {
-    final preferences = await SharedPreferencesHelper.getPreferences();
-    final value = preferences.aqShares + 1;
-    if (CustomAuth.isLoggedIn()) {
-      final profile = await Profile.getProfile();
-      profile.preferences.aqShares = value;
-      await profile.update();
-    } else {
-      await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
-    }
-
-    if (value >= 5) {
-      await CloudAnalytics.logEvent(
-        CloudAnalyticsEvent.shareAirQualityInformation,
-      );
+    Profile profile = await HiveService.getProfile();
+    profile = profile.copyWith(
+        aqShares: profile.aqShares + 1,
+    );
+    if (profile.aqShares >= 5) {
+      await CloudAnalytics.logAirQualitySharing();
     }
   }
 }

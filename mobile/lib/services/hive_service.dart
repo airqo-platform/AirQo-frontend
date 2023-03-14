@@ -17,7 +17,6 @@ class HiveService {
       ..registerAdapter<Analytics>(AnalyticsAdapter())
       ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
       ..registerAdapter<KyaLesson>(KyaLessonAdapter())
-      ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
       ..registerAdapter<FavouritePlace>(FavouritePlaceAdapter())
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
@@ -202,6 +201,21 @@ class HiveService {
 
   static Future<void> deleteAnalytics() async {
     await Hive.box<Analytics>(HiveBox.analytics).clear();
+  }
+
+  static Future<void> deleteSearchHistory() async {
+    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
+  }
+
+  static Future<Profile> getProfile() async {
+    Profile? profile = Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+    profile ??= await Profile.create();
+    await updateProfile(profile);
+    return profile;
+  }
+
+  static Future<void> updateProfile(Profile profile) async {
+    await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
 
   static List<Analytics> getAnalytics() {

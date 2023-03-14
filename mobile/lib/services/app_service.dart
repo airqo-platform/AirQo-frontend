@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +26,23 @@ class AppService {
   AppService._internal();
 
   static final AppService _instance = AppService._internal();
+
+  static Future<void> postSignOutActions(BuildContext context) async {
+    context.read<ProfileBloc>().add(const ClearProfile());
+    context.read<KyaBloc>().add(const ClearKya());
+    context.read<AnalyticsBloc>().add(const ClearAnalytics());
+    context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
+    context.read<NotificationBloc>().add(const ClearNotifications());
+    context.read<SearchBloc>().add(const ClearSearchHistory());
+
+    // await Navigator.pushAndRemoveUntil(
+    //   context,
+    //   MaterialPageRoute(builder: (context) {
+    //     return const PhoneLoginWidget();
+    //   }),
+    //       (r) => true,
+    // );
+  }
 
   Future<bool> authenticateUser({
     required AuthProcedure authProcedure,
@@ -171,7 +190,6 @@ class AppService {
 
   Future<bool> _clearUserLocalStorage() async {
     await Future.wait([
-      SharedPreferencesHelper.clearPreferences(),
       HiveService.clearUserData(),
       SecureStorage().clearUserData(),
     ]);
@@ -180,13 +198,12 @@ class AppService {
   }
 
   Future<void> _postAnonymousLoginActions() async {
-    await Profile.getProfile();
+    await HiveService.getProfile();
   }
 
   Future<void> _postLoginActions() async {
     try {
       await Future.wait([
-        Profile.syncProfile(),
         CloudStore.getCloudAnalytics(),
         CloudAnalytics.logPlatformType(),
         updateFavouritePlacesReferenceSites(),
@@ -219,18 +236,17 @@ class AppService {
     Widget screen,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => screen,
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => screen,
+      ),
     );
   }
 
   Future<void> _postSignUpActions() async {
     try {
       await Future.wait([
-        Profile.getProfile(),
         CloudAnalytics.logEvent(
           CloudAnalyticsEvent.createUserProfile,
         ),
@@ -246,15 +262,13 @@ class AppService {
   Future<bool> _postLogOutActions() async {
     // TODO Login anonymously
     try {
-      final profile = await Profile.getProfile();
+      final profile = await HiveService.getProfile();
       final placesUpdated = await CloudStore.updateFavouritePlaces();
       final analyticsUpdated = await CloudStore.updateCloudAnalytics();
-      final profileUpdated = await profile.update(logout: true);
       final localStorageCleared = await _clearUserLocalStorage();
 
       if (placesUpdated &&
           analyticsUpdated &&
-          profileUpdated &&
           localStorageCleared) {
         return CustomAuth.logOut();
       }

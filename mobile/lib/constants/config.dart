@@ -69,6 +69,8 @@ class Config {
 
   static String get androidPackageName => 'com.airqo.app';
 
+  static String get signOutFailed => 'Failed to sign out. Try again later';
+
   static String get connectionErrorMessage => 'No internet connection';
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';

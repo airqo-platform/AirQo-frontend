@@ -10,8 +10,6 @@ part 'settings_state.dart';
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc() : super(const SettingsState.initial()) {
     on<InitializeSettings>(_onInitializeSettings);
-    on<UpdateLocationPref>(_onUpdateLocationPref);
-    on<UpdateNotificationPref>(_onUpdateNotificationPref);
   }
 
   Future<void> _onInitializeSettings(
@@ -43,29 +41,5 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         emit(state.copyWith(notifications: true));
         break;
     }
-  }
-
-  Future<void> _onUpdateLocationPref(
-    UpdateLocationPref event,
-    Emitter<SettingsState> emit,
-  ) async {
-    emit(state.copyWith(location: event.enable));
-    if (event.enable) {
-      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowLocation);
-    }
-    Profile profile = await Profile.getProfile();
-    await profile.update(enableLocation: event.enable);
-  }
-
-  Future<void> _onUpdateNotificationPref(
-    UpdateNotificationPref event,
-    Emitter<SettingsState> emit,
-  ) async {
-    emit(state.copyWith(notifications: event.enable));
-    if (event.enable) {
-      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowNotification);
-    }
-    Profile profile = await Profile.getProfile();
-    await profile.update(enableNotification: event.enable);
   }
 }
