@@ -61,7 +61,10 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<AccountBloc>().add(const LoadAccountInfo());
-    context.read<KyaBloc>().add(const LoadKya());
+    context.read<KyaBloc>().add(const RefreshKya());
+    context.read<AnalyticsBloc>().add(const RefreshAnalytics());
+    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
+    context.read<NotificationBloc>().add(const RefreshNotifications());
     context.read<HourlyInsightsBloc>().add(const DeleteOldInsights());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
     _dynamicLinkSubscription =

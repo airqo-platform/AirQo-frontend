@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +18,12 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        widget: BlocBuilder<FavouritePlaceBloc, FavouritePlaceState>(
           builder: (context, state) {
             if (state.favouritePlaces.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+              context
+                  .read<FavouritePlaceBloc>()
+                  .add(const RefreshFavouritePlaces());
 
               return const NoFavouritePlacesWidget();
             }
@@ -51,10 +52,7 @@ class FavouritePlacesPage extends StatelessWidget {
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(index),
                     ),
-                    child: MiniAnalyticsCard(
-                      airQualityReading,
-                      animateOnClick: false,
-                    ),
+                    child: FavouritePlaceCard(airQualityReading),
                   );
                 },
                 childCount: state.favouritePlaces.length,
@@ -72,6 +70,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
   }
 }

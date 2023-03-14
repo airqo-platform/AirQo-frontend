@@ -44,6 +44,8 @@ class Config {
 
   static String get forYouPageShowcase => 'forYouPageShowcase';
 
+  static String get restartTourShowcase => 'restartTourShowcase';
+
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get iosMinimumShareVersion =>
