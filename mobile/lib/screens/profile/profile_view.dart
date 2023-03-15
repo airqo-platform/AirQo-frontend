@@ -1,6 +1,6 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,21 +13,20 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      builder: (context, state) {
-
-        if (state.profile.isAnonymous) {
+    return BlocBuilder<ProfileBloc, Profile>(
+      builder: (context, profile) {
+        if (profile.isAnonymous) {
           return const GuestProfileView();
         }
 
         return Scaffold(
-          appBar: ProfileViewAppBar(state.profile),
+          appBar: ProfileViewAppBar(profile),
           body: AppSafeArea(
             horizontalPadding: 16,
             widget: Column(
               children: <Widget>[
                 const SizedBox(height: 10),
-                ProfileSection(state.profile),
+                ProfileSection(profile),
                 const SizedBox(height: 16),
                 CardSection(
                   text: 'Settings',

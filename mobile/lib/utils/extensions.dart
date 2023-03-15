@@ -4,7 +4,6 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -423,21 +422,22 @@ extension DateTimeExt on DateTime {
   }
 
   Future<String> getGreetings() async {
-    final profile = await HiveService.getProfile();
-
-    if (00 <= hour && hour < 12) {
-      return 'Good morning ${profile.firstName}'.trim();
-    }
-
-    if (12 <= hour && hour < 16) {
-      return 'Good afternoon ${profile.firstName}'.trim();
-    }
-
-    if (16 <= hour && hour <= 23) {
-      return 'Good evening ${profile.firstName}'.trim();
-    }
-
-    return 'Hello ${profile.firstName}'.trim();
+    // final profile = await HiveService.getProfile();
+    //
+    // if (00 <= hour && hour < 12) {
+    //   return 'Good morning ${profile.firstName}'.trim();
+    // }
+    //
+    // if (12 <= hour && hour < 16) {
+    //   return 'Good afternoon ${profile.firstName}'.trim();
+    // }
+    //
+    // if (16 <= hour && hour <= 23) {
+    //   return 'Good evening ${profile.firstName}'.trim();
+    // }
+    //
+    // return 'Hello ${profile.firstName}'.trim();
+    return '';
   }
 
   DateTime getDateOfFirstHourOfDay() {

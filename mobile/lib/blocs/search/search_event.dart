@@ -17,7 +17,6 @@ class ClearSearchHistory extends SearchEvent {
   List<Object?> get props => [];
 }
 
-
 class ReloadSearchFilter extends SearchEvent {
   const ReloadSearchFilter();
 

@@ -18,11 +18,14 @@ import 'rest_api.dart';
 
 class LocationService {
   static Future<void> locationRequestDialog(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
     await Permission.location.request().then((status) {
       switch (status) {
         case PermissionStatus.granted:
         case PermissionStatus.limited:
-          context.read<ProfileBloc>().add(const UpdateLocation(true));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(location: true)));
           context
               .read<NearbyLocationBloc>()
               .add(const SearchLocationAirQuality());
@@ -30,7 +33,9 @@ class LocationService {
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
-          context.read<ProfileBloc>().add(const UpdateLocation(false));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(location: false)));
           context
               .read<NearbyLocationBloc>()
               .add(const SearchLocationAirQuality());
@@ -59,6 +64,7 @@ class LocationService {
     BuildContext context,
     bool allow,
   ) async {
+    Profile profile = context.read<ProfileBloc>().state;
     late String enableLocationMessage;
     late String disableLocationMessage;
 
@@ -92,7 +98,9 @@ class LocationService {
             await locationRequestDialog(context);
             break;
           case PermissionStatus.granted:
-            context.read<ProfileBloc>().add(const UpdateLocation(true));
+            context
+                .read<ProfileBloc>()
+                .add(UpdateProfile(profile.copyWith(location: true)));
             context
                 .read<NearbyLocationBloc>()
                 .add(const SearchLocationAirQuality());

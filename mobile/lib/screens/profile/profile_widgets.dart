@@ -297,9 +297,8 @@ class ViewProfilePicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
-      final profile = state.profile;
-      if (profile == null) {
+    return BlocBuilder<ProfileBloc, Profile>(builder: (context, profile) {
+      if (profile.isAnonymous) {
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -752,48 +751,16 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          MultiBlocListener(
-            listeners: [
-              BlocListener<ProfileBloc, ProfileState>(
-                listener: (context, state) {
-                  Navigator.pop(context);
-                },
-                listenWhen: (previous, current) {
-                  return current.status == ProfileStatus.success;
-                },
-              ),
-              BlocListener<ProfileBloc, ProfileState>(
-                listener: (context, state) {
-                  showSnackBar(context, state.message);
-                },
-                listenWhen: (previous, current) {
-                  return current.status == ProfileStatus.error;
-                },
-              ),
-            ],
-            child: Container(),
-          ),
           const AppBackButton(),
           const Spacer(),
-          BlocBuilder<ProfileBloc, ProfileState>(
-            builder: (context, state) {
-              final profile = state.profile;
-              final hiveProfile =
-                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
-
-              if (profile == null || hiveProfile == null) {
-                return const SizedBox();
-              }
-
+          BlocBuilder<ProfileBloc, Profile>(
+            builder: (context, profile) {
               return SizedBox(
                 height: 40,
                 width: 70,
                 child: OutlinedButton(
                   onPressed: () {
-                    if (state.status != ProfileStatus.processing &&
-                        profile != hiveProfile) {
-                      context.read<ProfileBloc>().add(const UpdateProfile());
-                    }
+                    context.read<ProfileBloc>().add(UpdateProfile(profile));
                   },
                   style: OutlinedButton.styleFrom(
                     elevation: 0,
@@ -805,20 +772,14 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Radius.circular(8),
                       ),
                     ),
-                    backgroundColor: profile != hiveProfile
-                        ? CustomColors.appColorBlue.withOpacity(0.1)
-                        : Colors.transparent,
-                    foregroundColor: profile != hiveProfile
-                        ? CustomColors.appColorBlue
-                        : Colors.transparent,
+                    backgroundColor: CustomColors.appColorBlue.withOpacity(0.1),
+                    foregroundColor: CustomColors.appColorBlue,
                   ),
                   child: Text(
                     'Save',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: profile != hiveProfile
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorBlack.withOpacity(0.5),
+                          color: CustomColors.appColorBlue,
                         ),
                   ),
                 ),

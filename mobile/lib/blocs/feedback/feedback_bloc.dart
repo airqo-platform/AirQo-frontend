@@ -24,27 +24,27 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
-    final profile = await HiveService.getProfile();
-
-    if (profile.emailAddress.isEmpty) {
-      return;
-    }
-
-    if (state.blocStatus == BlocStatus.success) {
-      return emit(
-        const FeedbackState.initial().copyWith(
-          emailAddress: profile.emailAddress,
-          feedbackChannel: FeedbackChannel.email,
-        ),
-      );
-    }
-
-    return emit(
-      state.copyWith(
-        emailAddress: profile.emailAddress,
-        feedbackChannel: FeedbackChannel.email,
-      ),
-    );
+    // final profile = await HiveService.getProfile();
+    //
+    // if (profile.emailAddress.isEmpty) {
+    //   return;
+    // }
+    //
+    // if (state.blocStatus == BlocStatus.success) {
+    //   return emit(
+    //     const FeedbackState.initial().copyWith(
+    //       emailAddress: profile.emailAddress,
+    //       feedbackChannel: FeedbackChannel.email,
+    //     ),
+    //   );
+    // }
+    //
+    // return emit(
+    //   state.copyWith(
+    //     emailAddress: profile.emailAddress,
+    //     feedbackChannel: FeedbackChannel.email,
+    //   ),
+    // );
   }
 
   Future<void> _onSubmitFeedback(

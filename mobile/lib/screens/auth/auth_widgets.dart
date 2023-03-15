@@ -1,7 +1,8 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
-import 'package:app/screens/home_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -11,7 +12,116 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../home_page.dart';
 import 'email_auth_widget.dart';
+
+class ProceedAsGuest extends StatefulWidget {
+  const ProceedAsGuest({super.key});
+
+  @override
+  State<ProceedAsGuest> createState() => _ProceedAsGuestState();
+}
+
+class _ProceedAsGuestState extends State<ProceedAsGuest> {
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        await _guestSignIn();
+      },
+      child: SizedBox(
+        width: double.infinity,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Proceed as',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.6),
+                  ),
+            ),
+            const SizedBox(
+              width: 2,
+            ),
+            Text(
+              'Guest',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _guestSignIn() async {
+    await hasNetworkConnection().then((hasConnection) async {
+      if (!hasConnection) {
+        showSnackBar(context, "Check your internet connection");
+        return;
+      }
+
+      loadingScreen(context);
+
+      await CustomAuth.guestSignIn().then((success) async {
+        if (success) {
+          await AppService.postSignInActions(context).then((_) async {
+            Navigator.pop(context);
+            await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) {
+                return const HomePage();
+              }),
+              (r) => true,
+            );
+          });
+        } else {
+          Navigator.pop(context);
+          showSnackBar(context, Config.guestLogInFailed);
+        }
+      });
+    });
+
+    //
+    // final hasConnection = await hasNetworkConnection();
+    // if (!hasConnection) {
+    //   if (!mounted) return;
+    //   showSnackBar(context, "Check your internet connection");
+    //
+    //   return;
+    // }
+    // if (!mounted) return;
+    //
+    // loadingScreen(context);
+    //
+    // bool success = await CustomAuth.guestSignIn();
+    //
+    // if (success) {
+    //   if (!mounted) return;
+    //   await AppService.postSignInActions(
+    //     context,
+    //     AuthProcedure.anonymousLogin,
+    //     delay: 0,
+    //   ).then((_) async {
+    //     await Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(builder: (context) {
+    //         return const HomePage();
+    //       }),
+    //           (r) => true,
+    //     );
+    //   });
+    // } else {
+    //   if (!mounted) return;
+    //   Navigator.pop(context);
+    //   showSnackBar(context, Config.guestLogInFailed);
+    // }
+  }
+}
 
 class PhoneInputField extends StatefulWidget {
   const PhoneInputField({super.key});
@@ -332,49 +442,6 @@ class InputValidationCodeMessage extends StatelessWidget {
                 color: CustomColors.appColorBlack.withOpacity(0.6),
               ),
         ),
-      ),
-    );
-  }
-}
-
-class ProceedAsGuest extends StatelessWidget {
-  const ProceedAsGuest({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () async {
-        context.read<AuthCodeBloc>().add(GuestUserEvent(context));
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }),
-          (r) => false,
-        );
-      },
-      child: Row(
-        children: [
-          const Spacer(),
-          Text(
-            'Proceed as',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.6),
-                ),
-          ),
-          const SizedBox(
-            width: 2,
-          ),
-          Text(
-            'Guest',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
-          ),
-          const Spacer(),
-        ],
       ),
     );
   }

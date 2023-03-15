@@ -19,15 +19,8 @@ class ProfileEditPage extends StatelessWidget {
       appBar: const EditProfileAppBar(),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            var profile = state.profile;
-            if (profile == null) {
-              context.read<ProfileBloc>().add(const FetchProfile());
-
-              return const LoadingWidget();
-            }
-
+        widget: BlocBuilder<ProfileBloc, Profile>(
+          builder: (context, profile) {
             return ListView(
               physics: const BouncingScrollPhysics(),
               children: <Widget>[
@@ -71,9 +64,8 @@ class ProfileEditPage extends StatelessWidget {
                 NameEditField(
                   value: profile.firstName,
                   valueChange: (firstName) {
-                    context
-                        .read<ProfileBloc>()
-                        .add(EditProfile(firstName: firstName));
+                    context.read<ProfileBloc>().add(
+                        UpdateProfile(profile.copyWith(firstName: firstName)));
                   },
                 ),
                 const SizedBox(height: 16),
@@ -88,9 +80,8 @@ class ProfileEditPage extends StatelessWidget {
                 NameEditField(
                   value: profile.lastName,
                   valueChange: (lastName) {
-                    context
-                        .read<ProfileBloc>()
-                        .add(EditProfile(lastName: lastName));
+                    context.read<ProfileBloc>().add(
+                        UpdateProfile(profile.copyWith(lastName: lastName)));
                   },
                 ),
               ],
@@ -110,7 +101,10 @@ class ProfileEditPage extends StatelessWidget {
     )
         .then((file) {
       if (file != null) {
-        context.read<ProfileBloc>().add(EditProfile(photoUrl: file.path));
+        Profile profile = context.read<ProfileBloc>().state;
+        context
+            .read<ProfileBloc>()
+            .add(UpdateProfile(profile.copyWith(photoUrl: file.path)));
       }
     }).catchError((error) async {
       if (error is PlatformException) {

@@ -24,20 +24,23 @@ class AppService {
 
   static final AppService _instance = AppService._internal();
 
+  static Future<void> postSignInActions(BuildContext context) async {
+    context.read<ProfileBloc>().add(const SyncProfile());
+    context.read<KyaBloc>().add(const SyncKya());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<NotificationBloc>().add(const SyncNotifications());
+    context.read<SearchBloc>().add(const ClearSearchHistory());
+    await CloudAnalytics.logSignInEvents();
+  }
+
   static Future<void> postSignOutActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const ClearProfile());
     context.read<KyaBloc>().add(const ClearKya());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
-
-    // await Navigator.pushAndRemoveUntil(
-    //   context,
-    //   MaterialPageRoute(builder: (context) {
-    //     return const PhoneLoginWidget();
-    //   }),
-    //       (r) => true,
-    // );
+    await CloudAnalytics.logSignOutEvents();
   }
 
   Future<bool> authenticateUser({
@@ -57,11 +60,10 @@ class AppService {
         final reAuthentication =
             await CustomAuth.reAuthenticate(authCredential!);
         if (reAuthentication) {
-          final cloudStoreDeletion = await CloudStore.deleteAccount();
           final logging =
               await CloudAnalytics.logEvent(CloudAnalyticsEvent.deletedAccount);
           final localStorageDeletion = await _clearUserLocalStorage();
-          if (cloudStoreDeletion && logging && localStorageDeletion) {
+          if (logging && localStorageDeletion) {
             authSuccessful = await CustomAuth.deleteAccount();
           }
         } else {
@@ -186,9 +188,7 @@ class AppService {
     return true;
   }
 
-  Future<void> _postAnonymousLoginActions() async {
-    await HiveService.getProfile();
-  }
+  Future<void> _postAnonymousLoginActions() async {}
 
   Future<void> _postLoginActions() async {
     try {

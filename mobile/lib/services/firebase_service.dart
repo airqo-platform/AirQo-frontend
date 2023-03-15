@@ -5,7 +5,6 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,6 +42,14 @@ class CloudAnalytics {
     }
   }
 
+  static Future<void> logSignOutEvents() async {
+    try {
+      await Future.wait([]);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
   static Future<void> logSignInEvents() async {
     try {
       await Future.wait([
@@ -54,30 +61,32 @@ class CloudAnalytics {
   }
 
   static Future<void> logAirQualitySharing() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      if (profile.aqShares >= 5) {
-        await CloudAnalytics.logEvent(
-          CloudAnalyticsEvent.shareAirQualityInformation,
-        );
-      }
-    }
+    // TODO implement
+    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    // if (profile != null) {
+    //   if (profile.aqShares >= 5) {
+    //     await CloudAnalytics.logEvent(
+    //       CloudAnalyticsEvent.shareAirQualityInformation,
+    //     );
+    //   }
+    // }
   }
 
   static Future<void> logNetworkProvider() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
-      if (carrier.toLowerCase().contains('airtel')) {
-        await logEvent(CloudAnalyticsEvent.airtelUser);
-      } else if (carrier.toLowerCase().contains('mtn')) {
-        await logEvent(CloudAnalyticsEvent.mtnUser);
-      } else {
-        await logEvent(
-          CloudAnalyticsEvent.otherNetwork,
-        );
-      }
-    }
+    // TODO implement
+    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    // if (profile != null) {
+    //   final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
+    //   if (carrier.toLowerCase().contains('airtel')) {
+    //     await logEvent(CloudAnalyticsEvent.airtelUser);
+    //   } else if (carrier.toLowerCase().contains('mtn')) {
+    //     await logEvent(CloudAnalyticsEvent.mtnUser);
+    //   } else {
+    //     await logEvent(
+    //       CloudAnalyticsEvent.otherNetwork,
+    //     );
+    //   }
+    // }
   }
 
   static Future<void> logPlatformType() async {
@@ -95,22 +104,23 @@ class CloudAnalytics {
   }
 
   static Future<void> logGender() async {
-    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    if (profile != null) {
-      if (profile.gender() == Gender.male) {
-        await logEvent(
-          CloudAnalyticsEvent.maleUser,
-        );
-      } else if (profile.gender() == Gender.female) {
-        await logEvent(
-          CloudAnalyticsEvent.femaleUser,
-        );
-      } else {
-        await logEvent(
-          CloudAnalyticsEvent.undefinedGender,
-        );
-      }
-    }
+    // TODO implement
+    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    // if (profile != null) {
+    //   if (profile.gender() == Gender.male) {
+    //     await logEvent(
+    //       CloudAnalyticsEvent.maleUser,
+    //     );
+    //   } else if (profile.gender() == Gender.female) {
+    //     await logEvent(
+    //       CloudAnalyticsEvent.femaleUser,
+    //     );
+    //   } else {
+    //     await logEvent(
+    //       CloudAnalyticsEvent.undefinedGender,
+    //     );
+    //   }
+    // }
   }
 }
 
@@ -196,41 +206,6 @@ class CloudStore {
     }).toList();
 
     return kya;
-  }
-
-  static Future<bool> deleteAccount() async {
-    try {
-      final id = CustomAuth.getUser()?.uid;
-      await Future.wait([
-        FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersNotificationCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(id)
-            .delete(),
-        FirebaseFirestore.instance
-            .collection(Config.usersLocationHistoryCollection)
-            .doc(id)
-            .delete(),
-      ]);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return true;
   }
 
   static Future<List<AppNotification>> getNotifications() async {
@@ -339,7 +314,7 @@ class CloudStore {
     return true;
   }
 
-  static Future<Profile> getProfile() async {
+  static Future<Profile?> getProfile() async {
     try {
       final uuid = CustomAuth.getUserId();
 
@@ -351,12 +326,8 @@ class CloudStore {
       return Profile.fromJson(
         userJson.data()!,
       );
-    } on FirebaseException catch (exception) {
-      if (exception.code == 'not-found') {
-        return await CustomAuth.createProfile();
-      } else {
-        rethrow;
-      }
+    } on FirebaseException catch (_) {
+      return null;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -364,7 +335,7 @@ class CloudStore {
       );
     }
 
-    return HiveService.getProfile();
+    return null;
   }
 
   static Future<List<FavouritePlace>> getFavouritePlaces() async {
@@ -435,35 +406,20 @@ class CloudStore {
     return true;
   }
 
-  static Future<bool> updateProfile() async {
-    final profile = await HiveService.getProfile();
+  static Future<bool> updateProfile(Profile profile) async {
     final User? currentUser = CustomAuth.getUser();
     if (!profile.isSignedIn || currentUser == null) {
       return false;
     }
 
     try {
-      try {
-        await Future.wait([
-          currentUser.updateDisplayName(profile.firstName),
-          FirebaseFirestore.instance
-              .collection(Config.usersCollection)
-              .doc(profile.userId)
-              .update(
-                profile.toJson(),
-              ),
-        ]);
-      } catch (exception) {
-        await Future.wait([
-          currentUser.updateDisplayName(profile.firstName),
-          FirebaseFirestore.instance
-              .collection(Config.usersCollection)
-              .doc(profile.userId)
-              .set(
-                profile.toJson(),
-              ),
-        ]);
-      }
+      await Future.wait([
+        currentUser.updateDisplayName(profile.firstName),
+        FirebaseFirestore.instance
+            .collection(Config.usersCollection)
+            .doc(currentUser.uid)
+            .set(profile.toJson()),
+      ]);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -506,16 +462,28 @@ class CloudMessaging {
 }
 
 class CustomAuth {
+  static Future<bool> guestSignIn() async {
+    UserCredential userCredential;
+    User? user = getUser();
+    if (user != null && user.isAnonymous) {
+      return true;
+    }
+
+    userCredential = await FirebaseAuth.instance.signInAnonymously();
+
+    return userCredential.user != null;
+  }
+
   static Future<bool> signOut() async {
     try {
-      final profile = await CloudStore.updateProfile();
-      final analytics = await CloudStore.updateCloudAnalytics();
-      final favouritePlaces = await CloudStore.updateFavouritePlaces();
-      final kya = await CloudStore.updateKya();
-
-      if (!kya || !analytics || !profile || !favouritePlaces) return false;
-
+      // final profile = await CloudStore.updateProfile();
+      // final analytics = await CloudStore.updateCloudAnalytics();
+      // final favouritePlaces = await CloudStore.updateFavouritePlaces();
+      // final kya = await CloudStore.updateKya();
+      //
+      // if (!kya || !analytics || !profile || !favouritePlaces) return false;
       await FirebaseAuth.instance.signOut();
+      return false;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -524,28 +492,17 @@ class CustomAuth {
 
       return false;
     }
-
-    return true;
   }
 
-  static Future<Profile> createProfile() async {
-    final profile = await HiveService.getProfile();
+  static Future<bool> deleteAccount() async {
     try {
-      await FirebaseAuth.instance.currentUser
-          ?.updateDisplayName(profile.firstName);
+      await FirebaseAuth.instance.currentUser?.delete();
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
     }
-
-    return profile;
-  }
-
-  static Future<bool> deleteAccount() async {
-    final profile = await HiveService.getProfile();
-    // await getUser()?.delete().then((_) => profile.deleteAccount());
 
     return true;
   }
@@ -579,15 +536,6 @@ class CustomAuth {
     }
 
     return !user.isAnonymous;
-  }
-
-  static bool isGuestUser() {
-    final user = getUser();
-    if (user == null) {
-      return true;
-    }
-
-    return user.isAnonymous;
   }
 
   static Future<bool> logOut() async {
@@ -804,75 +752,5 @@ class CustomAuth {
         stackTrace,
       );
     }
-  }
-
-  static Future<bool> updateCredentials({
-    required AuthMethod authMethod,
-    required BuildContext context,
-    String? emailAddress,
-    PhoneAuthCredential? phoneCredential,
-  }) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
-    try {
-      final profile = await HiveService.getProfile();
-      switch (authMethod) {
-        case AuthMethod.phone:
-          // await FirebaseAuth.instance.currentUser!
-          //     .updatePhoneNumber(phoneCredential!)
-          //     .then(
-          //   (_) {
-          //     profile.update();
-          //   },
-          // );
-          break;
-        case AuthMethod.email:
-          // await FirebaseAuth.instance.currentUser!
-          //     .updateEmail(emailAddress!)
-          //     .then(
-          //   (_) {
-          //     profile.update();
-          //   },
-          // );
-          break;
-        case AuthMethod.none:
-          break;
-      }
-
-      return true;
-    } on FirebaseAuthException catch (exception) {
-      var error = 'Failed to change credentials. Try again later';
-      switch (exception.code) {
-        case 'email-already-in-use':
-          error = 'Email Address already taken';
-          break;
-        case 'invalid-email':
-          error = 'Invalid email address';
-          break;
-        case 'credential-already-in-use':
-          error = 'Phone number already taken';
-          break;
-        case 'invalid-verification-id':
-          error = 'Failed to change phone number. Try again later';
-          break;
-        case 'session-expired':
-          error = 'Your code has expired. Try again later';
-          break;
-      }
-
-      showSnackBar(
-        context,
-        error,
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
   }
 }

@@ -16,6 +16,9 @@ class Config {
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 
+  static String get guestLogInFailed =>
+      'Failed to login as guest. Try again later';
+
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
 

@@ -15,16 +15,21 @@ import 'native_api.dart';
 
 class NotificationService {
   static Future<void> notificationRequestDialog(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
     await Permission.notification.request().then((status) {
       switch (status) {
         case PermissionStatus.granted:
         case PermissionStatus.limited:
-          context.read<ProfileBloc>().add(const UpdateNotification(true));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(notifications: true)));
           break;
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
-          context.read<ProfileBloc>().add(const UpdateNotification(false));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(notifications: false)));
           break;
       }
     });
@@ -34,6 +39,7 @@ class NotificationService {
     BuildContext context,
     bool value,
   ) async {
+    Profile profile = context.read<ProfileBloc>().state;
     late String enableNotificationsMessage;
     late String disableNotificationsMessage;
 
@@ -71,7 +77,7 @@ class NotificationService {
           case PermissionStatus.granted:
             context
                 .read<ProfileBloc>()
-                .add(const UpdateNotification(true));
+                .add(UpdateProfile(profile.copyWith(notifications: true)));
             break;
         }
       });
@@ -108,8 +114,7 @@ class NotificationService {
           );
         },
       );
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
-      }).onError(
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {}).onError(
         (exception) {
           logException(exception, null);
         },

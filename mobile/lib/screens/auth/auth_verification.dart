@@ -107,7 +107,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             listener: (context, state) {
                               context
                                   .read<ProfileBloc>()
-                                  .add(const FetchProfile());
+                                  .add(const SyncProfile());
                               context.read<KyaBloc>().add(const SyncKya());
                               context
                                   .read<LocationHistoryBloc>()

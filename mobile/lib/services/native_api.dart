@@ -24,7 +24,6 @@ import '../screens/insights/insights_page.dart';
 import '../screens/kya/kya_title_page.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'local_storage.dart';
 
 class SystemProperties {
   static Future<void> setDefault() async {
@@ -229,13 +228,13 @@ class ShareService {
   }
 
   static Future<void> updateUserShares() async {
-    Profile profile = await HiveService.getProfile();
-    profile = profile.copyWith(
-        aqShares: profile.aqShares + 1,
-    );
-    if (profile.aqShares >= 5) {
-      await CloudAnalytics.logAirQualitySharing();
-    }
+    // Profile profile = await HiveService.getProfile();
+    // profile = profile.copyWith(
+    //   aqShares: profile.aqShares + 1,
+    // );
+    // if (profile.aqShares >= 5) {
+    //   await CloudAnalytics.logAirQualitySharing();
+    // }
   }
 }
 
