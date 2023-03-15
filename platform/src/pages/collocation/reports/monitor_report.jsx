@@ -17,6 +17,14 @@ const MonitorReport = () => {
       >
         <div>hello world</div>
       </Box>
+      <Box
+        isBigTitle
+        title='Data Completeness'
+        subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
+        contentLink='#'
+      >
+        <div>hello world</div>
+      </Box>
     </Layout>
   );
 };

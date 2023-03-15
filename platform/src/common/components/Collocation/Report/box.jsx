@@ -8,7 +8,7 @@ const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
 
   return (
     <ContentBox>
-      <div className='flex flex-col'>
+      <div className='flex flex-col w-full'>
         <div className='flex justify-between md:items-center py-6'>
           <div className='ml-6'>
             <h3 className={`${isBigTitle ? 'text-xl mb-1' : 'text-sm'} font-semibold`}>{title}</h3>
