@@ -21,6 +21,7 @@ module.exports = {
         'dark-blue': '#0F4ACC',
         'light-text': '#6D7175',
         'baby-blue': '#F5F8FF',
+        'link-blue': '#2E72D2',
         grey: {
           100: '#363A4414',
           150: '#363A4429',
@@ -31,9 +32,6 @@ module.exports = {
         skeleton: '#363A4429',
         black: {
           600: '#202223',
-        },
-        black: {
-          600: '#353E52',
         },
       },
     },
