@@ -80,17 +80,19 @@ class AppService {
     return authSuccessful;
   }
 
-  static Future<Kya?> getKya(String id) async {
+  static Future<Kya?> getKya(Kya kya) async {
+    if (!kya.isEmpty()) return kya;
+
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {
       throw NetworkConnectionException('No internet Connection');
     }
-
     try {
-      List<Kya> kya = await CloudStore.getKya();
-      kya = kya.where((element) => element.id == id).toList();
+      List<Kya> kyaList = await CloudStore.getKya();
+      List<Kya> cloudKya =
+          kyaList.where((element) => element.id == kya.id).toList();
 
-      return kya.isEmpty ? null : kya.first;
+      return cloudKya.isEmpty ? null : cloudKya.first;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
 
@@ -234,7 +236,7 @@ class AppService {
     // TODO Login anonymously
     try {
       final profile = await Profile.getProfile();
-      final placesUpdated = await CloudStore.updateFavouritePlaces();
+      final placesUpdated = await CloudStore.updateFavouritePlaces([]);
       final analyticsUpdated = await CloudStore.updateLocationHistory([]);
       final profileUpdated = await profile.update(logout: true);
       final localStorageCleared = await _clearUserLocalStorage();

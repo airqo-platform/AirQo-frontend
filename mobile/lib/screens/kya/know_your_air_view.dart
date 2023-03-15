@@ -23,7 +23,7 @@ class KnowYourAirView extends StatelessWidget {
             },
           );
         }
-        final completeKya = state.filterCompleteKya();
+        final completeKya = state.filterComplete();
         if (completeKya.isEmpty) {
           final inCompleteKya = state.filterInProgressKya();
 

@@ -165,15 +165,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
                 unswipe: _unSwipe,
-                onEnd: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return KyaFinalPage(widget.kya);
-                      },
-                    ),
+                onEnd: () async {
+                  List<Kya> kyaList = context.read<KyaBloc>().state;
+                  Kya kya = kyaList.firstWhere(
+                    (element) => element.id == widget.kya.id,
+                    orElse: () => widget.kya,
                   );
+                  if (kya.isInProgress()) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return KyaFinalPage(widget.kya);
+                        },
+                      ),
+                    );
+                  } else {
+                    await popNavigation(context);
+                  }
                 },
               ),
             ),

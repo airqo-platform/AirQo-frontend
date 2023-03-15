@@ -1,6 +1,7 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -9,17 +10,29 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'kya_lessons_page.dart';
 import 'kya_widgets.dart';
 
-class KyaTitlePage extends StatelessWidget {
+class KyaTitlePage extends StatefulWidget {
   const KyaTitlePage(this.kya, {super.key});
   final Kya kya;
 
   @override
+  State<KyaTitlePage> createState() => _KyaTitlePageState();
+}
+
+class _KyaTitlePageState extends State<KyaTitlePage> {
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Kya?>(
-      future: AppService.getKya(kya.id),
+      future: AppService.getKya(widget.kya),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const KyaNotFoundWidget(); // TODO check for internet connection errors
+          if (snapshot.error.runtimeType == NetworkConnectionException) {
+            return NoInternetConnectionWidget(
+              callBack: () {
+                setState(() {});
+              },
+            );
+          }
+          return const KyaNotFoundWidget();
         }
 
         if (snapshot.hasData) {
@@ -87,17 +100,6 @@ class KyaTitlePage extends StatelessWidget {
                       child: NextButton(
                         text: buttonText,
                         buttonColor: CustomColors.appColorBlue,
-                        // TODO: add callback function
-                        // callBack: () async {
-                        //   await Navigator.pushReplacement(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) {
-                        //         return KyaLessonsPage(kya);
-                        //       },
-                        //     ),
-                        //   );
-                        // },
                       ),
                     ),
                   ),

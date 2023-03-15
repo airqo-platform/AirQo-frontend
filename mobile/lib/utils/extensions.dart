@@ -104,8 +104,16 @@ extension KyaExt on Kya {
     return progress == -1;
   }
 
+  bool isEmpty() {
+    return lessons.isEmpty;
+  }
+
   bool isInProgress() {
     return progress > 0 && progress < 1;
+  }
+
+  bool hasNoProgress() {
+    return progress == 0;
   }
 
   double getProgress(int visibleCardIndex) {
@@ -134,42 +142,22 @@ extension KyaListExt on List<Kya> {
     }).toList();
   }
 
-  List<Kya> filterPartiallyCompleteKya() {
+  List<Kya> filterHasNoProgress() {
+    return where((element) {
+      return element.hasNoProgress();
+    }).toList();
+  }
+
+  List<Kya> filterPartiallyComplete() {
     return where((element) {
       return element.isPartiallyComplete();
     }).toList();
   }
 
-  List<Kya> filterCompleteKya() {
+  List<Kya> filterComplete() {
     return where((element) {
       return element.isComplete();
     }).toList();
-  }
-
-  List<Kya> removeDuplicates() {
-    List<Kya> completeKya = filterCompleteKya().toSet().toList();
-
-    List<Kya> kya = completeKya
-        .map((e) => e.id)
-        .toSet()
-        .map((e) => completeKya.firstWhere((element) => element.id == e))
-        .toList();
-
-    List<Kya> partiallyCompleteKya =
-        filterPartiallyCompleteKya().toSet().toList();
-    List<Kya> inProgressKya = filterInProgressKya().toSet().toList();
-
-    partiallyCompleteKya.removeWhere(
-      (element) => kya.map((e) => e.id).toList().contains(element.id),
-    );
-    kya.addAll(partiallyCompleteKya);
-
-    inProgressKya.removeWhere(
-      (element) => kya.map((e) => e.id).toList().contains(element.id),
-    );
-    kya.addAll(inProgressKya);
-
-    return kya.toSet().toList();
   }
 }
 

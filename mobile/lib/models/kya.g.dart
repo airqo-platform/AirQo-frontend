@@ -53,3 +53,13 @@ Map<String, dynamic> _$KyaProgressToJson(KyaProgress instance) =>
       'id': instance.id,
       'progress': instance.progress,
     };
+
+KyaList _$KyaListFromJson(Map<String, dynamic> json) => KyaList(
+      data: (json['data'] as List<dynamic>)
+          .map((e) => Kya.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$KyaListToJson(KyaList instance) => <String, dynamic>{
+      'data': instance.data.map((e) => e.toJson()).toList(),
+    };

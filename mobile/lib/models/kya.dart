@@ -144,3 +144,15 @@ class KyaProgress {
 
   Map<String, dynamic> toJson() => _$KyaProgressToJson(this);
 }
+
+@JsonSerializable(explicitToJson: true)
+class KyaList {
+  factory KyaList.fromJson(Map<String, dynamic> json) =>
+      _$KyaListFromJson(json);
+
+  KyaList({required this.data});
+
+  List<Kya> data;
+
+  Map<String, dynamic> toJson() => _$KyaListToJson(this);
+}

@@ -136,7 +136,7 @@ class _DashboardViewState extends State<DashboardView>
                   BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
                       final kyaWidgets = completeKyaWidgets(
-                        state.filterCompleteKya().take(3).toList(),
+                        state.filterComplete().take(3).toList(),
                       );
 
                       return Expanded(
@@ -319,17 +319,18 @@ class _DashboardViewState extends State<DashboardView>
                             ),
                             BlocBuilder<KyaBloc, List<Kya>>(
                               builder: (context, state) {
-                                List<Kya> kya =
-                                    state.filterPartiallyCompleteKya();
+                                List<Kya> kya = state.filterPartiallyComplete();
                                 if (kya.isEmpty) {
                                   kya = state.filterInProgressKya();
+                                }
+                                if (kya.isEmpty) {
+                                  kya = state.filterHasNoProgress();
                                 }
                                 if (kya.isEmpty) {
                                   _kyaExists = false;
 
                                   return const SizedBox();
                                 }
-                                kya.sortByProgress();
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
@@ -338,7 +339,8 @@ class _DashboardViewState extends State<DashboardView>
                                     descriptionHeight: 100,
                                     description:
                                         "Do you want to know more about air quality? Know your air in this section",
-                                    child: KyaCardWidget(kya.first),
+                                    child: KyaCardWidget(
+                                        kya.sortByProgress().first),
                                   ),
                                 );
                               },

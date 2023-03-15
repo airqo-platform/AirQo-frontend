@@ -91,13 +91,11 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
 
   @override
   List<Kya>? fromJson(Map<String, dynamic> json) {
-    // TODO: implement fromJson
-    throw UnimplementedError();
+    return KyaList.fromJson(json).data;
   }
 
   @override
   Map<String, dynamic>? toJson(List<Kya> state) {
-    // TODO: implement toJson
-    throw UnimplementedError();
+    return KyaList(data: state).toJson();
   }
 }
