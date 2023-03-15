@@ -32,8 +32,7 @@ export const collocateApi = createApi({
       },
     }),
     getDeviceStatusSummary: builder.query({
-      query: () =>
-        'https://an-314-collocation-endpoints-device-monitoring-pr-w7kzhvlewq-ew.a.run.app/api/v1/monitor/devices/collocation/summary',
+      query: () => '/summary',
     }),
   }),
 });

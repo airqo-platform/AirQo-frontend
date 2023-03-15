@@ -84,7 +84,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         <Skeleton />
       ) : (
         <tbody>
-          {filteredData.length > 0 &&
+          {filteredData.length > 0 ? (
             filteredData.map((device) => {
               return (
                 <tr className='border-b border-b-slate-300' key={device.device_name}>
@@ -124,7 +124,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                   </td>
                 </tr>
               );
-            })}
+            })
+          ) : (
+            <tr>
+              <td colSpan='6' className='text-center pt-6 text-grey-300'>
+                No data found
+              </td>
+            </tr>
+          )}
         </tbody>
       )}
     </table>
