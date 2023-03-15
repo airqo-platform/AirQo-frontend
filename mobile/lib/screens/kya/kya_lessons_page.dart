@@ -44,7 +44,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: CustomColors.appBodyColor,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(

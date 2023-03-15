@@ -296,6 +296,7 @@ class HeartIcon extends StatelessWidget {
         ),
       );
     }
+
     return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
       builder: (context, state) {
         final placesIds = state.map((e) => e.placeId).toList();

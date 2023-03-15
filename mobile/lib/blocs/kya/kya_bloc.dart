@@ -53,7 +53,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
   }
 
   Future<void> _onCompleteKya(
-      CompleteKya event, Emitter<List<Kya>> emit) async {
+    CompleteKya event,
+    Emitter<List<Kya>> emit,
+  ) async {
     Kya kya = event.kya.copyWith(progress: -1);
     Set<Kya> kyaSet = {kya};
     kyaSet.addAll(state);
@@ -81,7 +83,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
     if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
 
     Set<Kya> kyaSet = {
-      kya.copyWith(progress: kya.getProgress(event.visibleCardIndex))
+      kya.copyWith(progress: kya.getProgress(event.visibleCardIndex)),
     };
     kyaSet.addAll(state);
     emit(kyaSet.toList());

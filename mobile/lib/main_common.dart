@@ -122,7 +122,8 @@ class AppHttpOverrides extends HttpOverrides {
 
 Future<void> initializeMainMethod() async {
   HydratedBloc.storage = await HydratedStorage.build(
-      storageDirectory: await getApplicationDocumentsDirectory());
+    storageDirectory: await getApplicationDocumentsDirectory(),
+  );
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);

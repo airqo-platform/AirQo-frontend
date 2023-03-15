@@ -102,6 +102,7 @@ class CloudStore {
         exception,
         stackTrace,
       );
+
       return false;
     }
 
@@ -264,7 +265,8 @@ class CloudStore {
   }
 
   static Future<bool> updateLocationHistory(
-      List<LocationHistory> historyList) async {
+    List<LocationHistory> historyList,
+  ) async {
     final batch = FirebaseFirestore.instance.batch();
 
     final userId = CustomAuth.getUserId();
@@ -290,6 +292,7 @@ class CloudStore {
         exception,
         stackTrace,
       );
+
       return false;
     }
 
@@ -358,7 +361,8 @@ class CloudStore {
   }
 
   static Future<bool> updateFavouritePlaces(
-      List<FavouritePlace> favouritePlaces) async {
+    List<FavouritePlace> favouritePlaces,
+  ) async {
     final batch = FirebaseFirestore.instance.batch();
 
     final userId = CustomAuth.getUserId();
@@ -384,6 +388,7 @@ class CloudStore {
         exception,
         stackTrace,
       );
+
       return false;
     }
 
@@ -422,41 +427,6 @@ class CloudStore {
         exception,
         stackTrace,
       );
-    }
-  }
-
-  static Future<void> updateCloudNotification(
-    AppNotification notification,
-  ) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      try {
-        final profile = await Profile.getProfile();
-        try {
-          await FirebaseFirestore.instance
-              .collection(Config.usersNotificationCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(notification.id)
-              .update(
-                notification.toJson(),
-              );
-        } catch (exception) {
-          await FirebaseFirestore.instance
-              .collection(Config.usersNotificationCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(notification.id)
-              .set(
-                notification.toJson(),
-              );
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
     }
   }
 

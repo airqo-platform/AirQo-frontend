@@ -343,7 +343,8 @@ class _DashboardViewState extends State<DashboardView>
                                     description:
                                         "Do you want to know more about air quality? Know your air in this section",
                                     child: KyaCardWidget(
-                                        kya.sortByProgress().first),
+                                      kya.sortByProgress().first,
+                                    ),
                                   ),
                                 );
                               },

@@ -45,10 +45,10 @@ class FavouritePlaceBloc
     }
   }
 
-  Future<void> _onClearFavouritePlaces(
+  void _onClearFavouritePlaces(
     ClearFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
-  ) async {
+  ) {
     emit([]);
   }
 

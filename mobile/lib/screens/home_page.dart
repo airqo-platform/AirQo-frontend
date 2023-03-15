@@ -190,6 +190,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
+    context.read<KyaBloc>().add(const SyncKya());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<NotificationBloc>().add(const SyncNotifications());
     await checkNetworkConnection(
       context,
       notifyUser: true,

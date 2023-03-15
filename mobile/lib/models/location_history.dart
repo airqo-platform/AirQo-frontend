@@ -11,7 +11,8 @@ part 'location_history.g.dart';
 @JsonSerializable()
 class LocationHistory extends Equatable {
   factory LocationHistory.fromAirQualityReading(
-      AirQualityReading airQualityReading) {
+    AirQualityReading airQualityReading,
+  ) {
     return LocationHistory(
       placeId: airQualityReading.placeId,
       site: airQualityReading.referenceSite,

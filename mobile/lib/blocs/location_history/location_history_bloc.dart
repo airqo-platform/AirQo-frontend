@@ -27,7 +27,7 @@ class LocationHistoryBloc
     Emitter<List<LocationHistory>> emit,
   ) async {
     List<LocationHistory> locationHistory = [
-      LocationHistory.fromAirQualityReading(event.airQualityReading)
+      LocationHistory.fromAirQualityReading(event.airQualityReading),
     ];
 
     Set<LocationHistory> locationHistorySet = state.toSet();
