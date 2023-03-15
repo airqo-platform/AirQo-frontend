@@ -4,14 +4,13 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 part 'favourite_place_event.dart';
-part 'favourite_place_state.dart';
 
 class FavouritePlaceBloc
-    extends Bloc<FavouritePlaceEvent, FavouritePlaceState> {
-  FavouritePlaceBloc() : super(const FavouritePlaceState()) {
+    extends HydratedBloc<FavouritePlaceEvent, List<FavouritePlace>> {
+  FavouritePlaceBloc() : super([]) {
     on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
     on<FetchFavouritePlaces>(_fetchFavouritePlaces);
     on<ClearFavouritePlaces>(_onClearFavouritePlaces);
@@ -22,9 +21,9 @@ class FavouritePlaceBloc
 
   Future<void> _onUpdateFavouritePlace(
     UpdateFavouritePlace event,
-    Emitter<FavouritePlaceState> emit,
+    Emitter<List<FavouritePlace>> emit,
   ) async {
-    List<FavouritePlace> favouritePlaces = List.of(state.favouritePlaces);
+    List<FavouritePlace> favouritePlaces = List.of(state);
     final placesIds = favouritePlaces.map((e) => e.placeId);
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
@@ -37,9 +36,7 @@ class FavouritePlaceBloc
       );
     }
 
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-
-    emit(state.copyWith(favouritePlaces: favouritePlaces.sortByName()));
+    emit(favouritePlaces.sortByName());
 
     final hasConnection = await hasNetworkConnection();
     if (hasConnection) {
@@ -54,44 +51,52 @@ class FavouritePlaceBloc
 
   Future<void> _fetchFavouritePlaces(
     FetchFavouritePlaces _,
-    Emitter<FavouritePlaceState> emit,
+    Emitter<List<FavouritePlace>> emit,
   ) async {
     List<FavouritePlace> places = await CloudStore.getFavouritePlaces();
-    emit(const FavouritePlaceState().copyWith(favouritePlaces: places));
-    await HiveService.loadFavouritePlaces(places);
+    emit(places);
   }
 
   Future<void> _onClearFavouritePlaces(
     ClearFavouritePlaces _,
-    Emitter<FavouritePlaceState> emit,
+    Emitter<List<FavouritePlace>> emit,
   ) async {
-    emit(const FavouritePlaceState());
-    await HiveService.deleteFavouritePlaces();
+    emit([]);
   }
 
   Future<void> _onRefreshFavouritePlaces(
     RefreshFavouritePlaces _,
-    Emitter<FavouritePlaceState> emit,
+    Emitter<List<FavouritePlace>> emit,
   ) async {
-    List<FavouritePlace> places = HiveService.getFavouritePlaces();
-    emit(const FavouritePlaceState().copyWith(
-      favouritePlaces: places.sortByName(),
-    ));
-
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(
-        state.copyWith(status: FavouritePlaceStatus.noInternetConnection),
+    for (final favPlace in state) {
+      final nearestSite = await LocationService.getNearestSite(
+        favPlace.latitude,
+        favPlace.longitude,
       );
+      if (nearestSite != null) {
+        // updatedFavouritePlaces
+        //     .add(favPlace.copyWith(referenceSite: nearestSite.referenceSite));
+      } else {
+        // updatedFavouritePlaces.add(favPlace);
+      }
     }
 
-    await appService.updateFavouritePlacesReferenceSites();
     await _onRefreshFavouritePlacesInsights();
   }
 
   Future<void> _onRefreshFavouritePlacesInsights() async {
-    for (final favouritePlace in state.favouritePlaces) {
+    for (final favouritePlace in state) {
       await appService.fetchInsightsData(favouritePlace.referenceSite);
     }
+  }
+
+  @override
+  List<FavouritePlace>? fromJson(Map<String, dynamic> json) {
+    return FavouritePlaceList.fromJson(json).data;
+  }
+
+  @override
+  Map<String, dynamic>? toJson(List<FavouritePlace> state) {
+    return FavouritePlaceList(data: state).toJson();
   }
 }

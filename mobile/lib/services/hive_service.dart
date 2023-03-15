@@ -17,7 +17,6 @@ class HiveService {
       ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
       ..registerAdapter<KyaLesson>(KyaLessonAdapter())
       ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
-      ..registerAdapter<FavouritePlace>(FavouritePlaceAdapter())
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
@@ -25,7 +24,6 @@ class HiveService {
       Hive.openBox<AppNotification>(HiveBox.appNotifications),
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
       Hive.openBox<Kya>(HiveBox.kya),
-      Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
@@ -65,7 +63,6 @@ class HiveService {
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
-      Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
   }
 
@@ -169,14 +166,6 @@ class HiveService {
         .putAll(notificationsMap);
   }
 
-  static Future<void> deleteFavouritePlaces() async {
-    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
-  }
-
-  static List<FavouritePlace> getFavouritePlaces() {
-    return Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-  }
-
   static List<Kya> getKya() {
     return Hive.box<Kya>(HiveBox.kya).values.toList();
   }
@@ -217,25 +206,6 @@ class HiveService {
   static Future<void> loadProfile(Profile profile) async {
     await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
-
-  static Future<void> loadFavouritePlaces(
-    List<FavouritePlace> favouritePlaces,
-  ) async {
-    if (favouritePlaces.isEmpty) {
-      return;
-    }
-    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
-
-    final favouritePlacesMap = <String, FavouritePlace>{};
-
-    for (final favouritePlace in favouritePlaces) {
-      favouritePlacesMap[favouritePlace.placeId] = favouritePlace;
-    }
-
-    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .putAll(favouritePlacesMap)
-        .then((value) => CloudStore.updateFavouritePlaces());
-  }
 }
 
 class HiveBox {
@@ -246,5 +216,4 @@ class HiveBox {
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get airQualityReadings => 'airQualityReadings-v1';
   static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
-  static String get favouritePlaces => 'favouritePlaces';
 }

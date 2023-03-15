@@ -308,53 +308,53 @@ class CloudStore {
   }
 
   static Future<bool> updateFavouritePlaces() async {
-    final hasConnection = await hasNetworkConnection();
-    final userId = CustomAuth.getUserId();
-    if (!hasConnection || userId.trim().isEmpty) {
-      return true;
-    }
-
-    final batch = FirebaseFirestore.instance.batch();
-
-    final cloudFavPlaces = await getFavouritePlaces();
-    for (final favouritePlace in cloudFavPlaces) {
-      try {
-        final document = FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(favouritePlace.placeId);
-        batch.delete(document);
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
-
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-    for (final favouritePlace in favouritePlaces) {
-      try {
-        final document = FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(favouritePlace.placeId);
-        batch.set(
-          document,
-          favouritePlace.toJson(),
-        );
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
-
-    batch.commit();
+    // final hasConnection = await hasNetworkConnection();
+    // final userId = CustomAuth.getUserId();
+    // if (!hasConnection || userId.trim().isEmpty) {
+    //   return true;
+    // }
+    //
+    // final batch = FirebaseFirestore.instance.batch();
+    //
+    // final cloudFavPlaces = await getFavouritePlaces();
+    // for (final favouritePlace in cloudFavPlaces) {
+    //   try {
+    //     final document = FirebaseFirestore.instance
+    //         .collection(Config.favPlacesCollection)
+    //         .doc(userId)
+    //         .collection(userId)
+    //         .doc(favouritePlace.placeId);
+    //     batch.delete(document);
+    //   } catch (exception, stackTrace) {
+    //     await logException(
+    //       exception,
+    //       stackTrace,
+    //     );
+    //   }
+    // }
+    //
+    // final favouritePlaces =
+    //     Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+    // for (final favouritePlace in favouritePlaces) {
+    //   try {
+    //     final document = FirebaseFirestore.instance
+    //         .collection(Config.favPlacesCollection)
+    //         .doc(userId)
+    //         .collection(userId)
+    //         .doc(favouritePlace.placeId);
+    //     batch.set(
+    //       document,
+    //       favouritePlace.toJson(),
+    //     );
+    //   } catch (exception, stackTrace) {
+    //     await logException(
+    //       exception,
+    //       stackTrace,
+    //     );
+    //   }
+    // }
+    //
+    // batch.commit();
 
     return true;
   }

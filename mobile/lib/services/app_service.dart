@@ -189,7 +189,6 @@ class AppService {
         Profile.syncProfile(),
         CloudStore.getCloudAnalytics(),
         CloudAnalytics.logPlatformType(),
-        updateFavouritePlacesReferenceSites(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -266,25 +265,6 @@ class AppService {
     }
 
     return false;
-  }
-
-  Future<void> updateFavouritePlacesReferenceSites() async {
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-    final updatedFavouritePlaces = <FavouritePlace>[];
-    for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSite(
-        favPlace.latitude,
-        favPlace.longitude,
-      );
-      if (nearestSite != null) {
-        updatedFavouritePlaces
-            .add(favPlace.copyWith(referenceSite: nearestSite.referenceSite));
-      } else {
-        updatedFavouritePlaces.add(favPlace);
-      }
-    }
-    await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
   }
 
   Future<AppStoreVersion?> latestVersion() async {
