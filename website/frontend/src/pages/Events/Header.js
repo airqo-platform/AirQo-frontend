@@ -1,6 +1,6 @@
 import React from 'react';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
-import BannerImg from 'assets/img/Events/banner.png';
+import BannerImg from 'assets/img/Events/banner.jpg';
 import {format} from 'date-fns'
 
 const EventsHeader = ({

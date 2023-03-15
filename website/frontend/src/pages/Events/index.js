@@ -5,7 +5,7 @@ import EventsHeader from './Header';
 import EventsNavigation from './Navigation';
 import { useInitScrollTop } from 'utils/customHooks';
 import EventCard from './EventCard';
-import DummyImage from 'assets/img/Events/banner.png';
+import DummyImage from 'assets/img/Events/banner.jpg';
 import { useSelector } from 'react-redux';
 
 const EventsPage = () => {
