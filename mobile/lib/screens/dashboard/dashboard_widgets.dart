@@ -4,7 +4,6 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,9 +11,137 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../kya/kya_title_page.dart';
-import '../kya/kya_widgets.dart';
-import '../search/search_page.dart';
+class DashboardLoadingWidget extends StatelessWidget {
+  const DashboardLoadingWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: 6,
+      itemBuilder: (BuildContext context, int index) {
+        double height;
+        switch (index) {
+          case 0:
+            height = 50;
+            break;
+          case 1:
+            height = 75;
+            break;
+          case 2:
+            height = 100;
+            break;
+          default:
+            height = 251;
+            break;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: ContainerLoadingAnimation(
+            radius: 16,
+            height: height,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class NoLocationAirQualityMessage extends StatelessWidget {
+  const NoLocationAirQualityMessage(this.error, {super.key});
+  final NearbyAirQualityError error;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/info_icon.svg',
+            height: 10,
+            width: 10,
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          Expanded(
+            child: Text(
+              error.message,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context
+                  .read<NearbyLocationBloc>()
+                  .add(const DismissErrorMessage());
+            },
+            child: SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/icon/close.svg',
+                height: 20,
+                width: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton(this.error, {super.key});
+  final NearbyAirQualityError error;
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () async {
+        await LocationService.requestLocation(context, true);
+      },
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(40),
+        elevation: 2,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(13),
+          ),
+        ),
+        backgroundColor: CustomColors.appColorBlue,
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 14,
+        ),
+      ),
+      child: Text(
+        error.message,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+}
 
 class DashboardTopCard extends StatelessWidget {
   const DashboardTopCard({
@@ -46,86 +173,48 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return GestureDetector(
+      onTap: nextScreenClickHandler,
       key: widgetKey,
-      child: GestureDetector(
-        onTap: nextScreenClickHandler,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.all(12.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          foregroundColor: CustomColors.appColorBlue,
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+            width: 0,
+          ),
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
-              Radius.circular(8.0),
+              Radius.circular(8),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 32,
-                width: getWidth(children.length),
-                child: Stack(
-                  children: children,
-                ),
-              ),
-              const SizedBox(
-                width: 8,
-              ),
-              Text(
-                title,
-                style: CustomTextStyle.bodyText4(context)?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
-              ),
-            ],
-          ),
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.zero,
         ),
-      ),
-    );
-  }
-}
-
-class DashboardFavPlaceAvatar extends StatelessWidget {
-  const DashboardFavPlaceAvatar({
-    super.key,
-    required this.rightPadding,
-    required this.airQualityReading,
-  });
-  final double rightPadding;
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            '${airQualityReading.pm2_5}',
-            style: TextStyle(
-              fontSize: 7,
-              color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
+        onPressed: nextScreenClickHandler,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 32,
+              width: getWidth(children.length),
+              child: Stack(
+                children: children,
               ),
             ),
-          ),
+            const SizedBox(
+              width: 8,
+            ),
+            Text(
+              title,
+              style: CustomTextStyle.bodyText4(context)?.copyWith(
+                color: CustomColors.appColorBlue,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -230,254 +319,6 @@ class KyaDashboardAvatar extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class DashboardEmptyAvatar extends StatelessWidget {
-  const DashboardEmptyAvatar({
-    super.key,
-    required this.rightPadding,
-  });
-  final double rightPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
-            ),
-          ),
-          color: CustomColors.greyColor,
-          shape: BoxShape.circle,
-        ),
-      ),
-    );
-  }
-}
-
-class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const DashboardTopBar({super.key});
-
-  @override
-  PreferredSizeWidget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      title: Container(
-        padding: const EdgeInsets.only(top: 24),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/airqo_logo.svg',
-              height: 40,
-              width: 58,
-              semanticsLabel: 'AirQo',
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return const SearchPage();
-                    },
-                  ),
-                );
-              },
-              child: Container(
-                height: 40,
-                width: 40,
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10.0),
-                  ),
-                ),
-                child: SvgPicture.asset(
-                  'assets/icon/search.svg',
-                  semanticsLabel: 'Search',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      elevation: 0,
-      toolbarHeight: 65,
-      backgroundColor: CustomColors.appBodyColor,
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(72);
-}
-
-class DashboardKyaProgressBar extends StatefulWidget {
-  const DashboardKyaProgressBar(this.kya, {super.key});
-  final Kya kya;
-
-  @override
-  State<DashboardKyaProgressBar> createState() =>
-      _DashboardKyaProgressBarState();
-}
-
-class _DashboardKyaProgressBarState extends State<DashboardKyaProgressBar> {
-  double progress = 0.1;
-
-  @override
-  void initState() {
-    super.initState();
-    progress = widget.kya.progress == -1 ||
-            widget.kya.progress == widget.kya.lessons.length
-        ? 1
-        : widget.kya.progress / widget.kya.lessons.length;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: progress != 1 && progress != 0,
-      child: SizedBox(
-        height: 4,
-        child: LinearProgressIndicator(
-          color: CustomColors.appColorBlue,
-          value: progress,
-          backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
-        ),
-      ),
-    );
-  }
-}
-
-class DashboardKyaCard extends StatelessWidget {
-  const DashboardKyaCard(this.kya, {super.key});
-  final Kya kya;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        if (kya.progress >= kya.lessons.length) {
-          context.read<AccountBloc>().add(UpdateKyaProgress(
-                kya: kya,
-                progress: -1,
-              ));
-        } else {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return KyaTitlePage(kya);
-              },
-            ),
-          );
-        }
-      },
-      child: BlocBuilder<AccountBloc, AccountState>(
-        buildWhen: (previous, current) {
-          return previous.kya.totalProgress() != current.kya.totalProgress();
-        },
-        builder: (context, state) {
-          final viewKya =
-              state.kya.firstWhere((element) => element.id == kya.id);
-
-          return Container(
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(16.0),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 40,
-                        child: AutoSizeText(
-                          viewKya.title,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyle.headline8(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 28,
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          KyaMessage(
-                            kya: viewKya,
-                          ),
-                          const SizedBox(
-                            width: 6,
-                          ),
-                          SvgPicture.asset(
-                            'assets/icon/more_arrow.svg',
-                            semanticsLabel: 'more',
-                            height: 6.99,
-                            width: 4,
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: getKyaMessage(kya: viewKya).toLowerCase() ==
-                                'continue'
-                            ? 2
-                            : 0,
-                      ),
-                      DashboardKyaProgressBar(viewKya),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: CachedNetworkImage(
-                    fit: BoxFit.cover,
-                    width: 104,
-                    height: 104,
-                    placeholder: (context, url) => const SizedBox(
-                      width: 104,
-                      height: 104,
-                      child: ContainerLoadingAnimation(height: 104, radius: 8),
-                    ),
-                    imageUrl: viewKya.imageUrl,
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.error_outline,
-                      color: CustomColors.aqiRed,
-                    ),
-                    cacheKey: kya.imageUrlCacheKey(),
-                    cacheManager: CacheManager(
-                      CacheService.cacheConfig(
-                        viewKya.imageUrlCacheKey(),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

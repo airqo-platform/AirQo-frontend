@@ -11,7 +11,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AirQo</string>
+	<string>$(APP_DISPLAY_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -64,8 +64,6 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Accessing your camera enables us take a picture for your profile</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Turning on location services allows us to show you the air quality of your surroundings while open and running in the background?</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -74,10 +72,6 @@
 	<string>Turning on location services allows us to show you the air quality of your surroundings</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Turning on location services allows us to show you the air quality of your surroundings</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Can I use the mic please?</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Upload images for screen background</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -104,5 +98,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

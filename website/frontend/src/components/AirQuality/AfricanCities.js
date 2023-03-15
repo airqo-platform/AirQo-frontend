@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import AirQualityImg from 'assets/img/AirQuality.png'
-import PlatformImg from 'assets/img/Digitalplatforms.png'
 
 const AfricanCities = () => {
     const [selectedCard, setSelectedCard] = useState('card1')
@@ -23,7 +22,7 @@ const AfricanCities = () => {
                     <h4>Digital air quality platforms</h4>
                     <ol>
                         <li><small>— We empower decision-makers in African cities</small></li>
-                        <li><small>— We increased access to air quality data evidence </small></li>
+                        <li><small>— We increase access to air quality data evidence </small></li>
                     </ol>
                 </div>
                 <div className={selectedCard === 'card3' ? "card selected" : "card unselected"}

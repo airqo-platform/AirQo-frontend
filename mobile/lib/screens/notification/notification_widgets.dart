@@ -104,7 +104,7 @@ class _NotificationViewState extends State<NotificationView> {
                               maxLines: 4,
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText2
+                                  .bodyMedium
                                   ?.copyWith(
                                     color: CustomColors.appColorBlack
                                         .withOpacity(0.4),
@@ -131,9 +131,7 @@ class _NotificationViewState extends State<NotificationView> {
   }
 
   void _updateNotification(AppNotification appNotification) {
-    appNotification
-      ..read = true
-      ..saveNotification();
+    appNotification.read = true;
   }
 }
 
@@ -187,7 +185,7 @@ class NotificationCard extends StatelessWidget {
                   appNotification.subTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.4),
                       ),
                 ),
@@ -272,7 +270,7 @@ class EmptyNotifications extends StatelessWidget {
             const SizedBox(height: 23),
             Text(
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: 15.0,
                     color: CustomColors.emptyNotificationScreenTextColor,
                   ),

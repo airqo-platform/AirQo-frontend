@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -19,43 +18,49 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        widget: BlocBuilder<FavouritePlaceBloc, FavouritePlaceState>(
           builder: (context, state) {
             if (state.favouritePlaces.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+              context
+                  .read<FavouritePlaceBloc>()
+                  .add(const RefreshFavouritePlaces());
 
-              return const EmptyFavouritePlaces(); // TODO replace with error page
+              return const NoFavouritePlacesWidget();
             }
+            final airQualityReadings =
+                Hive.box<AirQualityReading>(HiveBox.airQualityReadings);
 
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final airQualityReading =
-                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                          .get(state.favouritePlaces[index].referenceSite);
-                  final favouritePlace = state.favouritePlaces[index];
+                  final siteReadings = airQualityReadings.values.where(
+                    (element) =>
+                        element.referenceSite ==
+                        state.favouritePlaces[index].referenceSite,
+                  );
 
-                  if (airQualityReading == null) {
-                    return EmptyFavouritePlace(
-                      airQualityReading:
-                          AirQualityReading.fromFavouritePlace(favouritePlace),
-                    );
+                  final AirQualityReading airQualityReading =
+                      AirQualityReading.fromFavouritePlace(
+                    state.favouritePlaces[index],
+                  );
+
+                  if (siteReadings.isEmpty) {
+                    return EmptyFavouritePlace(airQualityReading);
                   }
 
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(index),
                     ),
-                    child: MiniAnalyticsCard(
-                      airQualityReading.populateFavouritePlace(favouritePlace),
-                      animateOnClick: false,
-                    ),
+                    child: FavouritePlaceCard(airQualityReading),
                   );
                 },
                 childCount: state.favouritePlaces.length,
               ),
-              onRefresh: () async {
+              onRefresh: () {
                 _refresh(context);
+
+                return Future(() => null);
               },
             );
           },
@@ -65,6 +70,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
   }
 }

@@ -14,6 +14,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { useInitScrollTop } from 'utils/customHooks';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
+import { loadSites } from 'redux/Dashboard/operations';
 import { useOrgData } from 'redux/Join/selectors';
 
 // css
@@ -339,6 +340,7 @@ const CustomMapControl = ({
 };
 
 export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) => {
+  const dispatch = useDispatch();
   const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
@@ -355,6 +357,20 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     closeButton: false,
     offset: 25
   });
+
+  useEffect(() => {
+    setShowPollutant({
+      pm2_5: localStorage.pollutant === 'pm2_5',
+      no2: localStorage.pollutant === 'no2',
+      pm10: localStorage.pollutant === 'pm10'
+    });
+  }, [localStorage.pollutant]);
+
+  useEffect(() => {
+    if (isEmpty(sitesData)) {
+      dispatch(loadSites());
+    }
+  }, [sitesData]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -478,6 +494,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
     <div className="overlay-map-container" ref={mapContainerRef}>
       {showSensors &&
         map &&
+        monitoringSiteData.features.length > 0 &&
         monitoringSiteData.features.forEach((feature) => {
           const [seconds, duration] = getFirstDuration(feature.properties.time);
           let pollutantValue =
@@ -537,11 +554,11 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
                         }</b>
                       </span>
                     </div>
-                    <div class="${'popup-aqi ' + markerClass}"> 
+                    <div class="${`popup-aqi ${markerClass}`}"> 
                       <span>
                       ${
-                        (showPollutant.pm2_5 && feature.properties.pm2_5 && 'PM<sub>2.5<sub>') ||
-                        (showPollutant.pm10 && feature.properties.pm10 && 'PM<sub>10<sub>')
+                        (showPollutant.pm2_5 && 'PM<sub>2.5<sub>') ||
+                        (showPollutant.pm10 && 'PM<sub>10<sub>')
                       }
                       </span> </hr>  
                       <div class="pollutant-info">
@@ -587,10 +604,13 @@ const MapContainer = () => {
     if (isEmpty(heatMapData.features)) {
       dispatch(loadPM25HeatMapData());
     }
+  }, [heatMapData]);
+
+  useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
       dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
     }
-  }, []);
+  }, [monitoringSiteData]);
 
   return (
     <div>

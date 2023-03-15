@@ -1,52 +1,121 @@
-import 'package:app/models/models.dart';
-import 'package:app_repository/app_repository.dart';
-import 'package:equatable/equatable.dart';
+part of 'search_bloc.dart';
 
-abstract class SearchState extends Equatable {
-  const SearchState();
-
-  @override
-  List<Object> get props => [];
+enum SearchStatus {
+  initial,
+  noAirQualityData,
+  noInternetConnection,
+  autoCompleting,
+  autoCompleteFinished,
+  searchComplete,
 }
 
-class SearchStateNearestLocations extends SearchState {
-  const SearchStateNearestLocations({
-    required this.airQualityReadings,
-    required this.nearbyLocations,
+class SearchState extends Equatable {
+  const SearchState({
+    this.searchAirQuality,
+    this.searchResults = const [],
+    this.searchTerm = '',
+    this.status = SearchStatus.initial,
+    this.recommendations = const [],
+    this.countries = const [],
+    this.searchHistory = const [],
   });
 
-  final List<AirQualityReading> airQualityReadings;
-  final bool nearbyLocations;
+  SearchState copyWith({
+    String? searchTerm,
+    List<SearchResult>? searchResults,
+    AirQualityReading? searchAirQuality,
+    SearchStatus? status,
+    List<AirQualityReading>? recommendations,
+    List<AirQualityReading>? searchHistory,
+    List<String>? countries,
+  }) {
+    return SearchState(
+      searchTerm: searchTerm ?? this.searchTerm,
+      searchResults: searchResults ?? this.searchResults,
+      searchAirQuality: searchAirQuality ?? this.searchAirQuality,
+      status: status ?? this.status,
+      recommendations: recommendations ?? this.recommendations,
+      countries: countries ?? this.countries,
+      searchHistory: searchHistory ?? this.searchHistory,
+    );
+  }
+
+  final String searchTerm;
+  final List<SearchResult> searchResults;
+  final List<AirQualityReading> searchHistory;
+  final List<AirQualityReading> recommendations;
+  final List<String> countries;
+  final AirQualityReading? searchAirQuality;
+  final SearchStatus status;
 
   @override
-  List<Object> get props => [airQualityReadings];
-
-  @override
-  String toString() =>
-      'Search page nearest locations: ${airQualityReadings.length}';
+  List<Object?> get props => [
+        searchTerm,
+        searchResults,
+        searchHistory,
+        recommendations,
+        countries,
+        status,
+        searchAirQuality,
+      ];
 }
 
-class SearchStateLocationNotSupported extends SearchState {}
-
-class SearchStateLoading extends SearchState {}
-
-class SearchStateSuccess extends SearchState {
-  const SearchStateSuccess(this.items);
-
-  final List<SearchResultItem> items;
-
-  @override
-  List<Object> get props => [items];
-
-  @override
-  String toString() => 'SearchStateSuccess { items: ${items.length} }';
+enum SearchFilterStatus {
+  initial,
+  loading,
+  noInternetConnection,
+  noAirQualityData,
+  filterSuccessful,
+  filterFailed,
 }
 
-class SearchStateError extends SearchState {
-  const SearchStateError(this.error);
+class SearchFilterState extends Equatable {
+  const SearchFilterState({
+    this.recentSearches = const [],
+    this.nearbyLocations = const [],
+    this.otherLocations = const [],
+    this.africanCities = const [],
+    this.filteredAirQuality,
+    this.status = SearchFilterStatus.initial,
+  });
 
-  final String error;
+  SearchFilterState copyWith({
+    List<AirQualityReading>? recentSearches,
+    List<AirQualityReading>? nearbyLocations,
+    List<AirQualityReading>? otherLocations,
+    List<AirQualityReading>? africanCities,
+    AirQuality? filteredAirQuality,
+    SearchFilterStatus? status,
+  }) {
+    return SearchFilterState(
+      recentSearches: recentSearches ?? this.recentSearches,
+      nearbyLocations: nearbyLocations ?? this.nearbyLocations,
+      otherLocations: otherLocations ?? this.otherLocations,
+      africanCities: africanCities ?? this.africanCities,
+      filteredAirQuality: filteredAirQuality ?? this.filteredAirQuality,
+      status: status ?? this.status,
+    );
+  }
+
+  final List<AirQualityReading> recentSearches;
+  final List<AirQualityReading> nearbyLocations;
+  final List<AirQualityReading> otherLocations;
+  final List<AirQualityReading> africanCities;
+  final SearchFilterStatus status;
+  final AirQuality? filteredAirQuality;
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [
+        recentSearches,
+        nearbyLocations,
+        otherLocations,
+        africanCities,
+        status,
+        filteredAirQuality,
+      ];
+}
+
+enum SearchPageState {
+  searching,
+  filtering;
 }

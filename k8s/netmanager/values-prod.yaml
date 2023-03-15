@@ -4,8 +4,8 @@ image:
   tag: prod-8bef0312-1678803467
   pullPolicy: Always
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 service:
   type: NodePort
   nodePort: 30104

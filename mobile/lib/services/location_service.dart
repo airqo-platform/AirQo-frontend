@@ -1,51 +1,141 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'native_api.dart';
 import 'rest_api.dart';
 
 class LocationService {
+  static Future<void> locationRequestDialog(BuildContext context) async {
+    await Permission.location.request().then((status) {
+      switch (status) {
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+        case PermissionStatus.restricted:
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context.read<SettingsBloc>().add(const UpdateLocationPref(false));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+      }
+    });
+  }
+
+  static Future<bool> locationGranted() async {
+    final permissionStatus = await Permission.location.status;
+
+    switch (permissionStatus) {
+      case PermissionStatus.permanentlyDenied:
+      case PermissionStatus.denied:
+      case PermissionStatus.restricted:
+        return false;
+      case PermissionStatus.limited:
+      case PermissionStatus.granted:
+        break;
+    }
+
+    return true;
+  }
+
+  static Future<void> requestLocation(
+    BuildContext context,
+    bool allow,
+  ) async {
+    late String enableLocationMessage;
+    late String disableLocationMessage;
+
+    if (Platform.isAndroid) {
+      enableLocationMessage =
+          'To turn on location, go to\nApp Info > Permissions > Location > Allow only while using the app';
+      disableLocationMessage =
+          'To turn off location, go to\nApp Info > Permissions > Location > Deny';
+    } else {
+      enableLocationMessage =
+          'To turn on location, go to\nSettings > AirQo > Location > Always';
+      disableLocationMessage =
+          'To turn off location, go to\nSettings > AirQo > Location > Never';
+    }
+
+    if (allow) {
+      await Permission.location.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await openPhoneSettings(context, enableLocationMessage);
+            break;
+          case PermissionStatus.denied:
+            if (Platform.isAndroid) {
+              await openPhoneSettings(context, enableLocationMessage);
+            } else {
+              await locationRequestDialog(context);
+            }
+            break;
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await locationRequestDialog(context);
+            break;
+          case PermissionStatus.granted:
+            context.read<SettingsBloc>().add(const UpdateLocationPref(true));
+            context
+                .read<NearbyLocationBloc>()
+                .add(const SearchLocationAirQuality());
+            break;
+        }
+      });
+    } else {
+      await openPhoneSettings(context, disableLocationMessage);
+    }
+  }
+
   static Future<String> getAddress({
     required double latitude,
     required double longitude,
   }) async {
-    try {
-      final landMarks = await placemarkFromCoordinates(latitude, longitude);
-      String? address = '';
-      final landMark = landMarks.first;
+    List<Placemark> landMarks = await placemarkFromCoordinates(
+      latitude,
+      longitude,
+    );
 
-      address = landMark.name ?? landMark.thoroughfare;
-      address = address ?? landMark.subLocality;
-      address = address ?? landMark.locality;
-
-      return address ?? '';
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+    if (landMarks.isEmpty) {
+      return '';
     }
 
-    return '';
+    final Placemark landMark = landMarks.first;
+
+    String? address = landMark.thoroughfare ?? landMark.subLocality;
+    address = address ?? landMark.locality;
+
+    return address ?? '';
   }
 
   static Future<Position?> getCurrentPosition() async {
     try {
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+        desiredAccuracy: LocationAccuracy.medium,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 10),
+        timeLimit: const Duration(seconds: 60),
       );
     } on TimeoutException catch (exception, stackTrace) {
+      debugPrint(exception.message);
+      debugPrintStack(stackTrace: stackTrace);
+    } on PlatformException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
     } catch (exception, stackTrace) {
@@ -53,212 +143,120 @@ class LocationService {
         exception,
         stackTrace,
       );
-
-      try {
-        return await Geolocator.getLastKnownPosition(
-          forceAndroidLocationManager: true,
-        );
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
     }
 
     return null;
   }
 
   static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
-    int top = 5,
     Position? position,
   }) async {
-    try {
-      position ??= await getCurrentPosition();
-      var address = '';
+    position ??= await getCurrentPosition();
 
-      if (position == null) {
-        final geoCoordinates = await AirqoApiClient().getLocation();
-        position = Position(
-          longitude: geoCoordinates['longitude'] as double,
-          latitude: geoCoordinates['latitude'] as double,
-          timestamp: DateTime.now(),
-          accuracy: 0.0,
-          altitude: 0.0,
-          heading: 0.0,
-          speed: 0.0,
-          speedAccuracy: 0.0,
-        );
-      } else {
-        address = await getAddress(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-      }
-
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      if (airQualityReadings.isEmpty) {
+    if (position == null) {
+      final geoCoordinates = await AirqoApiClient().getLocation();
+      if (!geoCoordinates.keys.contains('latitude') ||
+          !geoCoordinates.keys.contains('longitude')) {
         return [];
       }
 
-      final nearestAirQualityReadings = <AirQualityReading>[];
-
-      for (final airQualityReading in airQualityReadings) {
-        final distanceInMeters = metersToKmDouble(
-          Geolocator.distanceBetween(
-            airQualityReading.latitude,
-            airQualityReading.longitude,
-            position.latitude,
-            position.longitude,
-          ),
-        );
-        nearestAirQualityReadings.add(
-          AirQualityReading.duplicate(airQualityReading).copyWith(
-            distanceToReferenceSite: distanceInMeters,
-          ),
-        );
-      }
-
-      final sortedReadings =
-          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
-              .take(top)
-              .toList();
-      if (address.isNotEmpty) {
-        sortedReadings.first = sortedReadings.first.copyWith(name: address);
-      }
-
-      return sortedReadings;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return [];
+      position = Position(
+        longitude: geoCoordinates['longitude'] as double,
+        latitude: geoCoordinates['latitude'] as double,
+        timestamp: DateTime.now(),
+        accuracy: 0.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+      );
     }
-  }
 
-  static Future<bool> allowLocationAccess() async {
-    final enabled = await PermissionService.checkPermission(
-      AppPermission.location,
-      request: true,
+    List<AirQualityReading> airQualityReadings = await getNearestSites(
+      position.latitude,
+      position.longitude,
     );
-    if (enabled) {
-      final profile = await Profile.getProfile();
+    airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
 
-      await Future.wait([
-        CloudAnalytics.logEvent(
-          AnalyticsEvent.allowLocation,
-        ),
-        profile.update(enableLocation: true),
-      ]);
-    }
-
-    return enabled;
-  }
-
-  static Future<void> revokePermission() async {
-    final profile = await Profile.getProfile();
-    await profile.update(enableLocation: false);
-  }
-
-  static Future<void> listenToLocationUpdates() async {
-    late LocationSettings locationSettings;
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      locationSettings = AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-        forceLocationManager: true,
-        intervalDuration: const Duration(seconds: 10),
-      );
-    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS) {
-      locationSettings = AppleSettings(
-        accuracy: LocationAccuracy.high,
-        activityType: ActivityType.fitness,
-        distanceFilter: 100,
-        pauseLocationUpdatesAutomatically: true,
-        showBackgroundLocationIndicator: false,
-      );
-    } else {
-      locationSettings = const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-      );
-    }
-
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position? position) async {
-        if (position != null) {
-          final nearbyAirQualityReadings =
-              await LocationService.getNearbyAirQualityReadings(
-            position: position,
-          );
-          await HiveService.updateNearbyAirQualityReadings(
-            nearbyAirQualityReadings,
-          );
-        }
-      },
-      onError: (error) {
-        debugPrint('error listening to locations : $error');
-      },
+    String address = await getAddress(
+      latitude: position.latitude,
+      longitude: position.longitude,
     );
+
+    if (airQualityReadings.isNotEmpty && address.isNotEmpty) {
+      airQualityReadings.first = airQualityReadings.first.copyWith(
+        name: address,
+      );
+    }
+
+    return airQualityReadings;
   }
 
-  static Future<AirQualityReading?> getNearestSiteAirQualityReading(
+  static Future<AirQualityReading?> getNearestSite(
     double latitude,
     double longitude,
   ) async {
-    try {
-      final nearestSites = await getNearestSites(latitude, longitude);
-      if (nearestSites.isEmpty) {
-        return null;
-      }
+    List<AirQualityReading> nearestSites = await getNearestSites(
+      latitude,
+      longitude,
+    );
 
-      var nearestSite = nearestSites.first;
-
-      for (final site in nearestSites) {
-        if (nearestSite.distanceToReferenceSite >
-            site.distanceToReferenceSite) {
-          nearestSite = site;
-        }
-      }
-
-      return nearestSite;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return null;
-    }
+    return nearestSites.isEmpty
+        ? null
+        : nearestSites.sortByDistanceToReferenceSite().first;
   }
 
   static Future<List<AirQualityReading>> getNearestSites(
     double latitude,
     double longitude,
   ) async {
-    final nearestSites = <AirQualityReading>[];
-    double distanceInMeters;
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    List<AirQualityReading> airQualityReadings =
+        HiveService.getAirQualityReadings();
 
-    for (final airQualityReading in airQualityReadings) {
-      distanceInMeters = metersToKmDouble(
+    airQualityReadings = airQualityReadings.map((element) {
+      final double distanceInMeters = metersToKmDouble(
         Geolocator.distanceBetween(
-          airQualityReading.latitude,
-          airQualityReading.longitude,
+          element.latitude,
+          element.longitude,
           latitude,
           longitude,
         ),
       );
-      if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-        nearestSites.add(airQualityReading.copyWith(
-          distanceToReferenceSite: distanceInMeters,
-        ));
-      }
+
+      return element.copyWith(distanceToReferenceSite: distanceInMeters);
+    }).toList();
+
+    return airQualityReadings
+        .where((element) =>
+            element.distanceToReferenceSite < Config.searchRadius.toDouble())
+        .toList();
+  }
+
+  static Future<AirQualityReading?> getSearchAirQuality(
+    SearchResult result,
+  ) async {
+    final SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(result);
+
+    if (searchResult == null) {
+      return null;
     }
 
-    return sortAirQualityReadingsByDistance(nearestSites);
+    AirQualityReading? airQualityReading = await LocationService.getNearestSite(
+      searchResult.latitude,
+      searchResult.longitude,
+    );
+
+    if (airQualityReading != null) {
+      airQualityReading = airQualityReading.copyWith(
+        name: searchResult.name,
+        location: searchResult.location,
+        latitude: searchResult.latitude,
+        longitude: searchResult.longitude,
+      );
+      await HiveService.updateSearchHistory(airQualityReading);
+    }
+
+    return airQualityReading;
   }
 }

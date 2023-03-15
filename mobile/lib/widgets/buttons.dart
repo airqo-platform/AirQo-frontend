@@ -2,6 +2,8 @@ import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../screens/home_page.dart';
+
 class NextButton extends StatelessWidget {
   const NextButton({
     super.key,
@@ -51,6 +53,20 @@ class NextButton extends StatelessWidget {
   }
 }
 
+Future<void> popNavigation(BuildContext context) async {
+  if (Navigator.canPop(context)) {
+    Navigator.pop(context);
+  } else {
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }),
+      (r) => false,
+    );
+  }
+}
+
 class AppBackButton extends StatelessWidget {
   const AppBackButton({
     super.key,
@@ -59,8 +75,8 @@ class AppBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
+      onTap: () async {
+        await popNavigation(context);
       },
       child: SvgPicture.asset(
         'assets/icon/back_button.svg',
@@ -138,6 +154,52 @@ class TabButton extends StatelessWidget {
                 : CustomColors.appColorBlue,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ActionButton extends StatelessWidget {
+  const ActionButton({
+    super.key,
+    required this.icon,
+    required this.text,
+  });
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      width: 197,
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              letterSpacing: 16 * -0.022,
+            ),
+          ),
+          const SizedBox(
+            width: 6,
+          ),
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 21,
+          ),
+        ],
       ),
     );
   }

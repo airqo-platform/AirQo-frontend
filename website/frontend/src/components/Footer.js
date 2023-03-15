@@ -153,16 +153,22 @@ const Footer = () => {
                   <Link to="/about-us">About</Link>
                 </span>
                 <span>
-                  <Link to="/contact">Contact</Link>
+                  <Link to="/careers">Careers</Link>
+                </span>
+                <span>
+                  <Link to="/publications">Publications</Link>
+                </span>
+                <span>
+                  <Link to="/events">Events</Link>
                 </span>
                 <span>
                   <Link to="/press">Press</Link>
                 </span>
                 <span>
-                  <Link to="/careers">Careers</Link>
+                  <Link to="/contact">Contact</Link>
                 </span>
                 <span>
-                  <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer">
+                  <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer noopener">
                     Blog
                   </a>
                 </span>
@@ -190,9 +196,11 @@ const Footer = () => {
             <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
             <div className="terms-section">
               <span className="text-terms mr-24">
-                <Link to="/terms">Terms of service</Link>
+                <Link to="/legal">Terms of Service</Link>
               </span>
-              {/* <span className="text-terms mr-24">Privacy policy</span> */}
+              <span className="text-terms mr-24">
+                <Link to="/legal">Privacy Policy</Link>
+              </span>
               {/* <span className="text-terms mr-24">Sustainability</span> */}
             </div>
           </div>

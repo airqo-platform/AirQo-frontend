@@ -9,9 +9,7 @@ import 'package:flutter/material.dart';
 import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
-  const LocationSetupScreen({
-    super.key,
-  });
+  const LocationSetupScreen({super.key});
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();
@@ -53,14 +51,16 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                   'Allow AirQo to send you location air '
                   'quality update for your work place, home',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
-                  onTap: _allowLocation,
+                  onTap: () async {
+                    await _allowLocation();
+                  },
                   child: NextButton(
                     text: 'Yes, keep me safe',
                     buttonColor: CustomColors.appColorBlue,
@@ -85,7 +85,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 child: Text(
                   'No, thanks',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),
@@ -104,10 +104,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   Future<void> _allowLocation() async {
-    loadingScreen(context);
-    await LocationService.allowLocationAccess().then(
+    await LocationService.requestLocation(context, true).then(
       (_) {
-        Navigator.pop(context);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(

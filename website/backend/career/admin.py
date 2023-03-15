@@ -33,11 +33,12 @@ class BulletDescriptionInline(nested_admin.NestedTabularInline):
 
 @admin.register(Career)
 class CareerAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('id', 'title', 'closing_date')
+    list_display = ('title','department', 'closing_date', 'author')
     readonly_fields = ('id', 'author', 'created', 'updated_by', 'modified')
 
     fields = ('id', "title", "department", "type", "apply_url", "closing_date", 'author', 'created', 'updated_by', 'modified')
     list_per_page = 10
-    search_fields = ('title',)
+    search_fields = ('title','department')
+    list_filter=('department','closing_date')
 
     inlines = (JobDescriptionInline, BulletDescriptionInline)

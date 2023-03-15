@@ -4,7 +4,10 @@ class AirQoUrls {
   static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
   static String get insights =>
-      '${Config.airqoApiUrl}view/measurements/app/insights';
+      '${Config.airqoApiUrl}view/measurements/mobile-app/insights';
+
+  static String get appVersion =>
+      '${Config.airqoApiUrl}view/mobile-app/version-info';
 
   static String get measurements => '${Config.airqoApiUrl}devices/events';
 

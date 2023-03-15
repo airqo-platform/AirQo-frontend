@@ -1,10 +1,21 @@
 @import "lib/variables";
+@import "lib/colors";
 
 .GetInvolvedModalWrapper {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  outline: none;
+  z-index: 999;
+  overflow-x: hidden;
+
+  align-items: center;
+  justify-content: center;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0 auto;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(12, 30, 68, 0.39);
+  transition: opacity 250ms 750ms ease;
 }
 
 .tab-active {
@@ -65,7 +76,6 @@
   max-height: 900px;
   margin: auto;
   outline: none;
-  overflow-y: scroll;
 
   .banner {
     display: flex;
@@ -121,7 +131,8 @@
     //max-width: 800px;
     height: 100%;
     background: white;
-    padding: 30px;
+    padding: 16px;
+    overflow-y: scroll;
 
     >span {
       display: flex;
@@ -149,6 +160,9 @@
       max-width: 320px;
       margin: 0 auto 0 auto;
 
+      a{
+        text-decoration: underline;
+      }
 
       .register-form {
         width: 100%;
@@ -265,6 +279,24 @@
     }
   }
 
+  ::-webkit-scrollbar{
+        width:8px;
+    }
+    ::-webkit-scrollbar-button{
+        display:none;
+    }
+    ::-webkit-scrollbar-track{
+        background: $aq-white-3;
+        opacity:0.2;
+    }
+    ::-webkit-scrollbar-thumb{
+        background: $aq-blue-0;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-corner{
+        border-radius: 10px;
+    }
+
   .complete {
     //display: flex;
     //flex-wrap: wrap;
@@ -346,6 +378,9 @@
 }
 
 @media(max-width: $mainBreakPoint) {
+  ::-webkit-scrollbar{
+        display: none;
+    }
   .GetInvolvedModalWrapper {
     display: flex;
     width: 100vw;
@@ -354,10 +389,13 @@
   }
 
   .GetInvolvedTab {
-    //padding: 0;
+    height: auto;
+    padding: 0 0px 5px 12px;
+    overflow-y: hidden;
     .img-placeholder {
       display: none;
     }
+
   }
 
   .GetInvolvedModal {
@@ -370,6 +408,28 @@
       display: flex;
       flex-wrap: wrap;
       width: 100%;
+      padding-bottom: 70px;
+
+      .form-section {
+        .register-form {
+          width: 100vw;
+          padding: 0 16px;
+            .form-field{ 
+              input[type="text"], input[type="email"] {
+              width: auto;
+            }
+          }
+        }
+        .section-button-row{
+          .register-btn{
+            width: 128px;
+            min-width: 0px;
+            margin-left: 16px;
+            height: 48px;
+          }
+        }
+      }
+
     }
   }
 

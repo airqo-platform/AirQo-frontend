@@ -15,33 +15,3 @@ String notificationIconToJson(String assetPath) {
       return 'airqo_logo';
   }
 }
-
-bool boolFromJson(dynamic json) {
-  return '$json'.toLowerCase() == 'true' ? true : false;
-}
-
-String boolToJson(bool boolValue) {
-  return boolValue ? 'true' : 'false';
-}
-
-String frequencyFromJson(String frequency) {
-  return frequency.toLowerCase();
-}
-
-String regionFromJson(dynamic json) {
-  if (json == null) {
-    return 'Central Region';
-  }
-  final regionJson = json as String;
-  if (regionJson.toLowerCase().contains('central')) {
-    return 'Central Region';
-  } else if (regionJson.toLowerCase().contains('east')) {
-    return 'Eastern Region';
-  } else if (regionJson.toLowerCase().contains('west')) {
-    return 'Western Region';
-  } else if (regionJson.toLowerCase().contains('north')) {
-    return 'Northern Region';
-  } else {
-    return 'Central Region';
-  }
-}

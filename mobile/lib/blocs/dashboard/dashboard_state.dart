@@ -1,38 +1,61 @@
 part of 'dashboard_bloc.dart';
 
+enum DashboardStatus {
+  loaded,
+  refreshing,
+  error,
+  loading,
+}
+
+enum DashboardError { noAirQuality, noInternetConnection, none }
+
 class DashboardState extends Equatable {
-  const DashboardState({
-    required this.greetings,
-    required this.airQualityReadings,
-    required this.loading,
+  const DashboardState._({
+    this.greetings = '',
+    this.airQualityReadings = const [],
+    this.status = DashboardStatus.loading,
+    this.error = DashboardError.none,
+    this.checkForUpdates = true,
   });
-  final String greetings;
-  final List<AirQualityReading> airQualityReadings;
-  final bool loading;
+
+  const DashboardState({
+    this.greetings = '',
+    this.airQualityReadings = const [],
+    this.status = DashboardStatus.loading,
+    this.error = DashboardError.none,
+    this.checkForUpdates = true,
+  });
 
   DashboardState copyWith({
     String? greetings,
     List<AirQualityReading>? airQualityReadings,
-    bool? loading,
+    DashboardStatus? status,
+    DashboardError? error,
+    bool? checkForUpdates,
   }) {
     return DashboardState(
       greetings: greetings ?? this.greetings,
-      loading: loading ?? this.loading,
       airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      status: status ?? this.status,
+      error: error ?? this.error,
+      checkForUpdates: checkForUpdates ?? this.checkForUpdates,
     );
   }
 
-  @override
-  List<Object> get props => [];
-}
+  const DashboardState.initial() : this._();
 
-class DashboardLoading extends DashboardState {
-  const DashboardLoading({
-    required super.greetings,
-    required super.airQualityReadings,
-    required super.loading,
-  });
+  final String greetings;
+  final List<AirQualityReading> airQualityReadings;
+  final DashboardStatus status;
+  final DashboardError error;
+  final bool checkForUpdates;
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [
+        greetings,
+        airQualityReadings,
+        status,
+        error,
+        checkForUpdates,
+      ];
 }

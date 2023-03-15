@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../settings/settings_page.dart';
 import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatelessWidget {
@@ -15,19 +16,30 @@ class AnalyticsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<AnalyticsBloc, AnalyticsState>(
       buildWhen: (previous, current) {
         return previous.analytics != current.analytics;
       },
       builder: (context, state) {
         if (state.analytics.isEmpty) {
-          context.read<AccountBloc>().add(const RefreshAnalytics());
+          context.read<AnalyticsBloc>().add(const RefreshAnalytics());
         }
 
-        final analytics = state.analytics.sortByDateTime();
+        List<Analytics> analytics = state.analytics.sortByDateTime();
 
         if (analytics.isEmpty) {
-          return Container(); // TODO replace with error page
+          return NoAnalyticsWidget(
+            callBack: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const SettingsPage();
+                  },
+                ),
+              );
+            },
+          );
         }
 
         return AppRefreshIndicator(
@@ -55,8 +67,10 @@ class AnalyticsView extends StatelessWidget {
             },
             childCount: analytics.length,
           ),
-          onRefresh: () async {
+          onRefresh: () {
             _refresh(context);
+
+            return Future(() => null);
           },
         );
       },
@@ -64,6 +78,6 @@ class AnalyticsView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshAnalytics());
+    context.read<AnalyticsBloc>().add(const RefreshAnalytics());
   }
 }

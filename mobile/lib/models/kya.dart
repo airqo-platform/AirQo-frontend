@@ -1,11 +1,15 @@
+import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import 'hive_type_id.dart';
 
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 30, adapterName: 'KyaAdapter')
+@HiveType(typeId: kyaTypeId)
 class Kya extends HiveObject with EquatableMixin {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
@@ -17,36 +21,78 @@ class Kya extends HiveObject with EquatableMixin {
     required this.progress,
     required this.completionMessage,
     required this.secondaryImageUrl,
+    required this.shareLink,
   });
 
-  @HiveField(1, defaultValue: 0)
-  @JsonKey(defaultValue: 0)
-  int progress;
-
   @HiveField(2)
-  String title;
+  final String title;
 
   @HiveField(
     3,
     defaultValue: 'You just finished your first Know You Air Lesson',
   )
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
-  String completionMessage;
+  final String completionMessage;
 
   @HiveField(4)
-  String imageUrl;
+  final String imageUrl;
 
   @HiveField(5)
   @JsonKey(defaultValue: '')
-  String secondaryImageUrl;
+  final String secondaryImageUrl;
 
   @HiveField(6)
-  String id;
+  final String id;
 
   @HiveField(7)
-  List<KyaLesson> lessons = [];
+  final List<KyaLesson> lessons;
+
+  @HiveField(8, defaultValue: 0)
+  @JsonKey(defaultValue: 0)
+  final double progress;
+
+  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
+  @HiveField(9, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareLink;
+
+  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+    final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
+
+    return Hive.box<Kya>(HiveBox.kya)
+        .values
+        .firstWhere((element) => element.id == id, orElse: () {
+      return Kya(
+        title: '',
+        imageUrl: '',
+        id: id,
+        lessons: [],
+        progress: 0,
+        completionMessage: '',
+        secondaryImageUrl: '',
+        shareLink: '',
+      );
+    });
+  }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  Kya copyWith({String? shareLink, double? progress}) {
+    return Kya(
+      title: title,
+      completionMessage: completionMessage,
+      imageUrl: imageUrl,
+      secondaryImageUrl: secondaryImageUrl,
+      id: id,
+      lessons: lessons,
+      progress: progress ?? this.progress,
+      shareLink: shareLink ?? this.shareLink,
+    );
+  }
+
+  String shareLinkParams() {
+    return 'kyaId=$id';
+  }
 
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';
@@ -69,7 +115,7 @@ class Kya extends HiveObject with EquatableMixin {
 }
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
+@HiveType(typeId: kyaLessonTypeId)
 class KyaLesson extends Equatable {
   const KyaLesson({
     required this.title,
@@ -101,4 +147,32 @@ class KyaLesson extends Equatable {
         imageUrl,
         body,
       ];
+}
+
+@JsonSerializable()
+class KyaProgress {
+  const KyaProgress({
+    required this.id,
+    required this.progress,
+  });
+
+  factory KyaProgress.fromJson(Map<String, dynamic> json) =>
+      _$KyaProgressFromJson(json);
+
+  factory KyaProgress.fromKya(Kya kya) => KyaProgress(
+        id: kya.id,
+        progress: kya.progress,
+      );
+
+  KyaProgress copyWith({double? progress}) {
+    return KyaProgress(
+      id: id,
+      progress: progress ?? this.progress,
+    );
+  }
+
+  final String id;
+  final double progress;
+
+  Map<String, dynamic> toJson() => _$KyaProgressToJson(this);
 }

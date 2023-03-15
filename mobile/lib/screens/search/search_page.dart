@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,114 +8,150 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'search_widgets.dart';
 
 class SearchPage extends StatelessWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
+    Future.delayed(Duration.zero, () {
+      context.read<SearchPageCubit>().showFiltering();
+      context.read<SearchBloc>().add(const InitializeSearchView());
+      context.read<SearchFilterBloc>().add(const InitializeSearchFilter());
+    });
 
     return Scaffold(
-      appBar: _SearchBar(),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        height: double.infinity,
-        width: double.infinity,
-        color: appColors.appBodyColor,
-        child: _SearchBody(),
+      appBar: const SearchBar(),
+      body: AppSafeArea(
+        horizontalPadding: 18,
+        widget: BlocBuilder<SearchPageCubit, SearchPageState>(
+          builder: (context, state) {
+            switch (state) {
+              case SearchPageState.filtering:
+                return const SearchFilterView();
+              case SearchPageState.searching:
+                return const SearchView();
+            }
+          },
+        ),
       ),
     );
   }
 }
 
-class _SearchBar extends StatefulWidget implements PreferredSizeWidget {
-  @override
-  State<_SearchBar> createState() => _SearchBarState();
-
-  @override
-  Size get preferredSize => const Size.fromHeight(60);
-}
-
-class _SearchBarState extends State<_SearchBar> {
-  final _textController = TextEditingController();
-  late SearchBloc _searchBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchBloc = context.read<SearchBloc>();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _textController.dispose();
-    _clearSearch();
-  }
+class SearchFilterView extends StatelessWidget {
+  const SearchFilterView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      toolbarHeight: 72,
-      elevation: 0,
-      backgroundColor: CustomColors.appBodyColor,
-      automaticallyImplyLeading: false,
-      leading: const Padding(
-        padding: EdgeInsets.only(
-          top: 5,
-          bottom: 6.5,
-          left: 16,
-        ),
-        child: AppBackButton(),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.only(top: 0),
-        child: SearchInputField(
-          textEditingController: _textController,
-          searchChanged: _searchChanged,
-        ),
-      ),
+    return BlocBuilder<SearchFilterBloc, SearchFilterState>(
+      builder: (context, state) {
+        switch (state.status) {
+          case SearchFilterStatus.loading:
+            return const SearchPageLoadingWidget();
+          case SearchFilterStatus.noInternetConnection:
+            return NoInternetConnectionWidget(
+              callBack: () {
+                context
+                    .read<SearchFilterBloc>()
+                    .add(const ReloadSearchFilter());
+              },
+            );
+          case SearchFilterStatus.noAirQualityData:
+            return NoAirQualityDataWidget(
+              callBack: () {
+                context
+                    .read<SearchFilterBloc>()
+                    .add(const ReloadSearchFilter());
+              },
+            );
+          case SearchFilterStatus.filterSuccessful:
+            return ListView(
+              children: [
+                SearchSection(
+                  title: state.filteredAirQuality?.searchNearbyLocationsText
+                          .toTitleCase() ??
+                      '',
+                  airQualityReadings: state.nearbyLocations,
+                ),
+                SearchSection(
+                  title: state.nearbyLocations.isEmpty
+                      ? state.filteredAirQuality?.searchOtherLocationsText
+                              .toTitleCase() ??
+                          ''
+                      : 'Other ${state.filteredAirQuality?.searchOtherLocationsText}'
+                          .toTitleCase(),
+                  airQualityReadings: state.otherLocations,
+                ),
+              ],
+            );
+          case SearchFilterStatus.initial:
+            return ListView(
+              children: [
+                SearchSection(
+                  maximumElements: 3,
+                  title: 'Recent Searches',
+                  airQualityReadings: state.recentSearches,
+                ),
+                const ExploreAfricanCitiesSection(),
+              ],
+            );
+          case SearchFilterStatus.filterFailed:
+            return const NoSearchResultsWidget(
+              message:
+                  'Try adjusting your filters to find what you’re looking for.',
+            );
+        }
+      },
     );
-  }
-
-  void _searchChanged(String text) {
-    _searchBloc.add(
-      SearchTermChanged(text: text),
-    );
-  }
-
-  void _clearSearch() {
-    _searchBloc.add(const SearchTermChanged(text: ''));
   }
 }
 
-class _SearchBody extends StatelessWidget {
+class SearchView extends StatelessWidget {
+  const SearchView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) {
-        if (state is SearchStateLoading) {
-          return const LoadingWidget();
+        Widget widget;
+        switch (state.status) {
+          case SearchStatus.noAirQualityData:
+            return NoAirQualityDataWidget(
+              callBack: () {
+                context.read<SearchBloc>().add(const InitializeSearchView());
+              },
+            );
+          case SearchStatus.noInternetConnection:
+            return NoInternetConnectionWidget(
+              callBack: () {
+                context.read<SearchBloc>().add(const InitializeSearchView());
+              },
+            );
+          case SearchStatus.autoCompleting:
+            return const AutoCompleteLoadingWidget();
+          case SearchStatus.autoCompleteFinished:
+            return const AutoCompleteResultsWidget();
+          case SearchStatus.initial:
+            widget = SearchSection(
+              title: 'Suggestions',
+              airQualityReadings: state.searchHistory,
+            );
+            break;
+          case SearchStatus.searchComplete:
+            widget = state.recommendations.isEmpty
+                ? const NoSearchResultsWidget()
+                : SearchSection(
+                    title:
+                        'Can\'t find air quality of ${state.searchTerm}?\nExplore these locations related to your search.',
+                    airQualityReadings: state.recommendations,
+                  );
+            break;
         }
 
-        if (state is SearchStateNearestLocations) {
-          return const NearbyLocations();
-        }
-
-        if (state is SearchStateLocationNotSupported) {
-          return const AirQualityNotAvailable();
-        }
-
-        if (state is SearchStateError) {
-          return SearchError(error: state.error);
-        }
-
-        if (state is SearchStateSuccess) {
-          return state.items.isEmpty
-              ? const SearchError(error: 'No Results')
-              : SearchResultsWidget(searchResultItems: state.items);
-        }
-
-        return const NearbyLocations();
+        return Container(
+          color: CustomColors.appBodyColor,
+          height: double.infinity,
+          child: widget,
+        );
       },
     );
   }

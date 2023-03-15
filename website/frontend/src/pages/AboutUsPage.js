@@ -17,12 +17,15 @@ import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import { usePartnersData } from '../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../reduxStore/Partners/operations';
 import { useNavigate } from 'react-router-dom';
+import { useBoardData } from '../../reduxStore/Board/selectors';
+import { loadBoardData } from '../../reduxStore/Board/operations';
 
 const AboutUsPage = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
   const teamData = useTeamData();
   const partnersData = usePartnersData();
+  const boardData = useBoardData();
   const navigate = useNavigate();
   const showModal = () => dispatch(showGetInvolvedModal(true));
 
@@ -51,6 +54,7 @@ const AboutUsPage = () => {
   useEffect(() => {
     if (isEmpty(teamData)) dispatch(loadTeamData());
     if (isEmpty(partnersData)) dispatch(loadPartnersData());
+    if (isEmpty(boardData)) dispatch(loadBoardData());
   }, []);
   return (
     <Page>
@@ -186,7 +190,7 @@ const AboutUsPage = () => {
           </div>
           <hr />
           <div className="AboutUsPage__team" id="team">
-            <div className='header'>
+            <div className="header">
               <h3 className="section-title">Meet the team</h3>
               <div>
                 <p className="section-info">
@@ -201,15 +205,53 @@ const AboutUsPage = () => {
               </div>
             </div>
             <div className="AboutUsPage__pictorial">
-              {teamData.map((member) => (
-                <Profile
-                  ImgPath={member.picture}
-                  name={member.name}
-                  title={member.title}
-                  twitter={member.twitter}
-                  linkedin={member.linked_in}
-                />
-              ))}
+              {teamData.length > 0 ? (
+                teamData.map((member) => (
+                  <div key={member.id}>
+                    <Profile
+                      ImgPath={member.picture}
+                      name={member.name}
+                      title={member.title}
+                      twitter={member.twitter}
+                      linkedin={member.linked_in}
+                      biography={member.descriptions}
+                      about={member.about}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div />
+              )}
+            </div>
+          </div>
+          <hr />
+          <div className="AboutUsPage__team" id="board">
+            <div className="header">
+              <h3 className="section-title">Meet the Board</h3>
+              <div>
+                <p className="section-info">
+                  A team of enthusiastic experts that offer guidance to enhance our growth and
+                  realisation of our goals.
+                </p>
+              </div>
+            </div>
+            <div className="AboutUsPage__pictorial">
+              {boardData.length > 0 ? (
+                boardData.map((member) => (
+                  <div key={member.id}>
+                    <Profile
+                      ImgPath={member.picture}
+                      name={member.name}
+                      title={member.title}
+                      twitter={member.twitter}
+                      linkedin={member.linked_in}
+                      biography={member.descriptions}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div />
+              )}
             </div>
           </div>
           <hr />
@@ -245,7 +287,7 @@ const AboutUsPage = () => {
                 ) : (
                   <span />
                 )}
-                {togglePartnersDisplay &&
+                {togglePartnersDisplay && partnerDataGroup.length > 0 ? (
                   partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
@@ -258,7 +300,10 @@ const AboutUsPage = () => {
                         </td>
                       ))}
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <div />
+                )}
               </tbody>
             </table>
             <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>

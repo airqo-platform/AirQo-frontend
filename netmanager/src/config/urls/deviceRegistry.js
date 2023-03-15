@@ -1,8 +1,7 @@
-import { stripTrailingSlash } from "../utils";
+import { stripTrailingSlash } from '../utils';
 
 const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_DEVICE_REGISTRY_URL ||
-    process.env.REACT_APP_BASE_URL
+  process.env.REACT_APP_BASE_DEVICE_REGISTRY_URL || process.env.REACT_APP_BASE_URL
 );
 
 export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities`;
@@ -39,13 +38,15 @@ export const DELETE_DEVICE_PHOTO = `${BASE_DEVICE_REGISTRY_URL}/devices/photos`;
 
 export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/recall`;
 
-export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events`;
+export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events?tenant=airqo`;
 
 export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 
-export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds`;
+export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds?tenant=airqo`;
 
 export const REFRESH_AIRQLOUD = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds/refresh`;
+
+export const DASHBOARD_AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds/dashboard`;
 
 export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL}/devices/decrypt`;
 

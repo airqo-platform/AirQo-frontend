@@ -1,0 +1,160 @@
+@import "lib/variables";
+@import "lib/colors";
+
+$tab_width: 160px;
+
+.list-page{
+    position: relative;
+    .nav{
+        grid-column: 2 / 3;
+        position: relative;
+        height: auto;
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-end;
+        span{
+            padding: 0;
+            width: fit-content;
+            height: fit-content;
+            margin-right: 25px;
+        }
+        button{
+            border:0px;
+            outline: none;
+            cursor: pointer;
+            padding:0 0 5px 0;
+            background-color: transparent;
+            height:32px;
+            font-size:14px;
+            font-weight: 400;
+            line-height: 20px;
+            flex-grow: 0;
+            border-bottom: 0px;
+            color:$aq-grey-0;
+            text-align: left;
+        }
+        button.selected{
+            border-bottom: 2px solid $aq-black-0;
+            color:$aq-black-0;
+            cursor: pointer;
+        }
+    }
+    .press-cards-lg{
+        .card-lg{
+            padding-bottom:90px;
+        }
+    }
+    .report-card{
+        grid-column: 2 / 3;
+        padding:60px 50px;
+        background-color: $aq-white-3;
+        margin: 40px 0;
+        .main-text{
+            font-size: 38px;
+            line-height: 40px;
+            color: $aq-blue-2;
+            font-weight: 400;
+            padding-bottom: 55px;
+        }
+        .author{
+            font-weight: 500;
+            font-size: 24px;
+            padding-bottom: 5px;
+        }
+        .team{
+            font-weight: 400;
+            font-size: 20px;
+        }
+        hr{
+            margin:50px 0px;
+        }
+        .link{
+            margin-top:70px;
+            cursor: pointer;
+            a{
+                border:1px solid $aq-black-0;
+                padding:16px 24px;
+            }
+        }
+    }
+    .card-container{
+        .title{
+            h2{
+                line-height: 36px;
+                font-size: 28px;
+                color:$aq-black-2;
+                font-weight: 600;
+                overflow-y: hidden;
+            }
+        }
+        .sub-title{
+            font-size:18px;
+            overflow-y: hidden;
+        }
+        .cta-links{
+            position: absolute;
+            margin-top:35px;
+            .a-link{
+                border:1px solid $aq-black-1;
+                border-radius: 10px;
+                padding:8px 16px;
+                height:35px;
+            }
+            .a-link:first-child{
+                margin-right: 30px;
+            }
+        }
+    }
+    .pagination{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-family: 'Inter';
+        li{
+            list-style: none;
+        }
+        li.page-item{
+            .page-link{
+                font-size: 25px;
+                margin-right: 16px;
+                cursor: pointer;
+            }
+            .page-number{
+                font-weight: 400;
+                font-size:25px;
+                color: $aq-black-0;
+                padding: 6px 12px;
+                border-radius: 8px;
+            }
+            .page-link.page-number:active{
+                background-color: $aq-blue-4;
+                color: #fff;
+            }
+        }
+    }
+}
+
+@media (max-width: $mainBreakPoint) {
+    .list-page{
+        .nav{
+            padding: 0 12px;
+            span{
+                padding-bottom: 2px;
+                margin-right: 10px;
+            }
+            button{
+                height: auto;
+                width: 92%;
+            }
+            button.selected{
+                border-bottom: 1px solid $aq-black-0;
+            }
+        }
+        .report-card{
+            padding: 60px 20px;
+        }
+    }
+}

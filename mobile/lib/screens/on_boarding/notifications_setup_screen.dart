@@ -9,9 +9,7 @@ import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
-  const NotificationsSetupScreen({
-    super.key,
-  });
+  const NotificationsSetupScreen({super.key});
 
   @override
   NotificationsSetupScreenState createState() =>
@@ -53,14 +51,16 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 child: Text(
                   'Get notified when air quality is getting better or worse',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
-                  onTap: _allowNotifications,
+                  onTap: () async {
+                    await _allowNotifications();
+                  },
                   child: NextButton(
                     text: 'Yes, keep me updated',
                     buttonColor: CustomColors.appColorBlue,
@@ -83,7 +83,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 child: Text(
                   'No, thanks',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),
@@ -102,10 +102,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   }
 
   Future<void> _allowNotifications() async {
-    loadingScreen(context);
-    await NotificationService.allowNotifications().then(
+    await NotificationService.requestNotification(context, true).then(
       (_) {
-        Navigator.pop(context);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {

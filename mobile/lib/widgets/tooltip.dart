@@ -119,7 +119,6 @@ class ToolTip {
     dismissCallback?.call();
   }
 
-  // TODO: change forecast wording
   RichText getToolTipText() {
     switch (_tipType) {
       case ToolTipType.favouritePlaces:
@@ -227,7 +226,7 @@ class ToolTip {
       return buildPopupLayout(_offset);
     });
 
-    Overlay.of(context)!.insert(_entry);
+    Overlay.of(context).insert(_entry);
     _isVisible = true;
   }
 

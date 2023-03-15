@@ -21,9 +21,7 @@ import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
 
 class LogoutButton extends StatelessWidget {
-  const LogoutButton({
-    super.key,
-  });
+  const LogoutButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +83,11 @@ class SignUpSection extends StatelessWidget {
             padding: const EdgeInsets.only(left: 55.0, right: 55.0),
             child: AutoSizeText(
               'Create your account today and enjoy air quality'
-              ' updates and recommendations.',
+              ' updates and health tips.',
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.subtitle2?.copyWith(
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.4),
                   ),
             ),
@@ -176,8 +174,8 @@ class SettingsButton extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: SvgPicture.asset(
-                'assets/icon/cog.svg',
+              child: Icon(
+                Icons.settings_rounded,
                 color: CustomColors.appColorBlue,
               ),
             ),
@@ -185,7 +183,7 @@ class SettingsButton extends StatelessWidget {
           title: AutoSizeText(
             'Settings',
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
       ),
@@ -415,13 +413,15 @@ class ViewNotificationIcon extends StatelessWidget {
 class CardSection extends StatelessWidget {
   const CardSection({
     super.key,
-    required this.icon,
+    this.icon,
     required this.iconColor,
     required this.text,
+    this.materialIcon,
   });
-  final String icon;
+  final String? icon;
   final String text;
   final Color? iconColor;
+  final IconData? materialIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -442,13 +442,18 @@ class CardSection extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: SvgPicture.asset(icon, color: iconColor),
+            child: icon != null
+                ? SvgPicture.asset(icon!, color: iconColor)
+                : Icon(
+                    materialIcon,
+                    color: iconColor,
+                  ),
           ),
         ),
         title: AutoSizeText(
           text,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     );
@@ -490,7 +495,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             },
             child: CardSection(
               text: 'Profile',
-              icon: 'assets/icon/profile.svg',
+              materialIcon: Icons.person_rounded,
               iconColor: CustomColors.appColorBlue,
             ),
           ),
@@ -550,7 +555,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             },
             child: CardSection(
               text: 'Settings',
-              icon: 'assets/icon/cog.svg',
+              materialIcon: Icons.settings_rounded,
               iconColor: CustomColors.appColorBlue,
             ),
           ),
@@ -698,7 +703,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 },
                 child: Text(
                   'Save',
-                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: profile != hiveProfile
                             ? CustomColors.appColorBlue
                             : CustomColors.appColorBlack.withOpacity(0.2),

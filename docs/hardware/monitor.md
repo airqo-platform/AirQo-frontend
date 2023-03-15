@@ -156,7 +156,7 @@ discharge.
 
 #### Basic maintenance toolkit
 
-Essential tools: Simple dust blowing mechanism
+Essential tools: Simple dust blowing mechanism <br>
 Optional tools: spare sensors
 
 ##### Troubleshooting

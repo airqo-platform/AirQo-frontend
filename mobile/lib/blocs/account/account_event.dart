@@ -16,30 +16,6 @@ class LoadAccountInfo extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class RefreshAnalytics extends AccountEvent {
-  const RefreshAnalytics();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshNotifications extends AccountEvent {
-  const RefreshNotifications();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshFavouritePlaces extends AccountEvent {
-  const RefreshFavouritePlaces();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshKya extends AccountEvent {
-  const RefreshKya();
-  @override
-  List<Object?> get props => [];
-}
-
 class RefreshProfile extends AccountEvent {
   const RefreshProfile();
   @override
@@ -102,18 +78,6 @@ class UpdateProfile extends AccountEvent {
   List<Object?> get props => [];
 }
 
-class UpdateKyaProgress extends AccountEvent {
-  const UpdateKyaProgress({
-    required this.kya,
-    required this.progress,
-  });
-  final int progress;
-  final Kya kya;
-
-  @override
-  List<Object?> get props => [progress, kya];
-}
-
 class UpdateProfilePreferences extends AccountEvent {
   const UpdateProfilePreferences({
     this.notifications,
@@ -124,11 +88,4 @@ class UpdateProfilePreferences extends AccountEvent {
 
   @override
   List<Object?> get props => [location, notifications];
-}
-
-class UpdateFavouritePlace extends AccountEvent {
-  const UpdateFavouritePlace(this.airQualityReading);
-  final AirQualityReading airQualityReading;
-  @override
-  List<Object?> get props => [airQualityReading];
 }

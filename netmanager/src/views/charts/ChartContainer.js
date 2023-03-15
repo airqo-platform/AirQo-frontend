@@ -1,11 +1,12 @@
-import React from "react";
-import PropTypes from "prop-types";
-import FullscreenIcon from "@material-ui/icons/Fullscreen";
-import AccessTime from "@material-ui/icons/AccessTime";
-import { humanReadableDate } from "utils/dateTime";
+import React from 'react';
+import PropTypes from 'prop-types';
+import FullscreenIcon from '@material-ui/icons/Fullscreen';
+import AccessTime from '@material-ui/icons/AccessTime';
+import { humanReadableDate } from 'utils/dateTime';
 
 // css
-import "assets/css/chart-container.css";
+import 'assets/css/chart-container.css';
+import { CircularProgress } from '@material-ui/core';
 
 const ChartContainer = ({
   className,
@@ -17,37 +18,33 @@ const ChartContainer = ({
   footerContent,
   controller,
   children,
+  loading
 }) => {
-  const titleStyle =
-    (blue && "title-blue") || (green && "title-green") || "title-default";
+  const titleStyle = (blue && 'title-blue') || (green && 'title-green') || 'title-default';
   return (
-    <div className={className || "chart-container-wrapper"}>
+    <div className={className || 'chart-container-wrapper'}>
       <div className={`chart-title-wrapper ${titleStyle}`}>
-        <span className={"chart-title"}>{title}</span>
-        <span className={"chart-control"}>
+        <span className={'chart-title'}>{title}</span>
+        <span className={'chart-control'}>
           {controller}
           <FullscreenIcon />
         </span>
       </div>
-      <div
-        className={`chart-body ${
-          (centerItems && "chart-flex-center-body") || ""
-        }`}
-      >
-        {children}
+      <div className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''}`}>
+        {loading ? <CircularProgress /> : children}
       </div>
-      <div className={"chart-footer"}>
+      <div className={'chart-footer'}>
         {lastUpdated && (
           <span>
-            <AccessTime /> Last updated{" "}
+            <AccessTime /> Last updated{' '}
             {humanReadableDate(lastUpdated, {
               format: {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-              },
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+              }
             })}
           </span>
         )}
@@ -69,7 +66,7 @@ ChartContainer.propTypes = {
   centerItems: PropTypes.bool,
   footerContent: PropTypes.any,
   controller: PropTypes.any,
-  children: PropTypes.element,
+  children: PropTypes.element
 };
 
 export default ChartContainer;

@@ -26,11 +26,10 @@ const setAuthToken = (token) => {
       return { ...config, params: { tenant, ...params } };
     });
   } else {
-    // Delete auth header
-    delete axios.defaults.headers.common['Authorization'];
-    localStorage.removeItem('mapStyle');
-    localStorage.removeItem('mapMode');
-    localStorage.removeItem('pollutant');
+    // Update auth header token to support data access for non-auth users
+    axios.defaults.headers.common[
+      'Authorization'
+    ] = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
   }
 };
 export default setAuthToken;

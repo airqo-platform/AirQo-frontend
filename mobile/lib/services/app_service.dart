@@ -1,10 +1,13 @@
-import 'package:app/constants/constants.dart';
+import 'dart:io';
+
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
@@ -41,7 +44,7 @@ class AppService {
         if (reAuthentication) {
           final cloudStoreDeletion = await CloudStore.deleteAccount();
           final logging =
-              await CloudAnalytics.logEvent(AnalyticsEvent.deletedAccount);
+              await CloudAnalytics.logEvent(CloudAnalyticsEvent.deletedAccount);
           final localStorageDeletion = await _clearUserLocalStorage();
           if (cloudStoreDeletion && logging && localStorageDeletion) {
             authSuccessful = await CustomAuth.deleteAccount();
@@ -79,6 +82,33 @@ class AppService {
     return authSuccessful;
   }
 
+  static Future<Kya?> getKya(String id) async {
+    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
+        .values
+        .where((element) => element.id == id)
+        .toList();
+
+    if (kya.isNotEmpty) {
+      return kya.first;
+    }
+
+    final bool isConnected = await hasNetworkConnection();
+    if (!isConnected) {
+      throw NetworkConnectionException('No internet Connection');
+    }
+
+    try {
+      kya = await CloudStore.getKya();
+      kya = kya.where((element) => element.id == id).toList();
+
+      return kya.isEmpty ? null : kya.first;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+
+      return null;
+    }
+  }
+
   Future<bool> doesUserExist({
     String? phoneNumber,
     String? emailAddress,
@@ -102,87 +132,40 @@ class AppService {
     }
   }
 
-  Future<void> fetchData(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      fetchFavPlacesInsights(),
-      updateFavouritePlacesReferenceSites(),
-      Profile.syncProfile(),
-    ]);
-  }
-
-  Future<void> fetchFavPlacesInsights() async {
-    try {
-      final favPlaces =
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-      final placeIds = <String>[];
-
-      for (final favPlace in favPlaces) {
-        placeIds.add(favPlace.referenceSite);
-      }
-      await fetchInsights(
-        placeIds,
-        reloadDatabase: true,
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  Future<List<Insights>> fetchInsights(
-    List<String> siteIds, {
+  Future<InsightData> fetchInsightsData(
+    String siteId, {
     Frequency? frequency,
-    bool reloadDatabase = false,
   }) async {
-    final insights = <Insights>[];
-    final futures = <Future<List<Insights>>>[];
+    InsightData insights = await AirqoApiClient().fetchInsightsData(siteId);
 
-    for (var i = 0; i < siteIds.length; i = i + 2) {
-      final site1 = siteIds[i];
-      try {
-        final site2 = siteIds[i + 1];
-        futures.add(AirqoApiClient().fetchSitesInsights('$site1,$site2'));
-      } catch (e) {
-        futures.add(AirqoApiClient().fetchSitesInsights(site1));
-      }
-    }
-
-    final sitesInsights = await Future.wait(futures);
-    for (final result in sitesInsights) {
-      insights.addAll(result);
-    }
-
-    await DBHelper().insertInsights(
-      insights,
-      siteIds,
-      reloadDatabase: reloadDatabase,
-    );
+    await AirQoDatabase().insertHistoricalInsights(insights.historical);
+    await AirQoDatabase().insertForecastInsights(insights.forecast);
 
     if (frequency != null) {
-      return insights
-          .where((element) => element.frequency == frequency.toString())
+      final historical = insights.historical
+          .where((element) => element.frequency == frequency)
           .toList();
+      final forecast = insights.forecast
+          .where((element) => element.frequency == frequency)
+          .toList();
+
+      return InsightData(forecast: forecast, historical: historical);
     }
 
     return insights;
   }
 
-  Future<void> refreshAirQualityReadings() async {
+  Future<bool> refreshAirQualityReadings() async {
     try {
-      final siteReadings = await AppRepository(
-        airqoApiKey: Config.airqoApiToken,
-        baseUrl: Config.airqoApiUrl,
-      ).getSitesReadings();
-      await HiveService.updateAirQualityReadings(siteReadings);
+      final airQualityReadings =
+          await AirqoApiClient().fetchAirQualityReadings();
+      await HiveService.updateAirQualityReadings(airQualityReadings);
+
+      return true;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      logException(exception, stackTrace);
+
+      return false;
     }
   }
 
@@ -213,12 +196,43 @@ class AppService {
     }
   }
 
+  Future<void> setShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, true);
+  }
+
+  Future<void> stopShowcase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, false);
+  }
+
+  Future<void> clearShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(Config.homePageShowcase);
+    await prefs.remove(Config.forYouPageShowcase);
+    await prefs.remove(Config.settingsPageShowcase);
+    await prefs.setBool(Config.restartTourShowcase, true);
+  }
+
+  Future<void> navigateShowcaseToScreen(
+    BuildContext context,
+    Widget screen,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => screen,
+        ),
+    );
+  }
+
   Future<void> _postSignUpActions() async {
     try {
       await Future.wait([
         Profile.getProfile(),
         CloudAnalytics.logEvent(
-          AnalyticsEvent.createUserProfile,
+          CloudAnalyticsEvent.createUserProfile,
         ),
         CloudAnalytics.logNetworkProvider(),
         CloudAnalytics.logPlatformType(),
@@ -254,23 +268,12 @@ class AppService {
     return false;
   }
 
-  Future<void> refreshDashboard(BuildContext buildContext) async {
-    await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
-      refreshAirQualityReadings(),
-      updateFavouritePlacesReferenceSites(),
-    ]);
-  }
-
   Future<void> updateFavouritePlacesReferenceSites() async {
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     final updatedFavouritePlaces = <FavouritePlace>[];
     for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+      final nearestSite = await LocationService.getNearestSite(
         favPlace.latitude,
         favPlace.longitude,
       );
@@ -282,5 +285,36 @@ class AppService {
       }
     }
     await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
+  }
+
+  Future<AppStoreVersion?> latestVersion() async {
+    AppStoreVersion? appStoreVersion;
+
+    try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      if (Platform.isAndroid) {
+        appStoreVersion = await AirqoApiClient()
+            .getAppVersion(packageName: packageInfo.packageName);
+      } else if (Platform.isIOS) {
+        appStoreVersion = await AirqoApiClient()
+            .getAppVersion(bundleId: packageInfo.packageName);
+      } else {
+        return appStoreVersion;
+      }
+
+      if (appStoreVersion == null) return null;
+
+      return appStoreVersion.compareVersion(packageInfo.version) >= 1
+          ? appStoreVersion
+          : null;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return appStoreVersion;
   }
 }

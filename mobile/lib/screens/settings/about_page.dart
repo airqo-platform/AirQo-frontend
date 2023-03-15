@@ -7,9 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class AboutAirQo extends StatefulWidget {
-  const AboutAirQo({
-    super.key,
-  });
+  const AboutAirQo({super.key});
 
   @override
   State<AboutAirQo> createState() => _AboutAirQoState();
@@ -51,7 +49,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
               ),
               Text(
                 _packageInfo.version,
-                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.5),
                     ),
               ),
@@ -72,7 +70,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 },
                 child: Text(
                   'Terms & Privacy Policy',
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
                 ),

@@ -26,9 +26,7 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 }
 
 class OnBoardingLocationIcon extends StatelessWidget {
-  const OnBoardingLocationIcon({
-    super.key,
-  });
+  const OnBoardingLocationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +48,7 @@ class OnBoardingLocationIcon extends StatelessWidget {
 }
 
 class OnBoardingNotificationIcon extends StatelessWidget {
-  const OnBoardingNotificationIcon({
-    super.key,
-  });
+  const OnBoardingNotificationIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +89,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
+        await Future.delayed(
           const Duration(milliseconds: 250),
           () {
             showTileOptionsCallBack(true);
@@ -179,9 +175,7 @@ class TitleDropDown extends StatelessWidget {
 }
 
 class LogoWidget extends StatelessWidget {
-  const LogoWidget({
-    super.key,
-  });
+  const LogoWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +216,7 @@ class TaglineWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
-                  .headline4
+                  .headlineMedium
                   ?.copyWith(color: Colors.white),
             ),
           ],

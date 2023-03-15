@@ -1,14 +1,15 @@
 import 'package:app/models/models.dart';
-import 'package:app_repository/app_repository.dart';
+import 'package:app/services/services.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../constants/config.dart';
+import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
-@JsonSerializable()
-@HiveType(typeId: 50, adapterName: 'AirQualityReadingAdapter')
+@HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject {
   AirQualityReading({
     required this.referenceSite,
@@ -24,63 +25,142 @@ class AirQualityReading extends HiveObject {
     required this.pm10,
     required this.distanceToReferenceSite,
     required this.placeId,
+    required this.shareLink,
   });
 
-  factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
-      _$AirQualityReadingFromJson(json);
+  factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
+    DateTime dateTime = DateTime.parse(json["time"] as String);
+    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
+    PollutantValue pm2_5 =
+        PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
+    PollutantValue pm10 =
+        PollutantValue.fromJson(json["pm10"] as Map<String, dynamic>);
 
-  factory AirQualityReading.fromSiteReading(SiteReading siteReading) {
+    Site site = Site.fromJson(json["siteDetails"] as Map<String, dynamic>);
+
+    if (pm2_5.displayValue() == null) {
+      throw Exception("pm2.5 is null for site ${site.getName()}");
+    }
+
     return AirQualityReading(
-      referenceSite: siteReading.siteId,
-      latitude: siteReading.latitude,
-      longitude: siteReading.longitude,
-      country: siteReading.country,
-      name: siteReading.name,
-      location: siteReading.location,
-      region: Region.fromString(siteReading.region),
-      source: siteReading.source,
-      dateTime: siteReading.dateTime,
-      pm2_5: siteReading.pm2_5,
-      pm10: siteReading.pm10,
       distanceToReferenceSite: 0.0,
-      placeId: siteReading.siteId,
+      dateTime: dateTime,
+      placeId: site.id,
+      referenceSite: site.id,
+      latitude: site.latitude,
+      longitude: site.longitude,
+      country: site.country,
+      region: site.region,
+      source: site.source,
+      pm2_5: pm2_5.displayValue()!,
+      pm10: pm10.displayValue(),
+      name: site.getName(),
+      location: site.getLocation(),
+      shareLink: site.getShareLink(),
     );
   }
 
   factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    return AirQualityReading(
+    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    ).values.firstWhere(
+      (element) => element.referenceSite == favouritePlace.referenceSite,
+      orElse: () {
+        return AirQualityReading(
+          referenceSite: favouritePlace.referenceSite,
+          source: '',
+          latitude: favouritePlace.latitude,
+          longitude: favouritePlace.longitude,
+          country: '',
+          name: favouritePlace.name,
+          location: favouritePlace.location,
+          region: '',
+          dateTime: DateTime.now(),
+          pm2_5: 0,
+          pm10: 0,
+          distanceToReferenceSite: 0,
+          placeId: favouritePlace.placeId,
+          shareLink: '',
+        );
+      },
+    );
+
+    return airQualityReading.copyWith(
       referenceSite: favouritePlace.referenceSite,
       latitude: favouritePlace.latitude,
       longitude: favouritePlace.longitude,
-      country: favouritePlace.location,
       name: favouritePlace.name,
       location: favouritePlace.location,
-      region: Region.fromString(''),
-      source: favouritePlace.location,
-      dateTime: DateTime.now(),
-      pm2_5: 0.0,
-      pm10: 0.0,
-      distanceToReferenceSite: 0.0,
       placeId: favouritePlace.placeId,
     );
   }
 
-  factory AirQualityReading.duplicate(AirQualityReading airQualityReading) {
-    return AirQualityReading(
-      referenceSite: airQualityReading.referenceSite,
-      source: airQualityReading.referenceSite,
-      latitude: airQualityReading.latitude,
-      longitude: airQualityReading.longitude,
-      country: airQualityReading.country,
-      name: airQualityReading.name,
-      location: airQualityReading.location,
-      region: airQualityReading.region,
-      dateTime: airQualityReading.dateTime,
-      pm2_5: airQualityReading.pm2_5,
-      pm10: airQualityReading.pm10,
-      distanceToReferenceSite: airQualityReading.distanceToReferenceSite,
-      placeId: airQualityReading.placeId,
+  factory AirQualityReading.fromDynamicLink(
+    PendingDynamicLinkData dynamicLinkData,
+  ) {
+    String referenceSite =
+        dynamicLinkData.link.queryParameters['referenceSite'] ?? '';
+    String placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
+    String name = dynamicLinkData.link.queryParameters['name'] ?? '';
+    String location = dynamicLinkData.link.queryParameters['location'] ?? '';
+    String latitude = dynamicLinkData.link.queryParameters['latitude'] ?? '0.0';
+    String longitude =
+        dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
+
+    AirQualityReading airQualityReading =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .values
+            .firstWhere(
+      (element) => element.referenceSite == referenceSite,
+      orElse: () {
+        String country = dynamicLinkData.link.queryParameters['country'] ?? '';
+        String source = dynamicLinkData.link.queryParameters['source'] ?? '';
+        String shareLink =
+            dynamicLinkData.link.queryParameters['shareLink'] ?? '';
+        String region = dynamicLinkData.link.queryParameters['region'] ?? '';
+        String distanceToReferenceSite =
+            dynamicLinkData.link.queryParameters['distanceToReferenceSite'] ??
+                '';
+
+        return AirQualityReading(
+          referenceSite: referenceSite,
+          source: source,
+          latitude: latitude as double,
+          longitude: longitude as double,
+          country: country,
+          name: name,
+          location: location,
+          region: region,
+          dateTime: DateTime.now(),
+          pm2_5: 0.0,
+          pm10: 0.0,
+          distanceToReferenceSite: distanceToReferenceSite as double,
+          placeId: placeId,
+          shareLink: shareLink,
+        );
+      },
     );
+
+    return airQualityReading.copyWith(
+      placeId: placeId,
+      name: name,
+      location: location,
+      latitude: double.parse(latitude),
+      longitude: double.parse(longitude),
+    );
+  }
+
+  String shareLinkParams() {
+    return 'placeId=$placeId'
+        '&referenceSite=$referenceSite'
+        '&name=$name'
+        '&location=$location'
+        '&latitude=$latitude'
+        '&longitude=$longitude'
+        '&country=$country'
+        '&source=$source'
+        '&distanceToReferenceSite=$distanceToReferenceSite'
+        '&region=$region';
   }
 
   AirQualityReading copyWith({
@@ -88,19 +168,21 @@ class AirQualityReading extends HiveObject {
     String? placeId,
     String? name,
     String? location,
+    String? country,
     String? referenceSite,
     double? latitude,
     double? longitude,
     DateTime? dateTime,
     double? pm2_5,
     double? pm10,
+    String? shareLink,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
       source: source,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      country: country,
+      country: country ?? this.country,
       name: name ?? this.name,
       location: location ?? this.location,
       region: region,
@@ -110,104 +192,146 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
+      shareLink: shareLink ?? this.shareLink,
     );
   }
 
-  AirQualityReading populateFavouritePlace(FavouritePlace favouritePlace) {
-    return AirQualityReading.duplicate(
-      AirQualityReading(
-        placeId: favouritePlace.placeId,
-        latitude: favouritePlace.latitude,
-        longitude: favouritePlace.longitude,
-        name: favouritePlace.name,
-        location: favouritePlace.location,
-        referenceSite: referenceSite,
-        source: source,
-        country: country,
-        region: region,
-        dateTime: dateTime,
-        pm2_5: pm2_5,
-        pm10: pm10,
-        distanceToReferenceSite: distanceToReferenceSite,
-      ),
-    );
-  }
-
-  @HiveField(0)
-  @JsonKey(defaultValue: '')
+  @HiveField(0, defaultValue: '')
   final String referenceSite;
 
   @HiveField(1)
-  @JsonKey(defaultValue: 0.0)
   final double latitude;
 
   @HiveField(2)
-  @JsonKey(defaultValue: 0.0)
   final double longitude;
 
-  @HiveField(3)
-  @JsonKey(defaultValue: '')
+  @HiveField(3, defaultValue: '')
   final String country;
 
-  @HiveField(4)
-  @JsonKey(defaultValue: '')
+  @HiveField(4, defaultValue: '')
   final String name;
 
-  @HiveField(5)
-  @JsonKey(defaultValue: '')
+  @HiveField(5, defaultValue: '')
   final String source;
 
-  @HiveField(6)
-  @JsonKey(defaultValue: '')
+  @HiveField(6, defaultValue: '')
   final String location;
-
-  @HiveField(7)
-  @RegionConverter()
-  final Region region;
 
   @HiveField(8)
   final DateTime dateTime;
 
   @HiveField(9)
-  @JsonKey(defaultValue: 0.0)
   final double pm2_5;
 
   @HiveField(10)
-  @JsonKey(defaultValue: 0.0)
-  final double pm10;
+  final double? pm10;
 
-  @HiveField(11)
-  @JsonKey(defaultValue: 0.0)
+  @HiveField(11, defaultValue: 0.0)
   final double distanceToReferenceSite;
 
-  @HiveField(12)
-  @JsonKey(defaultValue: '')
+  @HiveField(12, defaultValue: '')
   final String placeId;
 
-  Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
+  @HiveField(13, defaultValue: '')
+  final String region;
+
+  @HiveField(14, defaultValue: '')
+  @JsonKey(defaultValue: '')
+  final String shareLink;
 }
 
-List<AirQualityReading> sortAirQualityReadingsByDistance(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings.sort(
-    (x, y) {
-      return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-    },
-  );
+@JsonSerializable(createToJson: false)
+class PollutantValue {
+  factory PollutantValue.fromJson(Map<String, dynamic> json) =>
+      _$PollutantValueFromJson(json);
 
-  return airQualityReadings;
+  const PollutantValue({
+    required this.value,
+    required this.calibratedValue,
+  });
+
+  @JsonKey(
+    required: false,
+    name: 'calibratedValue',
+    fromJson: _valueFromJson,
+    includeIfNull: true,
+  )
+  final double? calibratedValue;
+
+  @JsonKey(required: false, name: 'value', fromJson: _valueFromJson)
+  final double? value;
+
+  double? displayValue() {
+    return calibratedValue ?? value;
+  }
+
+  static double? _valueFromJson(dynamic json) {
+    return json == null
+        ? null
+        : double.parse(double.parse("$json").toStringAsFixed(2));
+  }
 }
 
-List<AirQualityReading> filterNearestLocations(
-  List<AirQualityReading> airQualityReadings,
-) {
-  airQualityReadings = airQualityReadings
-      .where(
-        (element) => element.distanceToReferenceSite <= Config.searchRadius,
-      )
-      .toList();
-  airQualityReadings = sortAirQualityReadingsByDistance(airQualityReadings);
+@JsonSerializable(createToJson: false)
+class Site {
+  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
-  return airQualityReadings;
+  const Site({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.name,
+    required this.description,
+    required this.searchName,
+    required this.searchLocation,
+    required this.country,
+    required this.region,
+    required this.source,
+    required this.shareLinks,
+  });
+
+  @JsonKey(required: true, name: '_id')
+  final String id;
+
+  @JsonKey(required: true, name: 'approximate_latitude')
+  final double latitude;
+
+  @JsonKey(required: true, name: 'approximate_longitude')
+  final double longitude;
+
+  @JsonKey(required: true)
+  final String name;
+
+  @JsonKey(required: true)
+  final String description;
+
+  @JsonKey(required: false, defaultValue: '', name: 'search_name')
+  final String searchName;
+
+  @JsonKey(required: false, defaultValue: '', name: 'location_name')
+  final String searchLocation;
+
+  @JsonKey(required: false, defaultValue: '')
+  final String country;
+
+  @JsonKey(required: false, defaultValue: '')
+  final String region;
+
+  @JsonKey(required: false, defaultValue: '', name: 'network')
+  final String source;
+
+  @JsonKey(required: false, defaultValue: {}, name: "share_links")
+  final Map<String, dynamic> shareLinks;
+
+  String getName() {
+    return searchName.isEmpty ? name : searchName;
+  }
+
+  String getLocation() {
+    return searchLocation.isEmpty ? description : searchLocation;
+  }
+
+  String getShareLink() {
+    return (shareLinks["short_link"] ?? "") as String;
+  }
 }

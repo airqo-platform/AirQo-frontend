@@ -8,6 +8,7 @@ import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
@@ -47,8 +48,32 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
-  Future<Map<String, dynamic>> getLocation() async {
-    var ipAddress = '';
+  Future<AppStoreVersion?> getAppVersion({
+    String bundleId = "",
+    String packageName = "",
+  }) async {
+    try {
+      final body = await _performGetRequest(
+        {
+          "bundleId": bundleId,
+          "packageName": packageName,
+        },
+        AirQoUrls.appVersion,
+      );
+
+      return AppStoreVersion.fromJson(body['data']);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
+  Future<Map<String, double>> getLocation() async {
+    String ipAddress = '';
     try {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
@@ -65,10 +90,15 @@ class AirqoApiClient {
       final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
           : <String, dynamic>{};
-      final response =
-          await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
+      final response = await _performGetRequest(
+        params,
+        AirQoUrls.ipGeoCoordinates,
+      );
 
-      return response['data'];
+      return {
+        'latitude': response['data']['latitude'] as double,
+        'longitude': response['data']['longitude'] as double,
+      };
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -135,25 +165,28 @@ class AirqoApiClient {
     return json.decode(response.body)['status'] as bool;
   }
 
-  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
+  Future<InsightData> fetchInsightsData(String siteId) async {
     try {
-      final utcNow = DateTime.now().toUtc();
+      final now = DateTime.now();
+      final utcNow = now.toUtc();
       final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
       final endDateTime = '${DateFormat('yyyy-MM-dd').format(
         utcNow.getLastDateOfCalendarMonth(),
       )}T23:59:59Z';
 
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteIds)
-        ..putIfAbsent('startDateTime', () => startDateTime)
-        ..putIfAbsent('endDateTime', () => endDateTime);
+      final queryParams = <String, dynamic>{
+        'siteId': siteId,
+        'utcOffset': now.getUtcOffset(),
+        'startDateTime': startDateTime,
+        'endDateTime': endDateTime,
+      };
 
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.insights,
       );
 
-      return body != null ? Insights.parseInsights(body['data']) : <Insights>[];
+      return InsightData.fromJson(body['data']);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -161,7 +194,7 @@ class AirqoApiClient {
       );
     }
 
-    return <Insights>[];
+    return const InsightData(forecast: [], historical: []);
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
@@ -189,9 +222,7 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return EmailAuthModel.parseEmailAuthModel(
-        json.decode(response.body),
-      );
+      return EmailAuthModel.fromJson(json.decode(response.body));
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -200,6 +231,46 @@ class AirqoApiClient {
     }
 
     return null;
+  }
+
+  Future<List<AirQualityReading>> fetchAirQualityReadings() async {
+    final airQualityReadings = <AirQualityReading>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('recent', () => 'yes')
+      ..putIfAbsent('metadata', () => 'site_id')
+      ..putIfAbsent('external', () => 'no')
+      ..putIfAbsent(
+        'startTime',
+        () => '${DateFormat('yyyy-MM-dd').format(
+          DateTime.now().toUtc().subtract(
+                const Duration(days: 1),
+              ),
+        )}T00:00:00Z',
+      )
+      ..putIfAbsent('frequency', () => 'hourly')
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        AirQoUrls.measurements,
+      );
+
+      for (final measurement in body['measurements']) {
+        try {
+          airQualityReadings.add(
+            AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
+          );
+        } catch (_, __) {}
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return airQualityReadings;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
@@ -263,16 +334,20 @@ class AirqoApiClient {
 
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
-    String url,
-  ) async {
+    String url, {
+    Duration? timeout,
+  }) async {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await httpClient.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await httpClient
+          .get(
+            Uri.parse(url),
+            headers: headers,
+          )
+          .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
+        // TODO : use advanced decoding
         return json.decode(response.body);
       }
     } catch (exception, stackTrace) {
@@ -316,5 +391,114 @@ class AirqoApiClient {
     }
 
     return false;
+  }
+}
+
+class SearchApiClient {
+  factory SearchApiClient() {
+    return _instance;
+  }
+  SearchApiClient._internal();
+  static final SearchApiClient _instance = SearchApiClient._internal();
+
+  final String sessionToken = const Uuid().v4();
+  final String placeDetailsUrl =
+      'https://maps.googleapis.com/maps/api/place/details/json';
+  final String autoCompleteUrl =
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+  final SearchCache _cache = SearchCache();
+  final _httpClient = SentryHttpClient(
+    client: http.Client(),
+    failedRequestStatusCodes: [
+      SentryStatusCode(503),
+      SentryStatusCode(400),
+      SentryStatusCode(404),
+    ],
+    captureFailedRequests: true,
+    networkTracing: true,
+  );
+
+  Future<dynamic> _getRequest({
+    required Map<String, dynamic> queryParams,
+    required String url,
+  }) async {
+    try {
+      url = addQueryParameters(queryParams, url);
+
+      final response = await _httpClient.get(
+        Uri.parse(url),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (_, __) {}
+
+    return null;
+  }
+
+  Future<List<SearchResult>> search(String input) async {
+    List<SearchResult>? cachedResult = _cache.getSearchResults(input);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    List<SearchResult> searchResults = <SearchResult>[];
+
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('input', () => input)
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
+
+      final responseBody = await _getRequest(
+        url: autoCompleteUrl,
+        queryParams: queryParams,
+      );
+
+      if (responseBody != null && responseBody['status'] == 'OK') {
+        for (final jsonElement in responseBody['predictions']) {
+          try {
+            searchResults.add(SearchResult.fromAutoCompleteAPI(jsonElement));
+          } catch (__, _) {}
+        }
+      }
+    } catch (_, __) {}
+
+    return searchResults;
+  }
+
+  Future<SearchResult?> getPlaceDetails(
+    SearchResult searchResult,
+  ) async {
+    SearchResult? cachedResult = _cache.getSearchResult(searchResult.id);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('place_id', () => searchResult.id)
+        ..putIfAbsent('fields', () => 'name,geometry')
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
+
+      final responseBody = await _getRequest(
+        url: placeDetailsUrl,
+        queryParams: queryParams,
+      );
+
+      return SearchResult.fromPlacesAPI(
+        responseBody['result'],
+        searchResult,
+      );
+    } catch (_, __) {}
+
+    return null;
   }
 }

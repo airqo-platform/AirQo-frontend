@@ -1,18 +1,20 @@
-import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
 import {
   LOAD_ALL_AIRQLOUDS_SUCCESS,
-  SET_CURRENT_AIRQLOUD_SUCCESS,
-} from "./actions";
+  LOAD_DASHBOARD_AIRQLOUDS_SUCCESS,
+  SET_CURRENT_AIRQLOUD_SUCCESS
+} from './actions';
 
 const initialState = {
   airqlouds: {},
   currentAirQloud: {
-    _id: "61363c2c7e130a001e03949f",
-    name: "Empty",
-    long_name: "Empty",
+    _id: '61363c2c7e130a001e03949f',
+    name: 'Empty',
+    long_name: 'Empty',
     sites: [],
-    siteOptions: [],
+    siteOptions: []
   },
+  dashboardAirQlouds: {}
 };
 
 export default function (state = initialState, action) {
@@ -25,6 +27,9 @@ export default function (state = initialState, action) {
 
     case SET_CURRENT_AIRQLOUD_SUCCESS:
       return { ...state, currentAirQloud: action.payload };
+
+    case LOAD_DASHBOARD_AIRQLOUDS_SUCCESS:
+      return { ...state, dashboardAirQlouds: action.payload };
 
     default:
       return state;

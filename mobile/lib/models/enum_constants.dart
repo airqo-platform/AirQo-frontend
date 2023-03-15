@@ -10,7 +10,7 @@ part 'enum_constants.g.dart';
 
 enum Environment { dev, prod }
 
-enum AnalyticsEvent {
+enum CloudAnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
   createUserProfile('created_profile'),
   shareAirQualityInformation('share_air_quality_information'),
@@ -32,13 +32,22 @@ enum AnalyticsEvent {
   notificationOpen('notification_open'),
   notificationReceive('notification_receive');
 
-  const AnalyticsEvent(this.snakeCaseValue);
+  const CloudAnalyticsEvent(this.snakeCaseValue);
 
   final String snakeCaseValue;
 
   String snakeCase() {
     return '${kReleaseMode ? 'prod_' : 'stage_'}$snakeCaseValue';
   }
+}
+
+enum InsightsStatus {
+  loaded,
+  error,
+  refreshing,
+  loading,
+  noInternetConnection,
+  noData;
 }
 
 enum AppPermission {
@@ -138,36 +147,23 @@ enum AuthenticationError {
 }
 
 enum NearbyAirQualityError {
+  none(
+    message: '',
+  ),
   locationDenied(
-    message: 'Grant location access in your phone settings',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
+    message: 'Enable location to get air quality near you',
   ),
   locationDisabled(
     message: 'Turn on location to get air quality near you',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
-  ),
-  locationNotAllowed(
-    message: 'Enable location in your settings.',
-    snackBarActionLabel: 'Open Settings',
-    snackBarDuration: 5,
   ),
   noNearbyAirQualityReadings(
-    message: 'Cannot get nearby air quality readings',
-    snackBarActionLabel: 'Close',
-    snackBarDuration: 2,
+    message:
+        'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
   );
 
-  const NearbyAirQualityError({
-    required this.message,
-    required this.snackBarActionLabel,
-    required this.snackBarDuration,
-  });
+  const NearbyAirQualityError({required this.message});
 
   final String message;
-  final String snackBarActionLabel;
-  final int snackBarDuration;
 
   @override
   String toString() => message;
@@ -183,70 +179,90 @@ enum AppNotificationType {
   welcomeMessage,
 }
 
-@HiveType(typeId: 140, adapterName: 'RegionAdapter')
-enum Region {
-  @HiveField(1)
-  central('Central Region'),
-  @HiveField(2)
-  eastern('Eastern Region'),
-  @HiveField(3)
-  northern('Northern Region'),
-  @HiveField(4)
-  western('Western Region'),
-  @HiveField(5)
-  southern('Southern Region'),
-  @HiveField(0)
-  none('');
+enum AirQuality {
+  good(
+    string: 'Good',
+    searchNearbyLocationsText: 'Good Quality Air around you',
+    searchOtherLocationsText: 'Locations with Good Quality Air',
+    value: 6,
+    minimumValue: 0,
+    maximumValue: 12.09,
+  ),
+  moderate(
+    string: 'Moderate',
+    searchNearbyLocationsText: 'Moderate Quality Air around you',
+    searchOtherLocationsText: 'Locations with Moderate Quality Air',
+    value: 23.8,
+    minimumValue: 12.1,
+    maximumValue: 35.49,
+  ),
+  ufsgs(
+    string: 'Unhealthy For Sensitive Groups',
+    searchNearbyLocationsText:
+        'Nearby locations with air quality Unhealthy For Sensitive Groups',
+    searchOtherLocationsText:
+        'Locations with air quality Unhealthy For Sensitive Groups',
+    value: 101,
+    minimumValue: 35.5,
+    maximumValue: 55.49,
+  ),
+  unhealthy(
+    string: 'Unhealthy',
+    searchNearbyLocationsText: 'Unhealthy Quality Air around you',
+    searchOtherLocationsText: 'Locations with Unhealthy Quality Air',
+    value: 103,
+    minimumValue: 55.5,
+    maximumValue: 150.49,
+  ),
+  veryUnhealthy(
+    string: 'Very Unhealthy',
+    searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
+    searchOtherLocationsText: 'Locations with Very Unhealthy Quality Air',
+    value: 200.5,
+    minimumValue: 150.5,
+    maximumValue: 250.49,
+  ),
+  hazardous(
+    string: 'Hazardous',
+    searchNearbyLocationsText: 'Hazardous Quality Air around you',
+    searchOtherLocationsText: 'Locations with Hazardous Quality Air',
+    value: 300,
+    minimumValue: 250.5,
+    maximumValue: 500,
+  );
 
-  factory Region.fromString(String string) {
-    if (string.toLowerCase().contains('central')) {
-      return Region.central;
-    } else if (string.toLowerCase().contains('east')) {
-      return Region.eastern;
-    } else if (string.toLowerCase().contains('west')) {
-      return Region.western;
-    } else if (string.toLowerCase().contains('north')) {
-      return Region.northern;
-    } else if (string.toLowerCase().contains('south')) {
-      return Region.southern;
-    } else {
-      return Region.none;
+  const AirQuality({
+    required this.string,
+    required this.searchNearbyLocationsText,
+    required this.searchOtherLocationsText,
+    required this.value,
+    required this.minimumValue,
+    required this.maximumValue,
+  });
+
+  final String string;
+  final String searchOtherLocationsText;
+  final String searchNearbyLocationsText;
+  final double value;
+  final double minimumValue;
+  final double maximumValue;
+
+  Color color() {
+    switch (this) {
+      case AirQuality.good:
+        return CustomColors.aqiGreen;
+      case AirQuality.moderate:
+        return CustomColors.aqiYellow;
+      case AirQuality.ufsgs:
+        return CustomColors.aqiOrange;
+      case AirQuality.unhealthy:
+        return CustomColors.aqiRed;
+      case AirQuality.veryUnhealthy:
+        return CustomColors.aqiPurple;
+      case AirQuality.hazardous:
+        return CustomColors.aqiMaroon;
     }
   }
-
-  const Region(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-}
-
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
-}
-
-enum AirQuality {
-  good('Good'),
-  moderate('Moderate'),
-  ufsgs('Unhealthy For Sensitive Groups'),
-  unhealthy('Unhealthy'),
-  veryUnhealthy('Very Unhealthy'),
-  hazardous('Hazardous');
-
-  const AirQuality(this.string);
-
-  final String string;
 
   @override
   String toString() => string;
@@ -404,6 +420,7 @@ enum AuthProcedure {
   final String confirmationCancelText;
 }
 
+@JsonEnum(valueField: 'string')
 enum Frequency {
   daily('daily'),
   hourly('hourly');
@@ -473,18 +490,6 @@ enum Gender {
 enum ConfirmationAction {
   cancel,
   ok,
-}
-
-enum ErrorMessage {
-  logout('Failed to logout', 'Try again later');
-
-  const ErrorMessage(this.title, this.message);
-
-  final String title;
-  final String message;
-
-  @override
-  String toString() => title;
 }
 
 enum OnBoardingPage {
@@ -660,4 +665,10 @@ enum ToolTipType {
   info,
   forYou,
   forecast,
+}
+
+enum ShowcaseOptions {
+  up,
+  skip,
+  none,
 }

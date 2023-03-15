@@ -22,50 +22,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<AccountDeletionCheck>(_accountDeletionCheck);
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
-    on<RefreshAnalytics>(_onRefreshAnalytics);
-    on<RefreshNotifications>(_onRefreshNotifications);
-    on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
-    on<RefreshKya>(_onRefreshKya);
     on<RefreshProfile>(_onRefreshProfile);
-    on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<UpdateProfilePreferences>(_onUpdateProfilePreferences);
-    on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
-  }
-
-  Future<void> _onUpdateFavouritePlace(
-    UpdateFavouritePlace event,
-    Emitter<AccountState> emit,
-  ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    final favouritePlaces = state.favouritePlaces;
-    final placesIds = favouritePlaces.map((e) => e.placeId);
-
-    if (placesIds.contains(event.airQualityReading.placeId)) {
-      favouritePlaces.removeWhere(
-        (element) => element.placeId == event.airQualityReading.placeId,
-      );
-    } else {
-      favouritePlaces
-          .add(FavouritePlace.fromAirQualityReading(event.airQualityReading));
-    }
-
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-
-    emit(state.copyWith(
-      blocStatus: BlocStatus.initial,
-      favouritePlaces: favouritePlaces,
-    ));
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateFavouritePlaces();
-      if (favouritePlaces.length >= 5) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.savesFiveFavorites,
-        );
-      }
-    }
   }
 
   @override
@@ -96,54 +54,16 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     await HiveService.loadProfile(profile);
 
     if (event.notifications ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowNotification);
     }
 
     if (event.location ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowLocation);
     }
 
     final hasConnection = await hasNetworkConnection();
     if (hasConnection) {
       await CloudStore.updateProfile(profile);
-    }
-  }
-
-  Future<void> _onUpdateKyaProgress(
-    UpdateKyaProgress event,
-    Emitter<AccountState> emit,
-  ) async {
-    final progress =
-        event.progress > event.kya.lessons.length ? -1 : event.progress;
-
-    if (progress < -1) {
-      return;
-    }
-
-    final stateKya = state.kya;
-    Kya kya = stateKya.firstWhere((element) => element.id == event.kya.id);
-
-    if (kya.progress == -1) {
-      return;
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    kya.progress = progress;
-    stateKya.removeWhere((element) => element.id == kya.id);
-    stateKya.add(kya);
-
-    emit(state.copyWith(kya: stateKya, blocStatus: BlocStatus.initial));
-
-    await HiveService.loadKya(stateKya);
-
-    if (progress == -1) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.completeOneKYA);
-    }
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateKya(kya);
     }
   }
 
@@ -159,61 +79,30 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     final notifications =
         Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
 
-    final kya = Hive.box<Kya>(HiveBox.kya).values.toList();
-
     final profile = await Profile.getProfile();
 
-    return emit(const AccountState.initial().copyWith(
+    emit(const AccountState.initial().copyWith(
       notifications: notifications,
-      kya: kya,
       favouritePlaces: favouritePlaces,
       analytics: analytics,
       profile: profile,
       guestUser: CustomAuth.isGuestUser(),
     ));
+
+    await _onRefreshFavouritePlacesInsights();
+
+    return;
   }
 
-  Future<void> _onRefreshNotifications(
-    RefreshNotifications _,
-    Emitter<AccountState> emit,
-  ) async {
+  Future<void> _onRefreshFavouritePlacesInsights() async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
-
-    final cloudNotifications = await CloudStore.getNotifications();
-    final notificationsIds = notifications.map((e) => e.id).toList();
-
-    cloudNotifications.removeWhere((x) => notificationsIds.contains(x.id));
-
-    notifications.addAll(cloudNotifications);
-
-    emit(state.copyWith(notifications: notifications));
-
-    await HiveService.loadNotifications(notifications);
-  }
-
-  Future<void> _onRefreshFavouritePlaces(
-    RefreshFavouritePlaces _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
+      return;
     }
     final AppService appService = AppService();
-    await appService.fetchFavPlacesInsights();
-    await appService.updateFavouritePlacesReferenceSites();
+    for (final favouritePlace in state.favouritePlaces) {
+      await appService.fetchInsightsData(favouritePlace.referenceSite);
+    }
   }
 
   Future<void> _onRefreshProfile(
@@ -236,54 +125,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
-  }
-
-  Future<void> _onRefreshKya(
-    RefreshKya _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    final kya = state.kya;
-    final cloudKya = await CloudStore.getKya();
-
-    final List<String> kyaIds = kya.map((kya) => kya.id).toList();
-    cloudKya.removeWhere((kya) => kyaIds.contains(kya.id));
-
-    kya.addAll(cloudKya);
-
-    emit(state.copyWith(kya: kya, blocStatus: BlocStatus.initial));
-
-    await HiveService.loadKya(kya);
-
-    // TODO: update cloud KYA
-  }
-
-  Future<void> _onRefreshAnalytics(
-    RefreshAnalytics _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final AppService appService = AppService();
-    await appService.refreshAirQualityReadings();
-    await appService.fetchFavPlacesInsights();
-
-    // TODO: update cloud Analytics
   }
 
   Future<void> _onUpdateProfile(
@@ -354,7 +195,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
         await Future.wait([
           CloudAnalytics.logEvent(
-            AnalyticsEvent.uploadProfilePicture,
+            CloudAnalyticsEvent.uploadProfilePicture,
           ),
           profile.update(),
         ]);
@@ -402,7 +243,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     await Future.wait([
       _fetchProfile(emit),
       _fetchAnalytics(emit),
-      _fetchKya(emit),
       _fetchFavouritePlaces(emit),
       _fetchNotifications(emit),
     ]);
@@ -567,16 +407,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
 
     await HiveService.loadAnalytics(analytics);
-  }
-
-  Future<void> _fetchKya(
-    Emitter<AccountState> emit,
-  ) async {
-    final kya = await CloudStore.getKya();
-    emit(state.copyWith(
-      kya: kya,
-    ));
-    await HiveService.loadKya(kya);
   }
 
   Future<void> _fetchProfile(

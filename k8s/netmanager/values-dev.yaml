@@ -1,11 +1,11 @@
 replicaCount: 1
 image:
-  repository: gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
-  tag: 3893c65d281ce90eec1a62b419eb6a20fe811641
+  repository: eu.gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
+  tag: latest
   pullPolicy: Always
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 service:
   type: NodePort
   nodePort: 32104

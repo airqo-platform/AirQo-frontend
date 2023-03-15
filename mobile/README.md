@@ -20,7 +20,8 @@
 | [.env.dev]()      | App root directory (this directory) |
 | **.env.prod**     | App root directory (this directory). Create an empty file named `.env.prod`. |
 | [airqo-dev-keystore.jks]()      | Place it in any secure directory on your computer |
-| [GoogleService-Info.plist]()      | `Runner` directory under `ios` folder (`ios/Runner/`)
+| [GoogleService-Info.plist]()      | `airqo` directory `ios/config` folder (`ios/config/`)
+| [GoogleService-Info.plist]()      | `airqodev` directory under `ios/config` folder (`ios/config/`)(For the staging environment)
 
 ### **Update variables in configuration files**
 
@@ -34,6 +35,34 @@
   
 - Change `storeFile` variable in `key.properties` file to point to where you put `airqo-dev-keystore.jks`.
 For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
+
+### **For Contributors:**
+  - It's important to first read our guidelines [here](/CONTRIBUTING.md).
+  - Thereafter, proceed to create your own necessary configuration files. These include;
+    - Add an `.env file`, which contain credentials in key-value format for services used by the app. For development, save the file as `.env.dev` while for production, save it as `.env.prod`. 
+      - Here's what your .env file would look like;
+        ```bash
+        AIRQO_API_URL= https://api.airqo.net/api/v1/
+        AIRQO_API_TOKEN = Get this token by following the respective links below.
+        SEARCH_API_KEY = 
+        AIRQO_API_USER_EXISTS_URL = https://europe-west1-airqo-250220.cloudfunctions.net/airqo-app-check-user
+
+        FAV_PLACES_COLLECTION =
+        KYA_COLLECTION =
+        USERS_NOTIFICATION_COLLECTION =
+        USERS_ANALYTICS_COLLECTION =
+        USERS_COLLECTION =
+        USERS_KYA_COLLECTION =
+        USERS_PROFILE_PICTURE_COLLECTION =
+
+        PREF_ON_BOARDING_PAGE =
+        SENTRY_DSN =
+        ```
+      - Get the following keys by following documentation from the respective sources;
+        - [AIRQO_API_TOKEN](https://staging-docs.airqo.net/#/../api/users?id=login)
+      - Use the corresponding database collection names for the collection variables.
+        - You can create a collection using the following [guide.](https://firebase.google.com/docs/firestore/data-model#collections)
+      - We restricted the search API to only call 3 other APIs, the Geocoding API, GeoLocation API, and the Places API. It should therefore have access to those above APIs. You can then get the api key from the GCP [credentials page.](https://console.cloud.google.com/apis/credentials)
 
 ### **Complete Setup**
 
@@ -100,7 +129,7 @@ flutter run --flavor airqo -t lib/main.dart --release
 flutter packages pub run build_runner build --delete-conflicting-outputs
 dart fix --dry-run
 dart fix --apply
-flutter format lib/
+dart format lib/
 flutter pub run dart_code_metrics:metrics analyze lib --reporter=html
 flutter pub run dart_code_metrics:metrics check-unused-files lib
 flutter pub run dart_code_metrics:metrics check-unused-code lib
@@ -109,6 +138,8 @@ flutter pub run dart_code_metrics:metrics check-unused-code lib
 ### **Building for release**
 
 ```bash
+flutter build appbundle --build-name 1.0.0 --build-number 20025 --flavor airqo
+flutter build ipa --build-name 1.0.0 --build-number 1 --flavor airqo
 flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]

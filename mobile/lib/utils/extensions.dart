@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
@@ -16,39 +19,310 @@ extension IntExt on int {
   }
 }
 
-extension KyaListExt on List<Kya> {
-  int totalProgress() {
-    final List<int> progressList = map((element) => element.progress).toList();
-    var sum = 0;
-    for (final element in progressList) {
-      sum = sum + element;
-    }
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  List<FavouritePlace> sortByName() {
+    List<FavouritePlace> data = List.of(this);
 
-    return sum;
+    data.sort((x, y) => x.name.compareTo(y.name));
+
+    return data;
+  }
+}
+
+extension ChartDataExt on ChartData {
+  String chartDomainFn() {
+    switch (frequency) {
+      case Frequency.daily:
+        return DateFormat('EEE').format(dateTime);
+      case Frequency.hourly:
+        final hour = dateTime.hour;
+
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+    }
   }
 
-  List<Kya> filterIncompleteKya() {
+  double chartValue(Pollutant pollutant) {
+    return pollutant == Pollutant.pm2_5
+        ? double.parse(pm2_5.toStringAsFixed(2))
+        : double.parse(pm10.toStringAsFixed(2));
+  }
+
+  String lastUpdated(Frequency frequency) {
+    String lastUpdated = '';
+
+    if (dateTime.isToday()) {
+      lastUpdated = 'Updated Today';
+
+      return available ? lastUpdated : '$lastUpdated - Not Available';
+    }
+
+    switch (frequency) {
+      case Frequency.daily:
+        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
+        break;
+      case Frequency.hourly:
+        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
+        break;
+    }
+
+    return available ? lastUpdated : '$lastUpdated - Not Available';
+  }
+
+  Color chartAvatarContainerColor(Pollutant pollutant) {
+    return available
+        ? pollutant.color(chartValue(pollutant))
+        : CustomColors.greyColor;
+  }
+
+  String chartAvatarValue(Pollutant pollutant) {
+    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
+  }
+
+  Color chartAvatarValueColor(Pollutant pollutant) {
+    return available
+        ? pollutant.textColor(value: chartValue(pollutant))
+        : CustomColors.darkGreyColor;
+  }
+}
+
+extension KyaExt on Kya {
+  String getKyaMessage() {
+    if (isInProgress()) {
+      return 'Continue';
+    } else if (isPartiallyComplete()) {
+      return 'Complete! Move to For You';
+    } else {
+      return 'Start learning';
+    }
+  }
+
+  bool isPartiallyComplete() {
+    return progress == 1;
+  }
+
+  bool isComplete() {
+    return progress == -1;
+  }
+
+  bool isInProgress() {
+    return progress > 0 && progress < 1;
+  }
+
+  double getProgress(int visibleCardIndex) {
+    return (visibleCardIndex + 1) / lessons.length;
+  }
+}
+
+extension KyaListExt on List<Kya> {
+  List<Kya> sortByProgress() {
+    List<Kya> data = List.of(this);
+
+    data.sort((x, y) {
+      if (x.progress == -1) return 1;
+
+      if (y.progress == -1) return -1;
+
+      return -(x.progress.compareTo(y.progress));
+    });
+
+    return data;
+  }
+
+  List<Kya> filterInProgressKya() {
     return where((element) {
-      return element.progress != -1;
+      return element.isInProgress();
+    }).toList();
+  }
+
+  List<Kya> filterPartiallyCompleteKya() {
+    return where((element) {
+      return element.isPartiallyComplete();
     }).toList();
   }
 
   List<Kya> filterCompleteKya() {
     return where((element) {
-      return element.progress == -1;
+      return element.isComplete();
     }).toList();
+  }
+
+  List<Kya> removeDuplicates() {
+    List<Kya> completeKya = filterCompleteKya().toSet().toList();
+
+    List<Kya> kya = completeKya
+        .map((e) => e.id)
+        .toSet()
+        .map((e) => completeKya.firstWhere((element) => element.id == e))
+        .toList();
+
+    List<Kya> partiallyCompleteKya =
+        filterPartiallyCompleteKya().toSet().toList();
+    List<Kya> inProgressKya = filterInProgressKya().toSet().toList();
+
+    partiallyCompleteKya.removeWhere(
+      (element) => kya.map((e) => e.id).toList().contains(element.id),
+    );
+    kya.addAll(partiallyCompleteKya);
+
+    inProgressKya.removeWhere(
+      (element) => kya.map((e) => e.id).toList().contains(element.id),
+    );
+    kya.addAll(inProgressKya);
+
+    return kya.toSet().toList();
   }
 }
 
 extension AnalyticsListExt on List<Analytics> {
   List<Analytics> sortByDateTime() {
-    sort(
+    List<Analytics> data = List.of(this);
+    data.sort(
       (x, y) {
         return -(x.createdAt.compareTo(y.createdAt));
       },
     );
 
-    return this;
+    return data;
+  }
+}
+
+extension SearchHistoryListExt on List<SearchHistory> {
+  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
+    List<SearchHistory> data = List.of(this);
+    data.sort((a, b) {
+      if (latestFirst) {
+        return -(a.dateTime.compareTo(b.dateTime));
+      }
+
+      return a.dateTime.compareTo(b.dateTime);
+    });
+
+    return data;
+  }
+
+  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
+    List<AirQualityReading> airQualityReadings = [];
+    for (final searchHistory in this) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getNearestSite(
+        searchHistory.latitude,
+        searchHistory.longitude,
+      );
+      if (airQualityReading != null) {
+        airQualityReadings.add(airQualityReading.copyWith(
+          name: searchHistory.name,
+          location: searchHistory.location,
+          latitude: searchHistory.latitude,
+          longitude: searchHistory.longitude,
+          placeId: searchHistory.placeId,
+          dateTime: searchHistory.dateTime,
+        ));
+      }
+    }
+
+    return airQualityReadings;
+  }
+}
+
+extension AirQualityReadingExt on AirQualityReading {
+  List<String> getSearchTerms(String parameter) {
+    List<String> searchTerms = [];
+    switch (parameter) {
+      case 'name':
+        searchTerms.addAll(name.trim().split(" "));
+        break;
+      case 'location':
+        searchTerms.addAll(location.trim().split(" "));
+        break;
+      case 'region':
+        searchTerms.addAll(region.trim().split(" "));
+        break;
+      case 'country':
+        searchTerms.addAll(country.trim().split(" "));
+        break;
+      default:
+        searchTerms
+          ..addAll(name.trim().split(" "))
+          ..addAll(location.trim().split(" "))
+          ..addAll(region.trim().split(" "))
+          ..addAll(country.trim().split(" "));
+    }
+
+    return searchTerms
+        .toSet()
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
+        .toList();
+  }
+}
+
+extension SearchResultExt on SearchResult {
+  List<String> getSearchTerms() {
+    List<String> searchTerms = name.trim().split(" ")
+      ..addAll(location.trim().split(" "));
+
+    return searchTerms
+        .toSet()
+        .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
+        .toList();
+  }
+}
+
+extension AirQualityReadingListExt on List<AirQualityReading> {
+  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
+    List<AirQualityReading> data = List.of(this);
+    data.sort((a, b) {
+      if (sortCountries && a.country.compareTo(b.country) != 0) {
+        return a.country.compareTo(b.country);
+      }
+
+      return a.pm2_5.compareTo(b.pm2_5);
+    });
+
+    return data;
+  }
+
+  List<AirQualityReading> filterNearestLocations() {
+    List<AirQualityReading> airQualityReadings = List.of(this);
+    airQualityReadings = airQualityReadings
+        .where(
+          (element) => element.distanceToReferenceSite <= Config.searchRadius,
+        )
+        .toList();
+
+    return airQualityReadings.sortByDistanceToReferenceSite();
+  }
+
+  List<AirQualityReading> shuffleByCountry() {
+    List<AirQualityReading> data = List.of(this);
+    List<AirQualityReading> shuffledData = [];
+
+    final List<String> countries = data.map((e) => e.country).toSet().toList();
+    countries.shuffle();
+    while (data.isNotEmpty) {
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = data
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .take(1)
+            .toList();
+        shuffledData.addAll(countryReadings);
+        for (final reading in countryReadings) {
+          data.remove(reading);
+        }
+      }
+    }
+
+    return shuffledData;
+  }
+
+  List<AirQualityReading> sortByDistanceToReferenceSite() {
+    List<AirQualityReading> data = List.of(this);
+    data.sort(
+      (x, y) {
+        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
+      },
+    );
+
+    return data;
   }
 }
 
@@ -73,13 +347,32 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
-  DateTime getDateOfFirstDayOfWeek() {
-    var firstDate = this;
-    final weekday = firstDate.weekday;
+  String shareString() {
+    return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
+  }
 
-    if (weekday != 1) {
-      final offset = weekday - 1;
-      firstDate = firstDate.subtract(Duration(days: offset));
+  String analyticsCardString() {
+    String dateString = DateFormat('hh:mm a').format(this);
+    if (isYesterday()) {
+      return 'Updated yesterday at $dateString';
+    } else if (isToday()) {
+      return 'Updated today at $dateString';
+    } else if (isTomorrow()) {
+      return 'Tomorrow, $dateString';
+    } else {
+      return DateFormat('d MMM, hh:mm a').format(this);
+    }
+  }
+
+  String timelineString() {
+    return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
+        .toUpperCase();
+  }
+
+  DateTime getDateOfFirstDayOfWeek() {
+    DateTime firstDate = this;
+    while (firstDate.weekday != 1) {
+      firstDate = firstDate.subtract(const Duration(days: 1));
     }
 
     return firstDate.getDateOfFirstHourOfDay();
@@ -105,6 +398,14 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == 1 || compareTo(dateTime) == 0;
+  }
+
+  bool isBeforeOrEqualTo(DateTime dateTime) {
+    return compareTo(dateTime) == -1 || compareTo(dateTime) == 0;
   }
 
   DateTime getDateOfLastDayOfWeek() {
@@ -268,67 +569,50 @@ extension DateTimeExt on DateTime {
   }
 
   bool isInWeek(String referenceWeek) {
-    final now = DateTime.now();
-    DateTime referenceDay;
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay;
     DateTime lastDay;
     switch (referenceWeek.toLowerCase()) {
       case 'last':
-        referenceDay =
+        firstDay =
             now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay =
             now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       case 'next':
-        referenceDay =
-            now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
         lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
         break;
       default:
-        referenceDay = now.getDateOfFirstDayOfWeek();
+        firstDay = now.getDateOfFirstDayOfWeek();
         lastDay = now.getDateOfLastDayOfWeek();
         break;
     }
 
-    while (referenceDay != lastDay) {
-      if (day == referenceDay.day &&
-          month == referenceDay.month &&
-          year == referenceDay.year) {
-        return true;
-      }
-      referenceDay = referenceDay.add(const Duration(days: 1));
-    }
-
-    return false;
+    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
-    if (day == DateTime.now().day &&
-        month == DateTime.now().month &&
-        year == DateTime.now().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
   }
 
   bool isTomorrow() {
-    if (day == tomorrow().day &&
-        month == tomorrow().month &&
-        year == tomorrow().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final tomorrowDate = formatter.parse(formatter.format(tomorrow()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(tomorrowDate) == 0;
   }
 
   bool isYesterday() {
-    if (day == yesterday().day &&
-        month == yesterday().month &&
-        year == yesterday().year) {
-      return true;
-    }
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final yesterdayDate = formatter.parse(formatter.format(yesterday()));
 
-    return false;
+    return formatter.parse(formatter.format(this)).compareTo(yesterdayDate) ==
+        0;
   }
 
   String notificationDisplayDate() {
@@ -361,6 +645,41 @@ extension DateTimeExt on DateTime {
 extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
+  }
+}
+
+extension AppStoreVersionExt on AppStoreVersion {
+  int compareVersion(String checkVersion) {
+    List<int> versionSections =
+        version.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (versionSections.length != 3) {
+      throw Exception('Invalid version $this');
+    }
+
+    List<int> candidateSections =
+        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (candidateSections.length != 3) {
+      throw Exception('Invalid version $checkVersion');
+    }
+
+    // checking first code
+    if (versionSections.first > candidateSections.first) return 1;
+
+    if (versionSections.first < candidateSections.first) return -1;
+
+    // checking second code
+    if (versionSections[1] > candidateSections[1]) return 1;
+
+    if (versionSections[1] < candidateSections[1]) return -1;
+
+    // checking last code
+    if (versionSections.last > candidateSections.last) return 1;
+
+    if (versionSections.last < candidateSections.last) return -1;
+
+    return 0;
   }
 }
 

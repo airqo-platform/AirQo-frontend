@@ -74,7 +74,7 @@ const config = () => {
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: PUBLIC_PATH,
+      publicPath: PUBLIC_PATH
     },
 
     // webpack 5 comes with devServer which loads in development mode
@@ -85,13 +85,13 @@ const config = () => {
       hot: true,
       historyApiFallback: true,
       static: {
-        directory: './static',
-      },
+        directory: './static'
+      }
     },
 
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...']
     },
 
     module: {
@@ -101,16 +101,16 @@ const config = () => {
           exclude: /node_modules/,
           use: compact([
             {
-              loader: 'babel-loader',
+              loader: 'babel-loader'
             },
-            prodOnly(stripLoaderConfig()),
-          ]),
+            prodOnly(stripLoaderConfig())
+          ])
         },
 
         // Inlined CSS definitions for JS components
         {
           test: /\.css$/,
-          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()]),
+          use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()])
         },
         {
           test: /\.s[ac]ss$/i,
@@ -118,27 +118,31 @@ const config = () => {
             { loader: 'style-loader' },
             { loader: 'css-loader' },
             postCSSLoader(),
-            { loader: 'sass-loader' },
-          ]),
+            { loader: 'sass-loader' }
+          ])
         },
 
         // SVGs
         {
           test: /\.svg$/,
-          use: ['@svgr/webpack'],
+          use: ['@svgr/webpack']
         },
 
         // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
-          type: 'asset/resource',
+          type: 'asset/resource'
         },
-      ],
+
+        // pdfs, gifs
+        {
+          test: /\.(pdf|gif)$/,
+          use: 'file-loader?name=[path][name].[ext]',
+        }
+      ]
     },
 
-    plugins: [
-      new webpack.DefinePlugin(envKeys),
-    ],
+    plugins: [new webpack.DefinePlugin(envKeys)]
   };
 };
 

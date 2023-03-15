@@ -1,66 +1,143 @@
 part of 'map_bloc.dart';
 
-abstract class MapState extends Equatable {
-  const MapState();
+enum MapStatus {
+  initial,
+  error,
+  noAirQuality,
+  showingCountries,
+  showingRegions,
+  showingFeaturedSite,
+  showingRegionSites,
+  searching,
+  loading,
 }
 
-class AllSitesState extends MapState {
-  const AllSitesState({required this.airQualityReadings});
-
-  final List<AirQualityReading> airQualityReadings;
-  @override
-  List<Object?> get props => [];
+enum MapSearchStatus {
+  initial,
+  error,
 }
 
-class MapLoadingState extends MapState {
-  @override
-  List<Object?> get props => [];
-}
-
-class MapSearchCompleteState extends MapState {
-  const MapSearchCompleteState({
-    required this.searchResults,
+class MapState extends Equatable {
+  const MapState._({
+    this.countries = const [],
+    this.regions = const [],
+    this.featuredAirQualityReadings = const [],
+    this.airQualityReadings = const [],
+    this.featuredSiteReading,
+    this.mapStatus = MapStatus.initial,
+    this.featuredRegion = '',
+    this.featuredCountry = '',
+    this.searchResults = const [],
+    this.blocError = AuthenticationError.none,
   });
 
-  final List<SearchResultItem> searchResults;
-
-  @override
-  List<Object?> get props => [];
-}
-
-class RegionSitesState extends MapState {
-  const RegionSitesState({
-    required this.airQualityReadings,
-    required this.region,
+  const MapState({
+    this.countries = const [],
+    this.regions = const [],
+    this.featuredAirQualityReadings = const [],
+    this.airQualityReadings = const [],
+    this.featuredSiteReading,
+    this.mapStatus = MapStatus.initial,
+    this.featuredRegion = '',
+    this.featuredCountry = '',
+    this.searchResults = const [],
+    this.blocError = AuthenticationError.none,
   });
 
+  const MapState.initial() : this._();
+
+  MapState copyWith({
+    MapStatus? mapStatus,
+    List<String>? countries,
+    List<String>? regions,
+    List<AirQualityReading>? featuredAirQualityReadings,
+    AirQualityReading? featuredSiteReading,
+    String? featuredRegion,
+    String? featuredCountry,
+    List<AirQualityReading>? airQualityReadings,
+    List<SearchResult>? searchResults,
+    AuthenticationError? blocError,
+  }) {
+    return MapState(
+      featuredSiteReading: featuredSiteReading ?? this.featuredSiteReading,
+      featuredAirQualityReadings:
+          featuredAirQualityReadings ?? this.featuredAirQualityReadings,
+      mapStatus: mapStatus ?? this.mapStatus,
+      featuredRegion: featuredRegion ?? this.featuredRegion,
+      regions: regions ?? this.regions,
+      featuredCountry: featuredCountry ?? this.featuredCountry,
+      countries: countries ?? this.countries,
+      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      searchResults: searchResults ?? this.searchResults,
+      blocError: blocError ?? this.blocError,
+    );
+  }
+
+  final MapStatus mapStatus;
+  final List<String> countries;
+  final List<String> regions;
+  final List<AirQualityReading> featuredAirQualityReadings;
+  final String featuredCountry;
+  final String featuredRegion;
+  final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
-  final Region region;
+  final List<SearchResult> searchResults;
+  final AuthenticationError blocError;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+        featuredSiteReading,
+        featuredAirQualityReadings,
+        regions,
+        countries,
+        mapStatus,
+        airQualityReadings,
+        searchResults,
+        blocError,
+      ];
 }
 
-class SingleSiteState extends MapState {
-  const SingleSiteState({required this.airQualityReading});
+class MapSearchState extends Equatable {
+  const MapSearchState._({
+    this.airQualityReadings = const [],
+    this.mapStatus = MapSearchStatus.initial,
+    this.searchResults = const [],
+    this.searchTerm = '',
+  });
 
-  final AirQualityReading airQualityReading;
-  @override
-  List<Object?> get props => [];
-}
+  const MapSearchState({
+    this.airQualityReadings = const [],
+    this.mapStatus = MapSearchStatus.initial,
+    this.searchResults = const [],
+    this.searchTerm = '',
+  });
 
-class SearchSitesState extends MapState {
-  const SearchSitesState({required this.airQualityReadings});
+  const MapSearchState.initial() : this._();
 
+  MapSearchState copyWith({
+    MapSearchStatus? mapStatus,
+    List<AirQualityReading>? airQualityReadings,
+    List<SearchResult>? searchResults,
+    String? searchTerm,
+  }) {
+    return MapSearchState(
+      mapStatus: mapStatus ?? this.mapStatus,
+      airQualityReadings: airQualityReadings ?? this.airQualityReadings,
+      searchResults: searchResults ?? this.searchResults,
+      searchTerm: searchTerm ?? this.searchTerm,
+    );
+  }
+
+  final MapSearchStatus mapStatus;
   final List<AirQualityReading> airQualityReadings;
-  @override
-  List<Object?> get props => [];
-}
+  final List<SearchResult> searchResults;
+  final String searchTerm;
 
-class NoAirQualityState extends MapState {
-  const NoAirQualityState({required this.message});
-
-  final String message;
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+        mapStatus,
+        airQualityReadings,
+        searchResults,
+        searchTerm,
+      ];
 }

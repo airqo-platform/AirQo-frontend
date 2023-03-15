@@ -6,7 +6,7 @@ on:
       - staging
 
 env:
-  REGISTRY_URL: gcr.io
+  REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
 
 jobs:
@@ -17,16 +17,16 @@ jobs:
       lowercase: ${{ steps.string.outputs.lowercase }} # lowercase version
     steps:
       - id: string
-        uses: ASzc/change-string-case-action@v2
+        uses: ASzc/change-string-case-action@v5
         with:
           string: ${{ github.head_ref || github.ref_name }}
 
   check:
     name: check for changed frontends
     outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
-      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_website: ${{ steps.check_files.outputs.run_website }} # website
 
@@ -46,9 +46,9 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT    
           echo "run_website=false" >>$GITHUB_OUTPUT    
 
@@ -56,7 +56,7 @@ jobs:
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "run_platform=true" >>$GITHUB_OUTPUT
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
@@ -64,7 +64,7 @@ jobs:
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "run_next_platform=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
@@ -81,7 +81,7 @@ jobs:
   netmanager:
     name: build-push-deploy-netmanager-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -90,12 +90,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Google login
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
@@ -110,17 +110,17 @@ jobs:
           CI=false npm run build
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
           cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
 
@@ -150,7 +150,7 @@ jobs:
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
-    if: needs.check.outputs.run_platform == 'true'
+    if: needs.check.outputs.run_netmanager == 'true'
     needs: [netmanager]
     runs-on: ubuntu-latest
     steps:
@@ -177,12 +177,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Google login
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
@@ -197,17 +197,17 @@ jobs:
           CI=false npm run build
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
           cd calibrate/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
 
@@ -251,11 +251,11 @@ jobs:
               body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
 
-  ### deploy next-platform preview ###
-  next-platform:
-    name: build-push-deploy-next-platform-preview
+  ### deploy analytics platform preview ###
+  analytics-platform:
+    name: build-push-deploy-analytics-platform-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_next_platform == 'true'
+    if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -264,39 +264,39 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Google login
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
           cd platform/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:latest
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
@@ -305,16 +305,16 @@ jobs:
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  next-platform-pr-comment:
-    name: next-platform-preview-link-comment
-    if: needs.check.outputs.run_next_platform == 'true'
-    needs: [next-platform]
+  analytics-platform-pr-comment:
+    name: analytics-platform-preview-link-comment
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    needs: [analytics-platform]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -324,7 +324,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New next-platform changes available for preview [here](${{ needs.next-platform.outputs.url }})'
+              body: 'New next-platform changes available for preview [here](${{ needs.analytics-platform.outputs.url }})'
             })
 
   ### deploy docs preview ###
@@ -340,25 +340,25 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Google login
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
           cd docs/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
 
@@ -411,23 +411,23 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Login to GCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
       - name: Google login
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK(gcloud)
-        uses: "google-github-actions/setup-gcloud@v0"
+        uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
-        uses: jsdaniell/create-json@1.1.2
+        uses: jsdaniell/create-json@v1.2.2
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}

@@ -16,19 +16,19 @@ const Press = () => {
   useInitScrollTop();
   return (
       <Page>
-          <div className="press-page">
+          <div className="list-page">
               <SEO title="Press" siteTitle="AirQo" description="Find stories about AirQo that we think you'll love." />
-              <div className="p-header">
+              <div className="page-header">
                   <div className="content">
-                      <div className="press-top">
+                      <div className="title-wrapper">
                           <h2>In the Press</h2>
                           <span className="sub-title">Stories about AirQo that we think you'll love</span>
                       </div>
                   </div>
               </div>
-              <div className="p-body">
+              <div className="page-body">
                   <div className="content">
-                      <div className="press-cards">
+                      <div className="list-cards">
                           <div className="card">
                               <Article
                                   title="Ugandan scientists build low-cost air quality monitoring system"
@@ -84,7 +84,7 @@ const Press = () => {
                           </div>
                       </div>
                       <div className="press-cards-lg">
-                          <div className="card-lg">
+                          <div className="card-lg" style={{paddingBottom:'0px'}}>
                               <Article
                                   title="AirQo Project to expand its air quality monitoring network to more African countries"
                                   subtitle="AirQo Project to expand its air quality monitoring network to more African countries"
@@ -94,7 +94,7 @@ const Press = () => {
                               />
                           </div>
                       </div>
-                      <div className="press-cards">
+                      <div className="list-cards">
                           <div className="card">
                               <Article
                                   title="Zindi winners Darius and Nikhil help AirQo improve air quality predictions in Africa"

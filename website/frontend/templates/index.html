@@ -13,11 +13,14 @@
         <link rel="shortcut icon" href="{% static "favicon.png" %}" />
         <link rel="apple-touch-icon" sizes="76x76" href="{% static "favicon.png" %}" />
         <meta property="og:type" content="website" />
+        <meta property="og:title" content="AirQo Africa" />
         <meta property="og:url" content="https://www.airqo.net" />
+        <meta property="og:description" content="Clean Air for all African Cities" />
         <meta property="og:image" content="{% static "opengraph.png" %}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="400" />
         <meta property="og:image:height" content="300" />
+        <meta property="og:site_name" content="AirQo" />
     </head>
 
     <body>
@@ -31,6 +34,17 @@
         gtag('js', new Date());
 
         gtag('config', 'G-79ZVCLEDSG');
+        </script>
+        <!-- Hotjar Tracking Code for https://airqo.net/ -->
+        <script>
+            (function(h,o,t,j,a,r){
+                h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+                h._hjSettings={hjid:3337369,hjsv:6};
+                a=o.getElementsByTagName('head')[0];
+                r=o.createElement('script');r.async=1;
+                r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+                a.appendChild(r);
+            })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
         </script>
     </body>
 </html>

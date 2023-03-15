@@ -8,7 +8,6 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
@@ -109,6 +108,16 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               context
                                   .read<AccountBloc>()
                                   .add(const FetchAccountInfo());
+                              context.read<KyaBloc>().add(const RefreshKya());
+                              context
+                                  .read<AnalyticsBloc>()
+                                  .add(const RefreshAnalytics());
+                              context
+                                  .read<FavouritePlaceBloc>()
+                                  .add(const RefreshFavouritePlaces());
+                              context
+                                  .read<NotificationBloc>()
+                                  .add(const RefreshNotifications());
                               Future.delayed(
                                 const Duration(seconds: 2),
                                 () {
@@ -159,7 +168,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context)
                               .textTheme
-                              .bodyText2
+                              .bodyMedium
                               ?.copyWith(
                                 color:
                                     CustomColors.appColorBlack.withOpacity(0.6),
@@ -174,7 +183,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
-                              Theme.of(context).textTheme.bodyText2?.copyWith(
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontSize: 18.0,
                                     color: CustomColors.appColorBlue,
                                   ),
@@ -206,7 +215,10 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         child: Text(
                           'The code should arrive with in ${state.codeCountDown} sec',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.caption?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
                                 color:
                                     CustomColors.appColorBlack.withOpacity(0.5),
                               ),
@@ -216,7 +228,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         visible: state.codeCountDown <= 0 &&
                             state.blocStatus != BlocStatus.success,
                         child: GestureDetector(
-                          onTap: () async {
+                          onTap: () {
                             context
                                 .read<AuthCodeBloc>()
                                 .add(ResendAuthCode(context: context));
@@ -226,7 +238,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             'Resend code',
                             textAlign: TextAlign.center,
                             style:
-                                Theme.of(context).textTheme.caption?.copyWith(
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: CustomColors.appColorBlue,
                                     ),
                           ),
@@ -255,7 +267,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                   'Or',
                                   style: Theme.of(context)
                                       .textTheme
-                                      .caption
+                                      .bodySmall
                                       ?.copyWith(
                                         color: const Color(0xffD1D3D9),
                                       ),
@@ -280,10 +292,12 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             child: Text(
                               cancelText,
                               textAlign: TextAlign.center,
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: CustomColors.appColorBlue,
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: CustomColors.appColorBlue,
+                                  ),
                             ),
                           ),
                         ),
@@ -306,8 +320,9 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                 Radius.circular(15.0),
                               ),
                             ),
-                            child: SvgPicture.asset(
-                              'assets/icon/valid_input_icon.svg',
+                            child: Icon(
+                              Icons.check_circle_rounded,
+                              color: CustomColors.appColorValid,
                             ),
                           ),
                         ),

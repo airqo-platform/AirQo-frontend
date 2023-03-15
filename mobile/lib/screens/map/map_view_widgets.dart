@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,9 +15,7 @@ import 'package:flutter_svg/svg.dart';
 import '../insights/insights_page.dart';
 
 class DraggingHandle extends StatelessWidget {
-  const DraggingHandle({
-    super.key,
-  });
+  const DraggingHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +31,7 @@ class DraggingHandle extends StatelessWidget {
 }
 
 class RegionAvatar extends StatelessWidget {
-  const RegionAvatar({
-    super.key,
-  });
+  const RegionAvatar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +43,10 @@ class RegionAvatar extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: SvgPicture.asset(
-          'assets/icon/location.svg',
+        child: Icon(
+          Icons.location_on_rounded,
           color: CustomColors.appColorBlue,
+          size: 27,
         ),
       ),
     );
@@ -75,10 +71,7 @@ class MapCardWidget extends StatelessWidget {
           topRight: Radius.circular(16),
         ),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: widget,
-      ),
+      child: widget,
     );
   }
 }
@@ -95,9 +88,7 @@ class SiteTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       onTap: () {
-        context
-            .read<MapBloc>()
-            .add(ShowSite(airQualityReading: airQualityReading));
+        context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
       },
       title: AutoSizeText(
         airQualityReading.name,
@@ -114,11 +105,11 @@ class SiteTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.4),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
       leading: MiniAnalyticsAvatar(airQualityReading: airQualityReading),
     );
@@ -126,21 +117,19 @@ class SiteTile extends StatelessWidget {
 }
 
 class SearchTile extends StatelessWidget {
-  SearchTile({
+  const SearchTile({
     super.key,
     required this.searchResult,
   });
-  final SearchResultItem searchResult;
-  final SearchRepository _searchRepository =
-      SearchRepository(searchApiKey: Config.searchApiKey);
+  final SearchResult searchResult;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
-      onTap: () {
-        _showPlaceDetails(context);
+      onTap: () async {
+        await _showPlaceDetails(context);
       },
       title: AutoSizeText(
         searchResult.name,
@@ -158,11 +147,11 @@ class SearchTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
     );
   }
@@ -170,12 +159,14 @@ class SearchTile extends StatelessWidget {
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
 
-    final place = await _searchRepository.placeDetails(searchResult.id);
+    SearchResult? place = await SearchApiClient().getPlaceDetails(
+      searchResult,
+    );
 
     if (place != null) {
-      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
-        place.geometry.location.lat,
-        place.geometry.location.lng,
+      final nearestSite = await LocationService.getNearestSite(
+        place.latitude,
+        place.longitude,
       );
 
       Navigator.pop(context);
@@ -201,8 +192,8 @@ class SearchTile extends StatelessWidget {
                 name: searchResult.name,
                 location: searchResult.location,
                 placeId: searchResult.id,
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
+                latitude: place.latitude,
+                longitude: place.longitude,
               ),
             );
           },
@@ -217,89 +208,146 @@ class SearchTile extends StatelessWidget {
   }
 }
 
-class EmptyView extends StatelessWidget {
-  const EmptyView({
-    super.key,
-    required this.title,
-    required this.bodyInnerText,
-    required this.topBars,
-    required this.showRegions,
-  });
-  final String title;
-  final String bodyInnerText;
-  final bool topBars;
-  final VoidCallback showRegions;
+class CountryTile extends StatelessWidget {
+  const CountryTile(this.country, {super.key});
+  final String country;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Visibility(
-          visible: topBars,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: 32,
-                width: 32,
-                decoration: BoxDecoration(
-                  color: CustomColors.appBodyColor,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: const RegionAvatar(),
+      onTap: () {
+        context.read<MapBloc>().add(ShowCountryRegions(country));
+      },
+      title: AutoSizeText(
+        country.toTitleCase(),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.headline8(context),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
+      ),
+    );
+  }
+}
+
+class AllCountries extends StatelessWidget {
+  const AllCountries({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                padding: index == 0
+                    ? const EdgeInsets.only(top: 5)
+                    : EdgeInsets.zero,
+                child: CountryTile(state.countries[index]),
+              );
+            },
+            itemCount: state.countries.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CountryRegions extends StatelessWidget {
+  const CountryRegions({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                padding: index == 0
+                    ? const EdgeInsets.only(top: 5)
+                    : EdgeInsets.zero,
+                child: RegionTile(
+                  region: state.regions[index],
+                  country: state.featuredCountry,
                 ),
-                child: Center(
-                  child: IconButton(
-                    iconSize: 10,
-                    icon: Icon(
-                      Icons.clear,
-                      color: CustomColors.appColorBlack,
+              );
+            },
+            itemCount: state.regions.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RegionSites extends StatelessWidget {
+  const RegionSites({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapBloc, MapState>(
+        builder: (context, state) {
+          return MediaQuery.removePadding(
+            removeTop: true,
+            context: context,
+            child: ListView(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                const SizedBox(
+                  height: 10,
+                ),
+                Visibility(
+                  visible: state.featuredAirQualityReadings.isNotEmpty,
+                  child: Text(
+                    state.featuredRegion.toTitleCase(),
+                    style: CustomTextStyle.overline1(context)?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.32),
                     ),
-                    onPressed: showRegions,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 80,
-        ),
-        Image.asset(
-          'assets/icon/coming_soon.png',
-          height: 80,
-          width: 80,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: Text(
-            '$title\nComing soon on the network'.trim(),
-            textAlign: TextAlign.center,
-            style: CustomTextStyle.headline7(context)
-                ?.copyWith(letterSpacing: 16 * -0.01),
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: Text(
-            'We currently do not support air quality '
-            'monitoring in this $bodyInnerText, but we’re working on it.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.4),
+                Visibility(
+                  visible: state.featuredAirQualityReadings.isNotEmpty,
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      controller: ScrollController(),
+                      itemBuilder: (context, index) => SiteTile(
+                        airQualityReading:
+                            state.featuredAirQualityReadings[index],
+                      ),
+                      itemCount: state.featuredAirQualityReadings.length,
+                    ),
+                  ),
                 ),
-          ),
-        ),
-        const SizedBox(
-          height: 158,
-        ),
-      ],
+                // TODO added empty widget
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -308,8 +356,10 @@ class RegionTile extends StatelessWidget {
   const RegionTile({
     super.key,
     required this.region,
+    required this.country,
   });
-  final Region region;
+  final String region;
+  final String country;
 
   @override
   Widget build(BuildContext context) {
@@ -317,128 +367,32 @@ class RegionTile extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
       onTap: () {
-        context.read<MapBloc>().add(ShowRegionSites(region: region));
+        context.read<MapBloc>().add(ShowRegionSites(region));
       },
       title: AutoSizeText(
-        region.toString(),
+        region.toTitleCase(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        'Uganda',
+        country.toTitleCase(),
         style: CustomTextStyle.bodyText4(context)?.copyWith(
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
     );
   }
 }
 
-class AllSites extends StatelessWidget {
-  const AllSites({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: const <Widget>[
-          SizedBox(
-            height: 5,
-          ),
-          RegionTile(
-            region: Region.central,
-          ),
-          RegionTile(
-            region: Region.western,
-          ),
-          RegionTile(
-            region: Region.eastern,
-          ),
-          RegionTile(
-            region: Region.northern,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RegionSites extends StatelessWidget {
-  const RegionSites({
-    super.key,
-    required this.airQualityReadings,
-    required this.region,
-  });
-
-  final List<AirQualityReading> airQualityReadings;
-  final Region region;
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-          Visibility(
-            visible: airQualityReadings.isNotEmpty,
-            child: Text(
-              region.toString(),
-              style: CustomTextStyle.overline1(context)?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.32),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: airQualityReadings.isNotEmpty,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: ListView.builder(
-                shrinkWrap: true,
-                controller: ScrollController(),
-                itemBuilder: (context, index) => SiteTile(
-                  airQualityReading: airQualityReadings[index],
-                ),
-                itemCount: airQualityReadings.length,
-              ),
-            ),
-          ),
-          Visibility(
-            visible: airQualityReadings.isEmpty,
-            child: EmptyView(
-              title: region.toString(),
-              topBars: false,
-              bodyInnerText: 'region',
-              showRegions: () {
-                context.read<MapBloc>().add(const ShowAllSites());
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SingleSite extends StatelessWidget {
-  const SingleSite({super.key, required this.airQualityReading});
+class FeaturedSiteReading extends StatelessWidget {
+  const FeaturedSiteReading(this.airQualityReading, {super.key});
 
   final AirQualityReading airQualityReading;
 
@@ -454,190 +408,275 @@ class SingleSite extends StatelessWidget {
         physics: const ScrollPhysics(),
         controller: ScrollController(),
         children: <Widget>[
-          MapAnalyticsCard(
-            airQualityReading: airQualityReading,
-          ),
+          MapAnalyticsCard(airQualityReading),
         ],
       ),
     );
   }
 }
 
-class SearchSites extends StatelessWidget {
-  const SearchSites({super.key, required this.airQualityReadings});
-
-  final List<AirQualityReading> airQualityReadings;
+class MapAnalyticsCard extends StatelessWidget {
+  const MapAnalyticsCard(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
-    final filteredAirQualityReadings =
-        filterNearestLocations(airQualityReadings);
+    final appColors = Theme.of(context).extension<AppColors>()!;
 
-    return MediaQuery.removePadding(
-      removeTop: true,
-      context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
+    return SizedBox(
+      height: 257,
+      width: double.infinity,
+      child: Column(
         children: [
-          Visibility(
-            visible: airQualityReadings.isEmpty,
-            child: Center(
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: CustomColors.appColorBlue,
+                elevation: 0,
+                side: const BorderSide(
+                  color: Colors.transparent,
+                  width: 0,
+                ),
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.zero,
+              ),
+              onPressed: () async {
+                await _goToInsights(context);
+              },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            final String region =
+                                context.read<MapBloc>().state.featuredRegion;
+
+                            context.read<MapBloc>().add(region.isEmpty
+                                ? const InitializeMapState()
+                                : ShowRegionSites(region));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: 12,
+                              top: 12,
+                              left: 20,
+                            ),
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: SvgPicture.asset(
+                                'assets/icon/close.svg',
+                                height: 20,
+                                width: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(
                     height: 10,
                   ),
-                  Stack(
+                  Column(
                     children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
+                      SizedBox(
+                        height: 104,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            children: [
+                              AnalyticsAvatar(airQualityReading),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      airQualityReading.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.headline9(
+                                        context,
+                                      ),
+                                    ),
+                                    Text(
+                                      airQualityReading.location,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.bodyText4(context)
+                                          ?.copyWith(
+                                        color: appColors.appColorBlack
+                                            .withOpacity(0.3),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    AqiStringContainer(airQualityReading),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                3.2,
+                                          ),
+                                          child: Text(
+                                            airQualityReading.dateTime
+                                                .analyticsCardString(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              color:
+                                                  Colors.black.withOpacity(0.3),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32),
+                        child: AnalyticsMoreInsights(),
+                      ),
                     ],
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
                   ),
                 ],
               ),
             ),
           ),
-          Visibility(
-            visible: filteredAirQualityReadings.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => SiteTile(
-                    airQualityReading: filteredAirQualityReadings[index],
-                  ),
-                  itemCount: filteredAirQualityReadings.length,
-                ),
-              ),
+          const Divider(
+            color: Color(0xffC4C4C4),
+            height: 1.0,
+          ),
+          SizedBox(
+            height: 58,
+            child: AnalyticsCardFooter(
+              airQualityReading,
+              radius: 0,
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _goToInsights(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return InsightsPage(airQualityReading);
+        },
+      ),
+    );
+  }
+}
+
+class SearchMapDefaultView extends StatelessWidget {
+  const SearchMapDefaultView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            controller: ScrollController(),
+            itemBuilder: (context, index) => SiteTile(
+              airQualityReading: state.airQualityReadings[index],
+            ),
+            itemCount: state.airQualityReadings.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class MapSearchWidget extends StatelessWidget {
+  const MapSearchWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          if (state.searchTerm.isEmpty) {
+            return const SearchMapDefaultView();
+          }
+
+          if (state.mapStatus == MapSearchStatus.error) {
+            return const NoSearchResultsWidget();
+          }
+
+          return const SearchResults();
+        },
       ),
     );
   }
 }
 
 class SearchResults extends StatelessWidget {
-  const SearchResults({super.key, required this.searchResults});
-
-  final List<SearchResultItem> searchResults;
+  const SearchResults({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          Visibility(
-            visible: searchResults.isEmpty,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Stack(
-                    children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Visibility(
-            visible: searchResults.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                removeLeft: true,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => SearchTile(
-                    searchResult: searchResults[index],
-                  ),
-                  itemCount: searchResults.length,
+      child: BlocBuilder<MapSearchBloc, MapSearchState>(
+        builder: (context, state) {
+          if (state.searchResults.isEmpty && state.searchTerm.isNotEmpty) {
+            return const NoSearchResultsWidget();
+          }
+
+          return Center(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              removeLeft: true,
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) => SearchTile(
+                  searchResult: state.searchResults[index],
                 ),
+                itemCount: state.searchResults.length,
               ),
             ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -665,9 +704,17 @@ class SearchWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MapBloc, MapState>(
       builder: (context, state) {
-        if (state is SingleSiteState) {
+        if (state.mapStatus == MapStatus.showingFeaturedSite) {
           return const SizedBox();
         }
+
+        final OutlineInputBorder outlineInputBorder = OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Colors.transparent,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(8.0),
+        );
 
         return Row(
           children: [
@@ -685,14 +732,22 @@ class SearchWidget extends StatelessWidget {
                 child: TextFormField(
                   controller: _searchController,
                   onChanged: (String value) {
-                    context
-                        .read<MapBloc>()
-                        .add(MapSearchTermChanged(searchTerm: value));
+                    if (state.mapStatus != MapStatus.searching) {
+                      context.read<MapBloc>().add(const InitializeSearch());
+                      context
+                          .read<MapSearchBloc>()
+                          .add(const InitializeSearch());
+                    } else {
+                      context
+                          .read<MapSearchBloc>()
+                          .add(MapSearchTermChanged(searchTerm: value));
+                    }
                   },
                   onTap: () {
-                    context.read<MapBloc>().add(const MapSearchReset());
+                    context.read<MapBloc>().add(const InitializeSearch());
+                    context.read<MapSearchBloc>().add(const InitializeSearch());
                   },
-                  style: Theme.of(context).textTheme.caption?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 16,
                       ),
                   enableSuggestions: true,
@@ -701,41 +756,21 @@ class SearchWidget extends StatelessWidget {
                   cursorColor: CustomColors.appColorBlack,
                   decoration: InputDecoration(
                     fillColor: Colors.white,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(
-                        right: 0,
-                        top: 7,
-                        bottom: 7,
-                        left: 0,
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 0,
+                        vertical: 7,
                       ),
-                      child: SvgPicture.asset(
-                        'assets/icon/search.svg',
-                        semanticsLabel: 'Search',
+                      child: Icon(
+                        Icons.search_rounded,
+                        semanticLabel: 'Search',
                       ),
                     ),
-                    contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+                    contentPadding: EdgeInsets.zero,
+                    focusedBorder: outlineInputBorder,
+                    enabledBorder: outlineInputBorder,
+                    border: outlineInputBorder,
+                    hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.32),
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -746,7 +781,7 @@ class SearchWidget extends StatelessWidget {
             ),
             BlocBuilder<MapBloc, MapState>(
               builder: (context, state) {
-                if (state is! AllSitesState) {
+                if (state.mapStatus != MapStatus.showingCountries) {
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -756,7 +791,10 @@ class SearchWidget extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           _searchController.text = '';
-                          context.read<MapBloc>().add(const ShowAllSites());
+
+                          context
+                              .read<MapBloc>()
+                              .add(const InitializeMapState());
                         },
                         child: Container(
                           height: 32,

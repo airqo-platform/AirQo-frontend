@@ -1,0 +1,114 @@
+name: test-changes
+
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  check:
+    name: check for changed frontends
+    outputs:
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
+
+          while IFS= read -r file
+          do
+            if [[ $file == platform/* ]]; then
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+  ### test analytics platform changes ###
+  analytics-platform:
+    name: test-analytics-platform-changes
+    needs: [check]
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+    container: cypress/browsers:node16.14.0-chrome99-ff97
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Create .env file
+        run: |
+          gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+          echo "INSTRUMENT_CODE=1" >> platform/.env
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v5
+        with:
+          working-directory: ./platform/
+          build: yarn build
+          start: yarn start
+          browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.ANALYTICS_PLATFORM_CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: code-coverage
+
+      - name: Deploy code coverage report 🚀
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./platform/coverage/lcov-report
+
+  ### test docs changes ###
+  docs:
+    name: test-docs-changes
+    needs: [check]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    container: cypress/browsers:node16.14.0-chrome99-ff97
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v5
+        with:
+          working-directory: ./docs/
+          start: yarn preview
+          wait-on: http://localhost:3000
+          browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.DOCS_CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: code-coverage
+
+      - name: Deploy code coverage report 🚀
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./docs/coverage/lcov-report

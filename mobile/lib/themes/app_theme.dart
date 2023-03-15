@@ -360,7 +360,7 @@ ThemeData customTheme() {
     primaryColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: TextTheme(
-      headline1: TextStyle(
+      displayLarge: TextStyle(
         fontSize: 80.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -368,7 +368,7 @@ ThemeData customTheme() {
         height: 88.0 / 80.0,
         letterSpacing: 16 * -0.01,
       ),
-      headline2: TextStyle(
+      displayMedium: TextStyle(
         fontSize: 64.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -376,7 +376,7 @@ ThemeData customTheme() {
         height: 72.0 / 64.0,
         letterSpacing: 16 * -0.01,
       ),
-      headline3: TextStyle(
+      displaySmall: TextStyle(
         fontSize: 56.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -384,7 +384,7 @@ ThemeData customTheme() {
         height: 64.0 / 56.0,
         letterSpacing: 16 * -0.01,
       ),
-      headline4: TextStyle(
+      headlineMedium: TextStyle(
         fontSize: 48.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -392,7 +392,7 @@ ThemeData customTheme() {
         height: 56.0 / 48.0,
         letterSpacing: 16 * -0.01,
       ),
-      headline5: TextStyle(
+      headlineSmall: TextStyle(
         fontSize: 40.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -400,7 +400,7 @@ ThemeData customTheme() {
         height: 48.0 / 40.0,
         letterSpacing: 16 * -0.01,
       ),
-      headline6: TextStyle(
+      titleLarge: TextStyle(
         fontSize: 32.0,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.normal,
@@ -408,28 +408,28 @@ ThemeData customTheme() {
         height: 40.0 / 32.0,
         letterSpacing: 16 * -0.01,
       ),
-      bodyText1: TextStyle(
+      bodyLarge: TextStyle(
         fontSize: 16.0,
         fontWeight: FontWeight.w400,
         fontStyle: FontStyle.normal,
         color: CustomColors.appColorBlack,
         height: 24.0 / 16.0,
       ),
-      bodyText2: TextStyle(
+      bodyMedium: TextStyle(
         fontSize: 14.0,
         fontWeight: FontWeight.w400,
         fontStyle: FontStyle.normal,
         color: CustomColors.appColorBlack,
         height: 18.0 / 14.0,
       ),
-      caption: TextStyle(
+      bodySmall: TextStyle(
         fontSize: 12.0,
         fontWeight: FontWeight.w400,
         fontStyle: FontStyle.normal,
         color: CustomColors.appColorBlack,
         height: 16.0 / 12.0,
       ),
-      overline: TextStyle(
+      labelSmall: TextStyle(
         fontSize: 8.0,
         fontWeight: FontWeight.w500,
         fontStyle: FontStyle.normal,
@@ -437,14 +437,14 @@ ThemeData customTheme() {
         height: 12.0 / 8.0,
         letterSpacing: 16 * -0.24,
       ),
-      subtitle1: TextStyle(
+      titleMedium: TextStyle(
         fontSize: 16.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
         color: CustomColors.appColorBlack,
         height: 24.0 / 16.0,
       ),
-      subtitle2: TextStyle(
+      titleSmall: TextStyle(
         fontSize: 14.0,
         fontWeight: FontWeight.w400,
         fontStyle: FontStyle.normal,
@@ -502,7 +502,7 @@ ThemeData customTheme() {
 
 class CustomTextStyle {
   static TextStyle? bodyText4(BuildContext context) {
-    return Theme.of(context).textTheme.bodyText2?.copyWith(
+    return Theme.of(context).textTheme.bodyMedium?.copyWith(
           fontSize: 14.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -511,7 +511,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? button1(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 14.0,
           fontWeight: FontWeight.w400,
           fontStyle: FontStyle.normal,
@@ -520,7 +520,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? newNotification(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 10.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -530,7 +530,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? button2(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 14.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
@@ -539,7 +539,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? caption3(BuildContext context) {
-    return Theme.of(context).textTheme.caption?.copyWith(
+    return Theme.of(context).textTheme.bodySmall?.copyWith(
           fontWeight: FontWeight.w500,
           fontSize: 12.0,
           height: 16.0 / 12.0,
@@ -547,14 +547,14 @@ class CustomTextStyle {
   }
 
   static TextStyle? caption4(BuildContext context) {
-    return Theme.of(context).textTheme.caption?.copyWith(
+    return Theme.of(context).textTheme.bodySmall?.copyWith(
           fontSize: 12.0,
           height: 16.0 / 12.0,
         );
   }
 
   static TextStyle? headline10(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 16.0,
           fontWeight: FontWeight.w700,
           fontStyle: FontStyle.normal,
@@ -563,7 +563,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? headline11(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 28.0,
           fontWeight: FontWeight.w700,
           fontStyle: FontStyle.normal,
@@ -573,7 +573,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? headline7(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 24.0,
           fontWeight: FontWeight.w700,
           fontStyle: FontStyle.normal,
@@ -581,8 +581,27 @@ class CustomTextStyle {
         );
   }
 
+  static TextStyle? errorTitle(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 21.0,
+          fontWeight: FontWeight.w700,
+          fontStyle: FontStyle.normal,
+          height: 26.0 / 21.0,
+        );
+  }
+
+  static TextStyle? errorSubTitle(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 15.0,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          height: 18.0 / 15.0,
+          color: CustomColors.appColorBlack.withOpacity(0.6),
+        );
+  }
+
   static TextStyle? headline8(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 16.0,
           fontWeight: FontWeight.w700,
           fontStyle: FontStyle.normal,
@@ -591,11 +610,20 @@ class CustomTextStyle {
   }
 
   static TextStyle? headline9(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontSize: 20.0,
           fontWeight: FontWeight.w700,
           fontStyle: FontStyle.normal,
           height: 24.0 / 20.0,
+        );
+  }
+
+  static TextStyle? airQualityChip(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 7.0,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          height: 9.0 / 7.0,
         );
   }
 
@@ -616,7 +644,7 @@ class CustomTextStyle {
   }
 
   static TextStyle? overline1(BuildContext context) {
-    return Theme.of(context).textTheme.headline6?.copyWith(
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w400,
           fontStyle: FontStyle.normal,
           fontSize: 10.0,

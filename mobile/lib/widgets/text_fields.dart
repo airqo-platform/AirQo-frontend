@@ -5,7 +5,6 @@ import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'custom_widgets.dart';
 
@@ -164,7 +163,7 @@ class _OptFieldState extends State<OptField> {
             autofocus: true,
             cursorColor: textColor,
             keyboardType: TextInputType.number,
-            style: Theme.of(context).textTheme.bodyText1?.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontSize: 32,
                   fontWeight: FontWeight.w500,
                   color: textColor,
