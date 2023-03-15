@@ -111,7 +111,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _proceedWithSplashAnimation() async {
-    final isLoggedIn = CustomAuth.isLoggedIn();
+    final Profile profile = context.read<ProfileBloc>().state;
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
@@ -126,7 +126,7 @@ class SplashScreenState extends State<SplashScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) {
-              if (!isLoggedIn) {
+              if (!profile.isSignedIn) {
                 return const IntroductionScreen();
               } else {
                 switch (nextPage) {

@@ -221,8 +221,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         ),
                       ),
                       const Spacer(),
-                      GestureDetector(
-                        onTap: () async {
+                      NextButton(
+                        buttonColor: state.phoneNumber.isValidPhoneNumber()
+                            ? CustomColors.appColorBlue
+                            : CustomColors.appColorDisabled,
+                        callBack: () async {
                           if (!state.phoneNumber.isValidPhoneNumber()) {
                             context
                                 .read<PhoneAuthBloc>()
@@ -255,11 +258,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                           );
                         },
-                        child: NextButton(
-                          buttonColor: state.phoneNumber.isValidPhoneNumber()
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorDisabled,
-                        ),
                       ),
                       Visibility(
                         visible: !_keyboardVisible,

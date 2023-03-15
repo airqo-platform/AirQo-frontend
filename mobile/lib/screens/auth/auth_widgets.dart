@@ -15,19 +15,14 @@ import 'package:flutter_svg/svg.dart';
 import '../home_page.dart';
 import 'email_auth_widget.dart';
 
-class ProceedAsGuest extends StatefulWidget {
+class ProceedAsGuest extends StatelessWidget {
   const ProceedAsGuest({super.key});
 
-  @override
-  State<ProceedAsGuest> createState() => _ProceedAsGuestState();
-}
-
-class _ProceedAsGuestState extends State<ProceedAsGuest> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        await _guestSignIn();
+        await _guestSignIn(context);
       },
       child: SizedBox(
         width: double.infinity,
@@ -58,7 +53,7 @@ class _ProceedAsGuestState extends State<ProceedAsGuest> {
     );
   }
 
-  Future<void> _guestSignIn() async {
+  Future<void> _guestSignIn(BuildContext context) async {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
         showSnackBar(context, "Check your internet connection");

@@ -233,8 +233,8 @@ class SettingsButton extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: SvgPicture.asset(
-              'assets/icon/cog.svg',
+            child: Icon(
+              Icons.settings_rounded,
               color: CustomColors.appColorBlue,
             ),
           ),
@@ -453,14 +453,16 @@ class ViewNotificationIcon extends StatelessWidget {
 class CardSection extends StatelessWidget {
   const CardSection({
     super.key,
-    required this.icon,
+    this.icon,
+    this.materialIcon,
     required this.iconColor,
     required this.text,
     required this.nextPage,
     this.isTopItem = false,
     this.isBottomItem = false,
   });
-  final String icon;
+  final String? icon;
+  final IconData? materialIcon;
   final String text;
   final Color? iconColor;
   final Widget nextPage;
@@ -514,7 +516,12 @@ class CardSection extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: SvgPicture.asset(icon, color: iconColor),
+            child: icon != null
+                ? SvgPicture.asset(icon!, color: iconColor)
+                : Icon(
+                    materialIcon,
+                    color: iconColor,
+                  ),
           ),
         ),
         title: AutoSizeText(
@@ -543,7 +550,7 @@ class ProfileSection extends StatelessWidget {
         children: [
           CardSection(
             text: 'Profile',
-            icon: 'assets/icon/profile.svg',
+            materialIcon: Icons.person_rounded,
             iconColor: CustomColors.appColorBlue,
             nextPage: const ProfileEditPage(),
             isTopItem: true,

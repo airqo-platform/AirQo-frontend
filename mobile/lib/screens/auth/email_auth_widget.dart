@@ -198,17 +198,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         ),
                       ),
                       const Spacer(),
-                      GestureDetector(
-                        onTap: () {
+                      NextButton(
+                        buttonColor: state.emailAddress.isValidEmail()
+                            ? CustomColors.appColorBlue
+                            : CustomColors.appColorDisabled,
+                        callBack: () {
                           context
                               .read<EmailAuthBloc>()
                               .add(ValidateEmailAddress(context: context));
                         },
-                        child: NextButton(
-                          buttonColor: state.emailAddress.isValidEmail()
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorDisabled,
-                        ),
                       ),
                       Visibility(
                         visible: !_keyboardVisible,

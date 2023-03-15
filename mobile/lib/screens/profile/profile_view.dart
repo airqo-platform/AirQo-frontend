@@ -30,7 +30,7 @@ class ProfileView extends StatelessWidget {
                 const SizedBox(height: 16),
                 CardSection(
                   text: 'Settings',
-                  icon: 'assets/icon/cog.svg',
+                  materialIcon: Icons.settings_rounded,
                   iconColor: CustomColors.appColorBlue,
                   nextPage: const SettingsPage(),
                   isBottomItem: true,
