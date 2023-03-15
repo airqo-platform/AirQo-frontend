@@ -302,6 +302,9 @@ class _DashboardViewState extends State<DashboardView>
                                         )
                                       : Container();
                                 }
+                                context
+                                    .read<LocationHistoryBloc>()
+                                    .add(AddLocationHistory(nearbyAirQuality));
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),

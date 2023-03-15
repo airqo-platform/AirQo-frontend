@@ -4,6 +4,14 @@ abstract class LocationHistoryEvent extends Equatable {
   const LocationHistoryEvent();
 }
 
+class AddLocationHistory extends LocationHistoryEvent {
+  const AddLocationHistory(this.airQualityReading);
+  final AirQualityReading airQualityReading;
+
+  @override
+  List<Object?> get props => [airQualityReading];
+}
+
 class SyncLocationHistory extends LocationHistoryEvent {
   const SyncLocationHistory();
   @override
