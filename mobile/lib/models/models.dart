@@ -12,5 +12,4 @@ export 'notification.dart';
 export 'profile.dart';
 export 'search_history.dart';
 export 'search_result.dart';
-export 'app_store_version.dart';
 export 'insight.dart';
