@@ -14,8 +14,8 @@ class SvgIcons {
 
   static Widget airQualityEmoji(
     AirQuality airQuality, {
-    double height = 22,
-    double width = 28,
+    double height = 18,
+    double width = 30,
     bool isEmpty = false,
   }) {
     if (isEmpty) {

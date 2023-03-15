@@ -205,7 +205,7 @@ enum AirQuality {
   ufsgs(
     title: 'Unhealthy For Sensitive Groups',
     description:
-        'The air is acceptable, but sensitive groups may experience some health effects.',
+        'People with respiratory or heart diseases, children, and elderly may experience health effects.',
     color: CustomColors.aqiOrange,
     svgEmoji: 'assets/icon/ufgs_emoji.svg',
     searchNearbyLocationsText:
@@ -219,7 +219,7 @@ enum AirQuality {
   unhealthy(
     title: 'Unhealthy',
     description:
-        'The air is acceptable, but sensitive groups may experience some health effects.',
+        'People with respiratory or heart diseases, children, and elderly may experience health effects.',
     color: CustomColors.aqiRed,
     svgEmoji: 'assets/icon/unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Unhealthy Quality Air around you',
@@ -231,7 +231,7 @@ enum AirQuality {
   veryUnhealthy(
     title: 'Very Unhealthy',
     description:
-        'The air is acceptable, but sensitive groups may experience some health effects.',
+        'Everyone may begin to experience some adverse health effects and sensitive groups are at higher risk.',
     color: CustomColors.aqiPurple,
     svgEmoji: 'assets/icon/very_unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
@@ -243,7 +243,7 @@ enum AirQuality {
   hazardous(
     title: 'Hazardous',
     description:
-        'The air is acceptable, but sensitive groups may experience some health effects.',
+        'Health warnings of emergency conditions. The entire population is more likely to be affected, with serious health effects on sensitive groups.',
     color: CustomColors.aqiMaroon,
     svgEmoji: 'assets/icon/hazardous_emoji.svg',
     searchNearbyLocationsText: 'Hazardous Quality Air around you',

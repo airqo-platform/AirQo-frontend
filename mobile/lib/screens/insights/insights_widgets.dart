@@ -138,10 +138,70 @@ class InsightsDayReading extends StatelessWidget {
 }
 
 class InsightsCalendar extends StatelessWidget {
-  const InsightsCalendar({super.key});
+  InsightsCalendar({super.key});
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> aqiDialogWidgets = [];
+    aqiDialogWidgets.add(
+      Padding(
+        padding: const EdgeInsets.only(top: 10.0),
+        child: Text(
+          'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.w500,
+            height: 13 / 8,
+            color: CustomColors.appColorBlack,
+          ),
+        ),
+      ),
+    );
+    aqiDialogWidgets.addAll(
+      AirQuality.values.map(
+        (airQuality) => Padding(
+          padding: const EdgeInsets.only(top: 13.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SvgIcons.airQualityEmoji(airQuality),
+              const SizedBox(
+                width: 5,
+              ),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "${airQuality.title}. ",
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w500,
+                          height: 13 / 8,
+                          color: CustomColors.appColorBlack,
+                        ),
+                      ),
+                      TextSpan(
+                        text: airQuality.description,
+                        style: TextStyle(
+                          color: CustomColors.appColorBlack.withOpacity(0.7),
+                          fontSize: 8,
+                          height: 13 / 8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
         Insight? selectedInsight = state.selectedInsight;
@@ -186,55 +246,133 @@ class InsightsCalendar extends StatelessWidget {
                 const SizedBox(
                   height: 21,
                 ),
-                InkWell(
-                  onTap: () async {
-                    if (selectedInsight.isAvailable) {
-                      await airQualityInfoDialog(context);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    height: 64,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Visibility(
-                          visible: !selectedInsight.isAvailable,
-                          child: Expanded(
-                            child: AutoSizeText(
-                              'We’re having issues with our network no worries, we’ll be back up soon.',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.bodyText4(context)?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.3),
-                              ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  height: 64,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Visibility(
+                        visible: !selectedInsight.isAvailable,
+                        child: Expanded(
+                          child: AutoSizeText(
+                            'We’re having issues with our network no worries, we’ll be back up soon.',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.bodyText4(context)?.copyWith(
+                              color:
+                                  CustomColors.appColorBlack.withOpacity(0.3),
                             ),
                           ),
                         ),
-                        Visibility(
-                          visible: selectedInsight.isAvailable,
-                          child: Expanded(
-                            child: AutoSizeText(
-                              selectedInsight.airQualityMessage,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.bodyText4(context)?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.3),
-                              ),
+                      ),
+                      Visibility(
+                        visible: selectedInsight.isAvailable,
+                        child: Expanded(
+                          child: AutoSizeText(
+                            selectedInsight.airQualityMessage,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.bodyText4(context)?.copyWith(
+                              color:
+                                  CustomColors.appColorBlack.withOpacity(0.3),
                             ),
                           ),
                         ),
-                        Visibility(
-                          visible: selectedInsight.isAvailable,
-                          child: SvgIcons.information(),
+                      ),
+                      Visibility(
+                        visible: selectedInsight.isAvailable,
+                        child: PopupMenuButton<bool>(
+                          padding: EdgeInsets.zero,
+                          tooltip: 'AQI info',
+                          position: PopupMenuPosition.over,
+                          color: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(8.0),
+                            ),
+                          ),
+                          child: InkWell(
+                            child: SizedBox(
+                              height: 60,
+                              child: SvgIcons.information(),
+                            ),
+                          ),
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem(
+                              enabled: false,
+                              padding: const EdgeInsets.only(bottom: 16),
+                              value: true,
+                              child: SizedBox(
+                                width: 280.0,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 16),
+                                          child: Text(
+                                            'Know Your Air',
+                                            style: CustomTextStyle.headline10(
+                                              context,
+                                            )?.copyWith(
+                                              color: CustomColors.appColorBlue,
+                                            ),
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () => Navigator.pop(context),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 10,
+                                            ),
+                                            child: SvgIcons.close(size: 20),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Divider(
+                                      height: 1,
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.2),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 26,
+                                        vertical: 0,
+                                      ),
+                                      height: 150,
+                                      child: RawScrollbar(
+                                        thumbColor: CustomColors.appColorBlue
+                                            .withOpacity(0.1),
+                                        radius: const Radius.circular(4),
+                                        controller: _scrollController,
+                                        thickness: 4,
+                                        thumbVisibility: true,
+                                        child: ListView(
+                                          padding: EdgeInsets.zero,
+                                          controller: _scrollController,
+                                          children: aqiDialogWidgets,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
