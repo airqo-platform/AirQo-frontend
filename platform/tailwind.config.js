@@ -38,6 +38,12 @@ module.exports = {
           600: '#202223',
           700: '#353E52',
         },
+        yellow: {
+          200: '#FFEA8A',
+        },
+        turquoise: {
+          200: '#A4E8F2',
+        },
       },
     },
     container: {

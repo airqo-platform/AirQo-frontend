@@ -23,6 +23,9 @@ const collocate = () => {
   } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
 
+  const filterDevicesByStatus = (status) =>
+    deviceStatusSummary.filter((device) => device.status === status);
+
   return (
     <Layout>
       <HeaderNav component={'Collocate'}>
@@ -60,10 +63,24 @@ const collocate = () => {
               <Tab label='All'>
                 <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
               </Tab>
-              <Tab label='Passed'></Tab>
-              <Tab label='Failed'></Tab>
-              <Tab label='Running'></Tab>
-              <Tab label='Scheduled'></Tab>
+              <Tab label='Passed'>
+                <Table collocationDevices={filterDevicesByStatus('passed')} isLoading={isLoading} />
+              </Tab>
+              <Tab label='Failed'>
+                <Table collocationDevices={filterDevicesByStatus('failed')} isLoading={isLoading} />
+              </Tab>
+              <Tab label='Running'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('running')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Scheduled'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('scheduled')}
+                  isLoading={isLoading}
+                />
+              </Tab>
             </Tabs>
           </div>
         ) : (
