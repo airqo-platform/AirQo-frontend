@@ -51,13 +51,17 @@ class _ForYouPageState extends State<ForYouPage>
                       setState(() => _analytics = false);
                     }
                   },
-                  onFinish: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsPage(),
-                      ),
-                    );
+                  onFinish: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    if (prefs.getBool(Config.restartTourShowcase) == true) {
+                      Future.delayed(
+                        Duration.zero,
+                        () => _appService.navigateShowcaseToScreen(
+                          context,
+                          const SettingsPage(),
+                        ),
+                      );
+                    }
                   },
                   builder: Builder(
                     builder: (context) {
@@ -76,19 +80,21 @@ class _ForYouPageState extends State<ForYouPage>
                           );
                         },
                         tabs: <Widget>[
-                          Showcase(
-                            key: _analyticsTabShowcaseKey,
-                            description: 'This is the analytics Tab',
+                          CustomShowcaseWidget(
+                            showcaseKey: _analyticsTabShowcaseKey,
+                            description: "This is the analytics Tab",
                             child: TabButton(
                               text: 'Analytics',
                               index: 0,
                               tabController: _tabController,
                             ),
                           ),
-                          Showcase(
-                            key: _kyaTabShowcaseKey,
+                          CustomShowcaseWidget(
+                            showcaseKey: _kyaTabShowcaseKey,
+                            descriptionHeight: 160,
+                            descriptionWidth: 100,
                             description:
-                                'Do you want to know more about air quality? Know your air in this section',
+                                "Do you want to know more about air quality? Know your air in this section",
                             child: TabButton(
                               text: 'Know your Air',
                               index: 1,

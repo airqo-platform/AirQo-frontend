@@ -16,11 +16,36 @@ class KnowYourAirView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
+        if (state.kya.isEmpty) {
+          return NoKyaWidget(
+            callBack: () {
+              context.read<KyaBloc>().add(const RefreshKya());
+            },
+          );
+        }
         final completeKya = state.kya.filterCompleteKya();
         if (completeKya.isEmpty) {
-          final inCompleteKya = state.kya.filterIncompleteKya();
+          final inCompleteKya = state.kya.filterInProgressKya();
 
-          return NoKyaWidget(
+          if (inCompleteKya.isEmpty &&
+              state.status == KyaStatus.noInternetConnection) {
+            return NoInternetConnectionWidget(
+              callBack: () {
+                _refresh(context);
+              },
+            );
+          }
+
+          if (inCompleteKya.isEmpty &&
+              state.status == KyaStatus.noInternetConnection) {
+            return NoInternetConnectionWidget(
+              callBack: () {
+                _refresh(context);
+              },
+            );
+          }
+
+          return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteKya.isEmpty) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
@@ -58,7 +83,7 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const LoadKya());
+    context.read<KyaBloc>().add(const RefreshKya());
   }
 
   Future<void> _startKyaLessons(BuildContext context, Kya kya) async {

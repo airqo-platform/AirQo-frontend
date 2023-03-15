@@ -143,3 +143,14 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
       'imageUrl': instance.imageUrl,
       'body': instance.body,
     };
+
+KyaProgress _$KyaProgressFromJson(Map<String, dynamic> json) => KyaProgress(
+      id: json['id'] as String,
+      progress: (json['progress'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$KyaProgressToJson(KyaProgress instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'progress': instance.progress,
+    };

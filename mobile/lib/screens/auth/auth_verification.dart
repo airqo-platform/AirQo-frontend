@@ -108,6 +108,16 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               context
                                   .read<AccountBloc>()
                                   .add(const FetchAccountInfo());
+                              context.read<KyaBloc>().add(const RefreshKya());
+                              context
+                                  .read<AnalyticsBloc>()
+                                  .add(const RefreshAnalytics());
+                              context
+                                  .read<FavouritePlaceBloc>()
+                                  .add(const RefreshFavouritePlaces());
+                              context
+                                  .read<NotificationBloc>()
+                                  .add(const RefreshNotifications());
                               Future.delayed(
                                 const Duration(seconds: 2),
                                 () {

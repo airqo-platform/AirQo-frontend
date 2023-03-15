@@ -22,49 +22,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<AccountDeletionCheck>(_accountDeletionCheck);
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
-    on<RefreshAnalytics>(_onRefreshAnalytics);
-    on<RefreshNotifications>(_onRefreshNotifications);
-    on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
     on<RefreshProfile>(_onRefreshProfile);
     on<UpdateProfilePreferences>(_onUpdateProfilePreferences);
-    on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
-  }
-
-  Future<void> _onUpdateFavouritePlace(
-    UpdateFavouritePlace event,
-    Emitter<AccountState> emit,
-  ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.updatingData));
-
-    List<FavouritePlace> favouritePlaces = List.of(state.favouritePlaces);
-    final placesIds = favouritePlaces.map((e) => e.placeId);
-
-    if (placesIds.contains(event.airQualityReading.placeId)) {
-      favouritePlaces.removeWhere(
-        (element) => element.placeId == event.airQualityReading.placeId,
-      );
-    } else {
-      favouritePlaces.add(
-        FavouritePlace.fromAirQualityReading(event.airQualityReading),
-      );
-    }
-
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-
-    emit(state.copyWith(
-      blocStatus: BlocStatus.initial,
-      favouritePlaces: favouritePlaces,
-    ));
-
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateFavouritePlaces();
-      if (favouritePlaces.length >= 5) {
-        await CloudAnalytics.logEvent(
-          AnalyticsEvent.savesFiveFavorites,
-        );
-      }
-    }
   }
 
   @override
@@ -95,11 +54,11 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     await HiveService.loadProfile(profile);
 
     if (event.notifications ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowNotification);
     }
 
     if (event.location ?? false) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+      await CloudAnalytics.logEvent(CloudAnalyticsEvent.allowLocation);
     }
 
     final hasConnection = await hasNetworkConnection();
@@ -135,33 +94,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     return;
   }
 
-  Future<void> _onRefreshNotifications(
-    RefreshNotifications _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
-
-    final cloudNotifications = await CloudStore.getNotifications();
-    final notificationsIds = notifications.map((e) => e.id).toList();
-
-    cloudNotifications.removeWhere((x) => notificationsIds.contains(x.id));
-
-    notifications.addAll(cloudNotifications);
-
-    emit(state.copyWith(notifications: notifications));
-
-    await HiveService.loadNotifications(notifications);
-  }
-
   Future<void> _onRefreshFavouritePlacesInsights() async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
@@ -171,22 +103,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     for (final favouritePlace in state.favouritePlaces) {
       await appService.fetchInsightsData(favouritePlace.referenceSite);
     }
-  }
-
-  Future<void> _onRefreshFavouritePlaces(
-    RefreshFavouritePlaces _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-    final AppService appService = AppService();
-    await appService.updateFavouritePlacesReferenceSites();
-    await _onRefreshFavouritePlacesInsights();
   }
 
   Future<void> _onRefreshProfile(
@@ -209,23 +125,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       guestUser: CustomAuth.isGuestUser(),
       blocStatus: BlocStatus.initial,
     ));
-  }
-
-  Future<void> _onRefreshAnalytics(
-    RefreshAnalytics _,
-    Emitter<AccountState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: AuthenticationError.noInternetConnection,
-      ));
-    }
-
-    final AppService appService = AppService();
-    await appService.refreshAirQualityReadings();
-    // TODO: update cloud Analytics
   }
 
   Future<void> _onUpdateProfile(
@@ -296,7 +195,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
         await Future.wait([
           CloudAnalytics.logEvent(
-            AnalyticsEvent.uploadProfilePicture,
+            CloudAnalyticsEvent.uploadProfilePicture,
           ),
           profile.update(),
         ]);

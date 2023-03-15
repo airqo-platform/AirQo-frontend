@@ -131,9 +131,7 @@ class _NotificationViewState extends State<NotificationView> {
   }
 
   void _updateNotification(AppNotification appNotification) {
-    appNotification
-      ..read = true
-      ..saveNotification();
+    appNotification.read = true;
   }
 }
 
