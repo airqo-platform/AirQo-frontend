@@ -164,7 +164,7 @@ class CloudStore {
             .doc(id)
             .delete(),
         FirebaseFirestore.instance
-            .collection(Config.usersAnalyticsCollection)
+            .collection(Config.usersLocationHistoryCollection)
             .doc(id)
             .delete(),
       ]);
@@ -211,7 +211,7 @@ class CloudStore {
     return [];
   }
 
-  static Future<List<Analytics>> getCloudAnalytics() async {
+  static Future<List<LocationHistory>> getCloudAnalytics() async {
     final uid = CustomAuth.getUserId();
     if (uid.isEmpty) {
       return [];
@@ -219,21 +219,23 @@ class CloudStore {
 
     try {
       final analyticsCollection = await FirebaseFirestore.instance
-          .collection('${Config.usersAnalyticsCollection}/$uid/$uid')
+          .collection(Config.usersLocationHistoryCollection)
+          .doc(uid)
+          .collection(uid)
           .get();
 
-      final cloudAnalytics = <Analytics>[];
+      final locationHistory = <LocationHistory>[];
 
       for (final doc in analyticsCollection.docs) {
-        final analytics = Analytics.parseAnalytics(
+        final history = LocationHistory.parseAnalytics(
           doc.data(),
         );
-        if (analytics != null) {
-          cloudAnalytics.add(analytics);
+        if (history != null) {
+          locationHistory.add(history);
         }
       }
 
-      return cloudAnalytics;
+      return locationHistory;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -392,24 +394,21 @@ class CloudStore {
     }
   }
 
-  static Future<bool> updateCloudAnalytics() async {
+  static Future<bool> updateLocationHistory(
+      List<LocationHistory> locationHistory) async {
     final currentUser = CustomAuth.getUser();
     if (currentUser == null) {
       return true;
     }
     try {
-      final analytics = Hive.box<Analytics>(HiveBox.analytics)
-          .values
-          .toList()
-          .cast<Analytics>();
       final profile = await Profile.getProfile();
-      for (final x in analytics) {
+      for (final x in locationHistory) {
         try {
           await FirebaseFirestore.instance
-              .collection(Config.usersAnalyticsCollection)
+              .collection(Config.usersLocationHistoryCollection)
               .doc(profile.userId)
               .collection(profile.userId)
-              .doc(x.site)
+              .doc(x.placeId)
               .set(
                 x.toJson(),
               );

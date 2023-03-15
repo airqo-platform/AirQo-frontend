@@ -219,11 +219,11 @@ class AppService {
     Widget screen,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => screen,
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => screen,
+      ),
     );
   }
 
@@ -248,7 +248,7 @@ class AppService {
     try {
       final profile = await Profile.getProfile();
       final placesUpdated = await CloudStore.updateFavouritePlaces();
-      final analyticsUpdated = await CloudStore.updateCloudAnalytics();
+      final analyticsUpdated = await CloudStore.updateLocationHistory([]);
       final profileUpdated = await profile.update(logout: true);
       final localStorageCleared = await _clearUserLocalStorage();
 

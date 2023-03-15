@@ -917,6 +917,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  hydrated_bloc:
+    dependency: "direct main"
+    description:
+      name: hydrated_bloc
+      sha256: eb92d88061b6b911c48779b08a91c8a9f3a3aa8475f80d9380045375d9876536
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.0"
   image_picker:
     dependency: "direct main"
     description:

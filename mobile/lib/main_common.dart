@@ -14,6 +14,8 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -58,7 +60,7 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => FavouritePlaceBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => AnalyticsBloc(),
+          create: (BuildContext context) => LocationHistoryBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => NotificationBloc(),
@@ -120,6 +122,9 @@ class AppHttpOverrides extends HttpOverrides {
 }
 
 Future<void> initializeMainMethod() async {
+  HydratedBloc.storage = await HydratedStorage.build(
+      storageDirectory: await getApplicationDocumentsDirectory());
+
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
 

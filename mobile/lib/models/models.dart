@@ -1,5 +1,5 @@
 export 'air_quality_reading.dart';
-export 'analytics.dart';
+export 'location_history.dart';
 export 'database.dart';
 export 'email_auth_model.dart';
 export 'enum_constants.dart';

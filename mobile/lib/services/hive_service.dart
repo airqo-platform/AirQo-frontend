@@ -14,7 +14,6 @@ class HiveService {
       ..registerAdapter<AppNotification>(AppNotificationAdapter())
       ..registerAdapter<Profile>(ProfileAdapter())
       ..registerAdapter<Kya>(KyaAdapter())
-      ..registerAdapter<Analytics>(AnalyticsAdapter())
       ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
       ..registerAdapter<KyaLesson>(KyaLessonAdapter())
       ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
@@ -26,7 +25,6 @@ class HiveService {
       Hive.openBox<AppNotification>(HiveBox.appNotifications),
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
       Hive.openBox<Kya>(HiveBox.kya),
-      Hive.openBox<Analytics>(HiveBox.analytics),
       Hive.openBox<FavouritePlace>(HiveBox.favouritePlaces),
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
@@ -67,7 +65,6 @@ class HiveService {
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
-      Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
   }
@@ -152,26 +149,6 @@ class HiveService {
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings).clear();
     await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
         .putAll(airQualityReadingsMap);
-    await updateAnalytics(nearbyAirQualityReadings);
-  }
-
-  static Future<void> updateAnalytics(
-    List<AirQualityReading> airQualityReadings,
-  ) async {
-    List<Analytics> analytics = airQualityReadings
-        .map((e) => Analytics.fromAirQualityReading(e))
-        .toList();
-
-    analytics.addAll(Hive.box<Analytics>(HiveBox.analytics).values.toList());
-
-    final analyticsMap = <String, Analytics>{};
-
-    for (final element in analytics) {
-      analyticsMap[element.id] = element;
-    }
-
-    await Hive.box<Analytics>(HiveBox.analytics).clear();
-    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 
   static Future<void> loadNotifications(
@@ -198,14 +175,6 @@ class HiveService {
 
   static List<FavouritePlace> getFavouritePlaces() {
     return Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-  }
-
-  static Future<void> deleteAnalytics() async {
-    await Hive.box<Analytics>(HiveBox.analytics).clear();
-  }
-
-  static List<Analytics> getAnalytics() {
-    return Hive.box<Analytics>(HiveBox.analytics).values.toList();
   }
 
   static List<Kya> getKya() {
@@ -267,21 +236,6 @@ class HiveService {
         .putAll(favouritePlacesMap)
         .then((value) => CloudStore.updateFavouritePlaces());
   }
-
-  static Future<void> loadAnalytics(List<Analytics> analytics) async {
-    if (analytics.isEmpty) {
-      return;
-    }
-    await Hive.box<Analytics>(HiveBox.analytics).clear();
-
-    final analyticsMap = <String, Analytics>{};
-
-    for (final analytic in analytics) {
-      analyticsMap[analytic.site] = analytic;
-    }
-
-    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
-  }
 }
 
 class HiveBox {
@@ -290,7 +244,6 @@ class HiveBox {
   static String get kya => 'kya-v1';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
-  static String get analytics => 'analytics';
   static String get airQualityReadings => 'airQualityReadings-v1';
   static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
   static String get favouritePlaces => 'favouritePlaces';

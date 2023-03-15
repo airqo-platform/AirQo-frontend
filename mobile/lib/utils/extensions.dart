@@ -173,12 +173,12 @@ extension KyaListExt on List<Kya> {
   }
 }
 
-extension AnalyticsListExt on List<Analytics> {
-  List<Analytics> sortByDateTime() {
-    List<Analytics> data = List.of(this);
+extension LocationHistoryExt on List<LocationHistory> {
+  List<LocationHistory> sortByDateTime() {
+    List<LocationHistory> data = List.of(this);
     data.sort(
       (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
+        return -(x.dateTime.compareTo(y.dateTime));
       },
     );
 

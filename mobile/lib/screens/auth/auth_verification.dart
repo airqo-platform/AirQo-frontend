@@ -110,8 +110,8 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                   .add(const FetchAccountInfo());
                               context.read<KyaBloc>().add(const RefreshKya());
                               context
-                                  .read<AnalyticsBloc>()
-                                  .add(const RefreshAnalytics());
+                                  .read<LocationHistoryBloc>()
+                                  .add(const SyncLocationHistory());
                               context
                                   .read<FavouritePlaceBloc>()
                                   .add(const RefreshFavouritePlaces());

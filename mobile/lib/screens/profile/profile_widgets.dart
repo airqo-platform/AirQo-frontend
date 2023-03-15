@@ -358,7 +358,7 @@ class ViewNotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<NotificationBloc, NotificationState>(
       buildWhen: (previous, current) {
         final previousUnReadNotifications = previous.notifications
             .where((element) => !element.read)
