@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
@@ -24,16 +23,15 @@ class LocationHistoryBloc
     SyncLocationHistory _,
     Emitter<List<LocationHistory>> emit,
   ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-    List<LocationHistory> analytics = await CloudStore.getCloudAnalytics();
+    List<LocationHistory> locationHistory =
+        await CloudStore.getLocationHistory();
 
-    Set<LocationHistory> analyticsSet = state.toSet();
-    analyticsSet.addAll(analytics.toSet());
+    Set<LocationHistory> locationHistorySet = state.toSet();
+    locationHistorySet.addAll(locationHistory.toSet());
 
-    return emit(analyticsSet.toList());
+    emit(locationHistorySet.toList());
+
+    await CloudStore.updateLocationHistory(state);
   }
 
   @override

@@ -358,23 +358,8 @@ class ViewNotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationBloc, NotificationState>(
-      buildWhen: (previous, current) {
-        final previousUnReadNotifications = previous.notifications
-            .where((element) => !element.read)
-            .toList()
-            .length;
-        final currentUnReadNotifications = current.notifications
-            .where((element) => !element.read)
-            .toList()
-            .length;
-
-        return previousUnReadNotifications != currentUnReadNotifications;
-      },
+    return BlocBuilder<NotificationBloc, List<AppNotification>>(
       builder: (context, state) {
-        final unReadNotifications =
-            state.notifications.where((element) => !element.read).toList();
-
         return GestureDetector(
           onTap: () async {
             await Navigator.push(
@@ -397,7 +382,7 @@ class ViewNotificationIcon extends StatelessWidget {
               ),
             ),
             child: SvgPicture.asset(
-              unReadNotifications.isEmpty
+              state.filterUnRead().isEmpty
                   ? 'assets/icon/empty_notifications_icon.svg'
                   : 'assets/icon/has_notifications.svg',
               height: 20,

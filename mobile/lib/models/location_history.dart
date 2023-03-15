@@ -9,7 +9,7 @@ import 'air_quality_reading.dart';
 part 'location_history.g.dart';
 
 @JsonSerializable()
-class LocationHistory extends HiveObject with EquatableMixin {
+class LocationHistory extends Equatable {
   factory LocationHistory.fromAirQualityReading(
       AirQualityReading airQualityReading) {
     return LocationHistory(
@@ -26,7 +26,7 @@ class LocationHistory extends HiveObject with EquatableMixin {
   factory LocationHistory.fromJson(Map<String, dynamic> json) =>
       _$LocationHistoryFromJson(json);
 
-  LocationHistory({
+  const LocationHistory({
     required this.placeId,
     required this.site,
     required this.name,

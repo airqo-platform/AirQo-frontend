@@ -1,18 +1,16 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'local_storage.dart';
-import 'location_service.dart';
 import 'rest_api.dart';
 import 'secure_storage.dart';
 
@@ -83,22 +81,13 @@ class AppService {
   }
 
   static Future<Kya?> getKya(String id) async {
-    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
-        .values
-        .where((element) => element.id == id)
-        .toList();
-
-    if (kya.isNotEmpty) {
-      return kya.first;
-    }
-
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {
       throw NetworkConnectionException('No internet Connection');
     }
 
     try {
-      kya = await CloudStore.getKya();
+      List<Kya> kya = await CloudStore.getKya();
       kya = kya.where((element) => element.id == id).toList();
 
       return kya.isEmpty ? null : kya.first;
@@ -187,7 +176,6 @@ class AppService {
     try {
       await Future.wait([
         Profile.syncProfile(),
-        CloudStore.getCloudAnalytics(),
         CloudAnalytics.logPlatformType(),
       ]);
     } catch (exception, stackTrace) {

@@ -1,13 +1,13 @@
 import 'package:app/models/air_quality_reading.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'favourite_place.g.dart';
 
 @JsonSerializable()
-class FavouritePlace {
-  FavouritePlace({
+class FavouritePlace extends Equatable {
+  const FavouritePlace({
     required this.name,
     required this.location,
     required this.referenceSite,
@@ -84,6 +84,9 @@ class FavouritePlace {
 
   @JsonKey(defaultValue: 0.0)
   final double longitude;
+
+  @override
+  List<Object> get props => [placeId];
 }
 
 @JsonSerializable(explicitToJson: true)

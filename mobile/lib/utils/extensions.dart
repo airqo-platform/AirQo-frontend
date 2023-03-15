@@ -173,6 +173,12 @@ extension KyaListExt on List<Kya> {
   }
 }
 
+extension AppNotificationListExt on List<AppNotification> {
+  List<AppNotification> filterUnRead() {
+    return where((element) => !element.read).toList();
+  }
+}
+
 extension LocationHistoryExt on List<LocationHistory> {
   List<LocationHistory> sortByDateTime() {
     List<LocationHistory> data = List.of(this);

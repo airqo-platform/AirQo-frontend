@@ -11,19 +11,13 @@ class HiveService {
     await Hive.initFlutter();
 
     Hive
-      ..registerAdapter<AppNotification>(AppNotificationAdapter())
       ..registerAdapter<Profile>(ProfileAdapter())
-      ..registerAdapter<Kya>(KyaAdapter())
-      ..registerAdapter<AppNotificationType>(AppNotificationTypeAdapter())
-      ..registerAdapter<KyaLesson>(KyaLessonAdapter())
       ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
     await Future.wait([
-      Hive.openBox<AppNotification>(HiveBox.appNotifications),
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
-      Hive.openBox<Kya>(HiveBox.kya),
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
@@ -60,8 +54,6 @@ class HiveService {
 
   static Future<void> clearUserData() async {
     await Future.wait([
-      Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
-      Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
     ]);
   }
@@ -71,10 +63,6 @@ class HiveService {
   ) async {
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .put(airQualityReading.placeId, airQualityReading);
-  }
-
-  static Future<void> updateKya(Kya kya) async {
-    await Hive.box<Kya>(HiveBox.kya).put(kya.id, kya);
   }
 
   static Future<void> updateAirQualityReadings(
@@ -148,70 +136,13 @@ class HiveService {
         .putAll(airQualityReadingsMap);
   }
 
-  static Future<void> loadNotifications(
-    List<AppNotification> notifications, {
-    bool clear = false,
-  }) async {
-    if (notifications.isEmpty && !clear) {
-      return;
-    }
-    await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
-
-    final notificationsMap = <String, AppNotification>{};
-
-    for (final notification in notifications) {
-      notificationsMap[notification.id] = notification;
-    }
-    await Hive.box<AppNotification>(HiveBox.appNotifications)
-        .putAll(notificationsMap);
-  }
-
-  static List<Kya> getKya() {
-    return Hive.box<Kya>(HiveBox.kya).values.toList();
-  }
-
-  static List<AppNotification> getNotifications() {
-    return Hive.box<AppNotification>(
-      HiveBox.appNotifications,
-    ).values.toList();
-  }
-
-  static Future<void> loadKya(List<Kya> kyaList) async {
-    if (kyaList.isEmpty) {
-      return;
-    }
-
-    final currentKya = Hive.box<Kya>(HiveBox.kya).values.toList();
-    final kyaMap = <String, Kya>{};
-    for (final x in kyaList) {
-      if (x.shareLink.isEmpty) {
-        Kya kya =
-            currentKya.firstWhere((element) => element.id == x.id, orElse: () {
-          return x;
-        });
-        kyaMap[x.id] = x.copyWith(shareLink: kya.shareLink);
-      } else {
-        kyaMap[x.id] = x;
-      }
-    }
-
-    await Hive.box<Kya>(HiveBox.kya).clear();
-    await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
-
-    kyaMap.forEach((_, value) {
-      CacheService.cacheKyaImages(value);
-    });
-  }
-
   static Future<void> loadProfile(Profile profile) async {
     await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
   }
 }
 
 class HiveBox {
-  static String get appNotifications => 'appNotifications';
   static String get searchHistory => 'searchHistory';
-  static String get kya => 'kya-v1';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get airQualityReadings => 'airQualityReadings-v1';

@@ -133,10 +133,10 @@ class _DashboardViewState extends State<DashboardView>
                   const SizedBox(
                     width: 16,
                   ),
-                  BlocBuilder<KyaBloc, KyaState>(
+                  BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
                       final kyaWidgets = completeKyaWidgets(
-                        state.kya.filterCompleteKya().take(3).toList(),
+                        state.filterCompleteKya().take(3).toList(),
                       );
 
                       return Expanded(
@@ -317,12 +317,12 @@ class _DashboardViewState extends State<DashboardView>
                                 );
                               },
                             ),
-                            BlocBuilder<KyaBloc, KyaState>(
+                            BlocBuilder<KyaBloc, List<Kya>>(
                               builder: (context, state) {
                                 List<Kya> kya =
-                                    state.kya.filterPartiallyCompleteKya();
+                                    state.filterPartiallyCompleteKya();
                                 if (kya.isEmpty) {
-                                  kya = state.kya.filterInProgressKya();
+                                  kya = state.filterInProgressKya();
                                 }
                                 if (kya.isEmpty) {
                                   _kyaExists = false;

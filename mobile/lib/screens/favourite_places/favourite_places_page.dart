@@ -23,7 +23,7 @@ class FavouritePlacesPage extends StatelessWidget {
             if (state.isEmpty) {
               context
                   .read<FavouritePlaceBloc>()
-                  .add(const RefreshFavouritePlaces());
+                  .add(const SyncFavouritePlaces());
 
               return const NoFavouritePlacesWidget();
             }
@@ -69,6 +69,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
   }
 }
