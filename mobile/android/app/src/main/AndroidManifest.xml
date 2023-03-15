@@ -27,7 +27,7 @@
                 android:resource="@xml/air_qo_circular_widget_info" />
         </receiver>
 
-        <receiver
+        <!-- <receiver
             android:name=".AirQoHomeScreenWidget"
             android:exported="true">
             <intent-filter>
@@ -37,7 +37,7 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/air_qo_home_screen_widget_info" />
-        </receiver>
+        </receiver> -->
 
         <receiver
             android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"

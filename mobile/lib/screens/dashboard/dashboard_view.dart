@@ -461,7 +461,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
-    HomeWidget.registerBackgroundCallback(backgroundCallback);
+    // HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
