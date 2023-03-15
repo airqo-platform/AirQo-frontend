@@ -1,16 +1,13 @@
-import 'package:app/utils/utils.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../services/firebase_service.dart';
 import 'enum_constants.dart';
 import 'json_parsers.dart';
 
 part 'notification.g.dart';
 
 @JsonSerializable()
-@HiveType(typeId: 10, adapterName: 'AppNotificationAdapter')
-class AppNotification extends HiveObject {
+class AppNotification extends Equatable {
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       _$AppNotificationFromJson(json);
 
@@ -26,52 +23,29 @@ class AppNotification extends HiveObject {
     required this.type,
     DateTime? dateTime,
   }) : dateTime = dateTime ?? DateTime.now();
-  @HiveField(1)
-  String id;
 
-  @HiveField(2, defaultValue: '')
-  String title;
+  final String id;
 
-  @HiveField(3, defaultValue: '')
-  String subTitle;
+  final String title;
 
-  @HiveField(4, defaultValue: '')
-  String link;
+  final String subTitle;
+
+  final String link;
 
   @JsonKey(fromJson: notificationIconFromJson, toJson: notificationIconToJson)
-  @HiveField(5, defaultValue: 'assets/icon/airqo_logo.svg')
-  String icon;
+  final String icon;
 
-  @HiveField(6, defaultValue: '')
-  String image;
+  final String image;
 
-  @HiveField(7, defaultValue: '')
-  String body;
+  final String body;
 
-  @HiveField(8)
-  DateTime dateTime;
+  final DateTime dateTime;
 
-  @HiveField(9, defaultValue: false)
-  bool read;
+  final bool read;
 
-  @HiveField(10, defaultValue: AppNotificationType.welcomeMessage)
-  AppNotificationType type;
-
-  Future<void> saveNotification() async {
-    await Future.wait([save(), CloudStore.updateCloudNotification(this)]);
-  }
+  final AppNotificationType type;
 
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
-
-  static AppNotification? parseAppNotification(Map<String, dynamic> jsonBody) {
-    try {
-      return AppNotification.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-
-      return null;
-    }
-  }
 
   static List<AppNotification> sort(List<AppNotification> notifications) {
     notifications.sort(
@@ -82,4 +56,19 @@ class AppNotification extends HiveObject {
 
     return notifications;
   }
+
+  @override
+  List<Object?> get props => [id];
+}
+
+@JsonSerializable(explicitToJson: true)
+class AppNotificationList {
+  factory AppNotificationList.fromJson(Map<String, dynamic> json) =>
+      _$AppNotificationListFromJson(json);
+
+  AppNotificationList({required this.data});
+
+  List<AppNotification> data;
+
+  Map<String, dynamic> toJson() => _$AppNotificationListToJson(this);
 }
