@@ -18,39 +18,37 @@ import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:collection/collection.dart';
-import 'package:workmanager/workmanager.dart';
-
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
-@pragma("vm:entry-point")
-void backgroundCallback(Uri? data) {
-  Workmanager().executeTask((taskName, inputData) async {
-    final nearbyLocationBloc = NearbyLocationBloc();
-    AirQualityReading? airQualityReading =
-        nearbyLocationBloc.state.locationAirQuality ??
-            HiveService.getAirQualityReadings().firstOrNull;
+// @pragma("vm:entry-point")
+// void backgroundCallback(Uri? data) {
+//   Workmanager().executeTask((taskName, inputData) async {
+//     final nearbyLocationBloc = NearbyLocationBloc();
+//     AirQualityReading? airQualityReading =
+//         nearbyLocationBloc.state.locationAirQuality ??
+//             HiveService.getAirQualityReadings().firstOrNull;
 
-    List<ForecastInsight> forecastData = await AirQoDatabase()
-        .getForecastInsights(airQualityReading!.referenceSite);
+//     List<ForecastInsight> forecastData = await AirQoDatabase()
+//         .getForecastInsights(airQualityReading!.referenceSite);
 
-    WidgetData widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading);
-    widgetData = widgetData.copyWith(forecastData);
+//     WidgetData widgetData =
+//         WidgetData.initializeFromAirQualityReading(airQualityReading);
+//     widgetData = widgetData.copyWith(forecastData);
 
-    List<bool> results = await Future.wait<bool>(
-      widgetData.idMapping().entries.map((entry) async {
-        await HomeWidget.saveWidgetData<String>(entry.key, entry.value);
-        return true;
-      }).toList(),
-    );
+//     List<bool> results = await Future.wait<bool>(
+//       widgetData.idMapping().entries.map((entry) async {
+//         await HomeWidget.saveWidgetData<String>(entry.key, entry.value);
+//         return true;
+//       }).toList(),
+//     );
 
-    return !results.contains(false);
-  });
-}
+//     return !results.contains(false);
+//   });
+// }
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -509,19 +507,18 @@ class _DashboardViewState extends State<DashboardView>
   }
 
   Future<void> _updateWidget() {
-    var rectangleWidgetUpdate = HomeWidget.updateWidget(
-      name: 'AirQoHomeScreenWidget',
-      iOSName: 'AirQoHomeScreenWidget',
-      qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
-    );
+    // var rectangleWidgetUpdate = HomeWidget.updateWidget(
+    //   name: 'AirQoHomeScreenWidget',
+    //   iOSName: 'AirQoHomeScreenWidget',
+    //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
+    // );
 
-    var circularWidgetUpdate = HomeWidget.updateWidget(
+    // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
+    return HomeWidget.updateWidget(
       name: 'AirQoCircularWidget',
       iOSName: 'AirQoCircularWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
     );
-
-    return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
   }
 
   Future<void> _sendAndUpdate() async {

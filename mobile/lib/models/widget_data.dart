@@ -33,7 +33,8 @@ class WidgetData {
   final String forecast_time3;
 
   factory WidgetData.initializeFromAirQualityReading(
-      AirQualityReading airQualityReading) {
+    AirQualityReading airQualityReading,
+  ) {
     return WidgetData(
       location: airQualityReading.name,
       circular_location: airQualityReading.name,

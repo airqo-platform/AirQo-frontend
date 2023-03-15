@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">AirQo</string>
     <string name="app_widget_description">This is the AirQo application homescreen widget</string>
-    <string name="location">Wandegeya</string>
+    <string name="location">Kampala</string>
     <string name="pm_scale">PM<sub>2.5</sub></string>
     <string name="date">12/12, 3:06pm</string>
     <string name="date_circle">14:45</string>
