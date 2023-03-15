@@ -1,20 +1,17 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/constants/constants.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'local_storage.dart';
-import 'location_service.dart';
 import 'rest_api.dart';
 import 'secure_storage.dart';
 
@@ -30,7 +27,6 @@ class AppService {
   static Future<void> postSignOutActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const ClearProfile());
     context.read<KyaBloc>().add(const ClearKya());
-    context.read<AnalyticsBloc>().add(const ClearAnalytics());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
@@ -101,26 +97,19 @@ class AppService {
     return authSuccessful;
   }
 
-  static Future<Kya?> getKya(String id) async {
-    List<Kya> kya = Hive.box<Kya>(HiveBox.kya)
-        .values
-        .where((element) => element.id == id)
-        .toList();
-
-    if (kya.isNotEmpty) {
-      return kya.first;
-    }
+  static Future<Kya?> getKya(Kya kya) async {
+    if (!kya.isEmpty()) return kya;
 
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {
       throw NetworkConnectionException('No internet Connection');
     }
-
     try {
-      kya = await CloudStore.getKya();
-      kya = kya.where((element) => element.id == id).toList();
+      List<Kya> kyaList = await CloudStore.getKya();
+      List<Kya> cloudKya =
+          kyaList.where((element) => element.id == kya.id).toList();
 
-      return kya.isEmpty ? null : kya.first;
+      return cloudKya.isEmpty ? null : cloudKya.first;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
 
@@ -204,9 +193,7 @@ class AppService {
   Future<void> _postLoginActions() async {
     try {
       await Future.wait([
-        CloudStore.getCloudAnalytics(),
         CloudAnalytics.logPlatformType(),
-        updateFavouritePlacesReferenceSites(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -262,14 +249,11 @@ class AppService {
   Future<bool> _postLogOutActions() async {
     // TODO Login anonymously
     try {
-      final profile = await HiveService.getProfile();
-      final placesUpdated = await CloudStore.updateFavouritePlaces();
-      final analyticsUpdated = await CloudStore.updateCloudAnalytics();
+      final placesUpdated = await CloudStore.updateFavouritePlaces([]);
+      final analyticsUpdated = await CloudStore.updateLocationHistory([]);
       final localStorageCleared = await _clearUserLocalStorage();
 
-      if (placesUpdated &&
-          analyticsUpdated &&
-          localStorageCleared) {
+      if (placesUpdated && analyticsUpdated && localStorageCleared) {
         return CustomAuth.logOut();
       }
     } catch (exception, stackTrace) {
@@ -280,25 +264,6 @@ class AppService {
     }
 
     return false;
-  }
-
-  Future<void> updateFavouritePlacesReferenceSites() async {
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-    final updatedFavouritePlaces = <FavouritePlace>[];
-    for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSite(
-        favPlace.latitude,
-        favPlace.longitude,
-      );
-      if (nearestSite != null) {
-        updatedFavouritePlaces
-            .add(favPlace.copyWith(referenceSite: nearestSite.referenceSite));
-      } else {
-        updatedFavouritePlaces.add(favPlace);
-      }
-    }
-    await HiveService.loadFavouritePlaces(updatedFavouritePlaces);
   }
 
   Future<AppStoreVersion?> latestVersion() async {

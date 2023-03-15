@@ -1,14 +1,13 @@
 import 'package:app/models/air_quality_reading.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'favourite_place.g.dart';
 
 @JsonSerializable()
-@HiveType(typeId: 60, adapterName: 'FavouritePlaceAdapter')
-class FavouritePlace extends HiveObject {
-  FavouritePlace({
+class FavouritePlace extends Equatable {
+  const FavouritePlace({
     required this.name,
     required this.location,
     required this.referenceSite,
@@ -68,27 +67,36 @@ class FavouritePlace extends HiveObject {
 
   Map<String, dynamic> toJson() => _$FavouritePlaceToJson(this);
 
-  @HiveField(0)
   @JsonKey(defaultValue: '')
   final String name;
 
-  @HiveField(1)
   @JsonKey(defaultValue: '')
   final String location;
 
-  @HiveField(2)
   @JsonKey(defaultValue: '')
   final String referenceSite;
 
-  @HiveField(3)
   @JsonKey(defaultValue: '')
   final String placeId;
 
-  @HiveField(4)
   @JsonKey(defaultValue: 0.0)
   final double latitude;
 
-  @HiveField(5)
   @JsonKey(defaultValue: 0.0)
   final double longitude;
+
+  @override
+  List<Object> get props => [placeId];
+}
+
+@JsonSerializable(explicitToJson: true)
+class FavouritePlaceList {
+  factory FavouritePlaceList.fromJson(Map<String, dynamic> json) =>
+      _$FavouritePlaceListFromJson(json);
+
+  FavouritePlaceList({required this.data});
+
+  List<FavouritePlace> data;
+
+  Map<String, dynamic> toJson() => _$FavouritePlaceListToJson(this);
 }

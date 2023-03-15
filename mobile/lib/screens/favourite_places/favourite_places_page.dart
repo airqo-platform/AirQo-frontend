@@ -18,12 +18,12 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<FavouritePlaceBloc, FavouritePlaceState>(
+        widget: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
           builder: (context, state) {
-            if (state.favouritePlaces.isEmpty) {
+            if (state.isEmpty) {
               context
                   .read<FavouritePlaceBloc>()
-                  .add(const RefreshFavouritePlaces());
+                  .add(const SyncFavouritePlaces());
 
               return const NoFavouritePlacesWidget();
             }
@@ -35,13 +35,12 @@ class FavouritePlacesPage extends StatelessWidget {
                 (context, index) {
                   final siteReadings = airQualityReadings.values.where(
                     (element) =>
-                        element.referenceSite ==
-                        state.favouritePlaces[index].referenceSite,
+                        element.referenceSite == state[index].referenceSite,
                   );
 
                   final AirQualityReading airQualityReading =
                       AirQualityReading.fromFavouritePlace(
-                    state.favouritePlaces[index],
+                    state[index],
                   );
 
                   if (siteReadings.isEmpty) {
@@ -55,7 +54,7 @@ class FavouritePlacesPage extends StatelessWidget {
                     child: FavouritePlaceCard(airQualityReading),
                   );
                 },
-                childCount: state.favouritePlaces.length,
+                childCount: state.length,
               ),
               onRefresh: () {
                 _refresh(context);
@@ -70,6 +69,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<FavouritePlaceBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
   }
 }

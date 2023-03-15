@@ -55,8 +55,8 @@ class _SignOutButtonState extends State<SignOutButton> {
         child: Text(
           'Log Out',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: CustomColors.appColorBlue,
-          ),
+                color: CustomColors.appColorBlue,
+              ),
         ),
       ),
     );
@@ -124,13 +124,13 @@ class SignUpSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
               'Create your account today and enjoy air quality'
-                  ' updates and health tips.',
+              ' updates and health tips.',
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.4),
-              ),
+                    color: CustomColors.appColorBlack.withOpacity(0.4),
+                  ),
             ),
           ),
           const SizedBox(
@@ -164,7 +164,7 @@ class SignUpButton extends StatelessWidget {
             MaterialPageRoute(builder: (context) {
               return const PhoneSignUpWidget();
             }),
-                (r) => false,
+            (r) => false,
           );
         },
         style: OutlinedButton.styleFrom(
@@ -414,23 +414,8 @@ class ViewNotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationBloc, NotificationState>(
-      buildWhen: (previous, current) {
-        final previousUnReadNotifications = previous.notifications
-            .where((element) => !element.read)
-            .toList()
-            .length;
-        final currentUnReadNotifications = current.notifications
-            .where((element) => !element.read)
-            .toList()
-            .length;
-
-        return previousUnReadNotifications != currentUnReadNotifications;
-      },
+    return BlocBuilder<NotificationBloc, List<AppNotification>>(
       builder: (context, state) {
-        final unReadNotifications =
-        state.notifications.where((element) => !element.read).toList();
-
         return GestureDetector(
           onTap: () async {
             await Navigator.push(
@@ -453,7 +438,7 @@ class ViewNotificationIcon extends StatelessWidget {
               ),
             ),
             child: SvgPicture.asset(
-              unReadNotifications.isEmpty
+              state.filterUnRead().isEmpty
                   ? 'assets/icon/empty_notifications_icon.svg'
                   : 'assets/icon/has_notifications.svg',
               height: 20,
@@ -505,9 +490,9 @@ class CardSection extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topRight:
-            isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+                isTopItem ? const Radius.circular(8) : const Radius.circular(0),
             topLeft:
-            isTopItem ? const Radius.circular(8) : const Radius.circular(0),
+                isTopItem ? const Radius.circular(8) : const Radius.circular(0),
             bottomRight: isBottomItem
                 ? const Radius.circular(8)
                 : const Radius.circular(0),
@@ -637,8 +622,8 @@ class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Text(
                   'Edit profile',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: CustomColors.appColorBlue,
-                  ),
+                        color: CustomColors.appColorBlue,
+                      ),
                 ),
               ],
             ),
@@ -684,40 +669,40 @@ class EditProfilePicSection extends StatelessWidget {
           children: [
             profile.photoUrl == ''
                 ? RotationTransition(
-              turns: const AlwaysStoppedAnimation(-5 / 360),
-              child: Container(
-                padding: const EdgeInsets.all(2.0),
-                decoration: BoxDecoration(
-                  color: CustomColors.appPicColor,
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(35.0),
-                  ),
-                ),
-                child: Container(
-                  height: 88,
-                  width: 88,
-                  color: Colors.transparent,
-                ),
-              ),
-            )
+                    turns: const AlwaysStoppedAnimation(-5 / 360),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.0),
+                      decoration: BoxDecoration(
+                        color: CustomColors.appPicColor,
+                        shape: BoxShape.rectangle,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(35.0),
+                        ),
+                      ),
+                      child: Container(
+                        height: 88,
+                        width: 88,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  )
                 : profile.photoUrl.isValidUri()
-                ? CircleAvatar(
-              radius: 44,
-              backgroundColor: CustomColors.appPicColor,
-              foregroundColor: CustomColors.appPicColor,
-              backgroundImage: CachedNetworkImageProvider(
-                profile.photoUrl,
-              ),
-            )
-                : CircleAvatar(
-              radius: 44,
-              backgroundColor: CustomColors.appPicColor,
-              foregroundColor: CustomColors.appPicColor,
-              backgroundImage: FileImage(
-                File(profile.photoUrl),
-              ),
-            ),
+                    ? CircleAvatar(
+                        radius: 44,
+                        backgroundColor: CustomColors.appPicColor,
+                        foregroundColor: CustomColors.appPicColor,
+                        backgroundImage: CachedNetworkImageProvider(
+                          profile.photoUrl,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 44,
+                        backgroundColor: CustomColors.appPicColor,
+                        foregroundColor: CustomColors.appPicColor,
+                        backgroundImage: FileImage(
+                          File(profile.photoUrl),
+                        ),
+                      ),
             if (profile.photoUrl == '')
               const Text(
                 'A',
@@ -794,7 +779,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
             builder: (context, state) {
               final profile = state.profile;
               final hiveProfile =
-              Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
 
               if (profile == null || hiveProfile == null) {
                 return const SizedBox();
@@ -831,10 +816,10 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                     'Save',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: profile != hiveProfile
-                          ? CustomColors.appColorBlue
-                          : CustomColors.appColorBlack.withOpacity(0.5),
-                    ),
+                          color: profile != hiveProfile
+                              ? CustomColors.appColorBlue
+                              : CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
                   ),
                 ),
               );
@@ -887,12 +872,12 @@ class EditCredentialsField extends StatelessWidget {
             hintText: '-',
             focusedBorder: OutlineInputBorder(
               borderSide:
-              const BorderSide(color: Colors.transparent, width: 1.0),
+                  const BorderSide(color: Colors.transparent, width: 1.0),
               borderRadius: BorderRadius.circular(8.0),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide:
-              const BorderSide(color: Colors.transparent, width: 1.0),
+                  const BorderSide(color: Colors.transparent, width: 1.0),
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
