@@ -73,8 +73,6 @@
 
 @import "Events";
 
-@import "Products";
-
 *, *::before, *::after {
   box-sizing: inherit;
 }
@@ -129,10 +127,3 @@ a, a:hover{
   }
 }
 
-.arrow{
-  font-family: monospace;
-}
-
-img{
-  pointer-events: none;
-}

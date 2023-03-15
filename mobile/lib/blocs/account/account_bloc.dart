@@ -1,13 +1,12 @@
+import 'package:app/blocs/auth_code/auth_code_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:app/blocs/auth_code/auth_code_bloc.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 part 'account_event.dart';
@@ -71,38 +70,14 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     LoadAccountInfo _,
     Emitter<AccountState> emit,
   ) async {
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-
-    final analytics = Hive.box<Analytics>(HiveBox.analytics).values.toList();
-
-    final notifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
-
     final profile = await Profile.getProfile();
 
     emit(const AccountState.initial().copyWith(
-      notifications: notifications,
-      favouritePlaces: favouritePlaces,
-      analytics: analytics,
       profile: profile,
       guestUser: CustomAuth.isGuestUser(),
     ));
 
-    await _onRefreshFavouritePlacesInsights();
-
     return;
-  }
-
-  Future<void> _onRefreshFavouritePlacesInsights() async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    for (final favouritePlace in state.favouritePlaces) {
-      await AppService.fetchInsightsData(favouritePlace.referenceSite);
-    }
   }
 
   Future<void> _onRefreshProfile(
@@ -242,9 +217,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     await Future.wait([
       _fetchProfile(emit),
-      _fetchAnalytics(emit),
-      _fetchFavouritePlaces(emit),
-      _fetchNotifications(emit),
     ]);
   }
 
@@ -396,19 +368,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     return emit(const AccountState.initial());
   }
 
-  Future<void> _fetchAnalytics(
-    Emitter<AccountState> emit,
-  ) async {
-    final analytics = state.guestUser
-        ? Analytics.fromAirQualityReadings()
-        : await CloudStore.getCloudAnalytics();
-    emit(state.copyWith(
-      analytics: analytics,
-    ));
-
-    await HiveService.loadAnalytics(analytics);
-  }
-
   Future<void> _fetchProfile(
     Emitter<AccountState> emit,
   ) async {
@@ -420,30 +379,5 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       profile: profile,
     ));
     await HiveService.loadProfile(profile);
-  }
-
-  Future<void> _fetchFavouritePlaces(
-    Emitter<AccountState> emit,
-  ) async {
-    final favouritePlaces = state.guestUser
-        ? <FavouritePlace>[]
-        : await CloudStore.getFavouritePlaces();
-    emit(state.copyWith(
-      favouritePlaces: favouritePlaces,
-    ));
-    await HiveService.loadFavouritePlaces(favouritePlaces);
-  }
-
-  Future<void> _fetchNotifications(
-    Emitter<AccountState> emit,
-  ) async {
-    final notifications = state.guestUser
-        ? <AppNotification>[]
-        : await CloudStore.getNotifications();
-    emit(state.copyWith(
-      notifications: notifications,
-    ));
-
-    await HiveService.loadNotifications(notifications);
   }
 }

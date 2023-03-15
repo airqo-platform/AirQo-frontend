@@ -10,14 +10,8 @@ class ClearNotifications extends NotificationEvent {
   List<Object?> get props => [];
 }
 
-class FetchNotifications extends NotificationEvent {
-  const FetchNotifications();
-  @override
-  List<Object?> get props => [];
-}
-
-class RefreshNotifications extends NotificationEvent {
-  const RefreshNotifications();
+class SyncNotifications extends NotificationEvent {
+  const SyncNotifications();
   @override
   List<Object?> get props => [];
 }
