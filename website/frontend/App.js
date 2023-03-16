@@ -92,7 +92,7 @@ const App = () => {
             <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/details" element={<EventsDetailsPage/>}/>
+            <Route path="/events/:uniqueTitle" element={<EventsDetailsPage />} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </Suspense>
