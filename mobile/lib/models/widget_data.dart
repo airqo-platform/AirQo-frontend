@@ -7,51 +7,51 @@ import 'enum_constants.dart';
 class WidgetData {
   const WidgetData({
     required this.location,
-    required this.circular_location,
+    required this.circularLocation,
     required this.date,
-    required this.circular_date,
-    required this.pm_value,
+    required this.circularDate,
+    required this.pmValue,
     required this.airQuality,
-    required this.circular_pm_value,
-    required this.forecast_value1,
-    required this.forecast_time1,
-    required this.forecast_value2,
-    required this.forecast_time2,
-    required this.forecast_value3,
-    required this.forecast_time3,
+    required this.circularPmValue,
+    required this.forecastValue1,
+    required this.forecastTime1,
+    required this.forecastValue2,
+    required this.forecastTime2,
+    required this.forecastValue3,
+    required this.forecastTime3,
   });
 
   final String location;
-  final String circular_location;
+  final String circularLocation;
   final String date;
-  final String circular_date;
-  final double pm_value;
+  final String circularDate;
+  final double pmValue;
   final AirQuality airQuality;
-  final double circular_pm_value;
-  final String forecast_value1;
-  final String forecast_time1;
-  final String forecast_value2;
-  final String forecast_time2;
-  final String forecast_value3;
-  final String forecast_time3;
+  final double circularPmValue;
+  final String forecastValue1;
+  final String forecastTime1;
+  final String forecastValue2;
+  final String forecastTime2;
+  final String forecastValue3;
+  final String forecastTime3;
 
   factory WidgetData.initializeFromAirQualityReading(
     AirQualityReading airQualityReading,
   ) {
     return WidgetData(
       location: airQualityReading.name,
-      circular_location: airQualityReading.name,
+      circularLocation: airQualityReading.name,
       airQuality: Pollutant.pm2_5.airQuality(airQualityReading.pm2_5),
       date: DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal()),
-      circular_date: DateFormat('h:mm a').format(DateTime.now().toLocal()),
-      pm_value: airQualityReading.pm2_5,
-      circular_pm_value: airQualityReading.pm2_5,
-      forecast_value1: '',
-      forecast_time1: '',
-      forecast_value2: '',
-      forecast_time2: '',
-      forecast_value3: '',
-      forecast_time3: '',
+      circularDate: DateFormat('h:mm a').format(DateTime.now().toLocal()),
+      pmValue: airQualityReading.pm2_5,
+      circularPmValue: airQualityReading.pm2_5,
+      forecastValue1: '',
+      forecastTime1: '',
+      forecastValue2: '',
+      forecastTime2: '',
+      forecastValue3: '',
+      forecastTime3: '',
     );
   }
 
@@ -63,36 +63,36 @@ class WidgetData {
 
     return WidgetData(
       location: location,
-      circular_location: circular_location,
+      circularLocation: circularLocation,
       date: date,
-      circular_date: circular_date,
-      pm_value: pm_value,
-      airQuality: Pollutant.pm2_5.airQuality(pm_value),
-      circular_pm_value: circular_pm_value,
-      forecast_value1: widgetForecast.first.pm2_5.toInt().toString(),
-      forecast_time1: DateFormat('h a').format(widgetForecast.first.time),
-      forecast_value2: widgetForecast[1].pm2_5.toInt().toString(),
-      forecast_time2: DateFormat('h a').format(widgetForecast[1].time),
-      forecast_value3: widgetForecast.last.pm2_5.toInt().toString(),
-      forecast_time3: DateFormat('h a').format(widgetForecast.last.time),
+      circularDate: circularDate,
+      pmValue: pmValue,
+      airQuality: Pollutant.pm2_5.airQuality(pmValue),
+      circularPmValue: circularPmValue,
+      forecastValue1: widgetForecast.first.pm2_5.toInt().toString(),
+      forecastTime1: DateFormat('h a').format(widgetForecast.first.time),
+      forecastValue2: widgetForecast[1].pm2_5.toInt().toString(),
+      forecastTime2: DateFormat('h a').format(widgetForecast[1].time),
+      forecastValue3: widgetForecast.last.pm2_5.toInt().toString(),
+      forecastTime3: DateFormat('h a').format(widgetForecast.last.time),
     );
   }
 
   Map<String, String> idMapping() {
     return {
       'location': location,
-      'circular_location': circular_location,
+      'circular_location': circularLocation,
       'date': date,
-      'circular_date': circular_date,
-      'pm_value': pm_value.toInt().toString(),
+      'circular_date': circularDate,
+      'pm_value': pmValue.toInt().toString(),
       'air_quality': airQuality.name,
-      'circular_pm_value': circular_pm_value.toInt().toString(),
-      'forecast_value1': forecast_value1,
-      'forecast_time1': forecast_time1,
-      'forecast_value2': forecast_value2,
-      'forecast_time2': forecast_time2,
-      'forecast_value3': forecast_value3,
-      'forecast_time3': forecast_time3,
+      'circular_pm_value': circularPmValue.toInt().toString(),
+      'forecast_value1': forecastValue1,
+      'forecast_time1': forecastTime1,
+      'forecast_value2': forecastValue2,
+      'forecast_time2': forecastTime2,
+      'forecast_value3': forecastValue3,
+      'forecast_time3': forecastTime3,
     };
   }
 }

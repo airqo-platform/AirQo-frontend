@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
@@ -14,16 +15,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
-
+import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:collection/collection.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
+// TODO: Adds background udpates; to work on later
 // @pragma("vm:entry-point")
 // void backgroundCallback(Uri? data) {
 //   Workmanager().executeTask((taskName, inputData) async {
@@ -494,11 +495,22 @@ class _DashboardViewState extends State<DashboardView>
   // );
 
   Future<void> _sendData() async {
-    AirQualityReading? airQualityReading =
-        context.read<NearbyLocationBloc>().state.locationAirQuality ??
-            HiveService.getAirQualityReadings().firstOrNull;
+    AirQualityReading? airQualityReading;
 
+    if (context.read<NearbyLocationBloc>().state.locationAirQuality == null) {
+      List<AirQualityReading> airQualityReadings =
+          HiveService.getAirQualityReadings();
+      if (airQualityReadings.isNotEmpty) {
+        final random = Random();
+        airQualityReading =
+            airQualityReadings[random.nextInt(airQualityReadings.length)];
+      }
+    } else {
+      airQualityReading =
+          context.read<NearbyLocationBloc>().state.locationAirQuality;
+    }
     if (airQualityReading == null) return;
+
     List<ForecastInsight> forecastData = await AirQoDatabase()
         .getForecastInsights(airQualityReading.referenceSite);
 

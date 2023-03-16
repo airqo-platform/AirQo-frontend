@@ -43,7 +43,7 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 fun setIndexColor(airquality: String?) {
                     data class ColorRange(
-                        val airqluaity: String,
+                        val air_quality: String,
                         val resource_id: Int,
                         val text_color: Int
                     )
@@ -53,11 +53,11 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                         ColorRange("moderate", R.drawable.yellow_circle, 0xffA8A800.toInt()),
                         ColorRange("unhealthy", R.drawable.orange_circle, 0xffB86000.toInt()),
                         ColorRange("ufsgs", R.drawable.red_circle, 0xffB80B00.toInt()),
-                        ColorRange("veryUnhealthy",  R.drawable.purple_circle, 0xff8E00AC.toInt()),
-                        ColorRange("hazardous",  R.drawable.maroon_circle, 0xffDBA5B2.toInt()),
+                        ColorRange("veryUnhealthy", R.drawable.purple_circle, 0xff8E00AC.toInt()),
+                        ColorRange("hazardous", R.drawable.maroon_circle, 0xffDBA5B2.toInt()),
                     )
 
-                    val colorRange = colorRanges.firstOrNull { airquality == colorRanges.airqluaity }
+                    val colorRange = colorRanges.firstOrNull { airquality == it.air_quality }
 
                     if (colorRange == null) {
                         // handle null or invalid pmValue
@@ -83,11 +83,12 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 setIndexColor(airquality)
 
-                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
-                    context,
-                    Uri.parse("AirQo://Refresh")
-                )
-                setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
+//                TODO: Background refresh not working
+//                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
+//                    context,
+//                    Uri.parse("AirQo://Refresh")
+//                )
+//                setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

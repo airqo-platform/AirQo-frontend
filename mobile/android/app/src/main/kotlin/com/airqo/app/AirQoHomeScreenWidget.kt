@@ -50,60 +50,56 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                     val dataValue = widgetData.getString(dataKeys[i], null) ?: "--"
                     setTextViewText(viewIds[i], dataValue)
                 }
-                val pmValue = widgetData.getString("pm_value", null)
-                fun setIndexColor(pmValue: String?) {
+                val airquality = widgetData.getString("air_quality", null)
+
+                fun setIndexColor(airquality: String?) {
                     data class ColorRange(
-                        val min_value: Int,
-                        val max_value: Int,
+                        val air_quality: String,
                         val resource_id: Int,
                         val text_color: Int
                     )
 
                     val colorRanges = listOf(
-                        ColorRange(0, 12, R.drawable.green_circle, 0xff03B600.toInt()),
-                        ColorRange(13, 35, R.drawable.yellow_circle, 0xffA8A800.toInt()),
-                        ColorRange(36, 55, R.drawable.orange_circle, 0xffB86000.toInt()),
-                        ColorRange(56, 150, R.drawable.red_circle, 0xffB80B00.toInt()),
-                        ColorRange(151, 250, R.drawable.purple_circle, 0xff8E00AC.toInt()),
-                        ColorRange(
-                            Int.MAX_VALUE,
-                            Int.MAX_VALUE,
-                            R.drawable.maroon_circle,
-                            0xffDBA5B2.toInt()
-                        )
+                        ColorRange("good", R.drawable.green_circle, 0xff03B600.toInt()),
+                        ColorRange("moderate", R.drawable.yellow_circle, 0xffA8A800.toInt()),
+                        ColorRange("unhealthy", R.drawable.orange_circle, 0xffB86000.toInt()),
+                        ColorRange("ufsgs", R.drawable.red_circle, 0xffB80B00.toInt()),
+                        ColorRange("veryUnhealthy", R.drawable.purple_circle, 0xff8E00AC.toInt()),
+                        ColorRange("hazardous", R.drawable.maroon_circle, 0xffDBA5B2.toInt()),
                     )
 
-                    val colorRange =
-                        colorRanges.firstOrNull { pmValue?.toIntOrNull()!! in it.min_value..it.max_value }
+                    val colorRange = colorRanges.firstOrNull { airquality == it.air_quality }
 
                     if (colorRange == null) {
                         // handle null or invalid pmValue
                         setInt(
-                            R.id.index_color,
+                            R.id.circular_index_color,
                             "setBackgroundResource",
                             R.drawable.green_circle
                         )
-                        setTextColor(R.id.pm_scale, 0xff03B600.toInt())
-                        setTextColor(R.id.pm_value, 0xff03B600.toInt())
-                        setTextColor(R.id.pm_unit, 0xff03B600.toInt())
+                        setTextColor(R.id.circular_pm_scale, 0xff03B600.toInt())
+                        setTextColor(R.id.circular_pm_value, 0xff03B600.toInt())
+                        setTextColor(R.id.circular_pm_unit, 0xff03B600.toInt())
                     } else {
                         setInt(
-                            R.id.index_color,
+                            R.id.circular_index_color,
                             "setBackgroundResource",
                             colorRange.resource_id
                         )
-                        setTextColor(R.id.pm_scale, colorRange.text_color)
-                        setTextColor(R.id.pm_value, colorRange.text_color)
-                        setTextColor(R.id.pm_unit, colorRange.text_color)
+                        setTextColor(R.id.circular_pm_scale, colorRange.text_color)
+                        setTextColor(R.id.circular_pm_value, colorRange.text_color)
+                        setTextColor(R.id.circular_pm_unit, colorRange.text_color)
                     }
                 }
-                setIndexColor(pmValue)
 
-                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
-                    context,
-                    Uri.parse("AirQo://Refresh")
-                )
-                setOnClickPendingIntent(R.id.refresh_icon, backgroundIntent)
+                setIndexColor(airquality)
+
+//TODO: Background refresh not working
+//                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
+//                    context,
+//                    Uri.parse("AirQo://Refresh")
+//                )
+//                setOnClickPendingIntent(R.id.refresh_icon, backgroundIntent)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

@@ -27,6 +27,7 @@
                 android:resource="@xml/air_qo_circular_widget_info" />
         </receiver>
 
+<!--        TODO: Currently disabled, to implement later-->
         <!-- <receiver
             android:name=".AirQoHomeScreenWidget"
             android:exported="true">
