@@ -7,14 +7,23 @@ class InquirySerializer(serializers.ModelSerializer):
         model = Inquiry
 
 class SessionSerializer(serializers.ModelSerializer):
+    html = serializers.SerializerMethodField()
+    plain = serializers.SerializerMethodField()
+
+    def get_html(self, instance):
+        return str(instance.session_details.html)
+
+    def get_plain(self, instance):
+        return str(instance.session_details.plain)
+
     class Meta:
-        fields = ('id','session_title','session_details','venue','start_time','end_time')
+        fields = ('id','session_title','html','venue','start_time','end_time','plain')
         model = Session
 
 class ProgramSerializer(serializers.ModelSerializer):
-    sessions = SessionSerializer(read_only=True, many=True)
+    session = SessionSerializer(read_only=True, many=True)
     class Meta:
-        fields = ('id','date','program_details','sessions')
+        fields = ('id','date','program_details','session')
         model = Program
 
 class PartnerLogoSerializer(serializers.ModelSerializer):
@@ -29,11 +38,19 @@ class PartnerLogoSerializer(serializers.ModelSerializer):
         model = PartnerLogo
 
 class EventSerializer(serializers.ModelSerializer):
-    inquiries = InquirySerializer(read_only=True, many=True)
-    programs = ProgramSerializer(read_only=True, many=True)
-    partner_logos = PartnerLogoSerializer(read_only=True, many=True)
+    inquiry = InquirySerializer(read_only=True, many=True)
+    program = ProgramSerializer(read_only=True, many=True)
+    partner = PartnerLogoSerializer(read_only=True, many=True)
     event_image = serializers.SerializerMethodField()
     background_image = serializers.SerializerMethodField()
+    html = serializers.SerializerMethodField()
+    plain = serializers.SerializerMethodField()
+
+    def get_html(self, instance):
+        return str(instance.event_details.html)
+
+    def get_plain(self, instance):
+        return str(instance.event_details.plain)
 
     @staticmethod
     def get_event_image(obj):
