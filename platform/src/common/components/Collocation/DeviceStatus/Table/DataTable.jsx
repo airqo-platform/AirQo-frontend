@@ -10,8 +10,8 @@ import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 
 const STATUS_COLOR_CODES = {
-  passed: 'bg-grey-200',
-  failed: 'bg-grey-200',
+  passed: 'bg-green-200',
+  failed: 'bg-red-200',
   running: 'bg-turquoise-200',
   scheduled: 'bg-yellow-200',
 };

@@ -44,6 +44,12 @@ module.exports = {
         turquoise: {
           200: '#A4E8F2',
         },
+        green: {
+          200: '#AEE9D1',
+        },
+        red: {
+          200: '#FED3D1',
+        },
       },
     },
     container: {
