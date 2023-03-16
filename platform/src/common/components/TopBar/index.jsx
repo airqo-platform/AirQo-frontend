@@ -22,7 +22,7 @@ const TopBar = () => {
             placeholder='Search'
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className='h-10 w-full bg-grey-250 flex justify-center pl-10 rounded-[4px] text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300'
+            className='h-10 w-full bg-grey-250 flex justify-center pl-10 rounded-md text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300'
           />
         </form>
 
@@ -35,10 +35,10 @@ const TopBar = () => {
           </div>
           <div className='border border-grey-750 w-full h-10 p-2 box-border rounded-lg flex items-center justify-between ml-3'>
             <div className='flex items-center mr-[22.5px]'>
-              <div className='bg-grey-700 w-6 h-6 p-[5px] rounded-full mr-3'>
-                <h3 className='text-[10px] font-normal'>DO</h3>
+              <div className='bg-grey-700 w-6 h-6 p-2 rounded-full mr-3 flex justify-center items-center'>
+                <h3 className='font-normal text-xs'>DO</h3>
               </div>
-              <h3 className='hidden md:block text-[11px] font-normal'>Deo Okedi</h3>
+              <h3 className='hidden md:block text-xs font-normal'>Deo Okedi</h3>
             </div>
             <ArrowDropDownIcon />
           </div>

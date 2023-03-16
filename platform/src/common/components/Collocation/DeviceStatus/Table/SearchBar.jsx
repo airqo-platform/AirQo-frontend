@@ -19,7 +19,7 @@ const SearchBar = ({ onSearch }) => {
         type='search'
         placeholder='Search monitors'
         value={searchTerm}
-        className='bg-grey-250 text-grey-400 flex justify-center pl-10 rounded-[4px] text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300'
+        className='bg-grey-250 text-grey-400 flex justify-center pl-10 rounded-md text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300'
         onChange={handleSearch}
       />
     </div>

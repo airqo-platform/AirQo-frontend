@@ -73,7 +73,7 @@ const Table = ({ collocationDevices, isLoading }) => {
           <div className='flex items-center w-full'>
             <Button
               className={
-                'max-w-[116px] w-full h-9 bg-grey-250 rounded-[4px] text-black text-sm font-medium xl:ml-2'
+                'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium xl:ml-2'
               }
             >
               <span className='mr-1'>
@@ -87,7 +87,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             <div className='dropdown ml-2'>
               <Button
                 className={
-                  'max-w-[114px] w-full h-9 bg-grey-250 rounded-[4px] text-black text-sm font-medium'
+                  'max-w-[114px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium'
                 }
               >
                 <span className='mr-1'>
@@ -102,28 +102,28 @@ const Table = ({ collocationDevices, isLoading }) => {
                 <li
                   role='button'
                   onClick={() => handleSort('newest')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Newest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('oldest')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Oldest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('ascending')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Name A {'-->'} Z</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('descending')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Name Z {'-->'} A</a>
                 </li>
@@ -132,7 +132,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             <div className='dropdown ml-2'>
               <Button
                 className={
-                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-[4px] text-black text-sm font-medium'
+                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium'
                 }
               >
                 <span className='mr-1'>
@@ -147,28 +147,28 @@ const Table = ({ collocationDevices, isLoading }) => {
                 <li
                   role='button'
                   onClick={() => handleSort('newest')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Newest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('oldest')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Oldest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('ascending')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Name A {'-->'} Z</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('descending')}
-                  className='text-sm text-grey leading-[21px]'
+                  className='text-sm text-grey leading-5'
                 >
                   <a>Name Z {'-->'} A</a>
                 </li>
@@ -178,7 +178,7 @@ const Table = ({ collocationDevices, isLoading }) => {
         </div>
 
         <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
-          <Button className={'w-auto h-9 bg-grey-250 rounded-[4px] text-black text-sm font-medium'}>
+          <Button className={'w-auto h-9 bg-grey-250 rounded-md text-black text-sm font-medium'}>
             <span className='mr-1'>
               <ViewWeekIcon />
             </span>
