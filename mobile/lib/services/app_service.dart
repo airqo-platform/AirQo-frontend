@@ -123,27 +123,11 @@ class AppService {
     }
   }
 
-  Future<InsightData> fetchInsightsData(
-    String siteId, {
-    Frequency? frequency,
-  }) async {
-    InsightData insights = await AirqoApiClient().fetchInsightsData(siteId);
+  static Future<List<Forecast>> fetchInsightsData(String siteId) async {
+    List<Forecast> forecast = await AirqoApiClient().fetchForecast(siteId);
+    await AirQoDatabase().insertForecast(forecast);
 
-    await AirQoDatabase().insertHistoricalInsights(insights.historical);
-    await AirQoDatabase().insertForecastInsights(insights.forecast);
-
-    if (frequency != null) {
-      final historical = insights.historical
-          .where((element) => element.frequency == frequency)
-          .toList();
-      final forecast = insights.forecast
-          .where((element) => element.frequency == frequency)
-          .toList();
-
-      return InsightData(forecast: forecast, historical: historical);
-    }
-
-    return insights;
+    return forecast;
   }
 
   Future<bool> refreshAirQualityReadings() async {
