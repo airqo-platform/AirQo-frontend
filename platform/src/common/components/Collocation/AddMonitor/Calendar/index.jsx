@@ -51,7 +51,7 @@ const ScheduleCalendar = () => {
         <h5 className='text-grey-300 text-sm mb-4'>Select your collocation period</h5>
         {collationDurations.map((option, index) => (
           <div
-            className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center'
+            className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'
             key={index}
           >
             {option} {'days'}
@@ -64,7 +64,7 @@ const ScheduleCalendar = () => {
             />
           </div>
         ))}
-        <div className='border border-grey-100 py-2 px-4 rounded-md my-2 flex flex-row justify-between items-center'>
+        <div className='border border-grey-100 py-2 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'>
           Custom
           <input
             type='radio'

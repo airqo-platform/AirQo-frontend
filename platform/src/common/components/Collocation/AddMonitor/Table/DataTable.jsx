@@ -1,4 +1,3 @@
-import { humanReadableDate } from '@/core/utils/dateTime';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -6,6 +5,7 @@ import {
   removeDevices,
   addDevice,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import moment from 'moment';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
@@ -39,7 +39,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   };
 
   return (
-    <table className='border-collapse text-sm text-left w-full mb-6'>
+    <table className='border-collapse text-xs text-left w-full mb-6'>
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
@@ -80,7 +80,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                   {device.long_name}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {humanReadableDate(device.createdAt)}
+                  {moment(device.createdAt).format('MMM DD, YYYY')}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
                   {' '}

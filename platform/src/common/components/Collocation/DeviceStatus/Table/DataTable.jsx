@@ -1,4 +1,3 @@
-import { humanReadableDate } from '@/core/utils/dateTime';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -8,6 +7,7 @@ import {
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
+import moment from 'moment';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-grey-200',
@@ -49,7 +49,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   };
 
   return (
-    <table className='border-collapse text-sm text-left w-full mb-6'>
+    <table className='border-collapse text-xs text-left w-full mb-6'>
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -103,10 +103,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     {device.added_by || ' '}
                   </td>
                   <td scope='row' className='w-[175px] px-4 py-3'>
-                    {humanReadableDate(device.start_date)}
+                    {moment(device.start_date).format('MMM DD, YYYY')}
                   </td>
                   <td scope='row' className='w-[175px] px-4 py-3'>
-                    {humanReadableDate(device.end_date)}
+                    {moment(device.end_date).format('MMM DD, YYYY')}
                   </td>
                   <td scope='row' className='w-[175px] px-4 py-3'>
                     <span
