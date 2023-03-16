@@ -1,51 +1,87 @@
 import React from 'react';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
 import BannerImg from 'assets/img/Events/banner.jpg';
-import {format} from 'date-fns'
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const EventsHeader = ({
   title,
   subText,
-  category,
+  show,
   startDate,
   endDate,
   startTime,
   endTime,
   detailsLink,
-  registerLink
+  registerLink,
+  eventImage
 }) => {
+  const navigate = useNavigate();
+  const routeToDetails = (link) => (event) => {
+    event.preventDefault();
+    navigate(`/events/${link}/`);
+  };
   return (
     <div className="page-header">
       <div className="content">
         <div className="title-wrapper">
-          <div className="feature">
-            <h2 className="event-title">{title}</h2>
-            <span className="sub-text">{subText}</span>
-            {
-              //   If category is events, show. Should different between blog and event
-              <>
-                <div className="time">
-                  <span className="item">
-                    <CalendarMonth /> <span>{format(new Date(startDate), 'do')} - {format(new Date(endDate),'do MMMM yyyy')}</span>{' '}
-                  </span>
-                  <span className="item">
-                    <AccessTimeOutlined /> <span> {startTime} - {endTime}</span>{' '}
-                  </span>
-                </div>
-                <div className="links">
-                  <a href={`${detailsLink}`}>
-                    <button className="link">Read more</button>
-                  </a>
-                  <a href={`${registerLink}`} target="_blank" rel="noopener noreferrer">
-                    <button className="link">Register</button>
-                  </a>
-                </div>
-              </>
-            }
-          </div>
-          <div className="feature-image">
-            <img src={BannerImg} alt="" />
-          </div>
+          {show ? (
+            <>
+              <div className="feature">
+                <h2 className="event-title">{title}</h2>
+                <span className="sub-text">{subText}</span>
+                {
+                  //   If category is events, show. Should different between blog and event
+                  <>
+                    <div className="time">
+                      <span className="item">
+                        <CalendarMonth />
+                        {endDate ? (
+                          <span>
+                            {format(new Date(startDate), 'do')} -{' '}
+                            {format(new Date(endDate), 'do MMMM yyyy')}
+                          </span>
+                        ) : (
+                          <span>{format(new Date(startDate), 'do MMMM yyyy')}</span>
+                        )}
+                      </span>
+                      <span className="item">
+                        <AccessTimeOutlined />
+                        {startTime ? (
+                          <span>
+                            {startTime} - {endTime}
+                          </span>
+                        ) : (
+                          <span>All Day</span>
+                        )}
+                        <span></span>
+                      </span>
+                    </div>
+                    <div className="links">
+                      <button className="link" onClick={routeToDetails(detailsLink)}>
+                        Read more
+                      </button>
+                      {registerLink ? (
+                        <a href={`${registerLink}`} target="_blank" rel="noopener noreferrer">
+                          <button className="link">Register</button>
+                        </a>
+                      ) : (
+                        <span></span>
+                      )}
+                    </div>
+                  </>
+                }
+              </div>
+              <div className="feature-image">
+                <img src={eventImage} alt="" />
+              </div>
+            </>
+          ) : (
+            <div>
+              <h2>AirQo Events</h2>
+              <p className="sub-title">Advancing Air Quality Management in African Cities</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
