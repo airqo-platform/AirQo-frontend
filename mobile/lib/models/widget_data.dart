@@ -2,6 +2,7 @@ import 'package:app/models/air_quality_reading.dart';
 import 'package:intl/intl.dart';
 
 import 'database.dart';
+import 'enum_constants.dart';
 
 class WidgetData {
   const WidgetData({
@@ -10,6 +11,7 @@ class WidgetData {
     required this.date,
     required this.circular_date,
     required this.pm_value,
+    required this.airQuality,
     required this.circular_pm_value,
     required this.forecast_value1,
     required this.forecast_time1,
@@ -23,8 +25,9 @@ class WidgetData {
   final String circular_location;
   final String date;
   final String circular_date;
-  final String pm_value;
-  final String circular_pm_value;
+  final double pm_value;
+  final AirQuality airQuality;
+  final double circular_pm_value;
   final String forecast_value1;
   final String forecast_time1;
   final String forecast_value2;
@@ -38,10 +41,11 @@ class WidgetData {
     return WidgetData(
       location: airQualityReading.name,
       circular_location: airQualityReading.name,
+      airQuality: Pollutant.pm2_5.airQuality(airQualityReading.pm2_5),
       date: DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal()),
       circular_date: DateFormat('h:mm a').format(DateTime.now().toLocal()),
-      pm_value: airQualityReading.pm2_5.toInt().toString(),
-      circular_pm_value: airQualityReading.pm2_5.toInt().toString(),
+      pm_value: airQualityReading.pm2_5,
+      circular_pm_value: airQualityReading.pm2_5,
       forecast_value1: '',
       forecast_time1: '',
       forecast_value2: '',
@@ -63,6 +67,7 @@ class WidgetData {
       date: date,
       circular_date: circular_date,
       pm_value: pm_value,
+      airQuality: Pollutant.pm2_5.airQuality(pm_value),
       circular_pm_value: circular_pm_value,
       forecast_value1: widgetForecast.first.pm2_5.toInt().toString(),
       forecast_time1: DateFormat('h a').format(widgetForecast.first.time),
@@ -79,8 +84,9 @@ class WidgetData {
       'circular_location': circular_location,
       'date': date,
       'circular_date': circular_date,
-      'pm_value': pm_value,
-      'circular_pm_value': circular_pm_value,
+      'pm_value': pm_value.toInt().toString(),
+      'air_quality': airQuality.name,
+      'circular_pm_value': circular_pm_value.toInt().toString(),
       'forecast_value1': forecast_value1,
       'forecast_time1': forecast_time1,
       'forecast_value2': forecast_value2,

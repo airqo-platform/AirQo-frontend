@@ -39,32 +39,25 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                     setTextViewText(viewIds[i], dataValue)
                 }
 
-                val pmValue = widgetData.getString("circular_pm_value", null)
+                val airquality = widgetData.getString("air_quality", null)
 
-                fun setIndexColor(pmValue: String?) {
+                fun setIndexColor(airquality: String?) {
                     data class ColorRange(
-                        val min_value: Int,
-                        val max_value: Int,
+                        val airqluaity: String,
                         val resource_id: Int,
                         val text_color: Int
                     )
 
                     val colorRanges = listOf(
-                        ColorRange(0, 12, R.drawable.green_circle, 0xff03B600.toInt()),
-                        ColorRange(13, 35, R.drawable.yellow_circle, 0xffA8A800.toInt()),
-                        ColorRange(36, 55, R.drawable.orange_circle, 0xffB86000.toInt()),
-                        ColorRange(56, 150, R.drawable.red_circle, 0xffB80B00.toInt()),
-                        ColorRange(151, 250, R.drawable.purple_circle, 0xff8E00AC.toInt()),
-                        ColorRange(
-                            Int.MAX_VALUE,
-                            Int.MAX_VALUE,
-                            R.drawable.maroon_circle,
-                            0xffDBA5B2.toInt()
-                        )
+                        ColorRange("good", R.drawable.green_circle, 0xff03B600.toInt()),
+                        ColorRange("moderate", R.drawable.yellow_circle, 0xffA8A800.toInt()),
+                        ColorRange("unhealthy", R.drawable.orange_circle, 0xffB86000.toInt()),
+                        ColorRange("ufsgs", R.drawable.red_circle, 0xffB80B00.toInt()),
+                        ColorRange("veryUnhealthy",  R.drawable.purple_circle, 0xff8E00AC.toInt()),
+                        ColorRange("hazardous",  R.drawable.maroon_circle, 0xffDBA5B2.toInt()),
                     )
 
-                    val colorRange =
-                        colorRanges.firstOrNull { pmValue?.toIntOrNull()!! in it.min_value..it.max_value }
+                    val colorRange = colorRanges.firstOrNull { airquality == colorRanges.airqluaity }
 
                     if (colorRange == null) {
                         // handle null or invalid pmValue
@@ -88,8 +81,7 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                     }
                 }
 
-
-                setIndexColor(pmValue)
+                setIndexColor(airquality)
 
                 val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
                     context,

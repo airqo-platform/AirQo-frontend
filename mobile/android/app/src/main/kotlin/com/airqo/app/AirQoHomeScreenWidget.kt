@@ -50,7 +50,7 @@ class AirQoHomeScreenWidget : HomeWidgetProvider() {
                     val dataValue = widgetData.getString(dataKeys[i], null) ?: "--"
                     setTextViewText(viewIds[i], dataValue)
                 }
-                val pmValue = widgetData.getString("pmValue", null)
+                val pmValue = widgetData.getString("pm_value", null)
                 fun setIndexColor(pmValue: String?) {
                     data class ColorRange(
                         val min_value: Int,
