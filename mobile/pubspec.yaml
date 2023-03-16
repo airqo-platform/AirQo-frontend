@@ -79,6 +79,7 @@ dependencies:
   home_widget: ^0.2.0+1
   showcaseview: ^2.0.0+1
   url_launcher: ^6.1.9
+  hydrated_bloc: ^9.1.0
   # https://pub.dev/packages/retry
   
 dev_dependencies:

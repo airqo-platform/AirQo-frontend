@@ -1,7 +1,7 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:app/utils/utils.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
