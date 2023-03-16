@@ -20,31 +20,25 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     on<SetFeedbackChannel>(_onSetFeedbackChannel);
   }
 
-  Future<void> _onInitializeFeedback(
-    InitializeFeedback _,
+  void _onInitializeFeedback(
+    InitializeFeedback event,
     Emitter<FeedbackState> emit,
-  ) async {
-    // final profile = await HiveService.getProfile();
-    //
-    // if (profile.emailAddress.isEmpty) {
-    //   return;
-    // }
-    //
-    // if (state.blocStatus == BlocStatus.success) {
-    //   return emit(
-    //     const FeedbackState.initial().copyWith(
-    //       emailAddress: profile.emailAddress,
-    //       feedbackChannel: FeedbackChannel.email,
-    //     ),
-    //   );
-    // }
-    //
-    // return emit(
-    //   state.copyWith(
-    //     emailAddress: profile.emailAddress,
-    //     feedbackChannel: FeedbackChannel.email,
-    //   ),
-    // );
+  ) {
+    if (state.blocStatus == BlocStatus.success) {
+      return emit(
+        const FeedbackState.initial().copyWith(
+          emailAddress: event.profile.emailAddress,
+          feedbackChannel: FeedbackChannel.email,
+        ),
+      );
+    }
+
+    return emit(
+      state.copyWith(
+        emailAddress: event.profile.emailAddress,
+        feedbackChannel: FeedbackChannel.email,
+      ),
+    );
   }
 
   Future<void> _onSubmitFeedback(

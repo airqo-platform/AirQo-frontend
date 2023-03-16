@@ -58,7 +58,9 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initialize() async {
-    context.read<FeedbackBloc>().add(const InitializeFeedback());
+    context
+        .read<FeedbackBloc>()
+        .add(InitializeFeedback(context.read<ProfileBloc>().state));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
     context.read<KyaBloc>().add(const SyncKya());

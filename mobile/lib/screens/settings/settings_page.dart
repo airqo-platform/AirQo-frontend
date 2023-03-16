@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -220,99 +221,33 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                       ),
                       const Spacer(),
-                      // BlocBuilder<ProfileBloc, ProfileState>(
-                      //   buildWhen: (previous, current) {
-                      //     return previous.guestUser != current.guestUser;
-                      //   },
-                      //   builder: (context, state) {
-                      //     if (state.guestUser) {
-                      //       return Container();
-                      //     }
-                      //
-                      //     return MultiBlocListener(
-                      //       listeners: [
-                      //         BlocListener<ProfileBloc, ProfileState>(
-                      //           listener: (context, state) {
-                      //             loadingScreen(context);
-                      //           },
-                      //           listenWhen: (previous, current) {
-                      //             return current.blocStatus ==
-                      //                 BlocStatus.processing;
-                      //           },
-                      //         ),
-                      //         BlocListener<ProfileBloc, ProfileState>(
-                      //           listener: (context, state) {
-                      //             Navigator.pop(context);
-                      //           },
-                      //           listenWhen: (previous, current) {
-                      //             return previous.blocStatus ==
-                      //                 BlocStatus.processing;
-                      //           },
-                      //         ),
-                      //         BlocListener<ProfileBloc, ProfileState>(
-                      //           listener: (
-                      //             context,
-                      //             state,
-                      //           ) {
-                      //             showSnackBar(
-                      //               context,
-                      //               state.blocError.message,
-                      //             );
-                      //           },
-                      //           listenWhen: (previous, current) {
-                      //             return current.blocStatus ==
-                      //                     BlocStatus.error &&
-                      //                 current.blocError !=
-                      //                     AuthenticationError.none;
-                      //           },
-                      //         ),
-                      //         BlocListener<ProfileBloc, ProfileState>(
-                      //           listener: (context, state) {
-                      //             Navigator.push(
-                      //               context,
-                      //               MaterialPageRoute(builder: (context) {
-                      //                 return const AuthVerificationWidget();
-                      //               }),
-                      //             );
-                      //           },
-                      //           listenWhen: (previous, current) {
-                      //             return current.blocStatus ==
-                      //                 BlocStatus.accountDeletionCheckSuccess;
-                      //           },
-                      //         ),
-                      //       ],
-                      //       child: Card(
-                      //         margin: EdgeInsets.zero,
-                      //         elevation: 0,
-                      //         shape: const RoundedRectangleBorder(
-                      //           borderRadius:
-                      //               BorderRadius.all(Radius.circular(8)),
-                      //         ),
-                      //         child: ListTile(
-                      //           tileColor: Colors.white,
-                      //           shape: const RoundedRectangleBorder(
-                      //             borderRadius:
-                      //                 BorderRadius.all(Radius.circular(8)),
-                      //           ),
-                      //           onTap: () {
-                      //             _deleteAccount();
-                      //           },
-                      //           title: Text(
-                      //             'Delete your account',
-                      //             overflow: TextOverflow.ellipsis,
-                      //             style: Theme.of(context)
-                      //                 .textTheme
-                      //                 .bodyMedium
-                      //                 ?.copyWith(
-                      //                   color: CustomColors.appColorBlack
-                      //                       .withOpacity(0.6),
-                      //                 ),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 0,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                        ),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          onTap: () {
+                            _deleteAccount();
+                          },
+                          title: Text(
+                            'Delete your account',
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.6),
+                                ),
+                          ),
+                        ),
+                      ),
                     ],
                   );
                 },

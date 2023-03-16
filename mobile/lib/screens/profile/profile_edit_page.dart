@@ -65,7 +65,10 @@ class ProfileEditPage extends StatelessWidget {
                   value: profile.firstName,
                   valueChange: (firstName) {
                     context.read<ProfileBloc>().add(
-                        UpdateProfile(profile.copyWith(firstName: firstName)));
+                          UpdateProfile(
+                            profile.copyWith(firstName: firstName),
+                          ),
+                        );
                   },
                 ),
                 const SizedBox(height: 16),
@@ -81,7 +84,10 @@ class ProfileEditPage extends StatelessWidget {
                   value: profile.lastName,
                   valueChange: (lastName) {
                     context.read<ProfileBloc>().add(
-                        UpdateProfile(profile.copyWith(lastName: lastName)));
+                          UpdateProfile(
+                            profile.copyWith(lastName: lastName),
+                          ),
+                        );
                   },
                 ),
               ],

@@ -114,7 +114,9 @@ class NotificationService {
           );
         },
       );
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {}).onError(
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+        // TODO update cloud store
+      }).onError(
         (exception) {
           logException(exception, null);
         },

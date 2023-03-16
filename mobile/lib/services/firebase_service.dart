@@ -425,6 +425,7 @@ class CloudStore {
         exception,
         stackTrace,
       );
+
       return false;
     }
 
@@ -476,13 +477,8 @@ class CustomAuth {
 
   static Future<bool> signOut() async {
     try {
-      // final profile = await CloudStore.updateProfile();
-      // final analytics = await CloudStore.updateCloudAnalytics();
-      // final favouritePlaces = await CloudStore.updateFavouritePlaces();
-      // final kya = await CloudStore.updateKya();
-      //
-      // if (!kya || !analytics || !profile || !favouritePlaces) return false;
       await FirebaseAuth.instance.signOut();
+
       return false;
     } catch (exception, stackTrace) {
       await logException(

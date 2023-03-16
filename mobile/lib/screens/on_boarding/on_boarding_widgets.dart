@@ -94,16 +94,21 @@ class ProfileSetupNameInputField extends StatelessWidget {
               FocusNode(),
             );
             context.read<ProfileBloc>().add(
-                UpdateProfile(profile.copyWith(firstName: controller.text)));
+                  UpdateProfile(
+                    profile.copyWith(firstName: controller.text),
+                  ),
+                );
           },
           enableSuggestions: false,
           cursorWidth: 1,
           cursorColor: CustomColors.appColorBlue,
           keyboardType: TextInputType.name,
           onChanged: (name) {
-            context
-                .read<ProfileBloc>()
-                .add(UpdateProfile(profile.copyWith(firstName: name)));
+            context.read<ProfileBloc>().add(
+                  UpdateProfile(
+                    profile.copyWith(firstName: name),
+                  ),
+                );
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -124,8 +129,11 @@ class ProfileSetupNameInputField extends StatelessWidget {
             suffixIcon: GestureDetector(
               onTap: () {
                 controller.text = "";
-                context.read<ProfileBloc>().add(UpdateProfile(
-                    profile.copyWith(firstName: "", lastName: "")));
+                context.read<ProfileBloc>().add(
+                      UpdateProfile(
+                        profile.copyWith(firstName: "", lastName: ""),
+                      ),
+                    );
               },
               child: const TextInputCloseButton(),
             ),

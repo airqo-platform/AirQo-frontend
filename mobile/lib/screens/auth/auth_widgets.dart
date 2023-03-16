@@ -57,6 +57,7 @@ class ProceedAsGuest extends StatelessWidget {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
         showSnackBar(context, "Check your internet connection");
+
         return;
       }
 

@@ -88,7 +88,6 @@ class AppService {
         case AuthProcedure.logout:
           return _postLogOutActions();
         case AuthProcedure.anonymousLogin:
-          await _postAnonymousLoginActions();
           break;
         case AuthProcedure.deleteAccount:
         case AuthProcedure.none:
@@ -187,8 +186,6 @@ class AppService {
 
     return true;
   }
-
-  Future<void> _postAnonymousLoginActions() async {}
 
   Future<void> _postLoginActions() async {
     try {

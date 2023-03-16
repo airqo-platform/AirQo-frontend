@@ -228,6 +228,7 @@ class ShareService {
   }
 
   static Future<void> updateUserShares() async {
+    // TODO implement
     // Profile profile = await HiveService.getProfile();
     // profile = profile.copyWith(
     //   aqShares: profile.aqShares + 1,

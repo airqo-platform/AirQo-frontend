@@ -20,7 +20,8 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
     Profile? profile = await CloudStore.getProfile();
 
     if (profile == null) {
-      await CloudStore.updateProfile(state).then((value) {});
+      await CloudStore.updateProfile(state);
+
       return;
     }
     // TODO sync profile
