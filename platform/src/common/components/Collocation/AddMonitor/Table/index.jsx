@@ -4,7 +4,7 @@ import SortByAlphaIcon from '@/icons/Actions/sort_by_alpha.svg';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
-import Button from '../../Button';
+import Button from '../../../Button';
 import DataTable from './DataTable';
 
 const Table = ({ collocationDevices }) => {
@@ -97,7 +97,7 @@ const Table = ({ collocationDevices }) => {
         <div className='flex justify-end items-center w-full'>
           <Button
             className={
-              'h-9 w-full max-w-[114px] bg-[#0000000A] rounded-[4px] text-black font-medium mr-2'
+              'h-9 w-full max-w-[114px] bg-grey-250 rounded-md text-black font-medium text-sm mr-2'
             }
           >
             <div className='mr-1'>
@@ -111,7 +111,7 @@ const Table = ({ collocationDevices }) => {
           <div className='dropdown'>
             <Button
               tabIndex={0}
-              className={'h-9 w-auto bg-[#0000000A] rounded-[4px] text-black font-medium mb-1'}
+              className={'h-9 w-auto bg-grey-250 rounded-md text-black font-medium text-sm mb-1'}
             >
               <div className='mr-1'>
                 <SortByAlphaIcon />

@@ -1,20 +1,21 @@
-import Button from '../../common/components/Button';
-import Layout from '../../common/components/Layout';
-import ContentBox from '../../common/components/Layout/content_box';
-import NavigationBreadCrumb from '../../common/components/Navigation/breadcrumb';
+import Button from '@/components/Button';
+import Layout from '@/components/Layout';
+import ContentBox from '@/components/Layout/content_box';
+import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
   useGetCollocationDevicesQuery,
   getCollocationDevices,
   getRunningQueriesThunk,
 } from '@/lib/store/services/deviceRegistry';
 import { wrapper } from '@/lib/store';
-import Table from '../../common/components/AddMonitor/Table';
-import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
-import { useSelector } from 'react-redux';
+import Table from '@/components/Collocation/AddMonitor/Table';
+import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
+import { useDispatch, useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
-import ScheduleCalendar from '../../common/components/AddMonitor/Calendar';
+import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
 import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
-import Toast from '../../common/components/Toast';
+import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -32,6 +33,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 
 const AddMonitor = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const {
     data: data,
     isLoading,
@@ -67,7 +69,8 @@ const AddMonitor = () => {
       collocateDevices(body);
 
       if (!errorValue) {
-        router.push('/collocation/collocate');
+        dispatch(removeDevices(selectedCollocateDevices));
+        router.push('/collocation/collocate_success');
       }
     }
   };
