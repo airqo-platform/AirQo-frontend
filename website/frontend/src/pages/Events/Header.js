@@ -36,7 +36,7 @@ const EventsHeader = ({
                     <div className="time">
                       <span className="item">
                         <CalendarMonth />
-                        {endDate ? (
+                        {endDate !== null ? (
                           <span>
                             {format(new Date(startDate), 'do')} -{' '}
                             {format(new Date(endDate), 'do MMMM yyyy')}
@@ -47,14 +47,13 @@ const EventsHeader = ({
                       </span>
                       <span className="item">
                         <AccessTimeOutlined />
-                        {startTime ? (
+                        {endTime !== null ? (
                           <span>
-                            {startTime} - {endTime}
+                            {startTime.slice(0, -3)} - {endTime.slice(0, -3)}
                           </span>
                         ) : (
                           <span>All Day</span>
                         )}
-                        <span></span>
                       </span>
                     </div>
                     <div className="links">
