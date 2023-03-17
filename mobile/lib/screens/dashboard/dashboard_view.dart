@@ -98,10 +98,10 @@ class _DashboardViewState extends State<DashboardView>
               ),
               Row(
                 children: [
-                  BlocBuilder<AccountBloc, AccountState>(
+                  BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
                     builder: (context, state) {
                       final favouritePlaces = favouritePlacesWidgets(
-                        state.favouritePlaces.take(3).toList(),
+                        state.take(3).toList(),
                       );
 
                       return Expanded(
@@ -133,10 +133,10 @@ class _DashboardViewState extends State<DashboardView>
                   const SizedBox(
                     width: 16,
                   ),
-                  BlocBuilder<KyaBloc, KyaState>(
+                  BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
                       final kyaWidgets = completeKyaWidgets(
-                        state.kya.filterCompleteKya().take(3).toList(),
+                        state.filterComplete().take(3).toList(),
                       );
 
                       return Expanded(
@@ -302,6 +302,9 @@ class _DashboardViewState extends State<DashboardView>
                                         )
                                       : Container();
                                 }
+                                context
+                                    .read<LocationHistoryBloc>()
+                                    .add(AddLocationHistory(nearbyAirQuality));
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
@@ -317,19 +320,20 @@ class _DashboardViewState extends State<DashboardView>
                                 );
                               },
                             ),
-                            BlocBuilder<KyaBloc, KyaState>(
+                            BlocBuilder<KyaBloc, List<Kya>>(
                               builder: (context, state) {
-                                List<Kya> kya =
-                                    state.kya.filterPartiallyCompleteKya();
+                                List<Kya> kya = state.filterPartiallyComplete();
                                 if (kya.isEmpty) {
-                                  kya = state.kya.filterInProgressKya();
+                                  kya = state.filterInProgressKya();
+                                }
+                                if (kya.isEmpty) {
+                                  kya = state.filterHasNoProgress();
                                 }
                                 if (kya.isEmpty) {
                                   _kyaExists = false;
 
                                   return const SizedBox();
                                 }
-                                kya.sortByProgress();
 
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16),
@@ -338,7 +342,9 @@ class _DashboardViewState extends State<DashboardView>
                                     descriptionHeight: 100,
                                     description:
                                         "Do you want to know more about air quality? Know your air in this section",
-                                    child: KyaCardWidget(kya.first),
+                                    child: KyaCardWidget(
+                                      kya.sortByProgress().first,
+                                    ),
                                   ),
                                 );
                               },

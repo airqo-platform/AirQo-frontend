@@ -9,7 +9,6 @@ List<HealthTip> getHealthTips(
   double pm2_5,
   Pollutant _,
 ) {
-  // TODO add healthTips for pm10
   final healthTips = <HealthTip>[];
   if (pm2_5 <= 12.09) {
     //good
