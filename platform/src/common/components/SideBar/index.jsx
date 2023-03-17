@@ -38,7 +38,7 @@ const SideBar = () => {
     <div className='w-64'>
       <div
         className={`${
-          size.width >= 768 ? 'flex' : sideBarDisplayStyle
+          size.width >= 1024 ? 'flex' : sideBarDisplayStyle
         } bg-white h-[calc(100vh-64px)] md:relative flex-col justify-between overflow-y-scroll border-t-0 border-r-[1px] border-r-grey-750`}
       >
         <div>
@@ -90,7 +90,7 @@ const SideBar = () => {
         </div>
       </div>
       <div
-        className='block md:hidden absolute top-4 left-4 z-30'
+        className='md:hidden fixed top-5 left-4 z-30'
         role='button'
         tabIndex={0}
         onKeyDown={() => setToggleDrawer(!toggleDrawer)}
