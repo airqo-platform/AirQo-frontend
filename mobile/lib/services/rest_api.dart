@@ -132,37 +132,21 @@ class AirqoApiClient {
     String? phoneNumber,
     String? emailAddress,
   }) async {
-    Map<String, String> headers = HashMap()
-      ..putIfAbsent('Content-Type', () => 'application/json');
-    http.Response response;
+    Map<String, String> body = HashMap();
 
     if (phoneNumber != null) {
-      final body = {
-        'phoneNumber': phoneNumber,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
+      body['phoneNumber'] = phoneNumber;
     } else if (emailAddress != null) {
-      final body = {
-        'emailAddress': emailAddress,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
-    } else {
-      throw Exception('Failed to perform action. Try again later');
+      body['email'] = emailAddress;
     }
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to perform action. Try again later');
-    }
+    final response = await httpClient.post(
+      Uri.parse(AirQoUrls.firebaseLookup),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
 
-    return json.decode(response.body)['status'] as bool;
+    return json.decode(response.body)['exists'] as bool;
   }
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
@@ -301,33 +285,6 @@ class AirqoApiClient {
     }
 
     return false;
-  }
-
-  @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeMessage(Profile userDetails) async {
-    try {
-      if (!userDetails.emailAddress.isValidEmail()) {
-        return;
-      }
-
-      final body = {
-        'firstName':
-            userDetails.firstName.isNull() ? '' : userDetails.firstName,
-        'platform': 'mobile',
-        'email': userDetails.emailAddress,
-      };
-
-      await _performPostRequest(
-        queryParams: <String, dynamic>{},
-        url: AirQoUrls.welcomeMessage,
-        body: jsonEncode(body),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
   }
 
   Future<dynamic> _performGetRequest(

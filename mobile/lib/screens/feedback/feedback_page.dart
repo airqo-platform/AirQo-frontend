@@ -54,9 +54,9 @@ class FeedbackPage extends StatelessWidget {
                 BlocListener<FeedbackBloc, FeedbackState>(
                   listener: (context, _) {
                     showSnackBar(context, 'Thanks for your feedback.');
-                    context
-                        .read<FeedbackBloc>()
-                        .add(const InitializeFeedback());
+                    context.read<FeedbackBloc>().add(
+                          InitializeFeedback(context.read<ProfileBloc>().state),
+                        );
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {

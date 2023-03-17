@@ -316,11 +316,14 @@ class CloudStore {
 
   static Future<Profile?> getProfile() async {
     try {
-      final uuid = CustomAuth.getUserId();
+      final userId = CustomAuth.getUserId();
+      if (userId.isEmpty) {
+        return null;
+      }
 
       final userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
-          .doc(uuid)
+          .doc(userId)
           .get();
 
       return Profile.fromJson(
