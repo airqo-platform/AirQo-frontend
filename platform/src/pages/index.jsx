@@ -2,7 +2,7 @@ import Layout from '@/components/Layout';
 
 const HomePage = () => (
   <Layout>
-    <div>I am the home page</div>
+    <div></div>
   </Layout>
 );
 export default HomePage;

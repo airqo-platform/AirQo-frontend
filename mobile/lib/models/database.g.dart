@@ -3,12 +3,12 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
-class $HistoricalInsightsTable extends HistoricalInsights
-    with TableInfo<$HistoricalInsightsTable, HistoricalInsight> {
+class $ForecastTableTable extends ForecastTable
+    with TableInfo<$ForecastTableTable, Forecast> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $HistoricalInsightsTable(this.attachedDatabase, [this._alias]);
+  $ForecastTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _timeMeta = const VerificationMeta('time');
   @override
   late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
@@ -19,46 +19,19 @@ class $HistoricalInsightsTable extends HistoricalInsights
   late final GeneratedColumn<double> pm2_5 = GeneratedColumn<double>(
       'pm2_5', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _pm10Meta = const VerificationMeta('pm10');
-  @override
-  late final GeneratedColumn<double> pm10 = GeneratedColumn<double>(
-      'pm10', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _availableMeta =
-      const VerificationMeta('available');
-  @override
-  late final GeneratedColumn<bool> available =
-      GeneratedColumn<bool>('available', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: false,
-          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
-            SqlDialect.sqlite: 'CHECK ("available" IN (0, 1))',
-            SqlDialect.mysql: '',
-            SqlDialect.postgres: '',
-          }),
-          defaultValue: const Constant(true));
   static const VerificationMeta _siteIdMeta = const VerificationMeta('siteId');
   @override
   late final GeneratedColumn<String> siteId = GeneratedColumn<String>(
       'site_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _frequencyMeta =
-      const VerificationMeta('frequency');
   @override
-  late final GeneratedColumnWithTypeConverter<Frequency, String> frequency =
-      GeneratedColumn<String>('frequency', aliasedName, false,
-              type: DriftSqlType.string, requiredDuringInsert: true)
-          .withConverter<Frequency>(
-              $HistoricalInsightsTable.$converterfrequency);
+  List<GeneratedColumn> get $columns => [time, pm2_5, siteId];
   @override
-  List<GeneratedColumn> get $columns =>
-      [time, pm2_5, pm10, available, siteId, frequency];
+  String get aliasedName => _alias ?? 'forecast_table';
   @override
-  String get aliasedName => _alias ?? 'historical_insights';
+  String get actualTableName => 'forecast_table';
   @override
-  String get actualTableName => 'historical_insights';
-  @override
-  VerificationContext validateIntegrity(Insertable<HistoricalInsight> instance,
+  VerificationContext validateIntegrity(Insertable<Forecast> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -74,109 +47,66 @@ class $HistoricalInsightsTable extends HistoricalInsights
     } else if (isInserting) {
       context.missing(_pm2_5Meta);
     }
-    if (data.containsKey('pm10')) {
-      context.handle(
-          _pm10Meta, pm10.isAcceptableOrUnknown(data['pm10']!, _pm10Meta));
-    } else if (isInserting) {
-      context.missing(_pm10Meta);
-    }
-    if (data.containsKey('available')) {
-      context.handle(_availableMeta,
-          available.isAcceptableOrUnknown(data['available']!, _availableMeta));
-    }
     if (data.containsKey('site_id')) {
       context.handle(_siteIdMeta,
           siteId.isAcceptableOrUnknown(data['site_id']!, _siteIdMeta));
     } else if (isInserting) {
       context.missing(_siteIdMeta);
     }
-    context.handle(_frequencyMeta, const VerificationResult.success());
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {siteId, frequency, time};
+  Set<GeneratedColumn> get $primaryKey => {siteId, time};
   @override
-  HistoricalInsight map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Forecast map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return HistoricalInsight(
+    return Forecast(
       time: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}time'])!,
       pm2_5: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}pm2_5'])!,
-      pm10: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}pm10'])!,
-      available: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}available'])!,
       siteId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}site_id'])!,
-      frequency: $HistoricalInsightsTable.$converterfrequency.fromSql(
-          attachedDatabase.typeMapping
-              .read(DriftSqlType.string, data['${effectivePrefix}frequency'])!),
     );
   }
 
   @override
-  $HistoricalInsightsTable createAlias(String alias) {
-    return $HistoricalInsightsTable(attachedDatabase, alias);
+  $ForecastTableTable createAlias(String alias) {
+    return $ForecastTableTable(attachedDatabase, alias);
   }
-
-  static JsonTypeConverter2<Frequency, String, String> $converterfrequency =
-      const EnumNameConverter<Frequency>(Frequency.values);
 }
 
-class HistoricalInsight extends DataClass
-    implements Insertable<HistoricalInsight> {
+class Forecast extends DataClass implements Insertable<Forecast> {
   final DateTime time;
   final double pm2_5;
-  final double pm10;
-  final bool available;
   final String siteId;
-  final Frequency frequency;
-  const HistoricalInsight(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.available,
-      required this.siteId,
-      required this.frequency});
+  const Forecast(
+      {required this.time, required this.pm2_5, required this.siteId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['time'] = Variable<DateTime>(time);
     map['pm2_5'] = Variable<double>(pm2_5);
-    map['pm10'] = Variable<double>(pm10);
-    map['available'] = Variable<bool>(available);
     map['site_id'] = Variable<String>(siteId);
-    {
-      final converter = $HistoricalInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<String>(converter.toSql(frequency));
-    }
     return map;
   }
 
-  HistoricalInsightsCompanion toCompanion(bool nullToAbsent) {
-    return HistoricalInsightsCompanion(
+  ForecastTableCompanion toCompanion(bool nullToAbsent) {
+    return ForecastTableCompanion(
       time: Value(time),
       pm2_5: Value(pm2_5),
-      pm10: Value(pm10),
-      available: Value(available),
       siteId: Value(siteId),
-      frequency: Value(frequency),
     );
   }
 
-  factory HistoricalInsight.fromJson(Map<String, dynamic> json,
+  factory Forecast.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return HistoricalInsight(
+    return Forecast(
       time: serializer.fromJson<DateTime>(json['time']),
       pm2_5: serializer.fromJson<double>(json['pm2_5']),
-      pm10: serializer.fromJson<double>(json['pm10']),
-      available: serializer.fromJson<bool>(json['available']),
       siteId: serializer.fromJson<String>(json['siteId']),
-      frequency: $HistoricalInsightsTable.$converterfrequency
-          .fromJson(serializer.fromJson<String>(json['frequency'])),
     );
   }
   @override
@@ -185,116 +115,71 @@ class HistoricalInsight extends DataClass
     return <String, dynamic>{
       'time': serializer.toJson<DateTime>(time),
       'pm2_5': serializer.toJson<double>(pm2_5),
-      'pm10': serializer.toJson<double>(pm10),
-      'available': serializer.toJson<bool>(available),
       'siteId': serializer.toJson<String>(siteId),
-      'frequency': serializer.toJson<String>(
-          $HistoricalInsightsTable.$converterfrequency.toJson(frequency)),
     };
   }
 
-  HistoricalInsight copyWith(
-          {DateTime? time,
-          double? pm2_5,
-          double? pm10,
-          bool? available,
-          String? siteId,
-          Frequency? frequency}) =>
-      HistoricalInsight(
+  Forecast copyWith({DateTime? time, double? pm2_5, String? siteId}) =>
+      Forecast(
         time: time ?? this.time,
         pm2_5: pm2_5 ?? this.pm2_5,
-        pm10: pm10 ?? this.pm10,
-        available: available ?? this.available,
         siteId: siteId ?? this.siteId,
-        frequency: frequency ?? this.frequency,
       );
   @override
   String toString() {
-    return (StringBuffer('HistoricalInsight(')
+    return (StringBuffer('Forecast(')
           ..write('time: $time, ')
           ..write('pm2_5: $pm2_5, ')
-          ..write('pm10: $pm10, ')
-          ..write('available: $available, ')
-          ..write('siteId: $siteId, ')
-          ..write('frequency: $frequency')
+          ..write('siteId: $siteId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(time, pm2_5, pm10, available, siteId, frequency);
+  int get hashCode => Object.hash(time, pm2_5, siteId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is HistoricalInsight &&
+      (other is Forecast &&
           other.time == this.time &&
           other.pm2_5 == this.pm2_5 &&
-          other.pm10 == this.pm10 &&
-          other.available == this.available &&
-          other.siteId == this.siteId &&
-          other.frequency == this.frequency);
+          other.siteId == this.siteId);
 }
 
-class HistoricalInsightsCompanion extends UpdateCompanion<HistoricalInsight> {
+class ForecastTableCompanion extends UpdateCompanion<Forecast> {
   final Value<DateTime> time;
   final Value<double> pm2_5;
-  final Value<double> pm10;
-  final Value<bool> available;
   final Value<String> siteId;
-  final Value<Frequency> frequency;
-  const HistoricalInsightsCompanion({
+  const ForecastTableCompanion({
     this.time = const Value.absent(),
     this.pm2_5 = const Value.absent(),
-    this.pm10 = const Value.absent(),
-    this.available = const Value.absent(),
     this.siteId = const Value.absent(),
-    this.frequency = const Value.absent(),
   });
-  HistoricalInsightsCompanion.insert({
+  ForecastTableCompanion.insert({
     required DateTime time,
     required double pm2_5,
-    required double pm10,
-    this.available = const Value.absent(),
     required String siteId,
-    required Frequency frequency,
   })  : time = Value(time),
         pm2_5 = Value(pm2_5),
-        pm10 = Value(pm10),
-        siteId = Value(siteId),
-        frequency = Value(frequency);
-  static Insertable<HistoricalInsight> custom({
+        siteId = Value(siteId);
+  static Insertable<Forecast> custom({
     Expression<DateTime>? time,
     Expression<double>? pm2_5,
-    Expression<double>? pm10,
-    Expression<bool>? available,
     Expression<String>? siteId,
-    Expression<String>? frequency,
   }) {
     return RawValuesInsertable({
       if (time != null) 'time': time,
       if (pm2_5 != null) 'pm2_5': pm2_5,
-      if (pm10 != null) 'pm10': pm10,
-      if (available != null) 'available': available,
       if (siteId != null) 'site_id': siteId,
-      if (frequency != null) 'frequency': frequency,
     });
   }
 
-  HistoricalInsightsCompanion copyWith(
-      {Value<DateTime>? time,
-      Value<double>? pm2_5,
-      Value<double>? pm10,
-      Value<bool>? available,
-      Value<String>? siteId,
-      Value<Frequency>? frequency}) {
-    return HistoricalInsightsCompanion(
+  ForecastTableCompanion copyWith(
+      {Value<DateTime>? time, Value<double>? pm2_5, Value<String>? siteId}) {
+    return ForecastTableCompanion(
       time: time ?? this.time,
       pm2_5: pm2_5 ?? this.pm2_5,
-      pm10: pm10 ?? this.pm10,
-      available: available ?? this.available,
       siteId: siteId ?? this.siteId,
-      frequency: frequency ?? this.frequency,
     );
   }
 
@@ -307,363 +192,18 @@ class HistoricalInsightsCompanion extends UpdateCompanion<HistoricalInsight> {
     if (pm2_5.present) {
       map['pm2_5'] = Variable<double>(pm2_5.value);
     }
-    if (pm10.present) {
-      map['pm10'] = Variable<double>(pm10.value);
-    }
-    if (available.present) {
-      map['available'] = Variable<bool>(available.value);
-    }
     if (siteId.present) {
       map['site_id'] = Variable<String>(siteId.value);
     }
-    if (frequency.present) {
-      final converter = $HistoricalInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<String>(converter.toSql(frequency.value));
-    }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('HistoricalInsightsCompanion(')
+    return (StringBuffer('ForecastTableCompanion(')
           ..write('time: $time, ')
           ..write('pm2_5: $pm2_5, ')
-          ..write('pm10: $pm10, ')
-          ..write('available: $available, ')
-          ..write('siteId: $siteId, ')
-          ..write('frequency: $frequency')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $ForecastInsightsTable extends ForecastInsights
-    with TableInfo<$ForecastInsightsTable, ForecastInsight> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ForecastInsightsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _timeMeta = const VerificationMeta('time');
-  @override
-  late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
-      'time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _pm2_5Meta = const VerificationMeta('pm2_5');
-  @override
-  late final GeneratedColumn<double> pm2_5 = GeneratedColumn<double>(
-      'pm2_5', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _pm10Meta = const VerificationMeta('pm10');
-  @override
-  late final GeneratedColumn<double> pm10 = GeneratedColumn<double>(
-      'pm10', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _availableMeta =
-      const VerificationMeta('available');
-  @override
-  late final GeneratedColumn<bool> available =
-      GeneratedColumn<bool>('available', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: false,
-          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
-            SqlDialect.sqlite: 'CHECK ("available" IN (0, 1))',
-            SqlDialect.mysql: '',
-            SqlDialect.postgres: '',
-          }),
-          defaultValue: const Constant(true));
-  static const VerificationMeta _siteIdMeta = const VerificationMeta('siteId');
-  @override
-  late final GeneratedColumn<String> siteId = GeneratedColumn<String>(
-      'site_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _frequencyMeta =
-      const VerificationMeta('frequency');
-  @override
-  late final GeneratedColumnWithTypeConverter<Frequency, String> frequency =
-      GeneratedColumn<String>('frequency', aliasedName, false,
-              type: DriftSqlType.string, requiredDuringInsert: true)
-          .withConverter<Frequency>($ForecastInsightsTable.$converterfrequency);
-  @override
-  List<GeneratedColumn> get $columns =>
-      [time, pm2_5, pm10, available, siteId, frequency];
-  @override
-  String get aliasedName => _alias ?? 'forecast_insights';
-  @override
-  String get actualTableName => 'forecast_insights';
-  @override
-  VerificationContext validateIntegrity(Insertable<ForecastInsight> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('time')) {
-      context.handle(
-          _timeMeta, time.isAcceptableOrUnknown(data['time']!, _timeMeta));
-    } else if (isInserting) {
-      context.missing(_timeMeta);
-    }
-    if (data.containsKey('pm2_5')) {
-      context.handle(
-          _pm2_5Meta, pm2_5.isAcceptableOrUnknown(data['pm2_5']!, _pm2_5Meta));
-    } else if (isInserting) {
-      context.missing(_pm2_5Meta);
-    }
-    if (data.containsKey('pm10')) {
-      context.handle(
-          _pm10Meta, pm10.isAcceptableOrUnknown(data['pm10']!, _pm10Meta));
-    } else if (isInserting) {
-      context.missing(_pm10Meta);
-    }
-    if (data.containsKey('available')) {
-      context.handle(_availableMeta,
-          available.isAcceptableOrUnknown(data['available']!, _availableMeta));
-    }
-    if (data.containsKey('site_id')) {
-      context.handle(_siteIdMeta,
-          siteId.isAcceptableOrUnknown(data['site_id']!, _siteIdMeta));
-    } else if (isInserting) {
-      context.missing(_siteIdMeta);
-    }
-    context.handle(_frequencyMeta, const VerificationResult.success());
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {siteId, frequency, time};
-  @override
-  ForecastInsight map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ForecastInsight(
-      time: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}time'])!,
-      pm2_5: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}pm2_5'])!,
-      pm10: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}pm10'])!,
-      available: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}available'])!,
-      siteId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}site_id'])!,
-      frequency: $ForecastInsightsTable.$converterfrequency.fromSql(
-          attachedDatabase.typeMapping
-              .read(DriftSqlType.string, data['${effectivePrefix}frequency'])!),
-    );
-  }
-
-  @override
-  $ForecastInsightsTable createAlias(String alias) {
-    return $ForecastInsightsTable(attachedDatabase, alias);
-  }
-
-  static JsonTypeConverter2<Frequency, String, String> $converterfrequency =
-      const EnumNameConverter<Frequency>(Frequency.values);
-}
-
-class ForecastInsight extends DataClass implements Insertable<ForecastInsight> {
-  final DateTime time;
-  final double pm2_5;
-  final double pm10;
-  final bool available;
-  final String siteId;
-  final Frequency frequency;
-  const ForecastInsight(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.available,
-      required this.siteId,
-      required this.frequency});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['time'] = Variable<DateTime>(time);
-    map['pm2_5'] = Variable<double>(pm2_5);
-    map['pm10'] = Variable<double>(pm10);
-    map['available'] = Variable<bool>(available);
-    map['site_id'] = Variable<String>(siteId);
-    {
-      final converter = $ForecastInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<String>(converter.toSql(frequency));
-    }
-    return map;
-  }
-
-  ForecastInsightsCompanion toCompanion(bool nullToAbsent) {
-    return ForecastInsightsCompanion(
-      time: Value(time),
-      pm2_5: Value(pm2_5),
-      pm10: Value(pm10),
-      available: Value(available),
-      siteId: Value(siteId),
-      frequency: Value(frequency),
-    );
-  }
-
-  factory ForecastInsight.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ForecastInsight(
-      time: serializer.fromJson<DateTime>(json['time']),
-      pm2_5: serializer.fromJson<double>(json['pm2_5']),
-      pm10: serializer.fromJson<double>(json['pm10']),
-      available: serializer.fromJson<bool>(json['available']),
-      siteId: serializer.fromJson<String>(json['siteId']),
-      frequency: $ForecastInsightsTable.$converterfrequency
-          .fromJson(serializer.fromJson<String>(json['frequency'])),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'time': serializer.toJson<DateTime>(time),
-      'pm2_5': serializer.toJson<double>(pm2_5),
-      'pm10': serializer.toJson<double>(pm10),
-      'available': serializer.toJson<bool>(available),
-      'siteId': serializer.toJson<String>(siteId),
-      'frequency': serializer.toJson<String>(
-          $ForecastInsightsTable.$converterfrequency.toJson(frequency)),
-    };
-  }
-
-  ForecastInsight copyWith(
-          {DateTime? time,
-          double? pm2_5,
-          double? pm10,
-          bool? available,
-          String? siteId,
-          Frequency? frequency}) =>
-      ForecastInsight(
-        time: time ?? this.time,
-        pm2_5: pm2_5 ?? this.pm2_5,
-        pm10: pm10 ?? this.pm10,
-        available: available ?? this.available,
-        siteId: siteId ?? this.siteId,
-        frequency: frequency ?? this.frequency,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('ForecastInsight(')
-          ..write('time: $time, ')
-          ..write('pm2_5: $pm2_5, ')
-          ..write('pm10: $pm10, ')
-          ..write('available: $available, ')
-          ..write('siteId: $siteId, ')
-          ..write('frequency: $frequency')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(time, pm2_5, pm10, available, siteId, frequency);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ForecastInsight &&
-          other.time == this.time &&
-          other.pm2_5 == this.pm2_5 &&
-          other.pm10 == this.pm10 &&
-          other.available == this.available &&
-          other.siteId == this.siteId &&
-          other.frequency == this.frequency);
-}
-
-class ForecastInsightsCompanion extends UpdateCompanion<ForecastInsight> {
-  final Value<DateTime> time;
-  final Value<double> pm2_5;
-  final Value<double> pm10;
-  final Value<bool> available;
-  final Value<String> siteId;
-  final Value<Frequency> frequency;
-  const ForecastInsightsCompanion({
-    this.time = const Value.absent(),
-    this.pm2_5 = const Value.absent(),
-    this.pm10 = const Value.absent(),
-    this.available = const Value.absent(),
-    this.siteId = const Value.absent(),
-    this.frequency = const Value.absent(),
-  });
-  ForecastInsightsCompanion.insert({
-    required DateTime time,
-    required double pm2_5,
-    required double pm10,
-    this.available = const Value.absent(),
-    required String siteId,
-    required Frequency frequency,
-  })  : time = Value(time),
-        pm2_5 = Value(pm2_5),
-        pm10 = Value(pm10),
-        siteId = Value(siteId),
-        frequency = Value(frequency);
-  static Insertable<ForecastInsight> custom({
-    Expression<DateTime>? time,
-    Expression<double>? pm2_5,
-    Expression<double>? pm10,
-    Expression<bool>? available,
-    Expression<String>? siteId,
-    Expression<String>? frequency,
-  }) {
-    return RawValuesInsertable({
-      if (time != null) 'time': time,
-      if (pm2_5 != null) 'pm2_5': pm2_5,
-      if (pm10 != null) 'pm10': pm10,
-      if (available != null) 'available': available,
-      if (siteId != null) 'site_id': siteId,
-      if (frequency != null) 'frequency': frequency,
-    });
-  }
-
-  ForecastInsightsCompanion copyWith(
-      {Value<DateTime>? time,
-      Value<double>? pm2_5,
-      Value<double>? pm10,
-      Value<bool>? available,
-      Value<String>? siteId,
-      Value<Frequency>? frequency}) {
-    return ForecastInsightsCompanion(
-      time: time ?? this.time,
-      pm2_5: pm2_5 ?? this.pm2_5,
-      pm10: pm10 ?? this.pm10,
-      available: available ?? this.available,
-      siteId: siteId ?? this.siteId,
-      frequency: frequency ?? this.frequency,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (time.present) {
-      map['time'] = Variable<DateTime>(time.value);
-    }
-    if (pm2_5.present) {
-      map['pm2_5'] = Variable<double>(pm2_5.value);
-    }
-    if (pm10.present) {
-      map['pm10'] = Variable<double>(pm10.value);
-    }
-    if (available.present) {
-      map['available'] = Variable<bool>(available.value);
-    }
-    if (siteId.present) {
-      map['site_id'] = Variable<String>(siteId.value);
-    }
-    if (frequency.present) {
-      final converter = $ForecastInsightsTable.$converterfrequency;
-      map['frequency'] = Variable<String>(converter.toSql(frequency.value));
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ForecastInsightsCompanion(')
-          ..write('time: $time, ')
-          ..write('pm2_5: $pm2_5, ')
-          ..write('pm10: $pm10, ')
-          ..write('available: $available, ')
-          ..write('siteId: $siteId, ')
-          ..write('frequency: $frequency')
+          ..write('siteId: $siteId')
           ..write(')'))
         .toString();
   }
@@ -671,16 +211,12 @@ class ForecastInsightsCompanion extends UpdateCompanion<ForecastInsight> {
 
 abstract class _$AirQoDatabase extends GeneratedDatabase {
   _$AirQoDatabase(QueryExecutor e) : super(e);
-  late final $HistoricalInsightsTable historicalInsights =
-      $HistoricalInsightsTable(this);
-  late final $ForecastInsightsTable forecastInsights =
-      $ForecastInsightsTable(this);
+  late final $ForecastTableTable forecastTable = $ForecastTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [historicalInsights, forecastInsights];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [forecastTable];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

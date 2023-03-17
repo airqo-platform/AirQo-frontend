@@ -31,13 +31,17 @@ export const collocateApi = createApi({
         dispatch(addCollocationData(data));
       },
     }),
+    getDeviceStatusSummary: builder.query({
+      query: () => '/summary',
+    }),
   }),
 });
 
 export const {
   useCollocateDevicesMutation,
+  useGetDeviceStatusSummaryQuery,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
 // export endpoints for use in SSR
-export const { collocateDevices } = collocateApi.endpoints;
+export const { collocateDevices, getDeviceStatusSummary } = collocateApi.endpoints;

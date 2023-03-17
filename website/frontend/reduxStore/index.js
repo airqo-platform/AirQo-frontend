@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers } from '@reduxjs/toolkit';
 import airqloudsReducer from './AirQlouds/reducers';
 import newsletterReducer from './Newsletter/reducers';
 import getInvolvedReducer from './GetInvolved/reducers';
@@ -10,6 +10,7 @@ import partnersReducer from './Partners/reducers';
 import boardReducer from './Board/reducers';
 import publicationsReducer from './Publications/reducers';
 import EventsNavTabReducer from './EventsNav/NavigationSlice';
+import EventsReducer from './Events/EventSlice';
 
 export default combineReducers({
   airqlouds: airqloudsReducer,
@@ -22,5 +23,6 @@ export default combineReducers({
   partnersData: partnersReducer,
   boardData: boardReducer,
   publicationsData: publicationsReducer,
-  eventsNavTab: EventsNavTabReducer
+  eventsNavTab: EventsNavTabReducer,
+  eventsData: EventsReducer
 });

@@ -1,10 +1,10 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/screens/settings/settings_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:showcaseview/showcaseview.dart';
-import 'package:app/services/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/constants/constants.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
