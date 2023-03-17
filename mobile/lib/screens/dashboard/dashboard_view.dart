@@ -50,6 +50,7 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<ServiceStatus> _locationServiceStream;
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +78,7 @@ class _DashboardViewState extends State<DashboardView>
       body: AppSafeArea(
         horizontalPadding: 16.0,
         child: NestedScrollView(
+          controller: _scrollController,
           floatHeaderSlivers: true,
           headerSliverBuilder: (context, innerBoxScrolled) => [
             SliverPersistentHeader(
@@ -292,8 +294,39 @@ class _DashboardViewState extends State<DashboardView>
                       );
                     },
                   ),
-                  BlocBuilder<DashboardBloc, DashboardState>(
+                  BlocConsumer<DashboardBloc, DashboardState>(
+                    listener: (context, state) {
+                      if (state.scrollToTop) {
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.ease,
+                        );
+                      }
+                    },
                     builder: (context, state) {
+                      switch (state.status) {
+                        case DashboardStatus.loaded:
+                        case DashboardStatus.refreshing:
+                          break;
+                        case DashboardStatus.error:
+                          switch (state.error) {
+                            case DashboardError.noAirQuality:
+                              return NoAirQualityDataWidget(
+                                callBack: () => _refresh(),
+                              );
+                            case DashboardError.noInternetConnection:
+                              return NoInternetConnectionWidget(
+                                callBack: () => _refresh(),
+                              );
+                            case DashboardError.none:
+                              break;
+                          }
+                          break;
+                        case DashboardStatus.loading:
+                          return const DashboardLoadingWidget();
+                      }
+
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -347,73 +380,12 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  Widget builds(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(50.0),
-        child: CustomShowcaseWidget(
-          showcaseKey: _skipShowcaseKey,
-          description: "Click to Skip Tutorial",
-          customize: ShowcaseOptions.skip,
-          child: AppBar(
-            automaticallyImplyLeading: false,
-            centerTitle: false,
-            title: SvgPicture.asset(
-              'assets/icon/airqo_logo.svg',
-              height: 40,
-              width: 58,
-              semanticsLabel: 'AirQo',
-            ),
-            elevation: 0,
-            backgroundColor: CustomColors.appBodyColor,
-          ),
-        ),
-      ),
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverPersistentHeader(
-            delegate: _SliverAppBarDelegate(
-              child: BlocBuilder<DashboardBloc, DashboardState>(
-                buildWhen: (previous, current) {
-                  return previous.greetings != current.greetings;
-                },
-                builder: (context, state) {
-                  return AutoSizeText(
-                    state.greetings,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline7(context),
-                  );
-                },
-              ),
-              minHeight: 2,
-              maxHeight: 30,
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const SearchPage();
-              },
-            ),
-          );
-        },
-        backgroundColor: CustomColors.appColorBlue,
-        child: const Icon(Icons.search),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _timeSubscription.cancel();
     _locationServiceStream.cancel();
     _locationPositionStream.cancel();
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
