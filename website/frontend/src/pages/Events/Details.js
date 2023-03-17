@@ -23,7 +23,6 @@ const EventDetails = () => {
   const loader = useSelector((state) => state.eventsData.loading);
   const [loading, setLoading] = useState(loader);
 
-  console.log('Event', eventDetails);
   useEffect(() => {
     if (isEmpty(eventData)) {
       dispatch(getAllEvents());
