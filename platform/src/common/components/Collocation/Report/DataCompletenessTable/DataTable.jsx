@@ -4,7 +4,7 @@ import {
   addDevices,
   removeDevices,
   addDevice,
-} from '@/lib/store/services/addMonitor/selectedCollocateDevicesSlice';
+} from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
