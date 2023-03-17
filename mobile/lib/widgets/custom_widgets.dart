@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -27,14 +26,14 @@ class AirQualityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Chip(
-      backgroundColor: airQuality.color().withOpacity(0.3),
-      label: Text(airQuality.string),
+      backgroundColor: airQuality.color.withOpacity(0.3),
+      label: Text(airQuality.title),
       labelStyle: CustomTextStyle.airQualityChip(context),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.all(2),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
       avatar: CircleAvatar(
-        backgroundColor: airQuality.color(),
+        backgroundColor: airQuality.color,
       ),
     );
   }
@@ -298,11 +297,9 @@ class HeartIcon extends StatelessWidget {
       );
     }
 
-    return ValueListenableBuilder<Box<FavouritePlace>>(
-      valueListenable:
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
-      builder: (context, box, widget) {
-        final placesIds = box.keys.toList();
+    return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
+      builder: (context, state) {
+        final placesIds = state.map((e) => e.placeId).toList();
 
         final placeId =
             airQualityReading == null ? '' : airQualityReading?.placeId;

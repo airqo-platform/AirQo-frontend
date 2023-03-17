@@ -3,52 +3,45 @@ import 'dart:async';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 part 'notification_event.dart';
-part 'notification_state.dart';
 
-class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
-  NotificationBloc() : super(const NotificationState.initial()) {
+class NotificationBloc
+    extends HydratedBloc<NotificationEvent, List<AppNotification>> {
+  NotificationBloc() : super([]) {
     on<ClearNotifications>(_onClearNotifications);
-    on<RefreshNotifications>(_onRefreshNotifications);
-    on<FetchNotifications>(_onFetchNotifications);
+    on<SyncNotifications>(_onSyncNotifications);
   }
 
-  Future<void> _onFetchNotifications(
-    FetchNotifications _,
-    Emitter<NotificationState> emit,
+  Future<void> _onSyncNotifications(
+    SyncNotifications _,
+    Emitter<List<AppNotification>> emit,
   ) async {
     List<AppNotification> notifications = await CloudStore.getNotifications();
-    emit(const NotificationState.initial()
-        .copyWith(notifications: notifications));
-    await HiveService.loadNotifications(notifications, clear: true);
+
+    Set<AppNotification> notificationsSet = state.toSet();
+    notificationsSet.addAll(notifications.toSet());
+
+    emit(notificationsSet.toList());
+
+    emit(notifications);
   }
 
-  Future<void> _onRefreshNotifications(
-    RefreshNotifications _,
-    Emitter<NotificationState> emit,
-  ) async {
-    final notifications = HiveService.getNotifications();
-    emit(const NotificationState().copyWith(notifications: notifications));
-
-    final cloudNotifications = await CloudStore.getNotifications();
-    final notificationsIds = notifications.map((e) => e.id).toList();
-
-    cloudNotifications.removeWhere((x) => notificationsIds.contains(x.id));
-
-    notifications.addAll(cloudNotifications);
-
-    emit(state.copyWith(notifications: notifications));
-
-    await HiveService.loadNotifications(notifications);
-  }
-
-  Future<void> _onClearNotifications(
+  void _onClearNotifications(
     ClearNotifications _,
-    Emitter<NotificationState> emit,
-  ) async {
-    emit(const NotificationState.initial());
-    await HiveService.loadNotifications([], clear: true);
+    Emitter<List<AppNotification>> emit,
+  ) {
+    emit([]);
+  }
+
+  @override
+  List<AppNotification>? fromJson(Map<String, dynamic> json) {
+    return AppNotificationList.fromJson(json).data;
+  }
+
+  @override
+  Map<String, dynamic>? toJson(List<AppNotification> state) {
+    return AppNotificationList(data: state).toJson();
   }
 }

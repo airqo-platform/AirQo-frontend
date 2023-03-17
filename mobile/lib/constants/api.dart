@@ -6,6 +6,8 @@ class AirQoUrls {
   static String get insights =>
       '${Config.airqoApiUrl}view/measurements/mobile-app/insights';
 
+  static String get forecast => '${Config.airqoApiUrl}predict/daily/';
+
   static String get appVersion =>
       '${Config.airqoApiUrl}view/mobile-app/version-info';
 

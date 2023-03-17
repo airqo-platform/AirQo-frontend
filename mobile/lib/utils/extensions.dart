@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -19,6 +18,26 @@ extension IntExt on int {
   }
 }
 
+extension InsightListExt on List<Insight> {
+  List<Insight> sortByDateTime() {
+    List<Insight> data = List.of(this);
+
+    data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
+
+    return data;
+  }
+}
+
+extension ForecastListExt on List<Forecast> {
+  List<Forecast> sortByDateTime() {
+    List<Forecast> data = List.of(this);
+
+    data.sort((x, y) => x.time.compareTo(y.time));
+
+    return data;
+  }
+}
+
 extension FavouritePlaceListExt on List<FavouritePlace> {
   List<FavouritePlace> sortByName() {
     List<FavouritePlace> data = List.of(this);
@@ -26,62 +45,6 @@ extension FavouritePlaceListExt on List<FavouritePlace> {
     data.sort((x, y) => x.name.compareTo(y.name));
 
     return data;
-  }
-}
-
-extension ChartDataExt on ChartData {
-  String chartDomainFn() {
-    switch (frequency) {
-      case Frequency.daily:
-        return DateFormat('EEE').format(dateTime);
-      case Frequency.hourly:
-        final hour = dateTime.hour;
-
-        return hour.toString().length == 1 ? '0$hour' : '$hour';
-    }
-  }
-
-  double chartValue(Pollutant pollutant) {
-    return pollutant == Pollutant.pm2_5
-        ? double.parse(pm2_5.toStringAsFixed(2))
-        : double.parse(pm10.toStringAsFixed(2));
-  }
-
-  String lastUpdated(Frequency frequency) {
-    String lastUpdated = '';
-
-    if (dateTime.isToday()) {
-      lastUpdated = 'Updated Today';
-
-      return available ? lastUpdated : '$lastUpdated - Not Available';
-    }
-
-    switch (frequency) {
-      case Frequency.daily:
-        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
-        break;
-      case Frequency.hourly:
-        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
-        break;
-    }
-
-    return available ? lastUpdated : '$lastUpdated - Not Available';
-  }
-
-  Color chartAvatarContainerColor(Pollutant pollutant) {
-    return available
-        ? pollutant.color(chartValue(pollutant))
-        : CustomColors.greyColor;
-  }
-
-  String chartAvatarValue(Pollutant pollutant) {
-    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
-  }
-
-  Color chartAvatarValueColor(Pollutant pollutant) {
-    return available
-        ? pollutant.textColor(value: chartValue(pollutant))
-        : CustomColors.darkGreyColor;
   }
 }
 
@@ -104,8 +67,16 @@ extension KyaExt on Kya {
     return progress == -1;
   }
 
+  bool isEmpty() {
+    return lessons.isEmpty;
+  }
+
   bool isInProgress() {
     return progress > 0 && progress < 1;
+  }
+
+  bool hasNoProgress() {
+    return progress == 0;
   }
 
   double getProgress(int visibleCardIndex) {
@@ -134,51 +105,37 @@ extension KyaListExt on List<Kya> {
     }).toList();
   }
 
-  List<Kya> filterPartiallyCompleteKya() {
+  List<Kya> filterHasNoProgress() {
+    return where((element) {
+      return element.hasNoProgress();
+    }).toList();
+  }
+
+  List<Kya> filterPartiallyComplete() {
     return where((element) {
       return element.isPartiallyComplete();
     }).toList();
   }
 
-  List<Kya> filterCompleteKya() {
+  List<Kya> filterComplete() {
     return where((element) {
       return element.isComplete();
     }).toList();
   }
+}
 
-  List<Kya> removeDuplicates() {
-    List<Kya> completeKya = filterCompleteKya().toSet().toList();
-
-    List<Kya> kya = completeKya
-        .map((e) => e.id)
-        .toSet()
-        .map((e) => completeKya.firstWhere((element) => element.id == e))
-        .toList();
-
-    List<Kya> partiallyCompleteKya =
-        filterPartiallyCompleteKya().toSet().toList();
-    List<Kya> inProgressKya = filterInProgressKya().toSet().toList();
-
-    partiallyCompleteKya.removeWhere(
-      (element) => kya.map((e) => e.id).toList().contains(element.id),
-    );
-    kya.addAll(partiallyCompleteKya);
-
-    inProgressKya.removeWhere(
-      (element) => kya.map((e) => e.id).toList().contains(element.id),
-    );
-    kya.addAll(inProgressKya);
-
-    return kya.toSet().toList();
+extension AppNotificationListExt on List<AppNotification> {
+  List<AppNotification> filterUnRead() {
+    return where((element) => !element.read).toList();
   }
 }
 
-extension AnalyticsListExt on List<Analytics> {
-  List<Analytics> sortByDateTime() {
-    List<Analytics> data = List.of(this);
+extension LocationHistoryExt on List<LocationHistory> {
+  List<LocationHistory> sortByDateTime() {
+    List<LocationHistory> data = List.of(this);
     data.sort(
       (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
+        return -(x.dateTime.compareTo(y.dateTime));
       },
     );
 
@@ -252,6 +209,46 @@ extension AirQualityReadingExt on AirQualityReading {
         .toSet()
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
+  }
+
+  AirQuality airQuality() {
+    return Pollutant.pm2_5.airQuality(pm2_5);
+  }
+}
+
+extension InsightExt on Insight {
+  String shortDate() {
+    if (dateTime.isYesterday()) {
+      return 'Yesterday';
+    } else if (dateTime.isWithInPreviousWeek()) {
+      return 'Last Week';
+    } else if (dateTime.isWithInNextWeek()) {
+      return 'Next Week';
+    } else if (dateTime.isToday()) {
+      return 'Today';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow';
+    } else if (dateTime.isWithInCurrentWeek()) {
+      return 'This week';
+    }
+
+    return '';
+  }
+
+  String healthTipsTitle() {
+    if (dateTime.isToday()) {
+      return 'Today’s health tips';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s health tips';
+    }
+
+    if (dateTime.isAFutureDate()) {
+      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+    }
+
+    return '';
   }
 }
 
@@ -568,29 +565,50 @@ extension DateTimeExt on DateTime {
     }
   }
 
-  bool isInWeek(String referenceWeek) {
+  bool isWithInCurrentWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay;
-    DateTime lastDay;
-    switch (referenceWeek.toLowerCase()) {
-      case 'last':
-        firstDay =
-            now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay =
-            now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      case 'next':
-        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      default:
-        firstDay = now.getDateOfFirstDayOfWeek();
-        lastDay = now.getDateOfLastDayOfWeek();
-        break;
-    }
+    DateTime firstDay = now.getDateOfFirstDayOfWeek();
+    DateTime lastDay = now.getDateOfLastDayOfWeek();
+    final date = formatter.parse(formatter.format(this));
 
-    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInPreviousWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInNextWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
@@ -598,6 +616,28 @@ extension DateTimeExt on DateTime {
     final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
     return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
+  }
+
+  bool isAPastDate() {
+    if (isYesterday()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) < 0;
+  }
+
+  bool isAFutureDate() {
+    if (isTomorrow()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) > 0;
   }
 
   bool isTomorrow() {

@@ -2,8 +2,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -268,16 +268,18 @@ class KyaLessonCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 fit: BoxFit.fill,
-                placeholder: (context, url) => const SizedBox(
-                  child: ContainerLoadingAnimation(
-                    height: 180,
-                    radius: 8,
-                  ),
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  height: 180,
+                  radius: 8,
                 ),
                 imageUrl: kyaLesson.imageUrl,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: CustomColors.aqiRed,
+                errorWidget: (context, url, error) => SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icon/no_internet_connection_icon.svg',
+                    ),
+                  ),
                 ),
                 cacheKey: kyaLesson.imageUrlCacheKey(kya),
                 cacheManager: CacheManager(
