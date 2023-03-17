@@ -70,10 +70,10 @@ const Table = ({ collocationDevices, isLoading }) => {
       <div className='flex xl:items-center justify-between flex-wrap md:flex-nowrap px-6'>
         <div className='flex items-center w-full flex-wrap xl:flex-nowrap'>
           <SearchBar onSearch={handleSearch} />
-          <div className='flex items-center w-full'>
+          <div className='md:flex md:items-center w-full'>
             <Button
               className={
-                'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium xl:ml-2'
+                'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium xl:ml-2 mb-2 md:mb-0'
               }
             >
               <span className='mr-1'>
@@ -84,7 +84,7 @@ const Table = ({ collocationDevices, isLoading }) => {
                 <ArrowDropDownIcon />
               </span>{' '}
             </Button>
-            <div className='dropdown ml-2'>
+            <div className='dropdown md:ml-2'>
               <Button
                 className={
                   'max-w-[114px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium'
