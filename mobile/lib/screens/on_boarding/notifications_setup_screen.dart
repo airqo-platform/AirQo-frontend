@@ -27,7 +27,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           verticalPadding: 10,
-          widget: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),

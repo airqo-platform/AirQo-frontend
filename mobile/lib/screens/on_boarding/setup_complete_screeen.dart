@@ -22,7 +22,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: AppSafeArea(
-          widget: Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

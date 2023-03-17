@@ -53,7 +53,7 @@ class KyaNotFoundWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppSafeArea(
-        widget: Padding(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 33),
           child: Center(
             child: Column(
@@ -443,7 +443,7 @@ class AppErrorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSafeArea(
       horizontalPadding: 33,
-      widget: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -518,7 +518,7 @@ class AppCrushWidget extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -597,7 +597,7 @@ class ErrorPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

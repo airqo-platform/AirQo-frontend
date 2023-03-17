@@ -76,7 +76,7 @@ class _DashboardViewState extends State<DashboardView>
       ),
       body: AppSafeArea(
         horizontalPadding: 16.0,
-        widget: NestedScrollView(
+        child: NestedScrollView(
           floatHeaderSlivers: true,
           headerSliverBuilder: (context, innerBoxScrolled) => [
             SliverPersistentHeader(
@@ -237,6 +237,7 @@ class _DashboardViewState extends State<DashboardView>
                           state.locationAirQuality;
                       if (nearbyAirQuality == null) {
                         _nearbyLocationExists = false;
+
                         return state.showErrorMessage
                             ? const Padding(
                                 padding: EdgeInsets.only(top: 16),
@@ -542,7 +543,10 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return SizedBox.expand(child: child);
   }
 
