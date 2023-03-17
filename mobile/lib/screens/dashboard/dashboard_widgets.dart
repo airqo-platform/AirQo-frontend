@@ -125,7 +125,6 @@ class DashboardLocationButton extends StatelessWidget {
         await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(40),
         elevation: 2,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
