@@ -168,15 +168,8 @@ class FavouritePlaceCard extends StatelessWidget {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return InsightsPage(airQualityReading);
-            },
-          ),
-        );
+      onTap: () async {
+        await navigateToInsights(context, airQualityReading);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),

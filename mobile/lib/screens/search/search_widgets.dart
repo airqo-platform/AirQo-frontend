@@ -133,7 +133,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: airQuality.color(),
+        color: airQuality.color,
         border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
@@ -194,7 +194,7 @@ class SearchPageFilterTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  airQuality.string.toTitleCase(),
+                  airQuality.title.toTitleCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -334,15 +334,8 @@ class SearchSection extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return InsightsPage(data[index]);
-                        },
-                      ),
-                    );
+                  onTap: () async {
+                    await navigateToInsights(context, data[index]);
                   },
                   child: SearchPageAirQualityTile(data[index]),
                 ),
@@ -446,14 +439,10 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 itemBuilder: (_, index) {
                   return InkWell(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await navigateToInsights(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return InsightsPage(state.africanCities[index]);
-                          },
-                        ),
+                        state.africanCities[index],
                       );
                     },
                     child: ExploreAfricanCityCard(state.africanCities[index]),
@@ -512,14 +501,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
       return;
     }
 
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
-      ),
-    );
+    await navigateToInsights(context, airQualityReading);
   }
 
   @override

@@ -11,6 +11,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,6 +21,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
+import '../blocs/insights/insights_bloc.dart';
 import '../screens/insights/insights_page.dart';
 import '../screens/kya/kya_title_page.dart';
 import 'firebase_service.dart';
@@ -177,10 +179,17 @@ class ShareService {
     final destination = linkData.link.queryParameters['page'] ?? '';
     switch (destination.toLowerCase()) {
       case 'insights':
+        AirQualityReading airQualityReading =
+            AirQualityReading.fromDynamicLink(linkData);
+
+        context
+            .read<InsightsBloc>()
+            .add(InitializeInsightsPage(airQualityReading));
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return InsightsPage(AirQualityReading.fromDynamicLink(linkData));
+            return InsightsPage(airQualityReading);
           }),
           (r) => false,
         );
