@@ -110,7 +110,7 @@ const collocate = () => {
                 <div className='mr-[14px]'></div>
                 <Button
                   className={
-                    'bg-white text-[#1C1B1F] border border-[#20222333] opacity-30 hover:cursor-not-allowed font-medium'
+                    'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
                   }
                 >
                   <div className='mr-[10px]'>

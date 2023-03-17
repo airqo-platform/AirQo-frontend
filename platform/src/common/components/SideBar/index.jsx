@@ -67,7 +67,7 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Reports' itemPath='' />
             </SideBarItem>
 
-            <hr className='my-3 h-[0.5px] bg-[#363A4429]' />
+            <hr className='my-3 h-[0.5px] bg-grey-150' />
 
             <SideBarItem label='Network' Icon={BarChartIcon} />
             <SideBarItem
