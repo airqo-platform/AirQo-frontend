@@ -31,7 +31,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
         child: AppSafeArea(
           horizontalPadding: 24,
           verticalPadding: 10,
-          widget: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(

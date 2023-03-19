@@ -23,7 +23,7 @@ class ProfileView extends StatelessWidget {
           appBar: ProfileViewAppBar(profile),
           body: AppSafeArea(
             horizontalPadding: 16,
-            widget: Column(
+            child: Column(
               children: <Widget>[
                 const SizedBox(height: 10),
                 ProfileSection(profile),

@@ -35,7 +35,7 @@ class _ForYouPageState extends State<ForYouPage>
       appBar: const AppTopBar('For You'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: Column(
+        child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),

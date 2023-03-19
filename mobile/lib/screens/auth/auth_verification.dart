@@ -39,7 +39,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          widget: BlocConsumer<AuthCodeBloc, AuthCodeState>(
+          child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
             listener: (context, state) {
               return;
             },

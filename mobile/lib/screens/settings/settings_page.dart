@@ -44,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage>
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
-        widget: ShowCaseWidget(
+        child: ShowCaseWidget(
           builder: Builder(
             builder: (context) {
               return BlocBuilder<SettingsBloc, SettingsState>(

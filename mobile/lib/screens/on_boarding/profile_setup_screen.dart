@@ -33,7 +33,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         child: AppSafeArea(
           horizontalPadding: 24,
           verticalPadding: 10,
-          widget: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
