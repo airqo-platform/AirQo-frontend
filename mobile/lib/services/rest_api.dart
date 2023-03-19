@@ -128,25 +128,34 @@ class AirqoApiClient {
     return '';
   }
 
-  Future<bool> checkIfUserExists({
+  Future<bool?> checkIfUserExists({
     String? phoneNumber,
     String? emailAddress,
   }) async {
-    Map<String, String> body = HashMap();
+    try {
+      Map<String, String> body = HashMap();
 
-    if (phoneNumber != null) {
-      body['phoneNumber'] = phoneNumber;
-    } else if (emailAddress != null) {
-      body['email'] = emailAddress;
+      if (phoneNumber != null) {
+        body['phoneNumber'] = phoneNumber;
+      } else if (emailAddress != null) {
+        body['email'] = emailAddress;
+      }
+
+      final response = await httpClient.post(
+        Uri.parse(AirQoUrls.firebaseLookup),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      return json.decode(response.body)['exists'] as bool;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
-    final response = await httpClient.post(
-      Uri.parse(AirQoUrls.firebaseLookup),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    return json.decode(response.body)['exists'] as bool;
+    return null;
   }
 
   Future<List<Forecast>> fetchForecast(String siteId) async {

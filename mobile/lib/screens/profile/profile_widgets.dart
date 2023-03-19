@@ -13,7 +13,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -938,7 +937,7 @@ class GuestProfileView extends StatelessWidget {
       ),
       body: AppSafeArea(
         horizontalPadding: 16.0,
-        widget: Column(
+        child: Column(
           children: const <Widget>[
             SizedBox(
               height: 24,

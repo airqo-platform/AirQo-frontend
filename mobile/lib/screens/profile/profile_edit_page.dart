@@ -19,7 +19,7 @@ class ProfileEditPage extends StatelessWidget {
       appBar: const EditProfileAppBar(),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<ProfileBloc, Profile>(
+        child: BlocBuilder<ProfileBloc, Profile>(
           builder: (context, profile) {
             return ListView(
               physics: const BouncingScrollPhysics(),

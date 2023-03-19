@@ -12,7 +12,7 @@ part 'auth_code_event.dart';
 part 'auth_code_state.dart';
 
 class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
-  AuthCodeBloc() : super(const AuthCodeState.initial()) {
+  AuthCodeBloc() : super(const AuthCodeState()) {
     on<UpdateAuthCode>(_onUpdateAuthCode);
     on<VerifyAuthCode>(_onVerifyAuthCode);
     on<ResendAuthCode>(_onResendAuthCode);
@@ -46,17 +46,17 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(status: BlocStatus.processing));
 
     if (state.inputAuthCode != state.validAuthCode) {
       return emit(state.copyWith(
         error: AuthenticationError.invalidAuthCode,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
     }
 
@@ -75,7 +75,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
         error: authenticationSuccessful
             ? state.error
             : AuthenticationError.authFailure,
-        blocStatus:
+        status:
             authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, stackTrace) {
@@ -83,7 +83,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           CustomAuth.getFirebaseErrorCodeMessage(exception.code);
       emit(state.copyWith(
         error: authenticationError,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
 
       if (authenticationError == AuthenticationError.authFailure) {
@@ -95,7 +95,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
       await logException(exception, stackTrace);
     }
@@ -108,7 +108,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   ) {
     return emit(state.copyWith(
       verificationId: event.verificationId,
-      blocStatus: BlocStatus.initial,
+      status: BlocStatus.initial,
     ));
   }
 
@@ -118,12 +118,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(status: BlocStatus.processing));
 
     try {
       final phoneCredential = PhoneAuthProvider.credential(
@@ -141,7 +141,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
         error: authenticationSuccessful
             ? state.error
             : AuthenticationError.authFailure,
-        blocStatus:
+        status:
             authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, _) {
@@ -149,12 +149,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
 
       return emit(state.copyWith(
         error: error,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
       await logException(exception, stackTrace);
     }
@@ -171,7 +171,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       authProcedure: event.authProcedure,
       emailAddress: event.emailAddress,
       authMethod: event.authMethod,
-      blocStatus: BlocStatus.initial,
+      status: BlocStatus.initial,
       error: AuthenticationError.none,
       codeCountDown: 5,
     ));
@@ -206,12 +206,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   ) {
     emit(state.copyWith(
       inputAuthCode: event.value,
-      blocStatus: BlocStatus.editing,
+      status: BlocStatus.editing,
     ));
 
     return emit(state.copyWith(
       inputAuthCode: event.value,
-      blocStatus: BlocStatus.editing,
+      status: BlocStatus.editing,
     ));
   }
 
@@ -243,12 +243,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     ResendAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(status: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
@@ -277,12 +277,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
 
       return emit(state.copyWith(
         error: error,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
+        status: BlocStatus.error,
       ));
       await logException(exception, stackTrace);
     }

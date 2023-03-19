@@ -695,61 +695,61 @@ class CustomAuth {
     required BuildContext buildContext,
     required AuthProcedure authProcedure,
   }) async {
-    try {
-      final emailSignupResponse = await AirqoApiClient()
-          .requestEmailVerificationCode(emailAddress, false);
-
-      if (emailSignupResponse == null) {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
-                  AuthenticationError.authFailure,
-                ));
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
-            //       error: AuthenticationError.authFailure,
-            //       passed: false,
-            //     ));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      } else {
-        buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
-              emailVerificationLink: emailSignupResponse.loginLink,
-              emailToken: emailSignupResponse.token,
-            ));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext
-                .read<EmailAuthBloc>()
-                .add(const EmailValidationPassed());
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext
-            //     .read<AccountBloc>()
-            //     .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-      }
-    } catch (exception, stackTrace) {
-      buildContext
-          .read<EmailAuthBloc>()
-          .add(const EmailValidationFailed(AuthenticationError.authFailure));
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
+    // try {
+    //   final emailSignupResponse = await AirqoApiClient()
+    //       .requestEmailVerificationCode(emailAddress, false);
+    //
+    //   if (emailSignupResponse == null) {
+    //     switch (authProcedure) {
+    //       case AuthProcedure.login:
+    //       case AuthProcedure.signup:
+    //         buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
+    //               AuthenticationError.authFailure,
+    //             ));
+    //         break;
+    //       case AuthProcedure.deleteAccount:
+    //         // buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
+    //         //       error: AuthenticationError.authFailure,
+    //         //       passed: false,
+    //         //     ));
+    //         break;
+    //       case AuthProcedure.anonymousLogin:
+    //       case AuthProcedure.logout:
+    //       case AuthProcedure.none:
+    //         break;
+    //     }
+    //   } else {
+    //     buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
+    //           emailVerificationLink: emailSignupResponse.loginLink,
+    //           emailToken: emailSignupResponse.token,
+    //         ));
+    //
+    //     switch (authProcedure) {
+    //       case AuthProcedure.login:
+    //       case AuthProcedure.signup:
+    //         buildContext
+    //             .read<EmailAuthBloc>()
+    //             .add(const EmailValidationPassed());
+    //         break;
+    //       case AuthProcedure.deleteAccount:
+    //         // buildContext
+    //         //     .read<AccountBloc>()
+    //         //     .add(const AccountDeletionCheck(passed: true));
+    //         break;
+    //       case AuthProcedure.anonymousLogin:
+    //       case AuthProcedure.logout:
+    //       case AuthProcedure.none:
+    //         break;
+    //     }
+    //   }
+    // } catch (exception, stackTrace) {
+    //   buildContext
+    //       .read<EmailAuthBloc>()
+    //       .add(const EmailValidationFailed(AuthenticationError.authFailure));
+    //   await logException(
+    //     exception,
+    //     stackTrace,
+    //   );
+    // }
   }
 }

@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
 import 'auth_verification.dart';
+import 'auth_verification_backup.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
 
@@ -169,12 +170,12 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                           ],
                         ),
                       ),
-                      InputValidationErrorMessage(
-                        message: state.phoneNumber.inValidPhoneNumberMessage(),
-                        visible: state.blocStatus == BlocStatus.error &&
-                            state.error ==
-                                AuthenticationError.invalidPhoneNumber,
-                      ),
+                      // InputValidationErrorMessage(
+                      //   message: state.phoneNumber.inValidPhoneNumberMessage(),
+                      //   visible: state.blocStatus == BlocStatus.error &&
+                      //       state.error ==
+                      //           AuthenticationError.invalidPhoneNumber,
+                      // ),
                       const SizedBox(
                         height: 32,
                       ),
@@ -215,10 +216,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                           );
                         },
-                        child: SignUpButton(
-                          text: AuthMethod.phone
-                              .optionsButtonText(state.authProcedure),
-                        ),
+                        // child: SignUpButton(
+                        //   text: AuthMethod.phone
+                        //       .optionsButtonText(state.authProcedure),
+                        // ),
                       ),
                       const Spacer(),
                       NextButton(

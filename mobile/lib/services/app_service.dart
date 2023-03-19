@@ -129,11 +129,11 @@ class AppService {
 
         return methods.isNotEmpty;
       }
-
-      return AirqoApiClient().checkIfUserExists(
-        phoneNumber: phoneNumber,
-        emailAddress: emailAddress,
-      );
+      return true;
+      // return AirqoApiClient().checkIfUserExists(
+      //   phoneNumber: phoneNumber,
+      //   emailAddress: emailAddress,
+      // );
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
 

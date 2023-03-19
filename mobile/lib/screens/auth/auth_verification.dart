@@ -2,25 +2,56 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
+import 'auth_widgets.dart';
 
-class AuthVerificationWidget extends StatefulWidget {
-  const AuthVerificationWidget({super.key});
+Future<bool> verifyAuthCode(BuildContext context) async {
+  dynamic success = await Navigator.of(context).push(
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const _AuthVerificationWidget(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
 
-  @override
-  State<AuthVerificationWidget> createState() => _AuthVerificationWidgetState();
+        var tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    ),
+  );
+
+  try {
+    if (success as bool == true) return true;
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+
+  return false;
 }
 
-class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
+class _AuthVerificationWidget extends StatefulWidget {
+  const _AuthVerificationWidget();
+
+  @override
+  State<_AuthVerificationWidget> createState() =>
+      _AuthVerificationWidgetState();
+}
+
+class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
   DateTime? _exitTime;
   late BuildContext _loadingContext;
 
@@ -38,322 +69,181 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
+          horizontalPadding: 24,
           backgroundColor: Colors.white,
-          child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
-            listener: (context, state) {
-              return;
-            },
-            buildWhen: (previous, current) {
-              return current.blocStatus != BlocStatus.error ||
-                  current.blocStatus != BlocStatus.success ||
-                  current.blocStatus != BlocStatus.processing;
-            },
+          child: BlocBuilder<AuthCodeBloc, AuthCodeState>(
             builder: (context, state) {
-              final authOption = state.authMethod == AuthMethod.email
-                  ? state.emailAddress
-                  : state.phoneNumber;
-              String cancelText = 'Cancel';
-              switch (state.authProcedure) {
-                case AuthProcedure.login:
-                case AuthProcedure.signup:
-                  cancelText = state.authMethod.editEntryText;
-                  break;
-                case AuthProcedure.anonymousLogin:
-                case AuthProcedure.deleteAccount:
-                case AuthProcedure.logout:
-                case AuthProcedure.none:
-                  break;
-              }
-
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MultiBlocListener(
-                        listeners: [
-                          BlocListener<AuthCodeBloc, AuthCodeState>(
-                            listener: (context, state) {
-                              loadingScreen(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<AuthCodeBloc, AuthCodeState>(
-                            listener: (context, state) {
-                              Navigator.pop(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return previous.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<AuthCodeBloc, AuthCodeState>(
-                            listener: (context, state) {
-                              showSnackBar(context, state.error.message);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.error &&
-                                  current.error != AuthenticationError.none &&
-                                  current.error !=
-                                      AuthenticationError.invalidAuthCode;
-                            },
-                          ),
-                          BlocListener<AuthCodeBloc, AuthCodeState>(
-                            listener: (context, state) {
-                              context
-                                  .read<ProfileBloc>()
-                                  .add(const SyncProfile());
-                              context.read<KyaBloc>().add(const SyncKya());
-                              context
-                                  .read<LocationHistoryBloc>()
-                                  .add(const SyncLocationHistory());
-                              context
-                                  .read<FavouritePlaceBloc>()
-                                  .add(const SyncFavouritePlaces());
-                              context
-                                  .read<NotificationBloc>()
-                                  .add(const SyncNotifications());
-                              Future.delayed(
-                                const Duration(seconds: 2),
-                                () {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (context) {
-                                      switch (state.authProcedure) {
-                                        case AuthProcedure.anonymousLogin:
-                                        case AuthProcedure.login:
-                                          return const HomePage();
-                                        case AuthProcedure.signup:
-                                          return const ProfileSetupScreen();
-                                        case AuthProcedure.deleteAccount:
-                                          return const PhoneSignUpWidget();
-                                        case AuthProcedure.none:
-                                        case AuthProcedure.logout:
-                                          return const PhoneLoginWidget();
-                                      }
-                                    }),
-                                    (r) => false,
-                                  );
-                                },
-                              );
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.success;
-                            },
-                          ),
-                        ],
-                        child: Container(),
-                      ),
-                      AutoSizeText(
-                        'Verify your account',
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyle.headline7(context),
-                      ),
-                      const SizedBox(
-                        height: 14,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          state.authMethod.codeVerificationText,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.6),
-                              ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          authOption,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontSize: 18.0,
-                                    color: CustomColors.appColorBlue,
-                                  ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 36),
-                        child: OptField(
-                          callbackFn: (String value) {
-                            context.read<AuthCodeBloc>().add(UpdateAuthCode(
-                                  value: value,
-                                ));
-                            if (value.length >= 6) {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(const VerifyAuthCode());
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Visibility(
-                        visible: state.codeCountDown > 0,
-                        child: Text(
-                          'The code should arrive with in ${state.codeCountDown} sec',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.5),
-                              ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: state.codeCountDown <= 0 &&
-                            state.blocStatus != BlocStatus.success,
-                        child: GestureDetector(
-                          onTap: () {
-                            context
-                                .read<AuthCodeBloc>()
-                                .add(ResendAuthCode(context: context));
-                            _startCodeSentCountDown();
-                          },
-                          child: Text(
-                            'Resend code',
-                            textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: CustomColors.appColorBlue,
-                                    ),
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus != BlocStatus.success,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 36,
-                            right: 36,
-                            top: 19,
-                          ),
-                          child: Stack(
-                            alignment: AlignmentDirectional.center,
-                            children: [
-                              Container(
-                                height: 1.09,
-                                color: Colors.black.withOpacity(0.05),
-                              ),
-                              Container(
-                                color: Colors.white,
-                                padding:
-                                    const EdgeInsets.only(left: 5, right: 5),
-                                child: Text(
-                                  'Or',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: const Color(0xffD1D3D9),
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus != BlocStatus.success,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 19),
-                          child: GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(const ClearAuthCodeState());
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              cancelText,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: CustomColors.appColorBlue,
-                                  ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus == BlocStatus.success,
-                        child: const Spacer(),
-                      ),
-                      Visibility(
-                        visible: state.blocStatus == BlocStatus.success,
-                        child: Center(
-                          child: Container(
-                            height: 151,
-                            width: 151,
-                            padding: const EdgeInsets.all(25),
-                            decoration: BoxDecoration(
-                              color:
-                                  CustomColors.appColorValid.withOpacity(0.1),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(15.0),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.check_circle_rounded,
-                              color: CustomColors.appColorValid,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Visibility(
-                        visible: state.blocStatus != BlocStatus.success,
-                        child: NextButton(
-                          buttonColor: state.inputAuthCode.length >= 6
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorDisabled,
-                          callBack: () async {
-                            if (state.blocStatus == BlocStatus.success ||
-                                state.blocStatus == BlocStatus.processing) {
-                              return;
-                            }
-
-                            if (state.inputAuthCode.length >= 6) {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(const VerifyAuthCode());
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                    ],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  /// initial Status
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.initial,
+                    child: const AuthTitle("Verify your account"),
                   ),
-                ),
+
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.initial,
+                    child: const AuthSubTitle(
+                      'Enter the 6 digits code sent to +256 0703731476',
+                    ),
+                  ),
+
+                  /// invalid code Status
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: const AuthTitle(
+                        "Oops, Something’s wrong with your code"),
+                  ),
+
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: const AuthSubTitle(
+                      'Sure you read it correctly? Pro Tip: Copy & Paste',
+                    ),
+                  ),
+
+                  /// success Status
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: const AuthTitle("Your email has been verified"),
+                  ),
+
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: const AuthSubTitle(
+                      'Pheww, almost done, hold in there.',
+                    ),
+                  ),
+
+                  /// error Status
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: const AuthTitle(
+                        "Oops, looks like something wrong happened"),
+                  ),
+
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.invalidCode,
+                    child: AuthSubTitle(state.errorMessage),
+                  ),
+
+                  /// OPT field
+                  OptField(
+                    callbackFn: (String value) {
+                      context.read<AuthCodeBloc>().add(UpdateAuthCode(
+                            value: value,
+                          ));
+                      if (value.length >= 6) {
+                        context
+                            .read<AuthCodeBloc>()
+                            .add(const VerifyAuthCode());
+                      }
+                    },
+                  ),
+
+                  /// Resend OPT
+                  Visibility(
+                    visible: state.codeCountDown > 0 &&
+                        state.status != AuthCodeStatus.success,
+                    child: Text(
+                      'The code should arrive with in ${state.codeCountDown} sec',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.5),
+                          ),
+                    ),
+                  ),
+
+                  Visibility(
+                    visible: state.codeCountDown <= 0 &&
+                        state.status != AuthCodeStatus.success,
+                    child: GestureDetector(
+                      onTap: () {
+                        context
+                            .read<AuthCodeBloc>()
+                            .add(ResendAuthCode(context: context));
+                        _startCodeSentCountDown();
+                      },
+                      child: Text(
+                        'Resend code',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: CustomColors.appColorBlue,
+                            ),
+                      ),
+                    ),
+                  ),
+
+                  /// Or Separator
+                  Visibility(
+                      visible: state.status != AuthCodeStatus.success,
+                      child: const AuthOrSeparator()),
+
+                  /// auth options
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AutoSizeText(
+                      state.authMethod.editEntryText,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 18.0,
+                            color: CustomColors.appColorBlue,
+                          ),
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  /// Success widget
+                  Visibility(
+                    visible: state.status == AuthCodeStatus.success,
+                    child: Center(
+                      child: Container(
+                        height: 151,
+                        width: 151,
+                        padding: const EdgeInsets.all(25),
+                        decoration: BoxDecoration(
+                          color: CustomColors.appColorValid.withOpacity(0.1),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.check_circle_rounded,
+                          color: CustomColors.appColorValid,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  /// Next button
+                  Visibility(
+                    visible: state.status != BlocStatus.success,
+                    child: NextButton(
+                      buttonColor: state.inputAuthCode.length >= 6
+                          ? CustomColors.appColorBlue
+                          : CustomColors.appColorDisabled,
+                      callBack: () async {
+                        if (state.status == BlocStatus.success ||
+                            state.status == BlocStatus.processing) {
+                          return;
+                        }
+
+                        if (state.inputAuthCode.length >= 6) {
+                          context
+                              .read<AuthCodeBloc>()
+                              .add(const VerifyAuthCode());
+                        }
+                      },
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -394,7 +284,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
       return Future.value(false);
     }
 
-    Navigator.pop(context);
+    Navigator.pop(context, false);
 
     return Future.value(false);
   }

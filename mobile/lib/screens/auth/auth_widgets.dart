@@ -15,6 +15,40 @@ import 'package:flutter_svg/svg.dart';
 import '../home_page.dart';
 import 'email_auth_widget.dart';
 
+class AuthOrSeparator extends StatelessWidget {
+  const AuthOrSeparator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 36,
+        right: 36,
+        top: 19,
+      ),
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
+          Container(
+            height: 1.09,
+            color: Colors.black.withOpacity(0.05),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.only(left: 5, right: 5),
+            child: Text(
+              'Or',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xffD1D3D9),
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ProceedAsGuest extends StatelessWidget {
   const ProceedAsGuest({super.key});
 
@@ -295,7 +329,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             ? formColor
             : CustomColors.greyColor.withOpacity(0.7);
 
-        if (state.blocStatus == BlocStatus.error) {
+        if (state.status == BlocStatus.error) {
           formColor = CustomColors.appColorInvalid;
           textColor = formColor;
           suffixIconColor = formColor;
@@ -327,9 +361,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
           },
           onEditingComplete: () {
-            context
-                .read<EmailAuthBloc>()
-                .add(ValidateEmailAddress(context: context));
+            FocusScope.of(context).requestFocus(FocusNode());
           },
           style:
               Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
@@ -357,10 +389,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             suffixIcon: GestureDetector(
               onTap: () {
                 _emailInputController.text = '';
-                FocusScope.of(context).requestFocus(
-                  FocusNode(),
-                );
-
+                FocusScope.of(context).requestFocus(FocusNode());
                 context.read<EmailAuthBloc>().add(const ClearEmailAddress());
               },
               child: suffixIcon,
@@ -375,44 +404,76 @@ class _EmailInputFieldState extends State<EmailInputField> {
   }
 }
 
-class InputValidationErrorMessage extends StatelessWidget {
-  const InputValidationErrorMessage({
-    super.key,
-    required this.visible,
-    required this.message,
-  });
-
-  final bool visible;
+class AuthErrorMessage extends StatelessWidget {
+  const AuthErrorMessage(this.message, {super.key});
   final String message;
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-      visible: visible,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 9),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/icon/error_info_icon.svg',
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/error_info_icon.svg',
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: CustomColors.appColorInvalid,
+                    fontSize: 14,
+                  ),
             ),
-            const SizedBox(
-              width: 10,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AuthSubTitle extends StatelessWidget {
+  const AuthSubTitle(this.message, {super.key});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AutoSizeText(
+        message,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.6),
             ),
-            Center(
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: CustomColors.appColorInvalid,
-                      fontSize: 14,
-                    ),
-              ),
-            ),
-          ],
-        ),
+      ),
+    );
+  }
+}
+
+class AuthTitle extends StatelessWidget {
+  const AuthTitle(this.message, {super.key});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AutoSizeText(
+        message,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.headline7(context),
       ),
     );
   }
@@ -446,35 +507,75 @@ class InputValidationCodeMessage extends StatelessWidget {
 class SignUpButton extends StatelessWidget {
   const SignUpButton({
     super.key,
-    required this.text,
+    required this.authProcedure,
+    required this.authMethod,
   });
-
-  final String text;
+  final AuthProcedure authProcedure;
+  final AuthMethod authMethod;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 48,
-      constraints: const BoxConstraints(
-        minWidth: double.infinity,
-        maxHeight: 48,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xff8D8D8D).withOpacity(0.1),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-      ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-          child: AutoSizeText(
-            text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                switch (authMethod) {
+                  case AuthMethod.phone:
+                    return authProcedure == AuthProcedure.login
+                        ? const EmailLoginWidget()
+                        : const EmailSignUpWidget();
+                  case AuthMethod.email:
+                    return authProcedure == AuthProcedure.login
+                        ? const PhoneLoginWidget()
+                        : const PhoneSignUpWidget();
+                  case AuthMethod.none:
+                    return const PhoneSignUpWidget();
+                }
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation.drive(
+                    Tween<double>(
+                      begin: 0,
+                      end: 1,
+                    ),
+                  ),
+                  child: child,
+                );
+              },
+            ),
+            (r) => false,
+          );
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
           ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
+            ),
+          ),
+          backgroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+          foregroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+          padding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 0,
+          ),
+        ),
+        child: AutoSizeText(
+          authMethod.optionsButtonText(authProcedure),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: CustomColors.appColorBlue,
+              ),
         ),
       ),
     );

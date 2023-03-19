@@ -1,93 +1,59 @@
 part of 'auth_code_bloc.dart';
 
+enum AuthCodeStatus {
+  initial,
+  invalidCode,
+  error,
+  success;
+}
+
 class AuthCodeState extends Equatable {
-  const AuthCodeState._({
-    this.emailAddress = '',
-    this.phoneNumber = '',
-    this.verificationId = '',
-    this.phoneAuthCredential,
-    this.authProcedure = AuthProcedure.none,
-    this.inputAuthCode = '',
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
-    this.codeCountDown = 5,
-    this.authMethod = AuthMethod.none,
-    this.validAuthCode = '',
-    this.validEmailLink = '',
-  });
-
   const AuthCodeState({
-    this.phoneNumber = '',
-    this.codeCountDown = 5,
-    this.verificationId = '',
-    this.phoneAuthCredential,
-    this.authProcedure = AuthProcedure.login,
+    this.errorMessage = '',
     this.inputAuthCode = '',
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
-    this.emailAddress = '',
-    this.authMethod = AuthMethod.none,
-    this.validAuthCode = '',
-    this.validEmailLink = '',
+    this.codeCountDown = 5,
+    this.emailAuthModel,
+    this.status = AuthCodeStatus.initial,
+    this.authProcedure = AuthProcedure.signup,
+    this.authMethod = AuthMethod.phone,
   });
-
-  const AuthCodeState.initial() : this._();
 
   AuthCodeState copyWith({
-    String? phoneNumber,
-    int? codeCountDown,
-    String? verificationId,
-    PhoneAuthCredential? phoneAuthCredential,
-    AuthProcedure? authProcedure,
-    String? validAuthCode,
-    String? emailAddress,
+    String? errorMessage,
     String? inputAuthCode,
-    AuthenticationError? error,
-    BlocStatus? blocStatus,
+    int? codeCountDown,
+    AuthCodeStatus? status,
+    EmailAuthModel? emailAuthModel,
     AuthMethod? authMethod,
-    String? validEmailLink,
+    AuthProcedure? authProcedure,
   }) {
     return AuthCodeState(
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      codeCountDown: codeCountDown ?? this.codeCountDown,
-      verificationId: verificationId ?? this.verificationId,
-      phoneAuthCredential: phoneAuthCredential ?? this.phoneAuthCredential,
-      authProcedure: authProcedure ?? this.authProcedure,
+      status: status ?? this.status,
       inputAuthCode: inputAuthCode ?? this.inputAuthCode,
-      validAuthCode: validAuthCode ?? this.validAuthCode,
-      error: error ?? this.error,
-      blocStatus: blocStatus ?? this.blocStatus,
-      emailAddress: emailAddress ?? this.emailAddress,
+      codeCountDown: codeCountDown ?? this.codeCountDown,
+      errorMessage: errorMessage ?? this.errorMessage,
+      emailAuthModel: emailAuthModel ?? this.emailAuthModel,
+      authProcedure: authProcedure ?? this.authProcedure,
       authMethod: authMethod ?? this.authMethod,
-      validEmailLink: validEmailLink ?? this.validEmailLink,
     );
   }
 
-  final String phoneNumber;
-  final String emailAddress;
-  final String verificationId;
-  final String validEmailLink;
-  final PhoneAuthCredential? phoneAuthCredential;
+  final AuthCodeStatus status;
+  final int codeCountDown;
+  final String errorMessage;
+  final EmailAuthModel? emailAuthModel;
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
   final String inputAuthCode;
-  final String validAuthCode;
-  final AuthenticationError error;
-  final BlocStatus blocStatus;
-  final int codeCountDown;
 
   @override
   List<Object?> get props => [
-        phoneNumber,
-        verificationId,
-        phoneAuthCredential,
-        inputAuthCode,
-        error,
+        emailAuthModel,
+        errorMessage,
         authProcedure,
-        blocStatus,
+        status,
         codeCountDown,
         authMethod,
-        validAuthCode,
-        validEmailLink,
+        inputAuthCode,
       ];
 }
