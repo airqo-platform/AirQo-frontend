@@ -5,6 +5,7 @@ module.exports = {
     './src/pages/**/*.{js,jsx}',
     './src/common/components/**/*.{js,jsx}',
     './node_modules/react-tailwindcss-datepicker/dist/index.esm.js',
+    './node_modules/flowbite-react/**/*.js',
   ],
   theme: {
     extend: {
@@ -24,16 +25,30 @@ module.exports = {
         grey: {
           100: '#363A4414',
           150: '#363A4429',
+          200: '#00000014',
+          250: '#0000000A',
           300: '#6D7175',
-          150: '#363A4429',
-          100: '#363A4414',
+          400: '#B0B0B0',
+          700: '#DDDDDD',
+          750: '#E8E8E8',
         },
         skeleton: '#363A4429',
+        black: '#000000',
         black: {
           600: '#202223',
+          700: '#353E52',
         },
-        black: {
-          600: '#353E52',
+        yellow: {
+          200: '#FFEA8A',
+        },
+        turquoise: {
+          200: '#A4E8F2',
+        },
+        green: {
+          200: '#AEE9D1',
+        },
+        red: {
+          200: '#FED3D1',
         },
       },
     },
