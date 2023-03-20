@@ -489,8 +489,13 @@ class _DashboardViewState extends State<DashboardView>
   }
 
   void _startBackgroundUpdate() {
-    Workmanager().registerPeriodicTask('1', 'widgetBackgroundUpdate',
-        frequency: const Duration(minutes: 30));
+    Workmanager().registerPeriodicTask(
+      '1',
+      'widgetBackgroundUpdate',
+      frequency: const Duration(
+        minutes: 30,
+      ),
+    );
   }
 
   Future<void> _sendData() async {
