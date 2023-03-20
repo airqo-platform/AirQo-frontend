@@ -34,33 +34,33 @@ class Insight with EquatableMixin {
             ? "tomorrow"
             : "";
 
-    switch (airQuality.title) {
-      case "Good":
+    switch (airQuality) {
+      case AirQuality.good:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb quite ${airQuality.title}.';
         break;
-      case "Moderate":
+      case AirQuality.moderate:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb at a ${airQuality.title} level.';
         break;
-      case "Unhealthy For Sensitive Groups":
+      case AirQuality.ufsgs:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title}.';
         break;
-      case "Unhealthy":
+      case AirQuality.unhealthy:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} for everyone';
         break;
-      case "Very Unhealthy":
+      case AirQuality.veryUnhealthy:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} reaching levels of high alert.';
         break;
-      case "Hazardous":
+      case AirQuality.hazardous:
         airQualityMessage =
             'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} and can cause a health emergency.';
         break;
     }
-      if (forecastValue != null) {
+    if (forecastValue != null) {
       switch (Pollutant.pm2_5.airQuality(forecastValue)) {
         case AirQuality.good:
         case AirQuality.moderate:
@@ -82,9 +82,9 @@ class Insight with EquatableMixin {
           break;
       }
     }
-      healthTips = getHealthTips(
-        airQualityReading.pm2_5,
-        Pollutant.pm2_5,
+    healthTips = getHealthTips(
+      airQualityReading.pm2_5,
+      Pollutant.pm2_5,
     );
 
     return Insight(
