@@ -128,10 +128,9 @@ class LocationService {
   static Future<Position?> getCurrentPosition() async {
     try {
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
+        desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 60),
-      );
+      ).timeout(const Duration(seconds: 60));
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);

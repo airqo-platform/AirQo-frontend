@@ -475,12 +475,12 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 class AppSafeArea extends StatelessWidget {
   const AppSafeArea({
     super.key,
-    required this.widget,
+    required this.child,
     this.verticalPadding,
     this.horizontalPadding,
     this.backgroundColor,
   });
-  final Widget widget;
+  final Widget child;
   final double? verticalPadding;
   final double? horizontalPadding;
   final Color? backgroundColor;
@@ -495,7 +495,7 @@ class AppSafeArea extends StatelessWidget {
           vertical: verticalPadding ?? 0,
           horizontal: horizontalPadding ?? 0,
         ),
-        child: widget,
+        child: child,
       ),
     );
   }

@@ -18,7 +18,7 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
+        child: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
           builder: (context, state) {
             if (state.isEmpty) {
               context

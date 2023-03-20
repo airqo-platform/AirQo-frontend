@@ -145,29 +145,6 @@ enum AuthenticationError {
   String toString() => message;
 }
 
-enum NearbyAirQualityError {
-  none(
-    message: '',
-  ),
-  locationDenied(
-    message: 'Enable location to get air quality near you',
-  ),
-  locationDisabled(
-    message: 'Turn on location to get air quality near you',
-  ),
-  noNearbyAirQualityReadings(
-    message:
-        'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
-  );
-
-  const NearbyAirQualityError({required this.message});
-
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
 enum AppNotificationType {
   @HiveField(0)
