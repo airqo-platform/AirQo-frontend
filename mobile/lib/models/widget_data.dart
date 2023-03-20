@@ -1,7 +1,6 @@
 import 'package:app/models/air_quality_reading.dart';
 import 'package:intl/intl.dart';
 
-import 'database.dart';
 import 'enum_constants.dart';
 
 class WidgetData {
@@ -70,7 +69,6 @@ class WidgetData {
       pmValue: pmValue,
       airQuality: Pollutant.pm2_5.airQuality(pmValue),
       circularPmValue: circularPmValue,
-      referenceSite: referenceSite,
 
       // forecastValue1: widgetForecast.first.pm2_5.toInt().toString(),
       // forecastTime1: DateFormat('h a').format(widgetForecast.first.time),
@@ -90,7 +88,6 @@ class WidgetData {
       'pm_value': pmValue.toInt().toString(),
       'air_quality': airQuality.name,
       'circular_pm_value': circularPmValue.toInt().toString(),
-      'reference_site': referenceSite,
       // 'forecast_value1': forecastValue1,
       // 'forecast_time1': forecastTime1,
       // 'forecast_value2': forecastValue2,
