@@ -21,7 +21,7 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                 val pendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context, MainActivity::class.java
                 )
-                setOnClickPendingIntent(R.id.circular_widget_bg, pendingIntent)
+                setOnClickPendingIntent(R.id.pm_value, pendingIntent)
                 val dataKeys = arrayOf(
                     "circular_location",
                     "circular_date",
@@ -83,12 +83,12 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 setIndexColor(airquality)
 
-//                TODO: Background refresh not working
-//                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
-//                    context,
-//                    Uri.parse("AirQo://Refresh")
-//                )
-//                setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
+//                TODO: Review Background update code
+                val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("AirQo://Refresh")
+                )
+                setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

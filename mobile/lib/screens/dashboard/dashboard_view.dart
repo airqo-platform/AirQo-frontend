@@ -15,41 +15,45 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:workmanager/workmanager.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
-// TODO: Adds background udpates; to work on later
-// @pragma("vm:entry-point")
-// void backgroundCallback(Uri? data) {
-//   Workmanager().executeTask((taskName, inputData) async {
-//     final nearbyLocationBloc = NearbyLocationBloc();
-//     AirQualityReading? airQualityReading =
-//         nearbyLocationBloc.state.locationAirQuality ??
-//             HiveService.getAirQualityReadings().firstOrNull;
+@pragma("vm:entry-point")
+void backgroundCallback(Uri? data) async {
+  if (data?.host == 'Refresh') {
+    AirQualityReading? airQualityReading;
+    final nearbyLocationBloc = NearbyLocationBloc();
+    if (nearbyLocationBloc.state.locationAirQuality == null) {
+      List<AirQualityReading> airQualityReadings =
+          HiveService.getAirQualityReadings();
+      if (airQualityReadings.isNotEmpty) {
+        final random = Random();
+        airQualityReading =
+            airQualityReadings[random.nextInt(airQualityReadings.length)];
+      }
+    } else {
+      airQualityReading = NearbyLocationBloc().state.locationAirQuality;
+    }
 
-//     List<ForecastInsight> forecastData = await AirQoDatabase()
-//         .getForecastInsights(airQualityReading!.referenceSite);
-
-//     WidgetData widgetData =
-//         WidgetData.initializeFromAirQualityReading(airQualityReading);
-//     widgetData = widgetData.copyWith(forecastData);
-
-//     List<bool> results = await Future.wait<bool>(
-//       widgetData.idMapping().entries.map((entry) async {
-//         await HomeWidget.saveWidgetData<String>(entry.key, entry.value);
-//         return true;
-//       }).toList(),
-//     );
-
-//     return !results.contains(false);
-//   });
-// }
+    WidgetData widgetData =
+        WidgetData.initializeFromAirQualityReading(airQualityReading!);
+    widgetData.idMapping().forEach((key, value) async {
+      await HomeWidget.saveWidgetData<String>(key, value);
+    });
+    await HomeWidget.updateWidget(
+      name: 'AirQoCircularWidget',
+      androidName: 'AirQoCircularWidget',
+      iOSName: 'AirQoCircularWidget',
+      qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
+    );
+  }
+}
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -466,7 +470,8 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
-    // HomeWidget.registerBackgroundCallback(backgroundCallback);
+    _startBackgroundUpdate();
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
@@ -483,16 +488,10 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
-  // List<String> forecastValues =
-  //     forecastDbData.map((e) => e.pm2_5.toString()).take(3).toList();
-  // List<String> forecastTimes = List.generate(
-  //   3,
-  //   (index) => DateFormat('h a').format(
-  //     DateTime.now().toLocal().add(
-  //           Duration(hours: index + 1),
-  //         ),
-  //   ),
-  // );
+  void _startBackgroundUpdate() {
+    Workmanager().registerPeriodicTask('1', 'widgetBackgroundUpdate',
+        frequency: const Duration(minutes: 30));
+  }
 
   Future<void> _sendData() async {
     AirQualityReading? airQualityReading;
@@ -511,12 +510,12 @@ class _DashboardViewState extends State<DashboardView>
     }
     if (airQualityReading == null) return;
 
-    List<ForecastInsight> forecastData = await AirQoDatabase()
-        .getForecastInsights(airQualityReading.referenceSite);
+    // List<ForecastInsight> forecastData = await AirQoDatabase()
+    //     .getForecastInsights(airQualityReading.referenceSite);
 
     WidgetData widgetData =
         WidgetData.initializeFromAirQualityReading(airQualityReading);
-    widgetData = widgetData.copyWith(forecastData);
+    // widgetData = widgetData.copyWith(forecastData);
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });
@@ -534,6 +533,7 @@ class _DashboardViewState extends State<DashboardView>
     // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
     return HomeWidget.updateWidget(
       name: 'AirQoCircularWidget',
+      androidName: 'AirQoCircularWidget',
       iOSName: 'AirQoCircularWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
     );

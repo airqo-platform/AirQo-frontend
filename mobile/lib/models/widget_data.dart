@@ -13,12 +13,12 @@ class WidgetData {
     required this.pmValue,
     required this.airQuality,
     required this.circularPmValue,
-    required this.forecastValue1,
-    required this.forecastTime1,
-    required this.forecastValue2,
-    required this.forecastTime2,
-    required this.forecastValue3,
-    required this.forecastTime3,
+    // required this.forecastValue1,
+    // required this.forecastTime1,
+    // required this.forecastValue2,
+    // required this.forecastTime2,
+    // required this.forecastValue3,
+    // required this.forecastTime3,
   });
 
   final String location;
@@ -28,12 +28,13 @@ class WidgetData {
   final double pmValue;
   final AirQuality airQuality;
   final double circularPmValue;
-  final String forecastValue1;
-  final String forecastTime1;
-  final String forecastValue2;
-  final String forecastTime2;
-  final String forecastValue3;
-  final String forecastTime3;
+
+  // final String forecastValue1;
+  // final String forecastTime1;
+  // final String forecastValue2;
+  // final String forecastTime2;
+  // final String forecastValue3;
+  // final String forecastTime3;
 
   factory WidgetData.initializeFromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -46,20 +47,20 @@ class WidgetData {
       circularDate: DateFormat('h:mm a').format(DateTime.now().toLocal()),
       pmValue: airQualityReading.pm2_5,
       circularPmValue: airQualityReading.pm2_5,
-      forecastValue1: '',
-      forecastTime1: '',
-      forecastValue2: '',
-      forecastTime2: '',
-      forecastValue3: '',
-      forecastTime3: '',
+      // forecastValue1: '',
+      // forecastTime1: '',
+      // forecastValue2: '',
+      // forecastTime2: '',
+      // forecastValue3: '',
+      // forecastTime3: '',
     );
   }
 
-  WidgetData copyWith(List<ForecastInsight> forecast) {
-    if (forecast.length < 2) {
-      return this;
-    }
-    List<ForecastInsight> widgetForecast = forecast.take(3).toList();
+  WidgetData copyWith() {
+    // if (forecast.length < 2) {
+    // return this;
+    // }
+    // List<ForecastInsight> widgetForecast = forecast.take(3).toList();
 
     return WidgetData(
       location: location,
@@ -69,12 +70,14 @@ class WidgetData {
       pmValue: pmValue,
       airQuality: Pollutant.pm2_5.airQuality(pmValue),
       circularPmValue: circularPmValue,
-      forecastValue1: widgetForecast.first.pm2_5.toInt().toString(),
-      forecastTime1: DateFormat('h a').format(widgetForecast.first.time),
-      forecastValue2: widgetForecast[1].pm2_5.toInt().toString(),
-      forecastTime2: DateFormat('h a').format(widgetForecast[1].time),
-      forecastValue3: widgetForecast.last.pm2_5.toInt().toString(),
-      forecastTime3: DateFormat('h a').format(widgetForecast.last.time),
+      referenceSite: referenceSite,
+
+      // forecastValue1: widgetForecast.first.pm2_5.toInt().toString(),
+      // forecastTime1: DateFormat('h a').format(widgetForecast.first.time),
+      // forecastValue2: widgetForecast[1].pm2_5.toInt().toString(),
+      // forecastTime2: DateFormat('h a').format(widgetForecast[1].time),
+      // forecastValue3: widgetForecast.last.pm2_5.toInt().toString(),
+      // forecastTime3: DateFormat('h a').format(widgetForecast.last.time),
     );
   }
 
@@ -87,12 +90,13 @@ class WidgetData {
       'pm_value': pmValue.toInt().toString(),
       'air_quality': airQuality.name,
       'circular_pm_value': circularPmValue.toInt().toString(),
-      'forecast_value1': forecastValue1,
-      'forecast_time1': forecastTime1,
-      'forecast_value2': forecastValue2,
-      'forecast_time2': forecastTime2,
-      'forecast_value3': forecastValue3,
-      'forecast_time3': forecastTime3,
+      'reference_site': referenceSite,
+      // 'forecast_value1': forecastValue1,
+      // 'forecast_time1': forecastTime1,
+      // 'forecast_value2': forecastValue2,
+      // 'forecast_time2': forecastTime2,
+      // 'forecast_value3': forecastValue3,
+      // 'forecast_time3': forecastTime3,
     };
   }
 }
