@@ -9,6 +9,8 @@ import {
   getRunningQueriesThunk,
   getCollocationResults,
 } from '@/lib/store/services/collocation';
+import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationChart';
+import Button from '@/components/Button';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -50,7 +52,12 @@ const MonitorReport = ({ devices, startDate, endDate }) => {
             subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
             contentLink='#'
           >
-            <div>hello world</div>
+            <div className='flex flex-col justify-start'>
+              <CorrelationChart
+                data={collocationResults.intra_sensor_correlation}
+                pmConcentration={'pm2_5'}
+              />
+            </div>
           </Box>
           <Box
             isBigTitle

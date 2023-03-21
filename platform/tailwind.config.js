@@ -51,6 +51,9 @@ module.exports = {
         red: {
           200: '#FED3D1',
         },
+        purple: {
+          600: '#8776F5',
+        },
       },
     },
     container: {
