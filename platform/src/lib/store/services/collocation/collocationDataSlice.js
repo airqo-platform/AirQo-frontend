@@ -8,6 +8,7 @@ const collocationDataSlice = createSlice({
     isLoading: false,
     errorValue: null,
     deviceStatusSummary: null,
+    collocationResults: null,
   },
   reducers: {
     addCollocationData(state, action) {
@@ -15,6 +16,9 @@ const collocationDataSlice = createSlice({
     },
     addDeviceStatusSummary(state, action) {
       state.deviceStatusSummary = action.payload;
+    },
+    addCollocationResults(state, action) {
+      state.collocationResults = action.payload;
     },
   },
   extraReducers: (builder) => {

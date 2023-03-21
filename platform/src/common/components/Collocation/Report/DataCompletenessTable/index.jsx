@@ -6,41 +6,21 @@ import SearchBar from '../../SearchBar';
 import Button from '../../../Button';
 import DataTable from './DataTable';
 
-const DataCompletenessTable = ({ collocationDevices }) => {
-  const [currentPage, setCurrentPage] = useState(1);
+const DataCompletenessTable = ({ dataCompletenessReults }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
 
-  const handlePrevClick = () => {
-    setCurrentPage(currentPage - 1);
-  };
-
-  const handleNextClick = () => {
-    setCurrentPage(currentPage + 1);
-  };
-
-  const pageSize = 8;
-  let startIndex = (currentPage - 1) * pageSize;
-  let endIndex = startIndex + pageSize;
-
   useEffect(() => {
-    const filterList = collocationDevices.filter((row) =>
-      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const filterList =
+      dataCompletenessReults.length > 0 &&
+      dataCompletenessReults.filter((row) =>
+        Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     setFilteredData(filterList);
-  }, [searchTerm, collocationDevices]);
-
-  // Check if last page is empty and adjust pagination if necessary
-  if (filteredData.length > 0 && endIndex > filteredData.length) {
-    startIndex = Math.max(filteredData.length - pageSize, 0);
-    endIndex = filteredData.length;
-  }
-
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  }, [searchTerm, dataCompletenessReults]);
 
   const handleSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
-    setCurrentPage(1);
   };
 
   const handleSort = (sortOption) => {
@@ -69,8 +49,8 @@ const DataCompletenessTable = ({ collocationDevices }) => {
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? new Date(a.createdAt) - new Date(b.createdAt)
-        : new Date(b.createdAt) - new Date(a.createdAt),
+        ? new Date(a.start_date) - new Date(b.start_date)
+        : new Date(b.start_date) - new Date(a.start_date),
     );
 
     return sortedData;
@@ -79,19 +59,21 @@ const DataCompletenessTable = ({ collocationDevices }) => {
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? a.long_name.localeCompare(b.long_name)
-        : b.long_name.localeCompare(a.long_name),
+        ? a.device_name.localeCompare(b.device_name)
+        : b.device_name.localeCompare(a.device_name),
     );
     return sortedData;
   };
 
   return (
-    <div>
+    <>
       <div className='flex items-center flex-wrap md:flex-nowrap w-full px-6'>
         <SearchBar onSearch={handleSearch} />
         <span className='flex ml-6 w-full'>
           <Button
-            className={'h-9 w-full max-w-[114px] bg-blue rounded-md text-black font-medium mr-2'}
+            className={
+              'h-9 w-full max-w-[114px] bg-grey-200 rounded-md text-black font-medium mr-2 text-sm'
+            }
           >
             <div className='mr-1'>
               <FilterIcon />
@@ -104,7 +86,7 @@ const DataCompletenessTable = ({ collocationDevices }) => {
           <div className='dropdown'>
             <Button
               tabIndex={0}
-              className={'h-9 w-auto bg-blue rounded-md text-black font-medium mb-1'}
+              className={'h-9 w-auto bg-grey-200 rounded-md text-black font-medium mb-1 text-sm'}
             >
               <div className='mr-1'>
                 <SortByAlphaIcon />
@@ -152,11 +134,11 @@ const DataCompletenessTable = ({ collocationDevices }) => {
       </div>
       <div className='overflow-x-scroll md:overflow-x-hidden pt-3'>
         <DataTable
-          paginatedData={paginatedData.length > 0 && paginatedData}
-          collocationDevices={collocationDevices}
+          filteredData={filteredData.length > 0 && filteredData}
+          dataCompletenessReults={dataCompletenessReults}
         />
       </div>
-    </div>
+    </>
   );
 };
 

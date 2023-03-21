@@ -1,12 +1,12 @@
-import { humanReadableDate } from '@/core/utils/dateTime';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addDevices,
   removeDevices,
   addDevice,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import moment from 'moment';
 
-const DataTable = ({ paginatedData, collocationDevices }) => {
+const DataTable = ({ filteredData, dataCompletenessReults }) => {
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -14,7 +14,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device._id));
+    dataCompletenessReults.map((device) => allDevices.push(device._id));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -38,7 +38,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
           <th scope='col' className='text-xs font-normal w-[61px] pb-3 px-6'>
             <input
               type='checkbox'
-              checked={selectedCollocateDevices.length === collocationDevices.length}
+              checked={selectedCollocateDevices.length === dataCompletenessReults.length}
               onChange={handleSelectAllDevices}
             />
           </th>
@@ -87,10 +87,10 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
         </tr>
       </thead>
       <tbody>
-        {paginatedData.length > 0 &&
-          paginatedData.map((device) => {
+        {filteredData.length > 0 &&
+          filteredData.map((device) => {
             return (
-              <tr className='border-b border-b-slate-300' key={device._id}>
+              <tr className='border-b border-b-slate-300 text-xs' key={device._id}>
                 <td scope='row' className='w-[61px] py-3 px-6'>
                   <input
                     type='checkbox'
@@ -100,25 +100,25 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                   />
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.monitor_name}
+                  {device.device_name}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.expected_records}
+                  {device.expected_number_of_records}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.data_completeness}
+                  {device.completeness.toFixed(2) + '%'}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.missing_data}
+                  {device.missing.toFixed(2) + '%'}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
                   {device.total_hourly_count}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {humanReadableDate(device.start_date)}
+                  {moment(device.start_date).format('MMM DD, YYYY')}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {humanReadableDate(device.end_date)}
+                  {moment(device.end_date).format('MMM DD, YYYY')}
                 </td>
               </tr>
             );
