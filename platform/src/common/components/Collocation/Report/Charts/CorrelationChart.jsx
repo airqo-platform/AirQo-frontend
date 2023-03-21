@@ -91,12 +91,12 @@ const CorrelationChart = ({ pmConcentration }) => {
       pm2_5_r2: item.pm2_5_r2,
       pm10_pearson_correlation: item.pm10_pearson_correlation,
       pm10_r2: item.pm10_r2,
-      date: moment(item.date).format('MMM DD'),
+      date: moment(item.date).format('D MMM'),
     });
   });
 
   return (
-    <div className='w-full h-96'>
+    <div className='w-full h-80'>
       <ResponsiveContainer width='100%' height='100%'>
         <LineChart data={newData} className='text-xs -ml-7'>
           <CartesianGrid vertical={false} stroke='#000000' strokeOpacity='0.1' strokeWidth={0.5} />
@@ -120,7 +120,9 @@ const CorrelationChart = ({ pmConcentration }) => {
             type='monotone'
             dot={false}
             dataKey={
-              pmConcentration === 'pm2_5' ? 'pm2_5_pearson_correlation' : 'pm10_pearson_correlation'
+              pmConcentration.label === 'pm2_5'
+                ? 'pm2_5_pearson_correlation'
+                : 'pm10_pearson_correlation'
             }
             stroke='#D476F5'
             strokeWidth='1.5'
@@ -129,7 +131,7 @@ const CorrelationChart = ({ pmConcentration }) => {
           <Line
             type='monotone'
             dot={false}
-            dataKey={pmConcentration === 'pm2_5' ? 'pm2_5_r2' : 'pm10_r2'}
+            dataKey={pmConcentration.label === 'pm2_5' ? 'pm2_5_r2' : 'pm10_r2'}
             stroke='#8776F5'
             strokeWidth='1.5'
           />
