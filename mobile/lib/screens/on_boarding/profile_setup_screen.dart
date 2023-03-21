@@ -23,14 +23,19 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _controller = TextEditingController();
+  bool _keyboardVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: const OnBoardingTopBar(),
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
+          backgroundColor: Colors.white,
           horizontalPadding: 24,
           verticalPadding: 10,
           child: Column(
@@ -72,31 +77,16 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ? CustomColors.appColorDisabled
                         : CustomColors.appColorBlue,
                     callBack: () async {
-                      await _saveName();
+                      if (profile.fullName().isNotEmpty) {
+                        await _saveName();
+                      }
                     },
                   );
                 },
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const NotificationsSetupScreen();
-                    }),
-                    (r) => false,
-                  );
-                },
-                child: Text(
-                  'No, thanks',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
+              Visibility(
+                visible: !_keyboardVisible,
+                child: const SkipOnboardScreen(NotificationsSetupScreen()),
               ),
             ],
           ),
@@ -140,7 +130,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _saveName() async {
     if (_formKey.currentState!.validate()) {
       context.read<ProfileBloc>().add(const SyncProfile());
-      FocusManager.instance.primaryFocus?.unfocus();
+      FocusScope.of(context).requestFocus(FocusNode());
       await Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) {

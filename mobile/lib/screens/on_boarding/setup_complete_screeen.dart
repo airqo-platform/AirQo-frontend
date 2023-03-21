@@ -48,7 +48,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   Future<void> _initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
-    Future.delayed(const Duration(seconds: 3), _goToHome);
+    Future.delayed(const Duration(seconds: 3), () async {
+      await _goToHome();
+    });
   }
 
   @override
@@ -63,9 +65,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return Future.value(false);
   }
 
-  void _goToHome() {
+  Future<void> _goToHome() async {
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
+      await Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) {

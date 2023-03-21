@@ -368,12 +368,6 @@ enum AuthProcedure {
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
-  none(
-    confirmationTitle: '',
-    confirmationBody: '',
-    confirmationOkayText: '',
-    confirmationCancelText: '',
-  ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:

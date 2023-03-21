@@ -137,7 +137,7 @@ class Profile {
     );
   }
 
-  Profile _setUserCredentials() {
+  Profile setUserCredentials() {
     String? userId;
     String? emailAddress;
     String? phoneNumber;

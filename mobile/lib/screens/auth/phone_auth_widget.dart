@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/models/phone_auth_model.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -198,7 +197,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               switch (state.authProcedure) {
                                 case AuthProcedure.deleteAccount:
                                 case AuthProcedure.anonymousLogin:
-                                case AuthProcedure.none:
                                 case AuthProcedure.logout:
                                 case AuthProcedure.login:
                                   await AppService.postSignInActions(context)
@@ -367,7 +365,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
       case AuthProcedure.anonymousLogin:
       case AuthProcedure.deleteAccount:
-      case AuthProcedure.none:
       case AuthProcedure.logout:
         break;
     }
@@ -464,7 +461,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         break;
       case AuthProcedure.anonymousLogin:
       case AuthProcedure.deleteAccount:
-      case AuthProcedure.none:
       case AuthProcedure.logout:
         break;
     }

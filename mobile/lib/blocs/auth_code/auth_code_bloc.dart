@@ -8,8 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/phone_auth_model.dart';
-
 part 'auth_code_event.dart';
 part 'auth_code_state.dart';
 
@@ -48,6 +46,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     }
 
     EmailAuthModel? emailAuthModel = state.emailAuthModel;
+
     if (emailAuthModel == null) {
       return emit(state.copyWith(
         status: AuthCodeStatus.error,
@@ -64,14 +63,13 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       String emailLink = "";
       switch (state.authProcedure) {
         case AuthProcedure.login:
-          emailLink = emailAuthModel.loginLink;
-          break;
         case AuthProcedure.signup:
-          emailLink = emailAuthModel.signUpLink;
+          emailLink = emailAuthModel.signInLink;
           break;
         case AuthProcedure.anonymousLogin:
         case AuthProcedure.deleteAccount:
-        case AuthProcedure.none:
+          emailLink = emailAuthModel.reAuthenticationLink;
+          break;
         case AuthProcedure.logout:
           break;
       }
@@ -164,7 +162,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     }
 
     PhoneAuthModel? phoneAuthModel = state.phoneAuthModel;
-    print(phoneAuthModel);
     if (phoneAuthModel == null) {
       return emit(state.copyWith(
         status: AuthCodeStatus.error,
@@ -277,7 +274,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     VerifyAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    print(state.authMethod);
     switch (state.authMethod) {
       case AuthMethod.phone:
         await _verifyPhoneSmsCode(emit);

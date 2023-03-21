@@ -93,9 +93,13 @@ class ProfileSetupNameInputField extends StatelessWidget {
             FocusScope.of(context).requestFocus(
               FocusNode(),
             );
+            List<String> names = controller.text.getNames();
             context.read<ProfileBloc>().add(
                   UpdateProfile(
-                    profile.copyWith(firstName: controller.text),
+                    profile.copyWith(
+                      firstName: names.first,
+                      lastName: names.last,
+                    ),
                   ),
                 );
           },
@@ -103,10 +107,14 @@ class ProfileSetupNameInputField extends StatelessWidget {
           cursorWidth: 1,
           cursorColor: CustomColors.appColorBlue,
           keyboardType: TextInputType.name,
-          onChanged: (name) {
+          onChanged: (text) {
+            List<String> names = text.getNames();
             context.read<ProfileBloc>().add(
                   UpdateProfile(
-                    profile.copyWith(firstName: name),
+                    profile.copyWith(
+                      firstName: names.first,
+                      lastName: names.last,
+                    ),
                   ),
                 );
           },
@@ -181,6 +189,35 @@ class TitleToggleListOption extends StatelessWidget {
   }
 }
 
+class SkipOnboardScreen extends StatelessWidget {
+  const SkipOnboardScreen(this.nextScreen, {super.key});
+  final Widget nextScreen;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        await Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return nextScreen;
+          }),
+          (r) => false,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16.0),
+        child: Text(
+          'No, thanks',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: CustomColors.appColorBlue, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
 class TitleDropDown extends StatelessWidget {
   const TitleDropDown({super.key});
 
@@ -205,7 +242,7 @@ class TitleDropDown extends StatelessWidget {
           child: Container(
             width: 65,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: CustomColors.appBodyColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Padding(

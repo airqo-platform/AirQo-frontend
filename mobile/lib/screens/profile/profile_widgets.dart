@@ -669,59 +669,59 @@ class EditProfilePicSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            profile.photoUrl == ''
-                ? RotationTransition(
-                    turns: const AlwaysStoppedAnimation(-5 / 360),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.0),
-                      decoration: BoxDecoration(
-                        color: CustomColors.appPicColor,
-                        shape: BoxShape.rectangle,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(35.0),
-                        ),
-                      ),
+        InkWell(
+          onTap: getFromGallery,
+          child: Stack(
+            alignment: AlignmentDirectional.center,
+            children: [
+              profile.photoUrl.trim().isEmpty
+                  ? RotationTransition(
+                      turns: const AlwaysStoppedAnimation(-5 / 360),
                       child: Container(
-                        height: 88,
-                        width: 88,
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  )
-                : profile.photoUrl.isValidUri()
-                    ? CircleAvatar(
-                        radius: 44,
-                        backgroundColor: CustomColors.appPicColor,
-                        foregroundColor: CustomColors.appPicColor,
-                        backgroundImage: CachedNetworkImageProvider(
-                          profile.photoUrl,
+                        padding: const EdgeInsets.all(2.0),
+                        decoration: BoxDecoration(
+                          color: CustomColors.appPicColor,
+                          shape: BoxShape.rectangle,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(35.0),
+                          ),
                         ),
-                      )
-                    : CircleAvatar(
-                        radius: 44,
-                        backgroundColor: CustomColors.appPicColor,
-                        foregroundColor: CustomColors.appPicColor,
-                        backgroundImage: FileImage(
-                          File(profile.photoUrl),
+                        child: Container(
+                          height: 88,
+                          width: 88,
+                          color: Colors.transparent,
                         ),
                       ),
-            if (profile.photoUrl == '')
-              const Text(
-                'A',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 30,
+                    )
+                  : profile.photoUrl.isValidUri()
+                      ? CircleAvatar(
+                          radius: 44,
+                          backgroundColor: CustomColors.appPicColor,
+                          foregroundColor: CustomColors.appPicColor,
+                          backgroundImage: CachedNetworkImageProvider(
+                            profile.photoUrl,
+                          ),
+                        )
+                      : CircleAvatar(
+                          radius: 44,
+                          backgroundColor: CustomColors.appPicColor,
+                          foregroundColor: CustomColors.appPicColor,
+                          backgroundImage: FileImage(
+                            File(profile.photoUrl),
+                          ),
+                        ),
+              if (profile.photoUrl.trim().isEmpty)
+                const Text(
+                  'A',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 30,
+                  ),
                 ),
-              ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: GestureDetector(
-                onTap: getFromGallery,
+              Positioned(
+                bottom: 0,
+                right: 0,
                 child: Container(
                   padding: const EdgeInsets.all(2.0),
                   decoration: BoxDecoration(
@@ -736,8 +736,8 @@ class EditProfilePicSection extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -749,6 +749,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    Profile previousProfile = context.read<ProfileBloc>().state;
     return AppBar(
       toolbarHeight: 72,
       centerTitle: true,
@@ -767,6 +768,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: OutlinedButton(
                   onPressed: () {
                     context.read<ProfileBloc>().add(UpdateProfile(profile));
+                    Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
                     elevation: 0,
@@ -778,14 +780,20 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Radius.circular(8),
                       ),
                     ),
-                    backgroundColor: CustomColors.appColorBlue.withOpacity(0.1),
-                    foregroundColor: CustomColors.appColorBlue,
+                    backgroundColor: previousProfile == profile
+                        ? Colors.transparent
+                        : CustomColors.appColorBlue.withOpacity(0.1),
+                    foregroundColor: previousProfile == profile
+                        ? Colors.transparent
+                        : CustomColors.appColorBlue,
                   ),
                   child: Text(
                     'Save',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: CustomColors.appColorBlue,
+                          color: previousProfile == profile
+                              ? CustomColors.greyColor
+                              : CustomColors.appColorBlue,
                         ),
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
@@ -5,6 +6,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'on_boarding_widgets.dart';
 
@@ -65,29 +67,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                   },
                 ),
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const SetUpCompleteScreen();
-                      },
-                    ),
-                    (r) => false,
-                  );
-                },
-                child: Text(
-                  'No, thanks',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
-              ),
+              const SkipOnboardScreen(SetUpCompleteScreen()),
             ],
           ),
         ),
@@ -103,8 +83,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
   Future<void> _allowLocation() async {
     await LocationService.requestLocation(context, true).then(
-      (_) {
-        Navigator.pushAndRemoveUntil(
+      (_) async {
+        context.read<ProfileBloc>().add(const SyncProfile());
+        await Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (context) {

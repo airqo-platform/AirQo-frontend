@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -258,6 +259,38 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                           );
                           if (state.loading) {
                             Navigator.pop(_loadingContext);
+                          }
+
+                          switch (state.authProcedure) {
+                            case AuthProcedure.login:
+                            case AuthProcedure.signup:
+                            case AuthProcedure.anonymousLogin:
+                              Navigator.pop(context, true);
+                              break;
+                            case AuthProcedure.logout:
+                              loadingScreen(_loadingContext);
+                              await AppService.postSignOutActions(context)
+                                  .then((_) {
+                                Navigator.pop(_loadingContext);
+                                Navigator.pop(context, true);
+                              });
+                              break;
+                            case AuthProcedure.deleteAccount:
+                              loadingScreen(_loadingContext);
+                              await CustomAuth.deleteAccount()
+                                  .then((success) async {
+                                if (success) {
+                                  await AppService.postSignOutActions(context)
+                                      .then((_) {
+                                    Navigator.pop(_loadingContext);
+                                    Navigator.pop(context, true);
+                                  });
+                                } else {
+                                  Navigator.pop(_loadingContext);
+                                  Navigator.pop(context, false);
+                                }
+                              });
+                              break;
                           }
                         },
                         listenWhen: (previous, current) {

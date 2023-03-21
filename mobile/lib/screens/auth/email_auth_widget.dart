@@ -198,7 +198,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                               switch (state.authProcedure) {
                                 case AuthProcedure.deleteAccount:
                                 case AuthProcedure.anonymousLogin:
-                                case AuthProcedure.none:
                                 case AuthProcedure.logout:
                                 case AuthProcedure.login:
                                   await AppService.postSignInActions(context)

@@ -86,8 +86,9 @@ class AppBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () async {
+        FocusScope.of(context).requestFocus(FocusNode());
         await popNavigation(context);
       },
       child: SvgPicture.asset(

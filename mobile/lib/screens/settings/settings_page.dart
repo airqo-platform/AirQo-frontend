@@ -1,16 +1,19 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 
@@ -220,33 +223,7 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                       ),
                       const Spacer(),
-                      Card(
-                        margin: EdgeInsets.zero,
-                        elevation: 0,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        child: ListTile(
-                          tileColor: Colors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          onTap: () {
-                            _deleteAccount();
-                          },
-                          title: Text(
-                            'Delete your account',
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: CustomColors.appColorBlack
-                                      .withOpacity(0.6),
-                                ),
-                          ),
-                        ),
-                      ),
+                      const DeleteAccountButton(),
                     ],
                   );
                 },
@@ -280,22 +257,6 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  Future<void> _deleteAccount() async {
-    // TODO add account deletion
-    // bool authSuccessful = await CustomAuth.deleteAccount();
-    // if(!authSuccessful){
-    //   final reAuthentication = await CustomAuth.reAuthenticate();
-    //   if(reAuthentication){
-    //     authSuccessful = await CustomAuth.deleteAccount();
-    //     if(authSuccessful){
-    //       if (mounted){
-    //         await AppService.postSignOutActions(context);
-    //       }
-    //     }
-    //   }
-    // }
-  }
-
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ShowCaseWidget.of(_showcaseContext).startShowCase(
@@ -311,6 +272,107 @@ class _SettingsPageState extends State<SettingsPage>
     if (prefs.getBool(Config.settingsPageShowcase) == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
       _appService.stopShowcase(Config.settingsPageShowcase);
+    }
+  }
+}
+
+class DeleteAccountButton extends StatefulWidget {
+  const DeleteAccountButton({super.key});
+
+  @override
+  State<DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends State<DeleteAccountButton> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, Profile>(
+      builder: (context, state) {
+        if (state.isAnonymous || !state.isSignedIn) {
+          return Container();
+        }
+
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          child: ListTile(
+            tileColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            onTap: () => _deleteAccount(),
+            title: Text(
+              'Delete your account',
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.6),
+                  ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    bool hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
+    if (!hasConnection) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    loadingScreen(context);
+
+    bool deletionSuccess = await CustomAuth.deleteAccount();
+
+    if (!mounted) return;
+
+    if (deletionSuccess) {
+      await AppService.postSignOutActions(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      return;
+    }
+
+    Profile profile = context.read<ProfileBloc>().state;
+    AuthCredential? authCredential;
+    if (profile.emailAddress.isNotEmpty) {
+      final EmailAuthModel? emailAuthModel = await AirqoApiClient()
+          .requestEmailVerificationCode(profile.emailAddress, true);
+      if (emailAuthModel != null && mounted) {
+        Navigator.pop(context);
+        context.read<AuthCodeBloc>().add(InitializeAuthCodeState(
+              emailAuthModel: emailAuthModel,
+              authProcedure: AuthProcedure.deleteAccount,
+              authMethod: AuthMethod.email,
+            ));
+
+        await verifyAuthCode(context).then((success) {
+          if (success) {
+            return;
+          }
+        });
+      }
+    } else if (profile.phoneNumber.isNotEmpty) {}
+
+    if (authCredential == null) {
+      if (mounted) {
+        showSnackBar(context, "Failed to delete account. Try again later");
+      }
+      return;
+    }
+
+    final reAuthentication = await CustomAuth.reAuthenticate(authCredential!);
+    if (reAuthentication) {
+      await CustomAuth.deleteAccount();
     }
   }
 }

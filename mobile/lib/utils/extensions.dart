@@ -774,26 +774,17 @@ extension AppStoreVersionExt on AppStoreVersion {
 }
 
 extension StringExt on String {
-  bool inStatement(String statement) {
-    final terms = toLowerCase().split(' ');
-    final words = statement.toLowerCase().split(' ');
-    for (final word in words) {
-      for (final term in terms) {
-        if (term == word.trim()) {
-          return true;
-        }
-      }
+  List<String> getNames() {
+    List<String> names = split(" ");
+    if (names.isEmpty) {
+      return ["", ""];
     }
 
-    return false;
-  }
-
-  bool isValidName() {
-    if (trim().isNull()) {
-      return false;
+    if (names.length >= 2) {
+      return [names.first, names.last];
     }
 
-    return true;
+    return [names.first, ""];
   }
 
   bool equalsIgnoreCase(String value) {

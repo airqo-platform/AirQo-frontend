@@ -114,7 +114,6 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
 
       case AuthProcedure.anonymousLogin:
       case AuthProcedure.deleteAccount:
-      case AuthProcedure.none:
       case AuthProcedure.logout:
         break;
     }
