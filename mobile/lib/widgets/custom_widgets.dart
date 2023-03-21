@@ -565,6 +565,7 @@ class CustomShowcaseWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
+    
     return Showcase.withWidget(
       key: showcaseKey,
       width: 12,
