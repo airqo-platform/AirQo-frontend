@@ -1,9 +1,7 @@
 import 'dart:io';
 
-import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -11,8 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class CloudAnalytics {
   static Future<bool> logEvent(CloudAnalyticsEvent analyticsEvent) async {
@@ -482,7 +478,7 @@ class CustomAuth {
     try {
       await FirebaseAuth.instance.signOut();
 
-      return false;
+      return true;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -557,33 +553,33 @@ class CustomAuth {
     return userCredential.user != null;
   }
 
-  static AuthenticationError getFirebaseErrorCodeMessage(String code) {
+  static FirebaseAuthError getFirebaseErrorCodeMessage(String code) {
     switch (code) {
       case 'invalid-email':
-        return AuthenticationError.invalidEmailAddress;
+        return FirebaseAuthError.invalidEmailAddress;
       case 'email-already-in-use':
-        return AuthenticationError.emailTaken;
+        return FirebaseAuthError.emailTaken;
       case 'credential-already-in-use':
       case 'account-exists-with-different-credential':
-        return AuthenticationError.accountTaken;
+        return FirebaseAuthError.accountTaken;
       case 'invalid-verification-code':
-        return AuthenticationError.invalidAuthCode;
+        return FirebaseAuthError.invalidAuthCode;
       case 'invalid-phone-number':
-        return AuthenticationError.invalidPhoneNumber;
+        return FirebaseAuthError.invalidPhoneNumber;
       case 'session-expired':
       case 'expired-action-code':
-        return AuthenticationError.authSessionTimeout;
+        return FirebaseAuthError.authSessionTimeout;
       case 'user-disabled':
       case 'user-mismatch':
       case 'user-not-found':
-        return AuthenticationError.accountInvalid;
+        return FirebaseAuthError.accountInvalid;
       case 'requires-recent-login':
-        return AuthenticationError.logInRequired;
+        return FirebaseAuthError.logInRequired;
       case 'invalid-verification-id':
       case 'invalid-credential':
       case 'missing-client-identifier':
       default:
-        return AuthenticationError.authFailure;
+        return FirebaseAuthError.authFailure;
     }
   }
 
@@ -595,96 +591,96 @@ class CustomAuth {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext
-            //     .read<AccountBloc>()
-            //     .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(VerifyAuthCode(credential: credential));
+        // switch (authProcedure) {
+        //   case AuthProcedure.login:
+        //   case AuthProcedure.signup:
+        //     buildContext
+        //         .read<PhoneAuthBloc>()
+        //         .add(const UpdateStatus(BlocStatus.success));
+        //     break;
+        //   case AuthProcedure.deleteAccount:
+        //     buildContext
+        //         .read<AccountBloc>()
+        //         .add(const AccountDeletionCheck(passed: true));
+        //     break;
+        //   case AuthProcedure.anonymousLogin:
+        //   case AuthProcedure.logout:
+        //   case AuthProcedure.none:
+        //     break;
+        // }
+        //
+        // buildContext
+        //     .read<AuthCodeBloc>()
+        //     .add(VerifyAuthCode(credential: credential));
       },
       verificationFailed: (FirebaseAuthException exception) async {
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext.read<PhoneAuthBloc>().add(UpdateStatus(
-                  BlocStatus.error,
-                  error: getFirebaseErrorCodeMessage(exception.code),
-                ));
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext.read<AccountBloc>().add(AccountDeletionCheck(
-            //       passed: false,
-            //       error: getFirebaseErrorCodeMessage(exception.code),
-            //     ));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
-
-        throw exception;
+        // switch (authProcedure) {
+        //   case AuthProcedure.login:
+        //   case AuthProcedure.signup:
+        //     buildContext.read<PhoneAuthBloc>().add(UpdateStatus(
+        //           BlocStatus.error,
+        //           error: getFirebaseErrorCodeMessage(exception.code),
+        //         ));
+        //     break;
+        //   case AuthProcedure.deleteAccount:
+        //     buildContext.read<AccountBloc>().add(AccountDeletionCheck(
+        //           passed: false,
+        //           error: getFirebaseErrorCodeMessage(exception.code),
+        //         ));
+        //     break;
+        //   case AuthProcedure.anonymousLogin:
+        //   case AuthProcedure.logout:
+        //   case AuthProcedure.none:
+        //     break;
+        // }
+        //
+        // throw exception;
       },
       codeSent: (String verificationId, int? resendToken) {
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(UpdateVerificationId(verificationId));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext
-            //     .read<AccountBloc>()
-            //     .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
+        // buildContext
+        //     .read<AuthCodeBloc>()
+        //     .add(UpdateVerificationId(verificationId));
+        //
+        // switch (authProcedure) {
+        //   case AuthProcedure.login:
+        //   case AuthProcedure.signup:
+        //     buildContext
+        //         .read<PhoneAuthBloc>()
+        //         .add(const UpdateStatus(BlocStatus.success));
+        //     break;
+        //   case AuthProcedure.deleteAccount:
+        //     // buildContext
+        //     //     .read<AccountBloc>()
+        //     //     .add(const AccountDeletionCheck(passed: true));
+        //     break;
+        //   case AuthProcedure.anonymousLogin:
+        //   case AuthProcedure.logout:
+        //   case AuthProcedure.none:
+        //     break;
+        // }
       },
       codeAutoRetrievalTimeout: (String verificationId) {
-        buildContext
-            .read<AuthCodeBloc>()
-            .add(UpdateVerificationId(verificationId));
-
-        switch (authProcedure) {
-          case AuthProcedure.login:
-          case AuthProcedure.signup:
-            buildContext
-                .read<PhoneAuthBloc>()
-                .add(const UpdateStatus(BlocStatus.success));
-            break;
-          case AuthProcedure.deleteAccount:
-            // buildContext
-            //     .read<AccountBloc>()
-            //     .add(const AccountDeletionCheck(passed: true));
-            break;
-          case AuthProcedure.anonymousLogin:
-          case AuthProcedure.logout:
-          case AuthProcedure.none:
-            break;
-        }
+        // buildContext
+        //     .read<AuthCodeBloc>()
+        //     .add(UpdateVerificationId(verificationId));
+        //
+        // switch (authProcedure) {
+        //   case AuthProcedure.login:
+        //   case AuthProcedure.signup:
+        //     buildContext
+        //         .read<PhoneAuthBloc>()
+        //         .add(const UpdateStatus(BlocStatus.success));
+        //     break;
+        //   case AuthProcedure.deleteAccount:
+        //     // buildContext
+        //     //     .read<AccountBloc>()
+        //     //     .add(const AccountDeletionCheck(passed: true));
+        //     break;
+        //   case AuthProcedure.anonymousLogin:
+        //   case AuthProcedure.logout:
+        //   case AuthProcedure.none:
+        //     break;
+        // }
       },
       timeout: const Duration(seconds: 30),
     );

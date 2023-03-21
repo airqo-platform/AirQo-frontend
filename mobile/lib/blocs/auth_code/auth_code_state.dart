@@ -16,6 +16,7 @@ class AuthCodeState extends Equatable {
     this.status = AuthCodeStatus.initial,
     this.authProcedure = AuthProcedure.signup,
     this.authMethod = AuthMethod.phone,
+    this.loading = false,
   });
 
   AuthCodeState copyWith({
@@ -26,15 +27,17 @@ class AuthCodeState extends Equatable {
     EmailAuthModel? emailAuthModel,
     AuthMethod? authMethod,
     AuthProcedure? authProcedure,
+    bool? loading,
   }) {
     return AuthCodeState(
       status: status ?? this.status,
       inputAuthCode: inputAuthCode ?? this.inputAuthCode,
       codeCountDown: codeCountDown ?? this.codeCountDown,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: errorMessage ?? "",
       emailAuthModel: emailAuthModel ?? this.emailAuthModel,
       authProcedure: authProcedure ?? this.authProcedure,
       authMethod: authMethod ?? this.authMethod,
+      loading: loading ?? false,
     );
   }
 
@@ -45,6 +48,7 @@ class AuthCodeState extends Equatable {
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
   final String inputAuthCode;
+  final bool loading;
 
   @override
   List<Object?> get props => [
@@ -55,5 +59,6 @@ class AuthCodeState extends Equatable {
         codeCountDown,
         authMethod,
         inputAuthCode,
+        loading
       ];
 }

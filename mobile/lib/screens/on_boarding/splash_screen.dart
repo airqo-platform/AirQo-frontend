@@ -22,6 +22,7 @@ import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen(this.initialLink, {super.key});
+
   final PendingDynamicLinkData? initialLink;
 
   @override
@@ -58,9 +59,9 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initialize() async {
-    context
-        .read<FeedbackBloc>()
-        .add(InitializeFeedback(context.read<ProfileBloc>().state));
+    context.read<FeedbackBloc>().add(InitializeFeedback(
+          context.read<ProfileBloc>().state,
+        ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
     context.read<KyaBloc>().add(const SyncKya());
@@ -168,6 +169,7 @@ class SplashScreenState extends State<SplashScreen> {
 
 class TaglineWidget extends StatelessWidget {
   const TaglineWidget({super.key, required this.visible});
+
   final bool visible;
 
   @override

@@ -33,7 +33,7 @@ class InitiatePhoneNumberVerification extends PhoneAuthEvent {
 class UpdateStatus extends PhoneAuthEvent {
   const UpdateStatus(this.authStatus, {this.error});
   final BlocStatus authStatus;
-  final AuthenticationError? error;
+  final FirebaseAuthError? error;
   @override
   List<Object?> get props => [authStatus, error];
 }

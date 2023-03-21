@@ -4,7 +4,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -73,6 +72,16 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
           backgroundColor: Colors.white,
           child: BlocBuilder<AuthCodeBloc, AuthCodeState>(
             builder: (context, state) {
+              String credentials = "";
+              switch (state.authMethod) {
+                case AuthMethod.phone:
+                  break;
+                case AuthMethod.email:
+                  credentials = state.emailAuthModel?.emailAddress ?? "";
+                  break;
+                case AuthMethod.none:
+                  break;
+              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -85,8 +94,8 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   Visibility(
                     visible: state.status == AuthCodeStatus.initial,
-                    child: const AuthSubTitle(
-                      'Enter the 6 digits code sent to +256 0703731476',
+                    child: AuthSubTitle(
+                      'Enter the 6 digits code sent to $credentials',
                     ),
                   ),
 
@@ -106,12 +115,12 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   /// success Status
                   Visibility(
-                    visible: state.status == AuthCodeStatus.invalidCode,
+                    visible: state.status == AuthCodeStatus.success,
                     child: const AuthTitle("Your email has been verified"),
                   ),
 
                   Visibility(
-                    visible: state.status == AuthCodeStatus.invalidCode,
+                    visible: state.status == AuthCodeStatus.success,
                     child: const AuthSubTitle(
                       'Pheww, almost done, hold in there.',
                     ),
@@ -119,13 +128,14 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   /// error Status
                   Visibility(
-                    visible: state.status == AuthCodeStatus.invalidCode,
+                    visible: state.status == AuthCodeStatus.error,
                     child: const AuthTitle(
-                        "Oops, looks like something wrong happened"),
+                      "Oops, looks like something wrong happened",
+                    ),
                   ),
 
                   Visibility(
-                    visible: state.status == AuthCodeStatus.invalidCode,
+                    visible: state.status == AuthCodeStatus.error,
                     child: AuthSubTitle(state.errorMessage),
                   ),
 
@@ -135,14 +145,10 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                       context.read<AuthCodeBloc>().add(UpdateAuthCode(
                             value: value,
                           ));
-                      if (value.length >= 6) {
-                        context
-                            .read<AuthCodeBloc>()
-                            .add(const VerifyAuthCode());
-                      }
                     },
                   ),
 
+                  // TOD create separate widgets
                   /// Resend OPT
                   Visibility(
                     visible: state.codeCountDown > 0 &&
@@ -178,22 +184,14 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   /// Or Separator
                   Visibility(
-                      visible: state.status != AuthCodeStatus.success,
-                      child: const AuthOrSeparator()),
+                    visible: state.status != AuthCodeStatus.success,
+                    child: const AuthOrSeparator(),
+                  ),
 
                   /// auth options
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: AutoSizeText(
-                      state.authMethod.editEntryText,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontSize: 18.0,
-                            color: CustomColors.appColorBlue,
-                          ),
-                    ),
+                  Visibility(
+                    visible: state.status != AuthCodeStatus.success,
+                    child: const ChangeAuthCredentials(),
                   ),
 
                   const Spacer(),
@@ -201,23 +199,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   /// Success widget
                   Visibility(
                     visible: state.status == AuthCodeStatus.success,
-                    child: Center(
-                      child: Container(
-                        height: 151,
-                        width: 151,
-                        padding: const EdgeInsets.all(25),
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorValid.withOpacity(0.1),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(15.0),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          color: CustomColors.appColorValid,
-                        ),
-                      ),
-                    ),
+                    child: const AuthSuccessWidget(),
                   ),
 
                   const Spacer(),
@@ -229,9 +211,13 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                       buttonColor: state.inputAuthCode.length >= 6
                           ? CustomColors.appColorBlue
                           : CustomColors.appColorDisabled,
-                      callBack: () async {
-                        if (state.status == BlocStatus.success ||
-                            state.status == BlocStatus.processing) {
+                      callBack: () {
+                        if (state.status == AuthCodeStatus.success) {
+                          Navigator.pop(context, true);
+                          return;
+                        }
+
+                        if (state.loading) {
                           return;
                         }
 
@@ -242,6 +228,41 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                         }
                       },
                     ),
+                  ),
+
+                  MultiBlocListener(
+                    listeners: [
+                      BlocListener<AuthCodeBloc, AuthCodeState>(
+                        listener: (context, state) {
+                          FocusScope.of(context).requestFocus(
+                            FocusNode(),
+                          );
+                          loadingScreen(_loadingContext);
+                        },
+                        listenWhen: (_, current) {
+                          return current.loading;
+                        },
+                      ),
+                      BlocListener<AuthCodeBloc, AuthCodeState>(
+                        listener: (context, state) {
+                          Navigator.pop(_loadingContext);
+                        },
+                        listenWhen: (previous, current) {
+                          return !current.loading && previous.loading;
+                        },
+                      ),
+                      BlocListener<AuthCodeBloc, AuthCodeState>(
+                        listener: (context, state) async {
+                          FocusScope.of(context).requestFocus(
+                            FocusNode(),
+                          );
+                        },
+                        listenWhen: (previous, current) {
+                          return current.status == AuthCodeStatus.success;
+                        },
+                      ),
+                    ],
+                    child: Container(),
                   ),
                 ],
               );

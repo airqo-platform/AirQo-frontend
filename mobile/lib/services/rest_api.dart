@@ -323,39 +323,6 @@ class AirqoApiClient {
 
     return null;
   }
-
-  Future<bool> _performPostRequest({
-    required Map<String, dynamic> queryParams,
-    required String url,
-    required dynamic body,
-  }) async {
-    try {
-      url = addQueryParameters(
-        queryParams,
-        url,
-      );
-      headers.putIfAbsent(
-        'Content-Type',
-        () => 'application/json',
-      );
-
-      final response = await httpClient.post(
-        Uri.parse(url),
-        headers: headers,
-        body: body,
-      );
-      if (response.statusCode == 200) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
-  }
 }
 
 class SearchApiClient {

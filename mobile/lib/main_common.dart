@@ -73,7 +73,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => AuthCodeBloc(),
+          create: (BuildContext context) => AuthCodeBloc(
+            RepositoryProvider.of<AirqoApiClient>(context),
+          ),
         ),
         BlocProvider(
           create: (BuildContext context) => KyaProgressCubit(),
@@ -82,8 +84,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) =>
-              EmailAuthBloc(RepositoryProvider.of<AirqoApiClient>(context)),
+          create: (BuildContext context) => EmailAuthBloc(
+            RepositoryProvider.of<AirqoApiClient>(context),
+          ),
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),

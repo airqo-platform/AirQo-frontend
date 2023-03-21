@@ -42,7 +42,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   ) async {
     return emit(state.copyWith(
       blocStatus: BlocStatus.error,
-      error: AuthenticationError.invalidPhoneNumber,
+      error: FirebaseAuthError.invalidPhoneNumber,
     ));
   }
 
@@ -93,7 +93,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     if (!hasConnection) {
       return emit(state.copyWith(
         blocStatus: BlocStatus.error,
-        error: AuthenticationError.noInternetConnection,
+        error: FirebaseAuthError.noInternetConnection,
       ));
     }
 
@@ -120,7 +120,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
                       {
                         emit(state.copyWith(
                           blocStatus: BlocStatus.error,
-                          error: AuthenticationError.phoneNumberTaken,
+                          error: FirebaseAuthError.phoneNumberTaken,
                         )),
                       }
                     else
@@ -148,7 +148,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       ));
     } catch (exception, stackTrace) {
       emit(state.copyWith(
-        error: AuthenticationError.authFailure,
+        error: FirebaseAuthError.authFailure,
         blocStatus: BlocStatus.error,
       ));
       await logException(exception, stackTrace);

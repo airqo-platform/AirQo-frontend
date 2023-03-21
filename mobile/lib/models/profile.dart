@@ -1,7 +1,6 @@
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'profile.g.dart';

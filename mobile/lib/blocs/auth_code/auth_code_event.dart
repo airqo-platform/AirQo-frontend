@@ -36,27 +36,9 @@ class UpdateAuthCode extends AuthCodeEvent {
   List<Object?> get props => [value];
 }
 
-// class UpdateVerificationId extends AuthCodeEvent {
-//   const UpdateVerificationId(this.verificationId);
-//   final String verificationId;
-//   @override
-//   List<Object?> get props => [verificationId];
-// }
-//
-// class UpdateEmailCredentials extends AuthCodeEvent {
-//   const UpdateEmailCredentials({
-//     required this.emailVerificationLink,
-//     required this.emailToken,
-//   });
-//   final String emailVerificationLink;
-//   final int emailToken;
-//   @override
-//   List<Object?> get props => [emailToken, emailVerificationLink];
-// }
-
 class VerifyAuthCode extends AuthCodeEvent {
-  const VerifyAuthCode({this.credential});
-  final PhoneAuthCredential? credential;
+  const VerifyAuthCode();
+
   @override
   List<Object?> get props => [];
 }
@@ -66,6 +48,21 @@ class UpdateCountDown extends AuthCodeEvent {
   final int countDown;
   @override
   List<Object?> get props => [];
+}
+
+// class UpdateVerificationId extends AuthCodeEvent {
+//   const UpdateVerificationId(this.verificationId);
+//   final String verificationId;
+//   @override
+//   List<Object?> get props => [verificationId];
+// }
+//
+class UpdateEmailAuthModel extends AuthCodeEvent {
+  const UpdateEmailAuthModel(this.authModel);
+
+  final EmailAuthModel authModel;
+  @override
+  List<Object> get props => [authModel];
 }
 
 class ResendAuthCode extends AuthCodeEvent {

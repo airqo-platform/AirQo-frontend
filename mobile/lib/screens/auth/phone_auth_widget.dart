@@ -93,9 +93,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                             listenWhen: (previous, current) {
                               return current.blocStatus == BlocStatus.error &&
-                                  current.error != AuthenticationError.none &&
                                   current.error !=
-                                      AuthenticationError.invalidPhoneNumber;
+                                      FirebaseAuthError
+                                          .authFailure && // TODO remove this
+                                  current.error !=
+                                      FirebaseAuthError.invalidPhoneNumber;
                             },
                           ),
                           BlocListener<PhoneAuthBloc, PhoneAuthState>(
@@ -128,7 +130,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         child: AutoSizeText(
                           state.blocStatus == BlocStatus.error &&
                                   state.error ==
-                                      AuthenticationError.invalidPhoneNumber
+                                      FirebaseAuthError.invalidPhoneNumber
                               ? AuthMethod.phone.invalidInputMessage
                               : AuthMethod.phone
                                   .optionsText(state.authProcedure),

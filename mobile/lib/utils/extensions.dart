@@ -838,7 +838,7 @@ extension StringExt on String {
       return 'Entered many digits.';
     }
 
-    return AuthenticationError.invalidPhoneNumber.message;
+    return FirebaseAuthError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {

@@ -61,7 +61,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       return emit(
         state.copyWith(
           blocStatus: BlocStatus.error,
-          errorMessage: AuthenticationError.noInternetConnection.message,
+          errorMessage: FirebaseAuthError.noInternetConnection.message,
         ),
       );
     }
@@ -122,7 +122,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       return emit(
         state.copyWith(
           blocStatus: BlocStatus.error,
-          errorMessage: AuthenticationError.invalidEmailAddress.message,
+          errorMessage: FirebaseAuthError.invalidEmailAddress.message,
         ),
       );
     }

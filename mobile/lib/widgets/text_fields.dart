@@ -1,5 +1,4 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
@@ -96,21 +95,29 @@ class OptField extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 36),
         child: BlocBuilder<AuthCodeBloc, AuthCodeState>(
           builder: (context, state) {
-            Color fillColor = Colors.transparent;
-            Color textColor = CustomColors.appColorBlue;
+            Color fillColor;
+            Color textColor;
             bool codeSent = state.codeCountDown <= 0;
 
-            if (!codeSent) {
-              fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
-              textColor = Colors.transparent;
-            }
-
-            if (state.status == AuthCodeStatus.error) {
-              textColor = CustomColors.appColorInvalid;
-              fillColor = textColor.withOpacity(0.05);
-            } else if (state.status == AuthCodeStatus.success) {
-              textColor = CustomColors.appColorValid;
-              fillColor = textColor.withOpacity(0.05);
+            switch (state.status) {
+              case AuthCodeStatus.initial:
+                if (!codeSent) {
+                  fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
+                  textColor = Colors.transparent;
+                  break;
+                }
+                fillColor = Colors.transparent;
+                textColor = CustomColors.appColorBlue;
+                break;
+              case AuthCodeStatus.invalidCode:
+              case AuthCodeStatus.error:
+                textColor = CustomColors.appColorInvalid;
+                fillColor = CustomColors.appColorInvalid.withOpacity(0.05);
+                break;
+              case AuthCodeStatus.success:
+                textColor = CustomColors.appColorValid;
+                fillColor = textColor.withOpacity(0.05);
+                break;
             }
 
             InputBorder inputBorder = OutlineInputBorder(

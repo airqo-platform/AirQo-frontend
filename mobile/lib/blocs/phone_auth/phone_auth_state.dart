@@ -5,7 +5,7 @@ class PhoneAuthState extends Equatable {
     this.phoneNumber = '',
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
+    this.error = FirebaseAuthError.authFailure, // TODO remove this
     this.blocStatus = BlocStatus.initial,
   });
 
@@ -13,7 +13,7 @@ class PhoneAuthState extends Equatable {
     this.phoneNumber = '',
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
+    this.error = FirebaseAuthError.authFailure, // TODO remove this
     this.blocStatus = BlocStatus.initial,
   });
 
@@ -33,7 +33,7 @@ class PhoneAuthState extends Equatable {
 
   const PhoneAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
 
-  const PhoneAuthState.error(AuthenticationError error)
+  const PhoneAuthState.error(FirebaseAuthError error)
       : this._(error: error, blocStatus: BlocStatus.error);
 
   const PhoneAuthState.verificationSuccessful()
@@ -43,7 +43,7 @@ class PhoneAuthState extends Equatable {
     String? phoneNumber,
     String? countryCode,
     AuthProcedure? authProcedure,
-    AuthenticationError? error,
+    FirebaseAuthError? error,
     BlocStatus? blocStatus,
   }) {
     return PhoneAuthState(
@@ -58,7 +58,7 @@ class PhoneAuthState extends Equatable {
   final String phoneNumber;
   final String countryCode;
   final AuthProcedure authProcedure;
-  final AuthenticationError error;
+  final FirebaseAuthError error;
   final BlocStatus blocStatus;
 
   @override

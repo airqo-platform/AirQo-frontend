@@ -580,9 +580,9 @@ class ProfileSection extends StatelessWidget {
           ),
           CardSection(
             text: 'Send Feedback',
-            icon: 'assets/icon/feedback.svg',
             iconColor: CustomColors.appColorBlue,
             nextPage: const FeedbackPage(),
+            materialIcon: Icons.chat,
             isBottomItem: true,
           ),
         ],

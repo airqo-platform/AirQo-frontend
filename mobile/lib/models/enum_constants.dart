@@ -40,6 +40,7 @@ enum CloudAnalyticsEvent {
   }
 }
 
+// TODO remove this enum
 enum InsightsStatus {
   loaded,
   error,
@@ -55,6 +56,7 @@ enum AppPermission {
   photosStorage,
 }
 
+// TODO remove this enum
 enum BlocStatus {
   initial,
   editing,
@@ -71,17 +73,10 @@ enum FeedbackStep {
   formStep;
 }
 
-enum AuthenticationError {
+// TODO remove this enum
+enum FirebaseAuthError {
   noInternetConnection(
     message: 'Check your internet connection',
-    snackBarDuration: 5,
-  ),
-  invalidFirstName(
-    message: 'First name is required.',
-    snackBarDuration: 5,
-  ),
-  invalidLastName(
-    message: 'Last name is required.',
     snackBarDuration: 5,
   ),
   accountInvalid(
@@ -96,20 +91,12 @@ enum AuthenticationError {
     message: 'Session time out. Sending another verification code',
     snackBarDuration: 5,
   ),
-  none(
-    message: '',
-    snackBarDuration: 0,
-  ),
   authFailure(
     message: 'Authentication failed. Try again later',
     snackBarDuration: 5,
   ),
   logInRequired(
     message: 'Log in required.',
-    snackBarDuration: 5,
-  ),
-  logoutFailed(
-    message: 'Failed to logout. Try again later',
     snackBarDuration: 5,
   ),
   phoneNumberTaken(
@@ -133,7 +120,7 @@ enum AuthenticationError {
     snackBarDuration: 5,
   );
 
-  const AuthenticationError({
+  const FirebaseAuthError({
     required this.message,
     required this.snackBarDuration,
   });
@@ -408,6 +395,7 @@ enum AuthProcedure {
   final String confirmationCancelText;
 }
 
+// TODO remove this enum
 @JsonEnum(valueField: 'string')
 enum Frequency {
   daily('daily'),

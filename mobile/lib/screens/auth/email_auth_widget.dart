@@ -165,6 +165,9 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                       listeners: [
                         BlocListener<EmailAuthBloc, EmailAuthState>(
                           listener: (context, state) {
+                            FocusScope.of(context).requestFocus(
+                              FocusNode(),
+                            );
                             loadingScreen(_loadingContext);
                           },
                           listenWhen: (_, current) {
@@ -181,8 +184,17 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                         ),
                         BlocListener<EmailAuthBloc, EmailAuthState>(
                           listener: (context, state) async {
+                            context
+                                .read<AuthCodeBloc>()
+                                .add(InitializeAuthCodeState(
+                                  emailAuthModel: state.emailAuthModel,
+                                  authProcedure: state.authProcedure,
+                                  authMethod: AuthMethod.email,
+                                ));
+
                             await verifyAuthCode(context).then((success) async {
                               if (success) {
+                                loadingScreen(_loadingContext);
                                 switch (state.authProcedure) {
                                   case AuthProcedure.deleteAccount:
                                   case AuthProcedure.anonymousLogin:
@@ -191,6 +203,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                   case AuthProcedure.login:
                                     await AppService.postSignInActions(context)
                                         .then((_) async {
+                                      Navigator.pop(_loadingContext);
                                       Future.delayed(
                                         const Duration(seconds: 2),
                                         () {
@@ -206,6 +219,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                     });
                                     break;
                                   case AuthProcedure.signup:
+                                    Navigator.pop(_loadingContext);
                                     await AppService.postSignInActions(context)
                                         .then((_) async {
                                       Future.delayed(
@@ -223,6 +237,13 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                     });
                                     break;
                                 }
+                              } else {
+                                context
+                                    .read<EmailAuthBloc>()
+                                    .add(InitializeEmailAuth(
+                                      emailAddress: state.emailAddress,
+                                      authProcedure: state.authProcedure,
+                                    ));
                               }
                             });
                           },
@@ -231,89 +252,9 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                 EmailAuthStatus.verificationCodeSent;
                           },
                         ),
-                        BlocListener<EmailAuthBloc, EmailAuthState>(
-                          listener: (context, state) {
-                            print("Authentication success");
-                            showSnackBar(context, "Authentication success");
-                          },
-                          listenWhen: (previous, current) {
-                            return current.status == EmailAuthStatus.success;
-                          },
-                        ),
                       ],
                       child: Container(),
                     ),
-
-                    // MultiBlocListener(
-                    //   listeners: [
-                    //     BlocListener<EmailAuthBloc, EmailAuthState>(
-                    //       listener: (context, state) {
-                    //         loadingScreen(_loadingContext);
-                    //       },
-                    //       listenWhen: (previous, current) {
-                    //         return current.blocStatus == BlocStatus.processing;
-                    //       },
-                    //     ),
-                    //     BlocListener<EmailAuthBloc, EmailAuthState>(
-                    //       listener: (context, state) {
-                    //         Navigator.pop(_loadingContext);
-                    //       },
-                    //       listenWhen: (previous, current) {
-                    //         return previous.blocStatus == BlocStatus.processing;
-                    //       },
-                    //     ),
-                    //     BlocListener<EmailAuthBloc, EmailAuthState>(
-                    //       listener: (context, state) {
-                    //         showSnackBar(context, state.error.message);
-                    //       },
-                    //       listenWhen: (previous, current) {
-                    //         return current.blocStatus == BlocStatus.error &&
-                    //             current.error != AuthenticationError.none &&
-                    //             current.error !=
-                    //                 AuthenticationError.invalidEmailAddress;
-                    //       },
-                    //     ),
-                    //     BlocListener<EmailAuthBloc, EmailAuthState>(
-                    //       listener: (context, state) {
-                    //         context
-                    //             .read<AuthCodeBloc>()
-                    //             .add(InitializeAuthCodeState(
-                    //               emailAddress: state.emailAddress,
-                    //               authProcedure: state.authProcedure,
-                    //               authMethod: AuthMethod.email,
-                    //             ));
-                    //
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(builder: (context) {
-                    //             return const AuthVerificationWidget();
-                    //           }),
-                    //         );
-                    //       },
-                    //       listenWhen: (previous, current) {
-                    //         return current.blocStatus == BlocStatus.success;
-                    //       },
-                    //     ),
-                    //   ],
-                    //   child: Container(),
-                    // ),
-                    //
-                    // InputValidationCodeMessage(
-                    //   state.blocStatus != BlocStatus.error,
-                    // ),
-                    // const SizedBox(
-                    //   height: 32,
-                    // ),
-                    //
-                    // InputValidationErrorMessage(
-                    //   message: AuthMethod.email.invalidInputErrorMessage,
-                    //   visible: state.blocStatus == BlocStatus.error &&
-                    //       state.error ==
-                    //           AuthenticationError.invalidEmailAddress,
-                    // ),
-                    // const SizedBox(
-                    //   height: 32,
-                    // ),
                   ],
                 ),
               );
@@ -361,8 +302,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
 
       return Future.value(false);
     }
-
-    Navigator.pop(_loadingContext);
 
     Navigator.pushAndRemoveUntil(
       context,

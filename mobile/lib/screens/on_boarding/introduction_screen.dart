@@ -9,7 +9,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../auth/email_auth_widget.dart';
-import '../auth/phone_auth_widget.dart';
 import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
 

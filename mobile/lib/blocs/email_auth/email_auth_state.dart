@@ -34,7 +34,7 @@ class EmailAuthState extends Equatable {
       authProcedure: authProcedure ?? this.authProcedure,
       status: status ?? this.status,
       emailAuthModel: emailAuthModel ?? this.emailAuthModel,
-      loading: loading ?? this.loading,
+      loading: loading ?? false,
     );
   }
 
