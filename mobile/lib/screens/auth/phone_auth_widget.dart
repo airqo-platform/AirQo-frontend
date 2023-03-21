@@ -2,19 +2,20 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/models/phone_auth_model.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
+import '../on_boarding/profile_setup_screen.dart';
 import 'auth_verification.dart';
-import 'auth_verification_backup.dart';
 import 'auth_widgets.dart';
-import 'email_auth_widget.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
   const PhoneAuthWidget({
@@ -54,234 +55,419 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          verticalPadding: 10,
-          child: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
-            listener: (context, state) {
-              return;
-            },
+          horizontalPadding: 24,
+          child: BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
             builder: (context, state) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MultiBlocListener(
-                        listeners: [
-                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                            listener: (context, state) {
-                              loadingScreen(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                            listener: (context, state) {
-                              Navigator.pop(_loadingContext);
-                            },
-                            listenWhen: (previous, current) {
-                              return previous.blocStatus ==
-                                  BlocStatus.processing;
-                            },
-                          ),
-                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                            listener: (context, state) {
-                              showSnackBar(context, state.error.message);
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.error &&
-                                  current.error !=
-                                      FirebaseAuthError
-                                          .authFailure && // TODO remove this
-                                  current.error !=
-                                      FirebaseAuthError.invalidPhoneNumber;
-                            },
-                          ),
-                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                            listener: (context, state) {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(InitializeAuthCodeState(
-                                    phoneNumber:
-                                        '${state.countryCode} ${state.phoneNumber}',
-                                    authProcedure: state.authProcedure,
-                                    authMethod: AuthMethod.phone,
-                                  ));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  /// initial Status
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.initial ||
+                        state.status == PhoneAuthStatus.verificationCodeSent,
+                    child: AuthTitle(
+                      AuthMethod.phone.optionsText(state.authProcedure),
+                    ),
+                  ),
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) {
-                                  return const AuthVerificationWidget();
-                                }),
-                              );
-                            },
-                            listenWhen: (previous, current) {
-                              return current.blocStatus == BlocStatus.success;
-                            },
-                          ),
-                        ],
-                        child: Container(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AutoSizeText(
-                          state.blocStatus == BlocStatus.error &&
-                                  state.error ==
-                                      FirebaseAuthError.invalidPhoneNumber
-                              ? AuthMethod.phone.invalidInputMessage
-                              : AuthMethod.phone
-                                  .optionsText(state.authProcedure),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyle.headline7(context),
-                        ),
-                      ),
-                      InputValidationCodeMessage(
-                        state.blocStatus != BlocStatus.error,
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                      SizedBox(
-                        height: 48,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 64,
-                              child: CountryCodePickerField(
-                                valueChange: (code) {
-                                  context
-                                      .read<PhoneAuthBloc>()
-                                      .add(UpdateCountryCode(
-                                        code ?? state.countryCode,
-                                      ));
-                                },
-                                placeholder: state.countryCode,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 16,
-                            ),
-                            const Expanded(
-                              child: PhoneInputField(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // InputValidationErrorMessage(
-                      //   message: state.phoneNumber.inValidPhoneNumberMessage(),
-                      //   visible: state.blocStatus == BlocStatus.error &&
-                      //       state.error ==
-                      //           AuthenticationError.invalidPhoneNumber,
-                      // ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(
-                            () {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) =>
-                                      state.authProcedure == AuthProcedure.login
-                                          ? const EmailLoginWidget()
-                                          : const EmailSignUpWidget(),
-                                  transitionsBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation.drive(
-                                        Tween<double>(
-                                          begin: 0,
-                                          end: 1,
-                                        ),
-                                      ),
-                                      child: child,
-                                    );
-                                  },
-                                ),
-                                (r) => false,
-                              );
-                            },
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.initial ||
+                        state.status == PhoneAuthStatus.verificationCodeSent,
+                    child: const AuthSubTitle(
+                      'We’ll send you a verification code',
+                    ),
+                  ),
+
+                  /// Success Status
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.success,
+                    child: const AuthTitle(
+                      "Success",
+                    ),
+                  ),
+
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.success,
+                    child: const AuthSubTitle(
+                      'Great, few more steps before you can breathe',
+                    ),
+                  ),
+
+                  /// Invalid Phone Status
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.phoneNumberTaken ||
+                        state.status ==
+                            PhoneAuthStatus.phoneNumberDoesNotExist ||
+                        state.status == PhoneAuthStatus.invalidPhoneNumber,
+                    child: const AuthTitle(
+                      "Oops, Something’s wrong with your number",
+                    ),
+                  ),
+
+                  /// Custom Error
+                  Visibility(
+                    visible: state.status == PhoneAuthStatus.error,
+                    child: const AuthTitle(
+                      "Oops, Something wrong happened",
+                    ),
+                  ),
+
+                  /// Phone Input field
+                  const SizedBox(
+                    height: 48,
+                    child: PhoneInputField(),
+                  ),
+
+                  /// Error message
+                  Visibility(
+                    visible: state.errorMessage.isNotEmpty,
+                    child: AuthErrorMessage(state.errorMessage),
+                  ),
+
+                  /// Switch signup options
+                  Visibility(
+                    visible: state.status != PhoneAuthStatus.success,
+                    child: SignUpButton(
+                      authProcedure: state.authProcedure,
+                      authMethod: AuthMethod.phone,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  /// Next button
+                  NextButton(
+                    buttonColor: state.phoneNumber.isValidPhoneNumber()
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorDisabled,
+                    callBack: () async {
+                      if (state.phoneNumber.isValidPhoneNumber()) {
+                        await _validatePhoneNumber();
+                      }
+                    },
+                  ),
+
+                  /// login options
+                  Visibility(
+                    visible: !_keyboardVisible &&
+                        state.status != PhoneAuthStatus.success,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      child: state.authProcedure == AuthProcedure.login
+                          ? const LoginOptions(authMethod: AuthMethod.phone)
+                          : const SignUpOptions(authMethod: AuthMethod.phone),
+                    ),
+                  ),
+
+                  /// listeners
+                  MultiBlocListener(
+                    listeners: [
+                      BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                        listener: (context, state) {
+                          FocusScope.of(context).requestFocus(
+                            FocusNode(),
                           );
+                          loadingScreen(_loadingContext);
                         },
-                        // child: SignUpButton(
-                        //   text: AuthMethod.phone
-                        //       .optionsButtonText(state.authProcedure),
-                        // ),
+                        listenWhen: (_, current) {
+                          return current.loading;
+                        },
                       ),
-                      const Spacer(),
-                      NextButton(
-                        buttonColor: state.phoneNumber.isValidPhoneNumber()
-                            ? CustomColors.appColorBlue
-                            : CustomColors.appColorDisabled,
-                        callBack: () async {
-                          if (!state.phoneNumber.isValidPhoneNumber()) {
-                            context
-                                .read<PhoneAuthBloc>()
-                                .add(const InvalidPhoneNumber());
-
-                            return;
-                          }
-
-                          await showDialog<ConfirmationAction>(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return AuthMethodDialog(
-                                credentials:
-                                    '${state.countryCode} ${state.phoneNumber}',
+                      BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                        listener: (context, state) {
+                          Navigator.pop(_loadingContext);
+                        },
+                        listenWhen: (previous, current) {
+                          return !current.loading && previous.loading;
+                        },
+                      ),
+                      BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                        listener: (context, state) async {
+                          context
+                              .read<AuthCodeBloc>()
+                              .add(InitializeAuthCodeState(
+                                phoneAuthModel: state.phoneAuthModel,
+                                authProcedure: state.authProcedure,
                                 authMethod: AuthMethod.phone,
-                              );
-                            },
-                          ).then(
-                            (action) => {
-                              if (action != null ||
-                                  action == ConfirmationAction.ok)
-                                {
-                                  context.read<PhoneAuthBloc>().add(
-                                        InitiatePhoneNumberVerification(
-                                          context: context,
-                                        ),
-                                      ),
-                                },
-                            },
-                          );
+                              ));
+
+                          await verifyAuthCode(context).then((success) async {
+                            if (success) {
+                              loadingScreen(_loadingContext);
+                              switch (state.authProcedure) {
+                                case AuthProcedure.deleteAccount:
+                                case AuthProcedure.anonymousLogin:
+                                case AuthProcedure.none:
+                                case AuthProcedure.logout:
+                                case AuthProcedure.login:
+                                  await AppService.postSignInActions(context)
+                                      .then((_) async {
+                                    Navigator.pop(_loadingContext);
+                                    Future.delayed(
+                                      const Duration(seconds: 2),
+                                      () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const HomePage()),
+                                          (r) => false,
+                                        );
+                                      },
+                                    );
+                                  });
+                                  break;
+                                case AuthProcedure.signup:
+                                  Navigator.pop(_loadingContext);
+                                  await AppService.postSignInActions(context)
+                                      .then((_) async {
+                                    Future.delayed(
+                                      const Duration(seconds: 2),
+                                      () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const ProfileSetupScreen()),
+                                          (r) => false,
+                                        );
+                                      },
+                                    );
+                                  });
+                                  break;
+                              }
+                            } else {
+                              context.read<PhoneAuthBloc>().add(
+                                    InitializePhoneAuth(
+                                      phoneNumber: state.phoneNumber,
+                                      authProcedure: state.authProcedure,
+                                    ),
+                                  );
+                            }
+                          });
                         },
-                      ),
-                      Visibility(
-                        visible: !_keyboardVisible,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 16, bottom: 12),
-                          child: state.authProcedure == AuthProcedure.login
-                              ? const LoginOptions(authMethod: AuthMethod.phone)
-                              : const SignUpOptions(
-                                  authMethod: AuthMethod.phone,
-                                ),
-                        ),
+                        listenWhen: (previous, current) {
+                          return current.status ==
+                              PhoneAuthStatus.verificationCodeSent;
+                        },
                       ),
                     ],
+                    child: Container(),
                   ),
-                ),
+                ],
               );
             },
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _validatePhoneNumber() async {
+    FocusScope.of(context).requestFocus(FocusNode());
+    String phoneNumber =
+        "${context.read<PhoneAuthBloc>().state.countryCode} ${context.read<PhoneAuthBloc>().state.phoneNumber}";
+
+    final confirmation = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AuthMethodDialog(
+          credentials: phoneNumber,
+          authMethod: AuthMethod.phone,
+        );
+      },
+    );
+
+    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    phoneNumber =
+        "${context.read<PhoneAuthBloc>().state.countryCode} ${context.read<PhoneAuthBloc>().state.phoneNumber}"
+            .replaceAll(" ", "");
+
+    context.read<PhoneAuthBloc>().add(const UpdateStatus(loading: true));
+    if (phoneNumber.isEmpty) {
+      context.read<PhoneAuthBloc>().add(const UpdateStatus(
+            status: PhoneAuthStatus.invalidPhoneNumber,
+            errorMessage: 'Phone number can\'t be blank',
+          ));
+      return;
+    }
+
+    if (!phoneNumber.isValidPhoneNumber()) {
+      context.read<PhoneAuthBloc>().add(const UpdateStatus(
+            status: PhoneAuthStatus.invalidPhoneNumber,
+            errorMessage: 'Invalid Phone number',
+          ));
+      return;
+    }
+
+    final hasConnection = await hasNetworkConnection();
+
+    if (!mounted) return;
+
+    if (!hasConnection) {
+      context.read<PhoneAuthBloc>().add(const UpdateStatus(
+            status: PhoneAuthStatus.error,
+            errorMessage: 'Check your internet connection',
+          ));
+      return;
+    }
+
+    AuthProcedure authProcedure =
+        context.read<PhoneAuthBloc>().state.authProcedure;
+    final bool? exists = await AirqoApiClient().checkIfUserExists(
+      phoneNumber: phoneNumber,
+    );
+
+    switch (authProcedure) {
+      case AuthProcedure.login:
+        if (!mounted) return;
+        if (exists == null) {
+          context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                status: PhoneAuthStatus.error,
+                errorMessage: "Failed to send code. Try again later",
+              ));
+          return;
+        }
+
+        if (!exists) {
+          context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                status: PhoneAuthStatus.phoneNumberDoesNotExist,
+                errorMessage: 'This number is not linked to any account.',
+              ));
+          return;
+        }
+        break;
+
+      case AuthProcedure.signup:
+        if (!mounted) return;
+        if (exists == null) {
+          context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                status: PhoneAuthStatus.error,
+                errorMessage: "Failed to send code. Try again later",
+              ));
+          return;
+        }
+        if (!mounted) return;
+        if (exists) {
+          context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                status: PhoneAuthStatus.phoneNumberTaken,
+                errorMessage:
+                    "An account already exists with this phone number",
+              ));
+          return;
+        }
+        break;
+
+      case AuthProcedure.anonymousLogin:
+      case AuthProcedure.deleteAccount:
+      case AuthProcedure.none:
+      case AuthProcedure.logout:
+        break;
+    }
+
+    if (!mounted) return;
+
+    PhoneAuthState state = context.read<PhoneAuthBloc>().state;
+    switch (authProcedure) {
+      case AuthProcedure.login:
+      case AuthProcedure.signup:
+        await FirebaseAuth.instance.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (PhoneAuthCredential credential) {
+            if (!mounted) return;
+            PhoneAuthModel phoneAuthModel = PhoneAuthModel(
+              phoneAuthCredential: credential,
+              verificationId: state.phoneAuthModel?.verificationId,
+              resendToken: state.phoneAuthModel?.resendToken,
+            );
+            context.read<PhoneAuthBloc>().add(UpdatePhoneAuthModel(
+                  phoneAuthModel,
+                ));
+            context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+                  AuthCodeStatus.success,
+                ));
+          },
+          verificationFailed: (FirebaseAuthException exception) {
+            if (!mounted) return;
+            final firebaseAuthError = CustomAuth.getFirebaseErrorCodeMessage(
+              exception.code,
+            );
+
+            switch (firebaseAuthError) {
+              case FirebaseAuthError.noInternetConnection:
+                context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                      status: PhoneAuthStatus.error,
+                      errorMessage: "Check your internet connection",
+                    ));
+                break;
+              case FirebaseAuthError.invalidPhoneNumber:
+                context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                      status: PhoneAuthStatus.invalidPhoneNumber,
+                      errorMessage: 'Invalid phone number',
+                    ));
+                break;
+              case FirebaseAuthError.authFailure:
+              case FirebaseAuthError.logInRequired:
+              case FirebaseAuthError.phoneNumberTaken:
+              case FirebaseAuthError.accountTaken:
+              case FirebaseAuthError.accountInvalid:
+                context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                      status: PhoneAuthStatus.error,
+                      errorMessage: 'Failed to send code. Try again later',
+                    ));
+                break;
+              case FirebaseAuthError.authSessionTimeout:
+              case FirebaseAuthError.invalidEmailAddress:
+              case FirebaseAuthError.emailTaken:
+              case FirebaseAuthError.invalidAuthCode:
+                break;
+            }
+          },
+          codeSent: (String verificationId, int? resendToken) {
+            if (!mounted) return;
+
+            PhoneAuthModel phoneAuthModel = PhoneAuthModel(
+              phoneAuthCredential: state.phoneAuthModel?.phoneAuthCredential,
+              verificationId: verificationId,
+              resendToken: resendToken,
+            );
+            context.read<PhoneAuthBloc>().add(UpdatePhoneAuthModel(
+                  phoneAuthModel,
+                ));
+            context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                  status: PhoneAuthStatus.verificationCodeSent,
+                ));
+          },
+          codeAutoRetrievalTimeout: (String verificationId) {
+            if (!mounted) return;
+            PhoneAuthModel phoneAuthModel = PhoneAuthModel(
+              phoneAuthCredential: state.phoneAuthModel?.phoneAuthCredential,
+              verificationId: verificationId,
+              resendToken: state.phoneAuthModel?.resendToken,
+            );
+            context.read<PhoneAuthBloc>().add(UpdatePhoneAuthModel(
+                  phoneAuthModel,
+                ));
+            context.read<PhoneAuthBloc>().add(const UpdateStatus(
+                  status: PhoneAuthStatus.verificationCodeSent,
+                ));
+          },
+          timeout: const Duration(seconds: 30),
+        );
+        break;
+      case AuthProcedure.anonymousLogin:
+      case AuthProcedure.deleteAccount:
+      case AuthProcedure.none:
+      case AuthProcedure.logout:
+        break;
+    }
   }
 
   Future<bool> onWillPop() {

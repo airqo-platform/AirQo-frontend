@@ -1,9 +1,7 @@
-//
 // import 'dart:async';
 //
 // import 'package:app/blocs/blocs.dart';
 // import 'package:app/models/models.dart';
-// import 'package:app/screens/auth/phone_auth_widget.dart';
 // import 'package:app/screens/home_page.dart';
 // import 'package:app/themes/theme.dart';
 // import 'package:app/utils/utils.dart';
@@ -14,22 +12,24 @@
 //
 // import '../on_boarding/on_boarding_widgets.dart';
 // import 'auth_verification.dart';
+// import 'auth_verification_backup.dart';
 // import 'auth_widgets.dart';
+// import 'email_auth_widget.dart';
 //
-// class EmailAuthWidget extends StatefulWidget {
-//   const EmailAuthWidget({
+// class PhoneAuthWidget extends StatefulWidget {
+//   const PhoneAuthWidget({
 //     super.key,
-//     this.emailAddress,
+//     this.phoneNumber,
 //     required this.authProcedure,
 //   });
-//   final String? emailAddress;
+//   final String? phoneNumber;
 //   final AuthProcedure authProcedure;
 //
 //   @override
-//   EmailAuthWidgetState createState() => EmailAuthWidgetState();
+//   PhoneAuthWidgetState createState() => PhoneAuthWidgetState();
 // }
 //
-// class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
+// class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 //   DateTime? _exitTime;
 //   late BuildContext _loadingContext;
 //   bool _keyboardVisible = false;
@@ -38,10 +38,10 @@
 //   void initState() {
 //     super.initState();
 //     _loadingContext = context;
-//     context.read<EmailAuthBloc>().add(InitializeEmailAuth(
-//           emailAddress: widget.emailAddress ?? '',
-//           authProcedure: widget.authProcedure,
-//         ));
+//     context.read<PhoneAuthBloc>().add(InitializePhoneAuth(
+//       phoneNumber: widget.phoneNumber ?? '',
+//       authProcedure: widget.authProcedure,
+//     ));
 //   }
 //
 //   @override
@@ -56,7 +56,7 @@
 //           backgroundColor: Colors.white,
 //           verticalPadding: 10,
 //           horizontalPadding: 24,
-//           child: BlocBuilder<EmailAuthBloc, EmailAuthState>(
+//           child: BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
 //             builder: (context, state) {
 //               return Center(
 //                 child: Column(
@@ -64,17 +64,29 @@
 //                   mainAxisAlignment: MainAxisAlignment.center,
 //                   children: [
 //
-//                     Visibility(
-//                       visible: state.blocStatus == EmailAuthStatus.initial,
-//                       child: const AuthSubTitle(),),
 //
-//                     Visibility(
-//                         visible: state.blocStatus == EmailAuthStatus.initial,
-//                         child: const AuthSubTitle(),),
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //                     MultiBlocListener(
 //                       listeners: [
-//                         BlocListener<EmailAuthBloc, EmailAuthState>(
+//                         BlocListener<PhoneAuthBloc, PhoneAuthState>(
 //                           listener: (context, state) {
 //                             loadingScreen(_loadingContext);
 //                           },
@@ -83,7 +95,7 @@
 //                                 BlocStatus.processing;
 //                           },
 //                         ),
-//                         BlocListener<EmailAuthBloc, EmailAuthState>(
+//                         BlocListener<PhoneAuthBloc, PhoneAuthState>(
 //                           listener: (context, state) {
 //                             Navigator.pop(_loadingContext);
 //                           },
@@ -92,26 +104,29 @@
 //                                 BlocStatus.processing;
 //                           },
 //                         ),
-//                         BlocListener<EmailAuthBloc, EmailAuthState>(
+//                         BlocListener<PhoneAuthBloc, PhoneAuthState>(
 //                           listener: (context, state) {
 //                             showSnackBar(context, state.error.message);
 //                           },
 //                           listenWhen: (previous, current) {
 //                             return current.blocStatus == BlocStatus.error &&
-//                                 current.error != AuthenticationError.none &&
 //                                 current.error !=
-//                                     AuthenticationError.invalidEmailAddress;
+//                                     FirebaseAuthError
+//                                         .authFailure && // TODO remove this
+//                                 current.error !=
+//                                     FirebaseAuthError.invalidPhoneNumber;
 //                           },
 //                         ),
-//                         BlocListener<EmailAuthBloc, EmailAuthState>(
+//                         BlocListener<PhoneAuthBloc, PhoneAuthState>(
 //                           listener: (context, state) {
 //                             context
 //                                 .read<AuthCodeBloc>()
 //                                 .add(InitializeAuthCodeState(
-//                                   emailAddress: state.emailAddress,
-//                                   authProcedure: state.authProcedure,
-//                                   authMethod: AuthMethod.email,
-//                                 ));
+//                               phoneNumber:
+//                               '${state.countryCode} ${state.phoneNumber}',
+//                               authProcedure: state.authProcedure,
+//                               authMethod: AuthMethod.phone,
+//                             ));
 //
 //                             Navigator.push(
 //                               context,
@@ -131,59 +146,79 @@
 //                       padding: const EdgeInsets.symmetric(horizontal: 16),
 //                       child: AutoSizeText(
 //                         state.blocStatus == BlocStatus.error &&
-//                                 state.error ==
-//                                     AuthenticationError.invalidEmailAddress
-//                             ? AuthMethod.email.invalidInputMessage
-//                             : AuthMethod.email
-//                                 .optionsText(state.authProcedure),
+//                             state.error ==
+//                                 FirebaseAuthError.invalidPhoneNumber
+//                             ? AuthMethod.phone.invalidInputMessage
+//                             : AuthMethod.phone
+//                             .optionsText(state.authProcedure),
 //                         textAlign: TextAlign.center,
 //                         maxLines: 2,
 //                         overflow: TextOverflow.ellipsis,
 //                         style: CustomTextStyle.headline7(context),
 //                       ),
 //                     ),
-//
-//
 //                     InputValidationCodeMessage(
 //                       state.blocStatus != BlocStatus.error,
 //                     ),
 //                     const SizedBox(
 //                       height: 32,
 //                     ),
-//                     const SizedBox(
+//                     SizedBox(
 //                       height: 48,
-//                       child: EmailInputField(),
+//                       child: Row(
+//                         children: [
+//                           SizedBox(
+//                             width: 64,
+//                             child: CountryCodePickerField(
+//                               valueChange: (code) {
+//                                 context
+//                                     .read<PhoneAuthBloc>()
+//                                     .add(UpdateCountryCode(
+//                                   code ?? state.countryCode,
+//                                 ));
+//                               },
+//                               placeholder: state.countryCode,
+//                             ),
+//                           ),
+//                           const SizedBox(
+//                             width: 16,
+//                           ),
+//                           const Expanded(
+//                             child: PhoneInputField(),
+//                           ),
+//                         ],
+//                       ),
 //                     ),
-//                     InputValidationErrorMessage(
-//                       message: AuthMethod.email.invalidInputErrorMessage,
-//                       visible: state.blocStatus == BlocStatus.error &&
-//                           state.error ==
-//                               AuthenticationError.invalidEmailAddress,
-//                     ),
+//                     // InputValidationErrorMessage(
+//                     //   message: state.phoneNumber.inValidPhoneNumberMessage(),
+//                     //   visible: state.blocStatus == BlocStatus.error &&
+//                     //       state.error ==
+//                     //           AuthenticationError.invalidPhoneNumber,
+//                     // ),
 //                     const SizedBox(
 //                       height: 32,
 //                     ),
 //                     GestureDetector(
 //                       onTap: () {
 //                         setState(
-//                           () {
+//                               () {
 //                             Navigator.pushAndRemoveUntil(
 //                               context,
 //                               PageRouteBuilder(
 //                                 pageBuilder: (
-//                                   context,
-//                                   animation,
-//                                   secondaryAnimation,
-//                                 ) =>
-//                                     state.authProcedure == AuthProcedure.login
-//                                         ? const PhoneLoginWidget()
-//                                         : const PhoneSignUpWidget(),
+//                                     context,
+//                                     animation,
+//                                     secondaryAnimation,
+//                                     ) =>
+//                                 state.authProcedure == AuthProcedure.login
+//                                     ? const EmailLoginWidget()
+//                                     : const EmailSignUpWidget(),
 //                                 transitionsBuilder: (
-//                                   context,
-//                                   animation,
-//                                   secondaryAnimation,
-//                                   child,
-//                                 ) {
+//                                     context,
+//                                     animation,
+//                                     secondaryAnimation,
+//                                     child,
+//                                     ) {
 //                                   return FadeTransition(
 //                                     opacity: animation.drive(
 //                                       Tween<double>(
@@ -195,25 +230,53 @@
 //                                   );
 //                                 },
 //                               ),
-//                               (r) => false,
+//                                   (r) => false,
 //                             );
 //                           },
 //                         );
 //                       },
-//                       child: SignUpButton(
-//                         text: AuthMethod.email
-//                             .optionsButtonText(state.authProcedure),
-//                       ),
+//                       // child: SignUpButton(
+//                       //   text: AuthMethod.phone
+//                       //       .optionsButtonText(state.authProcedure),
+//                       // ),
 //                     ),
 //                     const Spacer(),
 //                     NextButton(
-//                       buttonColor: state.emailAddress.isValidEmail()
+//                       buttonColor: state.phoneNumber.isValidPhoneNumber()
 //                           ? CustomColors.appColorBlue
 //                           : CustomColors.appColorDisabled,
-//                       callBack: () {
-//                         context
-//                             .read<EmailAuthBloc>()
-//                             .add(ValidateEmailAddress(context: context));
+//                       callBack: () async {
+//                         if (!state.phoneNumber.isValidPhoneNumber()) {
+//                           context
+//                               .read<PhoneAuthBloc>()
+//                               .add(const InvalidPhoneNumber());
+//
+//                           return;
+//                         }
+//
+//                         await showDialog<ConfirmationAction>(
+//                           context: context,
+//                           barrierDismissible: false,
+//                           builder: (BuildContext context) {
+//                             return AuthMethodDialog(
+//                               credentials:
+//                               '${state.countryCode} ${state.phoneNumber}',
+//                               authMethod: AuthMethod.phone,
+//                             );
+//                           },
+//                         ).then(
+//                               (action) => {
+//                             if (action != null ||
+//                                 action == ConfirmationAction.ok)
+//                               {
+//                                 context.read<PhoneAuthBloc>().add(
+//                                   InitiatePhoneNumberVerification(
+//                                     context: context,
+//                                   ),
+//                                 ),
+//                               },
+//                           },
+//                         );
 //                       },
 //                     ),
 //                     Visibility(
@@ -221,10 +284,10 @@
 //                       child: Padding(
 //                         padding: const EdgeInsets.only(top: 16, bottom: 12),
 //                         child: state.authProcedure == AuthProcedure.login
-//                             ? const LoginOptions(authMethod: AuthMethod.email)
+//                             ? const LoginOptions(authMethod: AuthMethod.phone)
 //                             : const SignUpOptions(
-//                                 authMethod: AuthMethod.email,
-//                               ),
+//                           authMethod: AuthMethod.phone,
+//                         ),
 //                       ),
 //                     ),
 //                   ],
@@ -246,45 +309,45 @@
 //
 //       showSnackBar(
 //         context,
-//         'Tap again to cancel !',
+//         'Tap again to cancel!',
 //       );
 //
 //       return Future.value(false);
 //     }
 //
-//     Navigator.pop(_loadingContext);
-//
 //     Navigator.pushAndRemoveUntil(
 //       context,
-//       MaterialPageRoute(builder: (context) {
-//         return const HomePage();
-//       }),
-//       (r) => false,
+//       MaterialPageRoute(
+//         builder: (context) {
+//           return const HomePage();
+//         },
+//       ),
+//           (r) => false,
 //     );
 //
 //     return Future.value(false);
 //   }
 // }
 //
-// class EmailLoginWidget extends EmailAuthWidget {
-//   const EmailLoginWidget({super.key, String? emailAddress})
+// class PhoneLoginWidget extends PhoneAuthWidget {
+//   const PhoneLoginWidget({super.key, String? phoneNumber})
 //       : super(
-//           emailAddress: emailAddress,
-//           authProcedure: AuthProcedure.login,
-//         );
+//     phoneNumber: phoneNumber,
+//     authProcedure: AuthProcedure.login,
+//   );
 //
 //   @override
-//   EmailLoginWidgetState createState() => EmailLoginWidgetState();
+//   PhoneLoginWidgetState createState() => PhoneLoginWidgetState();
 // }
 //
-// class EmailLoginWidgetState extends EmailAuthWidgetState<EmailLoginWidget> {}
+// class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
 //
-// class EmailSignUpWidget extends EmailAuthWidget {
-//   const EmailSignUpWidget({super.key})
+// class PhoneSignUpWidget extends PhoneAuthWidget {
+//   const PhoneSignUpWidget({super.key})
 //       : super(authProcedure: AuthProcedure.signup);
 //
 //   @override
-//   EmailSignUpWidgetState createState() => EmailSignUpWidgetState();
+//   PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();
 // }
 //
-// class EmailSignUpWidgetState extends EmailAuthWidgetState<EmailSignUpWidget> {}
+// class PhoneSignUpWidgetState extends PhoneAuthWidgetState<PhoneSignUpWidget> {}

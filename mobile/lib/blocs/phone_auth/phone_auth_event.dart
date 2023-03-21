@@ -15,29 +15,6 @@ class InitializePhoneAuth extends PhoneAuthEvent {
   List<Object?> get props => [];
 }
 
-class ClearPhoneNumberEvent extends PhoneAuthEvent {
-  const ClearPhoneNumberEvent();
-  @override
-  List<Object?> get props => [];
-}
-
-class InitiatePhoneNumberVerification extends PhoneAuthEvent {
-  const InitiatePhoneNumberVerification({
-    required this.context,
-  });
-  final BuildContext context;
-  @override
-  List<Object?> get props => [];
-}
-
-class UpdateStatus extends PhoneAuthEvent {
-  const UpdateStatus(this.authStatus, {this.error});
-  final BlocStatus authStatus;
-  final FirebaseAuthError? error;
-  @override
-  List<Object?> get props => [authStatus, error];
-}
-
 class UpdateCountryCode extends PhoneAuthEvent {
   const UpdateCountryCode(this.code);
   final String code;
@@ -45,15 +22,33 @@ class UpdateCountryCode extends PhoneAuthEvent {
   List<Object?> get props => [code];
 }
 
+class ClearPhoneNumberEvent extends PhoneAuthEvent {
+  const ClearPhoneNumberEvent();
+  @override
+  List<Object?> get props => [];
+}
+
+class UpdatePhoneAuthModel extends PhoneAuthEvent {
+  const UpdatePhoneAuthModel(this.phoneAuthModel);
+  final PhoneAuthModel phoneAuthModel;
+
+  @override
+  List<Object?> get props => [phoneAuthModel];
+}
+
+class UpdateStatus extends PhoneAuthEvent {
+  const UpdateStatus({this.loading, this.status, this.errorMessage});
+  final bool? loading;
+  final PhoneAuthStatus? status;
+  final String? errorMessage;
+
+  @override
+  List<Object?> get props => [loading, errorMessage, status];
+}
+
 class UpdatePhoneNumber extends PhoneAuthEvent {
   const UpdatePhoneNumber(this.phoneNumber);
   final String phoneNumber;
   @override
   List<Object?> get props => [phoneNumber];
-}
-
-class InvalidPhoneNumber extends PhoneAuthEvent {
-  const InvalidPhoneNumber();
-  @override
-  List<Object?> get props => [];
 }

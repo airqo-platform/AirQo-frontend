@@ -4,7 +4,6 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'email_auth_event.dart';
@@ -45,7 +44,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   }
 
   Future<void> _onValidateEmailAddress(
-    ValidateEmailAddress event,
+    ValidateEmailAddress _,
     Emitter<EmailAuthState> emit,
   ) async {
     emit(state.copyWith(loading: true));

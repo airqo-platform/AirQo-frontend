@@ -256,6 +256,9 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                           FocusScope.of(context).requestFocus(
                             FocusNode(),
                           );
+                          if (state.loading) {
+                            Navigator.pop(_loadingContext);
+                          }
                         },
                         listenWhen: (previous, current) {
                           return current.status == AuthCodeStatus.success;

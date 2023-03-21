@@ -4,7 +4,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -43,61 +42,6 @@ class AppService {
     await CloudAnalytics.logSignOutEvents();
   }
 
-  Future<bool> authenticateUser({
-    required AuthProcedure authProcedure,
-    AuthCredential? authCredential,
-  }) async {
-    late bool authSuccessful;
-
-    switch (authProcedure) {
-      case AuthProcedure.login:
-      case AuthProcedure.signup:
-      case AuthProcedure.anonymousLogin:
-        authSuccessful = await CustomAuth.firebaseSignIn(authCredential);
-        break;
-
-      case AuthProcedure.deleteAccount:
-        final reAuthentication =
-            await CustomAuth.reAuthenticate(authCredential!);
-        if (reAuthentication) {
-          final logging =
-              await CloudAnalytics.logEvent(CloudAnalyticsEvent.deletedAccount);
-          final localStorageDeletion = await _clearUserLocalStorage();
-          if (logging && localStorageDeletion) {
-            authSuccessful = await CustomAuth.deleteAccount();
-          }
-        } else {
-          authSuccessful = false;
-        }
-        break;
-
-      case AuthProcedure.logout:
-      case AuthProcedure.none:
-        authSuccessful = true;
-        break;
-    }
-
-    if (authSuccessful) {
-      switch (authProcedure) {
-        case AuthProcedure.login:
-          await _postLoginActions();
-          break;
-        case AuthProcedure.signup:
-          await _postSignUpActions();
-          break;
-        case AuthProcedure.logout:
-          return _postLogOutActions();
-        case AuthProcedure.anonymousLogin:
-          break;
-        case AuthProcedure.deleteAccount:
-        case AuthProcedure.none:
-          break;
-      }
-    }
-
-    return authSuccessful;
-  }
-
   static Future<Kya?> getKya(Kya kya) async {
     if (!kya.isEmpty()) return kya;
 
@@ -115,29 +59,6 @@ class AppService {
       await logException(exception, stackTrace);
 
       return null;
-    }
-  }
-
-  Future<bool> doesUserExist({
-    String? phoneNumber,
-    String? emailAddress,
-  }) async {
-    try {
-      if (emailAddress != null) {
-        final methods = await FirebaseAuth.instance
-            .fetchSignInMethodsForEmail(emailAddress);
-
-        return methods.isNotEmpty;
-      }
-      return true;
-      // return AirqoApiClient().checkIfUserExists(
-      //   phoneNumber: phoneNumber,
-      //   emailAddress: emailAddress,
-      // );
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-
-      return true;
     }
   }
 
@@ -171,16 +92,6 @@ class AppService {
     return true;
   }
 
-  Future<void> _postLoginActions() async {
-    try {
-      await Future.wait([
-        CloudAnalytics.logPlatformType(),
-      ]);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<void> setShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, true);
@@ -210,41 +121,6 @@ class AppService {
         builder: (_) => screen,
       ),
     );
-  }
-
-  Future<void> _postSignUpActions() async {
-    try {
-      await Future.wait([
-        CloudAnalytics.logEvent(
-          CloudAnalyticsEvent.createUserProfile,
-        ),
-        CloudAnalytics.logNetworkProvider(),
-        CloudAnalytics.logPlatformType(),
-        CloudAnalytics.logGender(),
-      ]);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<bool> _postLogOutActions() async {
-    // TODO Login anonymously
-    try {
-      final placesUpdated = await CloudStore.updateFavouritePlaces([]);
-      final analyticsUpdated = await CloudStore.updateLocationHistory([]);
-      final localStorageCleared = await _clearUserLocalStorage();
-
-      if (placesUpdated && analyticsUpdated && localStorageCleared) {
-        return CustomAuth.logOut();
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
   }
 
   Future<AppStoreVersion?> latestVersion() async {

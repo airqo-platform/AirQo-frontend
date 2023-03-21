@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../auth/email_auth_widget.dart';
+import '../auth/phone_auth_widget.dart';
 import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -78,7 +78,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) {
-                      return const EmailSignUpWidget();
+                      return const PhoneSignUpWidget();
                     }),
                     (r) => false,
                   );

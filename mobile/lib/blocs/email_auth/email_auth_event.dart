@@ -30,23 +30,8 @@ class ClearEmailAddress extends EmailAuthEvent {
 }
 
 class ValidateEmailAddress extends EmailAuthEvent {
-  const ValidateEmailAddress({
-    required this.context,
-  });
-  final BuildContext context;
+  const ValidateEmailAddress();
+
   @override
   List<Object?> get props => [];
 }
-
-// class EmailValidationFailed extends EmailAuthEvent {
-//   const EmailValidationFailed(this.authenticationError);
-//   final AuthenticationError authenticationError;
-//   @override
-//   List<Object?> get props => [authenticationError];
-// }
-//
-// class EmailValidationPassed extends EmailAuthEvent {
-//   const EmailValidationPassed();
-//   @override
-//   List<Object?> get props => [];
-// }

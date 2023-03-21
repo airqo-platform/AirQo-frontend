@@ -492,6 +492,7 @@ class CustomAuth {
   static Future<bool> deleteAccount() async {
     try {
       await FirebaseAuth.instance.currentUser?.delete();
+      return true;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -499,7 +500,7 @@ class CustomAuth {
       );
     }
 
-    return true;
+    return false;
   }
 
   static Future<bool> firebaseSignIn(

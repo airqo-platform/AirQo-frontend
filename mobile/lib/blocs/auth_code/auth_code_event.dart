@@ -8,17 +8,18 @@ class InitializeAuthCodeState extends AuthCodeEvent {
   const InitializeAuthCodeState({
     required this.authMethod,
     required this.authProcedure,
-    this.phoneNumber,
+    this.phoneAuthModel,
     this.emailAuthModel,
   });
 
-  final String? phoneNumber;
+  final PhoneAuthModel? phoneAuthModel;
   final EmailAuthModel? emailAuthModel;
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
 
   @override
-  List<Object?> get props => [phoneNumber, authProcedure, emailAuthModel];
+  List<Object?> get props =>
+      [phoneAuthModel, authProcedure, emailAuthModel, authMethod];
 }
 
 class ClearAuthCodeState extends AuthCodeEvent {
@@ -50,19 +51,11 @@ class UpdateCountDown extends AuthCodeEvent {
   List<Object?> get props => [];
 }
 
-// class UpdateVerificationId extends AuthCodeEvent {
-//   const UpdateVerificationId(this.verificationId);
-//   final String verificationId;
-//   @override
-//   List<Object?> get props => [verificationId];
-// }
-//
-class UpdateEmailAuthModel extends AuthCodeEvent {
-  const UpdateEmailAuthModel(this.authModel);
-
-  final EmailAuthModel authModel;
+class UpdateAuthCodeStatus extends AuthCodeEvent {
+  const UpdateAuthCodeStatus(this.status);
+  final AuthCodeStatus status;
   @override
-  List<Object> get props => [authModel];
+  List<Object?> get props => [status];
 }
 
 class ResendAuthCode extends AuthCodeEvent {

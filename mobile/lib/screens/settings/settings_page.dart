@@ -280,8 +280,20 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  void _deleteAccount() {
-    // context.read<AccountBloc>().add(DeleteAccount(context: context));
+  Future<void> _deleteAccount() async {
+    // TODO add account deletion
+    // bool authSuccessful = await CustomAuth.deleteAccount();
+    // if(!authSuccessful){
+    //   final reAuthentication = await CustomAuth.reAuthenticate();
+    //   if(reAuthentication){
+    //     authSuccessful = await CustomAuth.deleteAccount();
+    //     if(authSuccessful){
+    //       if (mounted){
+    //         await AppService.postSignOutActions(context);
+    //       }
+    //     }
+    //   }
+    // }
   }
 
   void _startShowcase() {

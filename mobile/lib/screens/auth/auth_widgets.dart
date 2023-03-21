@@ -168,24 +168,62 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       builder: (context, state) {
-        Color formColor = state.phoneNumber.isValidPhoneNumber()
-            ? CustomColors.appColorValid
-            : CustomColors.appColorBlue;
-        Color fillColor = state.phoneNumber.isValidPhoneNumber()
-            ? formColor.withOpacity(0.05)
-            : Colors.transparent;
-        Color textColor = state.phoneNumber.isValidPhoneNumber()
-            ? formColor
-            : CustomColors.appColorBlack;
-        Color suffixIconColor = state.phoneNumber.isValidPhoneNumber()
-            ? formColor
-            : CustomColors.greyColor.withOpacity(0.7);
+        Color formColor;
+        Color fillColor;
+        Color textColor;
+        Color suffixIconColor;
+        Widget suffixIcon;
 
-        if (state.blocStatus == BlocStatus.error) {
-          formColor = CustomColors.appColorInvalid;
-          textColor = formColor;
-          suffixIconColor = formColor;
-          fillColor = formColor.withOpacity(0.05);
+        switch (state.status) {
+          case PhoneAuthStatus.initial:
+          case PhoneAuthStatus.verificationCodeSent:
+            if (state.phoneNumber.isValidPhoneNumber()) {
+              formColor = CustomColors.appColorValid;
+              textColor = CustomColors.appColorValid;
+              suffixIconColor = CustomColors.appColorValid;
+              fillColor = CustomColors.appColorValid.withOpacity(0.05);
+              suffixIcon = const Padding(
+                padding: EdgeInsets.all(14),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                ),
+              );
+              break;
+            }
+
+            formColor = CustomColors.appColorBlue;
+            textColor = CustomColors.appColorBlack;
+            suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
+            fillColor = Colors.transparent;
+            suffixIcon = TextInputCloseButton(
+              color: suffixIconColor,
+            );
+
+            break;
+          case PhoneAuthStatus.error:
+          case PhoneAuthStatus.phoneNumberDoesNotExist:
+          case PhoneAuthStatus.phoneNumberTaken:
+          case PhoneAuthStatus.invalidPhoneNumber:
+            formColor = CustomColors.appColorInvalid;
+            textColor = CustomColors.appColorInvalid;
+            suffixIconColor = CustomColors.appColorInvalid;
+            fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
+            suffixIcon = TextInputCloseButton(
+              color: suffixIconColor,
+            );
+            break;
+          case PhoneAuthStatus.success:
+            formColor = CustomColors.appColorValid;
+            textColor = CustomColors.appColorValid;
+            suffixIconColor = CustomColors.appColorValid;
+            fillColor = CustomColors.appColorValid.withOpacity(0.05);
+            suffixIcon = const Padding(
+              padding: EdgeInsets.all(14),
+              child: Icon(
+                Icons.check_circle_rounded,
+              ),
+            );
+            break;
         }
 
         InputBorder inputBorder = OutlineInputBorder(
@@ -193,85 +231,92 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
           borderRadius: BorderRadius.circular(8.0),
         );
 
-        Widget suffixIcon = state.phoneNumber.isValidPhoneNumber()
-            ? const Padding(
-                padding: EdgeInsets.all(14),
-                child: Icon(Icons.check_circle_rounded),
-              )
-            : TextInputCloseButton(
-                color: suffixIconColor,
-              );
-
-        return TextFormField(
-          controller: _phoneInputController,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(
-              RegExp(r'[0-9]'),
-            ),
-            PhoneNumberInputFormatter(),
-          ],
-          onEditingComplete: () {
-            FocusScope.of(context).requestFocus(
-              FocusNode(),
-            );
-          },
-          onTap: () {
-            context
-                .read<PhoneAuthBloc>()
-                .add(UpdatePhoneNumber(state.phoneNumber));
-          },
-          onChanged: (value) {
-            context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
-          },
-          style:
-              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
-          enableSuggestions: false,
-          cursorWidth: 1,
-          autofocus: false,
-          cursorColor: formColor,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-            iconColor: formColor,
-            fillColor: fillColor,
-            filled: true,
-            focusedBorder: inputBorder,
-            enabledBorder: inputBorder,
-            border: inputBorder,
-            suffixIconColor: formColor,
-            hintText: '700 000 000',
-            prefixIcon: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
-              child: Text(
-                '${state.countryCode} ',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.32),
-                    ),
+        return Row(
+          children: [
+            SizedBox(
+              width: 64,
+              child: CountryCodePickerField(
+                valueChange: (code) {
+                  context.read<PhoneAuthBloc>().add(UpdateCountryCode(
+                        code ?? state.countryCode,
+                      ));
+                },
+                placeholder: state.countryCode,
               ),
             ),
-            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            suffixIcon: GestureDetector(
-              onTap: () {
-                _phoneInputController.text = '';
-                FocusScope.of(context).requestFocus(
-                  FocusNode(),
-                );
-
-                context
-                    .read<PhoneAuthBloc>()
-                    .add(const ClearPhoneNumberEvent());
-              },
-              child: suffixIcon,
+            const SizedBox(
+              width: 16,
             ),
-            errorStyle: const TextStyle(
-              fontSize: 0,
+            Expanded(
+              child: TextFormField(
+                controller: _phoneInputController,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'\d'),
+                  ),
+                  PhoneNumberInputFormatter(),
+                ],
+                onEditingComplete: () {
+                  FocusScope.of(context).requestFocus(
+                    FocusNode(),
+                  );
+                },
+                onChanged: (value) {
+                  context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
+                },
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: textColor),
+                enableSuggestions: false,
+                cursorWidth: 1,
+                autofocus: false,
+                cursorColor: formColor,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+                  iconColor: formColor,
+                  fillColor: fillColor,
+                  filled: true,
+                  focusedBorder: inputBorder,
+                  enabledBorder: inputBorder,
+                  border: inputBorder,
+                  suffixIconColor: formColor,
+                  hintText: '700 000 000',
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
+                    child: Text(
+                      '${state.countryCode} ',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: textColor,
+                          ),
+                    ),
+                  ),
+                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      _phoneInputController.text = '';
+                      FocusScope.of(context).requestFocus(
+                        FocusNode(),
+                      );
+                      context
+                          .read<PhoneAuthBloc>()
+                          .add(const ClearPhoneNumberEvent());
+                    },
+                    child: suffixIcon,
+                  ),
+                  errorStyle: const TextStyle(
+                    fontSize: 0,
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         );
       },
     );

@@ -13,6 +13,7 @@ class AuthCodeState extends Equatable {
     this.inputAuthCode = '',
     this.codeCountDown = 5,
     this.emailAuthModel,
+    this.phoneAuthModel,
     this.status = AuthCodeStatus.initial,
     this.authProcedure = AuthProcedure.signup,
     this.authMethod = AuthMethod.phone,
@@ -25,6 +26,7 @@ class AuthCodeState extends Equatable {
     int? codeCountDown,
     AuthCodeStatus? status,
     EmailAuthModel? emailAuthModel,
+    PhoneAuthModel? phoneAuthModel,
     AuthMethod? authMethod,
     AuthProcedure? authProcedure,
     bool? loading,
@@ -35,6 +37,7 @@ class AuthCodeState extends Equatable {
       codeCountDown: codeCountDown ?? this.codeCountDown,
       errorMessage: errorMessage ?? "",
       emailAuthModel: emailAuthModel ?? this.emailAuthModel,
+      phoneAuthModel: phoneAuthModel ?? this.phoneAuthModel,
       authProcedure: authProcedure ?? this.authProcedure,
       authMethod: authMethod ?? this.authMethod,
       loading: loading ?? false,
@@ -45,6 +48,7 @@ class AuthCodeState extends Equatable {
   final int codeCountDown;
   final String errorMessage;
   final EmailAuthModel? emailAuthModel;
+  final PhoneAuthModel? phoneAuthModel;
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
   final String inputAuthCode;
@@ -53,6 +57,7 @@ class AuthCodeState extends Equatable {
   @override
   List<Object?> get props => [
         emailAuthModel,
+        phoneAuthModel,
         errorMessage,
         authProcedure,
         status,

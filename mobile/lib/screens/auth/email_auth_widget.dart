@@ -54,209 +54,208 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          verticalPadding: 10,
           horizontalPadding: 24,
           child: BlocBuilder<EmailAuthBloc, EmailAuthState>(
             builder: (context, state) {
-              return Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    /// initial Status
-                    Visibility(
-                      visible: state.status == EmailAuthStatus.initial ||
-                          state.status == EmailAuthStatus.verificationCodeSent,
-                      child: AuthTitle(
-                        AuthMethod.email.optionsText(state.authProcedure),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  /// initial Status
+                  Visibility(
+                    visible: state.status == EmailAuthStatus.initial ||
+                        state.status == EmailAuthStatus.verificationCodeSent,
+                    child: AuthTitle(
+                      AuthMethod.email.optionsText(state.authProcedure),
+                    ),
+                  ),
+
+                  Visibility(
+                    visible: state.status == EmailAuthStatus.initial ||
+                        state.status == EmailAuthStatus.verificationCodeSent,
+                    child: const AuthSubTitle(
+                      'We’ll send you a verification code',
+                    ),
+                  ),
+
+                  /// Success Status
+                  Visibility(
+                    visible: state.status == EmailAuthStatus.success,
+                    child: const AuthTitle(
+                      "Success",
+                    ),
+                  ),
+
+                  Visibility(
+                    visible: state.status == EmailAuthStatus.success,
+                    child: const AuthSubTitle(
+                      'Great, few more steps before you can breathe',
+                    ),
+                  ),
+
+                  /// Invalid Email Status
+                  Visibility(
+                    visible:
+                        state.status == EmailAuthStatus.emailAddressTaken ||
+                            state.status ==
+                                EmailAuthStatus.emailAddressDoesNotExist ||
+                            state.status == EmailAuthStatus.invalidEmailAddress,
+                    child: const AuthTitle(
+                      "Oops, Something’s wrong with your email",
+                    ),
+                  ),
+
+                  /// Custom Error
+                  Visibility(
+                    visible: state.status == EmailAuthStatus.error,
+                    child: const AuthTitle(
+                      "Oops, Something wrong happened",
+                    ),
+                  ),
+
+                  /// Email Input field
+                  const SizedBox(
+                    height: 48,
+                    child: EmailInputField(),
+                  ),
+
+                  /// Error message
+                  Visibility(
+                    visible: state.errorMessage.isNotEmpty,
+                    child: AuthErrorMessage(state.errorMessage),
+                  ),
+
+                  /// Switch signup options
+                  Visibility(
+                    visible: state.status != EmailAuthStatus.success,
+                    child: SignUpButton(
+                      authProcedure: state.authProcedure,
+                      authMethod: AuthMethod.email,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  /// Next button
+                  NextButton(
+                    buttonColor: state.emailAddress.isValidEmail()
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorDisabled,
+                    callBack: () async {
+                      if (state.emailAddress.isValidEmail()) {
+                        await _validateEmailAddress();
+                      }
+                    },
+                  ),
+
+                  /// login options
+                  Visibility(
+                    visible: !_keyboardVisible &&
+                        state.status != EmailAuthStatus.success,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      child: state.authProcedure == AuthProcedure.login
+                          ? const LoginOptions(authMethod: AuthMethod.email)
+                          : const SignUpOptions(authMethod: AuthMethod.email),
+                    ),
+                  ),
+
+                  /// listeners
+                  MultiBlocListener(
+                    listeners: [
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          FocusScope.of(context).requestFocus(
+                            FocusNode(),
+                          );
+                          loadingScreen(_loadingContext);
+                        },
+                        listenWhen: (_, current) {
+                          return current.loading;
+                        },
                       ),
-                    ),
-
-                    Visibility(
-                      visible: state.status == EmailAuthStatus.initial ||
-                          state.status == EmailAuthStatus.verificationCodeSent,
-                      child: const AuthSubTitle(
-                        'We’ll send you a verification code',
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) {
+                          Navigator.pop(_loadingContext);
+                        },
+                        listenWhen: (previous, current) {
+                          return !current.loading && previous.loading;
+                        },
                       ),
-                    ),
+                      BlocListener<EmailAuthBloc, EmailAuthState>(
+                        listener: (context, state) async {
+                          context
+                              .read<AuthCodeBloc>()
+                              .add(InitializeAuthCodeState(
+                                emailAuthModel: state.emailAuthModel,
+                                authProcedure: state.authProcedure,
+                                authMethod: AuthMethod.email,
+                              ));
 
-                    /// Success Status
-                    Visibility(
-                      visible: state.status == EmailAuthStatus.success,
-                      child: const AuthTitle(
-                        "Success",
-                      ),
-                    ),
-
-                    Visibility(
-                      visible: state.status == EmailAuthStatus.success,
-                      child: const AuthSubTitle(
-                        'Great, few more steps before you can breathe',
-                      ),
-                    ),
-
-                    /// Invalid Email Status
-                    Visibility(
-                      visible: state.status ==
-                              EmailAuthStatus.emailAddressTaken ||
-                          state.status == EmailAuthStatus.invalidEmailAddress,
-                      child: const AuthTitle(
-                        "Oops, Something’s wrong with your email",
-                      ),
-                    ),
-
-                    /// Custom Error
-                    Visibility(
-                      visible: state.status == EmailAuthStatus.error,
-                      child: const AuthTitle(
-                        "Oops, Something wrong happened",
-                      ),
-                    ),
-
-                    /// Email Input field
-                    const SizedBox(
-                      height: 48,
-                      child: EmailInputField(),
-                    ),
-
-                    /// Error message
-                    Visibility(
-                      visible: state.errorMessage.isNotEmpty,
-                      child: AuthErrorMessage(state.errorMessage),
-                    ),
-
-                    /// Switch signup options
-                    Visibility(
-                      visible: state.status != EmailAuthStatus.success,
-                      child: SignUpButton(
-                        authProcedure: state.authProcedure,
-                        authMethod: AuthMethod.email,
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    /// Next button
-                    NextButton(
-                      buttonColor: state.emailAddress.isValidEmail()
-                          ? CustomColors.appColorBlue
-                          : CustomColors.appColorDisabled,
-                      callBack: () async {
-                        if (state.emailAddress.isValidEmail()) {
-                          await _validateEmailAddress();
-                        }
-                      },
-                    ),
-
-                    /// login options
-                    Visibility(
-                      visible: !_keyboardVisible &&
-                          state.status != EmailAuthStatus.success,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 12),
-                        child: state.authProcedure == AuthProcedure.login
-                            ? const LoginOptions(authMethod: AuthMethod.email)
-                            : const SignUpOptions(authMethod: AuthMethod.email),
-                      ),
-                    ),
-
-                    /// listeners
-                    MultiBlocListener(
-                      listeners: [
-                        BlocListener<EmailAuthBloc, EmailAuthState>(
-                          listener: (context, state) {
-                            FocusScope.of(context).requestFocus(
-                              FocusNode(),
-                            );
-                            loadingScreen(_loadingContext);
-                          },
-                          listenWhen: (_, current) {
-                            return current.loading;
-                          },
-                        ),
-                        BlocListener<EmailAuthBloc, EmailAuthState>(
-                          listener: (context, state) {
-                            Navigator.pop(_loadingContext);
-                          },
-                          listenWhen: (previous, current) {
-                            return !current.loading && previous.loading;
-                          },
-                        ),
-                        BlocListener<EmailAuthBloc, EmailAuthState>(
-                          listener: (context, state) async {
-                            context
-                                .read<AuthCodeBloc>()
-                                .add(InitializeAuthCodeState(
-                                  emailAuthModel: state.emailAuthModel,
-                                  authProcedure: state.authProcedure,
-                                  authMethod: AuthMethod.email,
-                                ));
-
-                            await verifyAuthCode(context).then((success) async {
-                              if (success) {
-                                loadingScreen(_loadingContext);
-                                switch (state.authProcedure) {
-                                  case AuthProcedure.deleteAccount:
-                                  case AuthProcedure.anonymousLogin:
-                                  case AuthProcedure.none:
-                                  case AuthProcedure.logout:
-                                  case AuthProcedure.login:
-                                    await AppService.postSignInActions(context)
-                                        .then((_) async {
-                                      Navigator.pop(_loadingContext);
-                                      Future.delayed(
-                                        const Duration(seconds: 2),
-                                        () {
-                                          Navigator.pushAndRemoveUntil(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const HomePage()),
-                                            (r) => false,
-                                          );
-                                        },
-                                      );
-                                    });
-                                    break;
-                                  case AuthProcedure.signup:
+                          await verifyAuthCode(context).then((success) async {
+                            if (success) {
+                              loadingScreen(_loadingContext);
+                              switch (state.authProcedure) {
+                                case AuthProcedure.deleteAccount:
+                                case AuthProcedure.anonymousLogin:
+                                case AuthProcedure.none:
+                                case AuthProcedure.logout:
+                                case AuthProcedure.login:
+                                  await AppService.postSignInActions(context)
+                                      .then((_) async {
                                     Navigator.pop(_loadingContext);
-                                    await AppService.postSignInActions(context)
-                                        .then((_) async {
-                                      Future.delayed(
-                                        const Duration(seconds: 2),
-                                        () {
-                                          Navigator.pushAndRemoveUntil(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const ProfileSetupScreen()),
-                                            (r) => false,
-                                          );
-                                        },
-                                      );
-                                    });
-                                    break;
-                                }
-                              } else {
-                                context
-                                    .read<EmailAuthBloc>()
-                                    .add(InitializeEmailAuth(
+                                    Future.delayed(
+                                      const Duration(seconds: 2),
+                                      () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const HomePage()),
+                                          (r) => false,
+                                        );
+                                      },
+                                    );
+                                  });
+                                  break;
+                                case AuthProcedure.signup:
+                                  Navigator.pop(_loadingContext);
+                                  await AppService.postSignInActions(context)
+                                      .then((_) async {
+                                    Future.delayed(
+                                      const Duration(seconds: 2),
+                                      () {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const ProfileSetupScreen()),
+                                          (r) => false,
+                                        );
+                                      },
+                                    );
+                                  });
+                                  break;
+                              }
+                            } else {
+                              context.read<EmailAuthBloc>().add(
+                                    InitializeEmailAuth(
                                       emailAddress: state.emailAddress,
                                       authProcedure: state.authProcedure,
-                                    ));
-                              }
-                            });
-                          },
-                          listenWhen: (previous, current) {
-                            return current.status ==
-                                EmailAuthStatus.verificationCodeSent;
-                          },
-                        ),
-                      ],
-                      child: Container(),
-                    ),
-                  ],
-                ),
+                                    ),
+                                  );
+                            }
+                          });
+                        },
+                        listenWhen: (previous, current) {
+                          return current.status ==
+                              EmailAuthStatus.verificationCodeSent;
+                        },
+                      ),
+                    ],
+                    child: Container(),
+                  ),
+                ],
               );
             },
           ),
@@ -284,7 +283,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     }
 
     if (mounted) {
-      context.read<EmailAuthBloc>().add(ValidateEmailAddress(context: context));
+      context.read<EmailAuthBloc>().add(const ValidateEmailAddress());
     }
   }
 
