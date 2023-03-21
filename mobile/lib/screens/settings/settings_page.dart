@@ -40,6 +40,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
@@ -141,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage>
                       divider,
                       CustomShowcaseWidget(
                         showcaseKey: _appTourShowcaseKey,
-                        descriptionHeight: 120,
+                        descriptionHeight: screenSize.height * 0.1,
                         description:
                             "You can always restart the App Tour from here anytime.",
                         child: Card(

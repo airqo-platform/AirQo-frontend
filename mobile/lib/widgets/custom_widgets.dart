@@ -552,18 +552,19 @@ class CustomShowcaseWidget extends StatelessWidget {
     required this.description,
     required this.child,
     this.customize,
-    this.descriptionWidth = 200,
-    this.descriptionHeight = 20,
+    this.descriptionWidth,
+    this.descriptionHeight,
   });
 
   final GlobalKey showcaseKey;
   final Widget child;
   final ShowcaseOptions? customize;
   final String description;
-  final double descriptionWidth, descriptionHeight;
+  final double? descriptionWidth, descriptionHeight;
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
     return Showcase.withWidget(
       key: showcaseKey,
       width: 12,
@@ -617,8 +618,8 @@ class CustomShowcaseWidget extends StatelessWidget {
               : const SizedBox(),
           Container(
             constraints: BoxConstraints.expand(
-              width: descriptionWidth,
-              height: descriptionHeight,
+              width: descriptionWidth ?? screenSize.width * 0.5,
+              height: descriptionHeight ?? screenSize.height * 0.03,
             ),
             child: Text(
               description,
