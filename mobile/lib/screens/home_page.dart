@@ -272,16 +272,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
-        context.read<DashboardBloc>().add(const RefreshDashboard());
+        context.read<DashboardBloc>().add(
+              const RefreshDashboard(scrollToTop: true),
+            );
         break;
       case 1:
         context.read<MapBloc>().add(const InitializeMapState());
         break;
     }
-
-    setState(() => _selectedIndex = index);
   }
 
   void _startShowcase() {

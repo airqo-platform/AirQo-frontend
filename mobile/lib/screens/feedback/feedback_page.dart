@@ -17,7 +17,7 @@ class FeedbackPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 16,
         verticalPadding: 20,
-        widget: Column(
+        child: Column(
           children: [
             const FeedbackProgressBar(),
             const SizedBox(

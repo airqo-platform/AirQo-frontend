@@ -114,7 +114,7 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           body: AppSafeArea(
             horizontalPadding: 16,
-            widget: Column(
+            child: Column(
               children: <Widget>[
                 ProfileSection(
                   userDetails: profile,
