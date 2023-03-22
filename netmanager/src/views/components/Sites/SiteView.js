@@ -1,31 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { isEmpty } from "underscore";
-import PropTypes from "prop-types";
-import { useHistory, useParams } from "react-router-dom";
-import { ArrowBackIosRounded } from "@material-ui/icons";
-import { Button, Grid, Paper, TextField } from "@material-ui/core";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'underscore';
+import PropTypes from 'prop-types';
+import { useHistory, useParams } from 'react-router-dom';
+import { ArrowBackIosRounded } from '@material-ui/icons';
+import { Button, Grid, Paper, TextField } from '@material-ui/core';
 
-import { useSitesData } from "redux/SiteRegistry/selectors";
-import { loadSitesData } from "redux/SiteRegistry/operations";
-import CustomMaterialTable from "../Table/CustomMaterialTable";
-import { useInitScrollTop } from "utils/customHooks";
-import { humanReadableDate } from "utils/dateTime";
-import { useSiteBackUrl } from "redux/Urls/selectors";
-import { updateSiteApi } from "views/apis/deviceRegistry";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { useSitesData } from 'redux/SiteRegistry/selectors';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
+import CustomMaterialTable from '../Table/CustomMaterialTable';
+import { useInitScrollTop } from 'utils/customHooks';
+import { humanReadableDate } from 'utils/dateTime';
+import { useSiteBackUrl } from 'redux/Urls/selectors';
+import { updateSiteApi } from 'views/apis/deviceRegistry';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 
 // css
-import "react-leaflet-fullscreen/dist/styles.css";
-import "assets/css/location-registry.css";
+import 'react-leaflet-fullscreen/dist/styles.css';
+import 'assets/css/location-registry.css';
 
 const gridItemStyle = {
-  padding: "5px",
-  margin: "5px 0",
+  padding: '5px',
+  margin: '5px 0'
 };
 
 const Cell = ({ fieldValue }) => {
-  return <div>{fieldValue || "N/A"}</div>;
+  return <div>{fieldValue || 'N/A'}</div>;
 };
 
 const SiteForm = ({ site }) => {
@@ -62,23 +62,22 @@ const SiteForm = ({ site }) => {
       .then((responseData) => {
         dispatch(
           updateMainAlert({
-            severity: "success",
+            severity: 'success',
             message: responseData.message,
-            show: true,
+            show: true
           })
         );
         setSiteInfo({});
         dispatch(loadSitesData());
       })
       .catch((err) => {
-        const errors =
-          (err.response && err.response.data && err.response.data.error) || {};
+        const errors = (err.response && err.response.data && err.response.data.error) || {};
         setErrors(errors);
         dispatch(
           updateMainAlert({
-            severity: "error",
+            severity: 'error',
             message: err.response && err.response.data.message,
-            show: true,
+            show: true
           })
         );
       });
@@ -88,30 +87,30 @@ const SiteForm = ({ site }) => {
   return (
     <Paper
       style={{
-        margin: "0 auto",
-        minHeight: "400px",
-        padding: "20px 20px",
-        maxWidth: "1500px",
+        margin: '0 auto',
+        minHeight: '400px',
+        padding: '20px 20px',
+        maxWidth: '1500px'
       }}
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          fontSize: "1.2rem",
-          fontWeight: "bold",
-          margin: "20px 0",
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: '1.2rem',
+          fontWeight: 'bold',
+          margin: '20px 0'
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "5px",
+            display: 'flex',
+            alignItems: 'center',
+            padding: '5px'
           }}
         >
           <ArrowBackIosRounded
-            style={{ color: "#3f51b5", cursor: "pointer" }}
+            style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.push(goBackUrl)}
           />
         </div>
@@ -140,6 +139,19 @@ const SiteForm = ({ site }) => {
             onChange={handleSiteInfoChange}
             error={!!errors.description}
             helperText={errors.description}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="network"
+            label="Network"
+            defaultValue={site.network}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.network}
+            helperText={errors.network}
             fullWidth
             required
           />
@@ -334,7 +346,7 @@ const SiteForm = ({ site }) => {
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: "10px 0" }}
+          style={{ margin: '10px 0' }}
         >
           <Button variant="contained" onClick={handleCancel}>
             Cancel
@@ -345,7 +357,7 @@ const SiteForm = ({ site }) => {
             color="primary"
             disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
-            style={{ marginLeft: "10px" }}
+            style={{ marginLeft: '10px' }}
           >
             Save Changes
           </Button>
@@ -375,8 +387,8 @@ const SiteView = (props) => {
   return (
     <div
       style={{
-        width: "96%",
-        margin: " 20px auto",
+        width: '96%',
+        margin: ' 20px auto'
       }}
     >
       <SiteForm site={site} key={`${site._id}`} />
@@ -384,82 +396,77 @@ const SiteView = (props) => {
       <div>
         <div
           style={{
-            margin: "50px auto",
+            margin: '50px auto',
             // minHeight: "400px",
-            maxWidth: "1500px",
+            maxWidth: '1500px'
           }}
         >
           <CustomMaterialTable
             title="Site Devices details"
-            userPreferencePaginationKey={"siteDevices"}
+            userPreferencePaginationKey={'siteDevices'}
             columns={[
               {
-                title: "Device Name",
-                field: "name",
+                title: 'Device Name',
+                field: 'name'
               },
               {
-                title: "Description",
-                field: "description",
+                title: 'Description',
+                field: 'description'
               },
               {
-                title: "Site",
-                field: "site",
-                render: (data) => (
-                  <Cell fieldValue={data.site && data.site.description} />
-                ),
+                title: 'Site',
+                field: 'site',
+                render: (data) => <Cell fieldValue={data.site && data.site.description} />
               },
 
               {
-                title: "Is Primary",
-                field: "siteName",
+                title: 'Is Primary',
+                field: 'siteName',
                 render: (data) => (
                   <span>
                     {data.isPrimaryInLocation ? (
-                      <span style={{ color: "green" }}>Yes</span>
+                      <span style={{ color: 'green' }}>Yes</span>
                     ) : (
-                      <span style={{ color: "red" }}>No</span>
+                      <span style={{ color: 'red' }}>No</span>
                     )}
                   </span>
-                ),
+                )
               },
               {
-                title: "Is Co-located",
-                field: "locationName",
+                title: 'Is Co-located',
+                field: 'locationName',
                 render: (data) => (
                   <span>
                     {data.isUsedForCollocation ? (
-                      <span style={{ color: "green" }}>Yes</span>
+                      <span style={{ color: 'green' }}>Yes</span>
                     ) : (
-                      <span style={{ color: "red" }}>No</span>
+                      <span style={{ color: 'red' }}>No</span>
                     )}
                   </span>
-                ),
+                )
               },
               {
-                title: "Registration Date",
-                field: "createdAt",
+                title: 'Registration Date',
+                field: 'createdAt',
                 render: (data) => (
-                  <Cell
-                    data={data}
-                    fieldValue={humanReadableDate(data.createdAt)}
-                  />
-                ),
+                  <Cell data={data} fieldValue={humanReadableDate(data.createdAt)} />
+                )
               },
               {
-                title: "Deployment status",
-                field: "isActive",
+                title: 'Deployment status',
+                field: 'isActive',
                 render: (data) => (
                   <Cell
                     fieldValue={
                       data.isActive ? (
-                        <span style={{ color: "green" }}>Deployed</span>
+                        <span style={{ color: 'green' }}>Deployed</span>
                       ) : (
-                        <span style={{ color: "red" }}>Not Deployed</span>
+                        <span style={{ color: 'red' }}>Not Deployed</span>
                       )
                     }
                   />
-                ),
-              },
+                )
+              }
             ]}
             data={site.devices || []}
             onRowClick={(event, rowData) => {
@@ -469,16 +476,16 @@ const SiteView = (props) => {
             options={{
               search: true,
               exportButton: true,
-              searchFieldAlignment: "right",
+              searchFieldAlignment: 'right',
               showTitle: true,
               searchFieldStyle: {
-                fontFamily: "Open Sans",
+                fontFamily: 'Open Sans'
               },
               headerStyle: {
-                fontFamily: "Open Sans",
+                fontFamily: 'Open Sans',
                 fontSize: 14,
-                fontWeight: 600,
-              },
+                fontWeight: 600
+              }
             }}
           />
         </div>
@@ -488,7 +495,7 @@ const SiteView = (props) => {
 };
 
 SiteView.propTypes = {
-  className: PropTypes.string,
+  className: PropTypes.string
 };
 
 export default SiteView;
