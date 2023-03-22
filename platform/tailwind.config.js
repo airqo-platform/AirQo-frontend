@@ -23,6 +23,10 @@ module.exports = {
         'light-text': '#6D7175',
         'baby-blue': '#F5F8FF',
         'link-blue': '#2E72D2',
+        blue: {
+          200: '#2DB6F11A',
+          300: '#1C7398',
+        },
         grey: {
           100: '#363A4414',
           150: '#363A4429',
