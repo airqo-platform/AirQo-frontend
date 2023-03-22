@@ -120,9 +120,7 @@ const CorrelationChart = ({ pmConcentration }) => {
             type='monotone'
             dot={false}
             dataKey={
-              pmConcentration.label === 'pm2_5'
-                ? 'pm2_5_pearson_correlation'
-                : 'pm10_pearson_correlation'
+              pmConcentration === '2.5' ? 'pm2_5_pearson_correlation' : 'pm10_pearson_correlation'
             }
             stroke='#D476F5'
             strokeWidth='1.5'
@@ -131,7 +129,7 @@ const CorrelationChart = ({ pmConcentration }) => {
           <Line
             type='monotone'
             dot={false}
-            dataKey={pmConcentration.label === 'pm2_5' ? 'pm2_5_r2' : 'pm10_r2'}
+            dataKey={pmConcentration === '2.5' ? 'pm2_5_r2' : 'pm10_r2'}
             stroke='#8776F5'
             strokeWidth='1.5'
           />
