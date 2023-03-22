@@ -18,10 +18,10 @@ class AirQoCircularWidget : HomeWidgetProvider() {
     ) {
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.air_qo_circular_widget).apply {
-                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
-                    context, MainActivity::class.java
-                )
-                setOnClickPendingIntent(R.id.pm_value, pendingIntent)
+//                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
+//                    context, MainActivity::class.java
+//                )
+//                setOnClickPendingIntent(R.id.circular_widget_bg, pendingIntent)
                 val dataKeys = arrayOf(
                     "circular_location",
                     "circular_date",
@@ -83,10 +83,9 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 setIndexColor(airquality)
 
-//                TODO: Review Background update code
                 val backgroundIntent = HomeWidgetBackgroundIntent.getBroadcast(
                     context,
-                    Uri.parse("AirQo://Refresh")
+                    Uri.parse("homeWidgetExample://titleClicked"),
                 )
                 setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
             }

@@ -25,34 +25,77 @@ import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
-void backgroundCallback(Uri? data) async {
-  if (data?.host == 'Refresh') {
-    AirQualityReading? airQualityReading;
-    final nearbyLocationBloc = NearbyLocationBloc();
-    if (nearbyLocationBloc.state.locationAirQuality == null) {
-      List<AirQualityReading> airQualityReadings =
-          HiveService.getAirQualityReadings();
-      if (airQualityReadings.isNotEmpty) {
-        final random = Random();
-        airQualityReading =
-            airQualityReadings[random.nextInt(airQualityReadings.length)];
+void backgroundCallback(Uri? data)  {
+  if (data?.host == 'titleClicked') {
+    print(data);
+    sendAndUpdate();
+  }
+}
+// @pragma("vm:entry-point")
+// void callbackDispatcher() {
+//   Workmanager().executeTask((taskName, inputData) {
+//     sendAndUpdate();
+//   });
+// }
+
+Future<void> sendData() async {
+  AirQualityReading? airQualityReading;
+  final nearbyLocationBloc = NearbyLocationBloc();
+  if (nearbyLocationBloc.state.locationAirQuality == null) {
+    final favouriteLocationBloc  = FavouritePlaceBloc();
+    if(favouriteLocationBloc.state.isEmpty) {
+      final searchBloc = SearchBloc();
+      if (searchBloc.state.searchHistory.isEmpty) {
+    List<AirQualityReading> airQualityReadings =
+        HiveService.getAirQualityReadings();
+    if (airQualityReadings.isNotEmpty) {
+      final random = Random();
+      airQualityReading =
+          airQualityReadings[random.nextInt(airQualityReadings.length)];
+    }
+      } else{
+airQualityReading = searchBloc.state.searchHistory.first;
       }
     } else {
-      airQualityReading = NearbyLocationBloc().state.locationAirQuality;
+      airQualityReading = favouriteLocationBloc.state.favouritePlaces.first;
     }
-
-    WidgetData widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading!);
-    widgetData.idMapping().forEach((key, value) async {
-      await HomeWidget.saveWidgetData<String>(key, value);
-    });
-    await HomeWidget.updateWidget(
-      name: 'AirQoCircularWidget',
-      androidName: 'AirQoCircularWidget',
-      iOSName: 'AirQoCircularWidget',
-      qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
-    );
+  } else {
+    airQualityReading = nearbyLocationBloc.state.locationAirQuality;
   }
+  if (airQualityReading == null) return;
+
+  // List<ForecastInsight> forecastData = await AirQoDatabase()
+  //     .getForecastInsights(airQualityReading.referenceSite);
+
+  WidgetData widgetData =
+      WidgetData.initializeFromAirQualityReading(airQualityReading);
+  // widgetData = widgetData.copyWith(forecastData);
+  widgetData.idMapping().forEach((key, value) async {
+    await HomeWidget.saveWidgetData<String>(key, value);
+  });
+
+  return;
+}
+
+Future<void> updateWidget() {
+  // var rectangleWidgetUpdate = HomeWidget.updateWidget(
+  //   name: 'AirQoHomeScreenWidget',
+  //   iOSName: 'AirQoHomeScreenWidget',
+  //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
+  // );
+
+  // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
+  return HomeWidget.updateWidget(
+    name: 'AirQoCircularWidget',
+    androidName: 'AirQoCircularWidget',
+    iOSName: 'AirQoCircularWidget',
+    qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
+  );
+}
+
+Future<void> sendAndUpdate() async {
+  await sendData();
+  await updateWidget();
 }
 
 class DashboardView extends StatefulWidget {
@@ -469,8 +512,8 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
-    _refresh();
-    _startBackgroundUpdate();
+    // _refresh();
+    // _startBackgroundUpdate();
     HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
@@ -496,57 +539,6 @@ class _DashboardViewState extends State<DashboardView>
         minutes: 30,
       ),
     );
-  }
-
-  Future<void> _sendData() async {
-    AirQualityReading? airQualityReading;
-
-    if (context.read<NearbyLocationBloc>().state.locationAirQuality == null) {
-      List<AirQualityReading> airQualityReadings =
-          HiveService.getAirQualityReadings();
-      if (airQualityReadings.isNotEmpty) {
-        final random = Random();
-        airQualityReading =
-            airQualityReadings[random.nextInt(airQualityReadings.length)];
-      }
-    } else {
-      airQualityReading =
-          context.read<NearbyLocationBloc>().state.locationAirQuality;
-    }
-    if (airQualityReading == null) return;
-
-    // List<ForecastInsight> forecastData = await AirQoDatabase()
-    //     .getForecastInsights(airQualityReading.referenceSite);
-
-    WidgetData widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading);
-    // widgetData = widgetData.copyWith(forecastData);
-    widgetData.idMapping().forEach((key, value) async {
-      await HomeWidget.saveWidgetData<String>(key, value);
-    });
-
-    return;
-  }
-
-  Future<void> _updateWidget() {
-    // var rectangleWidgetUpdate = HomeWidget.updateWidget(
-    //   name: 'AirQoHomeScreenWidget',
-    //   iOSName: 'AirQoHomeScreenWidget',
-    //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
-    // );
-
-    // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
-    return HomeWidget.updateWidget(
-      name: 'AirQoCircularWidget',
-      androidName: 'AirQoCircularWidget',
-      iOSName: 'AirQoCircularWidget',
-      qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
-    );
-  }
-
-  Future<void> _sendAndUpdate() async {
-    await _sendData();
-    await _updateWidget();
   }
 
   void _listenToStreams() {
@@ -579,7 +571,7 @@ class _DashboardViewState extends State<DashboardView>
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
-    _sendAndUpdate();
+    sendAndUpdate();
   }
 
   void _startShowcase() {

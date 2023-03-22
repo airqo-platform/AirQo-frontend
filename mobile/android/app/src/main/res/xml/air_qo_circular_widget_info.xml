@@ -10,6 +10,7 @@
     android:previewLayout="@layout/air_qo_circular_widget"
     android:targetCellWidth="3"
     android:targetCellHeight="3"
+    android:resizeMode="vertical"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen"
     tools:targetApi="s" />
