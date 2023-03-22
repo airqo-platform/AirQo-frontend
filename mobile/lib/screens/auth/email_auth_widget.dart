@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 
@@ -55,7 +54,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           verticalPadding: 10,
-          widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
+          child: BlocConsumer<EmailAuthBloc, EmailAuthState>(
             listener: (context, state) {
               return;
             },

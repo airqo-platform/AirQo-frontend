@@ -49,8 +49,8 @@ class DashboardLoadingWidget extends StatelessWidget {
 }
 
 class NoLocationAirQualityMessage extends StatelessWidget {
-  const NoLocationAirQualityMessage(this.error, {super.key});
-  final NearbyAirQualityError error;
+  const NoLocationAirQualityMessage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -79,7 +79,7 @@ class NoLocationAirQualityMessage extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              error.message,
+              'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -110,16 +110,21 @@ class NoLocationAirQualityMessage extends StatelessWidget {
 }
 
 class DashboardLocationButton extends StatelessWidget {
-  const DashboardLocationButton(this.error, {super.key});
-  final NearbyAirQualityError error;
+  const DashboardLocationButton(this.status, {super.key});
+  final NearbyLocationStatus status;
+
   @override
   Widget build(BuildContext context) {
+    String message = 'Turn on location to get air quality near you';
+    if (status == NearbyLocationStatus.locationDenied) {
+      message = 'Enable location to get air quality near you';
+    }
+
     return OutlinedButton(
       onPressed: () async {
         await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(40),
         elevation: 2,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
@@ -133,7 +138,7 @@ class DashboardLocationButton extends StatelessWidget {
         ),
       ),
       child: Text(
-        error.message,
+        message,
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,

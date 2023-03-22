@@ -39,7 +39,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
-          widget: BlocConsumer<AuthCodeBloc, AuthCodeState>(
+          child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
             listener: (context, state) {
               return;
             },
@@ -108,16 +108,16 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               context
                                   .read<AccountBloc>()
                                   .add(const FetchAccountInfo());
-                              context.read<KyaBloc>().add(const RefreshKya());
+                              context.read<KyaBloc>().add(const SyncKya());
                               context
-                                  .read<AnalyticsBloc>()
-                                  .add(const RefreshAnalytics());
+                                  .read<LocationHistoryBloc>()
+                                  .add(const SyncLocationHistory());
                               context
                                   .read<FavouritePlaceBloc>()
-                                  .add(const RefreshFavouritePlaces());
+                                  .add(const SyncFavouritePlaces());
                               context
                                   .read<NotificationBloc>()
-                                  .add(const RefreshNotifications());
+                                  .add(const SyncNotifications());
                               Future.delayed(
                                 const Duration(seconds: 2),
                                 () {

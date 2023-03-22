@@ -7,10 +7,14 @@ const collocationDataSlice = createSlice({
     collocationData: null,
     isLoading: false,
     errorValue: null,
+    deviceStatusSummary: null,
   },
   reducers: {
     addCollocationData(state, action) {
       state.collocationData = action.payload;
+    },
+    addDeviceStatusSummary(state, action) {
+      state.deviceStatusSummary = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -33,6 +37,6 @@ const collocationDataSlice = createSlice({
   },
 });
 
-export const { addCollocationData } = collocationDataSlice.actions;
+export const { addCollocationData, addDeviceStatusSummary } = collocationDataSlice.actions;
 
 export default collocationDataSlice.reducer;

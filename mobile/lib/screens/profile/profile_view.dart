@@ -6,7 +6,6 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'profile_edit_page.dart';
@@ -115,7 +114,7 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           body: AppSafeArea(
             horizontalPadding: 16,
-            widget: Column(
+            child: Column(
               children: <Widget>[
                 ProfileSection(
                   userDetails: profile,

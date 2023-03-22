@@ -140,9 +140,9 @@ const createDeviceColumns = (history, setDelState) => [
     )
   },
   {
-    title: 'Registration Date',
+    title: 'Deployment Date',
     field: 'createdAt',
-    render: (data) => <Cell data={data} fieldValue={humanReadableDate(data.createdAt)} />
+    render: (data) => <Cell data={data} fieldValue={humanReadableDate(data.deployment_date)} />
   },
   {
     title: 'Deployment status',

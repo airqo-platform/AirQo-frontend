@@ -75,23 +75,38 @@ class CloudAnalytics {
 }
 
 class CloudStore {
-  static Future<void> updateKyaProgress(Kya kya) async {
+  static Future<bool> updateKya(List<Kya> kyaList) async {
+    final batch = FirebaseFirestore.instance.batch();
+
     final userId = CustomAuth.getUserId();
-    KyaProgress progress = KyaProgress.fromKya(kya);
+    if (userId.isEmpty) {
+      return false;
+    }
 
     try {
-      await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .doc(progress.id)
-          .set(progress.toJson());
+      for (final kya in kyaList) {
+        KyaProgress progress = KyaProgress.fromKya(kya);
+        final document = FirebaseFirestore.instance
+            .collection(Config.usersKyaCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(progress.id);
+        batch.set(
+          document,
+          progress.toJson(),
+        );
+      }
+      batch.commit();
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
+
+      return false;
     }
+
+    return true;
   }
 
   static Future<List<Kya>> getKya() async {
@@ -164,7 +179,7 @@ class CloudStore {
             .doc(id)
             .delete(),
         FirebaseFirestore.instance
-            .collection(Config.usersAnalyticsCollection)
+            .collection(Config.usersLocationHistoryCollection)
             .doc(id)
             .delete(),
       ]);
@@ -179,24 +194,27 @@ class CloudStore {
   }
 
   static Future<List<AppNotification>> getNotifications() async {
-    final uid = CustomAuth.getUserId();
-    if (uid.isEmpty) {
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
       return [];
     }
 
     try {
       final notificationsJson = await FirebaseFirestore.instance
-          .collection('${Config.usersNotificationCollection}/$uid/$uid')
+          .collection(Config.usersNotificationCollection)
+          .doc(userId)
+          .collection(userId)
           .get();
 
       final notifications = <AppNotification>[];
 
       for (final doc in notificationsJson.docs) {
-        final notification = AppNotification.parseAppNotification(
-          doc.data(),
-        );
-        if (notification != null) {
-          notifications.add(notification);
+        try {
+          notifications.add(AppNotification.fromJson(
+            doc.data(),
+          ));
+        } catch (e) {
+          debugPrint(e.toString());
         }
       }
 
@@ -211,29 +229,31 @@ class CloudStore {
     return [];
   }
 
-  static Future<List<Analytics>> getCloudAnalytics() async {
+  static Future<List<LocationHistory>> getLocationHistory() async {
     final uid = CustomAuth.getUserId();
     if (uid.isEmpty) {
       return [];
     }
 
     try {
-      final analyticsCollection = await FirebaseFirestore.instance
-          .collection('${Config.usersAnalyticsCollection}/$uid/$uid')
+      final locationHistoryCollection = await FirebaseFirestore.instance
+          .collection(Config.usersLocationHistoryCollection)
+          .doc(uid)
+          .collection(uid)
           .get();
 
-      final cloudAnalytics = <Analytics>[];
+      final locationHistory = <LocationHistory>[];
 
-      for (final doc in analyticsCollection.docs) {
-        final analytics = Analytics.parseAnalytics(
+      for (final doc in locationHistoryCollection.docs) {
+        final history = LocationHistory.parseAnalytics(
           doc.data(),
         );
-        if (analytics != null) {
-          cloudAnalytics.add(analytics);
+        if (history != null) {
+          locationHistory.add(history);
         }
       }
 
-      return cloudAnalytics;
+      return locationHistory;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -242,6 +262,41 @@ class CloudStore {
     }
 
     return [];
+  }
+
+  static Future<bool> updateLocationHistory(
+    List<LocationHistory> historyList,
+  ) async {
+    final batch = FirebaseFirestore.instance.batch();
+
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
+      return false;
+    }
+
+    try {
+      for (final history in historyList) {
+        final document = FirebaseFirestore.instance
+            .collection(Config.usersLocationHistoryCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(history.placeId);
+        batch.set(
+          document,
+          history.toJson(),
+        );
+      }
+      batch.commit();
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+
+      return false;
+    }
+
+    return true;
   }
 
   static Future<Profile> getProfile() async {
@@ -305,36 +360,18 @@ class CloudStore {
     }
   }
 
-  static Future<bool> updateFavouritePlaces() async {
-    final hasConnection = await hasNetworkConnection();
-    final userId = CustomAuth.getUserId();
-    if (!hasConnection || userId.trim().isEmpty) {
-      return true;
-    }
-
+  static Future<bool> updateFavouritePlaces(
+    List<FavouritePlace> favouritePlaces,
+  ) async {
     final batch = FirebaseFirestore.instance.batch();
 
-    final cloudFavPlaces = await getFavouritePlaces();
-    for (final favouritePlace in cloudFavPlaces) {
-      try {
-        final document = FirebaseFirestore.instance
-            .collection(Config.favPlacesCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(favouritePlace.placeId);
-        batch.delete(document);
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
+      return false;
     }
 
-    final favouritePlaces =
-        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
-    for (final favouritePlace in favouritePlaces) {
-      try {
+    try {
+      for (final favouritePlace in favouritePlaces) {
         final document = FirebaseFirestore.instance
             .collection(Config.favPlacesCollection)
             .doc(userId)
@@ -344,15 +381,16 @@ class CloudStore {
           document,
           favouritePlace.toJson(),
         );
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
       }
-    }
+      batch.commit();
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
 
-    batch.commit();
+      return false;
+    }
 
     return true;
   }
@@ -383,117 +421,6 @@ class CloudStore {
                 profile.toJson(),
               ),
         ]);
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  static Future<bool> updateCloudAnalytics() async {
-    final currentUser = CustomAuth.getUser();
-    if (currentUser == null) {
-      return true;
-    }
-    try {
-      final analytics = Hive.box<Analytics>(HiveBox.analytics)
-          .values
-          .toList()
-          .cast<Analytics>();
-      final profile = await Profile.getProfile();
-      for (final x in analytics) {
-        try {
-          await FirebaseFirestore.instance
-              .collection(Config.usersAnalyticsCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(x.site)
-              .set(
-                x.toJson(),
-              );
-        } catch (exception) {
-          debugPrint(exception.toString());
-        }
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return true;
-  }
-
-  static Future<void> updateCloudNotification(
-    AppNotification notification,
-  ) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      try {
-        final profile = await Profile.getProfile();
-        try {
-          await FirebaseFirestore.instance
-              .collection(Config.usersNotificationCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(notification.id)
-              .update(
-                notification.toJson(),
-              );
-        } catch (exception) {
-          await FirebaseFirestore.instance
-              .collection(Config.usersNotificationCollection)
-              .doc(profile.userId)
-              .collection(profile.userId)
-              .doc(notification.id)
-              .set(
-                notification.toJson(),
-              );
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
-  }
-
-  static Future<void> updateKya(Kya kya) async {
-    if (CustomAuth.isGuestUser()) {
-      return;
-    }
-
-    final userId = CustomAuth.getUserId();
-
-    try {
-      await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .doc(kya.id)
-          .update(
-            kya.toJson(),
-          );
-    } on FirebaseException catch (exception, stackTrace) {
-      // TODO : Add to authentication decryption enum
-      if (exception.code.contains('not-found')) {
-        await FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(userId)
-            .collection(userId)
-            .doc(kya.id)
-            .set(
-              kya.toJson(),
-            );
-      } else {
-        await logException(
-          exception,
-          stackTrace,
-        );
       }
     } catch (exception, stackTrace) {
       await logException(

@@ -3,9 +3,9 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewLoadingCubit extends Cubit<int> {
   WebViewLoadingCubit() : super(0);
@@ -40,7 +40,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         centerTitle: false,
       ),
       body: AppSafeArea(
-        widget: BlocBuilder<WebViewLoadingCubit, int>(
+        child: BlocBuilder<WebViewLoadingCubit, int>(
           builder: (context, progress) => Stack(
             children: [
               WebViewWidget(controller: _controller),
