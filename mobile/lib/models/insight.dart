@@ -22,43 +22,70 @@ class Insight with EquatableMixin {
     String airQualityMessage = '';
     String forecastMessage = '';
     AirQuality airQuality = airQualityReading.airQuality();
+    String verb = airQualityReading.dateTime.isToday()
+        ? "is"
+        : airQualityReading.dateTime.isYesterday() ||
+                airQualityReading.dateTime.isAPastDate()
+            ? "was"
+            : "might be";
+    String dateAdverb = airQualityReading.dateTime.isYesterday()
+        ? "yesterday"
+        : airQualityReading.dateTime.isTomorrow()
+            ? "tomorrow"
+            : "";
 
-    if (airQualityReading.dateTime.isYesterday()) {
-      airQualityMessage =
-          'The average air quality yesterday in ${airQualityReading.name} was ${airQuality.title}.';
-    } else if (airQualityReading.dateTime.isAPastDate()) {
-      airQualityMessage =
-          'The average air quality in ${airQualityReading.name} was ${airQuality.title}.';
-    } else if (airQualityReading.dateTime.isToday()) {
-      airQualityMessage =
-          'The average air quality in ${airQualityReading.name} is currently ${airQuality.title}.';
-      if (forecastValue != null) {
-        forecastMessage =
-            'Expect today\'s conditions to be ${Pollutant.pm2_5.airQuality(forecastValue).title.toLowerCase()}';
-      }
-      healthTips = getHealthTips(
-        airQualityReading.pm2_5,
-        Pollutant.pm2_5,
-      );
-    } else if (airQualityReading.dateTime.isTomorrow()) {
-      airQualityMessage =
-          'The average air quality tomorrow in ${airQualityReading.name} might be ${airQuality.title}.';
-      forecastMessage =
-          'Expect tomorrow\'s conditions to be ${airQuality.title.toLowerCase()}';
-      healthTips = getHealthTips(
-        airQualityReading.pm2_5,
-        Pollutant.pm2_5,
-      );
-    } else if (airQualityReading.dateTime.isAFutureDate()) {
-      airQualityMessage =
-          'The average air quality in ${airQualityReading.name} might be ${airQuality.title}.';
-      forecastMessage =
-          'Expect conditions to be ${airQuality.title.toLowerCase()}';
-      healthTips = getHealthTips(
-        airQualityReading.pm2_5,
-        Pollutant.pm2_5,
-      );
+    switch (airQuality) {
+      case AirQuality.good:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb quite ${airQuality.title}.';
+        break;
+      case AirQuality.moderate:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb at a ${airQuality.title} level.';
+        break;
+      case AirQuality.ufsgs:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title}.';
+        break;
+      case AirQuality.unhealthy:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} for everyone';
+        break;
+      case AirQuality.veryUnhealthy:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} reaching levels of high alert.';
+        break;
+      case AirQuality.hazardous:
+        airQualityMessage =
+            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} and can cause a health emergency.';
+        break;
     }
+    if (forecastValue != null) {
+      switch (Pollutant.pm2_5.airQuality(forecastValue)) {
+        case AirQuality.good:
+        case AirQuality.moderate:
+        case AirQuality.hazardous:
+          forecastMessage =
+              'Expect ${Pollutant.pm2_5.airQuality(forecastValue).title.toLowerCase()} levels of air quality ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
+          break;
+        case AirQuality.ufsgs:
+          forecastMessage =
+              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for sensitive groups';
+          break;
+        case AirQuality.unhealthy:
+          forecastMessage =
+              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for everyone';
+          break;
+        case AirQuality.veryUnhealthy:
+          forecastMessage =
+              'Air quality is likely to be very unhealthy ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
+          break;
+      }
+    }
+    healthTips = getHealthTips(
+      airQualityReading.pm2_5,
+      Pollutant.pm2_5,
+    );
 
     return Insight(
       name: airQualityReading.name,
