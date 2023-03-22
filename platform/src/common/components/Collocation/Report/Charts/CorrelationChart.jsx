@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import moment from 'moment';
 
-const CorrelationChart = ({ pmConcentration }) => {
+const CorrelationChart = ({ pmConcentration, hasCustomLegend, CustomLegend }) => {
   const data = [
     {
       date: '2022-01-01',
@@ -115,7 +115,12 @@ const CorrelationChart = ({ pmConcentration }) => {
             tickMargin='-30'
           />
           <Tooltip />
-          <Legend />
+          {hasCustomLegend ? (
+            <Legend content={<CustomLegend />} align='right' verticalAlign='bottom' />
+          ) : (
+            <Legend />
+          )}
+
           <Line
             type='monotone'
             dot={false}
