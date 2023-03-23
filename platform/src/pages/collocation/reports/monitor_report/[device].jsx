@@ -25,8 +25,10 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
   };
 });
 
-const MonitorReport = ({ devices, startDate, endDate }) => {
+const MonitorReport = () => {
   const router = useRouter();
+  const { device, startDate, endDate } = router.query;
+  console.log(device);
 
   const {
     data: data,

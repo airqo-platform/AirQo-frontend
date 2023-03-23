@@ -33,7 +33,7 @@ const collocate = () => {
           <div className='flex'>
             <Button
               className={
-                'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
+                'bg-white-900 text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
               }
             >
               <div className='mr-[10px]'>
@@ -110,7 +110,7 @@ const collocate = () => {
                 <div className='mr-[14px]'></div>
                 <Button
                   className={
-                    'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
+                    'bg-white-900 text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
                   }
                 >
                   <div className='mr-[10px]'>

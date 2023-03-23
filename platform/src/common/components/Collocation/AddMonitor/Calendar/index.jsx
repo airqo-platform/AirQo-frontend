@@ -82,12 +82,11 @@ const ScheduleCalendar = () => {
             <Datepicker
               value={value}
               onChange={handleValueChange}
-              primaryColor={'#F5F8FF'}
               placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
               separator={'to'}
               readOnly={true}
               inputClassName='font-sans text-xs text-grey-300 font-normal'
-              useRange={true}
+              classNames={{ calendar: 'bg-white-900' }}
             />
           </div>
         </div>

@@ -63,7 +63,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   const openMonitorReport = (deviceName, startDate, endDate) => {
     setCollocationInput({
-      devices: [deviceName],
+      devices: deviceName,
       startDate,
       endDate,
     });
@@ -74,7 +74,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         setCollocationResultsError(false);
       }, 5000);
     } else {
-      router.push('/collocate/reports/monitor_report');
+      router.push(
+        `/collocate/reports/monitor_report/[device]?device=${deviceName}&startDate=${startDate}&endDate=${endDate}`,
+      );
     }
   };
 
