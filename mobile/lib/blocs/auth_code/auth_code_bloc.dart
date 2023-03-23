@@ -17,7 +17,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   AuthCodeBloc(this.apiClient) : super(const AuthCodeState()) {
     on<UpdateAuthCode>(_onUpdateAuthCode);
     on<VerifyAuthCode>(_onVerifyAuthCode);
-    on<ResendAuthCode>(_onResendAuthCode);
+    on<ResendEmailAuthCode>(_onResendEmailAuthCode);
     on<InitializeAuthCodeState>(_onInitializeAuthCodeState);
     on<ClearAuthCodeState>(_onClearAuthCodeState);
     on<UpdateCountDown>(_updateCountDown);
@@ -27,7 +27,11 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     UpdateAuthCodeStatus event,
     Emitter<AuthCodeState> emit,
   ) {
-    return emit(state.copyWith(status: event.status));
+    return emit(state.copyWith(
+      status: event.status,
+      errorMessage: state.errorMessage,
+      loading: event.loading,
+    ));
   }
 
   Future<void> _verifyEmailCode(
@@ -292,8 +296,8 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     emit(state.copyWith(codeCountDown: event.countDown));
   }
 
-  Future<void> _onResendAuthCode(
-    ResendAuthCode event,
+  Future<void> _onResendEmailAuthCode(
+    ResendEmailAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
     emit(state.copyWith(loading: true));
@@ -308,36 +312,30 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     }
 
     try {
-      switch (state.authMethod) {
-        case AuthMethod.phone:
-          break;
-        case AuthMethod.email:
-          EmailAuthModel? emailAuthModel = state.emailAuthModel;
-          if (emailAuthModel == null) {
-            return emit(state.copyWith(
-              status: AuthCodeStatus.error,
-              errorMessage: 'Failed to resend code. Try again later',
-            ));
-          }
-
-          await apiClient
-              .requestEmailVerificationCode(emailAuthModel.emailAddress, false)
-              .then((emailAuthModel) {
-            if (emailAuthModel == null) {
-              return emit(state.copyWith(
-                status: AuthCodeStatus.error,
-                errorMessage: "Failed to send code. Try again later",
-              ));
-            }
-
-            return emit(const AuthCodeState().copyWith(
-              emailAuthModel: emailAuthModel,
-              authProcedure: state.authProcedure,
-              authMethod: state.authMethod,
-            ));
-          });
-          break;
+      EmailAuthModel? emailAuthModel = state.emailAuthModel;
+      if (emailAuthModel == null) {
+        return emit(state.copyWith(
+          status: AuthCodeStatus.error,
+          errorMessage: 'Failed to resend code. Try again later',
+        ));
       }
+
+      await apiClient
+          .requestEmailVerificationCode(emailAuthModel.emailAddress, false)
+          .then((emailAuthModel) {
+        if (emailAuthModel == null) {
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: "Failed to send code. Try again later",
+          ));
+        }
+
+        return emit(const AuthCodeState().copyWith(
+          emailAuthModel: emailAuthModel,
+          authProcedure: state.authProcedure,
+          authMethod: state.authMethod,
+        ));
+      });
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
       return emit(state.copyWith(

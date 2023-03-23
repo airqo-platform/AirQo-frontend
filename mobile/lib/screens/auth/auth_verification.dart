@@ -5,6 +5,7 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -169,11 +170,18 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   Visibility(
                     visible: state.codeCountDown <= 0 &&
                         state.status != AuthCodeStatus.success,
-                    child: GestureDetector(
-                      onTap: () {
-                        context
-                            .read<AuthCodeBloc>()
-                            .add(ResendAuthCode(context: context));
+                    child: InkWell(
+                      onTap: () async {
+                        switch (state.authMethod) {
+                          case AuthMethod.phone:
+                            await _resendPhoneAuthCode();
+                            break;
+                          case AuthMethod.email:
+                            context
+                                .read<AuthCodeBloc>()
+                                .add(ResendEmailAuthCode(context: context));
+                            break;
+                        }
                       },
                       child: Text(
                         'Resend code',
@@ -263,6 +271,10 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                             Navigator.pop(_loadingContext);
                           }
 
+                          if (!mounted) {
+                            return;
+                          }
+
                           switch (state.authProcedure) {
                             case AuthProcedure.login:
                             case AuthProcedure.signup:
@@ -308,6 +320,82 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _resendPhoneAuthCode() async {
+    context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+          loading: true,
+        ));
+
+    String phoneNumber =
+        "${context.read<PhoneAuthBloc>().state.countryCode} ${context.read<PhoneAuthBloc>().state.phoneNumber}"
+            .replaceAll(" ", "");
+
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      forceResendingToken:
+          context.read<AuthCodeBloc>().state.phoneAuthModel?.resendToken,
+      verificationCompleted: (PhoneAuthCredential credential) {
+        context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+              status: AuthCodeStatus.success,
+            ));
+      },
+      verificationFailed: (FirebaseAuthException exception) {
+        final firebaseAuthError = CustomAuth.getFirebaseErrorCodeMessage(
+          exception.code,
+        );
+
+        switch (firebaseAuthError) {
+          case FirebaseAuthError.noInternetConnection:
+            context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+                  status: AuthCodeStatus.error,
+                  errorMessage: "Check your internet connection",
+                ));
+            break;
+          case FirebaseAuthError.invalidPhoneNumber:
+            context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+                  status: AuthCodeStatus.error,
+                  errorMessage: 'Failed to validate phone number',
+                ));
+            break;
+          case FirebaseAuthError.authFailure:
+          case FirebaseAuthError.logInRequired:
+          case FirebaseAuthError.phoneNumberTaken:
+          case FirebaseAuthError.accountTaken:
+          case FirebaseAuthError.accountInvalid:
+          case FirebaseAuthError.authSessionTimeout:
+          case FirebaseAuthError.invalidEmailAddress:
+          case FirebaseAuthError.emailTaken:
+          case FirebaseAuthError.invalidAuthCode:
+            context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+                  status: AuthCodeStatus.error,
+                  errorMessage: 'Failed to send code. Try again later',
+                ));
+            break;
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+              loading: false,
+            ));
+        PhoneAuthModel phoneAuthModel = PhoneAuthModel(
+          verificationId: verificationId,
+          resendToken: resendToken,
+        );
+        AuthCodeState state = context.read<AuthCodeBloc>().state;
+        context.read<AuthCodeBloc>().add(InitializeAuthCodeState(
+              authMethod: state.authMethod,
+              authProcedure: state.authProcedure,
+              phoneAuthModel: phoneAuthModel,
+            ));
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
+              loading: false,
+            ));
+      },
+      timeout: const Duration(seconds: 1),
     );
   }
 

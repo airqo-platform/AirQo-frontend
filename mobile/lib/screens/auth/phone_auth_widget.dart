@@ -386,7 +386,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         await FirebaseAuth.instance.verifyPhoneNumber(
           phoneNumber: phoneNumber,
           verificationCompleted: (PhoneAuthCredential credential) {
-            if (!mounted) return;
             PhoneAuthModel phoneAuthModel = PhoneAuthModel(
               phoneAuthCredential: credential,
               verificationId: state.phoneAuthModel?.verificationId,
@@ -396,7 +395,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                   phoneAuthModel,
                 ));
             context.read<AuthCodeBloc>().add(const UpdateAuthCodeStatus(
-                  AuthCodeStatus.success,
+                  status: AuthCodeStatus.success,
                 ));
           },
           verificationFailed: (FirebaseAuthException exception) {

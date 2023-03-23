@@ -52,14 +52,21 @@ class UpdateCountDown extends AuthCodeEvent {
 }
 
 class UpdateAuthCodeStatus extends AuthCodeEvent {
-  const UpdateAuthCodeStatus(this.status);
-  final AuthCodeStatus status;
+  const UpdateAuthCodeStatus({
+    this.status,
+    this.errorMessage,
+    this.loading,
+  });
+  final AuthCodeStatus? status;
+  final String? errorMessage;
+  final bool? loading;
+
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [status, errorMessage, loading];
 }
 
-class ResendAuthCode extends AuthCodeEvent {
-  const ResendAuthCode({required this.context});
+class ResendEmailAuthCode extends AuthCodeEvent {
+  const ResendEmailAuthCode({required this.context});
   final BuildContext context;
   @override
   List<Object?> get props => [];
