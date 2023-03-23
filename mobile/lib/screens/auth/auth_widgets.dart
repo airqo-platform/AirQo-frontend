@@ -21,11 +21,7 @@ class AuthOrSeparator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 36,
-        right: 36,
-        top: 19,
-      ),
+      padding: const EdgeInsets.only(left: 36, right: 36, top: 16),
       child: Stack(
         alignment: AlignmentDirectional.center,
         children: [
@@ -330,19 +326,16 @@ class ChangeAuthCredentials extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCodeBloc, AuthCodeState>(
       builder: (context, state) {
-        return InkWell(
-          onTap: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: AutoSizeText(
+        return Padding(
+          padding: const EdgeInsets.only(top: 16.0),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: Text(
               state.authMethod.editEntryText,
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: 18.0,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: CustomColors.appColorBlue,
                   ),
             ),
@@ -508,28 +501,30 @@ class AuthErrorMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/icon/error_info_icon.svg',
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          Expanded(
-            child: Text(
-              message,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: CustomColors.appColorInvalid,
-                    fontSize: 14,
-                  ),
+      child: SizedBox(
+        width: 230,
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/icon/error_info_icon.svg',
             ),
-          ),
-        ],
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Text(
+                message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: CustomColors.appColorInvalid,
+                      fontSize: 14,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -543,7 +538,7 @@ class AuthSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
       child: AutoSizeText(
         message,
         textAlign: TextAlign.center,
@@ -565,7 +560,7 @@ class AuthTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
       child: AutoSizeText(
         message,
         textAlign: TextAlign.center,
@@ -577,8 +572,8 @@ class AuthTitle extends StatelessWidget {
   }
 }
 
-class SignUpButton extends StatelessWidget {
-  const SignUpButton({
+class AuthSignUpButton extends StatelessWidget {
+  const AuthSignUpButton({
     super.key,
     required this.authProcedure,
     required this.authMethod,
@@ -589,65 +584,68 @@ class SignUpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) {
-                switch (authMethod) {
-                  case AuthMethod.phone:
-                    return authProcedure == AuthProcedure.login
-                        ? const EmailLoginWidget()
-                        : const EmailSignUpWidget();
-                  case AuthMethod.email:
-                    return authProcedure == AuthProcedure.login
-                        ? const PhoneLoginWidget()
-                        : const PhoneSignUpWidget();
-                }
-              },
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation.drive(
-                    Tween<double>(
-                      begin: 0,
-                      end: 1,
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: SizedBox(
+        height: 48,
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  switch (authMethod) {
+                    case AuthMethod.phone:
+                      return authProcedure == AuthProcedure.login
+                          ? const EmailLoginWidget()
+                          : const EmailSignUpWidget();
+                    case AuthMethod.email:
+                      return authProcedure == AuthProcedure.login
+                          ? const PhoneLoginWidget()
+                          : const PhoneSignUpWidget();
+                  }
+                },
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(
+                    opacity: animation.drive(
+                      Tween<double>(
+                        begin: 0,
+                        end: 1,
+                      ),
                     ),
-                  ),
-                  child: child,
-                );
-              },
-            ),
-            (r) => false,
-          );
-        },
-        style: OutlinedButton.styleFrom(
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
-            ),
-          ),
-          backgroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
-          foregroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 0,
-          ),
-        ),
-        child: AutoSizeText(
-          authMethod.optionsButtonText(authProcedure),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: CustomColors.appColorBlue,
+                    child: child,
+                  );
+                },
               ),
+              (r) => false,
+            );
+          },
+          style: OutlinedButton.styleFrom(
+            elevation: 0,
+            side: const BorderSide(
+              color: Colors.transparent,
+            ),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(8),
+              ),
+            ),
+            backgroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+            foregroundColor: const Color(0xff8D8D8D).withOpacity(0.1),
+            padding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 0,
+            ),
+          ),
+          child: AutoSizeText(
+            authMethod.optionsButtonText(authProcedure),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: CustomColors.appColorBlue,
+                ),
+          ),
         ),
       ),
     );

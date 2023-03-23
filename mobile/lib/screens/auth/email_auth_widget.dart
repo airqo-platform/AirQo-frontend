@@ -113,9 +113,12 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                   ),
 
                   /// Email Input field
-                  const SizedBox(
-                    height: 48,
-                    child: EmailInputField(),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 32.0),
+                    child: SizedBox(
+                      height: 48,
+                      child: EmailInputField(),
+                    ),
                   ),
 
                   /// Error message
@@ -127,7 +130,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                   /// Switch signup options
                   Visibility(
                     visible: state.status != EmailAuthStatus.success,
-                    child: SignUpButton(
+                    child: AuthSignUpButton(
                       authProcedure: state.authProcedure,
                       authMethod: AuthMethod.email,
                     ),
@@ -136,15 +139,18 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                   const Spacer(),
 
                   /// Next button
-                  NextButton(
-                    buttonColor: state.emailAddress.isValidEmail()
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorDisabled,
-                    callBack: () async {
-                      if (state.emailAddress.isValidEmail()) {
-                        await _validateEmailAddress();
-                      }
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: NextButton(
+                      buttonColor: state.emailAddress.isValidEmail()
+                          ? CustomColors.appColorBlue
+                          : CustomColors.appColorDisabled,
+                      callBack: () async {
+                        if (state.emailAddress.isValidEmail()) {
+                          await _validateEmailAddress();
+                        }
+                      },
+                    ),
                   ),
 
                   /// login options
@@ -152,7 +158,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                     visible: !_keyboardVisible &&
                         state.status != EmailAuthStatus.success,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: state.authProcedure == AuthProcedure.login
                           ? const LoginOptions(authMethod: AuthMethod.email)
                           : const SignUpOptions(authMethod: AuthMethod.email),

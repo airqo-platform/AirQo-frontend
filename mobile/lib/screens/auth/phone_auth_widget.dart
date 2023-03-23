@@ -113,9 +113,12 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                   ),
 
                   /// Phone Input field
-                  const SizedBox(
-                    height: 48,
-                    child: PhoneInputField(),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 32.0),
+                    child: SizedBox(
+                      height: 48,
+                      child: PhoneInputField(),
+                    ),
                   ),
 
                   /// Error message
@@ -127,7 +130,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                   /// Switch signup options
                   Visibility(
                     visible: state.status != PhoneAuthStatus.success,
-                    child: SignUpButton(
+                    child: AuthSignUpButton(
                       authProcedure: state.authProcedure,
                       authMethod: AuthMethod.phone,
                     ),
@@ -136,15 +139,18 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                   const Spacer(),
 
                   /// Next button
-                  NextButton(
-                    buttonColor: state.phoneNumber.isValidPhoneNumber()
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorDisabled,
-                    callBack: () async {
-                      if (state.phoneNumber.isValidPhoneNumber()) {
-                        await _validatePhoneNumber();
-                      }
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: NextButton(
+                      buttonColor: state.phoneNumber.isValidPhoneNumber()
+                          ? CustomColors.appColorBlue
+                          : CustomColors.appColorDisabled,
+                      callBack: () async {
+                        if (state.phoneNumber.isValidPhoneNumber()) {
+                          await _validatePhoneNumber();
+                        }
+                      },
+                    ),
                   ),
 
                   /// login options
@@ -152,7 +158,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                     visible: !_keyboardVisible &&
                         state.status != PhoneAuthStatus.success,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: state.authProcedure == AuthProcedure.login
                           ? const LoginOptions(authMethod: AuthMethod.phone)
                           : const SignUpOptions(authMethod: AuthMethod.phone),

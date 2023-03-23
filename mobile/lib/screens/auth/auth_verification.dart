@@ -114,7 +114,8 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   Visibility(
                     visible: state.status == AuthCodeStatus.success,
                     child: AuthTitle(
-                        "Your ${state.authMethod == AuthMethod.phone ? 'number' : 'email'} has been verified"),
+                      "Your ${state.authMethod == AuthMethod.phone ? 'number' : 'email'} has been verified",
+                    ),
                   ),
 
                   Visibility(
@@ -140,12 +141,15 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   ),
 
                   /// OPT field
-                  OptField(
-                    callbackFn: (String value) {
-                      context.read<AuthCodeBloc>().add(UpdateAuthCode(
-                            value: value,
-                          ));
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: OptField(
+                      callbackFn: (String value) {
+                        context.read<AuthCodeBloc>().add(UpdateAuthCode(
+                              value: value,
+                            ));
+                      },
+                    ),
                   ),
 
                   // TOD create separate widgets
@@ -153,37 +157,45 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   Visibility(
                     visible: state.codeCountDown > 0 &&
                         state.status != AuthCodeStatus.success,
-                    child: Text(
-                      'The code should arrive with in ${state.codeCountDown} sec',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: CustomColors.appColorBlack.withOpacity(0.5),
-                          ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        'The code should arrive with in ${state.codeCountDown} sec',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color:
+                                  CustomColors.appColorBlack.withOpacity(0.5),
+                            ),
+                      ),
                     ),
                   ),
 
                   Visibility(
                     visible: state.codeCountDown <= 0 &&
                         state.status != AuthCodeStatus.success,
-                    child: InkWell(
-                      onTap: () async {
-                        switch (state.authMethod) {
-                          case AuthMethod.phone:
-                            await _resendPhoneAuthCode();
-                            break;
-                          case AuthMethod.email:
-                            context
-                                .read<AuthCodeBloc>()
-                                .add(ResendEmailAuthCode(context: context));
-                            break;
-                        }
-                      },
-                      child: Text(
-                        'Resend code',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: CustomColors.appColorBlue,
-                            ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: InkWell(
+                        onTap: () async {
+                          switch (state.authMethod) {
+                            case AuthMethod.phone:
+                              await _resendPhoneAuthCode();
+                              break;
+                            case AuthMethod.email:
+                              context
+                                  .read<AuthCodeBloc>()
+                                  .add(ResendEmailAuthCode(context: context));
+                              break;
+                          }
+                        },
+                        child: Text(
+                          'Resend code',
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: CustomColors.appColorBlue,
+                                  ),
+                        ),
                       ),
                     ),
                   ),
@@ -213,27 +225,30 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   /// Next button
                   Visibility(
                     visible: state.status != AuthCodeStatus.success,
-                    child: NextButton(
-                      buttonColor: state.inputAuthCode.length >= 6
-                          ? CustomColors.appColorBlue
-                          : CustomColors.appColorDisabled,
-                      callBack: () {
-                        if (state.status == AuthCodeStatus.success) {
-                          Navigator.pop(context, true);
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: NextButton(
+                        buttonColor: state.inputAuthCode.length >= 6
+                            ? CustomColors.appColorBlue
+                            : CustomColors.appColorDisabled,
+                        callBack: () {
+                          if (state.status == AuthCodeStatus.success) {
+                            Navigator.pop(context, true);
 
-                          return;
-                        }
+                            return;
+                          }
 
-                        if (state.loading) {
-                          return;
-                        }
+                          if (state.loading) {
+                            return;
+                          }
 
-                        if (state.inputAuthCode.length >= 6) {
-                          context
-                              .read<AuthCodeBloc>()
-                              .add(const VerifyAuthCode());
-                        }
-                      },
+                          if (state.inputAuthCode.length >= 6) {
+                            context
+                                .read<AuthCodeBloc>()
+                                .add(const VerifyAuthCode());
+                          }
+                        },
+                      ),
                     ),
                   ),
 
@@ -277,7 +292,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                               await AppService.postSignInActions(context)
                                   .then((_) async {
                                 await Future.delayed(const Duration(seconds: 2))
-                                    .then((_) async {
+                                    .then((_) {
                                   Navigator.pop(context, true);
                                 });
                               });
