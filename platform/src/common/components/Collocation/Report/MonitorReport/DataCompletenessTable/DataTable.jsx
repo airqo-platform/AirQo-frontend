@@ -70,7 +70,7 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
             scope='col'
             className='text-xs font-normal text-black w-[128.57px] px-4 pb-3 opacity-40'
           >
-            Hourly count
+            Actual records
           </th>
           <th
             scope='col'
@@ -112,7 +112,7 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
                   {device.missing.toFixed(2) + '%'}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.total_hourly_count}
+                  {device.actual_number_of_records}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
                   {moment(device.start_date).format('MMM DD, YYYY')}

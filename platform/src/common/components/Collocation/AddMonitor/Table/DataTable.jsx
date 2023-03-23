@@ -21,7 +21,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device._id));
+    collocationDevices.map((device) => allDevices.push(device.name));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -32,9 +32,9 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   const handleSelectDevice = (e, device) => {
     const isChecked = e.target.checked;
     if (isChecked) {
-      dispatch(addDevices([device._id]));
+      dispatch(addDevices([device.name]));
     } else {
-      dispatch(removeDevices([device._id]));
+      dispatch(removeDevices([device.name]));
     }
   };
 
@@ -67,11 +67,11 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
         {paginatedData.length > 0 &&
           paginatedData.map((device) => {
             return (
-              <tr className='border-b border-b-slate-300' key={device._id}>
+              <tr className='border-b border-b-slate-300' key={device.name}>
                 <td scope='row' className='w-[61px] py-3 px-6'>
                   <input
                     type='checkbox'
-                    checked={selectedCollocateDevices.includes(device._id)}
+                    checked={selectedCollocateDevices.includes(device.name)}
                     value={device}
                     onChange={(e) => handleSelectDevice(e, device)}
                   />

@@ -23,7 +23,7 @@ export const collocateApi = createApi({
   endpoints: (builder) => ({
     collocateDevices: builder.mutation({
       query: (addMonitorInput) => ({
-        url: '',
+        url: '/schedule',
         method: 'POST',
         body: addMonitorInput,
       }),
