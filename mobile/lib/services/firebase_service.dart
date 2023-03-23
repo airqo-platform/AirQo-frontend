@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -25,19 +26,6 @@ class CloudAnalytics {
     );
   }
 
-  static Future<void> logSignUpEvents() async {
-    try {
-      await Future.wait([
-        logEvent(CloudAnalyticsEvent.createUserProfile),
-        logNetworkProvider(),
-        logPlatformType(),
-        logGender(),
-      ]);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   static Future<void> logSignOutEvents() async {
     try {
       await Future.wait([]);
@@ -46,43 +34,38 @@ class CloudAnalytics {
     }
   }
 
-  static Future<void> logSignInEvents() async {
+  static Future<void> logSignInEvents(Profile profile) async {
     try {
       await Future.wait([
         logPlatformType(),
+        logEvent(CloudAnalyticsEvent.createUserProfile),
+        logNetworkProvider(profile),
+        logGender(profile),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  static Future<void> logAirQualitySharing() async {
-    // TODO implement
-    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    // if (profile != null) {
-    //   if (profile.aqShares >= 5) {
-    //     await CloudAnalytics.logEvent(
-    //       CloudAnalyticsEvent.shareAirQualityInformation,
-    //     );
-    //   }
-    // }
+  static Future<void> logAirQualitySharing(Profile profile) async {
+    if (profile.aqShares >= 5) {
+      await CloudAnalytics.logEvent(
+        CloudAnalyticsEvent.shareAirQualityInformation,
+      );
+    }
   }
 
-  static Future<void> logNetworkProvider() async {
-    // TODO implement
-    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    // if (profile != null) {
-    //   final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
-    //   if (carrier.toLowerCase().contains('airtel')) {
-    //     await logEvent(CloudAnalyticsEvent.airtelUser);
-    //   } else if (carrier.toLowerCase().contains('mtn')) {
-    //     await logEvent(CloudAnalyticsEvent.mtnUser);
-    //   } else {
-    //     await logEvent(
-    //       CloudAnalyticsEvent.otherNetwork,
-    //     );
-    //   }
-    // }
+  static Future<void> logNetworkProvider(Profile profile) async {
+    final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
+    if (carrier.toLowerCase().contains('airtel')) {
+      await logEvent(CloudAnalyticsEvent.airtelUser);
+    } else if (carrier.toLowerCase().contains('mtn')) {
+      await logEvent(CloudAnalyticsEvent.mtnUser);
+    } else {
+      await logEvent(
+        CloudAnalyticsEvent.otherNetwork,
+      );
+    }
   }
 
   static Future<void> logPlatformType() async {
@@ -99,24 +82,20 @@ class CloudAnalytics {
     }
   }
 
-  static Future<void> logGender() async {
-    // TODO implement
-    // final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
-    // if (profile != null) {
-    //   if (profile.gender() == Gender.male) {
-    //     await logEvent(
-    //       CloudAnalyticsEvent.maleUser,
-    //     );
-    //   } else if (profile.gender() == Gender.female) {
-    //     await logEvent(
-    //       CloudAnalyticsEvent.femaleUser,
-    //     );
-    //   } else {
-    //     await logEvent(
-    //       CloudAnalyticsEvent.undefinedGender,
-    //     );
-    //   }
-    // }
+  static Future<void> logGender(Profile profile) async {
+    if (profile.gender() == Gender.male) {
+      await logEvent(
+        CloudAnalyticsEvent.maleUser,
+      );
+    } else if (profile.gender() == Gender.female) {
+      await logEvent(
+        CloudAnalyticsEvent.femaleUser,
+      );
+    } else {
+      await logEvent(
+        CloudAnalyticsEvent.undefinedGender,
+      );
+    }
   }
 }
 
@@ -490,6 +469,7 @@ class CustomAuth {
   static Future<bool> deleteAccount() async {
     try {
       await FirebaseAuth.instance.currentUser?.delete();
+
       return true;
     } catch (exception, stackTrace) {
       await logException(
@@ -516,33 +496,13 @@ class CustomAuth {
   }
 
   static String getUserId() {
-    if (!isLoggedIn()) {
+    final user = getUser();
+
+    if (user == null) {
       return '';
     }
 
-    return getUser()!.uid;
-  }
-
-  static bool isLoggedIn() {
-    final user = getUser();
-    if (user == null) {
-      return false;
-    }
-
-    return !user.isAnonymous;
-  }
-
-  static Future<bool> logOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return true;
+    return user.uid;
   }
 
   static Future<bool> reAuthenticate(AuthCredential authCredential) async {
@@ -580,171 +540,5 @@ class CustomAuth {
       default:
         return FirebaseAuthError.authFailure;
     }
-  }
-
-  static Future<void> sendPhoneAuthCode({
-    required String phoneNumber,
-    required BuildContext buildContext,
-    required AuthProcedure authProcedure,
-  }) async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) {
-        // switch (authProcedure) {
-        //   case AuthProcedure.login:
-        //   case AuthProcedure.signup:
-        //     buildContext
-        //         .read<PhoneAuthBloc>()
-        //         .add(const UpdateStatus(BlocStatus.success));
-        //     break;
-        //   case AuthProcedure.deleteAccount:
-        //     buildContext
-        //         .read<AccountBloc>()
-        //         .add(const AccountDeletionCheck(passed: true));
-        //     break;
-        //   case AuthProcedure.anonymousLogin:
-        //   case AuthProcedure.logout:
-        //   case AuthProcedure.none:
-        //     break;
-        // }
-        //
-        // buildContext
-        //     .read<AuthCodeBloc>()
-        //     .add(VerifyAuthCode(credential: credential));
-      },
-      verificationFailed: (FirebaseAuthException exception) async {
-        // switch (authProcedure) {
-        //   case AuthProcedure.login:
-        //   case AuthProcedure.signup:
-        //     buildContext.read<PhoneAuthBloc>().add(UpdateStatus(
-        //           BlocStatus.error,
-        //           error: getFirebaseErrorCodeMessage(exception.code),
-        //         ));
-        //     break;
-        //   case AuthProcedure.deleteAccount:
-        //     buildContext.read<AccountBloc>().add(AccountDeletionCheck(
-        //           passed: false,
-        //           error: getFirebaseErrorCodeMessage(exception.code),
-        //         ));
-        //     break;
-        //   case AuthProcedure.anonymousLogin:
-        //   case AuthProcedure.logout:
-        //   case AuthProcedure.none:
-        //     break;
-        // }
-        //
-        // throw exception;
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        // buildContext
-        //     .read<AuthCodeBloc>()
-        //     .add(UpdateVerificationId(verificationId));
-        //
-        // switch (authProcedure) {
-        //   case AuthProcedure.login:
-        //   case AuthProcedure.signup:
-        //     buildContext
-        //         .read<PhoneAuthBloc>()
-        //         .add(const UpdateStatus(BlocStatus.success));
-        //     break;
-        //   case AuthProcedure.deleteAccount:
-        //     // buildContext
-        //     //     .read<AccountBloc>()
-        //     //     .add(const AccountDeletionCheck(passed: true));
-        //     break;
-        //   case AuthProcedure.anonymousLogin:
-        //   case AuthProcedure.logout:
-        //   case AuthProcedure.none:
-        //     break;
-        // }
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        // buildContext
-        //     .read<AuthCodeBloc>()
-        //     .add(UpdateVerificationId(verificationId));
-        //
-        // switch (authProcedure) {
-        //   case AuthProcedure.login:
-        //   case AuthProcedure.signup:
-        //     buildContext
-        //         .read<PhoneAuthBloc>()
-        //         .add(const UpdateStatus(BlocStatus.success));
-        //     break;
-        //   case AuthProcedure.deleteAccount:
-        //     // buildContext
-        //     //     .read<AccountBloc>()
-        //     //     .add(const AccountDeletionCheck(passed: true));
-        //     break;
-        //   case AuthProcedure.anonymousLogin:
-        //   case AuthProcedure.logout:
-        //   case AuthProcedure.none:
-        //     break;
-        // }
-      },
-      timeout: const Duration(seconds: 30),
-    );
-  }
-
-  static Future<void> sendEmailAuthCode({
-    required String emailAddress,
-    required BuildContext buildContext,
-    required AuthProcedure authProcedure,
-  }) async {
-    // try {
-    //   final emailSignupResponse = await AirqoApiClient()
-    //       .requestEmailVerificationCode(emailAddress, false);
-    //
-    //   if (emailSignupResponse == null) {
-    //     switch (authProcedure) {
-    //       case AuthProcedure.login:
-    //       case AuthProcedure.signup:
-    //         buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
-    //               AuthenticationError.authFailure,
-    //             ));
-    //         break;
-    //       case AuthProcedure.deleteAccount:
-    //         // buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
-    //         //       error: AuthenticationError.authFailure,
-    //         //       passed: false,
-    //         //     ));
-    //         break;
-    //       case AuthProcedure.anonymousLogin:
-    //       case AuthProcedure.logout:
-    //       case AuthProcedure.none:
-    //         break;
-    //     }
-    //   } else {
-    //     buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
-    //           emailVerificationLink: emailSignupResponse.loginLink,
-    //           emailToken: emailSignupResponse.token,
-    //         ));
-    //
-    //     switch (authProcedure) {
-    //       case AuthProcedure.login:
-    //       case AuthProcedure.signup:
-    //         buildContext
-    //             .read<EmailAuthBloc>()
-    //             .add(const EmailValidationPassed());
-    //         break;
-    //       case AuthProcedure.deleteAccount:
-    //         // buildContext
-    //         //     .read<AccountBloc>()
-    //         //     .add(const AccountDeletionCheck(passed: true));
-    //         break;
-    //       case AuthProcedure.anonymousLogin:
-    //       case AuthProcedure.logout:
-    //       case AuthProcedure.none:
-    //         break;
-    //     }
-    //   }
-    // } catch (exception, stackTrace) {
-    //   buildContext
-    //       .read<EmailAuthBloc>()
-    //       .add(const EmailValidationFailed(AuthenticationError.authFailure));
-    //   await logException(
-    //     exception,
-    //     stackTrace,
-    //   );
-    // }
   }
 }

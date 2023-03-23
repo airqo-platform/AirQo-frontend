@@ -40,31 +40,10 @@ enum CloudAnalyticsEvent {
   }
 }
 
-// TODO remove this enum
-enum InsightsStatus {
-  loaded,
-  error,
-  refreshing,
-  loading,
-  noInternetConnection,
-  noData;
-}
-
 enum AppPermission {
   notification,
   location,
   photosStorage,
-}
-
-// TODO remove this enum
-enum BlocStatus {
-  initial,
-  editing,
-  processing,
-  updatingData,
-  error,
-  success,
-  accountDeletionCheckSuccess,
 }
 
 enum FeedbackStep {
@@ -380,20 +359,6 @@ enum AuthProcedure {
   final String confirmationBody;
   final String confirmationOkayText;
   final String confirmationCancelText;
-}
-
-// TODO remove this enum
-@JsonEnum(valueField: 'string')
-enum Frequency {
-  daily('daily'),
-  hourly('hourly');
-
-  const Frequency(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
 }
 
 enum Gender {

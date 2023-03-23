@@ -137,12 +137,13 @@ class Profile {
     );
   }
 
-  Profile setUserCredentials() {
+  Future<Profile> setUserCredentials() async {
     String? userId;
     String? emailAddress;
     String? phoneNumber;
     bool? isAnonymous;
     bool? isSignedIn;
+    String? device;
 
     final User? user = CustomAuth.getUser();
     if (user != null) {
@@ -151,16 +152,17 @@ class Profile {
       userId = user.uid;
       isAnonymous = user.isAnonymous;
       isSignedIn = true;
+      device = await CloudMessaging.getDeviceToken();
     }
 
     return Profile(
       userId: userId ?? this.userId,
       emailAddress: emailAddress ?? this.emailAddress,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      device: device ?? this.device,
       lastName: lastName,
       title: title,
       firstName: firstName,
-      device: device,
       utcOffset: DateTime.now().getUtcOffset(),
       photoUrl: photoUrl,
       notifications: notifications,

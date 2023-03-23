@@ -6,14 +6,12 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 
@@ -354,40 +352,33 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
       if (mounted) {
         Navigator.pop(context);
       }
+
       return;
     }
 
-    Profile profile = context.read<ProfileBloc>().state;
-    AuthCredential? authCredential;
-    if (profile.emailAddress.isNotEmpty) {
-      final EmailAuthModel? emailAuthModel = await AirqoApiClient()
-          .requestEmailVerificationCode(profile.emailAddress, true);
-      if (emailAuthModel != null && mounted) {
-        Navigator.pop(context);
-        context.read<AuthCodeBloc>().add(InitializeAuthCodeState(
-              emailAuthModel: emailAuthModel,
-              authProcedure: AuthProcedure.deleteAccount,
-              authMethod: AuthMethod.email,
-            ));
+    ConfirmationAction? signOutConfirmation =
+        await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const SignOutDeletionDialog();
+      },
+    );
 
-        await verifyAuthCode(context).then((success) {
-          if (success) {
-            return;
-          }
-        });
-      }
-    } else if (profile.phoneNumber.isNotEmpty) {}
-
-    if (authCredential == null) {
-      if (mounted) {
-        showSnackBar(context, "Failed to delete account. Try again later");
-      }
+    if (signOutConfirmation == null ||
+        signOutConfirmation == ConfirmationAction.cancel) {
       return;
     }
 
-    final reAuthentication = await CustomAuth.reAuthenticate(authCredential);
-    if (reAuthentication) {
-      await CustomAuth.deleteAccount();
+    final success = await CustomAuth.signOut();
+
+    if (!mounted) return;
+
+    if (success) {
+      await AppService.postSignOutActions(context);
+    } else {
+      Navigator.pop(context);
+      showSnackBar(context, Config.signOutFailed);
     }
   }
 }

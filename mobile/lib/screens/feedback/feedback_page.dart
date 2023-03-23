@@ -30,7 +30,7 @@ class FeedbackPage extends StatelessWidget {
                     loadingScreen(context);
                   },
                   listenWhen: (previous, current) {
-                    return current.blocStatus == BlocStatus.processing;
+                    return current.blocStatus == FeedbackStateStatus.processing;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
@@ -38,7 +38,8 @@ class FeedbackPage extends StatelessWidget {
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
-                    return previous.blocStatus == BlocStatus.processing;
+                    return previous.blocStatus ==
+                        FeedbackStateStatus.processing;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
@@ -47,7 +48,7 @@ class FeedbackPage extends StatelessWidget {
                   },
                   listenWhen: (previous, current) {
                     return previous != current &&
-                        current.blocStatus == BlocStatus.error &&
+                        current.blocStatus == FeedbackStateStatus.error &&
                         current.errorMessage.isNotEmpty;
                   },
                 ),
@@ -60,7 +61,7 @@ class FeedbackPage extends StatelessWidget {
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
-                    return current.blocStatus == BlocStatus.success;
+                    return current.blocStatus == FeedbackStateStatus.success;
                   },
                 ),
               ],

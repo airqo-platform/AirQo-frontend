@@ -30,7 +30,8 @@ class AppService {
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
-    await CloudAnalytics.logSignInEvents();
+    Profile profile = context.read<ProfileBloc>().state;
+    await CloudAnalytics.logSignInEvents(profile);
   }
 
   static Future<void> postSignOutActions(BuildContext context) async {

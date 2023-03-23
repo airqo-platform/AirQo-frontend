@@ -18,7 +18,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
   }
 
   Future<void> _onSyncProfile(SyncProfile _, Emitter<Profile> emit) async {
-    Profile profile = state.setUserCredentials();
+    Profile profile = await state.setUserCredentials();
     emit(profile);
 
     Profile? cloudProfile = await CloudStore.getProfile();

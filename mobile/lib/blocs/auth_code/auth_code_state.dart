@@ -64,6 +64,6 @@ class AuthCodeState extends Equatable {
         codeCountDown,
         authMethod,
         inputAuthCode,
-        loading
+        loading,
       ];
 }

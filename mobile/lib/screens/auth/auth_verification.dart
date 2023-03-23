@@ -36,7 +36,7 @@ Future<bool> verifyAuthCode(BuildContext context) async {
   );
 
   try {
-    if (success as bool == true) return true;
+    if (success as bool) return true;
   } catch (e) {
     debugPrint(e.toString());
   }
@@ -84,6 +84,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   credentials = state.emailAuthModel?.emailAddress ?? "";
                   break;
               }
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -217,7 +218,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   /// Next button
                   Visibility(
-                    visible: state.status != BlocStatus.success,
+                    visible: state.status != AuthCodeStatus.success,
                     child: NextButton(
                       buttonColor: state.inputAuthCode.length >= 6
                           ? CustomColors.appColorBlue
@@ -274,38 +275,40 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                           if (!mounted) {
                             return;
                           }
-
-                          switch (state.authProcedure) {
-                            case AuthProcedure.login:
-                            case AuthProcedure.signup:
-                            case AuthProcedure.anonymousLogin:
-                              Navigator.pop(context, true);
-                              break;
-                            case AuthProcedure.logout:
-                              loadingScreen(_loadingContext);
-                              await AppService.postSignOutActions(context)
-                                  .then((_) {
-                                Navigator.pop(_loadingContext);
+                          await Future.delayed(const Duration(seconds: 2))
+                              .then((_) async {
+                            switch (state.authProcedure) {
+                              case AuthProcedure.login:
+                              case AuthProcedure.signup:
+                              case AuthProcedure.anonymousLogin:
                                 Navigator.pop(context, true);
-                              });
-                              break;
-                            case AuthProcedure.deleteAccount:
-                              loadingScreen(_loadingContext);
-                              await CustomAuth.deleteAccount()
-                                  .then((success) async {
-                                if (success) {
-                                  await AppService.postSignOutActions(context)
-                                      .then((_) {
-                                    Navigator.pop(_loadingContext);
-                                    Navigator.pop(context, true);
-                                  });
-                                } else {
+                                break;
+                              case AuthProcedure.logout:
+                                loadingScreen(_loadingContext);
+                                await AppService.postSignOutActions(context)
+                                    .then((_) {
                                   Navigator.pop(_loadingContext);
-                                  Navigator.pop(context, false);
-                                }
-                              });
-                              break;
-                          }
+                                  Navigator.pop(context, true);
+                                });
+                                break;
+                              case AuthProcedure.deleteAccount:
+                                loadingScreen(_loadingContext);
+                                await CustomAuth.deleteAccount()
+                                    .then((success) async {
+                                  if (success) {
+                                    await AppService.postSignOutActions(context)
+                                        .then((_) {
+                                      Navigator.pop(_loadingContext);
+                                      Navigator.pop(context, true);
+                                    });
+                                  } else {
+                                    Navigator.pop(_loadingContext);
+                                    Navigator.pop(context, false);
+                                  }
+                                });
+                                break;
+                            }
+                          });
                         },
                         listenWhen: (previous, current) {
                           return current.status == AuthCodeStatus.success;

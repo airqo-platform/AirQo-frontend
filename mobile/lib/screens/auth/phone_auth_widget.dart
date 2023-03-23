@@ -16,8 +16,8 @@ import '../on_boarding/profile_setup_screen.dart';
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 
-class PhoneAuthWidget extends StatefulWidget {
-  const PhoneAuthWidget({
+class _PhoneAuthWidget extends StatefulWidget {
+  const _PhoneAuthWidget({
     super.key,
     this.phoneNumber,
     required this.authProcedure,
@@ -26,10 +26,10 @@ class PhoneAuthWidget extends StatefulWidget {
   final AuthProcedure authProcedure;
 
   @override
-  PhoneAuthWidgetState createState() => PhoneAuthWidgetState();
+  _PhoneAuthWidgetState createState() => _PhoneAuthWidgetState();
 }
 
-class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
+class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
   DateTime? _exitTime;
   late BuildContext _loadingContext;
   bool _keyboardVisible = false;
@@ -191,50 +191,29 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                                 authMethod: AuthMethod.phone,
                               ));
 
+                          Widget nextScreen;
+                          switch (state.authProcedure) {
+                            case AuthProcedure.deleteAccount:
+                            case AuthProcedure.anonymousLogin:
+                            case AuthProcedure.logout:
+                            case AuthProcedure.login:
+                              nextScreen = const HomePage();
+                              break;
+                            case AuthProcedure.signup:
+                              nextScreen = const ProfileSetupScreen();
+                              break;
+                          }
+
                           await verifyAuthCode(context).then((success) async {
                             if (success) {
                               loadingScreen(_loadingContext);
-                              switch (state.authProcedure) {
-                                case AuthProcedure.deleteAccount:
-                                case AuthProcedure.anonymousLogin:
-                                case AuthProcedure.logout:
-                                case AuthProcedure.login:
-                                  await AppService.postSignInActions(context)
-                                      .then((_) async {
-                                    Navigator.pop(_loadingContext);
-                                    Future.delayed(
-                                      const Duration(seconds: 2),
-                                      () {
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const HomePage()),
-                                          (r) => false,
-                                        );
-                                      },
-                                    );
-                                  });
-                                  break;
-                                case AuthProcedure.signup:
-                                  Navigator.pop(_loadingContext);
-                                  await AppService.postSignInActions(context)
-                                      .then((_) async {
-                                    Future.delayed(
-                                      const Duration(seconds: 2),
-                                      () {
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const ProfileSetupScreen()),
-                                          (r) => false,
-                                        );
-                                      },
-                                    );
-                                  });
-                                  break;
-                              }
+                              await Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => nextScreen,
+                                ),
+                                (r) => false,
+                              );
                             } else {
                               context.read<PhoneAuthBloc>().add(
                                     InitializePhoneAuth(
@@ -491,7 +470,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 }
 
-class PhoneLoginWidget extends PhoneAuthWidget {
+class PhoneLoginWidget extends _PhoneAuthWidget {
   const PhoneLoginWidget({super.key, String? phoneNumber})
       : super(
           phoneNumber: phoneNumber,
@@ -502,9 +481,9 @@ class PhoneLoginWidget extends PhoneAuthWidget {
   PhoneLoginWidgetState createState() => PhoneLoginWidgetState();
 }
 
-class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
+class PhoneLoginWidgetState extends _PhoneAuthWidgetState<PhoneLoginWidget> {}
 
-class PhoneSignUpWidget extends PhoneAuthWidget {
+class PhoneSignUpWidget extends _PhoneAuthWidget {
   const PhoneSignUpWidget({super.key})
       : super(authProcedure: AuthProcedure.signup);
 
@@ -512,4 +491,4 @@ class PhoneSignUpWidget extends PhoneAuthWidget {
   PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();
 }
 
-class PhoneSignUpWidgetState extends PhoneAuthWidgetState<PhoneSignUpWidget> {}
+class PhoneSignUpWidgetState extends _PhoneAuthWidgetState<PhoneSignUpWidget> {}

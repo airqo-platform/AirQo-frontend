@@ -338,6 +338,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       });
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
+
       return emit(state.copyWith(
         status: AuthCodeStatus.error,
         errorMessage: "Failed to send verification code. Try again later",

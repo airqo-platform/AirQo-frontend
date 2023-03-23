@@ -577,31 +577,6 @@ class AuthTitle extends StatelessWidget {
   }
 }
 
-class InputValidationCodeMessage extends StatelessWidget {
-  const InputValidationCodeMessage(this.visible, {super.key});
-
-  final bool visible;
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: visible,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-        child: AutoSizeText(
-          'We’ll send you a verification code',
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.6),
-              ),
-        ),
-      ),
-    );
-  }
-}
-
 class SignUpButton extends StatelessWidget {
   const SignUpButton({
     super.key,
@@ -742,28 +717,6 @@ class SignUpOptions extends StatelessWidget {
         ),
         const ProceedAsGuest(),
       ],
-    );
-  }
-}
-
-class CancelOption extends StatelessWidget {
-  const CancelOption({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context, false);
-      },
-      child: Text(
-        'Cancel',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: CustomColors.appColorBlue,
-        ),
-      ),
     );
   }
 }

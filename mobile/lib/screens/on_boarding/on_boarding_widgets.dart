@@ -85,6 +85,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
       borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
       borderRadius: BorderRadius.circular(8.0),
     );
+
     return BlocBuilder<ProfileBloc, Profile>(
       builder: (context, profile) {
         return TextFormField(
@@ -211,7 +212,9 @@ class SkipOnboardScreen extends StatelessWidget {
           'No, thanks',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: CustomColors.appColorBlue, fontWeight: FontWeight.w600),
+                color: CustomColors.appColorBlue,
+                fontWeight: FontWeight.w600,
+              ),
         ),
       ),
     );

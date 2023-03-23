@@ -24,7 +24,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     InitializeFeedback event,
     Emitter<FeedbackState> emit,
   ) {
-    if (state.blocStatus == BlocStatus.success) {
+    if (state.blocStatus == FeedbackStateStatus.success) {
       return emit(
         const FeedbackState.initial().copyWith(
           emailAddress: event.profile.emailAddress,
@@ -50,7 +50,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedback.isEmpty) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          blocStatus: FeedbackStateStatus.error,
           errorMessage: 'Please type your message.',
         ),
       );
@@ -60,13 +60,13 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (!hasConnection) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          blocStatus: FeedbackStateStatus.error,
           errorMessage: FirebaseAuthError.noInternetConnection.message,
         ),
       );
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: FeedbackStateStatus.processing));
 
     final bool success = await AirqoApiClient().sendFeedback(
       UserFeedback(
@@ -78,7 +78,8 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
 
     return emit(
       state.copyWith(
-        blocStatus: success ? BlocStatus.success : BlocStatus.error,
+        blocStatus:
+            success ? FeedbackStateStatus.success : FeedbackStateStatus.error,
         errorMessage:
             success ? '' : 'Failed to submit feedback. Try again later.',
       ),
@@ -94,7 +95,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedbackType == FeedbackType.none) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          blocStatus: FeedbackStateStatus.error,
           errorMessage: 'Please select a feedback type.',
         ),
       );
@@ -112,7 +113,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (state.feedbackChannel == FeedbackChannel.none) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          blocStatus: FeedbackStateStatus.error,
           errorMessage: 'Please select a communication channel.',
         ),
       );
@@ -121,7 +122,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     if (!state.emailAddress.isValidEmail()) {
       return emit(
         state.copyWith(
-          blocStatus: BlocStatus.error,
+          blocStatus: FeedbackStateStatus.error,
           errorMessage: FirebaseAuthError.invalidEmailAddress.message,
         ),
       );
@@ -169,7 +170,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   void _onClearErrors(Emitter<FeedbackState> emit) {
     emit(
       state.copyWith(
-        blocStatus: BlocStatus.initial,
+        blocStatus: FeedbackStateStatus.initial,
         errorMessage: '',
       ),
     );

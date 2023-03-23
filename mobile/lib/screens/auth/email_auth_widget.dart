@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -192,50 +191,29 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                 authMethod: AuthMethod.email,
                               ));
 
+                          Widget nextScreen;
+                          switch (state.authProcedure) {
+                            case AuthProcedure.deleteAccount:
+                            case AuthProcedure.anonymousLogin:
+                            case AuthProcedure.logout:
+                            case AuthProcedure.login:
+                              nextScreen = const HomePage();
+                              break;
+                            case AuthProcedure.signup:
+                              nextScreen = const ProfileSetupScreen();
+                              break;
+                          }
+
                           await verifyAuthCode(context).then((success) async {
                             if (success) {
                               loadingScreen(_loadingContext);
-                              switch (state.authProcedure) {
-                                case AuthProcedure.deleteAccount:
-                                case AuthProcedure.anonymousLogin:
-                                case AuthProcedure.logout:
-                                case AuthProcedure.login:
-                                  await AppService.postSignInActions(context)
-                                      .then((_) async {
-                                    Navigator.pop(_loadingContext);
-                                    await Future.delayed(
-                                      const Duration(seconds: 2),
-                                      () {
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const HomePage()),
-                                          (r) => false,
-                                        );
-                                      },
-                                    );
-                                  });
-                                  break;
-                                case AuthProcedure.signup:
-                                  await AppService.postSignInActions(context)
-                                      .then((_) async {
-                                    Navigator.pop(_loadingContext);
-                                    await Future.delayed(
-                                      const Duration(seconds: 2),
-                                      () {
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const ProfileSetupScreen()),
-                                          (r) => false,
-                                        );
-                                      },
-                                    );
-                                  });
-                                  break;
-                              }
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => nextScreen,
+                                ),
+                                (r) => false,
+                              );
                             } else {
                               context.read<EmailAuthBloc>().add(
                                     InitializeEmailAuth(

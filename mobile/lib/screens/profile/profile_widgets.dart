@@ -250,45 +250,65 @@ class SettingsButton extends StatelessWidget {
   }
 }
 
-class DummyProfilePicture extends StatelessWidget {
-  const DummyProfilePicture({super.key, required this.text});
+class ProfilePicPlaceHolder extends StatelessWidget {
+  const ProfilePicPlaceHolder(
+    this.text, {
+    super.key,
+    this.size = 40,
+  });
   final String text;
+  final double size;
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        RotationTransition(
-          turns: const AlwaysStoppedAnimation(-5 / 360),
-          child: Container(
-            height: 40,
-            width: 40,
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-              color: CustomColors.appPicColor,
-              shape: BoxShape.rectangle,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(15.0),
+    return RotationTransition(
+      turns: const AlwaysStoppedAnimation(-5 / 360),
+      child: Container(
+        height: size,
+        width: size,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          color: CustomColors.appPicColor,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.all(
+            Radius.circular(size > 40 ? 35 : 15.0),
+          ),
+        ),
+        child: Center(
+          child: RotationTransition(
+            turns: const AlwaysStoppedAnimation(5 / 360),
+            child: Container(
+              height: size,
+              width: size,
+              padding: const EdgeInsets.all(2.0),
+              decoration: BoxDecoration(
+                color: CustomColors.appPicColor,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(size > 40 ? 35 : 15.0),
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  padding: const EdgeInsets.all(2.0),
+                  color: Colors.transparent,
+                  child: Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: size > 40 ? 22 : 12,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
-        Container(
-          height: 40,
-          width: 40,
-          padding: const EdgeInsets.all(2.0),
-          color: Colors.transparent,
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 17.0,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -299,89 +319,8 @@ class ViewProfilePicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, Profile>(builder: (context, profile) {
-      if (profile.isAnonymous) {
-        return Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            RotationTransition(
-              turns: const AlwaysStoppedAnimation(-5 / 360),
-              child: Container(
-                padding: const EdgeInsets.all(2.0),
-                decoration: BoxDecoration(
-                  color: CustomColors.appPicColor,
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(27.0),
-                  ),
-                ),
-                child: Container(
-                  height: 40,
-                  width: 40,
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-            const Text(
-              'A',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 17.0,
-              ),
-            ),
-          ],
-        );
-      }
-
-      if (!profile.photoUrl.isValidUri()) {
-        return Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            RotationTransition(
-              turns: const AlwaysStoppedAnimation(-5 / 360),
-              child: Container(
-                padding: const EdgeInsets.all(2.0),
-                decoration: BoxDecoration(
-                  color: CustomColors.appPicColor,
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(20.0),
-                  ),
-                ),
-                child: Container(
-                  height: 44,
-                  width: 44,
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-            Text(
-              profile.initials(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 17.0,
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white),
-                  color: CustomColors.appColorBlue,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.add,
-                  size: 10,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        );
+      if (profile.isAnonymous || !profile.photoUrl.isValidUri()) {
+        return ProfilePicPlaceHolder(profile.initials());
       }
 
       return Stack(
@@ -678,24 +617,8 @@ class _EditProfilePicSectionState extends State<EditProfilePicSection> {
       builder: (context, profile) {
         Widget profilePicWidget;
         if (_profilePic.trim().isEmpty) {
-          profilePicWidget = RotationTransition(
-            turns: const AlwaysStoppedAnimation(-5 / 360),
-            child: Container(
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                color: CustomColors.appPicColor,
-                shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(35.0),
-                ),
-              ),
-              child: Container(
-                height: 88,
-                width: 88,
-                color: Colors.transparent,
-              ),
-            ),
-          );
+          profilePicWidget =
+              ProfilePicPlaceHolder(profile.initials(), size: 88);
         } else {
           if (_profilePic.isValidUri()) {
             profilePicWidget = CircleAvatar(
@@ -726,17 +649,6 @@ class _EditProfilePicSectionState extends State<EditProfilePicSection> {
                 alignment: AlignmentDirectional.center,
                 children: [
                   profilePicWidget,
-                  Visibility(
-                    visible: _profilePic.trim().isEmpty,
-                    child: Text(
-                      profile.initials(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 30,
-                      ),
-                    ),
-                  ),
                   Visibility(
                     visible: !_uploading,
                     child: Positioned(
@@ -1010,8 +922,8 @@ class GuestProfileView extends StatelessWidget {
             ),
             Row(
               children: const [
-                DummyProfilePicture(
-                  text: 'A',
+                ProfilePicPlaceHolder(
+                  'A',
                 ),
                 Spacer(),
               ],

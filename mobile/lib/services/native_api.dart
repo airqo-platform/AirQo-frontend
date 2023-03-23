@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/rest_api.dart';
@@ -21,7 +22,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
-import '../blocs/insights/insights_bloc.dart';
 import '../screens/insights/insights_page.dart';
 import '../screens/kya/kya_title_page.dart';
 import 'firebase_service.dart';
@@ -214,7 +214,8 @@ class ShareService {
   }
 
   static Future<void> shareLink(
-    Uri link, {
+    Uri link,
+    BuildContext context, {
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
@@ -233,18 +234,19 @@ class ShareService {
     await Share.share(
       link.toString(),
       subject: subject,
-    ).then((_) => {updateUserShares()});
+    ).then((_) => {updateUserShares(context)});
   }
 
-  static Future<void> updateUserShares() async {
-    // TODO implement
-    // Profile profile = await HiveService.getProfile();
-    // profile = profile.copyWith(
-    //   aqShares: profile.aqShares + 1,
-    // );
-    // if (profile.aqShares >= 5) {
-    //   await CloudAnalytics.logAirQualitySharing();
-    // }
+  static Future<void> updateUserShares(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
+    profile = profile.copyWith(
+      aqShares: profile.aqShares + 1,
+    );
+    context.read<ProfileBloc>().add(UpdateProfile(profile));
+
+    if (profile.aqShares >= 5) {
+      await CloudAnalytics.logAirQualitySharing(profile);
+    }
   }
 }
 
