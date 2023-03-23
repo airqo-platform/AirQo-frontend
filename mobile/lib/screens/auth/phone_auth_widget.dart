@@ -342,6 +342,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                 status: PhoneAuthStatus.error,
                 errorMessage: "Failed to send code. Try again later",
               ));
+
           return;
         }
         if (!mounted) return;

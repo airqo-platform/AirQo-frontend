@@ -615,25 +615,24 @@ class _EditProfilePicSectionState extends State<EditProfilePicSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, Profile>(
       builder: (context, profile) {
-        Widget profilePicWidget;
-        if (_profilePic.trim().isEmpty) {
-          profilePicWidget =
-              ProfilePicPlaceHolder(profile.initials(), size: 88);
-        } else {
-          profilePicWidget = _profilePic.isValidUri()
-              ? CircleAvatar(
-                  radius: 44,
-                  backgroundImage: CachedNetworkImageProvider(
-                    _profilePic,
-                  ),
-                )
-              : CircleAvatar(
-                  radius: 44,
-                  backgroundImage: FileImage(
-                    File(_profilePic),
-                  ),
-                );
-        }
+        Widget profilePicWidget = _profilePic.trim().isEmpty
+            ? ProfilePicPlaceHolder(
+                profile.initials(),
+                size: 88,
+              )
+            : _profilePic.isValidUri()
+                ? CircleAvatar(
+                    radius: 44,
+                    backgroundImage: CachedNetworkImageProvider(
+                      _profilePic,
+                    ),
+                  )
+                : CircleAvatar(
+                    radius: 44,
+                    backgroundImage: FileImage(
+                      File(_profilePic),
+                    ),
+                  );
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
