@@ -281,6 +281,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             status: PhoneAuthStatus.invalidPhoneNumber,
             errorMessage: 'Phone number can\'t be blank',
           ));
+
       return;
     }
 
@@ -289,6 +290,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             status: PhoneAuthStatus.invalidPhoneNumber,
             errorMessage: 'Invalid Phone number',
           ));
+
       return;
     }
 
@@ -301,6 +303,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             status: PhoneAuthStatus.error,
             errorMessage: 'Check your internet connection',
           ));
+
       return;
     }
 
@@ -318,6 +321,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                 status: PhoneAuthStatus.error,
                 errorMessage: "Failed to send code. Try again later",
               ));
+
           return;
         }
 
@@ -326,6 +330,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                 status: PhoneAuthStatus.phoneNumberDoesNotExist,
                 errorMessage: 'This number is not linked to any account.',
               ));
+
           return;
         }
         break;
@@ -340,12 +345,14 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
           return;
         }
         if (!mounted) return;
+
         if (exists) {
           context.read<PhoneAuthBloc>().add(const UpdateStatus(
                 status: PhoneAuthStatus.phoneNumberTaken,
                 errorMessage:
                     "An account already exists with this phone number",
               ));
+
           return;
         }
         break;

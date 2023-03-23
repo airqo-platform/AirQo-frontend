@@ -620,21 +620,19 @@ class _EditProfilePicSectionState extends State<EditProfilePicSection> {
           profilePicWidget =
               ProfilePicPlaceHolder(profile.initials(), size: 88);
         } else {
-          if (_profilePic.isValidUri()) {
-            profilePicWidget = CircleAvatar(
-              radius: 44,
-              backgroundImage: CachedNetworkImageProvider(
-                _profilePic,
-              ),
-            );
-          } else {
-            profilePicWidget = CircleAvatar(
-              radius: 44,
-              backgroundImage: FileImage(
-                File(_profilePic),
-              ),
-            );
-          }
+          profilePicWidget = _profilePic.isValidUri()
+              ? CircleAvatar(
+                  radius: 44,
+                  backgroundImage: CachedNetworkImageProvider(
+                    _profilePic,
+                  ),
+                )
+              : CircleAvatar(
+                  radius: 44,
+                  backgroundImage: FileImage(
+                    File(_profilePic),
+                  ),
+                );
         }
 
         return Row(
@@ -720,6 +718,7 @@ class _EditProfilePicSectionState extends State<EditProfilePicSection> {
 
         if (uploadedPic.isEmpty) {
           showSnackBar(context, "Failed to update profile pic");
+
           return;
         }
 
@@ -745,6 +744,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     Profile previousProfile = context.read<ProfileBloc>().state;
+
     return AppBar(
       toolbarHeight: 72,
       centerTitle: true,

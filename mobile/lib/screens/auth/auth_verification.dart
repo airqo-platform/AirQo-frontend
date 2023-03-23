@@ -226,6 +226,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                       callBack: () {
                         if (state.status == AuthCodeStatus.success) {
                           Navigator.pop(context, true);
+
                           return;
                         }
 

@@ -207,7 +207,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                           await verifyAuthCode(context).then((success) async {
                             if (success) {
                               loadingScreen(_loadingContext);
-                              Navigator.pushAndRemoveUntil(
+                              await Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => nextScreen,
