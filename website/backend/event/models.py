@@ -110,6 +110,8 @@ class Session(BaseModel):
         related_name="session",
         on_delete=models.deletion.SET_NULL,
     )
+    class Meta:
+        ordering = ['order']
 
 @with_author
 class PartnerLogo(BaseModel):
