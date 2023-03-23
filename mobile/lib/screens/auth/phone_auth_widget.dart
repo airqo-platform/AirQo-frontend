@@ -243,6 +243,14 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                                     ),
                                   );
                             }
+                            if (mounted) {
+                              context
+                                  .read<AuthCodeBloc>()
+                                  .add(InitializeAuthCodeState(
+                                    authMethod: AuthMethod.phone,
+                                    authProcedure: state.authProcedure,
+                                  ));
+                            }
                           });
                         },
                         listenWhen: (previous, current) {

@@ -287,13 +287,6 @@ enum AuthMethod {
     editEntryText: 'Change your email',
     invalidInputErrorMessage: 'Looks like you missed a letter',
     invalidInputMessage: 'Oops, Something’s wrong with your email',
-  ),
-  none(
-    updateMessage: 'You do not have an account. Consider creating one',
-    codeVerificationText: '',
-    editEntryText: '',
-    invalidInputErrorMessage: '',
-    invalidInputMessage: '',
   );
 
   const AuthMethod({

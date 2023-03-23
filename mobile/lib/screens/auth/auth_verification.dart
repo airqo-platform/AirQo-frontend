@@ -59,7 +59,6 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
   void initState() {
     super.initState();
     _loadingContext = context;
-    _startCodeSentCountDown();
   }
 
   @override
@@ -73,14 +72,15 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
           backgroundColor: Colors.white,
           child: BlocBuilder<AuthCodeBloc, AuthCodeState>(
             builder: (context, state) {
+              if (state.codeCountDown >= 5) {
+                _startCodeSentCountDown();
+              }
               String credentials = "";
               switch (state.authMethod) {
                 case AuthMethod.phone:
                   break;
                 case AuthMethod.email:
                   credentials = state.emailAuthModel?.emailAddress ?? "";
-                  break;
-                case AuthMethod.none:
                   break;
               }
               return Column(
@@ -104,7 +104,8 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   Visibility(
                     visible: state.status == AuthCodeStatus.invalidCode,
                     child: const AuthTitle(
-                        "Oops, Something’s wrong with your code"),
+                      "Oops, Something’s wrong with your code",
+                    ),
                   ),
 
                   Visibility(
@@ -137,7 +138,9 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
 
                   Visibility(
                     visible: state.status == AuthCodeStatus.error,
-                    child: AuthSubTitle(state.errorMessage),
+                    child: AuthSubTitle(
+                      state.errorMessage,
+                    ),
                   ),
 
                   /// OPT field
@@ -171,7 +174,6 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                         context
                             .read<AuthCodeBloc>()
                             .add(ResendAuthCode(context: context));
-                        _startCodeSentCountDown();
                       },
                       child: Text(
                         'Resend code',
@@ -310,8 +312,6 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
   }
 
   void _startCodeSentCountDown() {
-    context.read<AuthCodeBloc>().add(const UpdateCountDown(5));
-
     Timer.periodic(
       const Duration(milliseconds: 1200),
       (Timer timer) {

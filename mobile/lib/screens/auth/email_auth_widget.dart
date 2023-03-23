@@ -203,7 +203,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                   await AppService.postSignInActions(context)
                                       .then((_) async {
                                     Navigator.pop(_loadingContext);
-                                    Future.delayed(
+                                    await Future.delayed(
                                       const Duration(seconds: 2),
                                       () {
                                         Navigator.pushAndRemoveUntil(
@@ -218,10 +218,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                   });
                                   break;
                                 case AuthProcedure.signup:
-                                  Navigator.pop(_loadingContext);
                                   await AppService.postSignInActions(context)
                                       .then((_) async {
-                                    Future.delayed(
+                                    Navigator.pop(_loadingContext);
+                                    await Future.delayed(
                                       const Duration(seconds: 2),
                                       () {
                                         Navigator.pushAndRemoveUntil(
@@ -243,6 +243,14 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                                       authProcedure: state.authProcedure,
                                     ),
                                   );
+                            }
+                            if (mounted) {
+                              context
+                                  .read<AuthCodeBloc>()
+                                  .add(InitializeAuthCodeState(
+                                    authMethod: AuthMethod.email,
+                                    authProcedure: state.authProcedure,
+                                  ));
                             }
                           });
                         },

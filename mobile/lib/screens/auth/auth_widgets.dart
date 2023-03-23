@@ -632,8 +632,6 @@ class SignUpButton extends StatelessWidget {
                     return authProcedure == AuthProcedure.login
                         ? const PhoneLoginWidget()
                         : const PhoneSignUpWidget();
-                  case AuthMethod.none:
-                    return const PhoneSignUpWidget();
                 }
               },
               transitionsBuilder:
@@ -699,7 +697,6 @@ class SignUpOptions extends StatelessWidget {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) {
                   switch (authMethod) {
-                    case AuthMethod.none:
                     case AuthMethod.phone:
                       return const PhoneLoginWidget();
                     case AuthMethod.email:
@@ -791,7 +788,6 @@ class LoginOptions extends StatelessWidget {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) {
                   switch (authMethod) {
-                    case AuthMethod.none:
                     case AuthMethod.phone:
                       return const PhoneSignUpWidget();
                     case AuthMethod.email:

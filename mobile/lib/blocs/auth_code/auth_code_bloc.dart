@@ -282,8 +282,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       case AuthMethod.email:
         await _verifyEmailCode(emit);
         break;
-      case AuthMethod.none:
-        break;
     }
   }
 
@@ -318,8 +316,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           if (emailAuthModel == null) {
             return emit(state.copyWith(
               status: AuthCodeStatus.error,
-              errorMessage: 'Failed to validate code. Try again later',
-              loading: false,
+              errorMessage: 'Failed to resend code. Try again later',
             ));
           }
 
@@ -329,36 +326,24 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
             if (emailAuthModel == null) {
               return emit(state.copyWith(
                 status: AuthCodeStatus.error,
-                errorMessage:
-                    "Failed to send verification code. Try again later",
-                loading: false,
+                errorMessage: "Failed to send code. Try again later",
               ));
             }
 
             return emit(const AuthCodeState().copyWith(
               emailAuthModel: emailAuthModel,
+              authProcedure: state.authProcedure,
+              authMethod: state.authMethod,
             ));
           });
           break;
-        case AuthMethod.none:
-          break;
       }
-    } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
-
-      // TODO handle this
-      // return emit(state.copyWith(
-      //   error: error,
-      //   status: BlocStatus.error,
-      // ));
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
+      return emit(state.copyWith(
+        status: AuthCodeStatus.error,
+        errorMessage: "Failed to send verification code. Try again later",
+      ));
     }
-
-    return emit(state.copyWith(
-      status: AuthCodeStatus.error,
-      errorMessage: "Failed to send verification code. Try again later",
-      loading: false,
-    ));
   }
 }
