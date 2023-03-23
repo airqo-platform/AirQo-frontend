@@ -18,10 +18,11 @@ class AirQoCircularWidget : HomeWidgetProvider() {
     ) {
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.air_qo_circular_widget).apply {
-//                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
-//                    context, MainActivity::class.java
-//                )
-//                setOnClickPendingIntent(R.id.circular_widget_bg, pendingIntent)
+                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
+                    context, MainActivity::class.java
+                )
+                setOnClickPendingIntent(R.id.circular_widget_bg, pendingIntent)
+
                 val dataKeys = arrayOf(
                     "circular_location",
                     "circular_date",

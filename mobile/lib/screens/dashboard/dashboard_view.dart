@@ -26,24 +26,16 @@ import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? data)  {
+  //TODO: Revisit this
   if (data?.host == 'titleClicked') {
-    print(data);
     sendAndUpdate();
   }
 }
-// @pragma("vm:entry-point")
-// void callbackDispatcher() {
-//   Workmanager().executeTask((taskName, inputData) {
-//     sendAndUpdate();
-//   });
-// }
 
 Future<void> sendData() async {
   AirQualityReading? airQualityReading;
   final nearbyLocationBloc = NearbyLocationBloc();
   if (nearbyLocationBloc.state.locationAirQuality == null) {
-    final favouriteLocationBloc  = FavouritePlaceBloc();
-    if(favouriteLocationBloc.state.isEmpty) {
       final searchBloc = SearchBloc();
       if (searchBloc.state.searchHistory.isEmpty) {
     List<AirQualityReading> airQualityReadings =
@@ -56,20 +48,14 @@ Future<void> sendData() async {
       } else{
 airQualityReading = searchBloc.state.searchHistory.first;
       }
-    } else {
-      airQualityReading = favouriteLocationBloc.state.favouritePlaces.first;
     }
-  } else {
+  else {
     airQualityReading = nearbyLocationBloc.state.locationAirQuality;
   }
   if (airQualityReading == null) return;
 
-  // List<ForecastInsight> forecastData = await AirQoDatabase()
-  //     .getForecastInsights(airQualityReading.referenceSite);
-
   WidgetData widgetData =
       WidgetData.initializeFromAirQualityReading(airQualityReading);
-  // widgetData = widgetData.copyWith(forecastData);
   widgetData.idMapping().forEach((key, value) async {
     await HomeWidget.saveWidgetData<String>(key, value);
   });
@@ -78,12 +64,12 @@ airQualityReading = searchBloc.state.searchHistory.first;
 }
 
 Future<void> updateWidget() {
+  //TODO: Disabled for now
   // var rectangleWidgetUpdate = HomeWidget.updateWidget(
   //   name: 'AirQoHomeScreenWidget',
   //   iOSName: 'AirQoHomeScreenWidget',
   //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
   // );
-
   // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
   return HomeWidget.updateWidget(
     name: 'AirQoCircularWidget',
@@ -388,7 +374,7 @@ class _DashboardViewState extends State<DashboardView>
                           switch (state.error) {
                             case DashboardError.noAirQuality:
                               return NoAirQualityDataWidget(
-                                callBack: () => _refresh(),
+                                callBack: () => _refresh()
                               );
                             case DashboardError.noInternetConnection:
                               return NoInternetConnectionWidget(
@@ -479,8 +465,8 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addPostFrameCallback((_) => _showcaseToggle());
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
-    // _refresh();
-    // _startBackgroundUpdate();
+    _refresh();
+    _startBackgroundUpdate();
     HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'enum_constants.dart';
 
+//TODO: Forecast related values disabled for now
 class WidgetData {
   const WidgetData({
     required this.location,
@@ -46,6 +47,7 @@ class WidgetData {
       circularDate: DateFormat('h:mm a').format(DateTime.now().toLocal()),
       pmValue: airQualityReading.pm2_5,
       circularPmValue: airQualityReading.pm2_5,
+
       // forecastValue1: '',
       // forecastTime1: '',
       // forecastValue2: '',

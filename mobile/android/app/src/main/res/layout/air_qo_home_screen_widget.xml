@@ -1,4 +1,4 @@
-<!--TODO: Currently diasbled-->
+<!--TODO: Currently disabled, implement later-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_bg"
