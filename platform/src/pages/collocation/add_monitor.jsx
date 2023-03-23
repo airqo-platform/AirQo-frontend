@@ -79,6 +79,9 @@ const AddMonitor = () => {
     }
     setCollocating(false);
     dispatch(removeDevices(selectedCollocateDevices));
+    setTimeout(() => {
+      setCollocateDeviceError(false);
+    }, 5000);
   };
 
   return (
@@ -90,15 +93,12 @@ const AddMonitor = () => {
         <>
           {isError && (
             <Toast
-              variant={'error'}
+              type={'error'}
               message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
             />
           )}
           {collocateDeviceError && (
-            <Toast
-              variant={'error'}
-              message={'Uh-oh! Devices have no data for that time period.'}
-            />
+            <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
           )}
           <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
             <div className='flex'>

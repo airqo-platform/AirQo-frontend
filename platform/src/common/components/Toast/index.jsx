@@ -1,19 +1,18 @@
-import ToastError from './error';
-import ToastSuccess from './success';
-import ToastWarning from './warning';
+const Toast = ({ message, type }) => {
+  const colors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+  };
 
-const Toast = ({ variant, message }) => {
-  if (variant === 'error') {
-    return <ToastError message={message} />;
-  }
+  const textColor = type === 'success' ? 'text-black-600' : 'text-white';
 
-  if (variant === 'success') {
-    return <ToastSuccess message={message} />;
-  }
+  const containerStyles = `flex fixed bottom-5 right-6 z-50 p-4 w-80 text-sm ${colors[type]} ${textColor} rounded-md shadow-lg transition-opacity`;
 
-  if (variant === 'warning') {
-    return <ToastWarning message={message} />;
-  }
+  return (
+    <div className={containerStyles}>
+      <p>{message}</p>
+    </div>
+  );
 };
 
 export default Toast;
