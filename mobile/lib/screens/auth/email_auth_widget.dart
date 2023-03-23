@@ -54,7 +54,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           verticalPadding: 10,
-          widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
+          child: BlocConsumer<EmailAuthBloc, EmailAuthState>(
             listener: (context, state) {
               return;
             },

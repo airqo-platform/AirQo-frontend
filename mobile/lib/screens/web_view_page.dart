@@ -40,7 +40,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         centerTitle: false,
       ),
       body: AppSafeArea(
-        widget: BlocBuilder<WebViewLoadingCubit, int>(
+        child: BlocBuilder<WebViewLoadingCubit, int>(
           builder: (context, progress) => Stack(
             children: [
               WebViewWidget(controller: _controller),

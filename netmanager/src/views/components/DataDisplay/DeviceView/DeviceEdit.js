@@ -278,6 +278,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
+              select
+              fullWidth
+              label="Network"
+              style={{ margin: '10px 0' }}
+              defaultValue={deviceData.network}
+              onChange={handleSelectFieldChange('network')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.network}
+              helperText={errors.network}
+              required
+            >
+              <option value={'airqo'}>AirQo</option>
+              <option value={'kcca'}>KCCA</option>
+              <option value={'usembassy'}>US EMBASSY</option>
+            </TextField>
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
               style={{ margin: '10px 0' }}
               label="Generation Count"
               variant="outlined"
