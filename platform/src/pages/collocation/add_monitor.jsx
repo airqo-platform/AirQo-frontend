@@ -1,21 +1,23 @@
-import Button from '../../common/components/Button';
-import Layout from '../../common/components/Layout';
-import ContentBox from '../../common/components/Layout/content_box';
-import NavigationBreadCrumb from '../../common/components/Navigation/breadcrumb';
+import Button from '@/components/Button';
+import Layout from '@/components/Layout';
+import ContentBox from '@/components/Layout/content_box';
+import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
   useGetCollocationDevicesQuery,
   getCollocationDevices,
   getRunningQueriesThunk,
 } from '@/lib/store/services/deviceRegistry';
 import { wrapper } from '@/lib/store';
-import Table from '../../common/components/AddMonitor/Table';
-import SkeletonFrame from '../../common/components/AddMonitor/Skeletion';
-import { useSelector } from 'react-redux';
+import Table from '@/components/Collocation/AddMonitor/Table';
+import SkeletonFrame from '@/components/Collocation/AddMonitor/Skeletion';
+import { useDispatch, useSelector } from 'react-redux';
 import CheckCircleIcon from '@/icons/check_circle';
-import ScheduleCalendar from '../../common/components/AddMonitor/Calendar';
+import ScheduleCalendar from '@/components/Collocation/AddMonitor/Calendar';
 import { useCollocateDevicesMutation } from '@/lib/store/services/collocation';
-import Toast from '../../common/components/Toast';
+import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -32,27 +34,30 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 
 const AddMonitor = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const {
     data: data,
     isLoading,
-    // isSuccess,
+    isSuccess,
     isError,
-    error,
+    // error,
   } = useGetCollocationDevicesQuery();
 
   let collocationDevices = data ? data.devices : [];
-  const [collocateDevices, { errorValue }] = useCollocateDevicesMutation();
+  const [collocateDevices, { error }] = useCollocateDevicesMutation();
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const onUpdateSelectedCollocateDevices = useSelector(
-    (state) => state.selectedCollocateDevices.isLoading,
-  );
+
   const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
   const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
 
-  const handleCollocation = () => {
+  const [collocateDeviceError, setCollocateDeviceError] = useState(false);
+  const [isCollocating, setCollocating] = useState(false);
+
+  const handleCollocation = async () => {
+    setCollocating(true);
     if (startDate && endDate && selectedCollocateDevices) {
       const body = {
         startDate,
@@ -64,12 +69,19 @@ const AddMonitor = () => {
         verbose: true,
       };
 
-      collocateDevices(body);
+      const response = await collocateDevices(body);
 
-      if (!errorValue) {
-        router.push('/collocation/collocate');
+      if (response.error && response.error.data.errors[0]) {
+        setCollocateDeviceError(true);
+      } else {
+        router.push('/collocation/collocate_success');
       }
     }
+    setCollocating(false);
+    dispatch(removeDevices(selectedCollocateDevices));
+    setTimeout(() => {
+      setCollocateDeviceError(false);
+    }, 5000);
   };
 
   return (
@@ -79,22 +91,28 @@ const AddMonitor = () => {
         <SkeletonFrame />
       ) : (
         <>
-          {(isError || errorValue) && (
-            <Toast variant={'error'} message='Error: Unable to fetch devices' />
+          {isError && (
+            <Toast
+              type={'error'}
+              message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
+            />
+          )}
+          {collocateDeviceError && (
+            <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
           )}
           <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
             <div className='flex'>
-              {onUpdateSelectedCollocateDevices && (
+              {/* {isCollocating && (
                 <Button className={'mr-1'}>
                   <div className='mr-1'>
                     <CheckCircleIcon />
                   </div>{' '}
                   Saved
                 </Button>
-              )}
+              )} */}
               <Button
                 className={`rounded-none text-white bg-blue border border-blue font-medium ${
-                  selectedCollocateDevices.length > 0 && endDate && startDate
+                  selectedCollocateDevices.length > 0 && endDate && startDate && !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}

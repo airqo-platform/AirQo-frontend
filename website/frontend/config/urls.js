@@ -51,3 +51,6 @@ export const BOARD_MEMBERS_URL = `${WEBSITE_BASE_URL}/board/`;
 
 // Publications url
 export const PUBLICATIONS_URL = `${WEBSITE_BASE_URL}/publications/`
+
+// Events url
+export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`
