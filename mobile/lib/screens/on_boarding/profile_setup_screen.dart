@@ -129,7 +129,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _saveName() async {
     if (_formKey.currentState!.validate()) {
-      context.read<ProfileBloc>().add(const SyncProfile());
+      Profile profile = context.read<ProfileBloc>().state;
+      context.read<ProfileBloc>().add(UpdateProfile(profile));
       FocusScope.of(context).requestFocus(FocusNode());
       await Navigator.pushAndRemoveUntil(
         context,

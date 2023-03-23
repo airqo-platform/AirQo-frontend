@@ -436,14 +436,12 @@ class CloudStore {
       final userId = CustomAuth.getUserId();
       final file = File(filePath);
 
-      final docRef = '${Config.usersProfilePictureStorage}/'
-          '$userId/avatar${file.getExtension()}';
+      final storageRef = firebase_storage.FirebaseStorage.instance.ref();
+      final avatarRef = storageRef.child(
+          "${Config.usersProfilePictureStorage}/$userId/avatar${file.getExtension()}");
 
-      final task = await firebase_storage.FirebaseStorage.instance
-          .ref(docRef)
-          .putFile(file);
-
-      return await task.storage.ref(docRef).getDownloadURL();
+      final task = avatarRef.putFile(file);
+      return await task.storage.ref(avatarRef.fullPath).getDownloadURL();
     } on Exception catch (exception, stackTrace) {
       await logException(
         exception,

@@ -444,17 +444,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           },
           codeAutoRetrievalTimeout: (String verificationId) {
             if (!mounted) return;
-            PhoneAuthModel phoneAuthModel = PhoneAuthModel(
-              phoneAuthCredential: state.phoneAuthModel?.phoneAuthCredential,
-              verificationId: verificationId,
-              resendToken: state.phoneAuthModel?.resendToken,
-            );
-            context.read<PhoneAuthBloc>().add(UpdatePhoneAuthModel(
-                  phoneAuthModel,
-                ));
-            context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                  status: PhoneAuthStatus.verificationCodeSent,
-                ));
           },
           timeout: const Duration(seconds: 30),
         );

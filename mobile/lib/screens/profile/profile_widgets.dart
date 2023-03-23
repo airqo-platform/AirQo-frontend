@@ -11,8 +11,10 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -617,7 +619,7 @@ class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const ViewProfilePicture(),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 AutoSizeText(
                   profile.displayName(),
                   maxLines: 2,
@@ -654,93 +656,174 @@ class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => Size.fromHeight(toolbarHeight);
 }
 
-class EditProfilePicSection extends StatelessWidget {
-  const EditProfilePicSection({
-    super.key,
-    required this.profile,
-    required this.getFromGallery,
-  });
-  final Profile profile;
-  final VoidCallback getFromGallery;
+class EditProfilePicSection extends StatefulWidget {
+  const EditProfilePicSection({super.key});
+  @override
+  State<EditProfilePicSection> createState() => _EditProfilePicSectionState();
+}
+
+class _EditProfilePicSectionState extends State<EditProfilePicSection> {
+  String _profilePic = "";
+  bool _uploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _profilePic = context.read<ProfileBloc>().state.photoUrl;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        InkWell(
-          onTap: getFromGallery,
-          child: Stack(
-            alignment: AlignmentDirectional.center,
-            children: [
-              profile.photoUrl.trim().isEmpty
-                  ? RotationTransition(
-                      turns: const AlwaysStoppedAnimation(-5 / 360),
+    return BlocBuilder<ProfileBloc, Profile>(
+      builder: (context, profile) {
+        Widget profilePicWidget;
+        if (_profilePic.trim().isEmpty) {
+          profilePicWidget = RotationTransition(
+            turns: const AlwaysStoppedAnimation(-5 / 360),
+            child: Container(
+              padding: const EdgeInsets.all(2.0),
+              decoration: BoxDecoration(
+                color: CustomColors.appPicColor,
+                shape: BoxShape.rectangle,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(35.0),
+                ),
+              ),
+              child: Container(
+                height: 88,
+                width: 88,
+                color: Colors.transparent,
+              ),
+            ),
+          );
+        } else {
+          if (_profilePic.isValidUri()) {
+            profilePicWidget = CircleAvatar(
+              radius: 44,
+              backgroundImage: CachedNetworkImageProvider(
+                _profilePic,
+              ),
+            );
+          } else {
+            profilePicWidget = CircleAvatar(
+              radius: 44,
+              backgroundImage: FileImage(
+                File(_profilePic),
+              ),
+            );
+          }
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () async {
+                await _getImageFromGallery();
+              },
+              child: Stack(
+                alignment: AlignmentDirectional.center,
+                children: [
+                  profilePicWidget,
+                  Visibility(
+                    visible: _profilePic.trim().isEmpty,
+                    child: Text(
+                      profile.initials(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: !_uploading,
+                    child: Positioned(
+                      bottom: 0,
+                      right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(2.0),
                         decoration: BoxDecoration(
-                          color: CustomColors.appPicColor,
-                          shape: BoxShape.rectangle,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(35.0),
-                          ),
+                          border: Border.all(color: Colors.white),
+                          color: CustomColors.appColorBlue,
+                          shape: BoxShape.circle,
                         ),
-                        child: Container(
-                          height: 88,
-                          width: 88,
-                          color: Colors.transparent,
+                        child: const Icon(
+                          Icons.add,
+                          size: 22,
+                          color: Colors.white,
                         ),
                       ),
-                    )
-                  : profile.photoUrl.isValidUri()
-                      ? CircleAvatar(
-                          radius: 44,
-                          backgroundColor: CustomColors.appPicColor,
-                          foregroundColor: CustomColors.appPicColor,
-                          backgroundImage: CachedNetworkImageProvider(
-                            profile.photoUrl,
-                          ),
-                        )
-                      : CircleAvatar(
-                          radius: 44,
-                          backgroundColor: CustomColors.appPicColor,
-                          foregroundColor: CustomColors.appPicColor,
-                          backgroundImage: FileImage(
-                            File(profile.photoUrl),
-                          ),
-                        ),
-              if (profile.photoUrl.trim().isEmpty)
-                const Text(
-                  'A',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 30,
+                    ),
                   ),
-                ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(2.0),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white),
-                    color: CustomColors.appColorBlue,
-                    shape: BoxShape.circle,
+                  Visibility(
+                    visible: _uploading,
+                    child: const LoadingIcon(
+                      radius: 30,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.add,
-                    size: 22,
-                    color: Colors.white,
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  Future<void> _getImageFromGallery() async {
+    if (_uploading) {
+      return;
+    }
+    bool hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
+    if (!hasConnection) {
+      return;
+    }
+    if (!mounted) return;
+
+    await ImagePicker()
+        .pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    )
+        .then((file) async {
+      if (file != null) {
+        setState(() {
+          _profilePic = file.path;
+          _uploading = true;
+        });
+
+        String uploadedPic = await CloudStore.uploadProfilePicture(file.path);
+
+        if (!mounted) return;
+
+        setState(() {
+          _uploading = false;
+        });
+
+        if (uploadedPic.isEmpty) {
+          showSnackBar(context, "Failed to update profile pic");
+          return;
+        }
+
+        Profile profile = context.read<ProfileBloc>().state;
+        context.read<ProfileBloc>().add(UpdateProfile(profile.copyWith(
+              photoUrl: uploadedPic,
+            )));
+      }
+    }).catchError((error) async {
+      if (error is PlatformException) {
+        await PermissionService.checkPermission(
+          AppPermission.photosStorage,
+          request: true,
+        );
+      }
+    });
   }
 }
 

@@ -325,6 +325,21 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     if (!hasConnection) {
       return;
     }
+    if (!mounted) return;
+
+    ConfirmationAction? confirmation = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AuthProcedureDialog(
+          authProcedure: AuthProcedure.deleteAccount,
+        );
+      },
+    );
+
+    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
+      return;
+    }
 
     if (!mounted) return;
 
@@ -370,7 +385,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
       return;
     }
 
-    final reAuthentication = await CustomAuth.reAuthenticate(authCredential!);
+    final reAuthentication = await CustomAuth.reAuthenticate(authCredential);
     if (reAuthentication) {
       await CustomAuth.deleteAccount();
     }

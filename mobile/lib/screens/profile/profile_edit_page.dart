@@ -1,12 +1,9 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'profile_widgets.dart';
 
@@ -27,12 +24,7 @@ class ProfileEditPage extends StatelessWidget {
                 const SizedBox(
                   height: 26,
                 ),
-                EditProfilePicSection(
-                  profile: profile,
-                  getFromGallery: () {
-                    _getImageFromGallery(context);
-                  },
-                ),
+                const EditProfilePicSection(),
                 const SizedBox(
                   height: 40,
                 ),
@@ -96,29 +88,5 @@ class ProfileEditPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _getImageFromGallery(BuildContext context) async {
-    await ImagePicker()
-        .pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    )
-        .then((file) {
-      if (file != null) {
-        Profile profile = context.read<ProfileBloc>().state;
-        context
-            .read<ProfileBloc>()
-            .add(UpdateProfile(profile.copyWith(photoUrl: file.path)));
-      }
-    }).catchError((error) async {
-      if (error is PlatformException) {
-        await PermissionService.checkPermission(
-          AppPermission.photosStorage,
-          request: true,
-        );
-      }
-    });
   }
 }

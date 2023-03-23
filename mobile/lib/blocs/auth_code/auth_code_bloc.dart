@@ -86,7 +86,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           status: AuthCodeStatus.success,
         ));
       }
-    } on FirebaseAuthException catch (exception, stackTrace) {
+    } on FirebaseAuthException catch (exception, _) {
       final firebaseAuthError =
           CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
@@ -185,7 +185,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           status: AuthCodeStatus.success,
         ));
       }
-    } on FirebaseAuthException catch (exception, stackTrace) {
+    } on FirebaseAuthException catch (exception, _) {
       final firebaseAuthError =
           CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
@@ -253,6 +253,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       authProcedure: event.authProcedure,
       authMethod: event.authMethod,
       emailAuthModel: event.emailAuthModel,
+      phoneAuthModel: event.phoneAuthModel,
     ));
   }
 
