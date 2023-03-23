@@ -80,7 +80,7 @@ const DataCompletenessTable = ({ dataCompletenessReults }) => {
             <span className='flex ml-6 w-full'>
               <Button
                 className={
-                  'h-9 w-full max-w-[114px] bg-grey-200 rounded-md text-black font-medium mr-2 text-sm'
+                  'h-9 w-full max-w-[114px] bg-grey-200 rounded-md text-black-900 font-medium mr-2 text-sm'
                 }
               >
                 <div className='mr-1'>
@@ -95,7 +95,7 @@ const DataCompletenessTable = ({ dataCompletenessReults }) => {
                 <Button
                   tabIndex={0}
                   className={
-                    'h-9 w-auto bg-grey-200 rounded-md text-black font-medium mb-1 text-sm'
+                    'h-9 w-auto bg-grey-200 rounded-md text-black-900 font-medium mb-1 text-sm'
                   }
                 >
                   <div className='mr-1'>

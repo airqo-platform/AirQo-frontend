@@ -17,7 +17,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
         className={`h-10 pl-12 flex items-center ${
           itemPath
             ? 'hover:bg-light-blue hover:text-blue'
-            : 'hover:bg-grey hover:opacity-50 hover:cursor-not-allowed'
+            : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
         }`}
       >
         <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
@@ -42,7 +42,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
             </div>
 
             <h3
-              className={`text-base font-normal text-black ${
+              className={`text-base font-normal text-black-900 ${
                 toggleState && 'text-blue font-medium'
               }`}
             >
@@ -51,7 +51,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
           </div>
           {dropdown && (
             <div className='mr-6'>
-              <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue} />
+              <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue[900]} />
             </div>
           )}
         </div>

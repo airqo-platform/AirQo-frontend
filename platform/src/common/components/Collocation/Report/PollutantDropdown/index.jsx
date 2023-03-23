@@ -8,7 +8,7 @@ const PollutantDropdown = ({ pollutantValue, handlePollutantChange, options }) =
 
   return (
     <div className='dropdown w-full ml-4 mb-5'>
-      <Button className={'mb-1 h-9 w-auto text-black font-medium text-sm'}>
+      <Button className={'mb-1 h-9 w-auto text-black-900 font-medium text-sm'}>
         <div className='mr-1 text-xs'>
           <span>PM</span>
           <sub>{pollutantValue}</sub>

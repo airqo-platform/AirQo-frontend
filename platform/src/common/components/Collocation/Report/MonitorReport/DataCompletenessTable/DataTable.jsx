@@ -44,43 +44,43 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[129.52px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[129.52px] px-4 pb-3 opacity-40'
           >
             Monitor name
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[129.52px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[129.52px] px-4 pb-3 opacity-40'
           >
             Expected records
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[128.57px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[128.57px] px-4 pb-3 opacity-40'
           >
             Completeness
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[128.57px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[128.57px] px-4 pb-3 opacity-40'
           >
             Missing
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[128.57px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[128.57px] px-4 pb-3 opacity-40'
           >
             Actual records
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[126.67px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[126.67px] px-4 pb-3 opacity-40'
           >
             Started
           </th>
           <th
             scope='col'
-            className='text-xs font-normal text-black w-[128.57px] px-4 pb-3 opacity-40'
+            className='text-xs font-normal text-black-900 w-[128.57px] px-4 pb-3 opacity-40'
           >
             Ended
           </th>

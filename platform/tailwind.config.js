@@ -16,7 +16,6 @@ module.exports = {
       colors: {
         transparent: 'transparent',
         current: 'currentColor',
-        blue: '#135DFF',
         'light-blue': '#135DFF14',
         'sidebar-blue': '#135DFF0A',
         'dark-blue': '#0F4ACC',
@@ -26,6 +25,7 @@ module.exports = {
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
+          900: '#135DFF',
         },
         grey: {
           100: '#363A4414',
@@ -37,12 +37,13 @@ module.exports = {
           700: '#DDDDDD',
           750: '#E8E8E8',
           800: '#8C9196',
+          900: '#808080',
         },
         skeleton: '#363A4429',
-        black: '#000000',
         black: {
           600: '#202223',
           700: '#353E52',
+          900: '#000000',
         },
         yellow: {
           200: '#FFEA8A',
@@ -64,6 +65,7 @@ module.exports = {
         },
         white: {
           100: '#F6F6F7',
+          900: '#FFFFFF',
         },
       },
     },

@@ -12,7 +12,7 @@ const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
         <div className='flex justify-between md:items-center py-6'>
           <div className='ml-6'>
             <h3 className={`${isBigTitle ? 'text-xl mb-1' : 'text-sm'} font-semibold`}>{title}</h3>
-            <p className='text-sm text-black opacity-80 md:max-w-[75%]'>
+            <p className='text-sm text-black-900 opacity-80 md:max-w-[75%]'>
               {subtitle}{' '}
               {contentLink && (
                 <span className='text-link-blue'>

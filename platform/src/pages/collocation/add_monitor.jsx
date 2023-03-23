@@ -96,7 +96,7 @@ const AddMonitor = () => {
                 </Button>
               )}
               <Button
-                className={`rounded-none text-white bg-blue border border-blue font-medium ${
+                className={`rounded-none text-white-900 bg-blue-900 border border-blue-900 font-medium ${
                   selectedCollocateDevices.length > 0 && endDate && startDate
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'

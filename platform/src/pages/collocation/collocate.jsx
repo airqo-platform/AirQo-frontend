@@ -44,7 +44,7 @@ const collocate = () => {
             <div className='mr-[14px]'></div>
             <Button
               className={
-                'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                'rounded-none text-white-900 bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
               }
               path='/collocation/add_monitor'
             >
@@ -98,7 +98,7 @@ const collocate = () => {
               <div className='flex justify-center items-center mt-6'>
                 <Button
                   className={
-                    'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
+                    'rounded-none text-white-900 bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
                   }
                   path='/collocation/add_monitor'
                 >
