@@ -346,12 +346,10 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     bool deletionSuccess = await CustomAuth.deleteAccount();
 
     if (!mounted) return;
+    Navigator.pop(context);
 
     if (deletionSuccess) {
       await AppService.postSignOutActions(context);
-      if (mounted) {
-        Navigator.pop(context);
-      }
 
       return;
     }

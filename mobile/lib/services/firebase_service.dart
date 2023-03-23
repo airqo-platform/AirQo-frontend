@@ -9,6 +9,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 
 class CloudAnalytics {
@@ -420,9 +421,9 @@ class CloudStore {
         "${Config.usersProfilePictureStorage}/$userId/avatar${file.getExtension()}",
       );
 
-      final task = avatarRef.putFile(file);
+      TaskSnapshot taskSnapshot = await avatarRef.putFile(file);
 
-      return await task.storage.ref(avatarRef.fullPath).getDownloadURL();
+      return await taskSnapshot.ref.getDownloadURL();
     } on Exception catch (exception, stackTrace) {
       await logException(
         exception,

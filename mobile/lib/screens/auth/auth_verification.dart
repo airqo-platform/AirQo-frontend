@@ -54,13 +54,6 @@ class _AuthVerificationWidget extends StatefulWidget {
 
 class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
   DateTime? _exitTime;
-  late BuildContext _loadingContext;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadingContext = context;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +113,8 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   /// success Status
                   Visibility(
                     visible: state.status == AuthCodeStatus.success,
-                    child: const AuthTitle("Your email has been verified"),
+                    child: AuthTitle(
+                        "Your ${state.authMethod == AuthMethod.phone ? 'number' : 'email'} has been verified"),
                   ),
 
                   Visibility(
@@ -250,7 +244,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                           FocusScope.of(context).requestFocus(
                             FocusNode(),
                           );
-                          loadingScreen(_loadingContext);
+                          loadingScreen(context);
                         },
                         listenWhen: (_, current) {
                           return current.loading;
@@ -258,7 +252,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                       ),
                       BlocListener<AuthCodeBloc, AuthCodeState>(
                         listener: (context, state) {
-                          Navigator.pop(_loadingContext);
+                          Navigator.pop(context);
                         },
                         listenWhen: (previous, current) {
                           return !current.loading && previous.loading;
@@ -270,46 +264,33 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                             FocusNode(),
                           );
                           if (state.loading) {
-                            Navigator.pop(_loadingContext);
+                            Navigator.pop(context);
                           }
 
                           if (!mounted) {
                             return;
                           }
-                          await Future.delayed(const Duration(seconds: 2))
-                              .then((_) async {
-                            switch (state.authProcedure) {
-                              case AuthProcedure.login:
-                              case AuthProcedure.signup:
-                              case AuthProcedure.anonymousLogin:
-                                Navigator.pop(context, true);
-                                break;
-                              case AuthProcedure.logout:
-                                loadingScreen(_loadingContext);
-                                await AppService.postSignOutActions(context)
-                                    .then((_) {
-                                  Navigator.pop(_loadingContext);
+                          switch (state.authProcedure) {
+                            case AuthProcedure.login:
+                            case AuthProcedure.signup:
+                            case AuthProcedure.anonymousLogin:
+                              await AppService.postSignInActions(context)
+                                  .then((_) async {
+                                await Future.delayed(const Duration(seconds: 2))
+                                    .then((_) async {
                                   Navigator.pop(context, true);
                                 });
-                                break;
-                              case AuthProcedure.deleteAccount:
-                                loadingScreen(_loadingContext);
-                                await CustomAuth.deleteAccount()
-                                    .then((success) async {
-                                  if (success) {
-                                    await AppService.postSignOutActions(context)
-                                        .then((_) {
-                                      Navigator.pop(_loadingContext);
-                                      Navigator.pop(context, true);
-                                    });
-                                  } else {
-                                    Navigator.pop(_loadingContext);
-                                    Navigator.pop(context, false);
-                                  }
-                                });
-                                break;
-                            }
-                          });
+                              });
+                              break;
+                            case AuthProcedure.deleteAccount:
+                            case AuthProcedure.logout:
+                              await AppService.postSignOutActions(context)
+                                  .then((_) {
+                                Navigator.pop(context);
+                                Navigator.pop(context, true);
+                              });
+                              break;
+                          }
                         },
                         listenWhen: (previous, current) {
                           return current.status == AuthCodeStatus.success;

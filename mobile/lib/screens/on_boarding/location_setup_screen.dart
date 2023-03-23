@@ -81,21 +81,28 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     _updateOnBoardingPage();
   }
 
-  Future<void> _allowLocation() async {
-    await LocationService.requestLocation(context, true).then(
-      (_) async {
-        context.read<ProfileBloc>().add(const SyncProfile());
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const SetUpCompleteScreen();
-            },
-          ),
-          (r) => false,
-        );
-      },
+  Future<void> _goToNextScreen() async {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(const SyncProfile());
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const SetUpCompleteScreen();
+        },
+      ),
+      (r) => false,
     );
+  }
+
+  Future<void> _allowLocation() async {
+    bool hasPermission =
+        await PermissionService.checkPermission(AppPermission.location);
+    if (hasPermission && mounted) {
+      await _goToNextScreen();
+    } else {
+      LocationService.requestLocation(context, true);
+    }
   }
 
   Future<bool> onWillPop() {

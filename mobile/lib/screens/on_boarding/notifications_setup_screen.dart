@@ -81,19 +81,28 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     _updateOnBoardingPage();
   }
 
-  Future<void> _allowNotifications() async {
-    await NotificationService.requestNotification(context, true).then(
-      (_) async {
-        context.read<ProfileBloc>().add(const SyncProfile());
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const LocationSetupScreen();
-          }),
-          (r) => false,
-        );
-      },
+  Future<void> _goToNextScreen() async {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(const SyncProfile());
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const LocationSetupScreen();
+        },
+      ),
+      (r) => false,
     );
+  }
+
+  Future<void> _allowNotifications() async {
+    bool hasPermission =
+        await PermissionService.checkPermission(AppPermission.notification);
+    if (hasPermission && mounted) {
+      await _goToNextScreen();
+    } else {
+      NotificationService.requestNotification(context, true);
+    }
   }
 
   Future<bool> onWillPop() {
