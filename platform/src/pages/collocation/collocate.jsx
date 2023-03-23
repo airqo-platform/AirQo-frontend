@@ -11,16 +11,11 @@ import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation
 import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
 import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
+import Toast from '@/components/Toast';
 
 const collocate = () => {
   const dispatch = useDispatch();
-  const {
-    data: data,
-    isLoading,
-    // isSuccess,
-    isError,
-    error,
-  } = useGetDeviceStatusSummaryQuery();
+  const { data: data, isLoading, isSuccess, isError, error } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
 
   const filterDevicesByStatus = (status) =>
@@ -29,6 +24,12 @@ const collocate = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'}>
+        {isError && (
+          <Toast
+            variant={'error'}
+            message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
+          />
+        )}
         {deviceStatusSummary && (
           <div className='flex'>
             <Button
@@ -57,7 +58,7 @@ const collocate = () => {
         )}
       </HeaderNav>
       <ContentBox>
-        {deviceStatusSummary ? (
+        {deviceStatusSummary.length > 0 ? (
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>
