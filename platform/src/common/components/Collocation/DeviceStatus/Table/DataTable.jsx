@@ -31,7 +31,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const { data: data, error, refetch, isError } = useGetCollocationResultsQuery(collocationInput);
+  const {
+    data: data,
+    error,
+    refetch,
+    isError,
+    isSuccess,
+  } = useGetCollocationResultsQuery(collocationInput);
 
   const [isCollocationResultsError, setCollocationResultsError] = useState(false);
 
@@ -87,8 +93,11 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   return (
     <div>
-      {isCollocationResultsError && (
-        <Toast variant={'error'} message='Uh-oh! Devices have no data yet' />
+      {data && !data.data && (
+        <Toast
+          type={'error'}
+          message='Uh-oh! Devices are temporarily unavailable, but we are working to fix that'
+        />
       )}
       <table className='border-collapse text-xs text-left w-full mb-6'>
         <thead>
@@ -167,7 +176,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                             moment(device.end_date).format('YYYY-MM-DD'),
                           )
                         }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center'
+                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
                       >
                         <MoreHorizIcon />
                       </span>
