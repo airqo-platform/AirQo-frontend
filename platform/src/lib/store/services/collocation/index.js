@@ -27,9 +27,6 @@ export const collocateApi = createApi({
         method: 'POST',
         body: addMonitorInput,
       }),
-      onQueryFulfilled: (data, { dispatch }) => {
-        dispatch(addCollocationData(data));
-      },
     }),
     getDeviceStatusSummary: builder.query({
       query: () => '/summary',
