@@ -25,7 +25,7 @@ const collocate = () => {
     <Layout>
       <HeaderNav component={'Collocate'}>
         {isError ||
-          (data && !data && (
+          (error && error.error && (
             <Toast
               variant={'error'}
               message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
