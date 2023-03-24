@@ -1,11 +1,12 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -18,24 +19,23 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  String _fullName = '';
   DateTime? _exitTime;
-  Color nextBtnColor = CustomColors.appColorDisabled;
-  bool _showDropDown = false;
 
   final _formKey = GlobalKey<FormState>();
-  bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-
-  TitleOptions _title = TitleOptions.ms;
+  bool _keyboardVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    _keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: const OnBoardingTopBar(),
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
+          backgroundColor: Colors.white,
           horizontalPadding: 24,
           verticalPadding: 10,
           child: Column(
@@ -54,19 +54,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 height: 48,
                 child: Row(
                   children: <Widget>[
-                    TitleDropDown(
-                      showTileOptionsCallBack: _showTileOptionsCallBack,
-                      title: _title,
-                    ),
+                    const TitleDropDown(),
                     const SizedBox(
-                      width: 16,
+                      width: 8,
                     ),
                     Form(
                       key: _formKey,
-                      child: Flexible(
+                      child: Expanded(
                         child: ProfileSetupNameInputField(
-                          showTileOptionsCallBack: _showTileOptionsCallBack,
-                          nameChangeCallBack: _nameChangeCallBack,
                           controller: _controller,
                         ),
                       ),
@@ -74,66 +69,24 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 8,
-              ),
-              Visibility(
-                visible: _showDropDown,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffF4F4F4),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: _getTitleOptions(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const Spacer(),
-              GestureDetector(
-                onTap: () async {
-                  await _saveName();
+              BlocBuilder<ProfileBloc, Profile>(
+                builder: (context, profile) {
+                  return NextButton(
+                    buttonColor: profile.fullName().isEmpty
+                        ? CustomColors.appColorDisabled
+                        : CustomColors.appColorBlue,
+                    callBack: () async {
+                      if (profile.fullName().isNotEmpty) {
+                        await _saveName();
+                      }
+                    },
+                  );
                 },
-                child: NextButton(
-                  buttonColor: nextBtnColor,
-                ),
-              ),
-              SizedBox(
-                height: _showOptions ? 16 : 12,
               ),
               Visibility(
-                visible: _showOptions,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) {
-                        return const NotificationsSetupScreen();
-                      }),
-                      (r) => false,
-                    );
-                  },
-                  child: Text(
-                    'No, thanks',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: CustomColors.appColorBlue,
-                        ),
-                  ),
-                ),
+                visible: !_keyboardVisible,
+                child: const SkipOnboardScreen(NotificationsSetupScreen()),
               ),
             ],
           ),
@@ -142,62 +95,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  List<GestureDetector> _getTitleOptions() {
-    final options = <GestureDetector>[];
-
-    for (final option in TitleOptions.values) {
-      options.add(
-        GestureDetector(
-          onTap: () {
-            _updateTitleCallback(option);
-          },
-          child: AutoSizeText(
-            option.displayValue,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: _title.displayValue == option.value
-                      ? CustomColors.appColorBlack
-                      : CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-          ),
-        ),
-      );
-    }
-
-    return options;
-  }
-
   @override
   void initState() {
     super.initState();
     updateOnBoardingPage();
-  }
-
-  void _showTileOptionsCallBack(bool showTitleOptions) {
-    setState(() => _showOptions = showTitleOptions);
-    setState(() => _showDropDown = showTitleOptions);
-  }
-
-  void _nameChangeCallBack(String name) {
-    if (name.toString().isEmpty || name.toString() == '') {
-      if (_fullName == '') {
-        FocusScope.of(context).unfocus();
-      }
-      setState(
-        () {
-          _fullName = '';
-          _controller.text = '';
-          nextBtnColor = CustomColors.appColorDisabled;
-          _controller.text = '';
-        },
-      );
-    } else {
-      setState(
-        () {
-          nextBtnColor = CustomColors.appColorBlue;
-          _fullName = name;
-        },
-      );
-    }
   }
 
   Future<bool> onWillPop() {
@@ -227,62 +128,21 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> _saveName() async {
-    try {
-      if (_formKey.currentState!.validate()) {
-        loadingScreen(context);
-
-        FocusScope.of(context).requestFocus(
-          FocusNode(),
-        );
-        Future.delayed(
-          const Duration(milliseconds: 250),
-          () {
-            setState(() => _showOptions = true);
-          },
-        );
-
-        setState(() => nextBtnColor = CustomColors.appColorDisabled);
-
-        final profile = await Profile.getProfile();
-        await profile.updateName(_fullName);
-
-        Navigator.pop(context);
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const NotificationsSetupScreen();
-          }),
-          (r) => false,
-        );
-      }
-    } on Exception catch (exception, stackTrace) {
-      Navigator.pop(context);
-      setState(
-        () {
-          nextBtnColor = CustomColors.appColorBlue;
-        },
-      );
-      showSnackBar(
+    if (_formKey.currentState!.validate()) {
+      Profile profile = context.read<ProfileBloc>().state;
+      context.read<ProfileBloc>().add(UpdateProfile(profile));
+      FocusScope.of(context).requestFocus(FocusNode());
+      await Navigator.pushAndRemoveUntil(
         context,
-        'Failed to update profile. Try again later',
-      );
-      await logException(
-        exception,
-        stackTrace,
+        MaterialPageRoute(builder: (context) {
+          return const NotificationsSetupScreen();
+        }),
+        (r) => true,
       );
     }
   }
 
   void updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.profile);
-  }
-
-  void _updateTitleCallback(TitleOptions title) {
-    setState(
-      () {
-        _title = title;
-        _showDropDown = false;
-      },
-    );
   }
 }

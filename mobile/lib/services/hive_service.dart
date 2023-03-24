@@ -11,8 +11,6 @@ class HiveService {
     await Hive.initFlutter();
 
     Hive
-      ..registerAdapter<Profile>(ProfileAdapter())
-      ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
@@ -21,16 +19,6 @@ class HiveService {
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
-
-    final encryptionKey = await getEncryptionKey();
-    await Hive.openBox<Profile>(
-      HiveBox.profile,
-      encryptionCipher: encryptionKey == null
-          ? null
-          : HiveAesCipher(
-              encryptionKey,
-            ),
-    );
   }
 
   static Future<Uint8List?>? getEncryptionKey() async {
@@ -136,14 +124,13 @@ class HiveService {
         .putAll(airQualityReadingsMap);
   }
 
-  static Future<void> loadProfile(Profile profile) async {
-    await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
+  static Future<void> deleteSearchHistory() async {
+    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
   }
 }
 
 class HiveBox {
   static String get searchHistory => 'searchHistory';
-  static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get airQualityReadings => 'airQualityReadings-v1';
   static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';

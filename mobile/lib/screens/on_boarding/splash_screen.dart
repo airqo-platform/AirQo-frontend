@@ -22,6 +22,7 @@ import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen(this.initialLink, {super.key});
+
   final PendingDynamicLinkData? initialLink;
 
   @override
@@ -58,9 +59,11 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initialize() async {
-    context.read<FeedbackBloc>().add(const InitializeFeedback());
+    context.read<FeedbackBloc>().add(InitializeFeedback(
+          context.read<ProfileBloc>().state,
+        ));
     context.read<SettingsBloc>().add(const InitializeSettings());
-    context.read<AccountBloc>().add(const LoadAccountInfo());
+    context.read<ProfileBloc>().add(const SyncProfile());
     context.read<KyaBloc>().add(const SyncKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
@@ -111,7 +114,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _proceedWithSplashAnimation() async {
-    final isLoggedIn = CustomAuth.isLoggedIn();
+    final Profile profile = context.read<ProfileBloc>().state;
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),
@@ -126,7 +129,7 @@ class SplashScreenState extends State<SplashScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) {
-              if (!isLoggedIn) {
+              if (!profile.isSignedIn) {
                 return const IntroductionScreen();
               } else {
                 switch (nextPage) {
@@ -166,6 +169,7 @@ class SplashScreenState extends State<SplashScreen> {
 
 class TaglineWidget extends StatelessWidget {
   const TaglineWidget({super.key, required this.visible});
+
   final bool visible;
 
   @override

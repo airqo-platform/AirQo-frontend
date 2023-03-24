@@ -82,6 +82,7 @@ class InsightsPage extends StatelessWidget {
                       if (link != null) {
                         await ShareService.shareLink(
                           link,
+                          context,
                           airQualityReading: airQualityReading,
                         );
                       }
