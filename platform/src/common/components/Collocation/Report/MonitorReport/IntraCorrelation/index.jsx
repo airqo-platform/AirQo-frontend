@@ -24,6 +24,7 @@ const IntraCorrelationChart = ({
   intraCorrelationConcentration,
   toggleIntraCorrelationConcentrationChange,
   collocationResults,
+  deviceName,
 }) => {
   return (
     <Box
@@ -34,10 +35,10 @@ const IntraCorrelationChart = ({
     >
       <div className='flex flex-col justify-start w-full'>
         <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-          <span className='uppercase'>aq_g5_87</span>
-          <span className='ml-2 text-purple-700'>
+          <span className='uppercase'>{deviceName}</span>
+          {/* <span className='ml-2 text-purple-700'>
             <ArrowDropDownIcon fillColor='#584CAB' />
-          </span>
+          </span> */}
         </Button>
         <PollutantDropdown
           pollutantValue={intraCorrelationConcentration}
@@ -48,7 +49,7 @@ const IntraCorrelationChart = ({
           ]}
         />
         <CorrelationChart
-          data={collocationResults.intra_sensor_correlation}
+          data={collocationResults}
           pmConcentration={intraCorrelationConcentration}
           hasCustomLegend
           CustomLegend={CustomLegend}

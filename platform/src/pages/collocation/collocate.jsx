@@ -58,7 +58,7 @@ const collocate = () => {
         )}
       </HeaderNav>
       <ContentBox>
-        {deviceStatusSummary.length > 0 ? (
+        {deviceStatusSummary ? (
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>

@@ -13,8 +13,8 @@ const SideBar = () => {
   const size = useWindowSize();
 
   // Toggle Dropdown open and close
-  const [collocationOpen, setCollocationOpen] = useState(false);
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [collocationOpen, setCollocationOpen] = useState(true);
+  const [analyticsOpen, setAnalyticsOpen] = useState(true);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');

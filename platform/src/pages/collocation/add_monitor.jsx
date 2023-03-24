@@ -86,20 +86,20 @@ const AddMonitor = () => {
 
   return (
     <Layout>
+      {isError && (
+        <Toast
+          type={'error'}
+          message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
+        />
+      )}
+      {collocateDeviceError && (
+        <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
+      )}
       {/* SKELETON LOADER */}
       {isLoading ? (
         <SkeletonFrame />
       ) : (
         <>
-          {isError && (
-            <Toast
-              type={'error'}
-              message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
-            />
-          )}
-          {collocateDeviceError && (
-            <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
-          )}
           <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
             <div className='flex'>
               {/* {isCollocating && (

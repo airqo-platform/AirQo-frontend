@@ -28,7 +28,6 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 const MonitorReport = () => {
   const router = useRouter();
   const { device, startDate, endDate } = router.query;
-  console.log(device);
 
   const {
     data: data,
@@ -37,11 +36,11 @@ const MonitorReport = () => {
     isError,
     error,
   } = useGetCollocationResultsQuery({
-    devices: ['aq_g5_87'],
-    startDate: '2023-01-21',
-    endDate: '2023-01-25',
+    devices: device,
+    startDate: startDate,
+    endDate: endDate,
   });
-  let collocationResults = data ? data.data : [];
+  let collocationResults = data?.data;
 
   const [correlationDevices, setCorrelationDevices] = useState(['aq_g5_87']);
   const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
@@ -57,20 +56,24 @@ const MonitorReport = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb backLink={'/collocation/reports'} navTitle={'Monitor Report'} />
-      {!isLoading && (
+      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Monitor Report'} />
+      {isSuccess && (
         <>
           <IntraCorrelationChart
-            collocationResults={collocationResults}
+            collocationResults={collocationResults.intra_sensor_correlation[0].data}
             intraCorrelationConcentration={intraCorrelationConcentration}
             toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
+            deviceName={device}
           />
 
           <InterCorrelationChart
-            collocationResults={collocationResults}
+            collocationResults={collocationResults.inter_sensor_correlation}
             interCorrelationConcentration={interCorrelationConcentration}
             toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
             correlationDevices={correlationDevices}
+            deviceName={device}
+            startDate={startDate}
+            endDate={endDate}
           />
 
           <DataCompletenessTable dataCompletenessReults={collocationResults.data_completeness} />

@@ -3,6 +3,7 @@ import Button from '@/components/Button';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationChart';
+import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 
 const CustomLegend = () => {
   return (
@@ -33,7 +34,22 @@ const InterCorrelationChart = ({
   toggleInterCorrelationConcentrationChange,
   collocationResults,
   correlationDevices,
+  deviceName,
+  startDate,
+  endDate,
 }) => {
+  const {
+    data: data,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetDeviceStatusSummaryQuery({ startDate, endDate });
+  let deviceStatusSummary = data ? data.data : [];
+
+  const filterDevicesByStatus = (status) =>
+    deviceStatusSummary.filter((device) => device.device_name !== deviceName);
+
   return (
     <Box
       isBigTitle
@@ -44,10 +60,10 @@ const InterCorrelationChart = ({
       <div className='flex flex-col justify-start w-full'>
         <div className='flex justify-between'>
           <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-            <span className='uppercase'>aq_g5_87</span>
-            <span className='ml-2 text-purple-700'>
+            <span className='uppercase'>{deviceName}</span>
+            {/* <span className='ml-2 text-purple-700'>
               <ArrowDropDownIcon fillColor='#584CAB' />
-            </span>
+            </span> */}
           </Button>
           {correlationDevices.length == 2 ? (
             <div>
@@ -81,10 +97,11 @@ const InterCorrelationChart = ({
           ]}
         />
         <CorrelationChart
-          data={collocationResults.intra_sensor_correlation}
+          data={collocationResults}
           pmConcentration={interCorrelationConcentration}
           hasCustomLegend
           CustomLegend={CustomLegend}
+          isInterSensorCorrelation
         />
       </div>
     </Box>
