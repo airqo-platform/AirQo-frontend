@@ -8,12 +8,12 @@ const Toast = ({ message, type }) => {
 
   const textColor = type === 'success' ? 'text-black-600' : 'text-white';
 
-  const containerStyles = `flex p-4 w-80 text-sm ${
+  const containerStyles = `flex p-4 w-auto text-sm ${
     colors[type] || 'bg-red-500'
   } ${textColor} rounded-md shadow-lg transition-opacity`;
 
   return (
-    <div className='fixed top-5 left-0 right-0 z-50 flex justify-center items-center'>
+    <div className='fixed top-5 left-0 right-0 z-50 flex justify-center items-center mx-4'>
       <div className={containerStyles}>
         {type === 'error' && <WarningCircleIcon fillColor='#FFF' />}
         <p className='ml-2'>{message}</p>

@@ -43,8 +43,8 @@ const MonitorReport = () => {
   let collocationResults = data?.data;
 
   const [correlationDevices, setCorrelationDevices] = useState(['aq_g5_87']);
-  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
-  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('2.5');
+  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
+  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('10');
 
   const toggleIntraCorrelationConcentrationChange = (newValue) => {
     setIntraCorrelationConcentration(newValue);
