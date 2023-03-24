@@ -83,16 +83,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       startDate,
       endDate,
     });
-
-    try {
-      await refetch();
-      if (isError || (data && !data.data)) {
-        throw new Error('No data found');
-      }
-    } catch (error) {
-      console.log(error);
-      // handle error here
-    }
   };
 
   return (
@@ -147,7 +137,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         onChange={(e) => handleSelectDevice(e, device)}
                       />
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
@@ -173,8 +163,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         onClick={() =>
                           openMonitorReport(
                             device.device_name,
-                            moment(device.start_date).format('YYYY-MM-D'),
-                            moment(device.end_date).format('YYYY-MM-D'),
+                            moment(device.start_date).format('YYYY-MM-DD'),
+                            moment(device.end_date).format('YYYY-MM-DD'),
                           )
                         }
                         className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center'
