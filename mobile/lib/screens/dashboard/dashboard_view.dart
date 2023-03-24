@@ -83,14 +83,13 @@ class _DashboardViewState extends State<DashboardView>
           headerSliverBuilder: (context, innerBoxScrolled) => [
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
-                child: BlocBuilder<DashboardBloc, DashboardState>(
-                  buildWhen: (previous, current) {
-                    return previous.greetings != current.greetings;
-                  },
+                child: BlocBuilder<ProfileBloc, Profile>(
                   builder: (context, state) {
                     return AutoSizeText(
-                      state.greetings,
-                      maxLines: 2,
+                      // TODO refresh greetings
+                      state.greetings(),
+                      maxLines: 1,
+                      minFontSize: 24,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.headline7(context),
                     );
@@ -105,6 +104,7 @@ class _DashboardViewState extends State<DashboardView>
               stretch: true,
               toolbarHeight: 80,
               backgroundColor: CustomColors.appBodyColor,
+              automaticallyImplyLeading: false,
               title: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Row(

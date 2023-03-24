@@ -79,6 +79,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       if (link != null) {
                         await ShareService.shareLink(
                           link,
+                          context,
                           kya: widget.kya,
                         );
                         // disabling copying to clipboard

@@ -395,6 +395,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                     onPressed: () async {
                       await ShareService.shareLink(
                         link,
+                        context,
                         airQualityReading: widget.airQualityReading,
                       );
                       // disabling copying to clipboard

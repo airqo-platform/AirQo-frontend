@@ -71,8 +71,10 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                 svg: 'assets/icon/onboarding_profile_icon.svg',
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () {
+              NextButton(
+                text: 'Let’s go',
+                buttonColor: CustomColors.appColorBlue,
+                callBack: () {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) {
@@ -81,10 +83,6 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                     (r) => false,
                   );
                 },
-                child: NextButton(
-                  text: 'Let’s go',
-                  buttonColor: CustomColors.appColorBlue,
-                ),
               ),
             ],
           ),
