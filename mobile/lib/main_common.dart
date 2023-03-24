@@ -17,7 +17,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirQoApp extends StatelessWidget {
@@ -29,8 +28,11 @@ class AirQoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = AppConfig.of(context);
 
-    return MultiProvider(
+    return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider(
+          create: (context) => AirqoApiClient(),
+        ),
         BlocProvider(
           create: (BuildContext context) => SearchBloc(),
         ),
@@ -68,19 +70,25 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => NearbyLocationBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => AccountBloc(),
+          create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => AuthCodeBloc(),
+          create: (BuildContext context) => AuthCodeBloc(
+            RepositoryProvider.of<AirqoApiClient>(context),
+          ),
         ),
         BlocProvider(
           create: (BuildContext context) => KyaProgressCubit(),
         ),
         BlocProvider(
-          create: (BuildContext context) => PhoneAuthBloc(),
+          create: (BuildContext context) => PhoneAuthBloc(
+            RepositoryProvider.of<AirqoApiClient>(context),
+          ),
         ),
         BlocProvider(
-          create: (BuildContext context) => EmailAuthBloc(),
+          create: (BuildContext context) => EmailAuthBloc(
+            RepositoryProvider.of<AirqoApiClient>(context),
+          ),
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),
@@ -92,18 +100,16 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => DashboardBloc(),
         ),
       ],
-      builder: (context, child) {
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          navigatorObservers: [
-            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-            SentryNavigatorObserver(),
-          ],
-          title: config.appTitle,
-          theme: customTheme(),
-          home: SplashScreen(initialLink),
-        );
-      },
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        navigatorObservers: [
+          FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+          SentryNavigatorObserver(),
+        ],
+        title: config.appTitle,
+        theme: customTheme(),
+        home: SplashScreen(initialLink),
+      ),
     );
   }
 }

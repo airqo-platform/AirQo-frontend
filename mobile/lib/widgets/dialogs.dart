@@ -437,6 +437,53 @@ class AuthMethodDialog extends StatelessWidget {
   }
 }
 
+class SignOutDeletionDialog extends StatelessWidget {
+  const SignOutDeletionDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: const Text(
+        "Re authentication is required",
+        textAlign: TextAlign.center,
+      ),
+      content: const Padding(
+        padding: EdgeInsets.all(10),
+        child: Text(
+          "You are required to sign in again inorder to delete your account. Do you want to proceed?",
+          textAlign: TextAlign.center,
+        ),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.cancel);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: true,
+          child: Text(
+            "Cancel",
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            "Yes",
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class AuthProcedureDialog extends StatelessWidget {
   const AuthProcedureDialog({
     super.key,

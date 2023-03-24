@@ -29,7 +29,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       if (!hasConnection) {
         return emit(state.copyWith(
           mapStatus: MapStatus.error,
-          blocError: AuthenticationError.noInternetConnection,
+          blocError: FirebaseAuthError.noInternetConnection,
         ));
       }
 

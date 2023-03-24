@@ -1,10 +1,8 @@
 import 'config.dart';
 
 class AirQoUrls {
-  static String get checkUserExists => Config.airqoApiUserExistsUrl;
-
-  static String get insights =>
-      '${Config.airqoApiUrl}view/measurements/mobile-app/insights';
+  static String get firebaseLookup =>
+      '${Config.airqoApiUrl}users/firebase/lookup';
 
   static String get forecast => '${Config.airqoApiUrl}predict/daily/';
 
@@ -26,9 +24,6 @@ class AirQoUrls {
 
   static String get searchSuggestions =>
       '${Config.placesSearchUrl}autocomplete/json';
-
-  static String get welcomeMessage =>
-      '${Config.airqoApiUrl}notifications/welcomeMessage';
 
   static String get ipGeoCoordinates =>
       '${Config.airqoApiUrl}meta-data/ip-geo-coordinates';

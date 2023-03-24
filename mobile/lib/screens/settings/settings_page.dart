@@ -12,7 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../auth/auth_verification.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 
@@ -222,99 +221,7 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                       ),
                       const Spacer(),
-                      BlocBuilder<AccountBloc, AccountState>(
-                        buildWhen: (previous, current) {
-                          return previous.guestUser != current.guestUser;
-                        },
-                        builder: (context, state) {
-                          if (state.guestUser) {
-                            return Container();
-                          }
-
-                          return MultiBlocListener(
-                            listeners: [
-                              BlocListener<AccountBloc, AccountState>(
-                                listener: (context, state) {
-                                  loadingScreen(context);
-                                },
-                                listenWhen: (previous, current) {
-                                  return current.blocStatus ==
-                                      BlocStatus.processing;
-                                },
-                              ),
-                              BlocListener<AccountBloc, AccountState>(
-                                listener: (context, state) {
-                                  Navigator.pop(context);
-                                },
-                                listenWhen: (previous, current) {
-                                  return previous.blocStatus ==
-                                      BlocStatus.processing;
-                                },
-                              ),
-                              BlocListener<AccountBloc, AccountState>(
-                                listener: (
-                                  context,
-                                  state,
-                                ) {
-                                  showSnackBar(
-                                    context,
-                                    state.blocError.message,
-                                  );
-                                },
-                                listenWhen: (previous, current) {
-                                  return current.blocStatus ==
-                                          BlocStatus.error &&
-                                      current.blocError !=
-                                          AuthenticationError.none;
-                                },
-                              ),
-                              BlocListener<AccountBloc, AccountState>(
-                                listener: (context, state) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) {
-                                      return const AuthVerificationWidget();
-                                    }),
-                                  );
-                                },
-                                listenWhen: (previous, current) {
-                                  return current.blocStatus ==
-                                      BlocStatus.accountDeletionCheckSuccess;
-                                },
-                              ),
-                            ],
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              elevation: 0,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
-                              ),
-                              child: ListTile(
-                                tileColor: Colors.white,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
-                                ),
-                                onTap: () {
-                                  _deleteAccount();
-                                },
-                                title: Text(
-                                  'Delete your account',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: CustomColors.appColorBlack
-                                            .withOpacity(0.6),
-                                      ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      const DeleteAccountButton(),
                     ],
                   );
                 },
@@ -348,10 +255,6 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  void _deleteAccount() {
-    context.read<AccountBloc>().add(DeleteAccount(context: context));
-  }
-
   void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ShowCaseWidget.of(_showcaseContext).startShowCase(
@@ -367,6 +270,113 @@ class _SettingsPageState extends State<SettingsPage>
     if (prefs.getBool(Config.settingsPageShowcase) == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
       _appService.stopShowcase(Config.settingsPageShowcase);
+    }
+  }
+}
+
+class DeleteAccountButton extends StatefulWidget {
+  const DeleteAccountButton({super.key});
+
+  @override
+  State<DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends State<DeleteAccountButton> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, Profile>(
+      builder: (context, state) {
+        if (state.isAnonymous || !state.isSignedIn) {
+          return Container();
+        }
+
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          child: ListTile(
+            tileColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            onTap: () => _deleteAccount(),
+            title: Text(
+              'Delete your account',
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.6),
+                  ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    bool hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
+    if (!hasConnection) {
+      return;
+    }
+    if (!mounted) return;
+
+    ConfirmationAction? confirmation = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AuthProcedureDialog(
+          authProcedure: AuthProcedure.deleteAccount,
+        );
+      },
+    );
+
+    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
+      return;
+    }
+
+    if (!mounted) return;
+
+    loadingScreen(context);
+
+    bool deletionSuccess = await CustomAuth.deleteAccount();
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    if (deletionSuccess) {
+      await AppService.postSignOutActions(context);
+
+      return;
+    }
+
+    ConfirmationAction? signOutConfirmation =
+        await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const SignOutDeletionDialog();
+      },
+    );
+
+    if (signOutConfirmation == null ||
+        signOutConfirmation == ConfirmationAction.cancel) {
+      return;
+    }
+
+    final success = await CustomAuth.signOut();
+
+    if (!mounted) return;
+
+    if (success) {
+      await AppService.postSignOutActions(context);
+    } else {
+      Navigator.pop(context);
+      showSnackBar(context, Config.signOutFailed);
     }
   }
 }
