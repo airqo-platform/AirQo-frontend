@@ -64,10 +64,6 @@ module.exports = {
           600: '#8776F51A',
           700: '#584CAB',
         },
-        white: {
-          100: '#F6F6F7',
-          900: '#FFFFFF',
-        },
       },
     },
     container: {

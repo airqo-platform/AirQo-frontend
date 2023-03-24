@@ -34,7 +34,7 @@ const collocate = () => {
           <div className='flex'>
             <Button
               className={
-                'bg-white-900 text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
+                'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
               }
             >
               <div className='mr-[10px]'>
@@ -45,7 +45,7 @@ const collocate = () => {
             <div className='mr-[14px]'></div>
             <Button
               className={
-                'rounded-none text-white-900 bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
               }
               path='/collocation/add_monitor'
             >
@@ -99,7 +99,7 @@ const collocate = () => {
               <div className='flex justify-center items-center mt-6'>
                 <Button
                   className={
-                    'rounded-none text-white-900 bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
+                    'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
                   }
                   path='/collocation/add_monitor'
                 >
@@ -111,7 +111,7 @@ const collocate = () => {
                 <div className='mr-[14px]'></div>
                 <Button
                   className={
-                    'bg-white-900 text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
+                    'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
                   }
                 >
                   <div className='mr-[10px]'>

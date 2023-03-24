@@ -6,7 +6,7 @@ const Toast = ({ message, type }) => {
     error: 'bg-red-500',
   };
 
-  const textColor = type === 'success' ? 'text-black-600' : 'text-white-900';
+  const textColor = type === 'success' ? 'text-black-600' : 'text-white';
 
   const containerStyles = `flex p-4 w-80 text-sm ${
     colors[type] || 'bg-red-500'

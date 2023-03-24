@@ -86,7 +86,7 @@ const ScheduleCalendar = () => {
               separator={'to'}
               readOnly={true}
               inputClassName='font-sans text-xs text-grey-300 font-normal'
-              classNames={{ calendar: 'bg-white-900' }}
+              classNames={{ calendar: 'bg-white' }}
             />
           </div>
         </div>
