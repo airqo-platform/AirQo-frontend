@@ -27,17 +27,18 @@ export const collocateApi = createApi({
         method: 'POST',
         body: addMonitorInput,
       }),
-      onQueryFulfilled: (data, { dispatch }) => {
-        dispatch(addCollocationData(data));
-      },
+    }),
+    getDeviceStatusSummary: builder.query({
+      query: () => '/summary',
     }),
   }),
 });
 
 export const {
   useCollocateDevicesMutation,
+  useGetDeviceStatusSummaryQuery,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
 // export endpoints for use in SSR
-export const { collocateDevices } = collocateApi.endpoints;
+export const { collocateDevices, getDeviceStatusSummary } = collocateApi.endpoints;

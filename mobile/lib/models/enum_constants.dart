@@ -40,29 +40,10 @@ enum CloudAnalyticsEvent {
   }
 }
 
-enum InsightsStatus {
-  loaded,
-  error,
-  refreshing,
-  loading,
-  noInternetConnection,
-  noData;
-}
-
 enum AppPermission {
   notification,
   location,
   photosStorage,
-}
-
-enum BlocStatus {
-  initial,
-  editing,
-  processing,
-  updatingData,
-  error,
-  success,
-  accountDeletionCheckSuccess,
 }
 
 enum FeedbackStep {
@@ -71,17 +52,10 @@ enum FeedbackStep {
   formStep;
 }
 
-enum AuthenticationError {
+// TODO remove this enum
+enum FirebaseAuthError {
   noInternetConnection(
     message: 'Check your internet connection',
-    snackBarDuration: 5,
-  ),
-  invalidFirstName(
-    message: 'First name is required.',
-    snackBarDuration: 5,
-  ),
-  invalidLastName(
-    message: 'Last name is required.',
     snackBarDuration: 5,
   ),
   accountInvalid(
@@ -96,20 +70,12 @@ enum AuthenticationError {
     message: 'Session time out. Sending another verification code',
     snackBarDuration: 5,
   ),
-  none(
-    message: '',
-    snackBarDuration: 0,
-  ),
   authFailure(
     message: 'Authentication failed. Try again later',
     snackBarDuration: 5,
   ),
   logInRequired(
     message: 'Log in required.',
-    snackBarDuration: 5,
-  ),
-  logoutFailed(
-    message: 'Failed to logout. Try again later',
     snackBarDuration: 5,
   ),
   phoneNumberTaken(
@@ -133,36 +99,13 @@ enum AuthenticationError {
     snackBarDuration: 5,
   );
 
-  const AuthenticationError({
+  const FirebaseAuthError({
     required this.message,
     required this.snackBarDuration,
   });
 
   final String message;
   final int snackBarDuration;
-
-  @override
-  String toString() => message;
-}
-
-enum NearbyAirQualityError {
-  none(
-    message: '',
-  ),
-  locationDenied(
-    message: 'Enable location to get air quality near you',
-  ),
-  locationDisabled(
-    message: 'Turn on location to get air quality near you',
-  ),
-  noNearbyAirQualityReadings(
-    message:
-        'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
-  );
-
-  const NearbyAirQualityError({required this.message});
-
-  final String message;
 
   @override
   String toString() => message;
@@ -323,13 +266,6 @@ enum AuthMethod {
     editEntryText: 'Change your email',
     invalidInputErrorMessage: 'Looks like you missed a letter',
     invalidInputMessage: 'Oops, Something’s wrong with your email',
-  ),
-  none(
-    updateMessage: 'You do not have an account. Consider creating one',
-    codeVerificationText: '',
-    editEntryText: '',
-    invalidInputErrorMessage: '',
-    invalidInputMessage: '',
   );
 
   const AuthMethod({
@@ -404,12 +340,6 @@ enum AuthProcedure {
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
-  none(
-    confirmationTitle: '',
-    confirmationBody: '',
-    confirmationOkayText: '',
-    confirmationCancelText: '',
-  ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
@@ -429,19 +359,6 @@ enum AuthProcedure {
   final String confirmationBody;
   final String confirmationOkayText;
   final String confirmationCancelText;
-}
-
-@JsonEnum(valueField: 'string')
-enum Frequency {
-  daily('daily'),
-  hourly('hourly');
-
-  const Frequency(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
 }
 
 enum Gender {

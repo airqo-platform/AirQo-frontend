@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
@@ -5,6 +6,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'on_boarding_widgets.dart';
 
@@ -26,7 +28,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           verticalPadding: 10,
-          widget: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),
@@ -57,39 +59,15 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GestureDetector(
-                  onTap: () async {
+                child: NextButton(
+                  text: 'Yes, keep me safe',
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
                     await _allowLocation();
                   },
-                  child: NextButton(
-                    text: 'Yes, keep me safe',
-                    buttonColor: CustomColors.appColorBlue,
-                  ),
                 ),
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const SetUpCompleteScreen();
-                      },
-                    ),
-                    (r) => false,
-                  );
-                },
-                child: Text(
-                  'No, thanks',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
-              ),
+              const SkipOnboardScreen(SetUpCompleteScreen()),
             ],
           ),
         ),
@@ -103,20 +81,28 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     _updateOnBoardingPage();
   }
 
-  Future<void> _allowLocation() async {
-    await LocationService.requestLocation(context, true).then(
-      (_) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const SetUpCompleteScreen();
-            },
-          ),
-          (r) => false,
-        );
-      },
+  Future<void> _goToNextScreen() async {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(const SyncProfile());
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const SetUpCompleteScreen();
+        },
+      ),
+      (r) => false,
     );
+  }
+
+  Future<void> _allowLocation() async {
+    bool hasPermission =
+        await PermissionService.checkPermission(AppPermission.location);
+    if (hasPermission && mounted) {
+      await _goToNextScreen();
+    } else {
+      LocationService.requestLocation(context, true);
+    }
   }
 
   Future<bool> onWillPop() {

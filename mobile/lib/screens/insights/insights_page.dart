@@ -82,6 +82,7 @@ class InsightsPage extends StatelessWidget {
                       if (link != null) {
                         await ShareService.shareLink(
                           link,
+                          context,
                           airQualityReading: airQualityReading,
                         );
                       }
@@ -113,7 +114,7 @@ class InsightsPage extends StatelessWidget {
         ),
       ),
       body: AppSafeArea(
-        widget: SingleChildScrollView(
+        child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
               Insight? selectedInsight = state.selectedInsight;

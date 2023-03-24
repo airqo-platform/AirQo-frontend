@@ -10,20 +10,13 @@ enum DashboardStatus {
 enum DashboardError { noAirQuality, noInternetConnection, none }
 
 class DashboardState extends Equatable {
-  const DashboardState._({
-    this.greetings = '',
-    this.airQualityReadings = const [],
-    this.status = DashboardStatus.loading,
-    this.error = DashboardError.none,
-    this.checkForUpdates = true,
-  });
-
   const DashboardState({
     this.greetings = '',
     this.airQualityReadings = const [],
     this.status = DashboardStatus.loading,
     this.error = DashboardError.none,
     this.checkForUpdates = true,
+    this.scrollToTop = false,
   });
 
   DashboardState copyWith({
@@ -32,6 +25,7 @@ class DashboardState extends Equatable {
     DashboardStatus? status,
     DashboardError? error,
     bool? checkForUpdates,
+    bool? scrollToTop,
   }) {
     return DashboardState(
       greetings: greetings ?? this.greetings,
@@ -39,16 +33,16 @@ class DashboardState extends Equatable {
       status: status ?? this.status,
       error: error ?? this.error,
       checkForUpdates: checkForUpdates ?? this.checkForUpdates,
+      scrollToTop: scrollToTop ?? this.scrollToTop,
     );
   }
-
-  const DashboardState.initial() : this._();
 
   final String greetings;
   final List<AirQualityReading> airQualityReadings;
   final DashboardStatus status;
   final DashboardError error;
   final bool checkForUpdates;
+  final bool scrollToTop;
 
   @override
   List<Object?> get props => [
@@ -57,5 +51,6 @@ class DashboardState extends Equatable {
         status,
         error,
         checkForUpdates,
+        scrollToTop,
       ];
 }

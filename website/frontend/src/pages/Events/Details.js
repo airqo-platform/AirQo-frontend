@@ -1,139 +1,191 @@
-import React from 'react';
-import PlaceholderImg from 'assets/img/Events/event-placeholder.jpg';
-import Page from '../Page';
+import React, { useEffect, useState } from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import ParticipatingCities from 'assets/img/Events/participation.png';
 import Programme1 from 'assets/img/Events/programme-1.png';
 import Programme2 from 'assets/img/Events/programme-2.png';
+import { useInitScrollTop } from 'utils/customHooks';
+import { useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
+import { format } from 'date-fns';
+import Loadspinner from '../../components/LoadSpinner';
+import PageMini from '../PageMini';
 
 const EventDetails = () => {
+  useInitScrollTop();
+  const { uniqueTitle } = useParams();
+  const dispatch = useDispatch();
+
+  const eventData = useSelector((state) => state.eventsData.events);
+  const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
+  const loader = useSelector((state) => state.eventsData.loading);
+  const [loading, setLoading] = useState(loader);
+
+
+  useEffect(() => {
+    if (isEmpty(eventData)) {
+      dispatch(getAllEvents());
+    }
+  }, []);
+
   return (
-    <Page>
-      <div className="events details">
-        <div
-          className="detail-header"
-          style={{
-            padding: '80px 20px',
-            backgroundImage: `url(${PlaceholderImg})`,
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat'
-          }}>
-          <div className="content">
-            <div className="breadcrumb">
-              <span style={{ textDecoration: 'underline' }}>
-                <a href='/events'>Events</a></span>
-              <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
-              <span style={{ color: '#A8B2C7' }}>
-                Championing Liveable urban Environments through African Networks for Air (CLEAN AIR)
-              </span>
-            </div>
-            <div>
-              <h1>
-                Championing Liveable urban Environments through African Networks for Air (CLEAN AIR)
-              </h1>
-              <h5>Extended workshop and launchpad for regional collaborations</h5>
-            </div>
-          </div>
-        </div>
-        <div className="detail-body">
-          <div className="event-details">
-            <div className="time">
-              <h3>Event Details</h3>
-              <span className="item">
-                <CalendarMonth />
-                <span>3rd - 5th April 2023</span>
-              </span>
-              <div className="item">
-                <AccessTimeOutlined />
-                <span>8:00am - 5:00pm</span>
+    <PageMini>
+      {loading ? (
+        <Loadspinner />
+      ) : (
+        <>
+          {!isEmpty(eventData) &&
+            eventDetails.map((event) => (
+              <div className="events details" key={event.id}>
+                <div
+                  className="detail-header"
+                  style={{
+                    padding: '80px 20px',
+                    background: `linear-gradient(0deg, rgba(15, 36, 83, 0.7), rgba(15, 36, 83, 0.7)),url(${event.background_image})`,
+                    backgroundPosition: 'center',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat'
+                  }}>
+                  <div className="content">
+                    <div className="breadcrumb">
+                      <span style={{ textDecoration: 'underline' }}>
+                        <a href="/events">Events</a>
+                      </span>
+                      <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
+                      <span style={{ color: '#A8B2C7' }}>{event.title}</span>
+                    </div>
+                    <div className="heading">
+                      <h1>{event.title}</h1>
+                      <h5>{event.title_subtext}</h5>
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-body">
+                  <div className="event-details">
+                    <div className="time">
+                      <h3>Event Details</h3>
+                      <span className="item">
+                        <CalendarMonth />
+                        <span>
+                          {event.end_date !== null ? (
+                            <span>
+                              {format(new Date(event.start_date), 'do')} -{' '}
+                              {format(new Date(event.end_date), 'do MMMM yyyy')}
+                            </span>
+                          ) : (
+                            <span>{format(new Date(event.start_date), 'do MMMM yyyy')}</span>
+                          )}
+                        </span>
+                      </span>
+                      <div className="item">
+                        <AccessTimeOutlined />
+                        <span>
+                          {event.end_time !== null ? (
+                            <span>
+                              {event.start_time.slice(0, -3)} - {event.end_time.slice(0, -3)}
+                            </span>
+                          ) : (
+                            <span>All Day</span>
+                          )}
+                        </span>
+                      </div>
+                      {/* Google maps location link */}
+                      {event.location_name ? (
+                        <div className="item">
+                          <PlaceOutlined />
+                          <span>
+                            <a href={event.location_link !== null ? event.location_link : null}>
+                              <span>{event.location_name}</span>
+                            </a>
+                          </span>
+                        </div>
+                      ) : (
+                        <span />
+                      )}
+                    </div>
+
+                    {event.registration_link && (
+                      <div className="register">
+                        <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                          <button>Register</button>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <div className="body">
+                    {event.partner.length > 0 ? (
+                      <div className="partner_logos" id="logo-table">
+                        <table>
+                          <tbody>
+                            <tr>
+                              {event.partner.map((partner) => (
+                                <td key={partner.id}>
+                                  <img src={partner.partner_logo} alt={partner.name} />
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <span />
+                    )}
+                    <div dangerouslySetInnerHTML={{ __html: event.html }} className="html"></div>
+                    {event.program.length > 0 ? (
+                      <div className="program">
+                        <h3>Event Program</h3>
+                        {event.program.map((program) => (
+                          <div key={program.id}>
+                            <details>
+                              <summary>
+                                <span>{format(new Date(program.date), 'do MMMM yyyy')}</span>
+                                <div>{program.program_details}</div>
+                              </summary>
+                              {program.session.map((session) => (
+                                <div className="session">
+                                  <div className="duration">
+                                    <div className="time">
+                                      {session.start_time.slice(0, -3)} -{' '}
+                                      {session.end_time.slice(0, -3)}
+                                    </div>
+                                    <div className="venue">{session.venue}</div>
+                                  </div>
+                                  <div className="itinerary">
+                                    <h4>{session.session_title}</h4>
+                                    <div
+                                      dangerouslySetInnerHTML={{ __html: session.html }}
+                                      className="html"></div>
+                                  </div>
+                                </div>
+                              ))}
+                            </details>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span />
+                    )}
+                    {event.inquiry.length > 0 ? (
+                      <div className="inquiry">
+                        <h4>For any inquiries and clarifications:</h4>
+                        {event.inquiry.map((inq) => (
+                          <div key={inq.id}>
+                            <span>{inq.inquiry}</span>: <span>{inq.role}</span> -{' '}
+                            <span>{inq.email}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span />
+                    )}
+                  </div>
+                </div>
               </div>
-              {/* Google maps location link */}
-              <div className="item">
-                <PlaceOutlined />
-                <a>
-                  <span>Kampala, Uganda</span>
-                </a>
-              </div>
-            </div>
-            <div className="register">
-              <a
-                href={
-                  'https://docs.google.com/forms/d/e/1FAIpQLSfm4d8isDZPfpUb9xHbWB9oVOcjyUzXXaVWXiH8c9X482KxDQ/viewform'
-                }
-                target="_blank"
-                rel="noopener noreferrer">
-                <button>Register</button>
-              </a>
-            </div>
-          </div>
-          <div className="body">
-            <p>
-              We are happy to host a 3-day peer learning and knowledge exchange workshop that will
-              bring together the communities of practice from over 15 cities in Africa, with a focus
-              on utilising low-cost sensors for air quality management in Africa.{' '}
-            </p>
-            <p>
-              Held under the theme:{' '}
-              <b>Championing Liveable Urban Environments through African Networks for Air</b> , the
-              workshop serves as a launchpad for Africa-led collaborations and multi-regional
-              partnerships for sustained interventions to achieve cleaner air across the continent.
-            </p>
-            <p>
-              <b>The 3-day engagement aims to achieve the following objectives:</b>
-              <ol>
-                <li>
-                  Increase the understanding of low-cost air quality sensor networks and digital
-                  solutions as new approaches for air quality management in the African context.
-                </li>
-                <li>Foster city-city and policy-research collaborations.</li>
-                <li>
-                  Increase awareness of contextual issues of air quality for better health outcomes.
-                </li>
-              </ol>
-            </p>
-            <i>This is largely an in-person event with selected hybrid sessions.</i>
-            <p>
-              Confirm your attendance by filling in{' '}
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSfm4d8isDZPfpUb9xHbWB9oVOcjyUzXXaVWXiH8c9X482KxDQ/viewform"
-                target="_blank"
-                rel="noopener noreferrer">
-                this form
-              </a>
-            </p>
-            <br />
-            <b>Participating cities:</b>
-            <div>
-              <img src={ParticipatingCities} alt="" />
-            </div>
-            <br />
-            <b>Proposed Programme:</b>
-            <div>
-              <img src={Programme1} alt="" />
-            </div>
-            <div>
-              <img src={Programme2} alt="" />
-            </div>
-            <p>
-              For any questions and clarifications, please feel free to directly contact the below
-              persons accordingly:
-            </p>
-            <ol>
-              <li>
-                <b>About the Programme and general inquiries</b> - Deo Okure, Air Quality Scientist and
-                Programmes Manager, AirQo by email on <a>dokure@airqo.net</a>
-              </li>
-              <li>
-                <b>Logistics and travel arrangements</b> - Dora Bampangana, Project Administrator -
-                <a> dora@airqo.net</a>
-              </li>
-              <li><b>Communications and Visibility</b> - Maclina Birungi, Marketing and Communications Lead - <a>maclina@airqo.net</a></li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    </Page>
+            ))}
+        </>
+      )}
+    </PageMini>
   );
 };
 

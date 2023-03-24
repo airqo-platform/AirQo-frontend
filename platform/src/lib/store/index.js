@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { deviceRegistryApi } from './services/deviceRegistry';
-import selectedCollocateDevicesReducer from './services/addMonitor/selectedCollocateDevicesSlice';
+import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
 import { collocateApi } from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 

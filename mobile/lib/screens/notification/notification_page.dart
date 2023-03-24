@@ -14,7 +14,7 @@ class NotificationPage extends StatelessWidget {
     return Scaffold(
       appBar: const AppTopBar('Notifications'),
       body: AppSafeArea(
-        widget: BlocBuilder<NotificationBloc, List<AppNotification>>(
+        child: BlocBuilder<NotificationBloc, List<AppNotification>>(
           builder: (context, state) {
             if (state.isEmpty) {
               context.read<NotificationBloc>().add(const SyncNotifications());

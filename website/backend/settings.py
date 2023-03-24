@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "cloudinary",
     "rest_framework",
     "drf_yasg",
+    'django_quill',
     # My apps
     'frontend.apps.FrontendConfig',
     'backend.career.apps.CareerConfig',
@@ -89,7 +90,8 @@ INSTALLED_APPS = [
     'backend.highlights.apps.HighlightsConfig',
     'backend.partners.apps.PartnersConfig',
     'backend.board.apps.BoardConfig',
-    'backend.publications.apps.PublicationsConfig'
+    'backend.publications.apps.PublicationsConfig',
+    'backend.event.apps.EventConfig'
 ]
 
 MIDDLEWARE = [
@@ -155,7 +157,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Kampala"
 
 USE_I18N = True
 

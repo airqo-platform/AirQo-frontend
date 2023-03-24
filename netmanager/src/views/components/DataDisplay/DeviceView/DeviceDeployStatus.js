@@ -271,7 +271,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
-  const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.createdAt));
+  const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
 
   const checkColocation = () => {
