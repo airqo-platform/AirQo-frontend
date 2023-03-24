@@ -93,7 +93,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   return (
     <div>
-      {data && !data.data && (
+      {error && !error.data && (
         <Toast
           type={'error'}
           message='Uh-oh! Devices are temporarily unavailable, but we are working to fix that'
