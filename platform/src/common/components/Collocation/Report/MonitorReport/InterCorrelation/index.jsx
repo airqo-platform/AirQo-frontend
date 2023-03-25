@@ -68,7 +68,7 @@ const InterCorrelationChart = ({
           {correlationDevices.length == 2 ? (
             <div>
               <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-                <span className='uppercase'>aq_g5_87</span>
+                <span className='text-base'>{deviceName}</span>
                 <span className='ml-2 text-purple-700'>
                   <ArrowDropDownIcon fillColor='#584CAB' />
                 </span>
@@ -79,8 +79,8 @@ const InterCorrelationChart = ({
               <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
                 Select a monitor to compare with AQG504
               </span>
-              <Button className='max-w-[115px] h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
-                <span className='uppercase text-blue-300'>aq_g5_96</span>
+              <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
+                <span className='text-blue-300 text-base'>Select Monitor</span>
                 <span className='ml-2 text-purple-700'>
                   <ArrowDropDownIcon fillColor='#584CAB' />
                 </span>
