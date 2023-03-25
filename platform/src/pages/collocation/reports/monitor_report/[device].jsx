@@ -42,7 +42,7 @@ const MonitorReport = () => {
   });
   let collocationResults = data?.data;
 
-  const [correlationDevices, setCorrelationDevices] = useState(['aq_g5_87']);
+  const [correlationDevices, setCorrelationDevices] = useState([device]);
   const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
   const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('10');
 

@@ -31,13 +31,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
+  const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
   const {
     data: data,
     error,
     refetch,
     isError,
     isSuccess,
-  } = useGetCollocationResultsQuery(collocationInput);
+    isLoading: isCheckingForDataAvailability,
+  } = useGetCollocationResultsQuery(collocationInput, { skip: !shouldFetchData });
 
   const [isCollocationResultsError, setCollocationResultsError] = useState(false);
 
@@ -89,15 +91,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       startDate,
       endDate,
     });
+    setShouldFetchData(true);
   };
 
   return (
     <div>
-      {error && !error.data && (
-        <Toast
-          type={'error'}
-          message='Uh-oh! Devices are temporarily unavailable, but we are working to fix that'
-        />
+      {isError && error.data && (
+        <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />
       )}
       <table className='border-collapse text-xs text-left w-full mb-6'>
         <thead>
@@ -176,7 +176,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                             moment(device.end_date).format('YYYY-MM-DD'),
                           )
                         }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
+                        className={`w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer ${
+                          isCheckingForDataAvailability && 'opacity-30'
+                        }`}
                       >
                         <MoreHorizIcon />
                       </span>
