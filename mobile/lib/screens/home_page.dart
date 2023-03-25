@@ -4,21 +4,20 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/screens/settings/update_screen.dart';
-import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'for_you_page.dart';
 
 import 'dashboard/dashboard_view.dart';
+import 'for_you_page.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -146,17 +145,8 @@ class _HomePageState extends State<HomePage> {
                             index: 2,
                           ),
                         ),
-                        ValueListenableBuilder<Box>(
-                          valueListenable: Hive.box<AppNotification>(
-                            HiveBox.appNotifications,
-                          ).listenable(),
-                          builder: (context, box, widget) {
-                            final unreadNotifications = box.values
-                                .toList()
-                                .cast<AppNotification>()
-                                .where((element) => !element.read)
-                                .toList();
-
+                        BlocBuilder<NotificationBloc, List<AppNotification>>(
+                          builder: (context, state) {
                             return Positioned(
                               right: 0.0,
                               child: Container(
@@ -164,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                                 width: 4,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: unreadNotifications.isEmpty
+                                  color: state.filterUnRead().isEmpty
                                       ? Colors.transparent
                                       : CustomColors.aqiRed,
                                 ),
@@ -200,6 +190,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
+    context.read<KyaBloc>().add(const SyncKya());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<NotificationBloc>().add(const SyncNotifications());
     await checkNetworkConnection(
       context,
       notifyUser: true,
@@ -278,16 +272,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
-        context.read<DashboardBloc>().add(const RefreshDashboard());
+        context.read<DashboardBloc>().add(
+              const RefreshDashboard(scrollToTop: true),
+            );
         break;
       case 1:
         context.read<MapBloc>().add(const InitializeMapState());
         break;
     }
-
-    setState(() => _selectedIndex = index);
   }
 
   void _startShowcase() {

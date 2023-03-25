@@ -27,7 +27,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
     return Scaffold(
       appBar: const AppTopBar('About'),
       body: AppSafeArea(
-        widget: Center(
+        child: Center(
           child: Column(
             children: [
               const Spacer(),

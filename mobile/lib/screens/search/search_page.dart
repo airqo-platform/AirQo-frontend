@@ -22,7 +22,7 @@ class SearchPage extends StatelessWidget {
       appBar: const SearchBar(),
       body: AppSafeArea(
         horizontalPadding: 18,
-        widget: BlocBuilder<SearchPageCubit, SearchPageState>(
+        child: BlocBuilder<SearchPageCubit, SearchPageState>(
           builder: (context, state) {
             switch (state) {
               case SearchPageState.filtering:

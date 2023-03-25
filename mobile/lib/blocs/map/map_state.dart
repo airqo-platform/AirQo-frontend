@@ -28,7 +28,7 @@ class MapState extends Equatable {
     this.featuredRegion = '',
     this.featuredCountry = '',
     this.searchResults = const [],
-    this.blocError = AuthenticationError.none,
+    this.blocError = FirebaseAuthError.authFailure, // TODO remove this
   });
 
   const MapState({
@@ -41,7 +41,7 @@ class MapState extends Equatable {
     this.featuredRegion = '',
     this.featuredCountry = '',
     this.searchResults = const [],
-    this.blocError = AuthenticationError.none,
+    this.blocError = FirebaseAuthError.authFailure, // TODO remove this
   });
 
   const MapState.initial() : this._();
@@ -56,7 +56,7 @@ class MapState extends Equatable {
     String? featuredCountry,
     List<AirQualityReading>? airQualityReadings,
     List<SearchResult>? searchResults,
-    AuthenticationError? blocError,
+    FirebaseAuthError? blocError,
   }) {
     return MapState(
       featuredSiteReading: featuredSiteReading ?? this.featuredSiteReading,
@@ -82,7 +82,7 @@ class MapState extends Equatable {
   final AirQualityReading? featuredSiteReading;
   final List<AirQualityReading> airQualityReadings;
   final List<SearchResult> searchResults;
-  final AuthenticationError blocError;
+  final FirebaseAuthError blocError;
 
   @override
   List<Object?> get props => [

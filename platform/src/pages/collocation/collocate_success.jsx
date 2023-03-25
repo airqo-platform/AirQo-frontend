@@ -1,9 +1,7 @@
 import React from 'react';
-import HeaderNav from '../../common/components/Collocation/header';
-import Layout from '../../common/components/Layout';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import Link from 'next/link';
-import ContentLessTopBar from '../../common/components/TopBar/content_less_header';
+import ContentLessTopBar from '@/components/TopBar/content_less_header';
 
 const CollocationSuccess = () => {
   return (

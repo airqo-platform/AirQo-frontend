@@ -253,6 +253,15 @@ const Topbar = (props) => {
                     src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
                   />
                 </RouterLink>
+                <RouterLink to="/">
+                  <img
+                    alt={'kcca'}
+                    style={logo_style}
+                    src={
+                      'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/kcca_logo.png'
+                    }
+                  />
+                </RouterLink>
               </>
             )}
           </div>

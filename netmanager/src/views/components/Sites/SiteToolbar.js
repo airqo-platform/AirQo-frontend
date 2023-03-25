@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
-import clsx from "clsx";
-import { makeStyles } from "@material-ui/styles";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
+import clsx from 'clsx';
+import { makeStyles } from '@material-ui/styles';
 import {
   Button,
   Dialog,
@@ -10,38 +10,38 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  TextField,
-} from "@material-ui/core";
-import { createSiteApi } from "views/apis/deviceRegistry";
-import { loadSitesData } from "redux/SiteRegistry/operations";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { createAlertBarExtraContentFromObject } from "utils/objectManipulators";
+  TextField
+} from '@material-ui/core';
+import { createSiteApi } from 'views/apis/deviceRegistry';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
   row: {
-    height: "42px",
-    display: "flex",
-    alignItems: "center",
-    marginTop: theme.spacing(1),
+    height: '42px',
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: theme.spacing(1)
   },
   spacer: {
-    flexGrow: 1,
+    flexGrow: 1
   },
   importButton: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   exportButton: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   searchInput: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   link: {
-    color: "#3344FF",
+    color: '#3344FF',
     marginRight: theme.spacing(1),
-    fontWeight: "bold",
-  },
+    fontWeight: 'bold'
+  }
 }));
 
 const SiteToolbar = (props) => {
@@ -52,15 +52,17 @@ const SiteToolbar = (props) => {
   const dispatch = useDispatch();
 
   const initSiteData = {
-    latitude: "",
-    longitude: "",
-    name: "",
+    latitude: '',
+    longitude: '',
+    name: '',
+    network: ''
   };
 
   const initErrorData = {
-    latitude: "",
-    longitude: "",
-    name: "",
+    latitude: '',
+    longitude: '',
+    name: '',
+    network: ''
   };
 
   const [open, setOpen] = useState(false);
@@ -74,7 +76,7 @@ const SiteToolbar = (props) => {
   };
 
   const handleSiteDataChange = (key) => (event) => {
-    if (key === "phoneNumber") {
+    if (key === 'phoneNumber') {
       let re = /\s*|\d+(\.d+)?/;
       if (!re.test(event.target.value)) {
         return;
@@ -93,23 +95,19 @@ const SiteToolbar = (props) => {
           updateMainAlert({
             message: resData.message,
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
       })
       .catch((error) => {
-        const errors =
-          error.response && error.response.data && error.response.data.errors;
+        const errors = error.response && error.response.data && error.response.data.errors;
         setErrors(errors || initErrorData);
         dispatch(
           updateMainAlert({
-            message:
-              error.response &&
-              error.response.data &&
-              error.response.data.message,
+            message: error.response && error.response.data && error.response.data.message,
             show: true,
-            severity: "error",
-            extra: createAlertBarExtraContentFromObject(errors || {}),
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
       });
@@ -127,7 +125,7 @@ const SiteToolbar = (props) => {
             align="centre"
             onClick={() => setOpen(!open)}
           >
-            {" "}
+            {' '}
             Add Site
           </Button>
         </div>
@@ -138,10 +136,7 @@ const SiteToolbar = (props) => {
         aria-labelledby="form-dialog-title"
         aria-describedby="form-dialog-description"
       >
-        <DialogTitle
-          id="form-dialog-title"
-          style={{ textTransform: "uppercase" }}
-        >
+        <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Add a site
         </DialogTitle>
 
@@ -153,7 +148,7 @@ const SiteToolbar = (props) => {
               label="Site Name"
               variant="outlined"
               value={siteData.name}
-              onChange={handleSiteDataChange("name")}
+              onChange={handleSiteDataChange('name')}
               fullWidth
               required
               error={!!errors.name}
@@ -165,7 +160,7 @@ const SiteToolbar = (props) => {
               label="Latitude"
               variant="outlined"
               value={siteData.latitude}
-              onChange={handleSiteDataChange("latitude")}
+              onChange={handleSiteDataChange('latitude')}
               error={!!errors.latitude}
               helperText={errors.latitude}
               fullWidth
@@ -177,22 +172,37 @@ const SiteToolbar = (props) => {
               label="Longitude"
               variant="outlined"
               value={siteData.longitude}
-              onChange={handleSiteDataChange("longitude")}
+              onChange={handleSiteDataChange('longitude')}
               error={!!errors.longitude}
               helperText={errors.longitude}
               fullWidth
               required
             />
+            <TextField
+              select
+              fullWidth
+              margin="dense"
+              label="Network"
+              defaultValue={siteData.network}
+              onChange={handleSiteDataChange('network')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.network}
+              helperText={errors.network}
+              required
+            >
+              <option value={'airqo'}>AirQo</option>
+              <option value={'kcca'}>KCCA</option>
+              <option value={'usembassy'}>US EMBASSY</option>
+            </TextField>
           </form>
         </DialogContent>
 
         <DialogActions>
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-          >
+          <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
             <Button variant="contained" type="button" onClick={handleSiteClose}>
               Cancel
             </Button>
@@ -201,7 +211,7 @@ const SiteToolbar = (props) => {
               color="primary"
               type="submit"
               onClick={handleSiteSubmit}
-              style={{ margin: "0 15px" }}
+              style={{ margin: '0 15px' }}
             >
               Create Site
             </Button>
@@ -214,7 +224,7 @@ const SiteToolbar = (props) => {
 };
 
 SiteToolbar.propTypes = {
-  className: PropTypes.string,
+  className: PropTypes.string
 };
 
 export default SiteToolbar;

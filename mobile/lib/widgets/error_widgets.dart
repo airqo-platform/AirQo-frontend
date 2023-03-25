@@ -1,9 +1,8 @@
 import 'package:app/themes/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -54,7 +53,7 @@ class KyaNotFoundWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppSafeArea(
-        widget: Padding(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 33),
           child: Center(
             child: Column(
@@ -80,8 +79,10 @@ class KyaNotFoundWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {
+                NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  text: 'Return home',
+                  callBack: () {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -92,10 +93,6 @@ class KyaNotFoundWidget extends StatelessWidget {
                       (r) => false,
                     );
                   },
-                  child: NextButton(
-                    buttonColor: CustomColors.appColorBlue,
-                    text: 'Return home',
-                  ),
                 ),
               ],
             ),
@@ -316,14 +313,10 @@ class NoCompleteKyaWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Start learning',
-              ),
+            child: NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Start learning',
+              callBack: callBack,
             ),
           ),
           const Spacer(),
@@ -444,7 +437,7 @@ class AppErrorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSafeArea(
       horizontalPadding: 33,
-      widget: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -519,7 +512,7 @@ class AppCrushWidget extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -598,7 +591,7 @@ class ErrorPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -644,8 +637,10 @@ class ErrorPage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: () {
+            NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Return home',
+              callBack: () {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -656,10 +651,6 @@ class ErrorPage extends StatelessWidget {
                   (r) => false,
                 );
               },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Return home',
-              ),
             ),
           ],
         ),

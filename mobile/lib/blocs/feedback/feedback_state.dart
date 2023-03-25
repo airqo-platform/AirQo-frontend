@@ -1,5 +1,15 @@
 part of 'feedback_bloc.dart';
 
+enum FeedbackStateStatus {
+  initial,
+  editing,
+  processing,
+  updatingData,
+  error,
+  success,
+  accountDeletionCheckSuccess,
+}
+
 class FeedbackState extends Equatable {
   const FeedbackState({
     required this.feedbackType,
@@ -18,7 +28,7 @@ class FeedbackState extends Equatable {
     this.feedback = '',
     this.step = FeedbackStep.typeStep,
     this.errorMessage = '',
-    this.blocStatus = BlocStatus.initial,
+    this.blocStatus = FeedbackStateStatus.initial,
   });
 
   const FeedbackState.initial() : this._();
@@ -30,7 +40,7 @@ class FeedbackState extends Equatable {
     String? feedback,
     FeedbackStep? step,
     String? errorMessage,
-    BlocStatus? blocStatus,
+    FeedbackStateStatus? blocStatus,
   }) {
     return FeedbackState(
       feedbackType: feedbackType ?? this.feedbackType,
@@ -49,7 +59,7 @@ class FeedbackState extends Equatable {
   final String feedback;
   final FeedbackStep step;
   final String errorMessage;
-  final BlocStatus blocStatus;
+  final FeedbackStateStatus blocStatus;
 
   @override
   List<Object> get props => [

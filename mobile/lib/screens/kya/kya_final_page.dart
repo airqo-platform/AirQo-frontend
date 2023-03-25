@@ -26,7 +26,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           backgroundColor: CustomColors.appBodyColor,
         ),
         body: AppSafeArea(
-          widget: Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

@@ -13,8 +13,8 @@ class Config {
   static String get airqoApiUrl =>
       dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
-  static String get airqoApiUserExistsUrl =>
-      dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
+  static String get guestLogInFailed =>
+      'Failed to login as guest. Try again later';
 
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
@@ -24,7 +24,7 @@ class Config {
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
-  static String get usersAnalyticsCollection =>
+  static String get usersLocationHistoryCollection =>
       dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
 
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
@@ -68,6 +68,8 @@ class Config {
   static String get iosBundleId => 'com.airqo.net';
 
   static String get androidPackageName => 'com.airqo.app';
+
+  static String get signOutFailed => 'Failed to sign out. Try again later';
 
   static String get connectionErrorMessage => 'No internet connection';
 

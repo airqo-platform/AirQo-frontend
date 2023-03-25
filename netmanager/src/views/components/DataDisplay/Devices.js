@@ -140,9 +140,9 @@ const createDeviceColumns = (history, setDelState) => [
     )
   },
   {
-    title: 'Registration Date',
+    title: 'Deployment Date',
     field: 'createdAt',
-    render: (data) => <Cell data={data} fieldValue={humanReadableDate(data.createdAt)} />
+    render: (data) => <Cell data={data} fieldValue={humanReadableDate(data.deployment_date)} />
   },
   {
     title: 'Deployment status',
@@ -207,12 +207,14 @@ const CreateDevice = ({ open, setOpen }) => {
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
-    category: ''
+    category: '',
+    network: ''
   };
 
   const initialErrors = {
     long_name: '',
-    category: ''
+    category: '',
+    network: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -305,6 +307,26 @@ const CreateDevice = ({ open, setOpen }) => {
             <option value={'lowcost'}>Lowcost</option>
             <option value={'bam'}>BAM</option>
           </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Network"
+            style={{ margin: '10px 0' }}
+            defaultValue={newDevice.network}
+            onChange={handleDeviceDataChange('network')}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' }
+            }}
+            variant="outlined"
+            error={!!errors.network}
+            helperText={errors.network}
+            required
+          >
+            <option value={'airqo'}>AirQo</option>
+            <option value={'kcca'}>KCCA</option>
+            <option value={'usembassy'}>US EMBASSY</option>
+          </TextField>
         </form>
       </DialogContent>
 
@@ -334,12 +356,14 @@ const SoftCreateDevice = ({ open, setOpen }) => {
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
-    category: ''
+    category: '',
+    network: ''
   };
 
   const initialErrors = {
     long_name: '',
-    category: ''
+    category: '',
+    network: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -429,6 +453,26 @@ const SoftCreateDevice = ({ open, setOpen }) => {
           >
             <option value={'lowcost'}>Lowcost</option>
             <option value={'bam'}>BAM</option>
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Network"
+            style={{ margin: '10px 0' }}
+            defaultValue={newDevice.network}
+            onChange={handleDeviceDataChange('network')}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' }
+            }}
+            variant="outlined"
+            error={!!errors.network}
+            helperText={errors.network}
+            required
+          >
+            <option value={'airqo'}>AirQo</option>
+            <option value={'kcca'}>KCCA</option>
+            <option value={'usembassy'}>US EMBASSY</option>
           </TextField>
         </form>
       </DialogContent>

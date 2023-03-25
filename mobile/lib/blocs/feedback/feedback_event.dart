@@ -5,7 +5,8 @@ abstract class FeedbackEvent extends Equatable {
 }
 
 class InitializeFeedback extends FeedbackEvent {
-  const InitializeFeedback();
+  const InitializeFeedback(this.profile);
+  final Profile profile;
 
   @override
   List<Object> get props => [];

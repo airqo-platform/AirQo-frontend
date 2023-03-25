@@ -1,6 +1,5 @@
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -41,29 +40,10 @@ enum CloudAnalyticsEvent {
   }
 }
 
-enum InsightsStatus {
-  loaded,
-  error,
-  refreshing,
-  loading,
-  noInternetConnection,
-  noData;
-}
-
 enum AppPermission {
   notification,
   location,
   photosStorage,
-}
-
-enum BlocStatus {
-  initial,
-  editing,
-  processing,
-  updatingData,
-  error,
-  success,
-  accountDeletionCheckSuccess,
 }
 
 enum FeedbackStep {
@@ -72,17 +52,10 @@ enum FeedbackStep {
   formStep;
 }
 
-enum AuthenticationError {
+// TODO remove this enum
+enum FirebaseAuthError {
   noInternetConnection(
     message: 'Check your internet connection',
-    snackBarDuration: 5,
-  ),
-  invalidFirstName(
-    message: 'First name is required.',
-    snackBarDuration: 5,
-  ),
-  invalidLastName(
-    message: 'Last name is required.',
     snackBarDuration: 5,
   ),
   accountInvalid(
@@ -97,20 +70,12 @@ enum AuthenticationError {
     message: 'Session time out. Sending another verification code',
     snackBarDuration: 5,
   ),
-  none(
-    message: '',
-    snackBarDuration: 0,
-  ),
   authFailure(
     message: 'Authentication failed. Try again later',
     snackBarDuration: 5,
   ),
   logInRequired(
     message: 'Log in required.',
-    snackBarDuration: 5,
-  ),
-  logoutFailed(
-    message: 'Failed to logout. Try again later',
     snackBarDuration: 5,
   ),
   phoneNumberTaken(
@@ -134,36 +99,13 @@ enum AuthenticationError {
     snackBarDuration: 5,
   );
 
-  const AuthenticationError({
+  const FirebaseAuthError({
     required this.message,
     required this.snackBarDuration,
   });
 
   final String message;
   final int snackBarDuration;
-
-  @override
-  String toString() => message;
-}
-
-enum NearbyAirQualityError {
-  none(
-    message: '',
-  ),
-  locationDenied(
-    message: 'Enable location to get air quality near you',
-  ),
-  locationDisabled(
-    message: 'Turn on location to get air quality near you',
-  ),
-  noNearbyAirQualityReadings(
-    message:
-        'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
-  );
-
-  const NearbyAirQualityError({required this.message});
-
-  final String message;
 
   @override
   String toString() => message;
@@ -181,7 +123,10 @@ enum AppNotificationType {
 
 enum AirQuality {
   good(
-    string: 'Good',
+    title: 'Good',
+    description: 'The air is clean and healthy to breathe.',
+    color: CustomColors.aqiGreen,
+    svgEmoji: 'assets/icon/good_emoji.svg',
     searchNearbyLocationsText: 'Good Quality Air around you',
     searchOtherLocationsText: 'Locations with Good Quality Air',
     value: 6,
@@ -189,7 +134,11 @@ enum AirQuality {
     maximumValue: 12.09,
   ),
   moderate(
-    string: 'Moderate',
+    title: 'Moderate',
+    description:
+        'The air is acceptable, but sensitive groups may experience some health effects.',
+    color: CustomColors.aqiYellow,
+    svgEmoji: 'assets/icon/moderate_emoji.svg',
     searchNearbyLocationsText: 'Moderate Quality Air around you',
     searchOtherLocationsText: 'Locations with Moderate Quality Air',
     value: 23.8,
@@ -197,7 +146,11 @@ enum AirQuality {
     maximumValue: 35.49,
   ),
   ufsgs(
-    string: 'Unhealthy For Sensitive Groups',
+    title: 'Unhealthy For Sensitive Groups',
+    description:
+        'People with respiratory or heart diseases, children, and elderly may experience health effects.',
+    color: CustomColors.aqiOrange,
+    svgEmoji: 'assets/icon/ufgs_emoji.svg',
     searchNearbyLocationsText:
         'Nearby locations with air quality Unhealthy For Sensitive Groups',
     searchOtherLocationsText:
@@ -207,7 +160,11 @@ enum AirQuality {
     maximumValue: 55.49,
   ),
   unhealthy(
-    string: 'Unhealthy',
+    title: 'Unhealthy',
+    description:
+        'People with respiratory or heart diseases, children, and elderly may experience health effects.',
+    color: CustomColors.aqiRed,
+    svgEmoji: 'assets/icon/unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Unhealthy Quality Air around you',
     searchOtherLocationsText: 'Locations with Unhealthy Quality Air',
     value: 103,
@@ -215,7 +172,11 @@ enum AirQuality {
     maximumValue: 150.49,
   ),
   veryUnhealthy(
-    string: 'Very Unhealthy',
+    title: 'Very Unhealthy',
+    description:
+        'Everyone may begin to experience some adverse health effects and sensitive groups are at higher risk.',
+    color: CustomColors.aqiPurple,
+    svgEmoji: 'assets/icon/very_unhealthy_emoji.svg',
     searchNearbyLocationsText: 'Very Unhealthy Quality Air around you',
     searchOtherLocationsText: 'Locations with Very Unhealthy Quality Air',
     value: 200.5,
@@ -223,7 +184,11 @@ enum AirQuality {
     maximumValue: 250.49,
   ),
   hazardous(
-    string: 'Hazardous',
+    title: 'Hazardous',
+    description:
+        'Health warnings of emergency conditions. The entire population is more likely to be affected, with serious health effects on sensitive groups.',
+    color: CustomColors.aqiMaroon,
+    svgEmoji: 'assets/icon/hazardous_emoji.svg',
     searchNearbyLocationsText: 'Hazardous Quality Air around you',
     searchOtherLocationsText: 'Locations with Hazardous Quality Air',
     value: 300,
@@ -232,7 +197,10 @@ enum AirQuality {
   );
 
   const AirQuality({
-    required this.string,
+    required this.title,
+    required this.description,
+    required this.color,
+    required this.svgEmoji,
     required this.searchNearbyLocationsText,
     required this.searchOtherLocationsText,
     required this.value,
@@ -240,32 +208,18 @@ enum AirQuality {
     required this.maximumValue,
   });
 
-  final String string;
+  final String title;
+  final String description;
+  final String svgEmoji;
+  final Color color;
   final String searchOtherLocationsText;
   final String searchNearbyLocationsText;
   final double value;
   final double minimumValue;
   final double maximumValue;
 
-  Color color() {
-    switch (this) {
-      case AirQuality.good:
-        return CustomColors.aqiGreen;
-      case AirQuality.moderate:
-        return CustomColors.aqiYellow;
-      case AirQuality.ufsgs:
-        return CustomColors.aqiOrange;
-      case AirQuality.unhealthy:
-        return CustomColors.aqiRed;
-      case AirQuality.veryUnhealthy:
-        return CustomColors.aqiPurple;
-      case AirQuality.hazardous:
-        return CustomColors.aqiMaroon;
-    }
-  }
-
   @override
-  String toString() => string;
+  String toString() => title;
 }
 
 enum FeedbackType {
@@ -312,13 +266,6 @@ enum AuthMethod {
     editEntryText: 'Change your email',
     invalidInputErrorMessage: 'Looks like you missed a letter',
     invalidInputMessage: 'Oops, Something’s wrong with your email',
-  ),
-  none(
-    updateMessage: 'You do not have an account. Consider creating one',
-    codeVerificationText: '',
-    editEntryText: '',
-    invalidInputErrorMessage: '',
-    invalidInputMessage: '',
   );
 
   const AuthMethod({
@@ -393,12 +340,6 @@ enum AuthProcedure {
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
-  none(
-    confirmationTitle: '',
-    confirmationBody: '',
-    confirmationOkayText: '',
-    confirmationCancelText: '',
-  ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
@@ -418,67 +359,6 @@ enum AuthProcedure {
   final String confirmationBody;
   final String confirmationOkayText;
   final String confirmationCancelText;
-}
-
-@JsonEnum(valueField: 'string')
-enum Frequency {
-  daily('daily'),
-  hourly('hourly');
-
-  const Frequency(this.string);
-
-  final String string;
-
-  @override
-  String toString() => string;
-
-  List<charts.TickSpec<String>> staticTicks() {
-    switch (this) {
-      case Frequency.daily:
-        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            .map(
-              (day) => charts.TickSpec(
-                day,
-                label: day,
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
-                ),
-              ),
-            )
-            .toList();
-
-      case Frequency.hourly:
-        final labels = <int>[0, 6, 12, 18];
-        final hours = List<int>.generate(24, (index) => index + 1)
-          ..removeWhere(labels.contains);
-
-        final List<charts.TickSpec<String>> hourlyTicks = labels
-            .map(
-              (hour) => charts.TickSpec(
-                hour.toStringLength(),
-                label: hour.toStringLength(),
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
-                ),
-              ),
-            )
-            .toList();
-
-        hourlyTicks.addAll(hours
-            .map(
-              (hour) => charts.TickSpec(
-                hour.toStringLength(),
-                label: hour.toStringLength(),
-                style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Colors.transparent),
-                ),
-              ),
-            )
-            .toList());
-
-        return hourlyTicks;
-    }
-  }
 }
 
 enum Gender {
@@ -600,23 +480,6 @@ enum Pollutant {
 
   String stringValue(double value) {
     return airQuality(value).toString();
-  }
-
-  charts.Color chartColor(double value) {
-    switch (airQuality(value)) {
-      case AirQuality.good:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
-      case AirQuality.moderate:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiYellow);
-      case AirQuality.ufsgs:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiOrange);
-      case AirQuality.unhealthy:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiRed);
-      case AirQuality.veryUnhealthy:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiPurple);
-      case AirQuality.hazardous:
-        return charts.ColorUtil.fromDartColor(CustomColors.aqiMaroon);
-    }
   }
 
   Color textColor({required double value, bool graph = false}) {
