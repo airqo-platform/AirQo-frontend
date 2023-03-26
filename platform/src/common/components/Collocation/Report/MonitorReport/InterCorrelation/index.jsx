@@ -38,18 +38,6 @@ const InterCorrelationChart = ({
   startDate,
   endDate,
 }) => {
-  const {
-    data: data,
-    isLoading,
-    isSuccess,
-    isError,
-    error,
-  } = useGetDeviceStatusSummaryQuery({ startDate, endDate });
-  let deviceStatusSummary = data ? data.data : [];
-
-  const filterDevicesByStatus = (status) =>
-    deviceStatusSummary.filter((device) => device.device_name !== deviceName);
-
   return (
     <Box
       isBigTitle

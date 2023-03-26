@@ -33,7 +33,7 @@ const IntraCorrelationChart = ({
       subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
       contentLink='#'
     >
-      <div className='flex flex-col justify-start w-full'>
+      <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
         <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
           <span className='uppercase'>{deviceName}</span>
           {/* <span className='ml-2 text-purple-700'>

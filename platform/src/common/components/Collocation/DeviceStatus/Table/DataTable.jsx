@@ -43,6 +43,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   const [isCollocationResultsError, setCollocationResultsError] = useState(false);
 
+  const [clickedRowIndex, setClickedRowIndex] = useState(null);
+
   useEffect(() => {
     if (selectedCollocateDevices.length > 0) {
       dispatch(removeDevices(collocationDevices));
@@ -85,13 +87,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   }, [data, collocationInput]);
 
-  const openMonitorReport = async (deviceName, startDate, endDate) => {
+  const openMonitorReport = async (deviceName, startDate, endDate, index) => {
     setCollocationInput({
       devices: deviceName,
       startDate,
       endDate,
     });
     setShouldFetchData(true);
+    setClickedRowIndex(index);
   };
 
   return (
@@ -99,7 +102,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       {isError && error.data && (
         <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />
       )}
-      <table className='border-collapse text-xs text-left w-full mb-6'>
+      <table
+        className='border-collapse text-xs text-left w-full mb-6'
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -137,7 +143,12 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
             {filteredData.length > 0 ? (
               filteredData.map((device, index) => {
                 return (
-                  <tr className='border-b border-b-slate-300' key={index}>
+                  <tr
+                    className={`border-b border-b-slate-300 ${
+                      clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
+                    }`}
+                    key={index}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -174,11 +185,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                             device.device_name,
                             moment(device.start_date).format('YYYY-MM-DD'),
                             moment(device.end_date).format('YYYY-MM-DD'),
+                            index,
                           )
                         }
-                        className={`w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer ${
-                          isCheckingForDataAvailability && 'opacity-30'
-                        }`}
+                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
                       >
                         <MoreHorizIcon />
                       </span>

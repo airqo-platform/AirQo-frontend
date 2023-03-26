@@ -65,7 +65,7 @@ const collocate = () => {
             message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
           />
         )}
-        {deviceStatusSummary && (
+        {isSuccess && (
           <div className='flex'>
             <Button
               className={
@@ -120,7 +120,10 @@ const collocate = () => {
             </Tabs>
           </div>
         ) : (
-          <div className='flex justify-center items-center flex-col mx-auto py-20'>
+          <div
+            className='flex justify-center items-center flex-col mx-auto py-20'
+            data-testid='collocate-empty-state'
+          >
             <Collocate />
             <div className='flex flex-col justify-center text-center mt-10'>
               <h4 className='text-xl font-normal mb-6'>

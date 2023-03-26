@@ -53,6 +53,7 @@ const ScheduleCalendar = () => {
           <div
             className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'
             key={index}
+            data-testid='duration-option'
           >
             {option} {'days'}
             <input

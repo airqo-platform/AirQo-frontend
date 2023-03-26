@@ -90,6 +90,7 @@ const AddMonitor = () => {
         <Toast
           type={'error'}
           message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
+          dataTestId={'collocation-error-toast'}
         />
       )}
       {collocateDeviceError && (
@@ -117,6 +118,7 @@ const AddMonitor = () => {
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
+                dataTestId={'collocation-schedule-button'}
               >
                 Start collocation
               </Button>
