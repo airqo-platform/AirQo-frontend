@@ -1,6 +1,5 @@
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';

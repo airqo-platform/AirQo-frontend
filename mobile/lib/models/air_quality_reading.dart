@@ -2,6 +2,7 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:app/utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -26,6 +27,7 @@ class AirQualityReading extends HiveObject {
     required this.distanceToReferenceSite,
     required this.placeId,
     required this.shareLink,
+    required this.healthTips,
   });
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
@@ -40,6 +42,15 @@ class AirQualityReading extends HiveObject {
 
     if (pm2_5.displayValue() == null) {
       throw Exception("pm2.5 is null for site ${site.getName()}");
+    }
+    List<HealthTip> healthTips = [];
+
+    for (final healthTip in json['health_tips']) {
+      try {
+        healthTips.add(HealthTip.fromJson(healthTip));
+      } catch (exception, __) {
+        debugPrint(exception.toString());
+      }
     }
 
     return AirQualityReading(
@@ -57,6 +68,7 @@ class AirQualityReading extends HiveObject {
       name: site.getName(),
       location: site.getLocation(),
       shareLink: site.getShareLink(),
+      healthTips: healthTips,
     );
   }
 
@@ -81,6 +93,7 @@ class AirQualityReading extends HiveObject {
           distanceToReferenceSite: 0,
           placeId: favouritePlace.placeId,
           shareLink: '',
+          healthTips: [],
         );
       },
     );
@@ -137,6 +150,7 @@ class AirQualityReading extends HiveObject {
           distanceToReferenceSite: distanceToReferenceSite as double,
           placeId: placeId,
           shareLink: shareLink,
+          healthTips: [],
         );
       },
     );
@@ -176,6 +190,7 @@ class AirQualityReading extends HiveObject {
     double? pm2_5,
     double? pm10,
     String? shareLink,
+    List<HealthTip>? healthTips,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
@@ -193,6 +208,7 @@ class AirQualityReading extends HiveObject {
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
       shareLink: shareLink ?? this.shareLink,
+      healthTips: healthTips ?? this.healthTips,
     );
   }
 
@@ -236,8 +252,13 @@ class AirQualityReading extends HiveObject {
   final String region;
 
   @HiveField(14, defaultValue: '')
-  @JsonKey(defaultValue: '')
   final String shareLink;
+
+  @HiveField(15, defaultValue: [])
+  final List<HealthTip> healthTips;
+
+  @override
+  List<Object?> get props => [placeId, dateTime];
 }
 
 @JsonSerializable(createToJson: false)
