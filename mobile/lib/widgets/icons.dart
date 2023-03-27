@@ -5,9 +5,70 @@ import 'package:flutter_svg/svg.dart';
 
 class SvgIcons {
   static Widget location() {
-    return SvgPicture.asset(
-      'assets/icon/location.svg',
+    return Icon(
+      Icons.location_on_rounded,
       color: CustomColors.appColorBlue,
+      size: 27,
+    );
+  }
+
+  static Widget airQualityEmoji(
+    AirQuality airQuality, {
+    double height = 18,
+    double width = 30,
+    bool isEmpty = false,
+  }) {
+    if (isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 3.0),
+        child: SizedBox(
+          height: 4,
+          width: width,
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  color: CustomColors.greyColor,
+                ),
+              ),
+              const SizedBox(
+                width: 2,
+              ),
+              Expanded(
+                child: Container(
+                  color: CustomColors.greyColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SvgPicture.asset(
+      airQuality.svgEmoji,
+      height: height,
+      width: width,
+    );
+  }
+
+  static Widget close({double size = 40}) {
+    return SvgPicture.asset(
+      'assets/icon/close.svg',
+      height: size,
+      width: size,
+    );
+  }
+
+  static Widget update() {
+    return SvgPicture.asset('assets/icon/update_icon.svg');
+  }
+
+  static Widget information() {
+    return SvgPicture.asset(
+      'assets/icon/info_icon.svg',
+      height: 20,
+      width: 20,
     );
   }
 

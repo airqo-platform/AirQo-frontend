@@ -14,10 +14,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.15+20028
+version: 2.0.17+20032
 
 environment:
-  sdk: '>=2.18.0 <4.0.0'
+  sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
   flutter:
@@ -36,19 +36,18 @@ dependencies:
   path_provider: ^2.0.12
   animations: ^2.0.7
   provider: ^6.0.5
-  charts_flutter: ^0.12.0 # TODO: Use another package. charts_flutter is discontinued. https://pub.dev/packages/charts_flutter
   intl: ^0.17.0
   uuid: ^3.0.7
-  flutter_svg: ^1.1.6
+  flutter_svg: ^2.0.1
   image_picker: ^0.8.6+1
   country_list_pick: ^1.0.1+6
   shimmer: ^2.0.0
-  google_fonts: ^3.0.1
+  google_fonts: ^4.0.3
   in_app_review: ^2.0.6
   sentry_flutter: ^6.19.0
   lottie: ^2.2.0
   share_plus: ^6.3.0
-  flutter_secure_storage: ^7.0.1
+  flutter_secure_storage: ^8.0.0
   geocoding: ^2.0.5
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0
@@ -58,8 +57,6 @@ dependencies:
   firebase_auth: ^4.2.5
   firebase_analytics: ^10.1.0
   firebase_storage: ^11.0.10
-  scrollable_positioned_list: ^0.3.5
-  visibility_detector: ^0.3.3
   package_info_plus: ^3.0.2
   webview_flutter: ^4.0.2
   hive: ^2.2.3
@@ -76,7 +73,9 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.12
   appinio_swiper: ^1.1.1
   firebase_dynamic_links: ^5.0.11
-  showcaseview: ^1.1.8
+  showcaseview: ^2.0.0+1
+  url_launcher: ^6.1.9
+  hydrated_bloc: ^9.1.0
   # https://pub.dev/packages/retry
   
 dev_dependencies:

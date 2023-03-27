@@ -1,17 +1,15 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'package:appinio_swiper/appinio_swiper.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
@@ -46,7 +44,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: CustomColors.appBodyColor,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
@@ -56,7 +54,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               onTap: () async {
                 context.read<KyaBloc>().add(
                       UpdateKyaProgress(
-                        kya: widget.kya,
+                        widget.kya,
                         visibleCardIndex: _visibleCardIndex,
                       ),
                     );
@@ -81,6 +79,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       if (link != null) {
                         await ShareService.shareLink(
                           link,
+                          context,
                           kya: widget.kya,
                         );
                         // disabling copying to clipboard
@@ -167,15 +166,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 onSwipe: _swipe,
                 duration: const Duration(milliseconds: 300),
                 unswipe: _unSwipe,
-                onEnd: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return KyaFinalPage(widget.kya);
-                      },
-                    ),
+                onEnd: () async {
+                  List<Kya> kyaList = context.read<KyaBloc>().state;
+                  Kya kya = kyaList.firstWhere(
+                    (element) => element.id == widget.kya.id,
+                    orElse: () => widget.kya,
                   );
+                  if (kya.isInProgress()) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return KyaFinalPage(widget.kya);
+                        },
+                      ),
+                    );
+                  } else {
+                    await popNavigation(context);
+                  }
                 },
               ),
             ),

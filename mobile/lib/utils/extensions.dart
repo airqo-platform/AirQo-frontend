@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -19,59 +18,33 @@ extension IntExt on int {
   }
 }
 
-extension ChartDataExt on ChartData {
-  String chartDomainFn() {
-    switch (frequency) {
-      case Frequency.daily:
-        return DateFormat('EEE').format(dateTime);
-      case Frequency.hourly:
-        final hour = dateTime.hour;
+extension InsightListExt on List<Insight> {
+  List<Insight> sortByDateTime() {
+    List<Insight> data = List.of(this);
 
-        return hour.toString().length == 1 ? '0$hour' : '$hour';
-    }
+    data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
+
+    return data;
   }
+}
 
-  double chartValue(Pollutant pollutant) {
-    return pollutant == Pollutant.pm2_5
-        ? double.parse(pm2_5.toStringAsFixed(2))
-        : double.parse(pm10.toStringAsFixed(2));
+extension ForecastListExt on List<Forecast> {
+  List<Forecast> sortByDateTime() {
+    List<Forecast> data = List.of(this);
+
+    data.sort((x, y) => x.time.compareTo(y.time));
+
+    return data;
   }
+}
 
-  String lastUpdated(Frequency frequency) {
-    String lastUpdated = '';
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  List<FavouritePlace> sortByName() {
+    List<FavouritePlace> data = List.of(this);
 
-    if (dateTime.isToday()) {
-      lastUpdated = 'Updated Today';
+    data.sort((x, y) => x.name.compareTo(y.name));
 
-      return available ? lastUpdated : '$lastUpdated - Not Available';
-    }
-
-    switch (frequency) {
-      case Frequency.daily:
-        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
-        break;
-      case Frequency.hourly:
-        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
-        break;
-    }
-
-    return available ? lastUpdated : '$lastUpdated - Not Available';
-  }
-
-  Color chartAvatarContainerColor(Pollutant pollutant) {
-    return available
-        ? pollutant.color(chartValue(pollutant))
-        : CustomColors.greyColor;
-  }
-
-  String chartAvatarValue(Pollutant pollutant) {
-    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
-  }
-
-  Color chartAvatarValueColor(Pollutant pollutant) {
-    return available
-        ? pollutant.textColor(value: chartValue(pollutant))
-        : CustomColors.darkGreyColor;
+    return data;
   }
 }
 
@@ -94,8 +67,16 @@ extension KyaExt on Kya {
     return progress == -1;
   }
 
+  bool isEmpty() {
+    return lessons.isEmpty;
+  }
+
   bool isInProgress() {
     return progress > 0 && progress < 1;
+  }
+
+  bool hasNoProgress() {
+    return progress == 0;
   }
 
   double getProgress(int visibleCardIndex) {
@@ -104,42 +85,57 @@ extension KyaExt on Kya {
 }
 
 extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) => -(x.progress.compareTo(y.progress)));
+  List<Kya> sortByProgress() {
+    List<Kya> data = List.of(this);
+
+    data.sort((x, y) {
+      if (x.progress == -1) return 1;
+
+      if (y.progress == -1) return -1;
+
+      return -(x.progress.compareTo(y.progress));
+    });
+
+    return data;
   }
 
-  List<Kya> filterIncompleteKya() {
+  List<Kya> filterInProgressKya() {
     return where((element) {
-      return !element.isComplete();
+      return element.isInProgress();
     }).toList();
   }
 
-  List<Kya> filterCompleteKya() {
+  List<Kya> filterHasNoProgress() {
+    return where((element) {
+      return element.hasNoProgress();
+    }).toList();
+  }
+
+  List<Kya> filterPartiallyComplete() {
+    return where((element) {
+      return element.isPartiallyComplete();
+    }).toList();
+  }
+
+  List<Kya> filterComplete() {
     return where((element) {
       return element.isComplete();
     }).toList();
   }
+}
 
-  List<Kya> removeDuplicates() {
-    List<Kya> cleanedKya = [];
-    for (final kya in this) {
-      final duplicates = where((e) => e.id == kya.id).toList();
-      duplicates.sortByProgress();
-      if (!cleanedKya.contains(duplicates.first)) {
-        cleanedKya.add(duplicates.first);
-      }
-    }
-
-    return cleanedKya;
+extension AppNotificationListExt on List<AppNotification> {
+  List<AppNotification> filterUnRead() {
+    return where((element) => !element.read).toList();
   }
 }
 
-extension AnalyticsListExt on List<Analytics> {
-  List<Analytics> sortByDateTime() {
-    List<Analytics> data = List.of(this);
+extension LocationHistoryExt on List<LocationHistory> {
+  List<LocationHistory> sortByDateTime() {
+    List<LocationHistory> data = List.of(this);
     data.sort(
       (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
+        return -(x.dateTime.compareTo(y.dateTime));
       },
     );
 
@@ -213,6 +209,46 @@ extension AirQualityReadingExt on AirQualityReading {
         .toSet()
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
+  }
+
+  AirQuality airQuality() {
+    return Pollutant.pm2_5.airQuality(pm2_5);
+  }
+}
+
+extension InsightExt on Insight {
+  String shortDate() {
+    if (dateTime.isYesterday()) {
+      return 'Yesterday';
+    } else if (dateTime.isWithInPreviousWeek()) {
+      return 'Last Week';
+    } else if (dateTime.isWithInNextWeek()) {
+      return 'Next Week';
+    } else if (dateTime.isToday()) {
+      return 'Today';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow';
+    } else if (dateTime.isWithInCurrentWeek()) {
+      return 'This week';
+    }
+
+    return '';
+  }
+
+  String healthTipsTitle() {
+    if (dateTime.isToday()) {
+      return 'Today’s health tips';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s health tips';
+    }
+
+    if (dateTime.isAFutureDate()) {
+      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+    }
+
+    return '';
   }
 }
 
@@ -288,6 +324,55 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 }
 
 extension ProfileExt on Profile {
+  String displayName() {
+    if (firstName != '') {
+      return firstName.trim();
+    } else if (lastName != '') {
+      return lastName.trim();
+    } else {
+      return 'Hello';
+    }
+  }
+
+  String fullName() {
+    return '$firstName $lastName'.trim();
+  }
+
+  TitleOptions getTitle() {
+    if (title == TitleOptions.ms.value) {
+      return TitleOptions.ms;
+    } else if (title == TitleOptions.mr.value) {
+      return TitleOptions.mr;
+    } else {
+      return TitleOptions.undefined;
+    }
+  }
+
+  Gender gender() {
+    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
+      return Gender.male;
+    } else if (title
+        .toLowerCase()
+        .contains(TitleOptions.ms.value.toLowerCase())) {
+      return Gender.female;
+    } else {
+      return Gender.undefined;
+    }
+  }
+
+  String initials() {
+    var initials = '';
+    if (firstName.isNotEmpty) {
+      initials = firstName[0].toUpperCase();
+    }
+
+    if (lastName.isNotEmpty) {
+      initials = '$initials${lastName[0].toUpperCase()}';
+    }
+
+    return initials.isEmpty ? 'A' : initials;
+  }
+
   String greetings() {
     final hour = DateTime.now().hour;
 
@@ -340,21 +425,22 @@ extension DateTimeExt on DateTime {
   }
 
   Future<String> getGreetings() async {
-    final profile = await Profile.getProfile();
-
-    if (00 <= hour && hour < 12) {
-      return 'Good morning ${profile.firstName}'.trim();
-    }
-
-    if (12 <= hour && hour < 16) {
-      return 'Good afternoon ${profile.firstName}'.trim();
-    }
-
-    if (16 <= hour && hour <= 23) {
-      return 'Good evening ${profile.firstName}'.trim();
-    }
-
-    return 'Hello ${profile.firstName}'.trim();
+    // final profile = await HiveService.getProfile();
+    //
+    // if (00 <= hour && hour < 12) {
+    //   return 'Good morning ${profile.firstName}'.trim();
+    // }
+    //
+    // if (12 <= hour && hour < 16) {
+    //   return 'Good afternoon ${profile.firstName}'.trim();
+    // }
+    //
+    // if (16 <= hour && hour <= 23) {
+    //   return 'Good evening ${profile.firstName}'.trim();
+    // }
+    //
+    // return 'Hello ${profile.firstName}'.trim();
+    return '';
   }
 
   DateTime getDateOfFirstHourOfDay() {
@@ -529,29 +615,50 @@ extension DateTimeExt on DateTime {
     }
   }
 
-  bool isInWeek(String referenceWeek) {
+  bool isWithInCurrentWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay;
-    DateTime lastDay;
-    switch (referenceWeek.toLowerCase()) {
-      case 'last':
-        firstDay =
-            now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay =
-            now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      case 'next':
-        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      default:
-        firstDay = now.getDateOfFirstDayOfWeek();
-        lastDay = now.getDateOfLastDayOfWeek();
-        break;
-    }
+    DateTime firstDay = now.getDateOfFirstDayOfWeek();
+    DateTime lastDay = now.getDateOfLastDayOfWeek();
+    final date = formatter.parse(formatter.format(this));
 
-    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInPreviousWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInNextWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
@@ -559,6 +666,28 @@ extension DateTimeExt on DateTime {
     final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
     return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
+  }
+
+  bool isAPastDate() {
+    if (isYesterday()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) < 0;
+  }
+
+  bool isAFutureDate() {
+    if (isTomorrow()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) > 0;
   }
 
   bool isTomorrow() {
@@ -609,27 +738,53 @@ extension FileExt on File {
   }
 }
 
-extension StringExt on String {
-  bool inStatement(String statement) {
-    final terms = toLowerCase().split(' ');
-    final words = statement.toLowerCase().split(' ');
-    for (final word in words) {
-      for (final term in terms) {
-        if (term == word.trim()) {
-          return true;
-        }
-      }
+extension AppStoreVersionExt on AppStoreVersion {
+  int compareVersion(String checkVersion) {
+    List<int> versionSections =
+        version.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (versionSections.length != 3) {
+      throw Exception('Invalid version $this');
     }
 
-    return false;
+    List<int> candidateSections =
+        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (candidateSections.length != 3) {
+      throw Exception('Invalid version $checkVersion');
+    }
+
+    // checking first code
+    if (versionSections.first > candidateSections.first) return 1;
+
+    if (versionSections.first < candidateSections.first) return -1;
+
+    // checking second code
+    if (versionSections[1] > candidateSections[1]) return 1;
+
+    if (versionSections[1] < candidateSections[1]) return -1;
+
+    // checking last code
+    if (versionSections.last > candidateSections.last) return 1;
+
+    if (versionSections.last < candidateSections.last) return -1;
+
+    return 0;
   }
+}
 
-  bool isValidName() {
-    if (trim().isNull()) {
-      return false;
+extension StringExt on String {
+  List<String> getNames() {
+    List<String> names = split(" ");
+    if (names.isEmpty) {
+      return ["", ""];
     }
 
-    return true;
+    if (names.length >= 2) {
+      return [names.first, names.last];
+    }
+
+    return [names.first, ""];
   }
 
   bool equalsIgnoreCase(String value) {
@@ -674,7 +829,7 @@ extension StringExt on String {
       return 'Entered many digits.';
     }
 
-    return AuthenticationError.invalidPhoneNumber.message;
+    return FirebaseAuthError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {
@@ -683,7 +838,7 @@ extension StringExt on String {
     }
 
     return RegExp(
-      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
+      r'^(([^<>()[\]\\.,;:\s@]+(\.[^<>()[\]\\.,;:\s@]+)*)|(.+))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$',
     ).hasMatch(this);
   }
 

@@ -10,11 +10,11 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'buttons.dart';
 import 'custom_shimmer.dart';
@@ -109,14 +109,14 @@ class AirQualityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Chip(
-      backgroundColor: airQuality.color().withOpacity(0.3),
-      label: Text(airQuality.string),
+      backgroundColor: airQuality.color.withOpacity(0.3),
+      label: Text(airQuality.title),
       labelStyle: CustomTextStyle.airQualityChip(context),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.all(2),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: -8),
       avatar: CircleAvatar(
-        backgroundColor: airQuality.color(),
+        backgroundColor: airQuality.color,
       ),
     );
   }
@@ -380,11 +380,9 @@ class HeartIcon extends StatelessWidget {
       );
     }
 
-    return ValueListenableBuilder<Box<FavouritePlace>>(
-      valueListenable:
-          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
-      builder: (context, box, widget) {
-        final placesIds = box.keys.toList();
+    return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
+      builder: (context, state) {
+        final placesIds = state.map((e) => e.placeId).toList();
 
         final placeId =
             airQualityReading == null ? '' : airQualityReading?.placeId;
@@ -480,6 +478,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                     onPressed: () async {
                       await ShareService.shareLink(
                         link,
+                        context,
                         airQualityReading: widget.airQualityReading,
                       );
                       // disabling copying to clipboard
@@ -552,7 +551,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
@@ -560,12 +559,12 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 class AppSafeArea extends StatelessWidget {
   const AppSafeArea({
     super.key,
-    required this.widget,
+    required this.child,
     this.verticalPadding,
     this.horizontalPadding,
     this.backgroundColor,
   });
-  final Widget widget;
+  final Widget child;
   final double? verticalPadding;
   final double? horizontalPadding;
   final Color? backgroundColor;
@@ -580,7 +579,7 @@ class AppSafeArea extends StatelessWidget {
           vertical: verticalPadding ?? 0,
           horizontal: horizontalPadding ?? 0,
         ),
-        child: widget,
+        child: child,
       ),
     );
   }
@@ -589,28 +588,32 @@ class AppSafeArea extends StatelessWidget {
 class BottomNavIcon extends StatelessWidget {
   const BottomNavIcon({
     super.key,
-    required this.svg,
     required this.selectedIndex,
     required this.label,
     required this.index,
+    required this.icon,
   });
-  final String svg;
   final int selectedIndex;
   final String label;
   final int index;
+  final IconData icon;
   @override
   Widget build(BuildContext context) {
     return ListView(
       shrinkWrap: true,
       children: [
-        SvgPicture.asset(
-          svg,
-          color: selectedIndex == index
-              ? CustomColors.appColorBlue
-              : CustomColors.appColorBlack.withOpacity(0.3),
-          semanticsLabel: label,
+        Theme(
+          data: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+          child: Icon(
+            icon,
+            grade: 700,
+            color: selectedIndex == index
+                ? CustomColors.appColorBlue
+                : CustomColors.appColorBlack.withOpacity(0.3),
+            semanticLabel: label,
+            size: 24,
+          ),
         ),
-        const SizedBox(height: 3),
         Text(
           label,
           textAlign: TextAlign.center,
@@ -622,6 +625,120 @@ class BottomNavIcon extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class CustomShowcaseWidget extends StatelessWidget {
+  const CustomShowcaseWidget({
+    super.key,
+    required this.showcaseKey,
+    required this.description,
+    required this.child,
+    this.customize,
+    this.descriptionWidth = 200,
+    this.descriptionHeight = 20,
+  });
+
+  final GlobalKey showcaseKey;
+  final Widget child;
+  final ShowcaseOptions? customize;
+  final String description;
+  final double descriptionWidth, descriptionHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Showcase.withWidget(
+      key: showcaseKey,
+      width: 12,
+      height: 45,
+      overlayColor: Colors.black,
+      overlayOpacity: 0.9,
+      container: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          customize != ShowcaseOptions.up
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+          const SizedBox(
+            height: 10,
+          ),
+          customize == ShowcaseOptions.skip
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: IconButton(
+                        tooltip: "Skip Showcase",
+                        icon: const Icon(Icons.skip_next),
+                        onPressed: () async {
+                          ShowCaseWidget.of(context).dismiss();
+                          await AppService()
+                              .stopShowcase(Config.restartTourShowcase);
+                        },
+                        color: CustomColors.appColorBlue,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                )
+              : const SizedBox(),
+          Container(
+            constraints: BoxConstraints.expand(
+              width: descriptionWidth,
+              height: descriptionHeight,
+            ),
+            child: Text(
+              description,
+              textAlign: TextAlign.left,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              softWrap: true,
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          customize == ShowcaseOptions.up
+              ? SizedBox(
+                  width: 45,
+                  height: 45,
+                  child: SvgPicture.asset(
+                    'assets/icon/line.svg',
+                    height: 40,
+                    width: 58,
+                  ),
+                )
+              : const SizedBox(),
+        ],
+      ),
+      targetShapeBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: CustomColors.appColorBlue,
+          width: 3,
+          strokeAlign: -5,
+        ),
+      ),
+      child: child,
     );
   }
 }

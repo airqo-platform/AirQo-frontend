@@ -1,7 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +18,12 @@ class FavouritePlacesPage extends StatelessWidget {
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: BlocBuilder<AccountBloc, AccountState>(
+        child: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
           builder: (context, state) {
-            if (state.favouritePlaces.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+            if (state.isEmpty) {
+              context
+                  .read<FavouritePlaceBloc>()
+                  .add(const SyncFavouritePlaces());
 
               return const NoFavouritePlacesWidget();
             }
@@ -34,13 +35,12 @@ class FavouritePlacesPage extends StatelessWidget {
                 (context, index) {
                   final siteReadings = airQualityReadings.values.where(
                     (element) =>
-                        element.referenceSite ==
-                        state.favouritePlaces[index].referenceSite,
+                        element.referenceSite == state[index].referenceSite,
                   );
 
                   final AirQualityReading airQualityReading =
                       AirQualityReading.fromFavouritePlace(
-                    state.favouritePlaces[index],
+                    state[index],
                   );
 
                   if (siteReadings.isEmpty) {
@@ -51,13 +51,10 @@ class FavouritePlacesPage extends StatelessWidget {
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(index),
                     ),
-                    child: MiniAnalyticsCard(
-                      airQualityReading,
-                      animateOnClick: false,
-                    ),
+                    child: FavouritePlaceCard(airQualityReading),
                   );
                 },
-                childCount: state.favouritePlaces.length,
+                childCount: state.length,
               ),
               onRefresh: () {
                 _refresh(context);
@@ -72,6 +69,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
   }
 }

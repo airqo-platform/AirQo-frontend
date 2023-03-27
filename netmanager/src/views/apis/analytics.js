@@ -17,19 +17,8 @@ export const getSitesApi = async () => {
   return await axios.get(GET_SITES).then((response) => response.data);
 };
 
-export const downloadDataApi = async (downloadType, data, blobType, outputFormat) => {
-  if (blobType) {
-    return axios.request({
-      url: DOWNLOAD_CUSTOMISED_DATA_URI,
-      method: 'POST',
-      data: data,
-      params: { downloadType, outputFormat },
-      responseType: 'blob' //important
-    });
-  }
-  return axios
-    .post(DOWNLOAD_CUSTOMISED_DATA_URI, data, { params: { downloadType, outputFormat } })
-    .then((response) => response.data);
+export const downloadDataApi = async (data) => {
+  return axios.post(DOWNLOAD_CUSTOMISED_DATA_URI, data).then((response) => response.data);
 };
 
 export const loadD3ChartDataApi = async (data) => {

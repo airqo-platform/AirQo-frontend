@@ -2,8 +2,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -141,12 +141,7 @@ class KyaCardWidget extends StatelessWidget {
         ),
         onPressed: () async {
           if (kya.isPartiallyComplete()) {
-            context.read<KyaBloc>().add(
-                  UpdateKyaProgress(
-                    visibleCardIndex: kya.lessons.length - 1,
-                    kya: kya,
-                  ),
-                );
+            context.read<KyaBloc>().add(CompleteKya(kya));
           } else {
             await Navigator.push(
               context,
@@ -273,16 +268,18 @@ class KyaLessonCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 fit: BoxFit.fill,
-                placeholder: (context, url) => const SizedBox(
-                  child: ContainerLoadingAnimation(
-                    height: 180,
-                    radius: 8,
-                  ),
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  height: 180,
+                  radius: 8,
                 ),
                 imageUrl: kyaLesson.imageUrl,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: CustomColors.aqiRed,
+                errorWidget: (context, url, error) => SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icon/no_internet_connection_icon.svg',
+                    ),
+                  ),
                 ),
                 cacheKey: kyaLesson.imageUrlCacheKey(kya),
                 cacheManager: CacheManager(
@@ -312,7 +309,7 @@ class KyaLessonCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               minFontSize: 16,
-              style: Theme.of(context).textTheme.subtitle1?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.5),
                   ),
             ),

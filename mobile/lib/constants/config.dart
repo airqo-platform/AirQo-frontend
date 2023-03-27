@@ -13,8 +13,8 @@ class Config {
   static String get airqoApiUrl =>
       dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 
-  static String get airqoApiUserExistsUrl =>
-      dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
+  static String get guestLogInFailed =>
+      'Failed to login as guest. Try again later';
 
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
@@ -24,7 +24,7 @@ class Config {
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
-  static String get usersAnalyticsCollection =>
+  static String get usersLocationHistoryCollection =>
       dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
 
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
@@ -40,15 +40,19 @@ class Config {
 
   static String get homePageShowcase => 'homePageShowcase';
 
+  static String get settingsPageShowcase => 'settingsPageShowcase';
+
   static String get forYouPageShowcase => 'forYouPageShowcase';
+
+  static String get restartTourShowcase => 'restartTourShowcase';
 
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get iosMinimumShareVersion =>
-      dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.15';
+      dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.17';
 
   static int get androidMinimumShareVersion =>
-      int.parse(dotenv.env['ANDROID_MINIMUM_SHARE_VERSION'] ?? '20025');
+      int.parse(dotenv.env['ANDROID_MINIMUM_SHARE_VERSION'] ?? '20029');
 
   static String get airqoSecondaryLogo =>
       'https://storage.cloud.google.com/airqo-app/public-images/airqo_logo.png';
@@ -64,6 +68,8 @@ class Config {
   static String get iosBundleId => 'com.airqo.net';
 
   static String get androidPackageName => 'com.airqo.app';
+
+  static String get signOutFailed => 'Failed to sign out. Try again later';
 
   static String get connectionErrorMessage => 'No internet connection';
 

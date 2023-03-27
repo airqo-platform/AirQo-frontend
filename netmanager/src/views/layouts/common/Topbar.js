@@ -32,6 +32,7 @@ import TransitionAlerts from './TransitionAlerts';
 import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,6 +89,8 @@ const Topbar = (props) => {
   const { className, toggleSidebar, ...rest } = props;
   const history = useHistory();
 
+  const { user } = props.auth;
+
   const classes = useStyles();
 
   const [notifications] = useState([]);
@@ -129,7 +132,6 @@ const Topbar = (props) => {
   const [appsAnchorEl, setAppsAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const openAppsMenu = Boolean(appsAnchorEl);
-  const [isAuthenticatedUser, setIsAuthenticatedUser] = React.useState(props.auth.isAuthenticated);
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -251,6 +253,15 @@ const Topbar = (props) => {
                     src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
                   />
                 </RouterLink>
+                <RouterLink to="/">
+                  <img
+                    alt={'kcca'}
+                    style={logo_style}
+                    src={
+                      'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/kcca_logo.png'
+                    }
+                  />
+                </RouterLink>
               </>
             )}
           </div>
@@ -273,7 +284,7 @@ const Topbar = (props) => {
         </Hidden>
 
         <div className={classes.flexGrow} />
-        {isAuthenticatedUser ? (
+        {!isEmpty(user) ? (
           <div className={classes.barRightStyles}>
             <IconButton
               className={classes.signOutButton}
@@ -491,12 +502,14 @@ const Topbar = (props) => {
                 <Link
                   to="/request-access"
                   style={{
-                    borderRadius: '3px'
+                    borderRadius: '3px',
+                    marginBottom: '15px'
                   }}
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
                 >
                   Let's start!
                 </Link>
+                <Link to="/login">Already have an account? Log in here</Link>
               </div>
             </Menu>
           </div>

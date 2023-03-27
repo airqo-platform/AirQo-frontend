@@ -77,11 +77,19 @@ class AnalyticsMoreInsights extends StatelessWidget {
 
     return Row(
       children: [
-        SvgPicture.asset(
-          'assets/icon/chart.svg',
-          semanticsLabel: 'chart',
+        Container(
           height: 16,
           width: 16,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            color: Colors.white,
+            size: 15,
+            Icons.bar_chart_rounded,
+            semanticLabel: 'Chart',
+          ),
         ),
         const SizedBox(
           width: 8.0,
@@ -93,11 +101,11 @@ class AnalyticsMoreInsights extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        SvgPicture.asset(
-          'assets/icon/more_arrow.svg',
-          semanticsLabel: 'more',
-          height: 6.99,
-          width: 4,
+        const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 10,
+          semanticLabel: 'more',
+          weight: 1000,
         ),
       ],
     );
@@ -142,7 +150,7 @@ class AnalyticsCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               onPressed: () async {
-                await _goToInsights(context);
+                await navigateToInsights(context, airQualityReading);
               },
               child: Column(
                 children: [
@@ -166,11 +174,7 @@ class AnalyticsCard extends StatelessWidget {
                           child: SizedBox(
                             height: 20,
                             width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/info_icon.svg',
-                              height: 20,
-                              width: 20,
-                            ),
+                            child: SvgIcons.information(),
                           ),
                         ),
                       ),
@@ -314,17 +318,6 @@ class AnalyticsCard extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _goToInsights(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
-      ),
-    );
-  }
 }
 
 class MiniAnalyticsCard extends StatefulWidget {
@@ -355,15 +348,8 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return InsightsPage(airQualityReading);
-            },
-          ),
-        );
+      onTap: () async {
+        await navigateToInsights(context, airQualityReading);
       },
       child: ValueListenableBuilder<Box<AirQualityReading>>(
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
@@ -497,11 +483,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                               ),
                             ),
                           ),
-                          child: SvgPicture.asset(
-                            'assets/icon/more_arrow.svg',
-                            semanticsLabel: 'more',
-                            height: 6.99,
-                            width: 4,
+                          child: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 10,
+                            semanticLabel: 'more',
                           ),
                         ),
                       ],
@@ -529,7 +514,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     });
 
     context
-        .read<AccountBloc>()
+        .read<FavouritePlaceBloc>()
         .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -5,6 +6,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -46,17 +48,83 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
-class DashboardLocationButton extends StatelessWidget {
-  const DashboardLocationButton(this.error, {super.key});
-  final NearbyAirQualityError error;
+class NoLocationAirQualityMessage extends StatelessWidget {
+  const NoLocationAirQualityMessage({super.key});
+
   @override
   Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/info_icon.svg',
+            height: 10,
+            width: 10,
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          Expanded(
+            child: Text(
+              'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              context
+                  .read<NearbyLocationBloc>()
+                  .add(const DismissErrorMessage());
+            },
+            child: SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/icon/close.svg',
+                height: 20,
+                width: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton(this.status, {super.key});
+  final NearbyLocationStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    String message = 'Turn on location to get air quality near you';
+    if (status == NearbyLocationStatus.locationDenied) {
+      message = 'Enable location to get air quality near you';
+    }
+
     return OutlinedButton(
       onPressed: () async {
         await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(40),
         elevation: 2,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
@@ -70,16 +138,11 @@ class DashboardLocationButton extends StatelessWidget {
         ),
       ),
       child: Text(
-        error.message,
+        message,
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          height: 22 / 14,
-          letterSpacing: 16 * -0.022,
-        ),
+        style: const TextStyle(color: Colors.white),
       ),
     );
   }

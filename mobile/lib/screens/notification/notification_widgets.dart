@@ -123,18 +123,6 @@ class _NotificationViewState extends State<NotificationView> {
       ),
     );
   }
-
-  @override
-  void initState() {
-    super.initState();
-    _updateNotification(widget.appNotification);
-  }
-
-  void _updateNotification(AppNotification appNotification) {
-    appNotification
-      ..read = true
-      ..saveNotification();
-  }
 }
 
 class NotificationCard extends StatelessWidget {

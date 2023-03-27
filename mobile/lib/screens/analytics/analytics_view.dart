@@ -16,21 +16,20 @@ class AnalyticsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<LocationHistoryBloc, List<LocationHistory>>(
       buildWhen: (previous, current) {
-        return previous.analytics != current.analytics;
+        return previous != current;
       },
       builder: (context, state) {
-        if (state.analytics.isEmpty) {
-          context.read<AccountBloc>().add(const RefreshAnalytics());
+        if (state.isEmpty) {
+          context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
         }
 
-        List<Analytics> analytics = state.analytics.sortByDateTime();
+        List<LocationHistory> locationHistory = state.sortByDateTime();
 
-        if (analytics.isEmpty) {
+        if (locationHistory.isEmpty) {
           return NoAnalyticsWidget(
             callBack: () async {
-              // TODO implement method using the bloc pattern
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -48,7 +47,7 @@ class AnalyticsView extends StatelessWidget {
             (context, index) {
               final airQualityReading =
                   Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                      .get(analytics[index].site);
+                      .get(locationHistory[index].site);
 
               if (airQualityReading == null) {
                 return Container();
@@ -66,7 +65,7 @@ class AnalyticsView extends StatelessWidget {
                 ),
               );
             },
-            childCount: analytics.length,
+            childCount: locationHistory.length,
           ),
           onRefresh: () {
             _refresh(context);
@@ -79,6 +78,6 @@ class AnalyticsView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshAnalytics());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
 }

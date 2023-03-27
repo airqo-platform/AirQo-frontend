@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,7 +12,7 @@ import 'hive_type_id.dart';
 part 'air_quality_reading.g.dart';
 
 @HiveType(typeId: airQualityReadingTypeId)
-class AirQualityReading extends HiveObject {
+class AirQualityReading extends HiveObject with EquatableMixin {
   AirQualityReading({
     required this.referenceSite,
     required this.source,
