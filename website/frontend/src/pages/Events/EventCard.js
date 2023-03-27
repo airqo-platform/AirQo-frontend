@@ -29,13 +29,13 @@ const EventCard = ({ image, title, subText, startDate, endDate, link, key }) => 
           <CalendarTodayOutlined />
           <span>{format(new Date(startDate), 'do MMMM, yyyy')}</span>
         </div>
-        <div className="badge">
+        {/* <div className="badge">
           {startDateDifference === 0 || endDateDifference === 1 ? (
             <div className="today">Happening today</div>
           ) : (
             <span />
           )}
-        </div>
+        </div> */}
         <div className="cta">
           <button className="link" onClick={routeToDetails(link)}>
             Read More {'-->'}
