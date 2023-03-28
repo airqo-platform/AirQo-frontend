@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -13,168 +12,252 @@ part 'auth_code_event.dart';
 part 'auth_code_state.dart';
 
 class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
-  AuthCodeBloc() : super(const AuthCodeState.initial()) {
+  final AirqoApiClient apiClient;
+
+  AuthCodeBloc(this.apiClient) : super(const AuthCodeState()) {
     on<UpdateAuthCode>(_onUpdateAuthCode);
     on<VerifyAuthCode>(_onVerifyAuthCode);
-    on<ResendAuthCode>(_onResendAuthCode);
+    on<ResendEmailAuthCode>(_onResendEmailAuthCode);
     on<InitializeAuthCodeState>(_onInitializeAuthCodeState);
     on<ClearAuthCodeState>(_onClearAuthCodeState);
-    on<GuestUserEvent>(_onGuestUserEvent);
     on<UpdateCountDown>(_updateCountDown);
-    on<UpdateVerificationId>(_onUpdateVerificationId);
-    on<UpdateEmailCredentials>(_onUpdateEmailCredentials);
+    on<UpdateAuthCodeStatus>(_onUpdateAuthCodeStatus);
   }
-
-  /// Email  verification
-  void _onUpdateEmailCredentials(
-    UpdateEmailCredentials event,
+  void _onUpdateAuthCodeStatus(
+    UpdateAuthCodeStatus event,
     Emitter<AuthCodeState> emit,
   ) {
-    emit(state.copyWith(
-      validAuthCode: event.emailToken.toString(),
-      validEmailLink: event.emailVerificationLink,
-    ));
-
     return emit(state.copyWith(
-      validAuthCode: event.emailToken.toString(),
-      validEmailLink: event.emailVerificationLink,
+      status: event.status,
+      errorMessage: state.errorMessage,
+      loading: event.loading,
     ));
   }
 
   Future<void> _verifyEmailCode(
     Emitter<AuthCodeState> emit,
   ) async {
+    emit(state.copyWith(loading: true));
+
     final hasConnection = await hasNetworkConnection();
+
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        error: AuthenticationError.noInternetConnection,
+        status: AuthCodeStatus.error,
+        errorMessage: 'Check your internet connection',
+        loading: false,
       ));
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    EmailAuthModel? emailAuthModel = state.emailAuthModel;
 
-    if (state.inputAuthCode != state.validAuthCode) {
+    if (emailAuthModel == null) {
       return emit(state.copyWith(
-        error: AuthenticationError.invalidAuthCode,
-        blocStatus: BlocStatus.error,
+        status: AuthCodeStatus.error,
+        errorMessage: 'Failed to validate code. Try again later',
+        loading: false,
       ));
+    }
+
+    if (int.parse(state.inputAuthCode) != emailAuthModel.token) {
+      return emit(state.copyWith(status: AuthCodeStatus.invalidCode));
     }
 
     try {
+      String emailLink = "";
+      switch (state.authProcedure) {
+        case AuthProcedure.login:
+        case AuthProcedure.signup:
+          emailLink = emailAuthModel.signInLink;
+          break;
+        case AuthProcedure.anonymousLogin:
+        case AuthProcedure.deleteAccount:
+          emailLink = emailAuthModel.reAuthenticationLink;
+          break;
+        case AuthProcedure.logout:
+          break;
+      }
+
       final emailCredential = EmailAuthProvider.credentialWithLink(
-        emailLink: state.validEmailLink,
-        email: state.emailAddress,
+        emailLink: emailLink,
+        email: emailAuthModel.emailAddress,
       );
 
-      final authenticationSuccessful = await AppService().authenticateUser(
-        authProcedure: state.authProcedure,
-        authCredential: emailCredential,
-      );
-
-      return emit(state.copyWith(
-        error: authenticationSuccessful
-            ? state.error
-            : AuthenticationError.authFailure,
-        blocStatus:
-            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
-      ));
-    } on FirebaseAuthException catch (exception, stackTrace) {
-      final authenticationError =
+      final bool authenticationSuccessful =
+          await CustomAuth.firebaseSignIn(emailCredential);
+      if (authenticationSuccessful) {
+        return emit(state.copyWith(
+          status: AuthCodeStatus.success,
+        ));
+      }
+    } on FirebaseAuthException catch (exception, _) {
+      final firebaseAuthError =
           CustomAuth.getFirebaseErrorCodeMessage(exception.code);
-      emit(state.copyWith(
-        error: authenticationError,
-        blocStatus: BlocStatus.error,
-      ));
 
-      if (authenticationError == AuthenticationError.authFailure) {
-        await logException(
-          exception,
-          stackTrace,
-        );
+      switch (firebaseAuthError) {
+        case FirebaseAuthError.noInternetConnection:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Check your internet connection',
+            loading: false,
+          ));
+        case FirebaseAuthError.accountInvalid:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.invalidAuthCode:
+          return emit(state.copyWith(status: AuthCodeStatus.invalidCode));
+        case FirebaseAuthError.authSessionTimeout:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage:
+                'You took a tad too long but no worries, we can send you another ',
+            loading: false,
+          ));
+        case FirebaseAuthError.authFailure:
+        case FirebaseAuthError.logInRequired:
+        case FirebaseAuthError.phoneNumberTaken:
+        case FirebaseAuthError.invalidPhoneNumber:
+          break;
+        case FirebaseAuthError.invalidEmailAddress:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.accountTaken:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.emailTaken:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
       }
     } catch (exception, stackTrace) {
-      emit(state.copyWith(
-        error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
-      ));
       await logException(exception, stackTrace);
     }
-  }
 
-  /// Phone number verification
-  void _onUpdateVerificationId(
-    UpdateVerificationId event,
-    Emitter<AuthCodeState> emit,
-  ) {
     return emit(state.copyWith(
-      verificationId: event.verificationId,
-      blocStatus: BlocStatus.initial,
+      status: AuthCodeStatus.error,
+      errorMessage: 'Failed to validate code. Try again later',
     ));
   }
 
   Future<void> _verifyPhoneSmsCode(
     Emitter<AuthCodeState> emit,
   ) async {
+    emit(state.copyWith(loading: true));
+
     final hasConnection = await hasNetworkConnection();
+
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        error: AuthenticationError.noInternetConnection,
+        status: AuthCodeStatus.error,
+        errorMessage: 'Check your internet connection',
+        loading: false,
       ));
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    PhoneAuthModel? phoneAuthModel = state.phoneAuthModel;
+    if (phoneAuthModel == null) {
+      return emit(state.copyWith(
+        status: AuthCodeStatus.error,
+        errorMessage: 'Failed to validate code. Try again later',
+        loading: false,
+      ));
+    }
 
     try {
       final phoneCredential = PhoneAuthProvider.credential(
-        verificationId: state.verificationId,
+        verificationId: phoneAuthModel.verificationId ?? "",
         smsCode: state.inputAuthCode,
       );
-      final authCredential = state.phoneAuthCredential ?? phoneCredential;
+      final authCredential =
+          phoneAuthModel.phoneAuthCredential ?? phoneCredential;
 
-      final authenticationSuccessful = await AppService().authenticateUser(
-        authProcedure: state.authProcedure,
-        authCredential: authCredential,
-      );
-
-      return emit(state.copyWith(
-        error: authenticationSuccessful
-            ? state.error
-            : AuthenticationError.authFailure,
-        blocStatus:
-            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
-      ));
+      final bool authenticationSuccessful =
+          await CustomAuth.firebaseSignIn(authCredential);
+      if (authenticationSuccessful) {
+        return emit(state.copyWith(
+          status: AuthCodeStatus.success,
+        ));
+      }
     } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+      final firebaseAuthError =
+          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
-      return emit(state.copyWith(
-        error: error,
-        blocStatus: BlocStatus.error,
-      ));
+      switch (firebaseAuthError) {
+        case FirebaseAuthError.noInternetConnection:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Check your internet connection',
+            loading: false,
+          ));
+        case FirebaseAuthError.accountInvalid:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.invalidAuthCode:
+          return emit(state.copyWith(status: AuthCodeStatus.invalidCode));
+        case FirebaseAuthError.authSessionTimeout:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage:
+                'You took a tad too long but no worries, we can send you another ',
+            loading: false,
+          ));
+        case FirebaseAuthError.authFailure:
+        case FirebaseAuthError.logInRequired:
+        case FirebaseAuthError.phoneNumberTaken:
+        case FirebaseAuthError.invalidPhoneNumber:
+          break;
+        case FirebaseAuthError.invalidEmailAddress:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.accountTaken:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+        case FirebaseAuthError.emailTaken:
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: 'Failed to validate code. Try again later',
+            loading: false,
+          ));
+      }
     } catch (exception, stackTrace) {
-      emit(state.copyWith(
-        error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
-      ));
       await logException(exception, stackTrace);
     }
-  }
 
-  /// End
+    return emit(state.copyWith(
+      status: AuthCodeStatus.error,
+      errorMessage: 'Failed to validate code. Try again later',
+    ));
+  }
 
   void _onInitializeAuthCodeState(
     InitializeAuthCodeState event,
     Emitter<AuthCodeState> emit,
   ) {
-    emit(state.copyWith(
-      phoneNumber: event.phoneNumber,
+    emit(AuthCodeState(
       authProcedure: event.authProcedure,
-      emailAddress: event.emailAddress,
       authMethod: event.authMethod,
-      blocStatus: BlocStatus.initial,
-      error: AuthenticationError.none,
-      codeCountDown: 5,
+      emailAuthModel: event.emailAuthModel,
+      phoneAuthModel: event.phoneAuthModel,
     ));
   }
 
@@ -182,53 +265,26 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     ClearAuthCodeState _,
     Emitter<AuthCodeState> emit,
   ) {
-    emit(const AuthCodeState.initial());
-  }
-
-  Future<void> _onGuestUserEvent(
-    GuestUserEvent event,
-    Emitter<AuthCodeState> emit,
-  ) async {
-    try {
-      await AppService().authenticateUser(
-        authProcedure: AuthProcedure.anonymousLogin,
-      );
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    } finally {
-      event.context.read<AccountBloc>().add(const FetchAccountInfo());
-      emit(const AuthCodeState.initial());
-    }
+    emit(const AuthCodeState());
   }
 
   void _onUpdateAuthCode(
     UpdateAuthCode event,
     Emitter<AuthCodeState> emit,
   ) {
-    emit(state.copyWith(
-      inputAuthCode: event.value,
-      blocStatus: BlocStatus.editing,
-    ));
-
-    return emit(state.copyWith(
-      inputAuthCode: event.value,
-      blocStatus: BlocStatus.editing,
-    ));
+    return emit(state.copyWith(inputAuthCode: event.value));
   }
 
   Future<void> _onVerifyAuthCode(
     VerifyAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    emit(state.copyWith(phoneAuthCredential: event.credential));
     switch (state.authMethod) {
       case AuthMethod.phone:
         await _verifyPhoneSmsCode(emit);
         break;
       case AuthMethod.email:
         await _verifyEmailCode(emit);
-        break;
-      case AuthMethod.none:
         break;
     }
   }
@@ -240,52 +296,53 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     emit(state.copyWith(codeCountDown: event.countDown));
   }
 
-  Future<void> _onResendAuthCode(
-    ResendAuthCode event,
+  Future<void> _onResendEmailAuthCode(
+    ResendEmailAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(loading: true));
 
     final hasConnection = await hasNetworkConnection();
+
     if (!hasConnection) {
       return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        error: AuthenticationError.noInternetConnection,
+        status: AuthCodeStatus.error,
+        errorMessage: 'Check your internet connection',
       ));
     }
 
     try {
-      switch (state.authMethod) {
-        case AuthMethod.phone:
-          await CustomAuth.sendPhoneAuthCode(
-            phoneNumber: state.phoneNumber,
-            buildContext: event.context,
-            authProcedure: state.authProcedure,
-          );
-          break;
-        case AuthMethod.email:
-          await CustomAuth.sendEmailAuthCode(
-            emailAddress: state.emailAddress,
-            buildContext: event.context,
-            authProcedure: state.authProcedure,
-          );
-          break;
-        case AuthMethod.none:
-          break;
+      EmailAuthModel? emailAuthModel = state.emailAuthModel;
+      if (emailAuthModel == null) {
+        return emit(state.copyWith(
+          status: AuthCodeStatus.error,
+          errorMessage: 'Failed to resend code. Try again later',
+        ));
       }
-    } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+
+      await apiClient
+          .requestEmailVerificationCode(emailAuthModel.emailAddress, false)
+          .then((emailAuthModel) {
+        if (emailAuthModel == null) {
+          return emit(state.copyWith(
+            status: AuthCodeStatus.error,
+            errorMessage: "Failed to send code. Try again later",
+          ));
+        }
+
+        return emit(const AuthCodeState().copyWith(
+          emailAuthModel: emailAuthModel,
+          authProcedure: state.authProcedure,
+          authMethod: state.authMethod,
+        ));
+      });
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
 
       return emit(state.copyWith(
-        error: error,
-        blocStatus: BlocStatus.error,
+        status: AuthCodeStatus.error,
+        errorMessage: "Failed to send verification code. Try again later",
       ));
-    } catch (exception, stackTrace) {
-      emit(state.copyWith(
-        error: AuthenticationError.authFailure,
-        blocStatus: BlocStatus.error,
-      ));
-      await logException(exception, stackTrace);
     }
   }
 }

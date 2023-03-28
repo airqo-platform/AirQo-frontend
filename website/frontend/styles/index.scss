@@ -73,6 +73,8 @@
 
 @import "Events";
 
+@import "Products";
+
 *, *::before, *::after {
   box-sizing: inherit;
 }
@@ -107,6 +109,7 @@ a, a:hover{
   width:100%;
   margin:auto;
   scrollbar-width: none;
+  margin-bottom: 160px;
   .page-mini-wrapper{
     overflow-x: hidden;
   }
@@ -125,5 +128,13 @@ a, a:hover{
       opacity: 1;
       font-size: 18px + 0.2px;
   }
+}
+
+.arrow{
+  font-family: monospace;
+}
+
+img{
+  pointer-events: none;
 }
 

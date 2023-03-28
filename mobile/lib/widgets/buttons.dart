@@ -8,46 +8,58 @@ class NextButton extends StatelessWidget {
   const NextButton({
     super.key,
     required this.buttonColor,
+    required this.callBack,
     this.text,
   });
   final String? text;
   final Color buttonColor;
+  final Function callBack;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 48,
-      constraints: const BoxConstraints(
-        minWidth: double.infinity,
-      ),
-      decoration: BoxDecoration(
-        color: buttonColor,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            text ?? 'Next',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              letterSpacing: 16 * -0.022,
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () {
+          callBack();
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
             ),
           ),
-          const SizedBox(
-            width: 11,
-          ),
-          SvgPicture.asset(
-            'assets/icon/next_arrow.svg',
-            semanticsLabel: 'Share',
-            height: 17.42,
-            width: 10.9,
-          ),
-        ],
+          backgroundColor: buttonColor,
+          foregroundColor: buttonColor,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text ?? 'Next',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                letterSpacing: 16 * -0.022,
+              ),
+            ),
+            const SizedBox(
+              width: 11,
+            ),
+            SvgPicture.asset(
+              'assets/icon/next_arrow.svg',
+              semanticsLabel: 'Share',
+              height: 17.42,
+              width: 10.9,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -74,8 +86,9 @@ class AppBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () async {
+        FocusScope.of(context).requestFocus(FocusNode());
         await popNavigation(context);
       },
       child: SvgPicture.asset(

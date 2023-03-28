@@ -14,3 +14,4 @@ export 'search_history.dart';
 export 'search_result.dart';
 export 'widget_data.dart';
 export 'insight.dart';
+export 'phone_auth_model.dart';

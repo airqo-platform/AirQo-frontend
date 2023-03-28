@@ -26,7 +26,7 @@ class MapView extends StatelessWidget {
       builder: (context, state) {
         switch (state.mapStatus) {
           case MapStatus.error:
-            if (state.blocError == AuthenticationError.noInternetConnection) {
+            if (state.blocError == FirebaseAuthError.noInternetConnection) {
               return NoInternetConnectionWidget(callBack: () {
                 _reloadMap(context);
               });

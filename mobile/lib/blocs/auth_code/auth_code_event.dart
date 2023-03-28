@@ -4,29 +4,22 @@ abstract class AuthCodeEvent extends Equatable {
   const AuthCodeEvent();
 }
 
-class GuestUserEvent extends AuthCodeEvent {
-  const GuestUserEvent(this.context);
-
-  final BuildContext context;
-  @override
-  List<Object?> get props => [];
-}
-
 class InitializeAuthCodeState extends AuthCodeEvent {
   const InitializeAuthCodeState({
     required this.authMethod,
     required this.authProcedure,
-    this.phoneNumber,
-    this.emailAddress,
+    this.phoneAuthModel,
+    this.emailAuthModel,
   });
 
-  final String? phoneNumber;
-  final String? emailAddress;
+  final PhoneAuthModel? phoneAuthModel;
+  final EmailAuthModel? emailAuthModel;
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
 
   @override
-  List<Object?> get props => [phoneNumber, authProcedure, emailAddress];
+  List<Object?> get props =>
+      [phoneAuthModel, authProcedure, emailAuthModel, authMethod];
 }
 
 class ClearAuthCodeState extends AuthCodeEvent {
@@ -44,27 +37,9 @@ class UpdateAuthCode extends AuthCodeEvent {
   List<Object?> get props => [value];
 }
 
-class UpdateVerificationId extends AuthCodeEvent {
-  const UpdateVerificationId(this.verificationId);
-  final String verificationId;
-  @override
-  List<Object?> get props => [verificationId];
-}
-
-class UpdateEmailCredentials extends AuthCodeEvent {
-  const UpdateEmailCredentials({
-    required this.emailVerificationLink,
-    required this.emailToken,
-  });
-  final String emailVerificationLink;
-  final int emailToken;
-  @override
-  List<Object?> get props => [emailToken, emailVerificationLink];
-}
-
 class VerifyAuthCode extends AuthCodeEvent {
-  const VerifyAuthCode({this.credential});
-  final PhoneAuthCredential? credential;
+  const VerifyAuthCode();
+
   @override
   List<Object?> get props => [];
 }
@@ -76,8 +51,22 @@ class UpdateCountDown extends AuthCodeEvent {
   List<Object?> get props => [];
 }
 
-class ResendAuthCode extends AuthCodeEvent {
-  const ResendAuthCode({required this.context});
+class UpdateAuthCodeStatus extends AuthCodeEvent {
+  const UpdateAuthCodeStatus({
+    this.status,
+    this.errorMessage,
+    this.loading,
+  });
+  final AuthCodeStatus? status;
+  final String? errorMessage;
+  final bool? loading;
+
+  @override
+  List<Object?> get props => [status, errorMessage, loading];
+}
+
+class ResendEmailAuthCode extends AuthCodeEvent {
+  const ResendEmailAuthCode({required this.context});
   final BuildContext context;
   @override
   List<Object?> get props => [];

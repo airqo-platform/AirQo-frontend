@@ -1,5 +1,4 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +80,7 @@ class CountryCodePickerField extends StatelessWidget {
   }
 }
 
-class OptField extends StatefulWidget {
+class OptField extends StatelessWidget {
   const OptField({
     super.key,
     required this.callbackFn,
@@ -89,107 +88,85 @@ class OptField extends StatefulWidget {
   final Function(String value) callbackFn;
 
   @override
-  State<OptField> createState() => _OptFieldState();
-}
-
-class _OptFieldState extends State<OptField> {
-  late FocusNode focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    focusNode = FocusNode();
-  }
-
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 64,
-      child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
-        listener: (context, state) {
-          switch (state.blocStatus) {
-            case BlocStatus.editing:
-            case BlocStatus.updatingData:
-              break;
-            case BlocStatus.initial:
-            case BlocStatus.error:
-              focusNode.requestFocus();
-              break;
-            case BlocStatus.success:
-            case BlocStatus.processing:
-            case BlocStatus.accountDeletionCheckSuccess:
-              focusNode.unfocus();
-              break;
-          }
-        },
-        builder: (context, state) {
-          Color fillColor = Colors.transparent;
-          Color textColor = CustomColors.appColorBlue;
-          bool codeSent = state.codeCountDown <= 0;
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 36),
+        child: BlocBuilder<AuthCodeBloc, AuthCodeState>(
+          builder: (context, state) {
+            Color fillColor;
+            Color textColor;
+            bool codeSent = state.codeCountDown <= 0;
 
-          if (!codeSent) {
-            fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
-            textColor = Colors.transparent;
-          }
+            switch (state.status) {
+              case AuthCodeStatus.initial:
+                if (!codeSent) {
+                  fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
+                  textColor = Colors.transparent;
+                  break;
+                }
+                fillColor = Colors.transparent;
+                textColor = CustomColors.appColorBlue;
+                break;
+              case AuthCodeStatus.invalidCode:
+              case AuthCodeStatus.error:
+                textColor = CustomColors.appColorInvalid;
+                fillColor = CustomColors.appColorInvalid.withOpacity(0.05);
+                break;
+              case AuthCodeStatus.success:
+                textColor = CustomColors.appColorValid;
+                fillColor = textColor.withOpacity(0.05);
+                break;
+            }
 
-          if (state.blocStatus == BlocStatus.error) {
-            textColor = CustomColors.appColorInvalid;
-            fillColor = textColor.withOpacity(0.05);
-          } else if (state.blocStatus == BlocStatus.success) {
-            textColor = CustomColors.appColorValid;
-            fillColor = textColor.withOpacity(0.05);
-          }
+            InputBorder inputBorder = OutlineInputBorder(
+              borderSide: BorderSide(color: textColor, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            );
 
-          InputBorder inputBorder = OutlineInputBorder(
-            borderSide: BorderSide(color: textColor, width: 1.0),
-            borderRadius: BorderRadius.circular(8.0),
-          );
-
-          return TextFormField(
-            onChanged: widget.callbackFn,
-            focusNode: focusNode,
-            showCursor: codeSent,
-            enabled: codeSent,
-            textAlign: TextAlign.center,
-            maxLength: 6,
-            enableSuggestions: false,
-            cursorWidth: 1,
-            autofocus: true,
-            cursorColor: textColor,
-            keyboardType: TextInputType.number,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w500,
-                  color: textColor,
-                  letterSpacing: 16 * 0.41,
-                  height: 40 / 32,
+            return TextFormField(
+              onChanged: callbackFn,
+              onEditingComplete: () {
+                FocusScope.of(context).requestFocus(FocusNode());
+              },
+              showCursor: codeSent,
+              enabled: codeSent,
+              textAlign: TextAlign.center,
+              maxLength: 6,
+              enableSuggestions: false,
+              cursorWidth: 1,
+              autofocus: true,
+              cursorColor: textColor,
+              keyboardType: TextInputType.number,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w500,
+                    color: textColor,
+                    letterSpacing: 16 * 0.41,
+                    height: 40 / 32,
+                  ),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 0,
                 ),
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 10,
-                horizontal: 0,
+                iconColor: textColor,
+                fillColor: fillColor,
+                filled: true,
+                focusedBorder: inputBorder,
+                enabledBorder: inputBorder,
+                disabledBorder: inputBorder,
+                errorBorder: inputBorder,
+                border: inputBorder,
+                counter: const Offstage(),
+                errorStyle: const TextStyle(
+                  fontSize: 0,
+                ),
               ),
-              iconColor: textColor,
-              fillColor: fillColor,
-              filled: true,
-              focusedBorder: inputBorder,
-              enabledBorder: inputBorder,
-              disabledBorder: inputBorder,
-              errorBorder: inputBorder,
-              border: inputBorder,
-              counter: const Offstage(),
-              errorStyle: const TextStyle(
-                fontSize: 0,
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

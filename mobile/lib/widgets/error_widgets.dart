@@ -79,8 +79,10 @@ class KyaNotFoundWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {
+                NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  text: 'Return home',
+                  callBack: () {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -91,10 +93,6 @@ class KyaNotFoundWidget extends StatelessWidget {
                       (r) => false,
                     );
                   },
-                  child: NextButton(
-                    buttonColor: CustomColors.appColorBlue,
-                    text: 'Return home',
-                  ),
                 ),
               ],
             ),
@@ -315,14 +313,10 @@ class NoCompleteKyaWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Start learning',
-              ),
+            child: NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Start learning',
+              callBack: callBack,
             ),
           ),
           const Spacer(),
@@ -643,8 +637,10 @@ class ErrorPage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: () {
+            NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Return home',
+              callBack: () {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -655,10 +651,6 @@ class ErrorPage extends StatelessWidget {
                   (r) => false,
                 );
               },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Return home',
-              ),
             ),
           ],
         ),

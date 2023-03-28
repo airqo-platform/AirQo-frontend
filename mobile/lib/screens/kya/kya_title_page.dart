@@ -107,8 +107,10 @@ class PageScaffold extends StatelessWidget {
                 right: 24,
                 bottom: 32,
               ),
-              child: GestureDetector(
-                onTap: () {
+              child: NextButton(
+                text: buttonText,
+                buttonColor: CustomColors.appColorBlue,
+                callBack: () {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -118,10 +120,6 @@ class PageScaffold extends StatelessWidget {
                     ),
                   );
                 },
-                child: NextButton(
-                  text: buttonText,
-                  buttonColor: CustomColors.appColorBlue,
-                ),
               ),
             ),
           ),
