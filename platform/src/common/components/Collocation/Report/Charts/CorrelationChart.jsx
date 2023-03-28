@@ -35,6 +35,7 @@ const CorrelationChart = ({
             type='monotone'
             dataKey={sensorKey}
             stroke={colors[sensorIndex + index]}
+            dot={false}
           />
         ));
     });
