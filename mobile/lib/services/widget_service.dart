@@ -16,11 +16,11 @@ class WidgetService {
       final searchBloc = SearchBloc();
       if (searchBloc.state.searchHistory.isEmpty) {
         List<AirQualityReading> airQualityReadings =
-            HiveService.getAirQualityReadings();
+        HiveService.getAirQualityReadings();
         if (airQualityReadings.isNotEmpty) {
           final random = Random();
           airQualityReading =
-              airQualityReadings[random.nextInt(airQualityReadings.length)];
+          airQualityReadings[random.nextInt(airQualityReadings.length)];
         }
       } else {
         airQualityReading = searchBloc.state.searchHistory.first;
@@ -31,7 +31,7 @@ class WidgetService {
     if (airQualityReading == null) return;
 
     WidgetData widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading);
+    WidgetData.initializeFromAirQualityReading(airQualityReading);
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });

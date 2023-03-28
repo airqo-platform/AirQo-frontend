@@ -14,11 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive/hive.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:workmanager/workmanager.dart';
 import '../../services/widget_service.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -324,7 +322,8 @@ class _DashboardViewState extends State<DashboardView>
                           switch (state.error) {
                             case DashboardError.noAirQuality:
                               return NoAirQualityDataWidget(
-                                  callBack: () => _refresh());
+                                callBack: () => _refresh(),
+                              );
                             case DashboardError.noInternetConnection:
                               return NoInternetConnectionWidget(
                                 callBack: () => _refresh(),
@@ -462,7 +461,7 @@ class _DashboardViewState extends State<DashboardView>
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
-   await WidgetService.sendAndUpdate();
+    await WidgetService.sendAndUpdate();
   }
 
   void _startShowcase() {
