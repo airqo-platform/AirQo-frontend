@@ -26,10 +26,8 @@ import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
-  print('object');
   await HiveService.initialize();
   await WidgetService.sendAndUpdate();
-  print('object2');
 }
 
 class DashboardView extends StatefulWidget {
