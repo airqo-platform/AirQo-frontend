@@ -89,7 +89,6 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                     Uri.parse("homeWidgetExample://titleClicked"),
                 )
                 setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
-                print("Kotlin, widget message passed")
             }
             appWidgetManager.updateAppWidget(widgetId, views)
         }

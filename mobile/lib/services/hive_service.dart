@@ -10,11 +10,11 @@ class HiveService {
   static Future<void> initialize() async {
     await Hive.initFlutter();
 
-    if (!Hive.isAdapterRegistered(20)) {
+    // if (!Hive.isAdapterRegistered(20)) {
       Hive
         ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
         ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
-    }
+    // }
 
     await Future.wait([
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),

@@ -19,6 +19,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:workmanager/workmanager.dart';
+import '../../services/widget_service.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
@@ -27,59 +28,10 @@ import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
-    await HiveService.initialize();
-    await sendAndUpdate();
-}
-
-Future<void> sendData() async {
-  AirQualityReading? airQualityReading;
-  final nearbyLocationBloc = NearbyLocationBloc();
-  if (nearbyLocationBloc.state.locationAirQuality == null) {
-    final searchBloc = SearchBloc();
-    if (searchBloc.state.searchHistory.isEmpty) {
-      List<AirQualityReading> airQualityReadings =
-          HiveService.getAirQualityReadings();
-      if (airQualityReadings.isNotEmpty) {
-        final random = Random();
-        airQualityReading =
-            airQualityReadings[random.nextInt(airQualityReadings.length)];
-      }
-    } else {
-      airQualityReading = searchBloc.state.searchHistory.first;
-    }
-  } else {
-    airQualityReading = nearbyLocationBloc.state.locationAirQuality;
-  }
-  if (airQualityReading == null) return;
-
-  WidgetData widgetData =
-      WidgetData.initializeFromAirQualityReading(airQualityReading);
-  widgetData.idMapping().forEach((key, value) async {
-    await HomeWidget.saveWidgetData<String>(key, value);
-  });
-
-  return;
-}
-
-Future<void> updateWidget() async {
-  //TODO: Disabled for now
-  // var rectangleWidgetUpdate = HomeWidget.updateWidget(
-  //   name: 'AirQoHomeScreenWidget',
-  //   iOSName: 'AirQoHomeScreenWidget',
-  //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
-  // );
-  // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
-  await HomeWidget.updateWidget(
-    name: 'AirQoCircularWidget',
-    androidName: 'AirQoCircularWidget',
-    iOSName: 'AirQoCircularWidget',
-    qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
-  );
-}
-
-Future<void> sendAndUpdate() async {
-  await sendData();
-  await updateWidget();
+  print('object');
+  await HiveService.initialize();
+  await WidgetService.sendAndUpdate();
+  print('object2');
 }
 
 class DashboardView extends StatefulWidget {
@@ -480,16 +432,6 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
-  void _startBackgroundUpdate() {
-    Workmanager().registerPeriodicTask(
-      '1',
-      'widgetBackgroundUpdate',
-      frequency: const Duration(
-        minutes: 30,
-      ),
-    );
-  }
-
   void _listenToStreams() {
     _timeSubscription = _timeStream.listen((_) {
       _refresh(refreshMap: false);
@@ -513,14 +455,14 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  void _refresh({bool refreshMap = true}) {
+  void _refresh({bool refreshMap = true}) async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
-    sendAndUpdate();
+   await WidgetService.sendAndUpdate();
   }
 
   void _startShowcase() {
