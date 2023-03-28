@@ -21,7 +21,7 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                 val pendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context, MainActivity::class.java
                 )
-                setOnClickPendingIntent(R.id.circular_widget_bg, pendingIntent)
+                setOnClickPendingIntent(R.id.circular_pm_value, pendingIntent)
 
                 val dataKeys = arrayOf(
                     "circular_location",
@@ -89,8 +89,8 @@ class AirQoCircularWidget : HomeWidgetProvider() {
                     Uri.parse("homeWidgetExample://titleClicked"),
                 )
                 setOnClickPendingIntent(R.id.circular_refresh, backgroundIntent)
+                print("Kotlin, widget message passed")
             }
-
             appWidgetManager.updateAppWidget(widgetId, views)
         }
     }

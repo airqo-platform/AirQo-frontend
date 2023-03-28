@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive/hive.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -25,31 +26,28 @@ import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
-void backgroundCallback(Uri? data)  {
-  //TODO: Revisit this
-  if (data?.host == 'titleClicked') {
-    sendAndUpdate();
-  }
+void backgroundCallback(Uri? _) async {
+    await HiveService.initialize();
+    await sendAndUpdate();
 }
 
 Future<void> sendData() async {
   AirQualityReading? airQualityReading;
   final nearbyLocationBloc = NearbyLocationBloc();
   if (nearbyLocationBloc.state.locationAirQuality == null) {
-      final searchBloc = SearchBloc();
-      if (searchBloc.state.searchHistory.isEmpty) {
-    List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
-    if (airQualityReadings.isNotEmpty) {
-      final random = Random();
-      airQualityReading =
-          airQualityReadings[random.nextInt(airQualityReadings.length)];
-    }
-      } else{
-airQualityReading = searchBloc.state.searchHistory.first;
+    final searchBloc = SearchBloc();
+    if (searchBloc.state.searchHistory.isEmpty) {
+      List<AirQualityReading> airQualityReadings =
+          HiveService.getAirQualityReadings();
+      if (airQualityReadings.isNotEmpty) {
+        final random = Random();
+        airQualityReading =
+            airQualityReadings[random.nextInt(airQualityReadings.length)];
       }
+    } else {
+      airQualityReading = searchBloc.state.searchHistory.first;
     }
-  else {
+  } else {
     airQualityReading = nearbyLocationBloc.state.locationAirQuality;
   }
   if (airQualityReading == null) return;
@@ -63,7 +61,7 @@ airQualityReading = searchBloc.state.searchHistory.first;
   return;
 }
 
-Future<void> updateWidget() {
+Future<void> updateWidget() async {
   //TODO: Disabled for now
   // var rectangleWidgetUpdate = HomeWidget.updateWidget(
   //   name: 'AirQoHomeScreenWidget',
@@ -71,7 +69,7 @@ Future<void> updateWidget() {
   //   qualifiedAndroidName: 'com.airqo.app.AirQoHomeScreenWidget',
   // );
   // return Future.wait([rectangleWidgetUpdate, circularWidgetUpdate]);
-  return HomeWidget.updateWidget(
+  await HomeWidget.updateWidget(
     name: 'AirQoCircularWidget',
     androidName: 'AirQoCircularWidget',
     iOSName: 'AirQoCircularWidget',
@@ -374,8 +372,7 @@ class _DashboardViewState extends State<DashboardView>
                           switch (state.error) {
                             case DashboardError.noAirQuality:
                               return NoAirQualityDataWidget(
-                                callBack: () => _refresh()
-                              );
+                                  callBack: () => _refresh());
                             case DashboardError.noInternetConnection:
                               return NoInternetConnectionWidget(
                                 callBack: () => _refresh(),
@@ -466,7 +463,6 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
-    _startBackgroundUpdate();
     HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 

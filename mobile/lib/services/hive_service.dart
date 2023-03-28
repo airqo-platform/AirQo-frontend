@@ -10,11 +10,13 @@ class HiveService {
   static Future<void> initialize() async {
     await Hive.initFlutter();
 
-    Hive
-      ..registerAdapter<Profile>(ProfileAdapter())
-      ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
-      ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
-      ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive
+        ..registerAdapter<Profile>(ProfileAdapter())
+        ..registerAdapter<UserPreferences>(UserPreferencesTypeAdapter())
+        ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+        ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
+    }
 
     await Future.wait([
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
@@ -143,8 +145,12 @@ class HiveService {
 
 class HiveBox {
   static String get searchHistory => 'searchHistory';
+
   static String get profile => 'profile';
+
   static String get encryptionKey => 'hiveEncryptionKey';
+
   static String get airQualityReadings => 'airQualityReadings-v1';
+
   static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
 }
