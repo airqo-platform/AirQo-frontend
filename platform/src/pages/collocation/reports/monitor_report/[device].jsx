@@ -11,6 +11,7 @@ import {
 import { useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
+import Toast from '@/components/Toast';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -57,6 +58,13 @@ const MonitorReport = () => {
   return (
     <Layout>
       <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Monitor Report'} />
+      {isError && (
+        <Toast
+          type={'error'}
+          message="Uh-oh! Reports are temporarily unavailable, but we're working to fix that"
+          dataTestId={'monitor-report-error-toast'}
+        />
+      )}
       {isSuccess && (
         <>
           <IntraCorrelationChart

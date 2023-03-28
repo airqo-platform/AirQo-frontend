@@ -135,4 +135,23 @@ describe('Collocation feature', () => {
     // Verify that the collocation results are visible
     cy.get('[data-testid="intra-correlation-chart"]').should('be.visible');
   });
+
+  it('shows the alert when the collocation results api is not successful', () => {
+    // Intercept the API request to get the collocation results
+    cy.intercept('GET', '**/results?devices=aq_g5_87&startDate=2023-01-21&endDate=2023-01-24', {
+      statusCode: 500,
+      fixture: 'collocation_results.json',
+    }).as('getCollocationResults');
+
+    // Visit the collocate page
+    cy.visit(
+      '/collocation/reports/monitor_report/aq_g5_87?devices=aq_g5_87&startDate=2023-01-21&endDate=2023-01-24',
+    );
+
+    // Wait for the API request to finish
+    cy.wait('@getCollocationResults');
+
+    // Verify that the collocation results are visible
+    cy.get('[data-testid="monitor-report-error-toast"]').should('be.visible');
+  });
 });
