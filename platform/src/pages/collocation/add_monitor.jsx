@@ -86,20 +86,21 @@ const AddMonitor = () => {
 
   return (
     <Layout>
+      {isError && (
+        <Toast
+          type={'error'}
+          message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
+          dataTestId={'collocation-error-toast'}
+        />
+      )}
+      {collocateDeviceError && (
+        <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
+      )}
       {/* SKELETON LOADER */}
       {isLoading ? (
         <SkeletonFrame />
       ) : (
         <>
-          {isError && (
-            <Toast
-              type={'error'}
-              message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
-            />
-          )}
-          {collocateDeviceError && (
-            <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
-          )}
           <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
             <div className='flex'>
               {/* {isCollocating && (
@@ -111,12 +112,13 @@ const AddMonitor = () => {
                 </Button>
               )} */}
               <Button
-                className={`rounded-none text-white-900 bg-blue-900 border border-blue-900 font-medium ${
+                className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
                   selectedCollocateDevices.length > 0 && endDate && startDate && !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
+                dataTestId={'collocation-schedule-button'}
               >
                 Start collocation
               </Button>

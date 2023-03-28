@@ -23,18 +23,27 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
 
   const [collocationInput, setCollocationInput] = useState({
-    devices: null,
-    startDate: null,
-    endDate: null,
+    devices: '',
+    startDate: '',
+    endDate: '',
   });
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const { data: data, error } = useGetCollocationResultsQuery(collocationInput);
+  const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
+  const {
+    data: data,
+    error,
+    refetch,
+    isError,
+    isSuccess,
+    isLoading: isCheckingForDataAvailability,
+  } = useGetCollocationResultsQuery(collocationInput, { skip: !shouldFetchData });
 
-  let collocationResults = data ? data.data : [];
   const [isCollocationResultsError, setCollocationResultsError] = useState(false);
+
+  const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   useEffect(() => {
     if (selectedCollocateDevices.length > 0) {
@@ -61,31 +70,42 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   };
 
-  const openMonitorReport = (deviceName, startDate, endDate) => {
+  useEffect(() => {
+    if (data && data.data) {
+      const deviceId = collocationInput.devices;
+      const deviceStartDate = collocationInput.startDate;
+      const deviceEndDate = collocationInput.endDate;
+      //create dynamic route for device
+      router.push({
+        pathname: `/collocation/reports/monitor_report/${deviceId}`,
+        query: {
+          device: deviceId,
+          startDate: deviceStartDate,
+          endDate: deviceEndDate,
+        },
+      });
+    }
+  }, [data, collocationInput]);
+
+  const openMonitorReport = async (deviceName, startDate, endDate, index) => {
     setCollocationInput({
       devices: deviceName,
       startDate,
       endDate,
     });
-
-    if (collocationResults && Object.keys(error).includes('data')) {
-      setCollocationResultsError(true);
-      setTimeout(() => {
-        setCollocationResultsError(false);
-      }, 5000);
-    } else {
-      router.push(
-        `/collocate/reports/monitor_report/[device]?device=${deviceName}&startDate=${startDate}&endDate=${endDate}`,
-      );
-    }
+    setShouldFetchData(true);
+    setClickedRowIndex(index);
   };
 
   return (
     <div>
-      {isCollocationResultsError && (
-        <Toast variant={'error'} message='Error: Unable to fetch devices' />
+      {isError && error.data && (
+        <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />
       )}
-      <table className='border-collapse text-xs text-left w-full mb-6'>
+      <table
+        className='border-collapse text-xs text-left w-full mb-6'
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -123,7 +143,12 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
             {filteredData.length > 0 ? (
               filteredData.map((device, index) => {
                 return (
-                  <tr className='border-b border-b-slate-300' key={device.index}>
+                  <tr
+                    className={`border-b border-b-slate-300 ${
+                      clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
+                    }`}
+                    key={index}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -132,7 +157,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                         onChange={(e) => handleSelectDevice(e, device)}
                       />
                     </td>
-                    <td scope='row' className='w-[175px] px-4 py-3'>
+                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
@@ -156,9 +181,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <span
                         onClick={() =>
-                          openMonitorReport(device.device_name, device.start_date, device.end_date)
+                          openMonitorReport(
+                            device.device_name,
+                            moment(device.start_date).format('YYYY-MM-DD'),
+                            moment(device.end_date).format('YYYY-MM-DD'),
+                            index,
+                          )
                         }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center'
+                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
                       >
                         <MoreHorizIcon />
                       </span>

@@ -35,7 +35,7 @@ export const collocateApi = createApi({
       query: ({ devices, startDate, endDate }) => {
         return {
           url: '/results',
-          params: { devices, startDate, endDate },
+          params: { devices: [devices], startDate, endDate },
         };
       },
     }),

@@ -11,6 +11,7 @@ import {
 import { useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
+import Toast from '@/components/Toast';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -28,7 +29,6 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 const MonitorReport = () => {
   const router = useRouter();
   const { device, startDate, endDate } = router.query;
-  console.log(device);
 
   const {
     data: data,
@@ -37,15 +37,15 @@ const MonitorReport = () => {
     isError,
     error,
   } = useGetCollocationResultsQuery({
-    devices: ['aq_g5_87'],
-    startDate: '2023-01-21',
-    endDate: '2023-01-25',
+    devices: device,
+    startDate: startDate,
+    endDate: endDate,
   });
-  let collocationResults = data ? data.data : [];
+  let collocationResults = data?.data;
 
-  const [correlationDevices, setCorrelationDevices] = useState(['aq_g5_87']);
-  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
-  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('2.5');
+  const [correlationDevices, setCorrelationDevices] = useState([device]);
+  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
+  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('10');
 
   const toggleIntraCorrelationConcentrationChange = (newValue) => {
     setIntraCorrelationConcentration(newValue);
@@ -57,20 +57,31 @@ const MonitorReport = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb backLink={'/collocation/reports'} navTitle={'Monitor Report'} />
-      {!isLoading && (
+      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Monitor Report'} />
+      {isError && (
+        <Toast
+          type={'error'}
+          message="Uh-oh! Reports are temporarily unavailable, but we're working to fix that"
+          dataTestId={'monitor-report-error-toast'}
+        />
+      )}
+      {isSuccess && (
         <>
           <IntraCorrelationChart
-            collocationResults={collocationResults}
+            collocationResults={collocationResults.intra_sensor_correlation[0].data}
             intraCorrelationConcentration={intraCorrelationConcentration}
             toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
+            deviceName={device}
           />
 
           <InterCorrelationChart
-            collocationResults={collocationResults}
+            collocationResults={collocationResults.inter_sensor_correlation}
             interCorrelationConcentration={interCorrelationConcentration}
             toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
             correlationDevices={correlationDevices}
+            deviceName={device}
+            startDate={startDate}
+            endDate={endDate}
           />
 
           <DataCompletenessTable dataCompletenessReults={collocationResults.data_completeness} />

@@ -88,9 +88,9 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
       </thead>
       <tbody>
         {filteredData.length > 0 &&
-          filteredData.map((device) => {
+          filteredData.map((device, index) => {
             return (
-              <tr className='border-b border-b-slate-300 text-xs' key={device._id}>
+              <tr className='border-b border-b-slate-300 text-xs' key={index}>
                 <td scope='row' className='w-[61px] py-3 px-6'>
                   <input
                     type='checkbox'

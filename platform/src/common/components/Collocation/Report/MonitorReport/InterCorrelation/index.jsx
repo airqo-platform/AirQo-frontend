@@ -3,24 +3,25 @@ import Button from '@/components/Button';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationChart';
+import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 
 const CustomLegend = () => {
   return (
     <div className='flex items-center justify-end mt-4 mb-3'>
-      <div className='flex justify-center items-center bg-white-100 h-5 w-[93px] rounded-md mr-2'>
+      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
         <hr className='w-4 h-[2px] bg-purple-550 mr-2' />
         <span className='text-xs text-grey-300'>Sensor 01</span>
       </div>
-      <div className='flex justify-center items-center bg-white-100 h-5 w-[93px] rounded-md'>
+      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
         <hr className='w-4 h-[2px] bg-purple-550 mr-2' />
         <span className='text-xs text-grey-300'>Sensor 02</span>
       </div>
       <span className='uppercase mx-2 text-[10px] text-grey-800'>Compared to</span>
-      <div className='flex justify-center items-center bg-white-100 h-5 w-[93px] rounded-md mr-2'>
+      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
         <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
         <span className='text-xs text-grey-300'>Sensor 01</span>
       </div>
-      <div className='flex justify-center items-center bg-white-100 h-5 w-[93px] rounded-md'>
+      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
         <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
         <span className='text-xs text-grey-300'>Sensor 02</span>
       </div>
@@ -33,6 +34,9 @@ const InterCorrelationChart = ({
   toggleInterCorrelationConcentrationChange,
   collocationResults,
   correlationDevices,
+  deviceName,
+  startDate,
+  endDate,
 }) => {
   return (
     <Box
@@ -44,15 +48,15 @@ const InterCorrelationChart = ({
       <div className='flex flex-col justify-start w-full'>
         <div className='flex justify-between'>
           <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-            <span className='uppercase'>aq_g5_87</span>
-            <span className='ml-2 text-purple-700'>
+            <span className='uppercase'>{deviceName}</span>
+            {/* <span className='ml-2 text-purple-700'>
               <ArrowDropDownIcon fillColor='#584CAB' />
-            </span>
+            </span> */}
           </Button>
           {correlationDevices.length == 2 ? (
             <div>
               <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-                <span className='uppercase'>aq_g5_87</span>
+                <span className='text-base'>{deviceName}</span>
                 <span className='ml-2 text-purple-700'>
                   <ArrowDropDownIcon fillColor='#584CAB' />
                 </span>
@@ -63,8 +67,8 @@ const InterCorrelationChart = ({
               <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
                 Select a monitor to compare with AQG504
               </span>
-              <Button className='max-w-[115px] h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
-                <span className='uppercase text-blue-300'>aq_g5_96</span>
+              <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
+                <span className='text-blue-300 text-base'>Select Monitor</span>
                 <span className='ml-2 text-purple-700'>
                   <ArrowDropDownIcon fillColor='#584CAB' />
                 </span>
@@ -81,10 +85,11 @@ const InterCorrelationChart = ({
           ]}
         />
         <CorrelationChart
-          data={collocationResults.intra_sensor_correlation}
+          data={collocationResults}
           pmConcentration={interCorrelationConcentration}
           hasCustomLegend
           CustomLegend={CustomLegend}
+          isInterSensorCorrelation
         />
       </div>
     </Box>

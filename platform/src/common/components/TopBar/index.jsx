@@ -8,9 +8,9 @@ import { useState } from 'react';
 const TopBar = () => {
   const [searchInput, setSearchInput] = useState();
   return (
-    <nav className='fixed top-0 w-full z-10 px-4 py-3 h-16 box-border border-b-[0.5px] border-b-grey-750 bg-white-900'>
+    <nav className='fixed top-0 w-full z-10 px-4 py-3 h-16 box-border border-b-[0.5px] border-b-grey-750 bg-white'>
       <div className='flex justify-end md:justify-between items-center'>
-        <AirqoLogo className='hidden md:block w-[46.56px] h-8' />
+        <AirqoLogo className='invisible lg:visible w-[46.56px] h-8' />
 
         <form className='hidden relative md:block md:max-w-[280px] lg:max-w-[448px] h-10 w-full'>
           <div className='absolute my-[10px] mx-3'>

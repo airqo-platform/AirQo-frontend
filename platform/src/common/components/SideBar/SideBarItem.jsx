@@ -8,7 +8,6 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
 
   const changePath = (e) => {
     e.preventDefault();
-
     router.push(itemPath);
   };
   return (
@@ -34,7 +33,7 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
       tabIndex={0}
       onClick={dropdown && toggleMethod}
     >
-      <Link href={navPath || ''}>
+      <Link href={navPath || '#'}>
         <div className={`flex items-center justify-between w-full h-12 hover:cursor-pointer mt-2`}>
           <div className='flex items-center'>
             <div className='w-8 h-8 rounded-full flex items-center justify-center mr-4'>

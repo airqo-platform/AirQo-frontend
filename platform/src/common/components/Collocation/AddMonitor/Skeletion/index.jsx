@@ -5,8 +5,8 @@ import Table from './Table';
 
 const SkeletonFrame = () => {
   return (
-    <>
-      <div className='flex justify-between px-6 py-8 bg-white-900'>
+    <div>
+      <div className='flex justify-between px-6 py-8 bg-white'>
         <div className='flex items-center'>
           <div className='border border-grey rounded-[4px] w-7 h-7 flex items-center justify-center mr-4'>
             <span className='text-xl opacity-50'>
@@ -31,7 +31,7 @@ const SkeletonFrame = () => {
         </div>
         <Calendar />
       </div>
-    </>
+    </div>
   );
 };
 
