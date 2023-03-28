@@ -1,10 +1,36 @@
 describe('Collocation feature', () => {
   it('schedule devices for collocation', () => {
+    // Intercept the API request to get the device status summary
+    cy.intercept('GET', '**/events/running?tenant=airqo', {
+      statusCode: 200,
+      body: {
+        devices: [
+          {
+            device: 'aq_26',
+            device_id: '5f2036bc70223655545a8b52',
+            image: null,
+            device_number: 689761,
+            time: '2023-03-26T13:00:00.000Z',
+          },
+          {
+            device: 'aq_g5_60',
+            device_id: '624d3e95994194001ddccf0c',
+            image: null,
+            device_number: 1651886,
+            time: '2023-03-26T13:00:00.000Z',
+          },
+        ],
+      },
+    }).as('getCollocationDevices');
+
     // Visit the collocation page before each test
     cy.visit('/collocation/add_monitor');
 
-    // Wait for the table to finish loading
-    cy.get('[data-testid="collocation-skeleton-loader"]').should('not.be.visible');
+    // Wait for the API request to finish
+    cy.wait('@getCollocationDevices');
+
+    // Verify that the table is visible
+    cy.get('[data-testid="collocation-device-selection-table"]').should('be.visible');
 
     // Use the `eq()` method to select the first and second row of the table
     cy.get('table tbody tr').eq(0).find('input[type="checkbox"]').check();

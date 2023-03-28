@@ -40,9 +40,9 @@ Run the following commands to start corresponding services
 
 ### Cypress tests
 
-    yarn cypress:open
+    yarn run cypress open
 
-A new browser screen opens you from which you can manaully run the tests
+A new browser screen opens you from which you can manually run the tests
 
 ### The linter
 
