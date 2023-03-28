@@ -54,7 +54,7 @@ class HealthTipContainer extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0),
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage(
+                image: NetworkImage(
                   healthTip.image,
                 ),
               ),
@@ -73,7 +73,7 @@ class HealthTipContainer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    healthTip.name,
+                    healthTip.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),

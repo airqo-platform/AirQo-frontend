@@ -5,13 +5,13 @@ part 'health_tip.g.dart';
 @JsonSerializable(createToJson: false)
 class HealthTip {
   HealthTip({
-    required this.name,
+    required this.title,
     required this.description,
     required this.image,
   });
 
   @JsonKey()
-  final String name;
+  final String title;
 
   @JsonKey()
   final String description;
