@@ -49,7 +49,7 @@ const EventDetails = () => {
                   }}>
                   <div className="content">
                     <div className="breadcrumb">
-                      <span style={{ textDecoration: 'underline' }}>
+                      <span>
                         <a href="/events">Events</a>
                       </span>
                       <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
