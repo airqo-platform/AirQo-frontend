@@ -6,17 +6,17 @@ describe('Collocation feature', () => {
       body: {
         devices: [
           {
-            device: 'aq_26',
-            device_id: '5f2036bc70223655545a8b52',
+            device: 'aq_24',
+            device_id: '5f2036',
             image: null,
-            device_number: 689761,
+            device_number: 12347,
             time: '2023-03-26T13:00:00.000Z',
           },
           {
-            device: 'aq_g5_60',
-            device_id: '624d3e95994194001ddccf0c',
+            device: 'aq_g5_65',
+            device_id: '624d3e',
             image: null,
-            device_number: 1651886,
+            device_number: 123456,
             time: '2023-03-26T13:00:00.000Z',
           },
         ],
