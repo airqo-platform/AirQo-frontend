@@ -1,8 +1,9 @@
 import 'dart:math';
 
+import 'package:app/services/location_service.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
 
-import '../blocs/nearby_location/nearby_location_bloc.dart';
 import '../blocs/search/search_bloc.dart';
 import '../models/air_quality_reading.dart';
 import '../models/widget_data.dart';
@@ -11,8 +12,9 @@ import 'hive_service.dart';
 class WidgetService {
   static Future<void> sendData() async {
     AirQualityReading? airQualityReading;
-    final nearbyLocationBloc = NearbyLocationBloc();
-    if (nearbyLocationBloc.state.locationAirQuality == null) {
+    Position? position = await LocationService.getCurrentPosition();
+    List<AirQualityReading> airQualityReadings = await LocationService.getNearbyAirQualityReadings(position: position);
+    if (airQualityReadings.isEmpty) {
       final searchBloc = SearchBloc();
       if (searchBloc.state.searchHistory.isEmpty) {
         List<AirQualityReading> airQualityReadings =
@@ -26,7 +28,7 @@ class WidgetService {
         airQualityReading = searchBloc.state.searchHistory.first;
       }
     } else {
-      airQualityReading = nearbyLocationBloc.state.locationAirQuality;
+      airQualityReading = airQualityReadings.first;
     }
     if (airQualityReading == null) return;
 

@@ -17,7 +17,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-import '../../services/widget_service.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
@@ -26,7 +25,6 @@ import 'dashboard_widgets.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
-  await HiveService.initialize();
   await WidgetService.sendAndUpdate();
 }
 
