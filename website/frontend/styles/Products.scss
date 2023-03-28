@@ -132,6 +132,12 @@
                     border-radius: 8px;
                 }
             }
+            .lapping-left.card.larger-top{
+                top: 110px;
+            }
+            .lapping-right.card.larger-top{
+                top: 118px;
+            }
         }
         .card{
             padding: 42px 40px;
@@ -231,8 +237,11 @@
                         border-radius: 8px;
                     }
                 }
-                .larger-top{
-                    top: 110px;
+                .lapping-left.card.larger-top{
+                    top: 0;
+                }
+                .lapping-right.card.larger-top{
+                    top: 0;
                 }
             }
         }
