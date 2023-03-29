@@ -18,7 +18,6 @@ class Insight with EquatableMixin {
     AirQualityReading airQualityReading, {
     double? forecastValue,
   }) {
-    List<HealthTip> healthTips = [];
     String airQualityMessage = '';
     String forecastMessage = '';
     AirQuality airQuality = airQualityReading.airQuality();
@@ -82,10 +81,10 @@ class Insight with EquatableMixin {
           break;
       }
     }
-    healthTips = getHealthTips(
-      airQualityReading.pm2_5,
-      Pollutant.pm2_5,
-    );
+
+    List<HealthTip> healthTips = airQualityReading.dateTime.isAPastDate()
+        ? []
+        : airQualityReading.healthTips;
 
     return Insight(
       name: airQualityReading.name,
