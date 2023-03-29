@@ -87,12 +87,6 @@ class LocationService {
             await openPhoneSettings(context, enableLocationMessage);
             break;
           case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await openPhoneSettings(context, enableLocationMessage);
-            } else {
-              await locationRequestDialog(context);
-            }
-            break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
             await locationRequestDialog(context);
