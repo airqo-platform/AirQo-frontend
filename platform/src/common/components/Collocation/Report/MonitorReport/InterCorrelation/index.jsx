@@ -6,19 +6,20 @@ import CorrelationChart from '@/components/Collocation/Report/Charts/Correlation
 import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 
 const CustomLegend = () => {
+  '#8884d8', '#82ca9d';
   return (
-    <div className='flex items-center justify-end mt-4 mb-3'>
+    <div className='flex items-center justify-end mt-4 mb-3 mr-7'>
       <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
-        <hr className='w-4 h-[2px] bg-purple-550 mr-2' />
+        <hr className='w-4 h-[2px] border border-purple-550 mr-2' />
         <span className='text-xs text-grey-300'>Sensor 01</span>
       </div>
       <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] bg-purple-550 mr-2' />
+        <hr className='w-4 h-[2px] border border-purple-550 border-dashed mr-2' />
         <span className='text-xs text-grey-300'>Sensor 02</span>
       </div>
       <span className='uppercase mx-2 text-[10px] text-grey-800'>Compared to</span>
       <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md mr-2'>
-        <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
+        <hr className='w-4 h-[2px] border border-purple-400 mr-2' />
         <span className='text-xs text-grey-300'>Sensor 01</span>
       </div>
       <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
@@ -65,7 +66,7 @@ const InterCorrelationChart = ({
           ) : (
             <div className='flex flex-col-reverse md:flex-row items-center mr-6 mb-6'>
               <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
-                Select a monitor to compare with AQG504
+                Select a monitor to compare with <span className='uppercase'>{deviceName}</span>
               </span>
               <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
                 <span className='text-blue-300 text-base'>Select Monitor</span>
@@ -87,10 +88,9 @@ const InterCorrelationChart = ({
         <CorrelationChart
           data={collocationResults}
           pmConcentration={interCorrelationConcentration}
-          hasCustomLegend
-          CustomLegend={CustomLegend}
           isInterSensorCorrelation
         />
+        <CustomLegend />
       </div>
     </Box>
   );

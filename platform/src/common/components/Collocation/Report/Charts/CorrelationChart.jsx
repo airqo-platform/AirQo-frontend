@@ -10,59 +10,90 @@ import {
 } from 'recharts';
 import moment from 'moment';
 
-const CorrelationChart = ({
-  pmConcentration,
-  hasCustomLegend,
-  CustomLegend,
-  data,
-  isInterSensorCorrelation,
-}) => {
-  let newData = [];
+const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data }) => {
+  const sensorKey1 = `s1_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
+  const sensorKey2 = `s2_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
 
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ca82cc']; // Colors for each line
+  let dummyData = [
+    {
+      timestamp: '2023-01-21T00:00:00.000Z',
+      aq_g4_100: { s1_pm10: 70, s1_pm2_5: 58, s2_pm10: 76, s2_pm2_5: 60 },
+      aq_g5_6: { s1_pm10: 80, s1_pm2_5: 68, s2_pm10: 86, s2_pm2_5: 70 },
+    },
+    {
+      timestamp: '2023-01-23T00:00:00.000Z',
+      aq_g4_100: { s1_pm10: 71, s1_pm2_5: 59, s2_pm10: 77, s2_pm2_5: 61 },
+      aq_g5_6: { s1_pm10: 81, s1_pm2_5: 69, s2_pm10: 87, s2_pm2_5: 71 },
+    },
+    {
+      timestamp: '2023-01-25T00:00:00.000Z',
+      aq_g4_100: { s1_pm10: 72, s1_pm2_5: 60, s2_pm10: 78, s2_pm2_5: 62 },
+      aq_g5_6: { s1_pm10: 82, s1_pm2_5: 70, s2_pm10: 88, s2_pm2_5: 72 },
+    },
+  ];
 
-  // Map through the data and create a Line component for each sensor in each device
-  const plotSensorLines =
-    isInterSensorCorrelation &&
-    data.map((device, index) => {
-      return Object.keys(device.data[0])
-        .filter(
-          (key) => key !== 'timestamp' && key !== 'device_name' && key.includes(pmConcentration),
-        ) // Get all the sensor keys for the selected PM type
-        .map((sensorKey, sensorIndex) => (
-          <Line
-            key={`${device.device_name}-${sensorKey}`}
-            type='monotone'
-            dataKey={sensorKey}
-            stroke={colors[sensorIndex + index]}
-            dot={false}
-          />
-        ));
+  const devices = isInterSensorCorrelation
+    ? Object.keys(dummyData[0]).filter((key) => key !== 'timestamp')
+    : [Object.keys(dummyData[0])[1]];
+
+  const renderLines = () => {
+    const lines = [];
+
+    devices.forEach((device, i) => {
+      const color = colors[i % colors.length];
+
+      lines.push(
+        <Line
+          key={`${device}_${sensorKey1}`}
+          type='monotone'
+          dataKey={`${device}.${sensorKey1}`}
+          name={`${sensorKey1} - ${device}`}
+          stroke={color}
+          dot={false}
+          strokeWidth='1.5'
+          isAnimationActive={false}
+        />,
+      );
+
+      lines.push(
+        <Line
+          key={`${device}_${sensorKey2}`}
+          type='monotone'
+          dataKey={`${device}.${sensorKey2}`}
+          name={`${sensorKey2} - ${device}`}
+          stroke={color}
+          dot={false}
+          strokeWidth='1.5'
+          strokeDasharray='5 5'
+          isAnimationActive={false}
+        />,
+      );
     });
 
-  if (!isInterSensorCorrelation) {
-    data.map((item) => {
-      newData.push({
-        pm2_5_pearson_correlation: item.pm2_5_pearson_correlation,
-        pm2_5_r2: item.pm2_5_r2,
-        pm10_pearson_correlation: item.pm10_pearson_correlation,
-        pm10_r2: item.pm10_r2,
-        date: moment(item.timestamp).format('D MMM'),
-      });
-    });
-  }
+    return lines;
+  };
+
+  const colors = [
+    '#8884d8',
+    '#82ca9d',
+    '#ff7300',
+    '#413ea0',
+    '#ff0000',
+    '#00ff00',
+    '#0000ff',
+    '#ffff00',
+    '#00ffff',
+    '#ff00ff',
+  ]; // Colors for each line
 
   return (
     <div className='w-full h-80'>
       <ResponsiveContainer width='100%' height='100%'>
-        <LineChart
-          data={isInterSensorCorrelation ? data[0].data : newData}
-          className='text-xs -ml-7'
-        >
+        <LineChart data={dummyData} className='text-xs -ml-7'>
           <CartesianGrid vertical={false} stroke='#000000' strokeOpacity='0.1' strokeWidth={0.5} />
           <XAxis
-            dataKey={isInterSensorCorrelation ? 'timestamp' : 'date'}
-            tickFormatter={(date) => moment(date).format('D MMM')}
+            dataKey={'timestamp'}
+            tickFormatter={(timestamp) => moment(timestamp).format('D MMM')}
             padding={{ left: 60, right: 60 }}
             strokeWidth='0.5'
             stroke='#000000'
@@ -76,33 +107,8 @@ const CorrelationChart = ({
             tickMargin='-30'
           />
           <Tooltip />
-          <Legend />
 
-          {isInterSensorCorrelation ? (
-            <>{plotSensorLines}</>
-          ) : (
-            <>
-              <Line
-                type='monotone'
-                dot={false}
-                dataKey={
-                  pmConcentration === '2.5'
-                    ? 'pm2_5_pearson_correlation'
-                    : 'pm10_pearson_correlation'
-                }
-                stroke='#D476F5'
-                strokeWidth='1.5'
-                strokeDasharray='5 5'
-              />
-              <Line
-                type='monotone'
-                dot={false}
-                dataKey={pmConcentration === '2.5' ? 'pm2_5_r2' : 'pm10_r2'}
-                stroke='#8776F5'
-                strokeWidth='1.5'
-              />
-            </>
-          )}
+          {renderLines()}
         </LineChart>
       </ResponsiveContainer>
     </div>
