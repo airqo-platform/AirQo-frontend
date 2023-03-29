@@ -161,22 +161,7 @@ class LocationService {
     position ??= await getCurrentPosition();
 
     if (position == null) {
-      final geoCoordinates = await AirqoApiClient().getLocation();
-      if (!geoCoordinates.keys.contains('latitude') ||
-          !geoCoordinates.keys.contains('longitude')) {
-        return [];
-      }
-
-      position = Position(
-        longitude: geoCoordinates['longitude'] as double,
-        latitude: geoCoordinates['latitude'] as double,
-        timestamp: DateTime.now(),
-        accuracy: 0.0,
-        altitude: 0.0,
-        heading: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
-      );
+      return [];
     }
 
     List<AirQualityReading> airQualityReadings = await getNearestSites(
