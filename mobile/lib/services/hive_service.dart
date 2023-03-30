@@ -12,6 +12,7 @@ class HiveService {
 
     Hive
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+      ..registerAdapter<HealthTip>(HealthTipAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
     await Future.wait([
