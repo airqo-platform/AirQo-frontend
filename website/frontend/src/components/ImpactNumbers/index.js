@@ -21,7 +21,7 @@ const ImpactNumbers = () => {
     {
       icon: <MonitorIcon />,
       name: 'Monitor Installations',
-      numbers: '250+'
+      numbers: '120+'
     },
     {
       icon: <RecordsIcon />,
