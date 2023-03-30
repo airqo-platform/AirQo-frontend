@@ -106,25 +106,31 @@ class LocationService {
     }
   }
 
-  static Future<String> getAddress({
+  static Future<Map<String, String?>> getAddress({
     required double latitude,
     required double longitude,
   }) async {
+    Map<String, String?> address = {};
+    address["name"] = null;
+    address["location"] = null;
+
     List<Placemark> landMarks = await placemarkFromCoordinates(
       latitude,
       longitude,
     );
 
     if (landMarks.isEmpty) {
-      return '';
+      return address;
     }
 
     final Placemark landMark = landMarks.first;
 
-    String? address = landMark.thoroughfare ?? landMark.subLocality;
-    address = address ?? landMark.locality;
+    address["name"] = landMark.name ?? landMark.thoroughfare;
+    address["name"] = address["name"] ?? landMark.locality;
 
-    return address ?? '';
+    address["location"] = "${landMark.administrativeArea}, ${landMark.country}";
+
+    return address;
   }
 
   static Future<Position?> getCurrentPosition() async {
@@ -164,14 +170,15 @@ class LocationService {
     );
     airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
 
-    String address = await getAddress(
+    Map<String, String?> address = await getAddress(
       latitude: position.latitude,
       longitude: position.longitude,
     );
 
-    if (airQualityReadings.isNotEmpty && address.isNotEmpty) {
+    if (airQualityReadings.isNotEmpty) {
       airQualityReadings.first = airQualityReadings.first.copyWith(
-        name: address,
+        name: address["name"],
+        location: address["location"],
       );
     }
 

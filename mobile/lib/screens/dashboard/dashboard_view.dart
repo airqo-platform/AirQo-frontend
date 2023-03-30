@@ -228,10 +228,17 @@ class _DashboardViewState extends State<DashboardView>
                           }
                           break;
                         case NearbyLocationStatus.locationDenied:
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: LocationDeniedButton(),
+                          );
                         case NearbyLocationStatus.locationDisabled:
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: DashboardLocationButton(state.blocStatus),
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: NoLocationAirQualityMessage(
+                              "Turn on location to get air quality near you.",
+                              dismiss: false,
+                            ),
                           );
                       }
 
@@ -243,7 +250,9 @@ class _DashboardViewState extends State<DashboardView>
                         return state.showErrorMessage
                             ? const Padding(
                                 padding: EdgeInsets.only(top: 16),
-                                child: NoLocationAirQualityMessage(),
+                                child: NoLocationAirQualityMessage(
+                                  "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                ),
                               )
                             : Container();
                       }
