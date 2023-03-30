@@ -10,7 +10,7 @@
     }
     h2{
         font-size: 40px;
-        line-height: 40px;
+        line-height: 48px;
         font-weight: 700;
         margin-top: 0;
     }
@@ -18,7 +18,7 @@
         font-size: 17px;
         font-weight: 400;
         line-height: 26px;
-        margin-top: 0;
+        margin-top: 4px;
     }
     .content{
         display: grid;
@@ -27,6 +27,16 @@
     .grid-wrapper{
         grid-column: 2 / 3;
         padding: 80px 0;
+    }
+    .grid-full{
+        grid-column: 1 / 4;
+        padding-top: 80px;
+    }
+    .grid-full.column{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     .grid-wrapper.row{
         display: flex;
@@ -55,12 +65,13 @@
                 }
             }
             .heading{
-                width: 80%;
+                width: 92%;
                 h1{
                     color: $aq-black-1;
                 }
                 p{
                     color: $aq-black-1;
+                    width: 80%;
                 }
             }
         }
@@ -85,7 +96,7 @@
             justify-content: space-between;
             align-items: flex-start;
             .left{
-                width: 100%;
+                width: 90%;
             }
             .right{
                 width: 100%;
@@ -95,13 +106,13 @@
             position: relative;
             width: 100%;
             height: 540px;
-            padding-top: 46px;
+            margin-top: 46px;
             .lapping-left.card{
                 position: absolute;
                 z-index: 99;
                 width: 44%;
                 left: 0;
-                top:65px;
+                top:25px;
             }
             .lapping-left.image{
                 height: 100%;
@@ -110,12 +121,18 @@
                 img{
                     height: 100%;
                 }
+                .image-overlap{
+                    z-index: 999;
+                    position: absolute;
+                    right: -120px;
+                    top: 50px;
+                }
             }
             .lapping-right.card{
                 position: absolute;
                 z-index: 99;
                 width: 44%;
-                top:90px;
+                top:50px;
                 right: 0;
             }
             .lapping-right.image{
@@ -131,6 +148,15 @@
                     padding:50px 0 20px 0px;
                     border-radius: 8px;
                 }
+            }
+            .lapping-left.card.larger-top{
+                top: 70px;
+            }
+            .lapping-right.card.larger-top{
+                top: 78px;
+            }
+            .lapping-right.card.smaller-width{
+                width: 42%;
             }
         }
         .card{
@@ -178,6 +204,35 @@
                 opacity: 0.7;
             }
         }
+    }
+}
+
+// ANALYTICS PAGE
+.product-page.analytics{
+    .section.landscape-section{
+        background-color: $aq-blue-11;
+        overflow-x: hidden;
+        .column{
+            text-align: center;
+            max-width: $columnWidth;
+            a{
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                margin-top: 40px;
+            }
+        }
+        .NavTab.filled{
+            width: 159px;
+            margin: 0;
+        }
+        .smaller-width{
+            width: 623px;
+        }
+        .image{
+            margin-top: 90px;
+        }
+        
     }
 }
 
@@ -231,10 +286,43 @@
                         border-radius: 8px;
                     }
                 }
-                .larger-top{
-                    top: 110px;
+                .lapping-left.card.larger-top{
+                    top: 0;
+                }
+                .lapping-right.card.larger-top{
+                    top: 0;
+                }
+                .lapping-right.card.smaller-width{
+                    width: 90%;
+                    margin-top: -10%;
                 }
             }
+        }
+    }
+    .product-page.analytics{
+        .header-wrapper{
+            padding: 0 16px;
+        }
+        .content{
+            padding: 0;
+        }
+        .section{
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        .section.landscape-section{
+            margin-top: 60px;
+            .smaller-width{
+                width: 100%;
+            }
+            .image{
+                margin-top: 90px;
+                width: 100%;
+                img{
+                    width: 100%;
+                }
+            }
+            
         }
     }
 }
@@ -276,6 +364,10 @@
                         width: auto;
                         object-fit: cover;
                     }
+                    .image-overlap{
+                        right: -80px;
+                        top: -10px;
+                    }
                 }
                 .lapping-right.card{
                     width: 100%;
@@ -312,6 +404,19 @@
             .card{
                 padding: 40px 20px;
             }
+        }
+    }
+    .product-page.analytics{
+        .section.landscape-section{
+            .image{
+                margin-top: 90px;
+                width: 100%;
+                img{
+                    width: auto;
+                    height: 350px;
+                }
+            }
+            
         }
     }
 }
