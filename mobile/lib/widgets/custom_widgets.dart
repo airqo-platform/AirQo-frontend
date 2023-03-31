@@ -656,7 +656,7 @@ class CustomShowcaseWidget extends StatelessWidget {
       width: screenSize.width * 0.5,
       height: 100,
       overlayColor: CustomColors.appColorBlack,
-      overlayOpacity: 0.6,
+      overlayOpacity: 0.8,
       container: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
