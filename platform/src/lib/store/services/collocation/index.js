@@ -31,11 +31,21 @@ export const collocateApi = createApi({
     getDeviceStatusSummary: builder.query({
       query: () => '/summary',
     }),
-    getCollocationResults: builder.query({
+    getCollocationResults: builder.mutation({
       query: ({ devices, startDate, endDate }) => {
         return {
-          url: '/results',
-          params: { devices: [devices], startDate, endDate },
+          url: '/data',
+          method: 'POST',
+          body: { devices: [devices], startDate, endDate },
+        };
+      },
+    }),
+    getDataCompletenessResults: builder.mutation({
+      query: (addDataCompletenessInput) => {
+        return {
+          url: '/data-completeness',
+          method: 'POST',
+          body: addDataCompletenessInput,
         };
       },
     }),
@@ -45,10 +55,15 @@ export const collocateApi = createApi({
 export const {
   useCollocateDevicesMutation,
   useGetDeviceStatusSummaryQuery,
-  useGetCollocationResultsQuery,
+  useGetCollocationResultsMutation,
+  useGetDataCompletenessResultsMutation,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
 // export endpoints for use in SSR
-export const { collocateDevices, getDeviceStatusSummary, getCollocationResults } =
-  collocateApi.endpoints;
+export const {
+  collocateDevices,
+  getDeviceStatusSummary,
+  getCollocationResults,
+  getDataCompletenessResults,
+} = collocateApi.endpoints;

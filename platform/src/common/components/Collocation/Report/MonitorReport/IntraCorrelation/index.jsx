@@ -2,7 +2,7 @@ import Box from '@/components/Collocation/Report/box';
 import Button from '@/components/Button';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
-import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationChart';
+import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 
 const CustomLegend = () => {
   return (

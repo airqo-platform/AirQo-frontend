@@ -4,11 +4,11 @@ import { useRouter } from 'next/router';
 import DataCompletenessTable from '@/components/Collocation/Report/MonitorReport/DataCompletenessTable';
 import { wrapper } from '@/lib/store';
 import {
-  useGetCollocationResultsQuery,
+  useGetCollocationResultsMutation,
   getRunningQueriesThunk,
   getCollocationResults,
 } from '@/lib/store/services/collocation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
 import Toast from '@/components/Toast';
@@ -29,19 +29,21 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 const MonitorReport = () => {
   const router = useRouter();
   const { device, startDate, endDate } = router.query;
+  const [getCollocationResultsData, { isError, isSuccess }] = useGetCollocationResultsMutation();
+  const [collocationResults, setCollocationResults] = useState(null);
 
-  const {
-    data: data,
-    isLoading,
-    isSuccess,
-    isError,
-    error,
-  } = useGetCollocationResultsQuery({
-    devices: device,
-    startDate: startDate,
-    endDate: endDate,
-  });
-  let collocationResults = data?.data;
+  useEffect(() => {
+    const fetchCollocationResults = async () => {
+      const response = await getCollocationResultsData({
+        devices: device,
+        startDate: startDate,
+        endDate: endDate,
+      });
+      console.log(response);
+      setCollocationResults(response.data.data);
+    };
+    fetchCollocationResults();
+  }, [getCollocationResultsData, device, startDate, endDate]);
 
   const [correlationDevices, setCorrelationDevices] = useState([device]);
   const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
@@ -57,7 +59,7 @@ const MonitorReport = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Monitor Report'} />
+      <NavigationBreadCrumb backLink={'/collocation/reports'} navTitle={'Monitor Report'} />
       {isError && (
         <Toast
           type={'error'}
@@ -68,14 +70,14 @@ const MonitorReport = () => {
       {isSuccess && (
         <>
           <IntraCorrelationChart
-            collocationResults={collocationResults.intra_sensor_correlation[0].data}
+            collocationResults={collocationResults}
             intraCorrelationConcentration={intraCorrelationConcentration}
             toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
             deviceName={device}
           />
 
           <InterCorrelationChart
-            collocationResults={collocationResults.inter_sensor_correlation}
+            collocationResults={collocationResults}
             interCorrelationConcentration={interCorrelationConcentration}
             toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
             correlationDevices={correlationDevices}
@@ -84,7 +86,7 @@ const MonitorReport = () => {
             endDate={endDate}
           />
 
-          <DataCompletenessTable dataCompletenessReults={collocationResults.data_completeness} />
+          {/* <DataCompletenessTable dataCompletenessReults={collocationResults} /> */}
         </>
       )}
     </Layout>

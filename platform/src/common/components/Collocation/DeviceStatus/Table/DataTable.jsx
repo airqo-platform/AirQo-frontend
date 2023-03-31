@@ -8,7 +8,7 @@ import Skeleton from './Skeleton';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
-import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
 import Toast from '@/components/Toast';
 
 const STATUS_COLOR_CODES = {
@@ -32,16 +32,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
   const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
-  const {
-    data: data,
-    error,
-    refetch,
-    isError,
-    isSuccess,
-    isLoading: isCheckingForDataAvailability,
-  } = useGetCollocationResultsQuery(collocationInput, { skip: !shouldFetchData });
-
-  const [isCollocationResultsError, setCollocationResultsError] = useState(false);
+  const [getCollocationResultsData, { isLoading: isCheckingForDataAvailability, isError }] =
+    useGetCollocationResultsMutation();
 
   const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
@@ -70,38 +62,30 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   };
 
-  useEffect(() => {
-    if (data && data.data) {
-      const deviceId = collocationInput.devices;
-      const deviceStartDate = collocationInput.startDate;
-      const deviceEndDate = collocationInput.endDate;
-      //create dynamic route for device
-      router.push({
-        pathname: `/collocation/reports/monitor_report/${deviceId}`,
-        query: {
-          device: deviceId,
-          startDate: deviceStartDate,
-          endDate: deviceEndDate,
-        },
-      });
-    }
-  }, [data, collocationInput]);
-
   const openMonitorReport = async (deviceName, startDate, endDate, index) => {
     setCollocationInput({
       devices: deviceName,
       startDate,
       endDate,
     });
-    setShouldFetchData(true);
     setClickedRowIndex(index);
+    const response = await getCollocationResultsData({ devices: deviceName, startDate, endDate });
+
+    if (!(response.error && response.error.error)) {
+      router.push({
+        pathname: `/collocation/reports/monitor_report/${deviceName}`,
+        query: {
+          device: deviceName,
+          startDate: startDate,
+          endDate: endDate,
+        },
+      });
+    }
   };
 
   return (
     <div>
-      {isError && error.data && (
-        <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />
-      )}
+      {isError && <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
         data-testid='collocation-device-status-summary'

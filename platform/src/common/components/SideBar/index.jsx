@@ -79,6 +79,7 @@ const SideBar = () => {
             >
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
+              <SideBarDropdownItem itemLabel='Reports' itemPath='/collocation/reports' />
             </SideBarItem>
             <SideBarItem label='Calibrate' Icon={BarChartIcon} />
             <SideBarItem label='Other tools' Icon={BarChartIcon} />
