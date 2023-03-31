@@ -12,4 +12,6 @@ export 'notification.dart';
 export 'profile.dart';
 export 'search_history.dart';
 export 'search_result.dart';
+export 'health_tip.dart';
+export 'phone_auth_model.dart';
 export 'insight.dart';

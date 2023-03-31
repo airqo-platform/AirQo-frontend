@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import PlaceholderImg from 'assets/img/Events/event-placeholder.jpg';
-import Page from '../Page';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
 import ParticipatingCities from 'assets/img/Events/participation.png';
 import Programme1 from 'assets/img/Events/programme-1.png';
@@ -12,6 +10,7 @@ import { isEmpty } from 'underscore';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';
 import { format } from 'date-fns';
 import Loadspinner from '../../components/LoadSpinner';
+import PageMini from '../PageMini';
 
 const EventDetails = () => {
   useInitScrollTop();
@@ -23,6 +22,7 @@ const EventDetails = () => {
   const loader = useSelector((state) => state.eventsData.loading);
   const [loading, setLoading] = useState(loader);
 
+
   useEffect(() => {
     if (isEmpty(eventData)) {
       dispatch(getAllEvents());
@@ -30,7 +30,7 @@ const EventDetails = () => {
   }, []);
 
   return (
-    <Page>
+    <PageMini>
       {loading ? (
         <Loadspinner />
       ) : (
@@ -49,7 +49,7 @@ const EventDetails = () => {
                   }}>
                   <div className="content">
                     <div className="breadcrumb">
-                      <span style={{ textDecoration: 'underline' }}>
+                      <span>
                         <a href="/events">Events</a>
                       </span>
                       <span style={{ fontFamily: 'monospace' }}>{'>'}</span>
@@ -146,7 +146,7 @@ const EventDetails = () => {
                                 <div className="session">
                                   <div className="duration">
                                     <div className="time">
-                                      {session.start_time.slice(0, -3)} - {' '}
+                                      {session.start_time.slice(0, -3)} -{' '}
                                       {session.end_time.slice(0, -3)}
                                     </div>
                                     <div className="venue">{session.venue}</div>
@@ -185,7 +185,7 @@ const EventDetails = () => {
             ))}
         </>
       )}
-    </Page>
+    </PageMini>
   );
 };
 

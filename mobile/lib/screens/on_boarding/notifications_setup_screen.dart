@@ -1,9 +1,11 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -57,37 +59,15 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GestureDetector(
-                  onTap: () async {
+                child: NextButton(
+                  text: 'Yes, keep me updated',
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
                     await _allowNotifications();
                   },
-                  child: NextButton(
-                    text: 'Yes, keep me updated',
-                    buttonColor: CustomColors.appColorBlue,
-                  ),
                 ),
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const LocationSetupScreen();
-                    }),
-                    (r) => false,
-                  );
-                },
-                child: Text(
-                  'No, thanks',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomColors.appColorBlue,
-                      ),
-                ),
-              ),
+              const SkipOnboardScreen(LocationSetupScreen()),
             ],
           ),
         ),
@@ -101,18 +81,28 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     _updateOnBoardingPage();
   }
 
-  Future<void> _allowNotifications() async {
-    await NotificationService.requestNotification(context, true).then(
-      (_) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const LocationSetupScreen();
-          }),
-          (r) => false,
-        );
-      },
+  Future<void> _goToNextScreen() async {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(const SyncProfile());
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const LocationSetupScreen();
+        },
+      ),
+      (r) => false,
     );
+  }
+
+  Future<void> _allowNotifications() async {
+    bool hasPermission =
+        await PermissionService.checkPermission(AppPermission.notification);
+    if (hasPermission && mounted) {
+      await _goToNextScreen();
+    } else {
+      NotificationService.requestNotification(context, true);
+    }
   }
 
   Future<bool> onWillPop() {
