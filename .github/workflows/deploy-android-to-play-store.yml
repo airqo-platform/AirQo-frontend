@@ -84,3 +84,5 @@ jobs:
           cd android/
           bundle exec fastlane supply init
           bundle exec fastlane android production
+        env:
+          MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_PLAYSTORE_SA}}
