@@ -165,12 +165,12 @@ class AirqoApiClient {
 
       final forecast = <Forecast>[];
 
-      for (final prediction in body['predictions']) {
+      for (final forecast in body['forecasts']) {
         try {
           forecast.add(
             Forecast.fromJson({
-              'pm2_5': prediction['prediction_time'],
-              'time': prediction['prediction_value'],
+              'pm2_5': forecast['forecast_day'],
+              'time': forecast['forecast'],
               'siteId': siteId,
             }),
           );

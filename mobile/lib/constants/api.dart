@@ -4,7 +4,7 @@ class AirQoUrls {
   static String get firebaseLookup =>
       '${Config.airqoApiUrl}users/firebase/lookup';
 
-  static String get forecast => '${Config.airqoApiUrl}predict/daily/';
+  static String get forecast => '${Config.airqoApiUrl}daily_forecast';
 
   static String get appVersion =>
       '${Config.airqoApiUrl}view/mobile-app/version-info';
