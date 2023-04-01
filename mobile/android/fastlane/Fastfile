@@ -6,23 +6,14 @@ platform :android do
   desc "Deploy a new version to play store"
   lane :production do
     update_fastlane
-    sh "fastlane supply init"
     sh "bundle exec fastlane update_plugins"
     sh "flutter build appbundle --flavor airqo"
     upload_to_play_store(
-      version_name: "2.0.16",
-      version_code: "20031",
       track: "production",
       release_status: "draft",
-      metadata_path:"fastlane/metadata",
-      json_key: "fastlane/play-store-service-account.json",
-      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      json_key_data: ENV['MOBILE_ANDROID_PLAYSTORE_SA'],
+      package_name:"com.airqo.app",
       aab: "../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
-      validate_only: true,
-      skip_upload_apk: true,
     )
   end
 

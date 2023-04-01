@@ -64,7 +64,7 @@ jobs:
 
       - name: Add play store service account
         run: |
-          cd android/fastlane/
+          cd android/
           gcloud secrets versions access latest --secret="prod-key-mobile-play-store-service-account" > play-store-service-account.json
 
       - name: Setup Fastlane
