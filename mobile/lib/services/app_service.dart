@@ -98,7 +98,6 @@ class AppService {
     await prefs.remove(Config.homePageShowcase);
     await prefs.remove(Config.forYouPageShowcase);
     await prefs.remove(Config.settingsPageShowcase);
-    await prefs.setBool(Config.restartTourShowcase, true);
   }
 
   Future<void> navigateShowcaseToScreen(

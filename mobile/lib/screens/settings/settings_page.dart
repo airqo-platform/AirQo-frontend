@@ -260,8 +260,7 @@ class _SettingsPageState extends State<SettingsPage>
   Future<void> _startShowcase() async {
     final prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(Config.restartTourShowcase) != null &&
-        prefs.getBool(Config.restartTourShowcase) != true) {
+    if (prefs.getBool(Config.restartTourShowcase) != true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ShowCaseWidget.of(_showcaseContext).startShowCase(
           [

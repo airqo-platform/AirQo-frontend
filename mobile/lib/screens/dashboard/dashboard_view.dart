@@ -462,8 +462,7 @@ class _DashboardViewState extends State<DashboardView>
     List<GlobalKey> globalKeys = [];
     final prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(Config.restartTourShowcase) != null &&
-        prefs.getBool(Config.restartTourShowcase) != true) {
+    if (prefs.getBool(Config.restartTourShowcase) != true) {
       globalKeys.add(_skipShowcaseKey);
     }
 
