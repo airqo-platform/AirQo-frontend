@@ -458,13 +458,21 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
-  void _startShowcase() {
-    List<GlobalKey> globalKeys = [
-      _skipShowcaseKey,
+  Future<void> _startShowcase() async {
+    List<GlobalKey> globalKeys = [];
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(Config.restartTourShowcase) != null &&
+        prefs.getBool(Config.restartTourShowcase) != true) {
+      globalKeys.add(_skipShowcaseKey);
+    }
+
+    globalKeys.addAll([
       _favoritesShowcaseKey,
       _forYouShowcaseKey,
       _analyticsShowcaseKey,
-    ];
+    ]);
+
     if (_kyaExists) {
       globalKeys.add(_kyaShowcaseKey);
     }
@@ -484,9 +492,9 @@ class _DashboardViewState extends State<DashboardView>
     if (prefs.getBool(Config.homePageShowcase) == null) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _startShowcase();
-            _appService.stopShowcase(Config.homePageShowcase);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await _startShowcase();
+            await _appService.stopShowcase(Config.homePageShowcase);
           });
         }
       });

@@ -158,7 +158,7 @@ class _ForYouPageState extends State<ForYouPage>
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(Config.forYouPageShowcase) == null) {
       _startShowcase();
-      _appService.stopShowcase(Config.forYouPageShowcase);
+      await _appService.stopShowcase(Config.forYouPageShowcase);
     }
   }
 }

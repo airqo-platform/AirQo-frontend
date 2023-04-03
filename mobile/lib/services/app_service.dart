@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'rest_api.dart';
-import 'secure_storage.dart';
 
 class AppService {
   factory AppService() {
@@ -84,15 +83,6 @@ class AppService {
     }
   }
 
-  Future<bool> _clearUserLocalStorage() async {
-    await Future.wait([
-      HiveService.clearUserData(),
-      SecureStorage().clearUserData(),
-    ]);
-
-    return true;
-  }
-
   Future<void> setShowcase(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, true);
@@ -115,8 +105,7 @@ class AppService {
     BuildContext context,
     Widget screen,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => screen,

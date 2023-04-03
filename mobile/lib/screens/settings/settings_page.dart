@@ -257,21 +257,27 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ShowCaseWidget.of(_showcaseContext).startShowCase(
-        [
-          _appTourShowcaseKey,
-        ],
-      );
-    });
+  Future<void> _startShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(Config.restartTourShowcase) != null &&
+        prefs.getBool(Config.restartTourShowcase) != true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(_showcaseContext).startShowCase(
+          [
+            _appTourShowcaseKey,
+          ],
+        );
+      });
+    }
   }
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(Config.settingsPageShowcase) == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
-      _appService.stopShowcase(Config.settingsPageShowcase);
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) async => await _startShowcase());
+      await _appService.stopShowcase(Config.settingsPageShowcase);
     }
   }
 }
