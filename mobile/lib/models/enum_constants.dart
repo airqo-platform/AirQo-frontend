@@ -3,7 +3,6 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -155,7 +154,7 @@ enum AirQuality {
         'Nearby locations with air quality Unhealthy For Sensitive Groups',
     searchOtherLocationsText:
         'Locations with air quality Unhealthy For Sensitive Groups',
-    value: 101,
+    value: 44,
     minimumValue: 35.5,
     maximumValue: 55.49,
   ),

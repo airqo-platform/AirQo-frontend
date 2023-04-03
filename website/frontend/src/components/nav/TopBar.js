@@ -45,6 +45,12 @@ const TopBar = () => {
                     <h4>Built in Africa for African cities</h4>
                   </Link>
                 </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
+                    <h3>Analytics Dashboard</h3>
+                    <h4>Access and visualise air quality data</h4>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
