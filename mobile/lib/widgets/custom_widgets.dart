@@ -639,11 +639,13 @@ class CustomShowcaseWidget extends StatelessWidget {
     this.customize,
     this.descriptionWidth,
     this.descriptionHeight,
+    this.showLine = true,
   });
 
   final GlobalKey showcaseKey;
   final Widget child;
   final ShowcaseOptions? customize;
+  final bool showLine;
   final String description;
   final double? descriptionWidth, descriptionHeight;
 
@@ -661,7 +663,7 @@ class CustomShowcaseWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Visibility(
-            visible: customize != ShowcaseOptions.up,
+            visible: customize != ShowcaseOptions.up && showLine,
             child: SizedBox(
               width: 45,
               height: 45,
@@ -720,7 +722,7 @@ class CustomShowcaseWidget extends StatelessWidget {
             height: 10,
           ),
           Visibility(
-            visible: customize == ShowcaseOptions.up,
+            visible: customize == ShowcaseOptions.up && showLine,
             child: SizedBox(
               width: 45,
               height: 45,

@@ -342,6 +342,7 @@ class _DashboardViewState extends State<DashboardView>
                                     showcaseKey: _analyticsShowcaseKey,
                                     descriptionHeight: screenSize.height * 0.17,
                                     customize: ShowcaseOptions.up,
+                                    showLine: false,
                                     description:
                                         "Find the air quality of different locations across Africa here.",
                                     child: AnalyticsCard(
