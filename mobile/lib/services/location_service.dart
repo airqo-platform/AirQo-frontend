@@ -125,10 +125,15 @@ class LocationService {
 
     final Placemark landMark = landMarks.first;
 
-    address["name"] = landMark.name ?? landMark.thoroughfare;
+    address["name"] = landMark.thoroughfare ?? landMark.subLocality;
     address["name"] = address["name"] ?? landMark.locality;
 
-    address["location"] = "${landMark.administrativeArea}, ${landMark.country}";
+    if(landMark.subAdministrativeArea == null){
+      address["location"] = "${landMark.administrativeArea}, ${landMark.country}";
+    }
+     else{
+      address["location"] = "${landMark.subAdministrativeArea}, ${landMark.administrativeArea}";
+    }
 
     return address;
   }
