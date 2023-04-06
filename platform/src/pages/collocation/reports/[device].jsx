@@ -7,15 +7,11 @@ import { useEffect, useState } from 'react';
 import {
   useGetCollocationResultsMutation,
   useGetIntraSensorCorrelationMutation,
-  getRunningQueriesThunk,
 } from '@/lib/store/services/collocation';
-import ContentBox from '@/components/Layout/content_box';
-import CustomTable from '@/components/Table';
 import CorrelationBarChart from '@/components/Collocation/Report/Charts/CorrelationBarChart';
-import moment from 'moment';
-import { wrapper } from '@/lib/store';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
+import Spinner from '@/components/Spinner';
 
 const Reports = () => {
   const router = useRouter();
@@ -29,11 +25,16 @@ const Reports = () => {
     {
       isLoading: isIntraSensorCorrelationDataLoading,
       isSuccess: isIntraSensorCorrelationDataSuccess,
+      isError: isFetchIntraSensorCorrelationDataError,
     },
   ] = useGetIntraSensorCorrelationMutation();
   const [
     getCollocationResultsData,
-    { isLoading: isCollocationResultsLoading, isSuccess: isCollocationResultsSuccess },
+    {
+      isLoading: isCollocationResultsLoading,
+      isSuccess: isCollocationResultsSuccess,
+      isError: isFetchCollocationResultsError,
+    },
   ] = useGetCollocationResultsMutation();
 
   useEffect(() => {
@@ -77,7 +78,7 @@ const Reports = () => {
   return (
     <Layout>
       <HeaderNav component={'Reports'} />
-      {(!isIntraSensorCorrelationDataSuccess || !isCollocationResultsSuccess) && (
+      {(isFetchCollocationResultsError || isFetchIntraSensorCorrelationDataError) && (
         <Toast
           type={'error'}
           timeout={20000}
@@ -86,10 +87,11 @@ const Reports = () => {
       )}
       <>
         <div className='grid grid-cols-1 md:grid-cols-2'>
-          {!isCollocationResultsLoading && collocationResults && (
+          {!isCollocationResultsLoading && collocationResults ? (
             <Box
               title='Intra Sensor Correlation'
               subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+              contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
             >
               <div
                 className='flex flex-col justify-start w-full'
@@ -111,11 +113,16 @@ const Reports = () => {
                 />
               </div>
             </Box>
+          ) : (
+            <div className='h-20'>
+              <Spinner />
+            </div>
           )}
-          {!isIntraSensorCorrelationDataLoading && intraSensorCorrelationResults && (
+          {!isIntraSensorCorrelationDataLoading && intraSensorCorrelationResults ? (
             <Box
               title='Intra Sensor Correlation'
               subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+              contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
             >
               <div
                 className='flex flex-col justify-start w-full'
@@ -136,6 +143,10 @@ const Reports = () => {
                 />
               </div>
             </Box>
+          ) : (
+            <div className='h-20'>
+              <Spinner />
+            </div>
           )}
         </div>
       </>

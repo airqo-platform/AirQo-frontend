@@ -86,7 +86,7 @@ const AddMonitor = () => {
 
   return (
     <Layout>
-      {(isError || !isSuccess) && (
+      {isError && (
         <Toast
           type={'error'}
           timeout={20000}

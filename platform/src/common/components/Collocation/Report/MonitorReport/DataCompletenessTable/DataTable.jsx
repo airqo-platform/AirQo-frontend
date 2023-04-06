@@ -6,7 +6,7 @@ import {
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import moment from 'moment';
 
-const DataTable = ({ filteredData, dataCompletenessReults }) => {
+const DataTable = ({ filteredData, dataCompletenessResults }) => {
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -14,7 +14,7 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    dataCompletenessReults.map((device) => allDevices.push(device._id));
+    dataCompletenessResults.map((device) => allDevices.push(device.device_name));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -25,9 +25,9 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
   const handleSelectDevice = (e, device) => {
     const isChecked = e.target.checked;
     if (isChecked) {
-      dispatch(addDevices([device._id]));
+      dispatch(addDevices([device.device_name]));
     } else {
-      dispatch(removeDevices([device._id]));
+      dispatch(removeDevices([device.device_name]));
     }
   };
 
@@ -38,7 +38,7 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
           <th scope='col' className='text-xs font-normal w-[61px] pb-3 px-6'>
             <input
               type='checkbox'
-              checked={selectedCollocateDevices.length === dataCompletenessReults.length}
+              checked={selectedCollocateDevices.length === dataCompletenessResults.length}
               onChange={handleSelectAllDevices}
             />
           </th>
@@ -94,7 +94,7 @@ const DataTable = ({ filteredData, dataCompletenessReults }) => {
                 <td scope='row' className='w-[61px] py-3 px-6'>
                   <input
                     type='checkbox'
-                    checked={selectedCollocateDevices.includes(device._id)}
+                    checked={selectedCollocateDevices.includes(device.device_name)}
                     value={device}
                     onChange={(e) => handleSelectDevice(e, device)}
                   />

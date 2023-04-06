@@ -32,7 +32,6 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 });
 
 const collocate = () => {
-  const dispatch = useDispatch();
   const {
     data: data,
     isLoading,
@@ -59,7 +58,7 @@ const collocate = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'}>
-        {(isError || !isSuccess) && (
+        {isError && (
           <Toast
             type={'error'}
             timeout={20000}
