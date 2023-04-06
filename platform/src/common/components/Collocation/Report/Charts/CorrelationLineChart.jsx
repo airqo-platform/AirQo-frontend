@@ -55,18 +55,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
     return lines;
   };
 
-  const colors = [
-    '#8884d8',
-    '#82ca9d',
-    '#ff7300',
-    '#413ea0',
-    '#ff0000',
-    '#00ff00',
-    '#0000ff',
-    '#ffff00',
-    '#00ffff',
-    '#ff00ff',
-  ]; // Colors for each line
+  const colors = ['#D476F5', '#8776F5']; // Colors for each line
 
   return (
     <div className={`w-full ${height ? `h-[${height}px]` : 'h-80'}`}>

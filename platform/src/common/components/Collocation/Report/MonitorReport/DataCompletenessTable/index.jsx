@@ -7,13 +7,13 @@ import Button from '../../../../Button';
 import DataTable from './DataTable';
 import Box from '@/components/Collocation/Report/box';
 
-const DataCompletenessTable = ({ dataCompletenessResults }) => {
+const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
     const filterList =
-      dataCompletenessResults.length > 0 &&
+      dataCompletenessResults &&
       dataCompletenessResults.filter((row) =>
         Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
       );
@@ -144,8 +144,9 @@ const DataCompletenessTable = ({ dataCompletenessResults }) => {
           </div>
           <div className='overflow-x-scroll md:overflow-x-hidden pt-3'>
             <DataTable
-              filteredData={filteredData.length > 0 && filteredData}
+              filteredData={filteredData}
               dataCompletenessResults={dataCompletenessResults}
+              isLoading={isLoading}
             />
           </div>
         </>

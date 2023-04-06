@@ -1,95 +1,31 @@
 {
-  "data": {
-    "data_completeness": [
-      {
-        "actual_number_of_records": 2580,
-        "completeness": 1,
-        "device_name": "aq_g5_87",
-        "expected_number_of_records": 0,
-        "missing": 0,
-        "passed": true
-      }
-    ],
-    "inter_sensor_correlation": [
-      {
-        "data": [
-          {
-            "battery_voltage": 3.4,
-            "device_name": "aq_g5_87",
-            "external_humidity": null,
-            "external_temperature": null,
-            "internal_humidity": 65.0,
-            "internal_temperature": 28.0,
-            "s1_pm10": 58.87,
-            "s1_pm2_5": 46.05,
-            "s2_pm10": 46.27,
-            "s2_pm2_5": 36.25,
-            "timestamp": "Sat, 21 Jan 2023 05:05:42 GMT"
-          },
-          {
-            "battery_voltage": 3.41,
-            "device_name": "aq_g5_87",
-            "external_humidity": null,
-            "external_temperature": null,
-            "internal_humidity": 64.0,
-            "internal_temperature": 28.0,
-            "s1_pm10": 52.43,
-            "s1_pm2_5": 43.17,
-            "s2_pm10": 55.92,
-            "s2_pm2_5": 43.55,
-            "timestamp": "Sat, 21 Jan 2023 05:06:53 GMT"
-          },
-          {
-            "battery_voltage": 3.42,
-            "device_name": "aq_g5_87",
-            "external_humidity": null,
-            "external_temperature": null,
-            "internal_humidity": 64.0,
-            "internal_temperature": 29.0,
-            "s1_pm10": 59.2,
-            "s1_pm2_5": 46.38,
-            "s2_pm10": 50.5,
-            "s2_pm2_5": 41.13,
-            "timestamp": "Sat, 21 Jan 2023 05:08:03 GMT"
-          }
-        ],
-        "device_name": "aq_g5_87"
-      }
-    ],
-    "intra_sensor_correlation": [
-      {
-        "data": [
-          {
-            "pm10_pearson_correlation": 0.9587,
-            "pm10_r2": 0.9791322688993556,
-            "pm2_5_pearson_correlation": 0.9648,
-            "pm2_5_r2": 0.982242332624694,
-            "timestamp": "2023-01-21T05:00:00.000000Z"
-          },
-          {
-            "pm10_pearson_correlation": 0.9452,
-            "pm10_r2": 0.9722139682189307,
-            "pm2_5_pearson_correlation": 0.9272,
-            "pm2_5_r2": 0.9629122493768578,
-            "timestamp": "2023-01-22T00:00:00.000000Z"
-          },
-          {
-            "pm10_pearson_correlation": 0.9681,
-            "pm10_r2": 0.9839207285142436,
-            "pm2_5_pearson_correlation": 0.966,
-            "pm2_5_r2": 0.9828529900244491,
-            "timestamp": "2023-01-23T04:00:00.000000Z"
-          },
-          {
-            "pm10_pearson_correlation": 0.994,
-            "pm10_r2": 0.9969954864491614,
-            "pm2_5_pearson_correlation": 0.9941,
-            "pm2_5_r2": 0.9970456358662827,
-            "timestamp": "2023-01-24T05:00:00.000000Z"
-          }
-        ],
-        "device_name": "aq_g5_87"
-      }
-    ]
-  }
+  "data": [
+    {
+      "aq_g520": {
+        "s1_pm10": 27.788,
+        "s1_pm2_5": 24.764000000000003,
+        "s2_pm10": 39.18,
+        "s2_pm2_5": 33.08
+      },
+      "timestamp": "2023-03-15T07:00:00.000000Z"
+    },
+    {
+      "aq_g520": {
+        "s1_pm10": 4.015,
+        "s1_pm2_5": 3.16,
+        "s2_pm10": 5.2775,
+        "s2_pm2_5": 3.8425
+      },
+      "timestamp": "2023-03-16T12:00:00.000000Z"
+    },
+    {
+      "aq_g520": {
+        "s1_pm10": 8.146666666666667,
+        "s1_pm2_5": 7.3076,
+        "s2_pm10": 9.906296296296295,
+        "s2_pm2_5": 8.452962962962964
+      },
+      "timestamp": "2023-03-16T13:00:00.000000Z"
+    }
+  ]
 }

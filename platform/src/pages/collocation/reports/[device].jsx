@@ -85,71 +85,71 @@ const Reports = () => {
           message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
         />
       )}
-      <>
-        <div className='grid grid-cols-1 md:grid-cols-2'>
-          {!isCollocationResultsLoading && collocationResults ? (
-            <Box
-              title='Intra Sensor Correlation'
-              subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-              contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
-            >
-              <div
-                className='flex flex-col justify-start w-full'
-                data-testid='intra-correlation-chart'
-              >
-                <PollutantDropdown
-                  pollutantValue={pmConcentration}
-                  handlePollutantChange={togglePmConcentrationChange}
-                  options={[
-                    { value: '2.5', label: 'pm2_5' },
-                    { value: '10', label: 'pm10' },
-                  ]}
-                />
-                <CorrelationChart
-                  data={collocationResults}
-                  pmConcentration={pmConcentration}
-                  height={'210'}
-                  isInterSensorCorrelation
-                />
+      <div className='grid grid-cols-1 md:grid-cols-2'>
+        <Box
+          title='Intra Sensor Correlation'
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+        >
+          <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
+            <PollutantDropdown
+              pollutantValue={pmConcentration}
+              handlePollutantChange={togglePmConcentrationChange}
+              options={[
+                { value: '2.5', label: 'pm2_5' },
+                { value: '10', label: 'pm10' },
+              ]}
+            />
+            {isCollocationResultsLoading ? (
+              <div className='mb-6'>
+                <Spinner />
               </div>
-            </Box>
-          ) : (
-            <div className='h-20'>
-              <Spinner />
-            </div>
-          )}
-          {!isIntraSensorCorrelationDataLoading && intraSensorCorrelationResults ? (
-            <Box
-              title='Intra Sensor Correlation'
-              subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-              contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
-            >
-              <div
-                className='flex flex-col justify-start w-full'
-                data-testid='intra-correlation-chart'
-              >
-                <PollutantDropdown
-                  pollutantValue={pmConcentration}
-                  handlePollutantChange={togglePmConcentrationChange}
-                  options={[
-                    { value: '2.5', label: 'pm2_5' },
-                    { value: '10', label: 'pm10' },
-                  ]}
-                />
-                <CorrelationBarChart
-                  height={'210'}
-                  pmConcentration={pmConcentration}
-                  data={intraSensorCorrelationResults}
-                />
+            ) : (
+              <>
+                {collocationResults && (
+                  <CorrelationChart
+                    data={collocationResults}
+                    pmConcentration={pmConcentration}
+                    height={'210'}
+                    isInterSensorCorrelation
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </Box>
+        <Box
+          title='Intra Sensor Correlation'
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+        >
+          <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
+            <PollutantDropdown
+              pollutantValue={pmConcentration}
+              handlePollutantChange={togglePmConcentrationChange}
+              options={[
+                { value: '2.5', label: 'pm2_5' },
+                { value: '10', label: 'pm10' },
+              ]}
+            />
+            {isIntraSensorCorrelationDataLoading ? (
+              <div className='mb-6'>
+                <Spinner />
               </div>
-            </Box>
-          ) : (
-            <div className='h-20'>
-              <Spinner />
-            </div>
-          )}
-        </div>
-      </>
+            ) : (
+              <>
+                {intraSensorCorrelationResults && (
+                  <CorrelationBarChart
+                    height={'210'}
+                    pmConcentration={pmConcentration}
+                    data={intraSensorCorrelationResults}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </Box>
+      </div>
     </Layout>
   );
 };

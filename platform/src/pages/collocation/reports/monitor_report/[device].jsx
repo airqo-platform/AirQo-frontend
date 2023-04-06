@@ -5,12 +5,12 @@ import DataCompletenessTable from '@/components/Collocation/Report/MonitorReport
 import {
   useGetCollocationResultsMutation,
   useGetDataCompletenessResultsMutation,
+  useGetDeviceStatusSummaryQuery,
 } from '@/lib/store/services/collocation';
 import { useEffect, useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
 import Toast from '@/components/Toast';
-import Spinner from '@/components/Spinner';
 
 const MonitorReport = () => {
   const router = useRouter();
@@ -21,12 +21,31 @@ const MonitorReport = () => {
 
   const [
     getCollocationResultsData,
-    { isError: isFetchCollocationResultsError, isSuccess: isFetchCollocationResultsSuccess },
+    {
+      isError: isFetchCollocationResultsError,
+      isSuccess: isFetchCollocationResultsSuccess,
+      isLoading: isFetchCollocationResultsLoading,
+    },
   ] = useGetCollocationResultsMutation();
   const [
     getDataCompletenessResults,
-    { isError: isFetchDataCompletenessError, isSuccess: isFetchDataCompletenessSuccess },
+    {
+      isError: isFetchDataCompletenessError,
+      isSuccess: isFetchDataCompletenessSuccess,
+      isLoading: isFetchDataCompletenessLoading,
+    },
   ] = useGetDataCompletenessResultsMutation();
+  const {
+    data: data,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+    refetch,
+  } = useGetDeviceStatusSummaryQuery();
+  let deviceStatusSummary = data ? data.data : [];
+
+  let passedDevices = deviceStatusSummary.filter((device) => device.status === 'passed');
 
   useEffect(() => {
     const fetchCollocationResults = async () => {
@@ -73,6 +92,10 @@ const MonitorReport = () => {
     setInterCorrelationConcentration(newValue);
   };
 
+  const handleDeviceSelect = (device) => {
+    console.log('Selected device:', device.device_name);
+  };
+
   return (
     <Layout>
       <NavigationBreadCrumb
@@ -87,38 +110,33 @@ const MonitorReport = () => {
           dataTestId={'monitor-report-error-toast'}
         />
       )}
-      {isFetchCollocationResultsSuccess && collocationResults ? (
-        <>
-          <IntraCorrelationChart
-            collocationResults={collocationResults}
-            intraCorrelationConcentration={intraCorrelationConcentration}
-            toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
-            deviceName={device}
-          />
+      <div data-testid='correlation-chart'>
+        <IntraCorrelationChart
+          collocationResults={collocationResults}
+          intraCorrelationConcentration={intraCorrelationConcentration}
+          toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
+          deviceName={device}
+          isLoading={isFetchCollocationResultsLoading}
+          deviceList={passedDevices}
+          onSelect={handleDeviceSelect}
+        />
 
-          <InterCorrelationChart
-            collocationResults={collocationResults}
-            interCorrelationConcentration={interCorrelationConcentration}
-            toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
-            correlationDevices={correlationDevices}
-            deviceName={device}
-            startDate={startDate}
-            endDate={endDate}
-          />
-        </>
-      ) : (
-        <div className='h-20'>
-          <Spinner />
-        </div>
-      )}
+        <InterCorrelationChart
+          collocationResults={collocationResults}
+          interCorrelationConcentration={interCorrelationConcentration}
+          toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
+          correlationDevices={correlationDevices}
+          deviceName={device}
+          startDate={startDate}
+          endDate={endDate}
+          isLoading={isFetchCollocationResultsLoading}
+        />
+      </div>
 
-      {isFetchDataCompletenessSuccess && dataCompletenessResults ? (
-        <DataCompletenessTable dataCompletenessResults={dataCompletenessResults} />
-      ) : (
-        <div className='h-20'>
-          <Spinner />
-        </div>
-      )}
+      <DataCompletenessTable
+        dataCompletenessResults={dataCompletenessResults}
+        isLoading={isFetchDataCompletenessLoading}
+      />
     </Layout>
   );
 };

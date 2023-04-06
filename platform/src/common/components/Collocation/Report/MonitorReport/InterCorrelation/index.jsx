@@ -4,6 +4,7 @@ import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
+import Spinner from '@/components/Spinner';
 
 const CustomLegend = () => {
   '#8884d8', '#82ca9d';
@@ -38,6 +39,7 @@ const InterCorrelationChart = ({
   deviceName,
   startDate,
   endDate,
+  isLoading,
 }) => {
   return (
     <Box
@@ -46,54 +48,62 @@ const InterCorrelationChart = ({
       subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
       contentLink='#'
     >
-      <div className='flex flex-col justify-start w-full'>
-        <div className='flex justify-between'>
-          <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-            <span className='uppercase'>{deviceName}</span>
-            {/* <span className='ml-2 text-purple-700'>
-              <ArrowDropDownIcon fillColor='#584CAB' />
-            </span> */}
-          </Button>
-          {correlationDevices.length == 2 ? (
-            <div>
-              <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-                <span className='text-base'>{deviceName}</span>
-                <span className='ml-2 text-purple-700'>
-                  <ArrowDropDownIcon fillColor='#584CAB' />
-                </span>
-              </Button>
-            </div>
-          ) : (
-            <div className='flex flex-col-reverse md:flex-row items-center mr-6 mb-6'>
-              <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
-                Select a monitor to compare with <span className='uppercase'>{deviceName}</span>
-              </span>
-              <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
-                <span className='text-blue-300 text-base'>Select Monitor</span>
-                <span className='ml-2 text-purple-700'>
-                  <ArrowDropDownIcon fillColor='#584CAB' />
-                </span>
-              </Button>
-            </div>
-          )}
+      {isLoading ? (
+        <div data-testid='correlation-data-loader'>
+          <Spinner />
         </div>
-        <PollutantDropdown
-          pollutantValue={interCorrelationConcentration}
-          handlePollutantChange={toggleInterCorrelationConcentrationChange}
-          options={[
-            { value: '2.5', label: 'pm2_5' },
-            { value: '10', label: 'pm10' },
-          ]}
-        />
-        {collocationResults && (
-          <CorrelationChart
-            data={collocationResults}
-            pmConcentration={interCorrelationConcentration}
-            isInterSensorCorrelation
+      ) : (
+        <div className='flex flex-col justify-start w-full'>
+          <div className='flex justify-between'>
+            <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
+              <span className='uppercase'>{deviceName}</span>
+              <span className='ml-2 text-purple-700'>
+                <ArrowDropDownIcon fillColor='#584CAB' />
+              </span>
+            </Button>
+            {correlationDevices.length == 2 ? (
+              <div>
+                <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
+                  <span className='text-base'>{deviceName}</span>
+                  <span className='ml-2 text-purple-700'>
+                    <ArrowDropDownIcon fillColor='#584CAB' />
+                  </span>
+                </Button>
+              </div>
+            ) : (
+              <div className='flex flex-col-reverse md:flex-row items-center mr-6 mb-6'>
+                <span className='text-sm text-black-600 opacity-70 max-w-[96px] md:max-w-full'>
+                  Select a monitor to compare with <span className='uppercase'>{deviceName}</span>
+                </span>
+                <Button className='w-auto h-10 bg-blue-200 rounded-lg text-base font-semibold text-purple-700 ml-2'>
+                  <span className='text-blue-300 text-base'>Select Monitor</span>
+                  <span className='ml-2 text-purple-700'>
+                    <ArrowDropDownIcon fillColor='#584CAB' />
+                  </span>
+                </Button>
+              </div>
+            )}
+          </div>
+          <PollutantDropdown
+            pollutantValue={interCorrelationConcentration}
+            handlePollutantChange={toggleInterCorrelationConcentrationChange}
+            options={[
+              { value: '2.5', label: 'pm2_5' },
+              { value: '10', label: 'pm10' },
+            ]}
           />
-        )}
-        <CustomLegend />
-      </div>
+          {collocationResults ? (
+            <CorrelationChart
+              data={collocationResults}
+              pmConcentration={interCorrelationConcentration}
+              isInterSensorCorrelation
+            />
+          ) : (
+            <div className='text-center text-grey-300'>No data available</div>
+          )}
+          <CustomLegend />
+        </div>
+      )}
     </Box>
   );
 };

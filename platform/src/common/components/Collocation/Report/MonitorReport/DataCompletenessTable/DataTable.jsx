@@ -5,8 +5,9 @@ import {
   addDevice,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import moment from 'moment';
+import Spinner from '@/components/Spinner';
 
-const DataTable = ({ filteredData, dataCompletenessResults }) => {
+const DataTable = ({ filteredData, dataCompletenessResults, isLoading }) => {
   const dispatch = useDispatch();
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -14,7 +15,8 @@ const DataTable = ({ filteredData, dataCompletenessResults }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    dataCompletenessResults.map((device) => allDevices.push(device.device_name));
+    dataCompletenessResults &&
+      dataCompletenessResults.map((device) => allDevices.push(device.device_name));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -38,7 +40,10 @@ const DataTable = ({ filteredData, dataCompletenessResults }) => {
           <th scope='col' className='text-xs font-normal w-[61px] pb-3 px-6'>
             <input
               type='checkbox'
-              checked={selectedCollocateDevices.length === dataCompletenessResults.length}
+              checked={
+                dataCompletenessResults &&
+                selectedCollocateDevices.length === dataCompletenessResults.length
+              }
               onChange={handleSelectAllDevices}
             />
           </th>
@@ -87,42 +92,52 @@ const DataTable = ({ filteredData, dataCompletenessResults }) => {
         </tr>
       </thead>
       <tbody>
-        {filteredData.length > 0 &&
-          filteredData.map((device, index) => {
-            return (
-              <tr className='border-b border-b-slate-300 text-xs' key={index}>
-                <td scope='row' className='w-[61px] py-3 px-6'>
-                  <input
-                    type='checkbox'
-                    checked={selectedCollocateDevices.includes(device.device_name)}
-                    value={device}
-                    onChange={(e) => handleSelectDevice(e, device)}
-                  />
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.device_name}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.expected_number_of_records}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.completeness.toFixed(2) + '%'}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.missing.toFixed(2) + '%'}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.actual_number_of_records}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {moment(device.start_date).format('MMM DD, YYYY')}
-                </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {moment(device.end_date).format('MMM DD, YYYY')}
-                </td>
-              </tr>
-            );
-          })}
+        {isLoading ? (
+          <tr>
+            <td colSpan='8' scope='row' className='pt-6 text-center'>
+              <Spinner />
+            </td>
+          </tr>
+        ) : (
+          <>
+            {filteredData &&
+              filteredData.map((device, index) => {
+                return (
+                  <tr className='border-b border-b-slate-300 text-xs' key={index}>
+                    <td scope='row' className='w-[61px] py-3 px-6'>
+                      <input
+                        type='checkbox'
+                        checked={selectedCollocateDevices.includes(device.device_name)}
+                        value={device}
+                        onChange={(e) => handleSelectDevice(e, device)}
+                      />
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {device.device_name}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {device.expected_number_of_records}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {device.completeness.toFixed(2) + '%'}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {device.missing.toFixed(2) + '%'}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {device.actual_number_of_records}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {moment(device.start_date).format('MMM DD, YYYY')}
+                    </td>
+                    <td scope='row' className='w-[145px] px-4 py-3'>
+                      {moment(device.end_date).format('MMM DD, YYYY')}
+                    </td>
+                  </tr>
+                );
+              })}
+          </>
+        )}
       </tbody>
     </table>
   );

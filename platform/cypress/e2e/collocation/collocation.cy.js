@@ -51,7 +51,7 @@ describe('Collocation feature', () => {
 
     // Check if the schedule button is visible and click it
     cy.get('[data-testid="collocation-schedule-button"]', { timeout: 5000 }).should('be.visible');
-    cy.get('[data-testid="collocation-schedule-button"]').click();
+    cy.get('[data-testid="collocation-schedule-button"]', { timeout: 5000 }).click();
 
     // Visit the device collocation success page
     cy.visit('/collocation/collocate_success');
@@ -79,7 +79,9 @@ describe('Collocation feature', () => {
     // Verify that the toast is visible and contains the correct message
     cy.get('[data-testid="collocation-error-toast"]')
       .should('be.visible')
-      .contains("Uh-oh! Devices are temporarily unavailable, but we're working to fix that");
+      .contains(
+        'Uh-oh! Unable to collocate devices. Please check your connection or try again later.',
+      );
   });
 
   it('shows device summary table when the API request is successful', () => {
@@ -117,30 +119,38 @@ describe('Collocation feature', () => {
     cy.get('table tbody tr:last-of-type span').click({ multiple: true });
   });
 
-  it('shows the collocation results when the collocation results api is successful', () => {
-    // Intercept the API request to get the collocation results
-    cy.intercept('GET', '**/results?devices=aq_g5_87&startDate=2023-01-21&endDate=2023-01-24', {
+  it('display the correlation charts when the api is successful', () => {
+    // Intercept the API request to get the data
+    cy.intercept('POST', '**/data', {
       statusCode: 200,
-      fixture: 'collocation_results.json',
+      body: {
+        devices: ['aq_g520'],
+        startDate: '2023-03-15',
+        endDate: '2023-03-18',
+      },
     }).as('getCollocationResults');
 
     // Visit the collocate page
     cy.visit(
-      '/collocation/reports/monitor_report/aq_g5_87?devices=aq_g5_87&startDate=2023-01-21&endDate=2023-01-24',
+      '/collocation/reports/monitor_report/aq_g520?devices=aq_g520&startDate=2023-03-15&endDate=2023-03-18',
     );
 
     // Wait for the API request to finish
-    cy.wait('@getCollocationResults');
+    cy.wait('@getCollocationResults', { timeout: 5000 });
 
-    // Verify that the collocation results are visible
-    cy.get('[data-testid="intra-correlation-chart"]').should('be.visible');
+    // Verify that the chart is visible
+    cy.get('[data-testid="correlation-chart"]').should('be.visible');
   });
 
   it('shows the alert when the collocation results api is not successful', () => {
     // Intercept the API request to get the collocation results
-    cy.intercept('GET', '**/results?devices=aq_g5_87&startDate=2023-01-21&endDate=2023-01-24', {
+    cy.intercept('POST', '**/data', {
       statusCode: 500,
-      fixture: 'collocation_results.json',
+      body: {
+        devices: ['aq_g520'],
+        startDate: '2023-03-15',
+        endDate: '2023-03-18',
+      },
     }).as('getCollocationResults');
 
     // Visit the collocate page
@@ -149,7 +159,7 @@ describe('Collocation feature', () => {
     );
 
     // Wait for the API request to finish
-    cy.wait('@getCollocationResults');
+    cy.wait('@getCollocationResults', { timeout: 5000 });
 
     // Verify that the collocation results are visible
     cy.get('[data-testid="monitor-report-error-toast"]').should('be.visible');

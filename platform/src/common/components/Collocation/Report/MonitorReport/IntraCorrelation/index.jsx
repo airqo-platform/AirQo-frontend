@@ -3,6 +3,10 @@ import Button from '@/components/Button';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
+import Spinner from '@/components/Spinner';
+import { useEffect, useState } from 'react';
+import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
+import moment from 'moment';
 
 const CustomLegend = () => {
   return (
@@ -25,7 +29,50 @@ const IntraCorrelationChart = ({
   toggleIntraCorrelationConcentrationChange,
   collocationResults,
   deviceName,
+  isLoading,
+  deviceList,
+  onSelect,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState(deviceName);
+  const [newCollocationResults, setNewCollocationResults] = useState(collocationResults);
+
+  useEffect(() => {
+    if (!newCollocationResults) {
+      setNewCollocationResults(collocationResults); // TODO: Update this to use the new collocation results from redux store
+    }
+  }, [collocationResults]);
+
+  useEffect(() => {
+    setSelectedDevice(deviceName);
+  }, [deviceName]);
+
+  const [
+    getCollocationResultsData,
+    {
+      isError: isFetchCollocationResultsError,
+      isSuccess: isFetchCollocationResultsSuccess,
+      isLoading: isFetchCollocationResultsLoading,
+    },
+  ] = useGetCollocationResultsMutation();
+
+  const handleSelect = async (device, startDate, endDate) => {
+    setSelectedDevice(device);
+    onSelect(device);
+    setIsOpen(false);
+
+    try {
+      const result = await getCollocationResultsData({
+        devices: device,
+        startDate: moment(startDate).format('YYYY-MM-DD'),
+        endDate: moment(endDate).format('YYYY-MM-DD'),
+      });
+      setNewCollocationResults(result.data.data);
+    } catch (error) {
+      console.error('Error fetching collocation data:', error);
+    }
+  };
+
   return (
     <Box
       isBigTitle
@@ -33,27 +80,62 @@ const IntraCorrelationChart = ({
       subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
       contentLink='#'
     >
-      <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
-        <Button className='max-w-[115px] h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6 mb-6'>
-          <span className='uppercase'>{deviceName}</span>
-          {/* <span className='ml-2 text-purple-700'>
-            <ArrowDropDownIcon fillColor='#584CAB' />
-          </span> */}
-        </Button>
-        <PollutantDropdown
-          pollutantValue={intraCorrelationConcentration}
-          handlePollutantChange={toggleIntraCorrelationConcentrationChange}
-          options={[
-            { value: '2.5', label: 'pm2_5' },
-            { value: '10', label: 'pm10' },
-          ]}
-        />
-        <CorrelationChart
-          data={collocationResults}
-          pmConcentration={intraCorrelationConcentration}
-        />
-        <CustomLegend />
-      </div>
+      {isLoading || isFetchCollocationResultsLoading ? (
+        <div className='h-20' data-testid='correlation-data-loader'>
+          <Spinner />
+        </div>
+      ) : (
+        <div className='flex flex-col justify-start w-full'>
+          <div className='relative'>
+            <Button
+              className='relative w-auto h-10 bg-purple-600 rounded-lg text-base font-semibold text-purple-700 ml-6'
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span className='uppercase'>{selectedDevice}</span>
+              <span className='ml-2 text-purple-700'>
+                <ArrowDropDownIcon fillColor='#584CAB' />
+              </span>
+            </Button>
+            {isOpen && (
+              <ul className='absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm'>
+                {deviceList.map((device, index) => (
+                  <>
+                    {deviceName !== device.device_name && (
+                      <li
+                        key={index}
+                        className='px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase'
+                        onClick={() =>
+                          handleSelect(device.device_name, device.startDate, device.endDate)
+                        }
+                      >
+                        {device.device_name}
+                      </li>
+                    )}
+                  </>
+                ))}
+              </ul>
+            )}
+          </div>
+          <PollutantDropdown
+            pollutantValue={intraCorrelationConcentration}
+            handlePollutantChange={toggleIntraCorrelationConcentrationChange}
+            options={[
+              { value: '2.5', label: 'pm2_5' },
+              { value: '10', label: 'pm10' },
+            ]}
+          />
+          {collocationResults && newCollocationResults ? (
+            <CorrelationChart
+              data={newCollocationResults}
+              pmConcentration={intraCorrelationConcentration}
+              isInterSensorCorrelation
+            />
+          ) : (
+            <div className='text-center text-grey-300'>No data available</div>
+          )}
+          <CustomLegend />
+        </div>
+      )}
     </Box>
   );
 };
