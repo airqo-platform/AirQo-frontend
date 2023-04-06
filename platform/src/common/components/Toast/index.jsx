@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import WarningCircleIcon from '@/icons/Common/warning_circle';
 
-const Toast = ({ message, type, timeout = 3000, dataTestId }) => {
+const Toast = ({ message, type, timeout = 5000, dataTestId }) => {
   const [visible, setVisible] = useState(true);
   const colors = {
     success: 'bg-green-500',

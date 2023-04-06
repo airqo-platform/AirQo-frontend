@@ -39,7 +39,7 @@ const MonitorReport = () => {
         startDate: startDate,
         endDate: endDate,
       });
-      console.log(response);
+
       setCollocationResults(response.data.data);
     };
     fetchCollocationResults();
@@ -60,10 +60,11 @@ const MonitorReport = () => {
   return (
     <Layout>
       <NavigationBreadCrumb backLink={'/collocation/reports'} navTitle={'Monitor Report'} />
-      {isError && (
+      {(isError || !isSuccess) && (
         <Toast
           type={'error'}
-          message="Uh-oh! Reports are temporarily unavailable, but we're working to fix that"
+          timeout={20000}
+          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
           dataTestId={'monitor-report-error-toast'}
         />
       )}

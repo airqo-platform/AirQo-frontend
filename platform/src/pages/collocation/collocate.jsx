@@ -59,13 +59,14 @@ const collocate = () => {
   return (
     <Layout>
       <HeaderNav component={'Collocate'}>
-        {isError && (
+        {(isError || !isSuccess) && (
           <Toast
             type={'error'}
+            timeout={20000}
             message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
           />
         )}
-        {isSuccess && (
+        {deviceStatusSummary && (
           <div className='flex'>
             <Button
               className={

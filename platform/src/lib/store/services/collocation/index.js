@@ -49,6 +49,15 @@ export const collocateApi = createApi({
         };
       },
     }),
+    getIntraSensorCorrelation: builder.mutation({
+      query: (addIntraSensorInput) => {
+        return {
+          url: '/intra',
+          method: 'POST',
+          body: addIntraSensorInput,
+        };
+      },
+    }),
   }),
 });
 
@@ -57,6 +66,7 @@ export const {
   useGetDeviceStatusSummaryQuery,
   useGetCollocationResultsMutation,
   useGetDataCompletenessResultsMutation,
+  useGetIntraSensorCorrelationMutation,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
@@ -66,4 +76,5 @@ export const {
   getDeviceStatusSummary,
   getCollocationResults,
   getDataCompletenessResults,
+  getIntraSensorCorrelation,
 } = collocateApi.endpoints;

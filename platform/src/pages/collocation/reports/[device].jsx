@@ -6,55 +6,67 @@ import CorrelationChart from '@/components/Collocation/Report/Charts/Correlation
 import { useEffect, useState } from 'react';
 import {
   useGetCollocationResultsMutation,
-  useGetDataCompletenessResultsMutation,
+  useGetIntraSensorCorrelationMutation,
+  getRunningQueriesThunk,
 } from '@/lib/store/services/collocation';
 import ContentBox from '@/components/Layout/content_box';
 import CustomTable from '@/components/Table';
 import CorrelationBarChart from '@/components/Collocation/Report/Charts/CorrelationBarChart';
-
-const CustomLegend = () => {
-  return (
-    <div className='flex items-center justify-end mt-4 mb-3 mr-7'>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-400 mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 01</span>
-      </div>
-      <span className='uppercase mx-2 text-[10px] text-grey-800'>Compared to</span>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 02</span>
-      </div>
-    </div>
-  );
-};
+import moment from 'moment';
+import { wrapper } from '@/lib/store';
+import { useRouter } from 'next/router';
+import Toast from '@/components/Toast';
 
 const Reports = () => {
-  const [getCollocationResultsData, { isError, isSuccess }] = useGetCollocationResultsMutation();
+  const router = useRouter();
+  const { device, startDate, endDate } = router.query;
 
-  // const [getDataCompletenessResultsData, {isError , isSuccess}] = useGetDataCompletenessResultsMutation();
-
-  //   const [dataCompletenessResults, setDataCompletenessResults] = useState(null);
-
+  const [intraSensorCorrelationResults, setIntraSensorCorrelationResults] = useState(null);
   const [collocationResults, setCollocationResults] = useState(null);
-  let device = 'aq_g4_100';
-  let startDate = '2023-01-21';
-  let endDate = '2023-01-25';
+
+  const [
+    getIntraSensorCorrelationData,
+    {
+      isLoading: isIntraSensorCorrelationDataLoading,
+      isSuccess: isIntraSensorCorrelationDataSuccess,
+    },
+  ] = useGetIntraSensorCorrelationMutation();
+  const [
+    getCollocationResultsData,
+    { isLoading: isCollocationResultsLoading, isSuccess: isCollocationResultsSuccess },
+  ] = useGetCollocationResultsMutation();
+
+  useEffect(() => {
+    const fetchIntraSensorCorrelationData = async () => {
+      if (!device || !startDate || !endDate) return;
+      const response = await getIntraSensorCorrelationData({
+        devices: [device],
+        startDate,
+        endDate,
+      });
+
+      if (!response.error) {
+        setIntraSensorCorrelationResults(response.data.data);
+      }
+    };
+    fetchIntraSensorCorrelationData();
+  }, [getIntraSensorCorrelationData, device, startDate, endDate]);
 
   useEffect(() => {
     const fetchCollocationResults = async () => {
+      if (!device || !startDate || !endDate) return;
       const response = await getCollocationResultsData({
         devices: device,
-        startDate: startDate,
-        endDate: endDate,
+        startDate,
+        endDate,
       });
-      setCollocationResults(response.data.data);
+
+      if (!response.error) {
+        setCollocationResults(response.data.data);
+      }
     };
     fetchCollocationResults();
   }, [getCollocationResultsData, device, startDate, endDate]);
-
-  // const columnHeaders = isSuccess && collocationResults
-  // ? Object.keys(collocationResults[0]).filter((key) => key !== 'timestamp')
-  // : [Object.keys(data[0])[1]]; // Gets the device names
 
   const [pmConcentration, setPmConcentration] = useState('10');
 
@@ -62,25 +74,19 @@ const Reports = () => {
     setPmConcentration(newValue);
   };
 
-  const data = [
-    ['John', 'Doe', 30, 'john.doe@example.com'],
-    ['Jane', 'Doe', 25, 'jane.doe@example.com'],
-    ['Bob', 'Smith', 45, 'bob.smith@example.com'],
-    ['Alice', 'Johnson', 28, 'alice.johnson@example.com'],
-  ];
-
-  const sortableColumns = [0, 1, 2, 3];
-
-  const handleRowSelect = (selectedRows) => {
-    console.log(selectedRows);
-    // do something with the selected rows data
-  };
   return (
     <Layout>
       <HeaderNav component={'Reports'} />
-      {isSuccess && collocationResults && (
-        <>
-          <div className='grid grid-cols-1 md:grid-cols-2'>
+      {(!isIntraSensorCorrelationDataSuccess || !isCollocationResultsSuccess) && (
+        <Toast
+          type={'error'}
+          timeout={20000}
+          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
+        />
+      )}
+      <>
+        <div className='grid grid-cols-1 md:grid-cols-2'>
+          {!isCollocationResultsLoading && collocationResults && (
             <Box
               title='Intra Sensor Correlation'
               subtitle='Detailed comparison of data between two sensors that are located within the same device.'
@@ -105,6 +111,8 @@ const Reports = () => {
                 />
               </div>
             </Box>
+          )}
+          {!isIntraSensorCorrelationDataLoading && intraSensorCorrelationResults && (
             <Box
               title='Intra Sensor Correlation'
               subtitle='Detailed comparison of data between two sensors that are located within the same device.'
@@ -121,23 +129,16 @@ const Reports = () => {
                     { value: '10', label: 'pm10' },
                   ]}
                 />
-                <CorrelationBarChart height={'210'} pmConcentration={pmConcentration} />
+                <CorrelationBarChart
+                  height={'210'}
+                  pmConcentration={pmConcentration}
+                  data={intraSensorCorrelationResults}
+                />
               </div>
             </Box>
-          </div>
-          <ContentBox>
-            {isSuccess && (
-              <CustomTable
-                headers={['First Name', 'Last Name', 'Age', 'Email']}
-                data={data}
-                sortableColumns={sortableColumns}
-                activeColumnIndex={1}
-                onRowSelect={handleRowSelect}
-              />
-            )}
-          </ContentBox>
-        </>
-      )}
+          )}
+        </div>
+      </>
     </Layout>
   );
 };

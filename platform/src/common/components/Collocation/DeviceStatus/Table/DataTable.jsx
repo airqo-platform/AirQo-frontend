@@ -71,9 +71,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     setClickedRowIndex(index);
     const response = await getCollocationResultsData({ devices: deviceName, startDate, endDate });
 
-    if (!(response.error && response.error.error)) {
+    if (!response.error) {
       router.push({
-        pathname: `/collocation/reports/monitor_report/${deviceName}`,
+        pathname: `/collocation/reports/${deviceName}`,
         query: {
           device: deviceName,
           startDate: startDate,

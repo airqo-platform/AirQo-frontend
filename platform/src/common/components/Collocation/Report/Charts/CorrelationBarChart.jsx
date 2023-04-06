@@ -27,29 +27,16 @@ const CustomBarLabel = (props) => {
   );
 };
 
-const CorrelationBarChart = ({ height, pmConcentration }) => {
-  const data = {
-    aq_g4_100: {
-      pm10_pearson_correlation: 0.991,
-      pm10_r2: 0.9954898291795853,
-      pm2_5_pearson_correlation: 0.9922,
-      pm2_5_r2: 0.9960923651951158,
-    },
-    aq_g5_87: {
-      pm10_pearson_correlation: 0.9808,
-      pm10_r2: 0.9903534722511957,
-      pm2_5_pearson_correlation: 0.9808,
-      pm2_5_r2: 0.9903534722511957,
-    },
-  };
-
+const CorrelationBarChart = ({ height, pmConcentration, data }) => {
   const chartData = Object.entries(data).map(([device, deviceData]) => ({
     device,
     ...deviceData,
   }));
 
+  console.log(chartData);
+
   return (
-    <div className={`w-full ${height ? `h-[${height}px]` : h - 80}`}>
+    <div className={`w-full ${height ? `h-[${height}px]` : `h-80`}`}>
       <ResponsiveContainer width='100%' height='100%'>
         <BarChart layout='vertical' data={chartData} className='text-xs -ml-7'>
           <CartesianGrid
@@ -58,7 +45,13 @@ const CorrelationBarChart = ({ height, pmConcentration }) => {
             strokeOpacity='0.1'
             strokeWidth={0.5}
           />
-          <XAxis type='number' strokeWidth='0.5' stroke='#000000' strokeOpacity='0.1' />
+          <XAxis
+            type='number'
+            strokeWidth='0.5'
+            stroke='#000000'
+            strokeOpacity='0.1'
+            axisLine={false}
+          />
           <YAxis
             type='category'
             dataKey='device'
@@ -70,8 +63,8 @@ const CorrelationBarChart = ({ height, pmConcentration }) => {
             tickLine={false}
             tick={false}
           />
-          {/* <Tooltip /> */}
-          <Legend />
+          <Tooltip />
+          {/* <Legend /> */}
           <Bar
             dataKey={
               pmConcentration === '2.5' ? 'pm2_5_pearson_correlation' : 'pm10_pearson_correlation'

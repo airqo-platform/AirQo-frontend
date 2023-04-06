@@ -64,7 +64,6 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
-              <SideBarDropdownItem itemLabel='Reports' itemPath='' />
             </SideBarItem>
 
             <hr className='my-3 h-[0.5px] bg-grey-150' />
@@ -79,7 +78,6 @@ const SideBar = () => {
             >
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
-              <SideBarDropdownItem itemLabel='Reports' itemPath='/collocation/reports' />
             </SideBarItem>
             <SideBarItem label='Calibrate' Icon={BarChartIcon} />
             <SideBarItem label='Other tools' Icon={BarChartIcon} />
