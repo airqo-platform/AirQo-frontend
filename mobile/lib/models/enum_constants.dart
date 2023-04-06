@@ -154,7 +154,7 @@ enum AirQuality {
         'Nearby locations with air quality Unhealthy For Sensitive Groups',
     searchOtherLocationsText:
         'Locations with air quality Unhealthy For Sensitive Groups',
-    value: 101,
+    value: 44,
     minimumValue: 35.5,
     maximumValue: 55.49,
   ),
