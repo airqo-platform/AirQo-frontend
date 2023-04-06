@@ -1,5 +1,5 @@
 import Layout from '@/components/Layout';
-import HeaderNav from '@/components/Collocation/header';
+import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import Box from '@/components/Collocation/Report/box';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
@@ -77,7 +77,7 @@ const Reports = () => {
 
   return (
     <Layout>
-      <HeaderNav component={'Reports'} />
+      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Reports'} />
       {(isFetchCollocationResultsError || isFetchIntraSensorCorrelationDataError) && (
         <Toast
           type={'error'}
