@@ -11,12 +11,25 @@ import { useEffect, useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
 import Toast from '@/components/Toast';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addActiveSelectedDeviceCollocationReportData,
+  addActiveSelectedDeviceReport,
+} from '@/lib/store/services/collocation/collocationDataSlice';
 
 const MonitorReport = () => {
+  const dispatch = useDispatch();
+
+  const activeSelectedDeviceCollocationReportData = useSelector(
+    (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
+  );
+  const activeSelectedDeviceReport = useSelector(
+    (state) => state.collocationData.activeSelectedDeviceReport,
+  );
+
   const router = useRouter();
   const { device, startDate, endDate } = router.query;
 
-  const [collocationResults, setCollocationResults] = useState(null);
   const [dataCompletenessResults, setDataCompletenessResults] = useState(null);
 
   const [
@@ -52,12 +65,12 @@ const MonitorReport = () => {
       if (!device || !startDate || !endDate) return;
       const response = await getCollocationResultsData({
         devices: device,
-        startDate: startDate,
-        endDate: endDate,
+        startDate,
+        endDate,
       });
 
       if (!response.error) {
-        setCollocationResults(response.data.data);
+        dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
       }
     };
     fetchCollocationResults();
@@ -68,8 +81,8 @@ const MonitorReport = () => {
       if (!device || !startDate || !endDate) return;
       const response = await getDataCompletenessResults({
         devices: [device],
-        startDate: startDate,
-        endDate: endDate,
+        startDate,
+        endDate,
         expectedRecordsPerHour: 24,
       });
 
@@ -92,10 +105,6 @@ const MonitorReport = () => {
     setInterCorrelationConcentration(newValue);
   };
 
-  const handleDeviceSelect = (device) => {
-    console.log('Selected device:', device.device_name);
-  };
-
   return (
     <Layout>
       <NavigationBreadCrumb
@@ -112,23 +121,19 @@ const MonitorReport = () => {
       )}
       <div data-testid='correlation-chart'>
         <IntraCorrelationChart
-          collocationResults={collocationResults}
+          collocationResults={activeSelectedDeviceCollocationReportData}
           intraCorrelationConcentration={intraCorrelationConcentration}
           toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
-          deviceName={device}
           isLoading={isFetchCollocationResultsLoading}
           deviceList={passedDevices}
-          onSelect={handleDeviceSelect}
         />
 
         <InterCorrelationChart
-          collocationResults={collocationResults}
+          collocationResults={activeSelectedDeviceCollocationReportData}
           interCorrelationConcentration={interCorrelationConcentration}
           toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
           correlationDevices={correlationDevices}
-          deviceName={device}
-          startDate={startDate}
-          endDate={endDate}
+          deviceList={passedDevices}
           isLoading={isFetchCollocationResultsLoading}
         />
       </div>

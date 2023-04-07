@@ -62,6 +62,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
       <ResponsiveContainer width='100%' height='100%'>
         <LineChart data={data} className='text-xs -ml-7'>
           <CartesianGrid vertical={false} stroke='#000000' strokeOpacity='0.1' strokeWidth={0.5} />
+          <Legend />
           <XAxis
             dataKey={'timestamp'}
             tickFormatter={(timestamp) => moment(timestamp).format('D MMM')}

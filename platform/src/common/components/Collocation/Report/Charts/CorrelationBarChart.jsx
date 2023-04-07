@@ -33,8 +33,6 @@ const CorrelationBarChart = ({ height, pmConcentration, data }) => {
     ...deviceData,
   }));
 
-  console.log(chartData);
-
   return (
     <div className={`w-full ${height ? `h-[${height}px]` : `h-80`}`}>
       <ResponsiveContainer width='100%' height='100%'>
@@ -64,7 +62,7 @@ const CorrelationBarChart = ({ height, pmConcentration, data }) => {
             tick={false}
           />
           <Tooltip />
-          {/* <Legend /> */}
+          <Legend />
           <Bar
             dataKey={
               pmConcentration === '2.5' ? 'pm2_5_pearson_correlation' : 'pm10_pearson_correlation'
