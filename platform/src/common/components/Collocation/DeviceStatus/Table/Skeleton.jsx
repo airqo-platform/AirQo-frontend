@@ -1,5 +1,5 @@
 const Skeleton = () => (
-  <tbody>
+  <tbody data-testid='device-summary-skeleton'>
     {Array.from({ length: 9 }).map((_, index) => (
       <tr className='border-b border-b-skeleton h-14' key={index}>
         <td scope='row' className='w-[53px] pl-5'>
