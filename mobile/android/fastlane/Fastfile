@@ -7,7 +7,14 @@ platform :android do
   lane :production do
     update_fastlane
     sh "bundle exec fastlane update_plugins"
-    sh "flutter build appbundle --flavor airqo"
+    _google_play_track_version_codes = google_play_track_version_codes(
+      package_name: 'com.air.app',
+      track: 'production',
+      json_key_data: ENV['MOBILE_ANDROID_PLAYSTORE_SA']
+    )
+    _previous_build_number = _google_play_track_version_codes[0]
+    _new_build_number = _previous_build_number + 1
+    sh "flutter build appbundle --build-number #{_new_build_number} --flavor airqo"
     upload_to_play_store(
       track: "production",
       release_status: "draft",
