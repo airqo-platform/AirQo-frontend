@@ -31,6 +31,8 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+    
     return Scaffold(
       appBar: const AppTopBar('For You'),
       body: AppSafeArea(
@@ -91,8 +93,8 @@ class _ForYouPageState extends State<ForYouPage>
                           ),
                           CustomShowcaseWidget(
                             showcaseKey: _kyaTabShowcaseKey,
-                            descriptionHeight: 160,
-                            descriptionWidth: 100,
+                            descriptionHeight: screenSize.height * 0.16,
+                            descriptionWidth: screenSize.width * 0.3,
                             description:
                                 "Do you want to know more about air quality? Know your air in this section",
                             child: TabButton(
@@ -156,7 +158,7 @@ class _ForYouPageState extends State<ForYouPage>
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(Config.forYouPageShowcase) == null) {
       _startShowcase();
-      _appService.stopShowcase(Config.forYouPageShowcase);
+      await _appService.stopShowcase(Config.forYouPageShowcase);
     }
   }
 }
