@@ -105,6 +105,21 @@ h3, h4 {
       .nav-dropdown-item:hover .dropdown {
         display: block;
       }
+
+      .nav-dropdown-item.single-links{
+        .dropdown{
+          left:40px;
+          width: 430px;
+          height: 274px;
+        }
+        .dropdown-list{
+          .dropdown-list-item{
+            width: 180px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+          }
+        }
+      }
     }
   }
 
@@ -158,6 +173,7 @@ h3, h4 {
 
       #nav-center.toggle_nav_center, #nav-right.toggle_nav_right {
         display: block;
+        width: 100%;
       }
 
       .nav-center {
@@ -172,19 +188,28 @@ h3, h4 {
             margin-left: 0;
             box-shadow: none;
             height: 100%;
-
+            
             .title {
               display: none;
             }
 
             .dropdown-list {
               margin-left: 0;
+              width: 100%;
+              .dropdown-list-item{
+                margin-right: 0;
+              }
             }
           }
         }
 
         .nav-dropdown-item .dropdown {
           display: none;
+        }
+        .nav-dropdown-item.nav-dropdown-item.single-links .dropdown {
+          height: 100%;
+          width: 90%;
+          margin-bottom: 20px;
         }
         
       }
@@ -231,7 +256,7 @@ h3, h4 {
               flex-wrap: nowrap;
               margin-left: 0;
               .dropdown-list-item{
-                padding: 8px 0;
+                padding: 8px 5px;
               }
             }
           }
