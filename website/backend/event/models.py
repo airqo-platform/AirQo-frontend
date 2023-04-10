@@ -130,3 +130,22 @@ class PartnerLogo(BaseModel):
 
     def __str__(self):
         return f"Partner - {self.name}"
+
+@with_author
+class Resource(BaseModel):
+    title = models.CharField(max_length=100)
+    link = models.URLField(null=True, blank=True)
+    resource = models.FileField(upload_to='events/', null=True, blank=True)
+    order = models.IntegerField(default=1)
+    event = models.ForeignKey(
+        Event,
+        null=True,
+        blank=True,
+        related_name="resource",
+        on_delete=models.deletion.SET_NULL,
+    )
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Resource - {self.title}"
