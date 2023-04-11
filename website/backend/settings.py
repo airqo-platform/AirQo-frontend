@@ -189,7 +189,7 @@ MEDIA_HOST = env("REACT_WEB_MEDIA_HOST", default="http://localhost:8000/")
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'backend/assets')
 
-MEDIA_URL = "http://localhost:8000/" + 'backend/assets/'
+MEDIA_URL = MEDIA_HOST + 'backend/assets/'
 
 if not DEBUG:
     STATIC_URL = STATIC_HOST
