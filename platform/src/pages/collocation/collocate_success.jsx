@@ -2,6 +2,7 @@ import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import Link from 'next/link';
 import ContentLessTopBar from '@/components/TopBar/content_less_header';
+import Button from '@/components/Button';
 
 const CollocationSuccess = () => {
   return (
@@ -16,9 +17,13 @@ const CollocationSuccess = () => {
               <p className='text-grey-300 text-xl max-w-md mb-8'>
                 You’ve successfully scheduled your first device for collocation
               </p>
-              <Link href='/collocation/collocate'>
-                <p className='text-blue text-xl cursor-pointer'>View device status, here {'-->'}</p>
-              </Link>
+              <Button
+                path='/collocation/collocate'
+                className='text-blue-900 text-xl cursor-pointer'
+                dataTestId='collocation-view-device-status-button'
+              >
+                View device status, here {'-->'}
+              </Button>
             </div>
           </div>
         </div>
