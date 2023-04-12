@@ -17,7 +17,7 @@ platform :android do
     sh "flutter build appbundle --build-number #{_new_build_number} --flavor airqo"
     upload_to_play_store(
       track: "production",
-      release_status: "draft",
+      release_status: "completed",
       json_key_data: ENV['MOBILE_ANDROID_PLAYSTORE_SA'],
       package_name:"com.airqo.app",
       aab: "../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",
