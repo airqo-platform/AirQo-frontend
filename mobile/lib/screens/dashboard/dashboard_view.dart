@@ -40,7 +40,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
-  bool _kyaExists = true, _nearbyLocationExists = true;
+  bool _kyaExists = true, _nearbyLocationExists = false;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -54,6 +54,8 @@ class _DashboardViewState extends State<DashboardView>
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50.0),
@@ -118,7 +120,7 @@ class _DashboardViewState extends State<DashboardView>
                         return Expanded(
                           child: CustomShowcaseWidget(
                             showcaseKey: _favoritesShowcaseKey,
-                            descriptionHeight: 120,
+                            descriptionHeight: screenSize.height * 0.12,
                             description:
                                 "Find the latest air quality from your favorite locations",
                             child: DashboardTopCard(
@@ -153,8 +155,8 @@ class _DashboardViewState extends State<DashboardView>
                         return Expanded(
                           child: CustomShowcaseWidget(
                             showcaseKey: _forYouShowcaseKey,
-                            descriptionWidth: 100,
-                            descriptionHeight: 130,
+                            descriptionWidth: screenSize.width * 0.3,
+                            descriptionHeight: screenSize.height * 0.17,
                             description:
                                 "Find amazing content specifically designed for you here.",
                             child: DashboardTopCard(
@@ -255,6 +257,7 @@ class _DashboardViewState extends State<DashboardView>
                         padding: const EdgeInsets.only(top: 16),
                         child: CustomShowcaseWidget(
                           showcaseKey: _nearestLocationShowcaseKey,
+                          descriptionHeight: screenSize.height * 0.17,
                           description:
                               "This card shows the air quality of your nearest location",
                           child: AnalyticsCard(
@@ -284,7 +287,7 @@ class _DashboardViewState extends State<DashboardView>
                         padding: const EdgeInsets.only(top: 16),
                         child: CustomShowcaseWidget(
                           showcaseKey: _kyaShowcaseKey,
-                          descriptionHeight: 100,
+                          descriptionHeight: screenSize.height * 0.14,
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
@@ -337,7 +340,9 @@ class _DashboardViewState extends State<DashboardView>
                                   padding: const EdgeInsets.only(top: 16),
                                   child: CustomShowcaseWidget(
                                     showcaseKey: _analyticsShowcaseKey,
-                                    descriptionHeight: 120,
+                                    descriptionHeight: screenSize.height * 0.17,
+                                    customize: ShowcaseOptions.up,
+                                    showLine: false,
                                     description:
                                         "Find the air quality of different locations across Africa here.",
                                     child: AnalyticsCard(
@@ -453,13 +458,20 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
-  void _startShowcase() {
-    List<GlobalKey> globalKeys = [
-      _skipShowcaseKey,
+  Future<void> _startShowcase() async {
+    List<GlobalKey> globalKeys = [];
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(Config.restartTourShowcase) != true) {
+      globalKeys.add(_skipShowcaseKey);
+    }
+
+    globalKeys.addAll([
       _favoritesShowcaseKey,
       _forYouShowcaseKey,
       _analyticsShowcaseKey,
-    ];
+    ]);
+
     if (_kyaExists) {
       globalKeys.add(_kyaShowcaseKey);
     }
@@ -479,16 +491,9 @@ class _DashboardViewState extends State<DashboardView>
     if (prefs.getBool(Config.homePageShowcase) == null) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _startShowcase();
-            _appService.stopShowcase(Config.homePageShowcase);
-          });
-        }
-      });
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ShowCaseWidget.of(context).next();
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await _startShowcase();
+            await _appService.stopShowcase(Config.homePageShowcase);
           });
         }
       });

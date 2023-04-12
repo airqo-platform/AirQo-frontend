@@ -53,6 +53,7 @@ const ScheduleCalendar = () => {
           <div
             className='border border-grey-100 py-1 px-4 rounded-md my-2 flex flex-row justify-between items-center text-sm'
             key={index}
+            data-testid='duration-option'
           >
             {option} {'days'}
             <input
@@ -82,12 +83,11 @@ const ScheduleCalendar = () => {
             <Datepicker
               value={value}
               onChange={handleValueChange}
-              primaryColor={'#F5F8FF'}
               placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
               separator={'to'}
               readOnly={true}
               inputClassName='font-sans text-xs text-grey-300 font-normal'
-              useRange={true}
+              classNames={{ calendar: 'bg-white' }}
             />
           </div>
         </div>
