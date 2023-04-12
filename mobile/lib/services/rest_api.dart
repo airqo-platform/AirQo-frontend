@@ -160,17 +160,21 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     try {
-      final body =
-          await _performGetRequest({}, "${AirQoUrls.forecast}/$siteId");
+      final body = await _performGetRequest(
+        {
+          "site_id": siteId,
+        },
+        AirQoUrls.forecast,
+      );
 
       final forecast = <Forecast>[];
 
-      for (final forecast in body['forecasts']) {
+      for (final forecast in body['forecasts'] as List<dynamic>) {
         try {
           forecast.add(
             Forecast.fromJson({
-              'pm2_5': forecast['forecast_day'],
-              'time': forecast['forecast'],
+              'pm2_5': forecast['pm2_5'],
+              'time': forecast['time'],
               'siteId': siteId,
             }),
           );
