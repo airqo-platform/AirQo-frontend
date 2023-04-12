@@ -128,11 +128,12 @@ class LocationService {
     address["name"] = landMark.thoroughfare ?? landMark.subLocality;
     address["name"] = address["name"] ?? landMark.locality;
 
-    if(landMark.subAdministrativeArea == null){
-      address["location"] = "${landMark.administrativeArea}, ${landMark.country}";
-    }
-     else{
-      address["location"] = "${landMark.subAdministrativeArea}, ${landMark.administrativeArea}";
+    if (landMark.subAdministrativeArea == null) {
+      address["location"] =
+          "${landMark.administrativeArea}, ${landMark.country}";
+    } else {
+      address["location"] =
+          "${landMark.subAdministrativeArea}, ${landMark.administrativeArea}";
     }
 
     return address;
