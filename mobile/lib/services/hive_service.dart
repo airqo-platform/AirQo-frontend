@@ -86,7 +86,11 @@ class HiveService {
   static List<AirQualityReading> getAirQualityReadings() {
     return Hive.box<AirQualityReading>(
       HiveBox.airQualityReadings,
-    ).values.toList();
+    )
+        .values
+        .toList()
+        .where((element) => element.dateTime.isAfterOrEqualToYesterday())
+        .toList();
   }
 
   static Future<void> updateSearchHistory(

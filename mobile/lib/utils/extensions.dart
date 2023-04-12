@@ -12,6 +12,15 @@ extension DoubleExtension on double {
   }
 }
 
+extension SetExt<T> on Set<T> {
+  void addOrUpdate(T updatedItem) {
+    if (contains(updatedItem)) {
+      remove(updatedItem);
+    }
+    add(updatedItem);
+  }
+}
+
 extension IntExt on int {
   String toStringLength({int length = 1}) {
     return toString().length == length ? '0$this' : '$this';
@@ -393,6 +402,10 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
+  bool isSameDay(DateTime dateTime) {
+    return day == dateTime.day;
+  }
+
   String shareString() {
     return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
   }
@@ -445,6 +458,10 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterOrEqualToYesterday() {
+    return isYesterday() || compareTo(yesterday()) == 1;
   }
 
   bool isAfterOrEqualTo(DateTime dateTime) {

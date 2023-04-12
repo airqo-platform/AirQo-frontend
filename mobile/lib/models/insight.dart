@@ -14,72 +14,38 @@ class Insight with EquatableMixin {
     required this.isAvailable,
   });
 
-  factory Insight.fromAirQualityReading(
-    AirQualityReading airQualityReading, {
-    double? forecastValue,
-  }) {
+  factory Insight.fromAirQualityReading(AirQualityReading airQualityReading) {
     String airQualityMessage = '';
-    String forecastMessage = '';
     AirQuality airQuality = airQualityReading.airQuality();
-    String verb = airQualityReading.dateTime.isToday()
-        ? "is"
-        : airQualityReading.dateTime.isYesterday() ||
-                airQualityReading.dateTime.isAPastDate()
-            ? "was"
-            : "might be";
-    String dateAdverb = airQualityReading.dateTime.isYesterday()
-        ? "yesterday"
-        : airQualityReading.dateTime.isTomorrow()
-            ? "tomorrow"
-            : "";
+    String verb = airQualityReading.dateTime.isAPastDate() ? " was" : " is";
+    String dateAdverb =
+        airQualityReading.dateTime.isYesterday() ? " yesterday" : "";
 
     switch (airQuality) {
       case AirQuality.good:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb quite ${airQuality.title}.';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb quite ${airQuality.title}.';
         break;
       case AirQuality.moderate:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb at a ${airQuality.title} level.';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb at a ${airQuality.title} level.';
         break;
       case AirQuality.ufsgs:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title}.';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb ${airQuality.title}.';
         break;
       case AirQuality.unhealthy:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} for everyone';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb ${airQuality.title} for everyone';
         break;
       case AirQuality.veryUnhealthy:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} reaching levels of high alert.';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb ${airQuality.title} reaching levels of high alert.';
         break;
       case AirQuality.hazardous:
         airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} and can cause a health emergency.';
+            'The air quality$dateAdverb in ${airQualityReading.name}$verb ${airQuality.title} and can cause a health emergency.';
         break;
-    }
-    if (forecastValue != null) {
-      switch (Pollutant.pm2_5.airQuality(forecastValue)) {
-        case AirQuality.good:
-        case AirQuality.moderate:
-        case AirQuality.hazardous:
-          forecastMessage =
-              'Expect ${Pollutant.pm2_5.airQuality(forecastValue).title.toLowerCase()} levels of air quality ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
-          break;
-        case AirQuality.ufsgs:
-          forecastMessage =
-              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for sensitive groups';
-          break;
-        case AirQuality.unhealthy:
-          forecastMessage =
-              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for everyone';
-          break;
-        case AirQuality.veryUnhealthy:
-          forecastMessage =
-              'Air quality is likely to be very unhealthy ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
-          break;
-      }
     }
 
     List<HealthTip> healthTips = airQualityReading.dateTime.isAPastDate()
@@ -88,12 +54,52 @@ class Insight with EquatableMixin {
 
     return Insight(
       name: airQualityReading.name,
-      forecastMessage: forecastMessage,
+      forecastMessage: "",
       airQualityMessage: airQualityMessage,
       pm2_5: airQualityReading.pm2_5,
       airQuality: airQuality,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
+      isAvailable: true,
+    );
+  }
+
+  factory Insight.fromForecast(
+    Forecast forecast, {
+    required String name,
+  }) {
+    String forecastMessage = '';
+    AirQuality airQuality = Pollutant.pm2_5.airQuality(forecast.pm2_5);
+
+    switch (airQuality) {
+      case AirQuality.good:
+      case AirQuality.moderate:
+      case AirQuality.hazardous:
+        forecastMessage =
+            'Expect ${airQuality.title.toLowerCase()} levels of air quality ${forecast.time.isTomorrow() ? "tomorrow" : ""}';
+        break;
+      case AirQuality.ufsgs:
+        forecastMessage =
+            'Expect ${forecast.time.isTomorrow() ? "tomorrow's" : ""} air quality to be unhealthy for sensitive groups';
+        break;
+      case AirQuality.unhealthy:
+        forecastMessage =
+            'Expect ${forecast.time.isTomorrow() ? "tomorrow's" : ""} air quality to be unhealthy for everyone';
+        break;
+      case AirQuality.veryUnhealthy:
+        forecastMessage =
+            'Air quality is likely to be very unhealthy ${forecast.time.isTomorrow() ? "tomorrow" : ""}';
+        break;
+    }
+
+    return Insight(
+      name: name,
+      forecastMessage: forecastMessage,
+      airQualityMessage: "",
+      pm2_5: forecast.pm2_5,
+      airQuality: airQuality,
+      healthTips: [],
+      dateTime: forecast.time,
       isAvailable: true,
     );
   }

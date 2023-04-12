@@ -25,76 +25,61 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   ) async {
     emit(const InsightsState());
 
+    Set<Insight> insights = List<Insight>.generate(
+        7,
+        (int index) => Insight.initializeEmpty(
+              event.airQualityReading,
+              event.airQualityReading.dateTime.add(Duration(days: index)),
+            )).toSet();
+
+    insights.addOrUpdate(
+      Insight.fromAirQualityReading(event.airQualityReading),
+    );
+
     List<Forecast> forecastData = await AirQoDatabase().getForecast(
       event.airQualityReading.referenceSite,
     );
 
-    forecastData = forecastData.sortByDateTime().take(6).toList();
-
-    Set<Insight> insights = {};
-    insights.add(Insight.fromAirQualityReading(event.airQualityReading));
-
-    for (Forecast forecast in forecastData) {
-      if (forecast.time.day == event.airQualityReading.dateTime.day) {
-        insights.remove(Insight.fromAirQualityReading(event.airQualityReading));
-        insights.add(
-          Insight.fromAirQualityReading(
-            event.airQualityReading,
-            forecastValue: forecast.pm2_5,
-          ),
-        );
-      } else {
-        insights.add(
-          Insight.fromAirQualityReading(
-            event.airQualityReading
-                .copyWith(pm2_5: forecast.pm2_5, dateTime: forecast.time),
-          ),
-        );
-      }
-    }
-
-    while (insights.length <= 6) {
-      DateTime nextDay = insights.last.dateTime.add(
-        const Duration(days: 1),
-      );
-      insights.add(
-        Insight.initializeEmpty(event.airQualityReading, nextDay),
-      );
-    }
-
-    setInsights(emit, insights, event.airQualityReading);
+    setInsights(
+      emit,
+      insights: insights,
+      forecastData: forecastData,
+      airQualityReading: event.airQualityReading,
+    );
 
     forecastData = await AppService.fetchInsightsData(
       event.airQualityReading.referenceSite,
     );
 
-    if (forecastData.isEmpty) {
-      return;
-    }
-
-    for (Forecast forecast in forecastData) {
-      insights
-          .removeWhere((element) => element.dateTime.day == forecast.time.day);
-      insights.add(
-        Insight.fromAirQualityReading(
-          event.airQualityReading
-              .copyWith(pm2_5: forecast.pm2_5, dateTime: forecast.time),
-        ),
-      );
-    }
-
-    setInsights(emit, insights, event.airQualityReading);
+    setInsights(
+      emit,
+      insights: insights,
+      forecastData: forecastData,
+      airQualityReading: event.airQualityReading,
+    );
   }
 
   void setInsights(
-    Emitter<InsightsState> emit,
-    Set<Insight> insights,
-    AirQualityReading airQualityReading,
-  ) {
+    Emitter<InsightsState> emit, {
+    required Set<Insight> insights,
+    required List<Forecast> forecastData,
+    required AirQualityReading airQualityReading,
+  }) {
+    List<Forecast> forecasts = forecastData.sortByDateTime().take(6).toList();
+
+    for (Forecast forecast in forecasts) {
+      if (forecast.time.isSameDay(airQualityReading.dateTime)) continue;
+
+      insights.addOrUpdate(Insight.fromForecast(
+        forecast,
+        name: airQualityReading.name,
+      ));
+    }
+
     emit(
       state.copyWith(
         selectedInsight: insights.firstWhere(
-          (element) => element.dateTime.day == airQualityReading.dateTime.day,
+          (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
         ),
         insights: insights.toList().sortByDateTime().take(7).toList(),
       ),
