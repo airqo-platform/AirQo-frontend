@@ -10,6 +10,9 @@ class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
+  static double get minimumTextScaleFactor => 1.0;
+  static double get maximumTextScaleFactor => 1.1;
+
   static String get airqoApiUrl =>
       dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
 

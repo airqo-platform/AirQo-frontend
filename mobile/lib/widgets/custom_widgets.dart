@@ -572,15 +572,24 @@ class AppSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
-      color: backgroundColor ?? CustomColors.appBodyColor,
-      child: SafeArea(
-        minimum: EdgeInsets.symmetric(
-          vertical: verticalPadding ?? 0,
-          horizontal: horizontalPadding ?? 0,
+    final mediaQueryData = MediaQuery.of(context);
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      Config.minimumTextScaleFactor,
+      Config.maximumTextScaleFactor,
+    );
+
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
+        color: backgroundColor ?? CustomColors.appBodyColor,
+        child: SafeArea(
+          minimum: EdgeInsets.symmetric(
+            vertical: verticalPadding ?? 0,
+            horizontal: horizontalPadding ?? 0,
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }
