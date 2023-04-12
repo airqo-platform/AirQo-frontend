@@ -8,7 +8,7 @@ platform :android do
     update_fastlane
     sh "bundle exec fastlane update_plugins"
     _google_play_track_version_codes = google_play_track_version_codes(
-      package_name: 'com.air.app',
+      package_name: 'com.airqo.app',
       track: 'production',
       json_key_data: ENV['MOBILE_ANDROID_PLAYSTORE_SA']
     )
