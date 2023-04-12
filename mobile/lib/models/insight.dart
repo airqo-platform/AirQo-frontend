@@ -4,7 +4,6 @@ import 'package:app/utils/utils.dart';
 
 class Insight with EquatableMixin {
   Insight({
-    required this.name,
     required this.forecastMessage,
     required this.airQualityMessage,
     required this.dateTime,
@@ -52,7 +51,6 @@ class Insight with EquatableMixin {
         : airQualityReading.healthTips;
 
     return Insight(
-      name: airQualityReading.name,
       forecastMessage: "",
       airQualityMessage: airQualityMessage,
       pm2_5: airQualityReading.pm2_5,
@@ -62,10 +60,7 @@ class Insight with EquatableMixin {
     );
   }
 
-  factory Insight.fromForecast(
-    Forecast forecast, {
-    required String name,
-  }) {
+  factory Insight.fromForecast(Forecast forecast) {
     String forecastMessage = '';
     AirQuality airQuality = Pollutant.pm2_5.airQuality(forecast.pm2_5);
 
@@ -91,7 +86,6 @@ class Insight with EquatableMixin {
     }
 
     return Insight(
-      name: name,
       forecastMessage: forecastMessage,
       airQualityMessage: "",
       pm2_5: forecast.pm2_5,
@@ -101,14 +95,10 @@ class Insight with EquatableMixin {
     );
   }
 
-  factory Insight.initializeEmpty(
-    String name,
-    DateTime dateTime,
-  ) {
+  factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
       forecastMessage: '',
       airQualityMessage: '',
-      name: name,
       pm2_5: null,
       airQuality: null,
       healthTips: [],
@@ -116,7 +106,6 @@ class Insight with EquatableMixin {
     );
   }
 
-  final String name;
   final String airQualityMessage;
   final String forecastMessage;
   final double? pm2_5;

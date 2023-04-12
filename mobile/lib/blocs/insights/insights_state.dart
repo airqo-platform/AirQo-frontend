@@ -1,7 +1,8 @@
 part of 'insights_bloc.dart';
 
 class InsightsState extends Equatable {
-  const InsightsState({
+  const InsightsState(
+    this.name, {
     this.insights = const [],
     this.selectedInsight,
   });
@@ -11,12 +12,14 @@ class InsightsState extends Equatable {
     List<Insight>? insights,
   }) {
     return InsightsState(
+      name,
       insights: insights ?? this.insights,
       selectedInsight: selectedInsight ?? this.selectedInsight,
     );
   }
 
   final Insight? selectedInsight;
+  final String name;
   final List<Insight> insights;
 
   @override

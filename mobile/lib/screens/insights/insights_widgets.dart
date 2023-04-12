@@ -8,8 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class InsightContainer extends StatelessWidget {
-  const InsightContainer(this.insight, {super.key});
+  const InsightContainer(this.insight, {super.key, required this.name});
   final Insight insight;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +37,7 @@ class InsightContainer extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AutoSizeText(
-                  insight.name,
+                  name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -238,7 +239,10 @@ class InsightsCalendar extends StatelessWidget {
                 const SizedBox(
                   height: 21,
                 ),
-                InsightContainer(selectedInsight),
+                InsightContainer(
+                  selectedInsight,
+                  name: state.name,
+                ),
                 const SizedBox(
                   height: 21,
                 ),

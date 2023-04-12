@@ -8,7 +8,7 @@ part 'insights_event.dart';
 part 'insights_state.dart';
 
 class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
-  InsightsBloc() : super(const InsightsState()) {
+  InsightsBloc() : super(const InsightsState("")) {
     on<InitializeInsightsPage>(_onInitializeInsightsPage);
     on<SwitchInsight>(_onSwitchInsight);
   }
@@ -23,12 +23,11 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
   ) async {
-    emit(const InsightsState());
+    emit(InsightsState(event.airQualityReading.name));
 
     Set<Insight> insights = List<Insight>.generate(
         7,
         (int index) => Insight.initializeEmpty(
-              event.airQualityReading.name,
               event.airQualityReading.dateTime.add(Duration(days: index)),
             )).toSet();
 
@@ -70,10 +69,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     for (Forecast forecast in forecasts) {
       if (forecast.time.isSameDay(airQualityReading.dateTime)) continue;
 
-      insights.addOrUpdate(Insight.fromForecast(
-        forecast,
-        name: airQualityReading.name,
-      ));
+      insights.addOrUpdate(Insight.fromForecast(forecast));
     }
 
     emit(
