@@ -19,9 +19,9 @@ class InsightContainer extends StatelessWidget {
         vertical: 11,
       ),
       decoration: BoxDecoration(
-        color: insight.isAvailable
-            ? insight.airQuality.color.withOpacity(0.2)
-            : CustomColors.greyColor.withOpacity(0.2),
+        color: insight.isEmpty
+            ? CustomColors.greyColor.withOpacity(0.2)
+            : insight.airQuality?.color.withOpacity(0.2),
         borderRadius: const BorderRadius.all(
           Radius.circular(16.0),
         ),
@@ -45,16 +45,16 @@ class InsightContainer extends StatelessWidget {
                   height: 7,
                 ),
                 Visibility(
-                  visible: insight.isAvailable,
+                  visible: insight.isNotEmpty,
                   child: AutoSizeText(
-                    insight.airQuality.title,
+                    insight.airQuality?.title ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline8(context),
                   ),
                 ),
                 Visibility(
-                  visible: !insight.isAvailable,
+                  visible: insight.isEmpty,
                   child: AutoSizeText(
                     'No air quality data available',
                     maxLines: 1,
@@ -69,7 +69,6 @@ class InsightContainer extends StatelessWidget {
             insight.airQuality,
             height: 38,
             width: 48,
-            isEmpty: !insight.isAvailable,
           ),
         ],
       ),
@@ -88,7 +87,7 @@ class InsightsDayReading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color = insight.isAvailable
+    Color color = insight.isNotEmpty
         ? CustomColors.appColorBlack
         : CustomColors.greyColor;
 
@@ -126,10 +125,7 @@ class InsightsDayReading extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            SvgIcons.airQualityEmoji(
-              insight.airQuality,
-              isEmpty: !insight.isAvailable,
-            ),
+            SvgIcons.airQualityEmoji(insight.airQuality),
           ],
         ),
       ),
@@ -254,7 +250,7 @@ class InsightsCalendar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Visibility(
-                        visible: !selectedInsight.isAvailable,
+                        visible: selectedInsight.isEmpty,
                         child: Expanded(
                           child: AutoSizeText(
                             'We’re having issues with our network no worries, we’ll be back up soon.',
@@ -268,7 +264,7 @@ class InsightsCalendar extends StatelessWidget {
                         ),
                       ),
                       Visibility(
-                        visible: selectedInsight.isAvailable,
+                        visible: selectedInsight.isNotEmpty,
                         child: Expanded(
                           child: AutoSizeText(
                             selectedInsight.airQualityMessage,
@@ -282,7 +278,7 @@ class InsightsCalendar extends StatelessWidget {
                         ),
                       ),
                       Visibility(
-                        visible: selectedInsight.isAvailable,
+                        visible: selectedInsight.isNotEmpty,
                         child: PopupMenuButton<bool>(
                           padding: EdgeInsets.zero,
                           tooltip: 'AQI info',

@@ -13,12 +13,11 @@ class SvgIcons {
   }
 
   static Widget airQualityEmoji(
-    AirQuality airQuality, {
+    AirQuality? airQuality, {
     double height = 18,
     double width = 30,
-    bool isEmpty = false,
   }) {
-    if (isEmpty) {
+    if (airQuality == null) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 3.0),
         child: SizedBox(

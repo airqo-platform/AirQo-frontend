@@ -28,7 +28,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     Set<Insight> insights = List<Insight>.generate(
         7,
         (int index) => Insight.initializeEmpty(
-              event.airQualityReading,
+              event.airQualityReading.name,
               event.airQualityReading.dateTime.add(Duration(days: index)),
             )).toSet();
 

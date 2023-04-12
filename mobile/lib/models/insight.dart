@@ -11,7 +11,6 @@ class Insight with EquatableMixin {
     required this.pm2_5,
     required this.healthTips,
     required this.airQuality,
-    required this.isAvailable,
   });
 
   factory Insight.fromAirQualityReading(AirQualityReading airQualityReading) {
@@ -60,7 +59,6 @@ class Insight with EquatableMixin {
       airQuality: airQuality,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
-      isAvailable: true,
     );
   }
 
@@ -100,34 +98,35 @@ class Insight with EquatableMixin {
       airQuality: airQuality,
       healthTips: [],
       dateTime: forecast.time,
-      isAvailable: true,
     );
   }
 
   factory Insight.initializeEmpty(
-    AirQualityReading airQualityReading,
+    String name,
     DateTime dateTime,
   ) {
     return Insight(
       forecastMessage: '',
       airQualityMessage: '',
-      name: airQualityReading.name,
-      pm2_5: airQualityReading.pm2_5,
-      airQuality: airQualityReading.airQuality(),
+      name: name,
+      pm2_5: null,
+      airQuality: null,
       healthTips: [],
       dateTime: dateTime,
-      isAvailable: false,
     );
   }
 
   final String name;
   final String airQualityMessage;
   final String forecastMessage;
-  final double pm2_5;
-  final AirQuality airQuality;
+  final double? pm2_5;
+  final AirQuality? airQuality;
   final List<HealthTip> healthTips;
   final DateTime dateTime;
-  final bool isAvailable;
+
+  bool get isEmpty => pm2_5 == null || airQuality == null;
+
+  bool get isNotEmpty => pm2_5 != null && airQuality != null;
 
   @override
   List<Object> get props => [dateTime.day];
