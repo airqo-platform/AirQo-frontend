@@ -23,7 +23,7 @@ export const collocateApi = createApi({
   endpoints: (builder) => ({
     collocateDevices: builder.mutation({
       query: (addMonitorInput) => ({
-        url: '',
+        url: '/schedule',
         method: 'POST',
         body: addMonitorInput,
       }),
@@ -31,14 +31,50 @@ export const collocateApi = createApi({
     getDeviceStatusSummary: builder.query({
       query: () => '/summary',
     }),
+    getCollocationResults: builder.mutation({
+      query: ({ devices, startDate, endDate }) => {
+        return {
+          url: '/data',
+          method: 'POST',
+          body: { devices: [devices], startDate, endDate },
+        };
+      },
+    }),
+    getDataCompletenessResults: builder.mutation({
+      query: (addDataCompletenessInput) => {
+        return {
+          url: '/data-completeness',
+          method: 'POST',
+          body: addDataCompletenessInput,
+        };
+      },
+    }),
+    getIntraSensorCorrelation: builder.mutation({
+      query: (addIntraSensorInput) => {
+        return {
+          url: '/intra',
+          method: 'POST',
+          body: addIntraSensorInput,
+        };
+      },
+    }),
   }),
 });
 
 export const {
   useCollocateDevicesMutation,
   useGetDeviceStatusSummaryQuery,
+  useGetCollocationResultsMutation,
+  useGetDataCompletenessResultsMutation,
+  useGetIntraSensorCorrelationMutation,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
 // export endpoints for use in SSR
-export const { collocateDevices, getDeviceStatusSummary } = collocateApi.endpoints;
+export const {
+  collocateDevices,
+  getDeviceStatusSummary,
+  getCollocationResults,
+  getDataCompletenessResults,
+  getIntraSensorCorrelation,
+} = collocateApi.endpoints;

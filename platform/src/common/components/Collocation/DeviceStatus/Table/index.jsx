@@ -73,7 +73,7 @@ const Table = ({ collocationDevices, isLoading }) => {
           <div className='md:flex md:items-center w-full'>
             <Button
               className={
-                'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium xl:ml-2 mb-2 md:mb-0'
+                'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium xl:ml-2 mb-2 md:mb-0'
               }
             >
               <span className='mr-1'>
@@ -87,7 +87,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             <div className='dropdown md:ml-2'>
               <Button
                 className={
-                  'max-w-[114px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium'
+                  'max-w-[114px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'
                 }
               >
                 <span className='mr-1'>
@@ -132,7 +132,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             <div className='dropdown ml-2'>
               <Button
                 className={
-                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-md text-black text-sm font-medium'
+                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'
                 }
               >
                 <span className='mr-1'>
@@ -178,7 +178,9 @@ const Table = ({ collocationDevices, isLoading }) => {
         </div>
 
         <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
-          <Button className={'w-auto h-9 bg-grey-250 rounded-md text-black text-sm font-medium'}>
+          <Button
+            className={'w-auto h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'}
+          >
             <span className='mr-1'>
               <ViewWeekIcon />
             </span>
