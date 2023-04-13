@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import HeaderNav from '@/components/Collocation/header';
 import Layout from '@/components/Layout';
 import Collocate from '@/icons/Collocation/collocate.svg';
@@ -7,26 +7,61 @@ import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
 import ContentBox from '@/components/Layout/content_box';
 import { useDispatch } from 'react-redux';
-import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
+import {
+  useGetDeviceStatusSummaryQuery,
+  getDeviceStatusSummary,
+  getRunningQueriesThunk,
+} from '@/lib/store/services/collocation';
 import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
 import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
+import { wrapper } from '@/lib/store';
+
+export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
+  const name = context.params?.name;
+  if (typeof name === 'string') {
+    store.dispatch(getDeviceStatusSummary.initiate(name));
+  }
+
+  await Promise.all(store.dispatch(getRunningQueriesThunk()));
+
+  return {
+    props: {},
+  };
+});
 
 const collocate = () => {
-  const dispatch = useDispatch();
-  const { data: data, isLoading, isSuccess, isError, error } = useGetDeviceStatusSummaryQuery();
+  const {
+    data: data,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+    refetch,
+  } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
 
   const filterDevicesByStatus = (status) =>
     deviceStatusSummary.filter((device) => device.status === status);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Fetch data every 5 seconds
+      refetch();
+    }, 5000);
+
+    // Clear interval on unmount
+    return () => clearInterval(intervalId);
+  }, [refetch]);
 
   return (
     <Layout>
       <HeaderNav component={'Collocate'}>
         {isError && (
           <Toast
-            variant={'error'}
+            type={'error'}
+            timeout={20000}
             message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
           />
         )}
@@ -45,7 +80,7 @@ const collocate = () => {
             <div className='mr-[14px]'></div>
             <Button
               className={
-                'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
               }
               path='/collocation/add_monitor'
             >
@@ -58,7 +93,7 @@ const collocate = () => {
         )}
       </HeaderNav>
       <ContentBox>
-        {deviceStatusSummary.length > 0 ? (
+        {deviceStatusSummary ? (
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>
@@ -85,7 +120,10 @@ const collocate = () => {
             </Tabs>
           </div>
         ) : (
-          <div className='flex justify-center items-center flex-col mx-auto py-20'>
+          <div
+            className='flex justify-center items-center flex-col mx-auto py-20'
+            data-testid='collocate-empty-state'
+          >
             <Collocate />
             <div className='flex flex-col justify-center text-center mt-10'>
               <h4 className='text-xl font-normal mb-6'>
@@ -99,7 +137,7 @@ const collocate = () => {
               <div className='flex justify-center items-center mt-6'>
                 <Button
                   className={
-                    'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
+                    'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
                   }
                   path='/collocation/add_monitor'
                 >

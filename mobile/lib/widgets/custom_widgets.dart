@@ -572,15 +572,24 @@ class AppSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
-      color: backgroundColor ?? CustomColors.appBodyColor,
-      child: SafeArea(
-        minimum: EdgeInsets.symmetric(
-          vertical: verticalPadding ?? 0,
-          horizontal: horizontalPadding ?? 0,
+    final mediaQueryData = MediaQuery.of(context);
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      Config.minimumTextScaleFactor,
+      Config.maximumTextScaleFactor,
+    );
+
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
+        color: backgroundColor ?? CustomColors.appBodyColor,
+        child: SafeArea(
+          minimum: EdgeInsets.symmetric(
+            vertical: verticalPadding ?? 0,
+            horizontal: horizontalPadding ?? 0,
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }
@@ -637,77 +646,80 @@ class CustomShowcaseWidget extends StatelessWidget {
     required this.description,
     required this.child,
     this.customize,
-    this.descriptionWidth = 200,
-    this.descriptionHeight = 20,
+    this.descriptionWidth,
+    this.descriptionHeight,
+    this.showLine = true,
   });
 
   final GlobalKey showcaseKey;
   final Widget child;
   final ShowcaseOptions? customize;
+  final bool showLine;
   final String description;
-  final double descriptionWidth, descriptionHeight;
+  final double? descriptionWidth, descriptionHeight;
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Showcase.withWidget(
       key: showcaseKey,
-      width: 12,
-      height: 45,
-      overlayColor: Colors.black,
-      overlayOpacity: 0.9,
+      width: screenSize.width * 0.5,
+      height: 100,
+      overlayColor: CustomColors.appColorBlack,
+      overlayOpacity: 0.8,
       container: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          customize != ShowcaseOptions.up
-              ? SizedBox(
-                  width: 45,
-                  height: 45,
-                  child: SvgPicture.asset(
-                    'assets/icon/line.svg',
-                    height: 40,
-                    width: 58,
-                  ),
-                )
-              : const SizedBox(),
+          Visibility(
+            visible: customize != ShowcaseOptions.up && showLine,
+            child: SizedBox(
+              width: 45,
+              height: 45,
+              child: SvgPicture.asset(
+                'assets/icon/line.svg',
+                height: 40,
+                width: 58,
+              ),
+            ),
+          ),
           const SizedBox(
             height: 10,
           ),
-          customize == ShowcaseOptions.skip
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 45,
-                      height: 45,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: IconButton(
-                        tooltip: "Skip Showcase",
-                        icon: const Icon(Icons.skip_next),
-                        onPressed: () async {
-                          ShowCaseWidget.of(context).dismiss();
-                          await AppService()
-                              .stopShowcase(Config.restartTourShowcase);
-                        },
-                        color: CustomColors.appColorBlue,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-          Container(
-            constraints: BoxConstraints.expand(
-              width: descriptionWidth,
-              height: descriptionHeight,
+          Visibility(
+            visible: customize == ShowcaseOptions.skip,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: IconButton(
+                    tooltip: "Skip Showcase",
+                    icon: const Icon(Icons.skip_next),
+                    onPressed: () async {
+                      ShowCaseWidget.of(context).dismiss();
+                      await AppService()
+                          .stopShowcase(Config.restartTourShowcase);
+                    },
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
             ),
+          ),
+          SizedBox(
+            width: screenSize.width * 0.5,
             child: Text(
               description,
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -718,17 +730,18 @@ class CustomShowcaseWidget extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          customize == ShowcaseOptions.up
-              ? SizedBox(
-                  width: 45,
-                  height: 45,
-                  child: SvgPicture.asset(
-                    'assets/icon/line.svg',
-                    height: 40,
-                    width: 58,
-                  ),
-                )
-              : const SizedBox(),
+          Visibility(
+            visible: customize == ShowcaseOptions.up && showLine,
+            child: SizedBox(
+              width: 45,
+              height: 45,
+              child: SvgPicture.asset(
+                'assets/icon/line.svg',
+                height: 40,
+                width: 58,
+              ),
+            ),
+          ),
         ],
       ),
       targetShapeBorder: RoundedRectangleBorder(

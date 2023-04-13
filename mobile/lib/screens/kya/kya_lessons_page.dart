@@ -120,9 +120,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           ],
         ),
       ),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: AppSafeArea(
+        backgroundColor: CustomColors.appBodyColor,
+        horizontalPadding: 20,
         child: Column(
           children: [
             Visibility(
