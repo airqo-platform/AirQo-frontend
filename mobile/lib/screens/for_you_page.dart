@@ -32,7 +32,7 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       appBar: const AppTopBar('For You'),
       body: AppSafeArea(
