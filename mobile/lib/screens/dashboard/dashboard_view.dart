@@ -225,8 +225,8 @@ class _DashboardViewState extends State<DashboardView>
                         case NearbyLocationStatus.searchComplete:
                           break;
                         case NearbyLocationStatus.searching:
-                          if (state.locationAirQuality != null) {
-                            return Container();
+                          if (state.locationAirQuality == null) {
+                            return const SearchingAirQuality();
                           }
                           break;
                         case NearbyLocationStatus.locationDenied:

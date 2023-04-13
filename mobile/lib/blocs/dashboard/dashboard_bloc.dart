@@ -20,14 +20,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
     List<AirQualityReading> nearbyAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList()
+        HiveService.getNearbyAirQualityReadings()
             .sortByDistanceToReferenceSite();
 
     if (nearbyAirQualityReadings.length > 1) {
-      nearbyAirQualityReadings.removeAt(0);
-      airQualityCards.add(nearbyAirQualityReadings.first);
+      airQualityCards.add(nearbyAirQualityReadings[1]);
     }
 
     List<AirQualityReading> airQualityReadings =

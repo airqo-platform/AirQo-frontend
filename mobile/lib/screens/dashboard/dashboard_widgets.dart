@@ -48,6 +48,37 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
+class SearchingAirQuality extends StatelessWidget {
+  const SearchingAirQuality({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Text(
+        "Searching for air quality near you, hold on tight.",
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: CustomColors.appColorBlue,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
+
 class NoLocationAirQualityMessage extends StatelessWidget {
   const NoLocationAirQualityMessage(
     this.message, {

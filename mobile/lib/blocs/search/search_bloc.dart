@@ -44,9 +44,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
+        HiveService.getNearbyAirQualityReadings();
 
     List<SearchHistory> searchHistory =
         Hive.box<SearchHistory>(HiveBox.searchHistory)
@@ -246,12 +244,10 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
     List<AirQualityReading> nearbyAirQualityLocations = <AirQualityReading>[];
     List<AirQualityReading> otherAirQualityLocations = <AirQualityReading>[];
 
-    nearbyAirQualityLocations =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .where((element) =>
-                Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
-            .toList();
+    nearbyAirQualityLocations = HiveService.getNearbyAirQualityReadings()
+        .where((element) =>
+            Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
+        .toList();
 
     final List<AirQualityReading> airQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
