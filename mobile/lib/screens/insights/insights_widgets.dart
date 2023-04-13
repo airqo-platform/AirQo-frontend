@@ -491,6 +491,7 @@ class HealthTipsWidget extends StatelessWidget {
             height: 128,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
+              controller: ScrollController(),
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(

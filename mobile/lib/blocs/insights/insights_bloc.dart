@@ -26,10 +26,11 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     emit(InsightsState(event.airQualityReading.name));
 
     Set<Insight> insights = List<Insight>.generate(
-        7,
-        (int index) => Insight.initializeEmpty(
-              event.airQualityReading.dateTime.add(Duration(days: index)),
-            )).toSet();
+      7,
+      (int index) => Insight.initializeEmpty(
+        event.airQualityReading.dateTime.add(Duration(days: index)),
+      ),
+    ).toSet();
 
     insights.addOrUpdate(
       Insight.fromAirQualityReading(event.airQualityReading),
@@ -46,7 +47,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       airQualityReading: event.airQualityReading,
     );
 
-    forecastData = await AppService.fetchInsightsData(
+    forecastData = await AppService.fetchForecastData(
       event.airQualityReading.referenceSite,
     );
 
@@ -72,7 +73,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       insights.addOrUpdate(Insight.fromForecast(forecast));
     }
 
-    emit(
+    return emit(
       state.copyWith(
         selectedInsight: insights.firstWhere(
           (element) => element.dateTime.isSameDay(airQualityReading.dateTime),

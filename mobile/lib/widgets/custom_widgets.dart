@@ -65,37 +65,31 @@ class HealthTipContainer extends StatelessWidget {
             width: 12,
           ),
           Expanded(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    healthTip.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline10(context),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  AutoSizeText(
-                    healthTip.description,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.5),
-                        ),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AutoSizeText(
+                  healthTip.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline10(context),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                AutoSizeText(
+                  healthTip.description,
+                  maxLines: 3,
+                  minFontSize: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
+                      ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(
-            width: 12,
           ),
         ],
       ),

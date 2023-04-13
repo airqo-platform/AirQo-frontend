@@ -2,8 +2,8 @@ import 'package:app/models/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:app/utils/utils.dart';
 
-class Insight with EquatableMixin {
-  Insight({
+class Insight extends Equatable {
+  const Insight({
     required this.forecastMessage,
     required this.airQualityMessage,
     required this.dateTime,
@@ -61,36 +61,36 @@ class Insight with EquatableMixin {
   }
 
   factory Insight.fromForecast(Forecast forecast) {
-    String forecastMessage = '';
+    String airQualityMessage = '';
     AirQuality airQuality = Pollutant.pm2_5.airQuality(forecast.pm2_5);
 
     switch (airQuality) {
       case AirQuality.good:
       case AirQuality.moderate:
       case AirQuality.hazardous:
-        forecastMessage =
-            'Expect ${airQuality.title.toLowerCase()} levels of air quality ${forecast.time.isTomorrow() ? "tomorrow" : ""}';
+        airQualityMessage =
+            'Expect ${airQuality.title.toLowerCase()} levels of air quality ${forecast.time.isTomorrow() ? "tomorrow." : "."}';
         break;
       case AirQuality.ufsgs:
-        forecastMessage =
-            'Expect ${forecast.time.isTomorrow() ? "tomorrow's" : ""} air quality to be unhealthy for sensitive groups';
+        airQualityMessage =
+            'Expect${forecast.time.isTomorrow() ? " tomorrow's " : " "}air quality to be unhealthy for sensitive groups';
         break;
       case AirQuality.unhealthy:
-        forecastMessage =
-            'Expect ${forecast.time.isTomorrow() ? "tomorrow's" : ""} air quality to be unhealthy for everyone';
+        airQualityMessage =
+            'Expect${forecast.time.isTomorrow() ? " tomorrow's " : " "}air quality to be unhealthy for everyone';
         break;
       case AirQuality.veryUnhealthy:
-        forecastMessage =
-            'Air quality is likely to be very unhealthy ${forecast.time.isTomorrow() ? "tomorrow" : ""}';
+        airQualityMessage =
+            'Air quality is likely to be very unhealthy ${forecast.time.isTomorrow() ? "tomorrow." : "."}';
         break;
     }
 
     return Insight(
-      forecastMessage: forecastMessage,
-      airQualityMessage: "",
+      forecastMessage: "",
+      airQualityMessage: airQualityMessage,
       pm2_5: forecast.pm2_5,
       airQuality: airQuality,
-      healthTips: [],
+      healthTips: const [],
       dateTime: forecast.time,
     );
   }
@@ -101,7 +101,7 @@ class Insight with EquatableMixin {
       airQualityMessage: '',
       pm2_5: null,
       airQuality: null,
-      healthTips: [],
+      healthTips: const [],
       dateTime: dateTime,
     );
   }

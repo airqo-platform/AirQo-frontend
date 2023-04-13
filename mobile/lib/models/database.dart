@@ -63,8 +63,9 @@ class AirQoDatabase extends _$AirQoDatabase {
         .go();
   }
 
-  Future<void> insertForecast(List<Forecast> forecast) => batch((batch) {
+  void insertForecast(List<Forecast> forecast) => batch((batch) {
         batch.insertAllOnConflictUpdate(forecastTable, forecast);
+        deleteOldForecast();
       });
 }
 
