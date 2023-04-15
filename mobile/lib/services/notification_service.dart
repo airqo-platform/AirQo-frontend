@@ -64,12 +64,6 @@ class NotificationService {
             await openPhoneSettings(context, enableNotificationsMessage);
             break;
           case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await openPhoneSettings(context, enableNotificationsMessage);
-            } else {
-              await notificationRequestDialog(context);
-            }
-            break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
             await notificationRequestDialog(context);

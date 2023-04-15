@@ -4,7 +4,6 @@ import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'nearby_location_event.dart';
 part 'nearby_location_state.dart';
@@ -21,7 +20,10 @@ class NearbyLocationBloc
     DismissErrorMessage _,
     Emitter<NearbyLocationState> emit,
   ) {
-    return emit(state.copyWith(showErrorMessage: false));
+    return emit(state.copyWith(
+      showErrorMessage: false,
+      locationAirQuality: state.locationAirQuality,
+    ));
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
@@ -51,30 +53,22 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     List<AirQualityReading> nearByAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
-
-    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.toList();
+        HiveService.getNearbyAirQualityReadings();
+    List<AirQualityReading> airQualityReadings =
+        HiveService.getAirQualityReadings();
 
     nearByAirQualityReadings = nearByAirQualityReadings
         .map((element) {
-          List<AirQualityReading> referenceReadings = airQualityReadings
-              .where(
-                (reading) => reading.referenceSite == element.referenceSite,
-              )
-              .toList();
-          if (referenceReadings.isNotEmpty) {
-            return element.copyWith(
-              pm10: referenceReadings.first.pm10,
-              pm2_5: referenceReadings.first.pm2_5,
-              dateTime: referenceReadings.first.dateTime,
-            );
-          }
+          AirQualityReading referenceReading = airQualityReadings.firstWhere(
+            (reading) => reading.referenceSite == element.referenceSite,
+            orElse: () => element,
+          );
 
-          return element;
+          return element.copyWith(
+            pm10: referenceReading.pm10,
+            pm2_5: referenceReading.pm2_5,
+            dateTime: referenceReading.dateTime,
+          );
         })
         .toList()
         .sortByDistanceToReferenceSite();
@@ -83,7 +77,6 @@ class NearbyLocationBloc
 
     if (isLocationEnabled) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.searchComplete,
         locationAirQuality: nearByAirQualityReadings.isEmpty
             ? null
             : nearByAirQualityReadings.first,
@@ -98,9 +91,9 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     emit(state.copyWith(
-      blocStatus: state.locationAirQuality == null
-          ? NearbyLocationStatus.searching
-          : state.blocStatus,
+      locationAirQuality: state.locationAirQuality,
+      blocStatus: NearbyLocationStatus.searching,
+      showErrorMessage: true,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
