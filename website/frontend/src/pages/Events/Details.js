@@ -23,6 +23,7 @@ const EventDetails = () => {
   const [loading, setLoading] = useState(loader);
 
 
+
   useEffect(() => {
     if (isEmpty(eventData)) {
       dispatch(getAllEvents());
@@ -173,6 +174,30 @@ const EventDetails = () => {
                           <div key={inq.id}>
                             <span>{inq.inquiry}</span>: <span>{inq.role}</span> -{' '}
                             <span>{inq.email}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span />
+                    )}
+                    {event.resource.length > 0 ? (
+                      <div className="inquiry">
+                        <h4>Access the Event Resources here:</h4>
+                        {event.resource.map((res) => (
+                          <div key={res.id}>
+                            {res.link ? (
+                              <a href={res.link} target="_blank" rel="noreferrer noopener" download>
+                                {res.title}
+                              </a>
+                            ) : (
+                              <a
+                                href={res.resource}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                download>
+                                {res.title}
+                              </a>
+                            )}
                           </div>
                         ))}
                       </div>

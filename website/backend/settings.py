@@ -185,6 +185,12 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "frontend/assets/")]
 
 STATIC_URL = STATIC_HOST + "static/"
 
+MEDIA_HOST = env("REACT_WEB_MEDIA_HOST", default="http://localhost:8000/")
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'backend/assets')
+
+MEDIA_URL = MEDIA_HOST + 'backend/assets/'
+
 if not DEBUG:
     STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
