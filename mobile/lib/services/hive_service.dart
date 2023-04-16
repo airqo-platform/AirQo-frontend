@@ -12,11 +12,13 @@ class HiveService {
 
     Hive
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+      ..registerAdapter(ForecastAdapter())
       ..registerAdapter<HealthTip>(HealthTipAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
     await Future.wait([
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
+      Hive.openBox(HiveBox.forecast),
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
@@ -83,6 +85,26 @@ class HiveService {
         .putAll(airQualityReadingsMap);
   }
 
+  static Future<void> saveForecast(
+      List<Forecast> forecast, String siteId) async {
+    await Hive.box<List<Forecast>>(HiveBox.forecast).put(
+      siteId,
+      forecast,
+    );
+  }
+
+  static List<Forecast> getForecast(String siteId) {
+    // forecast = List<Forecast>.generate(
+    //   7,
+    //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, ),
+    // );
+
+    return Hive.box<List<Forecast>>(
+          HiveBox.forecast,
+        ).get(siteId) ??
+        [];
+  }
+
   static List<AirQualityReading> getAirQualityReadings() {
     return Hive.box<AirQualityReading>(
       HiveBox.airQualityReadings,
@@ -136,6 +158,7 @@ class HiveService {
 
 class HiveBox {
   static String get searchHistory => 'searchHistory';
+  static String get forecast => 'forecast';
   static String get encryptionKey => 'hiveEncryptionKey';
   static String get airQualityReadings => 'airQualityReadings-v1';
   static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';

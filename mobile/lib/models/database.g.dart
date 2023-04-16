@@ -4,7 +4,7 @@ part of 'database.dart';
 
 // ignore_for_file: type=lint
 class $ForecastTableTable extends ForecastTable
-    with TableInfo<$ForecastTableTable, Forecast> {
+    with TableInfo<$ForecastTableTable, ForecastData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -31,7 +31,7 @@ class $ForecastTableTable extends ForecastTable
   @override
   String get actualTableName => 'forecast_table';
   @override
-  VerificationContext validateIntegrity(Insertable<Forecast> instance,
+  VerificationContext validateIntegrity(Insertable<ForecastData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -59,9 +59,9 @@ class $ForecastTableTable extends ForecastTable
   @override
   Set<GeneratedColumn> get $primaryKey => {siteId, time};
   @override
-  Forecast map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ForecastData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Forecast(
+    return ForecastData(
       time: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}time'])!,
       pm2_5: attachedDatabase.typeMapping
@@ -77,11 +77,11 @@ class $ForecastTableTable extends ForecastTable
   }
 }
 
-class Forecast extends DataClass implements Insertable<Forecast> {
+class ForecastData extends DataClass implements Insertable<ForecastData> {
   final DateTime time;
   final double pm2_5;
   final String siteId;
-  const Forecast(
+  const ForecastData(
       {required this.time, required this.pm2_5, required this.siteId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -100,10 +100,10 @@ class Forecast extends DataClass implements Insertable<Forecast> {
     );
   }
 
-  factory Forecast.fromJson(Map<String, dynamic> json,
+  factory ForecastData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Forecast(
+    return ForecastData(
       time: serializer.fromJson<DateTime>(json['time']),
       pm2_5: serializer.fromJson<double>(json['pm2_5']),
       siteId: serializer.fromJson<String>(json['siteId']),
@@ -119,15 +119,15 @@ class Forecast extends DataClass implements Insertable<Forecast> {
     };
   }
 
-  Forecast copyWith({DateTime? time, double? pm2_5, String? siteId}) =>
-      Forecast(
+  ForecastData copyWith({DateTime? time, double? pm2_5, String? siteId}) =>
+      ForecastData(
         time: time ?? this.time,
         pm2_5: pm2_5 ?? this.pm2_5,
         siteId: siteId ?? this.siteId,
       );
   @override
   String toString() {
-    return (StringBuffer('Forecast(')
+    return (StringBuffer('ForecastData(')
           ..write('time: $time, ')
           ..write('pm2_5: $pm2_5, ')
           ..write('siteId: $siteId')
@@ -140,46 +140,55 @@ class Forecast extends DataClass implements Insertable<Forecast> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Forecast &&
+      (other is ForecastData &&
           other.time == this.time &&
           other.pm2_5 == this.pm2_5 &&
           other.siteId == this.siteId);
 }
 
-class ForecastTableCompanion extends UpdateCompanion<Forecast> {
+class ForecastTableCompanion extends UpdateCompanion<ForecastData> {
   final Value<DateTime> time;
   final Value<double> pm2_5;
   final Value<String> siteId;
+  final Value<int> rowid;
   const ForecastTableCompanion({
     this.time = const Value.absent(),
     this.pm2_5 = const Value.absent(),
     this.siteId = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ForecastTableCompanion.insert({
     required DateTime time,
     required double pm2_5,
     required String siteId,
+    this.rowid = const Value.absent(),
   })  : time = Value(time),
         pm2_5 = Value(pm2_5),
         siteId = Value(siteId);
-  static Insertable<Forecast> custom({
+  static Insertable<ForecastData> custom({
     Expression<DateTime>? time,
     Expression<double>? pm2_5,
     Expression<String>? siteId,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (time != null) 'time': time,
       if (pm2_5 != null) 'pm2_5': pm2_5,
       if (siteId != null) 'site_id': siteId,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ForecastTableCompanion copyWith(
-      {Value<DateTime>? time, Value<double>? pm2_5, Value<String>? siteId}) {
+      {Value<DateTime>? time,
+      Value<double>? pm2_5,
+      Value<String>? siteId,
+      Value<int>? rowid}) {
     return ForecastTableCompanion(
       time: time ?? this.time,
       pm2_5: pm2_5 ?? this.pm2_5,
       siteId: siteId ?? this.siteId,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -195,6 +204,9 @@ class ForecastTableCompanion extends UpdateCompanion<Forecast> {
     if (siteId.present) {
       map['site_id'] = Variable<String>(siteId.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -203,7 +215,8 @@ class ForecastTableCompanion extends UpdateCompanion<Forecast> {
     return (StringBuffer('ForecastTableCompanion(')
           ..write('time: $time, ')
           ..write('pm2_5: $pm2_5, ')
-          ..write('siteId: $siteId')
+          ..write('siteId: $siteId, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }

@@ -1,5 +1,5 @@
 import 'package:app/models/models.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +24,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     Emitter<InsightsState> emit,
   ) async {
     emit(InsightsState(event.airQualityReading.name));
-
+    String siteId = event.airQualityReading.referenceSite;
     Set<Insight> insights = List<Insight>.generate(
       7,
       (int index) => Insight.initializeEmpty(
@@ -36,36 +36,34 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       Insight.fromAirQualityReading(event.airQualityReading),
     );
 
-    List<Forecast> forecastData = await AirQoDatabase().getForecast(
-      event.airQualityReading.referenceSite,
-    );
+    List<Forecast> forecast = HiveService.getForecast(siteId);
 
     setInsights(
       emit,
       insights: insights,
-      forecastData: forecastData,
+      forecast: forecast,
       airQualityReading: event.airQualityReading,
     );
 
-    forecastData = await AppService.fetchForecastData(
-      event.airQualityReading.referenceSite,
-    );
+    forecast = await AirqoApiClient().fetchForecast(siteId);
 
     setInsights(
       emit,
       insights: insights,
-      forecastData: forecastData,
+      forecast: forecast,
       airQualityReading: event.airQualityReading,
     );
+
+    HiveService.saveForecast(forecast, siteId);
   }
 
   void setInsights(
     Emitter<InsightsState> emit, {
     required Set<Insight> insights,
-    required List<Forecast> forecastData,
+    required List<Forecast> forecast,
     required AirQualityReading airQualityReading,
   }) {
-    List<Forecast> forecasts = forecastData.sortByDateTime().take(6).toList();
+    List<Forecast> forecasts = forecast.sortByDateTime().take(6).toList();
 
     for (Forecast forecast in forecasts) {
       if (forecast.time.isSameDay(airQualityReading.dateTime)) continue;

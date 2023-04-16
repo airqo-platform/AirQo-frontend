@@ -464,6 +464,10 @@ extension DateTimeExt on DateTime {
     return isYesterday() || compareTo(yesterday()) == 1;
   }
 
+  bool isAfterOrEqualToToday() {
+    return isToday() || compareTo(DateTime.now()) == 1;
+  }
+
   bool isAfterOrEqualTo(DateTime dateTime) {
     return compareTo(dateTime) == 1 || compareTo(dateTime) == 0;
   }

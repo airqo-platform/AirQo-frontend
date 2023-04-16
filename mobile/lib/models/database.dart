@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
-@DataClassName("Forecast")
+@DataClassName("ForecastData")
 class ForecastTable extends Table {
   DateTimeColumn get time => dateTime()();
   RealColumn get pm2_5 => real()();
@@ -50,12 +50,13 @@ class AirQoDatabase extends _$AirQoDatabase {
     );
   }
 
-  Future<List<Forecast>> getForecast(String siteId) => (select(forecastTable)
-        ..where((element) {
-          return element.siteId.equals(siteId) &
-              element.time.day.isBiggerOrEqualValue(DateTime.now().day);
-        }))
-      .get();
+  Future<List<ForecastData>> getForecast(String siteId) =>
+      (select(forecastTable)
+            ..where((element) {
+              return element.siteId.equals(siteId) &
+                  element.time.day.isBiggerOrEqualValue(DateTime.now().day);
+            }))
+          .get();
 
   void deleteOldForecast() {
     (delete(forecastTable)
@@ -63,7 +64,7 @@ class AirQoDatabase extends _$AirQoDatabase {
         .go();
   }
 
-  void insertForecast(List<Forecast> forecast) => batch((batch) {
+  void insertForecast(List<ForecastData> forecast) => batch((batch) {
         batch.insertAllOnConflictUpdate(forecastTable, forecast);
         deleteOldForecast();
       });

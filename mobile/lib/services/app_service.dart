@@ -62,18 +62,6 @@ class AppService {
     }
   }
 
-  static Future<List<Forecast>> fetchForecastData(String siteId) async {
-    List<Forecast> forecast = await AirqoApiClient().fetchForecast(siteId);
-    AirQoDatabase().insertForecast(forecast);
-
-    // forecast = List<Forecast>.generate(
-    //   7,
-    //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, ),
-    // );
-
-    return forecast;
-  }
-
   Future<bool> refreshAirQualityReadings() async {
     try {
       final airQualityReadings =
