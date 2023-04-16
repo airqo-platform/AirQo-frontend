@@ -25,9 +25,6 @@ class AirQoUrls {
   static String get searchSuggestions =>
       '${Config.placesSearchUrl}autocomplete/json';
 
-  static String get ipGeoCoordinates =>
-      '${Config.airqoApiUrl}meta-data/ip-geo-coordinates';
-
   static String get mobileCarrier =>
       '${Config.airqoApiUrl}meta-data/mobile-carrier';
 }

@@ -144,12 +144,10 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     Emitter<MapSearchState> emit,
   ) {
     List<AirQualityReading> nearbyAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
+        HiveService.getNearbyAirQualityReadings();
 
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService.getAirQualityReadings();
 
     airQualityReadings = nearbyAirQualityReadings.isEmpty
         ? airQualityReadings
