@@ -92,7 +92,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     },
                     child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
-                      color: CustomColors.greyColor,
+                      colorFilter: ColorFilter.mode(
+                        CustomColors.greyColor,
+                        BlendMode.srcIn,
+                      ),
                       height: 26,
                       width: 26,
                     ),
@@ -137,6 +140,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     ),
                   );
                 }
+
                 return SizedBox(
                   height: 50,
                   child: Padding(
