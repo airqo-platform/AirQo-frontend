@@ -55,10 +55,19 @@ class InsightContainer extends StatelessWidget {
                   ),
                 ),
                 Visibility(
-                  visible: insight.isEmpty,
+                  visible: insight.isNotForecastAndEmpty,
                   child: AutoSizeText(
-                    'No air quality data available',
+                    'Air Quality is temporarily unavailable for this location.',
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyle.headline8(context),
+                  ),
+                ),
+                Visibility(
+                  visible: insight.isForecastAndEmpty,
+                  child: AutoSizeText(
+                    'Forecast is temporarily unavailable for this location. We\'re working to restore this feature as soon as possible.',
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline8(context),
                   ),

@@ -18,7 +18,7 @@ class HiveService {
 
     await Future.wait([
       Hive.openBox<SearchHistory>(HiveBox.searchHistory),
-      Hive.openBox(HiveBox.forecast),
+      Hive.openBox<List<Forecast>>(HiveBox.forecast),
       Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
       Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
     ]);
@@ -107,10 +107,6 @@ class HiveService {
       );
       return [];
     }
-    // forecast = List<Forecast>.generate(
-    //   7,
-    //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, ),
-    // );
 
     return Hive.box<List<Forecast>>(
           HiveBox.forecast,

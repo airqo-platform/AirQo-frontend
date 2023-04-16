@@ -62,7 +62,8 @@ Forecast _$ForecastFromJson(Map<String, dynamic> json) => Forecast(
       pm2_5: (json['pm2_5'] as num).toDouble(),
       time: dateTimeFromUtcString(json['time']),
       message: json['message'] as String? ?? '',
-      healthTips: (json['healthTips'] as List<dynamic>)
-          .map((e) => HealthTip.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      healthTips: (json['healthTips'] as List<dynamic>?)
+              ?.map((e) => HealthTip.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );

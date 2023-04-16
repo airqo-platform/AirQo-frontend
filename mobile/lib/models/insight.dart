@@ -59,6 +59,12 @@ class Insight extends Equatable {
   final List<HealthTip> healthTips;
   final DateTime dateTime;
 
+  bool get isForecast => dateTime.isAFutureDate();
+
+  bool get isNotForecastAndEmpty => !isForecast && isEmpty;
+
+  bool get isForecastAndEmpty => isForecast && isEmpty;
+
   bool get isEmpty => pm2_5 == null || airQuality == null;
 
   bool get isNotEmpty => pm2_5 != null && airQuality != null;
