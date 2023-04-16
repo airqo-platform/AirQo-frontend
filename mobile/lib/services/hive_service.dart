@@ -86,14 +86,27 @@ class HiveService {
   }
 
   static Future<void> saveForecast(
-      List<Forecast> forecast, String siteId) async {
+    List<Forecast> forecast,
+    String siteId,
+  ) async {
     await Hive.box<List<Forecast>>(HiveBox.forecast).put(
       siteId,
       forecast,
     );
+    await SharedPreferencesHelper.updateForecastLastUpdate(siteId);
   }
 
-  static List<Forecast> getForecast(String siteId) {
+  static Future<List<Forecast>> getForecast(String siteId) async {
+    bool forecastIsOutdated =
+        await SharedPreferencesHelper.forecastIsOutdated(siteId);
+
+    if (forecastIsOutdated) {
+      await Hive.box<List<Forecast>>(HiveBox.forecast).put(
+        siteId,
+        [],
+      );
+      return [];
+    }
     // forecast = List<Forecast>.generate(
     //   7,
     //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, ),

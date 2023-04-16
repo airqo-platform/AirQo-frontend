@@ -20,15 +20,16 @@ class ForecastAdapter extends TypeAdapter<Forecast> {
       siteId: fields[2] as String,
       pm2_5: fields[1] as double,
       time: fields[0] as DateTime,
+      message: fields[3] as String,
       healthTips:
-          fields[3] == null ? [] : (fields[3] as List).cast<HealthTip>(),
+          fields[4] == null ? [] : (fields[4] as List).cast<HealthTip>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Forecast obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.time)
       ..writeByte(1)
@@ -36,6 +37,8 @@ class ForecastAdapter extends TypeAdapter<Forecast> {
       ..writeByte(2)
       ..write(obj.siteId)
       ..writeByte(3)
+      ..write(obj.message)
+      ..writeByte(4)
       ..write(obj.healthTips);
   }
 
@@ -57,7 +60,8 @@ class ForecastAdapter extends TypeAdapter<Forecast> {
 Forecast _$ForecastFromJson(Map<String, dynamic> json) => Forecast(
       siteId: json['siteId'] as String? ?? '',
       pm2_5: (json['pm2_5'] as num).toDouble(),
-      time: DateTime.parse(json['time'] as String),
+      time: dateTimeFromUtcString(json['time']),
+      message: json['message'] as String? ?? '',
       healthTips: (json['healthTips'] as List<dynamic>)
           .map((e) => HealthTip.fromJson(e as Map<String, dynamic>))
           .toList(),

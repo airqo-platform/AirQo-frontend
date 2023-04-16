@@ -220,8 +220,39 @@ extension AirQualityReadingExt on AirQualityReading {
         .toList();
   }
 
-  AirQuality airQuality() {
-    return Pollutant.pm2_5.airQuality(pm2_5);
+  String insightsMessage() {
+    String message = '';
+    String verb = dateTime.isAPastDate() ? " was" : " is";
+    String dateAdverb = dateTime.isYesterday() ? " yesterday" : "";
+
+    switch (airQuality) {
+      case AirQuality.good:
+        message =
+            'The air quality$dateAdverb in $name$verb quite ${airQuality.title}.';
+        break;
+      case AirQuality.moderate:
+        message =
+            'The air quality$dateAdverb in $name$verb at a ${airQuality.title} level.';
+        break;
+      case AirQuality.ufsgs:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title}.';
+        break;
+      case AirQuality.unhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} for everyone';
+        break;
+      case AirQuality.veryUnhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} reaching levels of high alert.';
+        break;
+      case AirQuality.hazardous:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} and can cause a health emergency.';
+        break;
+    }
+
+    return message;
   }
 }
 

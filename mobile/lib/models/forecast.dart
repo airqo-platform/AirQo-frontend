@@ -1,7 +1,9 @@
+import 'package:app/models/parsers.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'enum_constants.dart';
 import 'health_tip.dart';
 import 'hive_type_id.dart';
 
@@ -14,6 +16,7 @@ class Forecast extends HiveObject with EquatableMixin {
     required this.siteId,
     required this.pm2_5,
     required this.time,
+    required this.message,
     required this.healthTips,
   });
 
@@ -29,13 +32,17 @@ class Forecast extends HiveObject with EquatableMixin {
     return Forecast(
       siteId: siteId ?? this.siteId,
       pm2_5: pm2_5,
+      message: message,
       time: time,
       healthTips: healthTips,
     );
   }
 
   @HiveField(0)
-  @JsonKey()
+  @JsonKey(
+    fromJson: dateTimeFromUtcString,
+    toJson: dateTimeToUtcString,
+  )
   final DateTime time;
 
   @HiveField(1)
@@ -46,8 +53,14 @@ class Forecast extends HiveObject with EquatableMixin {
   @JsonKey(defaultValue: "")
   final String siteId;
 
-  @HiveField(3, defaultValue: [])
+  @HiveField(3)
+  @JsonKey(defaultValue: "")
+  final String message;
+
+  @HiveField(4, defaultValue: [])
   final List<HealthTip> healthTips;
+
+  AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 
   @override
   List<Object?> get props => [

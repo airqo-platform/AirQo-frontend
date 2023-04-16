@@ -32,11 +32,26 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       ),
     ).toSet();
 
-    insights.addOrUpdate(
-      Insight.fromAirQualityReading(event.airQualityReading),
-    );
+    List<Forecast> forecast = await HiveService.getForecast(siteId);
+    Forecast? todayForecast;
 
-    List<Forecast> forecast = HiveService.getForecast(siteId);
+    if (DateTime.now().hour < 12) {
+      List<Forecast> todayForecasts = forecast
+          .where(
+            (element) => element.time.day == DateTime.now().day,
+          )
+          .toList();
+      if (todayForecasts.isNotEmpty) {
+        todayForecast = todayForecasts.first;
+      }
+    }
+
+    insights.addOrUpdate(
+      Insight.fromAirQualityReading(
+        event.airQualityReading,
+        forecast: todayForecast,
+      ),
+    );
 
     setInsights(
       emit,

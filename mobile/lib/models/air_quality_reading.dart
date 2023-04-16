@@ -1,8 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/models/parsers.dart';
 import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -31,8 +31,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   });
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
-    DateTime dateTime = DateTime.parse(json["time"] as String);
-    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
+    DateTime dateTime = dateTimeFromUtcString(json["time"]);
     PollutantValue pm2_5 =
         PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
     PollutantValue pm10 =
@@ -254,6 +253,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
 
   @HiveField(15, defaultValue: [])
   final List<HealthTip> healthTips;
+
+  AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 
   @override
   List<Object?> get props => [placeId, dateTime];
