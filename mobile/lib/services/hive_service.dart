@@ -105,6 +105,7 @@ class HiveService {
         siteId,
         [],
       );
+
       return [];
     }
 

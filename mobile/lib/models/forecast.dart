@@ -25,6 +25,7 @@ class Forecast extends HiveObject with EquatableMixin {
 
   factory Forecast.fromAPI(Map<String, dynamic> json, String siteId) {
     Forecast forecast = Forecast.fromJson(json);
+
     return forecast.copyWith(siteId: siteId);
   }
 

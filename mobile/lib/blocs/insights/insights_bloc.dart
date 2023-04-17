@@ -61,6 +61,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     );
 
     forecast = await AirqoApiClient().fetchForecast(siteId);
+    if (forecast.isEmpty) return;
 
     setInsights(
       emit,

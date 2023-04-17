@@ -122,6 +122,8 @@ class AirqoApiClient {
   }
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
+    final forecast = <Forecast>[];
+
     try {
       final body = await _performGetRequest(
         {
@@ -129,8 +131,6 @@ class AirqoApiClient {
         },
         AirQoUrls.forecast,
       );
-
-      final forecast = <Forecast>[];
 
       for (final forecast in body['forecasts'] as List<dynamic>) {
         try {
@@ -141,10 +141,13 @@ class AirqoApiClient {
               'siteId': siteId,
             }),
           );
-        } catch (_, __) {}
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
       }
-
-      return forecast;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -152,7 +155,7 @@ class AirqoApiClient {
       );
     }
 
-    return [];
+    return forecast;
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
