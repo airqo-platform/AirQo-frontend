@@ -39,8 +39,6 @@ class AirqoApiClient {
       SentryStatusCode(400),
       SentryStatusCode(404),
     ],
-    captureFailedRequests: true,
-    networkTracing: true,
   );
   final Map<String, String> headers = HashMap()
     ..putIfAbsent(
@@ -70,43 +68,6 @@ class AirqoApiClient {
     }
 
     return null;
-  }
-
-  Future<Map<String, double>> getLocation() async {
-    String ipAddress = '';
-    try {
-      final ipResponse = await httpClient.get(
-        Uri.parse('https://jsonip.com/'),
-      );
-      ipAddress = json.decode(ipResponse.body)['ip'] as String;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    try {
-      final params = ipAddress.isNotEmpty
-          ? {'ip_address': ipAddress}
-          : <String, dynamic>{};
-      final response = await _performGetRequest(
-        params,
-        AirQoUrls.ipGeoCoordinates,
-      );
-
-      return {
-        'latitude': response['data']['latitude'] as double,
-        'longitude': response['data']['longitude'] as double,
-      };
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return {};
   }
 
   Future<String> getCarrier(String phoneNumber) async {
@@ -345,8 +306,6 @@ class SearchApiClient {
       SentryStatusCode(400),
       SentryStatusCode(404),
     ],
-    captureFailedRequests: true,
-    networkTracing: true,
   );
 
   Future<dynamic> _getRequest({

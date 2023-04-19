@@ -90,6 +90,12 @@ class HiveService {
     ).values.toList();
   }
 
+  static List<AirQualityReading> getNearbyAirQualityReadings() {
+    return Hive.box<AirQualityReading>(
+      HiveBox.nearByAirQualityReadings,
+    ).values.toList();
+  }
+
   static Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {

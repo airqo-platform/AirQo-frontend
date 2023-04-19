@@ -16,23 +16,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<CancelCheckForUpdates>(_onCancelCheckForUpdates);
   }
 
-  Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
-    final greetings = await DateTime.now().getGreetings();
-    emit(state.copyWith(greetings: greetings));
-  }
-
   void _loadAirQualityReadings(Emitter<DashboardState> emit) {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
     List<AirQualityReading> nearbyAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList()
+        HiveService.getNearbyAirQualityReadings()
             .sortByDistanceToReferenceSite();
 
     if (nearbyAirQualityReadings.length > 1) {
-      nearbyAirQualityReadings.removeAt(0);
-      airQualityCards.add(nearbyAirQualityReadings.first);
+      airQualityCards.add(nearbyAirQualityReadings[1]);
     }
 
     List<AirQualityReading> airQualityReadings =
@@ -105,7 +97,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     await Future.wait([
       AppService().refreshAirQualityReadings(),
-      _updateGreetings(emit),
     ]).whenComplete(() => _loadAirQualityReadings(emit));
   }
 

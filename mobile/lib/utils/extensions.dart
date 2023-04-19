@@ -424,25 +424,6 @@ extension DateTimeExt on DateTime {
     return firstDate.getDateOfFirstHourOfDay();
   }
 
-  Future<String> getGreetings() async {
-    // final profile = await HiveService.getProfile();
-    //
-    // if (00 <= hour && hour < 12) {
-    //   return 'Good morning ${profile.firstName}'.trim();
-    // }
-    //
-    // if (12 <= hour && hour < 16) {
-    //   return 'Good afternoon ${profile.firstName}'.trim();
-    // }
-    //
-    // if (16 <= hour && hour <= 23) {
-    //   return 'Good evening ${profile.firstName}'.trim();
-    // }
-    //
-    // return 'Hello ${profile.firstName}'.trim();
-    return '';
-  }
-
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
   }

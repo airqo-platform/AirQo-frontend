@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.17+20033
+version: 2.0.19+20034
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -44,7 +44,7 @@ dependencies:
   shimmer: ^2.0.0
   google_fonts: ^4.0.3
   in_app_review: ^2.0.6
-  sentry_flutter: ^6.19.0
+  sentry_flutter: ^7.4.2
   lottie: ^2.2.0
   share_plus: ^6.3.0
   flutter_secure_storage: ^8.0.0
@@ -71,7 +71,7 @@ dependencies:
   equatable: ^2.0.5
   drift: ^2.4.2
   sqlite3_flutter_libs: ^0.5.12
-  appinio_swiper: ^1.1.1
+  appinio_swiper: ^2.0.0
   firebase_dynamic_links: ^5.0.11
   home_widget: ^0.2.0+1
   showcaseview: ^2.0.0+1

@@ -21,7 +21,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
 
   const handleSelectAllDevices = (e) => {
     const allDevices = [];
-    collocationDevices.map((device) => allDevices.push(device._id));
+    collocationDevices.map((device) => allDevices.push(device.device));
     if (e.target.checked) {
       dispatch(addDevices(allDevices));
     } else {
@@ -32,14 +32,17 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   const handleSelectDevice = (e, device) => {
     const isChecked = e.target.checked;
     if (isChecked) {
-      dispatch(addDevices([device._id]));
+      dispatch(addDevices([device.device]));
     } else {
-      dispatch(removeDevices([device._id]));
+      dispatch(removeDevices([device.device]));
     }
   };
 
   return (
-    <table className='border-collapse text-xs text-left w-full mb-6'>
+    <table
+      className='border-collapse text-xs text-left w-full mb-6'
+      data-testid='collocation-device-selection-table'
+    >
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
@@ -65,22 +68,22 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
       </thead>
       <tbody>
         {paginatedData.length > 0 &&
-          paginatedData.map((device) => {
+          paginatedData.map((device, index) => {
             return (
-              <tr className='border-b border-b-slate-300' key={device._id}>
+              <tr className='border-b border-b-slate-300' key={index}>
                 <td scope='row' className='w-[61px] py-3 px-6'>
                   <input
                     type='checkbox'
-                    checked={selectedCollocateDevices.includes(device._id)}
+                    checked={selectedCollocateDevices.includes(device.device)}
                     value={device}
                     onChange={(e) => handleSelectDevice(e, device)}
                   />
                 </td>
-                <td scope='row' className='w-[145px] px-4 py-3'>
-                  {device.long_name}
+                <td scope='row' className='w-[145px] px-4 py-3 uppercase'>
+                  {device.device}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
-                  {moment(device.createdAt).format('MMM DD, YYYY')}
+                  {moment(device.time).format('MMM DD, YYYY')}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'>
                   {' '}
