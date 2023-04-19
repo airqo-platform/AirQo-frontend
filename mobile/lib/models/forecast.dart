@@ -59,7 +59,7 @@ class Forecast extends HiveObject with EquatableMixin {
   final String message;
 
   @HiveField(4, defaultValue: [])
-  @JsonKey(defaultValue: [])
+  @JsonKey(defaultValue: [], name: "health_tips")
   final List<HealthTip> healthTips;
 
   AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
