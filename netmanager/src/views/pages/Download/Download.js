@@ -413,6 +413,7 @@ const Download = (props) => {
         setSelectedAirqlouds([]);
         setSelectedDevices([]);
         setSelectedSites([]);
+        setSelectedRegions([]);
         setPollutants([]);
         setOutputFormat(null);
         setFrequency(null);
