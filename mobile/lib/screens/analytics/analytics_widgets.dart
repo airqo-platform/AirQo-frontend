@@ -39,8 +39,11 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 9.7,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           Text(
@@ -57,8 +60,11 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 12.14,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           const Spacer(),
