@@ -22,7 +22,9 @@ class Insight extends Equatable {
 
     return Insight(
       forecastMessage: forecast != null
-          ? forecast.message
+          ? forecast.message.isEmpty
+              ? forecast.tempMessage
+              : forecast.message
           : "Forecast is temporarily unavailable for this location. We’re working to restore this feature as soon as possible.",
       airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
@@ -33,9 +35,12 @@ class Insight extends Equatable {
   }
 
   factory Insight.fromForecast(Forecast forecast) {
+    String message =
+        forecast.message.isEmpty ? forecast.tempMessage : forecast.message;
+
     return Insight(
-      forecastMessage: forecast.message,
-      airQualityMessage: forecast.message,
+      forecastMessage: message,
+      airQualityMessage: message,
       pm2_5: forecast.pm2_5,
       airQuality: forecast.airQuality,
       healthTips: forecast.healthTips,

@@ -55,8 +55,10 @@ class FavouritePlace extends Equatable {
   factory FavouritePlace.fromJson(Map<String, dynamic> json) =>
       _$FavouritePlaceFromJson(json);
 
-  FavouritePlace copyWith(
-      {String? referenceSite, AirQualityReading? airQualityReading}) {
+  FavouritePlace copyWith({
+    String? referenceSite,
+    AirQualityReading? airQualityReading,
+  }) {
     return FavouritePlace(
       name: name,
       location: location,
@@ -89,10 +91,11 @@ class FavouritePlace extends Equatable {
   final double longitude;
 
   @JsonKey(
-      includeToJson: false,
-      includeFromJson: false,
-      includeIfNull: true,
-      disallowNullValue: false)
+    includeToJson: false,
+    includeFromJson: false,
+    includeIfNull: true,
+    disallowNullValue: false,
+  )
   final AirQualityReading? airQualityReading;
 
   @override

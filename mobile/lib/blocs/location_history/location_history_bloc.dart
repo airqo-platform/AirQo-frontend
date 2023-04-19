@@ -30,6 +30,7 @@ class LocationHistoryBloc
       try {
         AirQualityReading airQualityReading = airQualityReadings
             .firstWhere((element) => element.referenceSite == place.site);
+
         return place.copyWith(airQualityReading: airQualityReading);
       } catch (e) {
         return place;
@@ -65,9 +66,26 @@ class LocationHistoryBloc
     locationHistory = _updateAirQuality(locationHistory);
 
     emit(locationHistory.toList());
-    // TODO UPDATE REFERENCE SITES
 
-    await CloudStore.updateLocationHistory(locationHistory.toList());
+    Set<LocationHistory> updatedLocationHistory = {};
+    for (final place in locationHistory) {
+      final nearestSite = await LocationService.getNearestSite(
+        place.latitude,
+        place.longitude,
+      );
+
+      if (nearestSite != null) {
+        updatedLocationHistory
+            .add(place.copyWith(site: nearestSite.referenceSite));
+      } else {
+        updatedLocationHistory.add(place);
+      }
+    }
+
+    updatedLocationHistory = _updateAirQuality(updatedLocationHistory);
+
+    emit(updatedLocationHistory.toList());
+    await CloudStore.updateLocationHistory(updatedLocationHistory.toList());
   }
 
   @override

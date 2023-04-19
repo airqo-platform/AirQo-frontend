@@ -22,7 +22,9 @@ class FavouritePlaceBloc
     return Set.of(data).map((place) {
       try {
         AirQualityReading airQualityReading = airQualityReadings.firstWhere(
-            (element) => element.referenceSite == place.referenceSite);
+          (element) => element.referenceSite == place.referenceSite,
+        );
+
         return place.copyWith(airQualityReading: airQualityReading);
       } catch (e) {
         return place;

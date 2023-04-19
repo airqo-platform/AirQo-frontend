@@ -5,7 +5,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';

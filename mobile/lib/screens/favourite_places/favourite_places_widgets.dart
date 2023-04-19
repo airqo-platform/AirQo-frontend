@@ -14,6 +14,7 @@ class FavouritePlaceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
     AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
+
     return InkWell(
       onTap: () async {
         await _navigateToInsights(context, airQualityReading);
@@ -168,6 +169,7 @@ class FavouritePlaceCard extends StatelessWidget {
   ) async {
     if (airQualityReading == null) {
       showSnackBar(context, 'No air quality for this place');
+
       return;
     }
     await navigateToInsights(context, airQualityReading);

@@ -52,13 +52,17 @@ class LocationHistory extends Equatable {
   final DateTime dateTime;
 
   @JsonKey(
-      includeToJson: false,
-      includeFromJson: false,
-      includeIfNull: true,
-      disallowNullValue: false)
+    includeToJson: false,
+    includeFromJson: false,
+    includeIfNull: true,
+    disallowNullValue: false,
+  )
   final AirQualityReading? airQualityReading;
 
-  LocationHistory copyWith({AirQualityReading? airQualityReading}) {
+  LocationHistory copyWith({
+    AirQualityReading? airQualityReading,
+    String? site,
+  }) {
     return LocationHistory(
       name: name,
       location: location,
@@ -66,7 +70,7 @@ class LocationHistory extends Equatable {
       latitude: latitude,
       longitude: longitude,
       airQualityReading: airQualityReading ?? this.airQualityReading,
-      site: site,
+      site: site ?? this.site,
       dateTime: dateTime,
     );
   }

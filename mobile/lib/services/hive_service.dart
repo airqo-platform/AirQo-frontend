@@ -121,6 +121,12 @@ class HiveService {
       return [];
     }
 
+    // MOCK data used for testing
+    // return List<Forecast>.generate(
+    //   7,
+    //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, message: '', healthTips: [], ),
+    // );
+
     return Hive.box<List<Forecast>>(
           _forecast,
         ).get(siteId) ??
