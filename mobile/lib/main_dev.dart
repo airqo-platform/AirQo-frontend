@@ -33,7 +33,6 @@ void main() async {
       (options) {
         options
           ..dsn = Config.sentryDsn
-          ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(configuredApp),

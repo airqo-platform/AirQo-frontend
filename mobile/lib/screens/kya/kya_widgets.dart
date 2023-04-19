@@ -36,7 +36,10 @@ class CircularKyaButton extends StatelessWidget {
       ),
       child: SvgPicture.asset(
         icon,
-        color: Colors.white,
+        colorFilter: const ColorFilter.mode(
+          Colors.white,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }
