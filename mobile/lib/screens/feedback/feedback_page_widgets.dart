@@ -51,7 +51,10 @@ class FeedbackStartButton extends StatelessWidget {
                   'assets/icon/next_arrow.svg',
                   height: 17.42,
                   width: 10.9,
-                  color: Colors.white,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
                 ),
                 const Spacer(),
               ],
@@ -409,7 +412,10 @@ class FeedbackNavigationButton extends StatelessWidget {
               svg ?? 'assets/icon/next_arrow.svg',
               height: 17.42,
               width: 10.9,
-              color: textColor,
+              colorFilter: ColorFilter.mode(
+                textColor,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ],
