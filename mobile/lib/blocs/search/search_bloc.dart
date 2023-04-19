@@ -27,12 +27,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     emit(const SearchState());
-    await HiveService.deleteSearchHistory();
+    await HiveService().deleteSearchHistory();
   }
 
   void _onLoadCountries(Emitter<SearchState> emit) {
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    final List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
     final List<String> countries =
         airQualityReadings.map((e) => e.country).toSet().toList();
 
@@ -44,14 +44,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        HiveService.getNearbyAirQualityReadings();
+        HiveService().getNearbyAirQualityReadings();
 
     List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(HiveBox.searchHistory)
-            .values
-            .toList()
-            .sortByDateTime()
-            .toList();
+        HiveService().getSearchHistory().sortByDateTime().toList();
 
     List<AirQualityReading> searchHistoryReadings =
         await searchHistory.attachedAirQualityReadings();
@@ -59,10 +55,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     airQualityReadings.addAll(searchHistoryReadings);
 
     if (airQualityReadings.isEmpty) {
-      List<AirQualityReading> readings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
+      List<AirQualityReading> readings = HiveService().getAirQualityReadings();
 
       final List<String> countries =
           readings.map((e) => e.country).toSet().toList();
@@ -141,7 +134,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     Emitter<SearchState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     // Add sites within 4 kilometers
     List<AirQualityReading> recommendations = airQualityReadings
@@ -204,8 +197,7 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
   }
 
   Future<void> _loadSearchHistory(Emitter<SearchFilterState> emit) async {
-    List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+    List<SearchHistory> searchHistory = HiveService().getSearchHistory();
     searchHistory = searchHistory.sortByDateTime().take(3).toList();
     List<AirQualityReading> recentSearches =
         await searchHistory.attachedAirQualityReadings();
@@ -221,10 +213,7 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
 
     bool success = await AppService().refreshAirQualityReadings();
     if (success) {
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
+      final airQualityReadings = HiveService().getAirQualityReadings();
       if (airQualityReadings.isNotEmpty) {
         await _initialize(emit);
 
@@ -244,13 +233,14 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
     List<AirQualityReading> nearbyAirQualityLocations = <AirQualityReading>[];
     List<AirQualityReading> otherAirQualityLocations = <AirQualityReading>[];
 
-    nearbyAirQualityLocations = HiveService.getNearbyAirQualityReadings()
+    nearbyAirQualityLocations = HiveService()
+        .getNearbyAirQualityReadings()
         .where((element) =>
             Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
         .toList();
 
     final List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     otherAirQualityLocations = airQualityReadings
         .where((element) =>
@@ -278,8 +268,7 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
   Future<void> _initialize(Emitter<SearchFilterState> emit) async {
     List<AirQualityReading> africanCities = [];
 
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    final airQualityReadings = HiveService().getAirQualityReadings();
     airQualityReadings.shuffle();
 
     final List<String> countries =

@@ -69,42 +69,6 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     );
   }
 
-  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.firstWhere(
-      (element) => element.referenceSite == favouritePlace.referenceSite,
-      orElse: () {
-        return AirQualityReading(
-          referenceSite: favouritePlace.referenceSite,
-          source: '',
-          latitude: favouritePlace.latitude,
-          longitude: favouritePlace.longitude,
-          country: '',
-          name: favouritePlace.name,
-          location: favouritePlace.location,
-          region: '',
-          dateTime: DateTime.now(),
-          pm2_5: 0,
-          pm10: 0,
-          distanceToReferenceSite: 0,
-          placeId: favouritePlace.placeId,
-          shareLink: '',
-          healthTips: [],
-        );
-      },
-    );
-
-    return airQualityReading.copyWith(
-      referenceSite: favouritePlace.referenceSite,
-      latitude: favouritePlace.latitude,
-      longitude: favouritePlace.longitude,
-      name: favouritePlace.name,
-      location: favouritePlace.location,
-      placeId: favouritePlace.placeId,
-    );
-  }
-
   factory AirQualityReading.fromDynamicLink(
     PendingDynamicLinkData dynamicLinkData,
   ) {
@@ -118,9 +82,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
         dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
 
     AirQualityReading airQualityReading =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .values
-            .firstWhere(
+        HiveService().getAirQualityReadings().firstWhere(
       (element) => element.referenceSite == referenceSite,
       orElse: () {
         String country = dynamicLinkData.link.queryParameters['country'] ?? '';

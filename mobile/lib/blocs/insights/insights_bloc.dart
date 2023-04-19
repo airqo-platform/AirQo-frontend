@@ -32,7 +32,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       ),
     ).toSet();
 
-    List<Forecast> forecast = await HiveService.getForecast(siteId);
+    List<Forecast> forecast = await HiveService().getForecast(siteId);
     Forecast? todayForecast;
 
     if (DateTime.now().hour < 12) {
@@ -70,7 +70,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       airQualityReading: event.airQualityReading,
     );
 
-    HiveService.saveForecast(forecast, siteId);
+    HiveService().saveForecast(forecast, siteId);
   }
 
   void setInsights(

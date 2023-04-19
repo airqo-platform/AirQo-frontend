@@ -22,7 +22,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     if (airQualityReadings.isEmpty) {
       final hasConnection = await hasNetworkConnection();
@@ -36,10 +36,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(state.copyWith(mapStatus: MapStatus.loading));
 
       await AppService().refreshAirQualityReadings().then((value) {
-        airQualityReadings =
-            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                .values
-                .toList();
+        airQualityReadings = HiveService().getAirQualityReadings();
         if (airQualityReadings.isEmpty) {
           emit(state.copyWith(mapStatus: MapStatus.noAirQuality));
         }
@@ -144,10 +141,10 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     Emitter<MapSearchState> emit,
   ) {
     List<AirQualityReading> nearbyAirQualityReadings =
-        HiveService.getNearbyAirQualityReadings();
+        HiveService().getNearbyAirQualityReadings();
 
     List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings = nearbyAirQualityReadings.isEmpty
         ? airQualityReadings

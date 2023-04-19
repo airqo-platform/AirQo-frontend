@@ -14,6 +14,7 @@ class FavouritePlace extends Equatable {
     required this.placeId,
     required this.latitude,
     required this.longitude,
+    this.airQualityReading,
   });
 
   factory FavouritePlace.fromAirQualityReading(
@@ -54,7 +55,8 @@ class FavouritePlace extends Equatable {
   factory FavouritePlace.fromJson(Map<String, dynamic> json) =>
       _$FavouritePlaceFromJson(json);
 
-  FavouritePlace copyWith({String? referenceSite}) {
+  FavouritePlace copyWith(
+      {String? referenceSite, AirQualityReading? airQualityReading}) {
     return FavouritePlace(
       name: name,
       location: location,
@@ -62,6 +64,7 @@ class FavouritePlace extends Equatable {
       placeId: placeId,
       latitude: latitude,
       longitude: longitude,
+      airQualityReading: airQualityReading ?? this.airQualityReading,
     );
   }
 
@@ -84,6 +87,13 @@ class FavouritePlace extends Equatable {
 
   @JsonKey(defaultValue: 0.0)
   final double longitude;
+
+  @JsonKey(
+      includeToJson: false,
+      includeFromJson: false,
+      includeIfNull: true,
+      disallowNullValue: false)
+  final AirQualityReading? airQualityReading;
 
   @override
   List<Object> get props => [placeId];

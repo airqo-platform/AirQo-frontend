@@ -21,7 +21,9 @@ class Insight extends Equatable {
         : airQualityReading.healthTips;
 
     return Insight(
-      forecastMessage: forecast == null ? "" : forecast.message,
+      forecastMessage: forecast != null
+          ? forecast.message
+          : "Forecast is temporarily unavailable for this location. We’re working to restore this feature as soon as possible.",
       airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
       airQuality: airQualityReading.airQuality,
@@ -32,7 +34,7 @@ class Insight extends Equatable {
 
   factory Insight.fromForecast(Forecast forecast) {
     return Insight(
-      forecastMessage: "",
+      forecastMessage: forecast.message,
       airQualityMessage: forecast.message,
       pm2_5: forecast.pm2_5,
       airQuality: forecast.airQuality,
@@ -43,8 +45,10 @@ class Insight extends Equatable {
 
   factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
-      forecastMessage: '',
-      airQualityMessage: '',
+      forecastMessage:
+          'Forecast is temporarily unavailable for this location. We’re working to restore this feature as soon as possible.',
+      airQualityMessage:
+          'We’re having issues with our network no worries, we’ll be back up soon.',
       pm2_5: null,
       airQuality: null,
       healthTips: const [],
@@ -59,11 +63,7 @@ class Insight extends Equatable {
   final List<HealthTip> healthTips;
   final DateTime dateTime;
 
-  bool get isForecast => dateTime.isAFutureDate();
-
-  bool get isNotForecastAndEmpty => !isForecast && isEmpty;
-
-  bool get isForecastAndEmpty => isForecast && isEmpty;
+  bool get isFutureData => dateTime.isAFutureDate();
 
   bool get isEmpty => pm2_5 == null || airQuality == null;
 

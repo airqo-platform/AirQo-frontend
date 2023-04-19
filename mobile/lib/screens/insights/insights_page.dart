@@ -156,8 +156,11 @@ class InsightsPage extends StatelessWidget {
                   const SizedBox(
                     height: 8,
                   ),
-                  InsightsCalendar(),
-                  ForecastContainer(selectedInsight),
+                  const InsightsCalendar(),
+                  Visibility(
+                    visible: !selectedInsight.isFutureData,
+                    child: ForecastContainer(selectedInsight),
+                  ),
                   HealthTipsWidget(selectedInsight),
                   const SizedBox(
                     height: 21,

@@ -66,7 +66,7 @@ class AppService {
     try {
       final airQualityReadings =
           await AirqoApiClient().fetchAirQualityReadings();
-      await HiveService.updateAirQualityReadings(airQualityReadings);
+      await HiveService().updateAirQualityReadings(airQualityReadings);
 
       return true;
     } catch (exception, stackTrace) {

@@ -545,9 +545,8 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       }
     });
 
-    context
-        .read<FavouritePlaceBloc>()
-        .add(UpdateFavouritePlace(widget.airQualityReading));
+    context.read<FavouritePlaceBloc>().add(UpdateFavouritePlace(
+        FavouritePlace.fromAirQualityReading(widget.airQualityReading)));
   }
 }
 

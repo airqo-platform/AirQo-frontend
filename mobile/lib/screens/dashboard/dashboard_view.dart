@@ -465,6 +465,8 @@ class _DashboardViewState extends State<DashboardView>
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
 
   Future<void> _startShowcase() async {

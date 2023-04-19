@@ -27,31 +27,15 @@ class FavouritePlacesPage extends StatelessWidget {
 
               return const NoFavouritePlacesWidget();
             }
-            final airQualityReadings =
-                Hive.box<AirQualityReading>(HiveBox.airQualityReadings);
 
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final siteReadings = airQualityReadings.values.where(
-                    (element) =>
-                        element.referenceSite == state[index].referenceSite,
-                  );
-
-                  final AirQualityReading airQualityReading =
-                      AirQualityReading.fromFavouritePlace(
-                    state[index],
-                  );
-
-                  if (siteReadings.isEmpty) {
-                    return EmptyFavouritePlace(airQualityReading);
-                  }
-
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(index),
                     ),
-                    child: FavouritePlaceCard(airQualityReading),
+                    child: FavouritePlaceCard(state[index]),
                   );
                 },
                 childCount: state.length,
