@@ -327,8 +327,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           AutoSizeText(
@@ -344,8 +347,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           const Spacer(),
@@ -500,7 +506,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                       child: IconTextButton(
                         iconWidget: SvgPicture.asset(
                           'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
+                          colorFilter: ColorFilter.mode(
+                            CustomColors.greyColor,
+                            BlendMode.srcIn,
+                          ),
                           semanticsLabel: 'Share',
                         ),
                         text: 'Share',

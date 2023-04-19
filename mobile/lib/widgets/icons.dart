@@ -78,8 +78,11 @@ class SvgIcons {
       semanticsLabel: 'Pm2.5',
       height: 8,
       width: 16,
-      color: Pollutant.pm2_5.textColor(
-        value: value,
+      colorFilter: ColorFilter.mode(
+        Pollutant.pm2_5.textColor(
+          value: value,
+        ),
+        BlendMode.srcIn,
       ),
     );
   }
@@ -90,8 +93,11 @@ class SvgIcons {
       semanticsLabel: 'Unit',
       height: 10,
       width: 16,
-      color: Pollutant.pm2_5.textColor(
-        value: value,
+      colorFilter: ColorFilter.mode(
+        Pollutant.pm2_5.textColor(
+          value: value,
+        ),
+        BlendMode.srcIn,
       ),
     );
   }
