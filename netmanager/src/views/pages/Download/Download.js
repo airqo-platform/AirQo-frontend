@@ -80,14 +80,24 @@ const groupSitesByRegion = (sites) => {
       regionGroups[regionCountryKey] = {
         region: `${site.region}, ${site.country}`,
         label: `${site.region}, ${site.country}`,
-        value: []
+        value: [],
+        country: site.country
       };
     }
 
     regionGroups[regionCountryKey].value.push(site._id);
   }
 
-  return Object.values(regionGroups);
+  const groupedRegions = Object.values(regionGroups);
+
+  // sort groupedRegions by country
+  groupedRegions.sort((a, b) => {
+    if (a.country < b.country) return -1;
+    if (a.country > b.country) return 1;
+    return 0;
+  });
+
+  return groupedRegions;
 };
 
 const createDeviceRegistrySiteOptions = (sites) => {
