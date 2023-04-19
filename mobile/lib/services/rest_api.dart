@@ -39,8 +39,6 @@ class AirqoApiClient {
       SentryStatusCode(400),
       SentryStatusCode(404),
     ],
-    captureFailedRequests: true,
-    networkTracing: true,
   );
   final Map<String, String> headers = HashMap()
     ..putIfAbsent(
@@ -315,8 +313,6 @@ class SearchApiClient {
       SentryStatusCode(400),
       SentryStatusCode(404),
     ],
-    captureFailedRequests: true,
-    networkTracing: true,
   );
 
   Future<dynamic> _getRequest({

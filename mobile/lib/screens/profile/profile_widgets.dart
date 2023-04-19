@@ -457,7 +457,13 @@ class CardSection extends StatelessWidget {
           ),
           child: Center(
             child: icon != null
-                ? SvgPicture.asset(icon!, color: iconColor)
+                ? SvgPicture.asset(
+                    icon!,
+                    colorFilter: ColorFilter.mode(
+                      iconColor ?? Colors.transparent,
+                      BlendMode.srcIn,
+                    ),
+                  )
                 : Icon(
                     materialIcon,
                     color: iconColor,
