@@ -2,29 +2,7 @@ import React from 'react';
 import { MdArrowDropDown } from 'react-icons/md';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const GraphCard = ({ deviceName, secondGraph }) => {
-  const data = [
-    {
-      s1_pm2_5: {
-        value: 13.03333333333333,
-        calibratedValue: null,
-        uncertaintyValue: null,
-        standardDeviationValue: null,
-      },
-      s2_pm2_5: {
-        value: 33.36666666666667,
-        calibratedValue: null,
-        uncertaintyValue: null,
-        standardDeviationValue: null,
-      },
-    },
-  ];
-  
-  const chartData = Object.entries(data[0]).map(([name, values]) => ({
-    name,
-    value: values.value,
-  }));
-
+const GraphCard = ({ data, secondGraph }) => {
   const tooltipFormatter = (value) => {
     return `${value.toFixed(2)}`;
   };
@@ -34,7 +12,7 @@ const GraphCard = ({ deviceName, secondGraph }) => {
       <div className='col-span-3 flex flex-col pt-4 md:px-6 ml-2'>
         <div className='flex flex-row items-center justify-between'>
           <span className='font-semibold text-base flex justify-between items-center'>
-            {deviceName}{' '}
+            {data && data[0].deviceName}{' '}
             <button className='text-lg ml-2'>
               <MdArrowDropDown />
             </button>
@@ -51,20 +29,19 @@ const GraphCard = ({ deviceName, secondGraph }) => {
         </div>
         {secondGraph ? (
           <ResponsiveContainer width='100%' height='100%'>
-            <BarChart width={'100%'} height={140} barCategoryGap={30} data={chartData}>
+            <BarChart width={'100%'} height={140} barCategoryGap={30} data={data}>
               <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
-              <XAxis dataKey={'name'} />
+              <XAxis dataKey={'deviceName'} />
               <CartesianGrid strokeDasharray='3 3' />
               <Tooltip formatter={tooltipFormatter} />
               <Bar
-                dataKey={'value'}
+                dataKey='s1_pm10_mean'
                 fill='#FE9E35'
                 name={'Sensor 01'}
                 background={{ fill: '#F4F6F8' }}
               />
               <Bar
-                data={data.map((item) => item.s2_pm2_5)}
-                dataKey={'value'}
+                dataKey='s2_pm10_mean'
                 fill='#0CE87E'
                 name={'Sensor 02'}
                 background={{ fill: '#F4F6F8' }}
@@ -73,21 +50,20 @@ const GraphCard = ({ deviceName, secondGraph }) => {
           </ResponsiveContainer>
         ) : (
           <ResponsiveContainer width='100%' height='100%'>
-            <BarChart width={'100%'} height={140} barCategoryGap={30} data={chartData}>
+            <BarChart width={'100%'} height={140} barCategoryGap={30} data={data}>
               <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
               <XAxis dataKey={'name'} />
               <CartesianGrid strokeDasharray='3 3' />
               <Tooltip formatter={tooltipFormatter} />
               <Bar
-                dataKey={'value'}
-                fill='#0CE87E'
+                dataKey='s1_pm10_mean'
+                fill='#FE9E35'
                 name={'Sensor 01'}
                 background={{ fill: '#F4F6F8' }}
               />
               <Bar
-                data={data.map((item) => item.s2_pm2_5)}
-                dataKey={'value'}
-                fill='#C6FFE4'
+                dataKey='s2_pm10_mean'
+                fill='#0CE87E'
                 name={'Sensor 02'}
                 background={{ fill: '#F4F6F8' }}
               />
@@ -104,7 +80,8 @@ const GraphCard = ({ deviceName, secondGraph }) => {
                   secondGraph
                     ? 'rounded-full w-3 h-3 bg-orange-450 mr-2'
                     : 'rounded-full w-3 h-3 bg-green-550 mr-2'
-                }></div>
+                }
+              ></div>
               <span className='text-sm font-semibold'>Sensor 01</span>
             </div>
             <div className='mt-1 mb-4'>
@@ -123,7 +100,8 @@ const GraphCard = ({ deviceName, secondGraph }) => {
                   secondGraph
                     ? 'rounded-full w-3 h-3 bg-green-550 mr-2'
                     : 'rounded-full w-3 h-3 bg-green-50 mr-2'
-                }></div>
+                }
+              ></div>
               <span className='text-sm font-semibold'>Sensor 02</span>
             </div>
             <div className='mt-1 mb-4'>
