@@ -159,7 +159,7 @@ class InsightsPage extends StatelessWidget {
                   const InsightsCalendar(),
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
-                        selectedInsight.dateTime.hour < 12,
+                        DateTime.now().hour < 12,
                     child: ForecastContainer(selectedInsight),
                   ),
                   HealthTipsWidget(selectedInsight),

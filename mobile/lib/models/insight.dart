@@ -25,7 +25,7 @@ class Insight extends Equatable {
           ? forecast.message.isEmpty
               ? forecast.tempMessage
               : forecast.message
-          : "Forecast is temporarily unavailable for this location. We’re working to restore this feature as soon as possible.",
+          : "Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.",
       airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
       airQuality: airQualityReading.airQuality,
@@ -51,7 +51,7 @@ class Insight extends Equatable {
   factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
       forecastMessage:
-          'Forecast is temporarily unavailable for this location. We’re working to restore this feature as soon as possible.',
+          'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.',
       airQualityMessage:
           'We’re having issues with our network no worries, we’ll be back up soon.',
       pm2_5: null,
