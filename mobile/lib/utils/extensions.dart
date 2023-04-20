@@ -38,23 +38,12 @@ extension InsightListExt on List<Insight> {
 }
 
 extension ForecastListExt on List<Forecast> {
-  List<Forecast> sortByDateTime() {
-    List<Forecast> data = List.of(this);
-
-    data.sort((x, y) => x.time.compareTo(y.time));
-
-    return data;
+  void sortByDateTime() {
+    sort((x, y) => x.time.compareTo(y.time));
   }
-}
 
-extension FavouritePlaceListExt on List<FavouritePlace> {
-  List<FavouritePlace> sortByName() {
-    List<FavouritePlace> data = List.of(this);
-
-    data.sort((x, y) => x.name.compareTo(y.name));
-
-    return data;
-  }
+  List<Forecast> removeInvalidData() =>
+      where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
 extension KyaExt on Kya {

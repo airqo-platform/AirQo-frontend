@@ -120,7 +120,7 @@ class AirqoApiClient {
   }
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
-    final forecast = <Forecast>[];
+    final forecasts = <Forecast>[];
 
     try {
       final body = await _performGetRequest(
@@ -132,7 +132,7 @@ class AirqoApiClient {
 
       for (final forecast in body['forecasts'] as List<dynamic>) {
         try {
-          forecast.add(
+          forecasts.add(
             Forecast.fromJson({
               'pm2_5': forecast['pm2_5'],
               'time': forecast['time'],
@@ -153,7 +153,7 @@ class AirqoApiClient {
       );
     }
 
-    return forecast;
+    return forecasts;
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
@@ -270,7 +270,10 @@ class AirqoApiClient {
     Duration? timeout,
   }) async {
     try {
-      url = addQueryParameters(queryParams, url);
+      Map<String, dynamic> params = queryParams;
+      params["TOKEN"] = Config.airqoApiV2Token;
+
+      url = addQueryParameters(params, url);
 
       final response = await httpClient
           .get(

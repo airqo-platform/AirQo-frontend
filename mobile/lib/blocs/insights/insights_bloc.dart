@@ -63,6 +63,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     forecast = await AirqoApiClient().fetchForecast(siteId);
     if (forecast.isEmpty) return;
 
+    forecast = forecast.removeInvalidData();
     setInsights(
       emit,
       insights: insights,
@@ -79,7 +80,9 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     required List<Forecast> forecast,
     required AirQualityReading airQualityReading,
   }) {
-    List<Forecast> forecasts = forecast.sortByDateTime().take(6).toList();
+    List<Forecast> forecasts = forecast
+      ..sortByDateTime()
+      ..take(6).toList();
 
     for (Forecast forecast in forecasts) {
       if (forecast.time.isSameDay(airQualityReading.dateTime)) continue;

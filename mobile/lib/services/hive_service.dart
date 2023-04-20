@@ -105,32 +105,15 @@ class HiveService {
       siteId,
       forecast,
     );
-    await SharedPreferencesHelper.updateForecastLastUpdate(siteId);
   }
 
   Future<List<Forecast>> getForecast(String siteId) async {
-    bool forecastIsOutdated =
-        await SharedPreferencesHelper.forecastIsOutdated(siteId);
-
-    if (forecastIsOutdated) {
-      await Hive.box<List<Forecast>>(_forecast).put(
-        siteId,
-        [],
-      );
-
-      return [];
-    }
-
-    // MOCK data used for testing
-    // return List<Forecast>.generate(
-    //   7,
-    //       (int index) => Forecast(time: DateTime.now().add(Duration(days: index + 1)), pm2_5: 44.3, siteId: siteId, message: '', healthTips: [], ),
-    // );
-
-    return Hive.box<List<Forecast>>(
+    List<Forecast> forecast = Hive.box<List<Forecast>>(
           _forecast,
         ).get(siteId) ??
         [];
+
+    return forecast.removeInvalidData();
   }
 
   List<AirQualityReading> getAirQualityReadings() {
