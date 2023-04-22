@@ -2,7 +2,7 @@ import 'config.dart';
 
 class AirQoUrls {
   static String get firebaseLookup =>
-      '${Config.airqoApi}/v2/users/firebase/lookup';
+      '${Config.airqoApi}/v1/users/firebase/lookup';
 
   static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
