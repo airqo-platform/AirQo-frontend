@@ -45,8 +45,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<AirQualityReading> airQualityReadings =
         HiveService().getNearbyAirQualityReadings();
 
-    List<SearchHistory> searchHistory =
-        HiveService().getSearchHistory().sortByDateTime().toList();
+    List<SearchHistory> searchHistory = HiveService().getSearchHistory();
 
     List<AirQualityReading> searchHistoryReadings =
         await searchHistory.attachedAirQualityReadings();
@@ -65,7 +64,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             .toList();
         countryReadings.shuffle();
         airQualityReadings
-            .addAll(countryReadings.take(2).toList().sortByAirQuality());
+            .addAll(countryReadings.take(2).toList()..sortByAirQuality());
       }
 
       airQualityReadings.shuffle();
@@ -197,7 +196,9 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
 
   Future<void> _loadSearchHistory(Emitter<SearchFilterState> emit) async {
     List<SearchHistory> searchHistory = HiveService().getSearchHistory();
-    searchHistory = searchHistory.sortByDateTime().take(3).toList();
+    searchHistory = searchHistory
+      ..sortByDateTime()
+      ..take(3).toList();
     List<AirQualityReading> recentSearches =
         await searchHistory.attachedAirQualityReadings();
 
@@ -257,8 +258,8 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
             : SearchFilterStatus.filterSuccessful;
 
     return emit(state.copyWith(
-      nearbyLocations: nearbyAirQualityLocations.sortByAirQuality(),
-      otherLocations: otherAirQualityLocations.sortByAirQuality(),
+      nearbyLocations: nearbyAirQualityLocations..sortByAirQuality(),
+      otherLocations: otherAirQualityLocations..sortByAirQuality(),
       status: status,
       filteredAirQuality: event.airQuality,
     ));

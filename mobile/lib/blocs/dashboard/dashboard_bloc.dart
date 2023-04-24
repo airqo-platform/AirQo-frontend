@@ -20,7 +20,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     List<AirQualityReading> nearbyAirQualityReadings = HiveService()
         .getNearbyAirQualityReadings()
-        .sortByDistanceToReferenceSite();
+      ..sortByDistanceToReferenceSite();
 
     if (nearbyAirQualityReadings.length > 1) {
       airQualityCards.add(nearbyAirQualityReadings[1]);

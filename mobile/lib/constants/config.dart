@@ -49,8 +49,6 @@ class Config {
 
   static String get restartTourShowcase => 'restartTourShowcase';
 
-  static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
-
   static String get iosMinimumShareVersion =>
       dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.17';
 

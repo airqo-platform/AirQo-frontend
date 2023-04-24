@@ -47,8 +47,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     countries.removeWhere((element) => element.isEmpty);
     countries.sort();
-    airQualityReadings =
-        airQualityReadings.sortByAirQuality(sortCountries: true);
+    airQualityReadings = airQualityReadings
+      ..sortByAirQuality(sortCountries: true);
 
     return emit(const MapState.initial().copyWith(
       airQualityReadings: airQualityReadings,
@@ -81,8 +81,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       regions: regions,
       featuredCountry: event.country.toTitleCase(),
       mapStatus: MapStatus.showingRegions,
-      featuredAirQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      featuredAirQualityReadings: airQualityReadings
+        ..sortByAirQuality(sortCountries: true),
     ));
   }
 
@@ -97,8 +97,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         .toList();
 
     return emit(state.copyWith(
-      featuredAirQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      featuredAirQualityReadings: airQualityReadings
+        ..sortByAirQuality(sortCountries: true),
       featuredRegion: event.region.toTitleCase(),
       mapStatus: MapStatus.showingRegionSites,
     ));
@@ -150,8 +150,8 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
         : nearbyAirQualityReadings;
 
     return emit(state.copyWith(
-      airQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      airQualityReadings: airQualityReadings
+        ..sortByAirQuality(sortCountries: true),
     ));
   }
 

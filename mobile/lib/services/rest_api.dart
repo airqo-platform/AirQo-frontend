@@ -7,7 +7,6 @@ import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -32,14 +31,6 @@ class AirqoApiClient {
   AirqoApiClient._internal();
   static final AirqoApiClient _instance = AirqoApiClient._internal();
 
-  final httpClient = SentryHttpClient(
-    client: http.Client(),
-    failedRequestStatusCodes: [
-      SentryStatusCode(500),
-      SentryStatusCode(400),
-      SentryStatusCode(404),
-    ],
-  );
   final Map<String, String> headers = HashMap()
     ..putIfAbsent(
       'Authorization',
@@ -59,7 +50,7 @@ class AirqoApiClient {
         AirQoUrls.appVersion,
       );
 
-      return AppStoreVersion.fromJson(body['data']);
+      return AppStoreVersion.fromJson(body['data'] as Map<String, dynamic>);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -72,7 +63,7 @@ class AirqoApiClient {
 
   Future<String> getCarrier(String phoneNumber) async {
     try {
-      final response = await httpClient.post(
+      final response = await http.Client().post(
         Uri.parse(AirQoUrls.mobileCarrier),
         body: json.encode({'phone_number': phoneNumber}),
         headers: headers,
@@ -102,7 +93,7 @@ class AirqoApiClient {
         body['email'] = emailAddress;
       }
 
-      final response = await httpClient.post(
+      final response = await http.Client().post(
         Uri.parse(AirQoUrls.firebaseLookup),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
@@ -181,7 +172,9 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return EmailAuthModel.fromJson(json.decode(response.body));
+      return EmailAuthModel.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -215,7 +208,7 @@ class AirqoApiClient {
         AirQoUrls.measurements,
       );
 
-      for (final measurement in body['measurements']) {
+      for (final measurement in body['measurements'] as List<dynamic>) {
         try {
           airQualityReadings.add(
             AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
@@ -245,7 +238,7 @@ class AirqoApiClient {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
 
-      final response = await httpClient.post(
+      final response = await http.Client().post(
         Uri.parse(AirQoUrls.feedback),
         headers: headers,
         body: body,
@@ -275,7 +268,7 @@ class AirqoApiClient {
 
       url = addQueryParameters(params, url);
 
-      final response = await httpClient
+      final response = await http.Client()
           .get(
             Uri.parse(url),
             headers: headers,
@@ -309,14 +302,6 @@ class SearchApiClient {
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
-  final _httpClient = SentryHttpClient(
-    client: http.Client(),
-    failedRequestStatusCodes: [
-      SentryStatusCode(503),
-      SentryStatusCode(400),
-      SentryStatusCode(404),
-    ],
-  );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
@@ -325,7 +310,7 @@ class SearchApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await _httpClient.get(
+      final response = await http.Client().get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {
@@ -359,9 +344,13 @@ class SearchApiClient {
       );
 
       if (responseBody != null && responseBody['status'] == 'OK') {
-        for (final jsonElement in responseBody['predictions']) {
+        for (final jsonElement
+            in responseBody['predictions'] as List<dynamic>) {
           try {
-            searchResults.add(SearchResult.fromAutoCompleteAPI(jsonElement));
+            searchResults.add(
+              SearchResult.fromAutoCompleteAPI(
+                  jsonElement as Map<String, dynamic>),
+            );
           } catch (__, _) {}
         }
       }
@@ -394,7 +383,7 @@ class SearchApiClient {
       );
 
       return SearchResult.fromPlacesAPI(
-        responseBody['result'],
+        responseBody['result'] as Map<String, dynamic>,
         searchResult,
       );
     } catch (_, __) {}

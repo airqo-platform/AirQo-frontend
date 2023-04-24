@@ -43,11 +43,14 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       throw Exception("pm2.5 is null for site ${site.getName()}");
     }
     List<HealthTip> healthTips = [];
+    dynamic jsonHealthTips = json['health_tips'];
 
-    for (final healthTip in json['health_tips']) {
-      try {
-        healthTips.add(HealthTip.fromJson(healthTip));
-      } catch (_, __) {}
+    if (jsonHealthTips != null) {
+      for (final healthTip in jsonHealthTips as List<Map<String, dynamic>>) {
+        try {
+          healthTips.add(HealthTip.fromJson(healthTip));
+        } catch (_, __) {}
+      }
     }
 
     return AirQualityReading(

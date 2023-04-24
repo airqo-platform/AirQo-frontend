@@ -44,10 +44,8 @@ dependencies:
   shimmer: ^2.0.0
   google_fonts: ^4.0.3
   in_app_review: ^2.0.6
-  sentry_flutter: ^7.4.2
   lottie: ^2.2.0
   share_plus: ^6.3.0
-  flutter_secure_storage: ^8.0.0
   geocoding: ^2.0.5
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0

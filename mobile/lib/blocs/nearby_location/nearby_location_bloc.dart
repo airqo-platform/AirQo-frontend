@@ -57,21 +57,19 @@ class NearbyLocationBloc
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
-    nearByAirQualityReadings = nearByAirQualityReadings
-        .map((element) {
-          AirQualityReading referenceReading = airQualityReadings.firstWhere(
-            (reading) => reading.referenceSite == element.referenceSite,
-            orElse: () => element,
-          );
+    nearByAirQualityReadings = nearByAirQualityReadings.map((element) {
+      AirQualityReading referenceReading = airQualityReadings.firstWhere(
+        (reading) => reading.referenceSite == element.referenceSite,
+        orElse: () => element,
+      );
 
-          return element.copyWith(
-            pm10: referenceReading.pm10,
-            pm2_5: referenceReading.pm2_5,
-            dateTime: referenceReading.dateTime,
-          );
-        })
-        .toList()
-        .sortByDistanceToReferenceSite();
+      return element.copyWith(
+        pm10: referenceReading.pm10,
+        pm2_5: referenceReading.pm2_5,
+        dateTime: referenceReading.dateTime,
+      );
+    }).toList()
+      ..sortByDistanceToReferenceSite();
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
 
@@ -109,7 +107,7 @@ class NearbyLocationBloc
       position: event.position,
     );
 
-    airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
+    airQualityReadings = airQualityReadings..sortByDistanceToReferenceSite();
 
     emit(state.copyWith(
       blocStatus: NearbyLocationStatus.searchComplete,
