@@ -88,5 +88,9 @@ void main() {
       expect(testData.last.testDateTime, secondItem.testDateTime);
 
     });
+    test('should fail', () {
+      double fail = 1.0;
+      expect(fail, 2);
+    });
   });
 }
