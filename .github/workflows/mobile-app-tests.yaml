@@ -49,5 +49,7 @@ jobs:
         # pull_request_comment: true
     - run: |
           cd mobile/
+          echo "test-key=test-value" > .env.dev
+          echo "test-key=test-value" > .env.prod
           flutter pub get
           flutter test
