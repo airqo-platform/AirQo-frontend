@@ -2,29 +2,23 @@ import 'config.dart';
 
 class AirQoUrls {
   static String get firebaseLookup =>
-      '${Config.airqoApiUrl}users/firebase/lookup';
+      '${Config.airqoApi}/v1/users/firebase/lookup';
 
-  static String get forecast => '${Config.airqoApiUrl}predict/daily/';
+  static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
   static String get appVersion =>
-      '${Config.airqoApiUrl}view/mobile-app/version-info';
+      '${Config.airqoApi}/v1/view/mobile-app/version-info';
 
-  static String get measurements => '${Config.airqoApiUrl}devices/events';
-
-  static String get placeSearchDetails =>
-      '${Config.placesSearchUrl}details/json';
+  static String get measurements => '${Config.airqoApi}/v1/devices/events';
 
   static String get requestEmailReAuthentication =>
-      '${Config.airqoApiUrl}users/emailAuth';
+      '${Config.airqoApi}/v1/users/emailAuth';
 
   static String get requestEmailVerification =>
-      '${Config.airqoApiUrl}users/emailLogin';
+      '${Config.airqoApi}/v1/users/emailLogin';
 
-  static String get feedback => '${Config.airqoApiUrl}users/feedback';
-
-  static String get searchSuggestions =>
-      '${Config.placesSearchUrl}autocomplete/json';
+  static String get feedback => '${Config.airqoApi}/v1/users/feedback';
 
   static String get mobileCarrier =>
-      '${Config.airqoApiUrl}meta-data/mobile-carrier';
+      '${Config.airqoApi}/v1/meta-data/mobile-carrier';
 }

@@ -1,12 +1,13 @@
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'profile.g.dart';
 
 @JsonSerializable()
-class Profile {
+class Profile extends Equatable {
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 
@@ -44,7 +45,7 @@ class Profile {
     );
   }
 
-  Profile({
+  const Profile({
     required this.title,
     required this.firstName,
     required this.lastName,
@@ -174,4 +175,22 @@ class Profile {
   }
 
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
+
+  @override
+  List<Object?> get props => [
+        title,
+        firstName,
+        userId,
+        lastName,
+        emailAddress,
+        phoneNumber,
+        device,
+        utcOffset,
+        photoUrl,
+        notifications,
+        location,
+        aqShares,
+        isAnonymous,
+        isSignedIn,
+      ];
 }

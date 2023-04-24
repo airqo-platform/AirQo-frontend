@@ -12,6 +12,15 @@ extension DoubleExtension on double {
   }
 }
 
+extension SetExt<T> on Set<T> {
+  void addOrUpdate(T updatedItem) {
+    if (contains(updatedItem)) {
+      remove(updatedItem);
+    }
+    add(updatedItem);
+  }
+}
+
 extension IntExt on int {
   String toStringLength({int length = 1}) {
     return toString().length == length ? '0$this' : '$this';
@@ -29,23 +38,12 @@ extension InsightListExt on List<Insight> {
 }
 
 extension ForecastListExt on List<Forecast> {
-  List<Forecast> sortByDateTime() {
-    List<Forecast> data = List.of(this);
-
-    data.sort((x, y) => x.time.compareTo(y.time));
-
-    return data;
+  void sortByDateTime() {
+    sort((x, y) => x.time.compareTo(y.time));
   }
-}
 
-extension FavouritePlaceListExt on List<FavouritePlace> {
-  List<FavouritePlace> sortByName() {
-    List<FavouritePlace> data = List.of(this);
-
-    data.sort((x, y) => x.name.compareTo(y.name));
-
-    return data;
-  }
+  List<Forecast> removeInvalidData() =>
+      where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
 extension KyaExt on Kya {
@@ -211,8 +209,39 @@ extension AirQualityReadingExt on AirQualityReading {
         .toList();
   }
 
-  AirQuality airQuality() {
-    return Pollutant.pm2_5.airQuality(pm2_5);
+  String insightsMessage() {
+    String message = '';
+    String verb = dateTime.isAPastDate() ? " was" : " is";
+    String dateAdverb = dateTime.isYesterday() ? " yesterday" : "";
+
+    switch (airQuality) {
+      case AirQuality.good:
+        message =
+            'The air quality$dateAdverb in $name$verb quite ${airQuality.title}.';
+        break;
+      case AirQuality.moderate:
+        message =
+            'The air quality$dateAdverb in $name$verb at a ${airQuality.title} level.';
+        break;
+      case AirQuality.ufsgs:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title}.';
+        break;
+      case AirQuality.unhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} for everyone';
+        break;
+      case AirQuality.veryUnhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} reaching levels of high alert.';
+        break;
+      case AirQuality.hazardous:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} and can cause a health emergency.';
+        break;
+    }
+
+    return message;
   }
 }
 
@@ -393,6 +422,10 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
+  bool isSameDay(DateTime dateTime) {
+    return day == dateTime.day;
+  }
+
   String shareString() {
     return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
   }
@@ -426,6 +459,14 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstHourOfDay() {
     return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  }
+
+  bool isAfterOrEqualToYesterday() {
+    return isYesterday() || compareTo(yesterday()) == 1;
+  }
+
+  bool isAfterOrEqualToToday() {
+    return isToday() || compareTo(DateTime.now()) == 1;
   }
 
   bool isAfterOrEqualTo(DateTime dateTime) {
