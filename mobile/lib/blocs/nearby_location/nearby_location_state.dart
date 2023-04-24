@@ -20,7 +20,7 @@ class NearbyLocationState extends Equatable {
     bool? showErrorMessage,
   }) {
     return NearbyLocationState(
-      locationAirQuality: locationAirQuality ?? this.locationAirQuality,
+      locationAirQuality: locationAirQuality,
       blocStatus: blocStatus ?? this.blocStatus,
       showErrorMessage: showErrorMessage ?? this.showErrorMessage,
     );

@@ -7,33 +7,47 @@ import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
-  static Future<void> initialize() async {
+  factory HiveService() {
+    return _instance;
+  }
+  HiveService._internal();
+  static final HiveService _instance = HiveService._internal();
+
+  final String _searchHistory = 'searchHistory';
+  final String _forecast = 'forecast';
+  final String _encryptionKey = 'hiveEncryptionKey';
+  final String _airQualityReadings = 'airQualityReadings-v1';
+  final String _nearByAirQualityReadings = 'nearByAirQualityReading-v1';
+
+  Future<void> initialize() async {
     await Hive.initFlutter();
 
     Hive
       ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
+      ..registerAdapter(ForecastAdapter())
       ..registerAdapter<HealthTip>(HealthTipAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
 
     await Future.wait([
-      Hive.openBox<SearchHistory>(HiveBox.searchHistory),
-      Hive.openBox<AirQualityReading>(HiveBox.airQualityReadings),
-      Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
+      Hive.openBox<SearchHistory>(_searchHistory),
+      Hive.openBox<List<Forecast>>(_forecast),
+      Hive.openBox<AirQualityReading>(_airQualityReadings),
+      Hive.openBox<AirQualityReading>(_nearByAirQualityReadings),
     ]);
   }
 
-  static Future<Uint8List?>? getEncryptionKey() async {
+  Future<Uint8List?>? getEncryptionKey() async {
     try {
       final secureStorage = SecureStorage();
-      var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+      var encodedKey = await secureStorage.getValue(_encryptionKey);
       if (encodedKey == null) {
         final secureKey = Hive.generateSecureKey();
         await secureStorage.setValue(
-          key: HiveBox.encryptionKey,
+          key: _encryptionKey,
           value: base64UrlEncode(secureKey),
         );
       }
-      encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+      encodedKey = await secureStorage.getValue(_encryptionKey);
 
       return base64Url.decode(encodedKey!);
     } catch (_, __) {
@@ -41,26 +55,26 @@ class HiveService {
     }
   }
 
-  static Future<void> clearUserData() async {
+  Future<void> clearUserData() async {
     await Future.wait([
-      Hive.box<SearchHistory>(HiveBox.searchHistory).clear(),
+      Hive.box<SearchHistory>(_searchHistory).clear(),
     ]);
   }
 
-  static Future<void> updateAirQualityReading(
+  Future<void> updateAirQualityReading(
     AirQualityReading airQualityReading,
   ) async {
-    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+    await Hive.box<AirQualityReading>(_airQualityReadings)
         .put(airQualityReading.placeId, airQualityReading);
   }
 
-  static Future<void> updateAirQualityReadings(
+  Future<void> updateAirQualityReadings(
     List<AirQualityReading> airQualityReadings, {
     bool reload = false,
   }) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
-    final currentReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    final currentReadings = getAirQualityReadings();
+
     for (final reading in airQualityReadings) {
       if (reading.shareLink.isEmpty) {
         AirQualityReading airQualityReading = currentReadings.firstWhere(
@@ -77,23 +91,60 @@ class HiveService {
     }
 
     if (reload) {
-      await Hive.box<AirQualityReading>(HiveBox.airQualityReadings).clear();
+      await Hive.box<AirQualityReading>(_airQualityReadings).clear();
     }
-    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+    await Hive.box<AirQualityReading>(_airQualityReadings)
         .putAll(airQualityReadingsMap);
   }
 
-  static List<AirQualityReading> getAirQualityReadings() {
+  Future<void> saveForecast(
+    List<Forecast> forecast,
+    String siteId,
+  ) async {
+    await Hive.box<List<Forecast>>(_forecast).put(
+      siteId,
+      forecast,
+    );
+  }
+
+  Future<List<Forecast>> getForecast(String siteId) async {
+    List<Forecast> forecast = Hive.box<List<Forecast>>(
+          _forecast,
+        ).get(siteId) ??
+        [];
+
+    return forecast.removeInvalidData();
+  }
+
+  List<AirQualityReading> getAirQualityReadings() {
     return Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
+      _airQualityReadings,
+    )
+        .values
+        .toList()
+        .where((element) => element.dateTime.isAfterOrEqualToYesterday())
+        .toList();
+  }
+
+  List<SearchHistory> getSearchHistory() {
+    return Hive.box<SearchHistory>(_searchHistory)
+        .values
+        .toList()
+        .sortByDateTime()
+        .toList();
+  }
+
+  List<AirQualityReading> getNearbyAirQualityReadings() {
+    return Hive.box<AirQualityReading>(
+      _nearByAirQualityReadings,
     ).values.toList();
   }
 
-  static Future<void> updateSearchHistory(
+  Future<void> updateSearchHistory(
     AirQualityReading airQualityReading,
   ) async {
     List<SearchHistory> searchHistoryList =
-        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+        Hive.box<SearchHistory>(_searchHistory).values.toList();
     searchHistoryList
         .add(SearchHistory.fromAirQualityReading(airQualityReading));
     searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
@@ -103,12 +154,11 @@ class HiveService {
       searchHistoryMap[searchHistory.placeId] = searchHistory;
     }
 
-    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
-    await Hive.box<SearchHistory>(HiveBox.searchHistory)
-        .putAll(searchHistoryMap);
+    await Hive.box<SearchHistory>(_searchHistory).clear();
+    await Hive.box<SearchHistory>(_searchHistory).putAll(searchHistoryMap);
   }
 
-  static Future<void> updateNearbyAirQualityReadings(
+  Future<void> updateNearbyAirQualityReadings(
     List<AirQualityReading> nearbyAirQualityReadings,
   ) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
@@ -120,19 +170,12 @@ class HiveService {
       airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }
 
-    await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings).clear();
-    await Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+    await Hive.box<AirQualityReading>(_nearByAirQualityReadings).clear();
+    await Hive.box<AirQualityReading>(_nearByAirQualityReadings)
         .putAll(airQualityReadingsMap);
   }
 
-  static Future<void> deleteSearchHistory() async {
-    await Hive.box<SearchHistory>(HiveBox.searchHistory).clear();
+  Future<void> deleteSearchHistory() async {
+    await Hive.box<SearchHistory>(_searchHistory).clear();
   }
-}
-
-class HiveBox {
-  static String get searchHistory => 'searchHistory';
-  static String get encryptionKey => 'hiveEncryptionKey';
-  static String get airQualityReadings => 'airQualityReadings-v1';
-  static String get nearByAirQualityReadings => 'nearByAirQualityReading-v1';
 }

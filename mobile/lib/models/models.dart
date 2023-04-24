@@ -1,6 +1,6 @@
 export 'air_quality_reading.dart';
 export 'app_store_version.dart';
-export 'database.dart';
+export 'forecast.dart';
 export 'email_auth_model.dart';
 export 'enum_constants.dart';
 export 'favourite_place.dart';

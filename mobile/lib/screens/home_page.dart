@@ -36,11 +36,12 @@ class _HomePageState extends State<HomePage> {
   late GlobalKey _profileShowcaseKey;
   late BuildContext _showcaseContext;
   final AppService _appService = AppService();
-
   late List<Widget> _widgetOptions;
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
@@ -116,8 +117,8 @@ class _HomePageState extends State<HomePage> {
                     icon: CustomShowcaseWidget(
                       customize: ShowcaseOptions.up,
                       showcaseKey: _mapShowcaseKey,
-                      descriptionWidth: 90,
-                      descriptionHeight: 110,
+                      descriptionWidth: screenSize.width * 0.3,
+                      descriptionHeight: screenSize.height * 0.09,
                       description: 'See readings from our monitors here',
                       child: BottomNavIcon(
                         icon: Icons.location_on_rounded,
@@ -134,8 +135,8 @@ class _HomePageState extends State<HomePage> {
                         CustomShowcaseWidget(
                           customize: ShowcaseOptions.up,
                           showcaseKey: _profileShowcaseKey,
-                          descriptionHeight: 110,
-                          descriptionWidth: 80,
+                          descriptionHeight: screenSize.height * 0.13,
+                          descriptionWidth: screenSize.width * 0.23,
                           description:
                               'Change your preferences and settings here',
                           child: BottomNavIcon(
@@ -281,6 +282,9 @@ class _HomePageState extends State<HomePage> {
         break;
       case 1:
         context.read<MapBloc>().add(const InitializeMapState());
+        break;
+      case 2:
+        context.read<ProfileBloc>().add(const SyncProfile());
         break;
     }
   }

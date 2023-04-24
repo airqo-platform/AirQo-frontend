@@ -1,12 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../settings/settings_page.dart';
 import 'analytics_widgets.dart';
@@ -45,9 +43,8 @@ class AnalyticsView extends StatelessWidget {
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(
             (context, index) {
-              final airQualityReading =
-                  Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                      .get(locationHistory[index].site);
+              final AirQualityReading? airQualityReading =
+                  locationHistory[index].airQualityReading;
 
               if (airQualityReading == null) {
                 return Container();

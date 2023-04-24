@@ -87,12 +87,6 @@ class LocationService {
             await openPhoneSettings(context, enableLocationMessage);
             break;
           case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await openPhoneSettings(context, enableLocationMessage);
-            } else {
-              await locationRequestDialog(context);
-            }
-            break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
             await locationRequestDialog(context);
@@ -112,25 +106,37 @@ class LocationService {
     }
   }
 
-  static Future<String> getAddress({
+  static Future<Map<String, String?>> getAddress({
     required double latitude,
     required double longitude,
   }) async {
+    Map<String, String?> address = {};
+    address["name"] = null;
+    address["location"] = null;
+
     List<Placemark> landMarks = await placemarkFromCoordinates(
       latitude,
       longitude,
     );
 
     if (landMarks.isEmpty) {
-      return '';
+      return address;
     }
 
     final Placemark landMark = landMarks.first;
 
-    String? address = landMark.thoroughfare ?? landMark.subLocality;
-    address = address ?? landMark.locality;
+    address["name"] = landMark.thoroughfare ?? landMark.subLocality;
+    address["name"] = address["name"] ?? landMark.locality;
 
-    return address ?? '';
+    if (landMark.subAdministrativeArea == null) {
+      address["location"] =
+          "${landMark.administrativeArea}, ${landMark.country}";
+    } else {
+      address["location"] =
+          "${landMark.subAdministrativeArea}, ${landMark.administrativeArea}";
+    }
+
+    return address;
   }
 
   static Future<Position?> getCurrentPosition() async {
@@ -161,22 +167,7 @@ class LocationService {
     position ??= await getCurrentPosition();
 
     if (position == null) {
-      final geoCoordinates = await AirqoApiClient().getLocation();
-      if (!geoCoordinates.keys.contains('latitude') ||
-          !geoCoordinates.keys.contains('longitude')) {
-        return [];
-      }
-
-      position = Position(
-        longitude: geoCoordinates['longitude'] as double,
-        latitude: geoCoordinates['latitude'] as double,
-        timestamp: DateTime.now(),
-        accuracy: 0.0,
-        altitude: 0.0,
-        heading: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
-      );
+      return [];
     }
 
     List<AirQualityReading> airQualityReadings = await getNearestSites(
@@ -185,14 +176,15 @@ class LocationService {
     );
     airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
 
-    String address = await getAddress(
+    Map<String, String?> address = await getAddress(
       latitude: position.latitude,
       longitude: position.longitude,
     );
 
-    if (airQualityReadings.isNotEmpty && address.isNotEmpty) {
+    if (airQualityReadings.isNotEmpty) {
       airQualityReadings.first = airQualityReadings.first.copyWith(
-        name: address,
+        name: address["name"],
+        location: address["location"],
       );
     }
 
@@ -218,7 +210,7 @@ class LocationService {
     double longitude,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings = airQualityReadings.map((element) {
       final double distanceInMeters = metersToKmDouble(
@@ -261,7 +253,7 @@ class LocationService {
         latitude: searchResult.latitude,
         longitude: searchResult.longitude,
       );
-      await HiveService.updateSearchHistory(airQualityReading);
+      await HiveService().updateSearchHistory(airQualityReading);
     }
 
     return airQualityReading;

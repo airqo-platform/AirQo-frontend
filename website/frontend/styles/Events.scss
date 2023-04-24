@@ -351,7 +351,6 @@
                             background-color: $aq-blue-1;
                             padding: 30px;
                             &::marker{
-                                border: 1px solid green;
                                 text-align: right;
                                 color: $aq-blue-0;
                                 font-size: 22px;
@@ -389,7 +388,7 @@
                             grid-column: 2/5;
                             padding:0 5px;
                             h4{
-                                color: $aq-blue-0;
+                                color: $aq-blue-2;
                                 font-weight: 700;
                             }
                         }
@@ -398,7 +397,7 @@
                 .inquiry{
                     margin-top: 48px;
                     h4{
-                        font-size: 20px;
+                        font-size: 22px;
                     }
                     div{
                         margin-top: 10px;
@@ -409,6 +408,10 @@
                             color: $aq-blue-0;
                             text-decoration: underline;
                         }
+                    }
+                    a{
+                        color: #135DFF;
+                        text-decoration: underline;
                     }
                 }
             }
@@ -434,6 +437,14 @@
         .event-cards{
             grid-template-columns: repeat(2, 1fr);
             padding: 0 16px;
+        }
+        &.details{
+            .detail-body{
+                .event-details{
+                    padding-right: 16px;
+                    padding-left: 16px;
+                }
+            }
         }
     }
 }

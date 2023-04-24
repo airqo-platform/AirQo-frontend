@@ -15,7 +15,7 @@ function Tabs({ children }) {
                 activeTab === index
                   ? 'border-grey-400'
                   : 'border-transparent opacity-40 hover:text-grey hover:border-grey-200'
-              } text-black whitespace-nowrap py-2 px-4 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
+              } text-black-900 whitespace-nowrap py-2 px-4 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
               onClick={() => setActiveTab(index)}
             >
               {child.props.label}

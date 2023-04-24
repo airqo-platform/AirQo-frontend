@@ -1,8 +1,12 @@
-const Button = ({ onClick, className, path, children }) => {
+const Button = ({ onClick, className, path, children, dataTestId }) => {
   if (path) {
     // if the button has an href property, it should be a link button
     return (
-      <a href={path} className={`flex justify-center items-center px-3 py-2 ${className}`}>
+      <a
+        href={path}
+        className={`flex justify-center items-center px-3 py-2 ${className}`}
+        data-testid={dataTestId}
+      >
         {children}
       </a>
     );
@@ -12,6 +16,7 @@ const Button = ({ onClick, className, path, children }) => {
       <button
         onClick={onClick}
         className={`flex justify-center items-center px-3 py-2 ${className}`}
+        data-testid={dataTestId}
       >
         {children}
       </button>

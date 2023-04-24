@@ -24,7 +24,7 @@ export const deviceRegistryApi = createApi({
       query: () => '',
     }),
     getCollocationDevices: builder.query({
-      query: () => '?tenant=airqo&active=no&network=airqo',
+      query: () => '/events/running?tenant=airqo',
     }),
   }),
 });

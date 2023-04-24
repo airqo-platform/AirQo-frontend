@@ -11,7 +11,6 @@ enum DashboardError { noAirQuality, noInternetConnection, none }
 
 class DashboardState extends Equatable {
   const DashboardState({
-    this.greetings = '',
     this.airQualityReadings = const [],
     this.status = DashboardStatus.loading,
     this.error = DashboardError.none,
@@ -20,7 +19,6 @@ class DashboardState extends Equatable {
   });
 
   DashboardState copyWith({
-    String? greetings,
     List<AirQualityReading>? airQualityReadings,
     DashboardStatus? status,
     DashboardError? error,
@@ -28,7 +26,6 @@ class DashboardState extends Equatable {
     bool? scrollToTop,
   }) {
     return DashboardState(
-      greetings: greetings ?? this.greetings,
       airQualityReadings: airQualityReadings ?? this.airQualityReadings,
       status: status ?? this.status,
       error: error ?? this.error,
@@ -37,7 +34,6 @@ class DashboardState extends Equatable {
     );
   }
 
-  final String greetings;
   final List<AirQualityReading> airQualityReadings;
   final DashboardStatus status;
   final DashboardError error;
@@ -46,7 +42,6 @@ class DashboardState extends Equatable {
 
   @override
   List<Object?> get props => [
-        greetings,
         airQualityReadings,
         status,
         error,
