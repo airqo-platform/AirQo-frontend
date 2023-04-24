@@ -1,3 +1,7 @@
+<a href="https://github.com/airqo-platform/AirQo-frontend/actions">
+<img src="https://github.com/airqo-platform/AirQo-frontend/workflows/mobile-app-code-tests/badge.svg" alt="Build Status">
+</a>
+
 # AirQo mobile app
 
 ## **Prerequisites**
