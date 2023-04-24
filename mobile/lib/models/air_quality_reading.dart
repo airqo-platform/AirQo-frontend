@@ -1,6 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/models/parsers.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -9,7 +11,7 @@ import 'hive_type_id.dart';
 part 'air_quality_reading.g.dart';
 
 @HiveType(typeId: airQualityReadingTypeId)
-class AirQualityReading extends HiveObject {
+class AirQualityReading extends HiveObject with EquatableMixin {
   AirQualityReading({
     required this.referenceSite,
     required this.source,
@@ -24,11 +26,12 @@ class AirQualityReading extends HiveObject {
     required this.pm10,
     required this.distanceToReferenceSite,
     required this.placeId,
+    required this.shareLink,
+    required this.healthTips,
   });
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
-    DateTime dateTime = DateTime.parse(json["time"] as String);
-    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
+    DateTime dateTime = dateTimeFromUtcString(json["time"]);
     PollutantValue pm2_5 =
         PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
     PollutantValue pm10 =
@@ -38,6 +41,13 @@ class AirQualityReading extends HiveObject {
 
     if (pm2_5.displayValue() == null) {
       throw Exception("pm2.5 is null for site ${site.getName()}");
+    }
+    List<HealthTip> healthTips = [];
+
+    for (final healthTip in json['health_tips']) {
+      try {
+        healthTips.add(HealthTip.fromJson(healthTip));
+      } catch (_, __) {}
     }
 
     return AirQualityReading(
@@ -54,41 +64,76 @@ class AirQualityReading extends HiveObject {
       pm10: pm10.displayValue(),
       name: site.getName(),
       location: site.getLocation(),
+      shareLink: site.getShareLink(),
+      healthTips: healthTips,
     );
   }
 
-  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.firstWhere(
-      (element) => element.referenceSite == favouritePlace.referenceSite,
+  factory AirQualityReading.fromDynamicLink(
+    PendingDynamicLinkData dynamicLinkData,
+  ) {
+    String referenceSite =
+        dynamicLinkData.link.queryParameters['referenceSite'] ?? '';
+    String placeId = dynamicLinkData.link.queryParameters['placeId'] ?? '';
+    String name = dynamicLinkData.link.queryParameters['name'] ?? '';
+    String location = dynamicLinkData.link.queryParameters['location'] ?? '';
+    String latitude = dynamicLinkData.link.queryParameters['latitude'] ?? '0.0';
+    String longitude =
+        dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
+
+    AirQualityReading airQualityReading =
+        HiveService().getAirQualityReadings().firstWhere(
+      (element) => element.referenceSite == referenceSite,
       orElse: () {
+        String country = dynamicLinkData.link.queryParameters['country'] ?? '';
+        String source = dynamicLinkData.link.queryParameters['source'] ?? '';
+        String shareLink =
+            dynamicLinkData.link.queryParameters['shareLink'] ?? '';
+        String region = dynamicLinkData.link.queryParameters['region'] ?? '';
+        String distanceToReferenceSite =
+            dynamicLinkData.link.queryParameters['distanceToReferenceSite'] ??
+                '';
+
         return AirQualityReading(
-          referenceSite: favouritePlace.referenceSite,
-          source: '',
-          latitude: favouritePlace.latitude,
-          longitude: favouritePlace.longitude,
-          country: '',
-          name: favouritePlace.name,
-          location: favouritePlace.location,
-          region: '',
+          referenceSite: referenceSite,
+          source: source,
+          latitude: latitude as double,
+          longitude: longitude as double,
+          country: country,
+          name: name,
+          location: location,
+          region: region,
           dateTime: DateTime.now(),
-          pm2_5: 0,
-          pm10: 0,
-          distanceToReferenceSite: 0,
-          placeId: favouritePlace.placeId,
+          pm2_5: 0.0,
+          pm10: 0.0,
+          distanceToReferenceSite: distanceToReferenceSite as double,
+          placeId: placeId,
+          shareLink: shareLink,
+          healthTips: [],
         );
       },
     );
 
     return airQualityReading.copyWith(
-      referenceSite: favouritePlace.referenceSite,
-      latitude: favouritePlace.latitude,
-      longitude: favouritePlace.longitude,
-      name: favouritePlace.name,
-      location: favouritePlace.location,
-      placeId: favouritePlace.placeId,
+      placeId: placeId,
+      name: name,
+      location: location,
+      latitude: double.parse(latitude),
+      longitude: double.parse(longitude),
     );
+  }
+
+  String shareLinkParams() {
+    return 'placeId=$placeId'
+        '&referenceSite=$referenceSite'
+        '&name=$name'
+        '&location=$location'
+        '&latitude=$latitude'
+        '&longitude=$longitude'
+        '&country=$country'
+        '&source=$source'
+        '&distanceToReferenceSite=$distanceToReferenceSite'
+        '&region=$region';
   }
 
   AirQualityReading copyWith({
@@ -103,6 +148,8 @@ class AirQualityReading extends HiveObject {
     DateTime? dateTime,
     double? pm2_5,
     double? pm10,
+    String? shareLink,
+    List<HealthTip>? healthTips,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
@@ -119,6 +166,8 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
+      shareLink: shareLink ?? this.shareLink,
+      healthTips: healthTips ?? this.healthTips,
     );
   }
 
@@ -160,6 +209,17 @@ class AirQualityReading extends HiveObject {
 
   @HiveField(13, defaultValue: '')
   final String region;
+
+  @HiveField(14, defaultValue: '')
+  final String shareLink;
+
+  @HiveField(15, defaultValue: [])
+  final List<HealthTip> healthTips;
+
+  AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
+
+  @override
+  List<Object?> get props => [placeId, dateTime];
 }
 
 @JsonSerializable(createToJson: false)

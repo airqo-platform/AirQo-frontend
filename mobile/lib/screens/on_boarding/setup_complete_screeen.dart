@@ -22,7 +22,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: AppSafeArea(
-          widget: Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -48,7 +48,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   Future<void> _initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
-    Future.delayed(const Duration(seconds: 4), _goToHome);
+    Future.delayed(const Duration(seconds: 3), () async {
+      await _goToHome();
+    });
   }
 
   @override
@@ -63,9 +65,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return Future.value(false);
   }
 
-  void _goToHome() {
+  Future<void> _goToHome() async {
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
+      await Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) {
@@ -78,7 +80,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   TextStyle? _setUpCompleteTextStyle() {
-    return Theme.of(context).textTheme.bodyText1?.copyWith(
+    return Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.bold,
           fontStyle: FontStyle.normal,
           fontSize: 48,

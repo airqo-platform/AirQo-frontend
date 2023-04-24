@@ -1,33 +1,24 @@
 import 'config.dart';
 
 class AirQoUrls {
-  static String get checkUserExists => Config.airqoApiUserExistsUrl;
+  static String get firebaseLookup =>
+      '${Config.airqoApi}/v1/users/firebase/lookup';
 
-  static String get insights =>
-      '${Config.airqoApiUrl}view/measurements/mobile-app/insights';
+  static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
-  static String get measurements => '${Config.airqoApiUrl}devices/events';
+  static String get appVersion =>
+      '${Config.airqoApi}/v1/view/mobile-app/version-info';
 
-  static String get placeSearchDetails =>
-      '${Config.placesSearchUrl}details/json';
+  static String get measurements => '${Config.airqoApi}/v1/devices/events';
 
   static String get requestEmailReAuthentication =>
-      '${Config.airqoApiUrl}users/emailAuth';
+      '${Config.airqoApi}/v1/users/emailAuth';
 
   static String get requestEmailVerification =>
-      '${Config.airqoApiUrl}users/emailLogin';
+      '${Config.airqoApi}/v1/users/emailLogin';
 
-  static String get feedback => '${Config.airqoApiUrl}users/feedback';
-
-  static String get searchSuggestions =>
-      '${Config.placesSearchUrl}autocomplete/json';
-
-  static String get welcomeMessage =>
-      '${Config.airqoApiUrl}notifications/welcomeMessage';
-
-  static String get ipGeoCoordinates =>
-      '${Config.airqoApiUrl}meta-data/ip-geo-coordinates';
+  static String get feedback => '${Config.airqoApi}/v1/users/feedback';
 
   static String get mobileCarrier =>
-      '${Config.airqoApiUrl}meta-data/mobile-carrier';
+      '${Config.airqoApi}/v1/meta-data/mobile-carrier';
 }

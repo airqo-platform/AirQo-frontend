@@ -4,13 +4,12 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:appinio_swiper/appinio_swiper.dart';
+
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
@@ -28,11 +27,7 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
-  List<Card> _kyaCards = [];
-  int _visibleCardIndex = 0;
-  final List<GlobalKey> _globalKeys = <GlobalKey>[];
-  bool _shareLoading = false;
-  final Map<int, int> _indexMappings = {};
+  int currentCard = 0;
 
   @override
   void dispose() {
@@ -47,21 +42,15 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: CustomColors.appBodyColor,
         centerTitle: false,
         titleSpacing: 20,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             InkWell(
-              onTap: () {
-                Navigator.of(context).pop(true);
-                context.read<KyaBloc>().add(
-                      UpdateKyaProgress(
-                        kya: widget.kya,
-                        visibleCardIndex: _visibleCardIndex,
-                      ),
-                    );
+              onTap: () async {
+                await popNavigation(context);
               },
               child: SvgPicture.asset(
                 'assets/icon/close.svg',
@@ -69,77 +58,132 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 width: 40,
               ),
             ),
-            InkWell(
-              onTap: () async {
-                await _share();
-              },
-              child: _shareLoading
-                  ? const LoadingIcon(radius: 20)
-                  : SvgPicture.asset(
+            FutureBuilder<Uri>(
+              future: ShareService.createShareLink(kya: widget.kya),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  showSnackBar(context, 'Could not create a share link.');
+                }
+                if (snapshot.hasData) {
+                  return InkWell(
+                    onTap: () async {
+                      Uri? link = snapshot.data;
+                      if (link != null) {
+                        await ShareService.shareLink(
+                          link,
+                          context,
+                          kya: widget.kya,
+                        );
+                        // disabling copying to clipboard
+                        // if (link.toString().length >
+                        //     Config.shareLinkMaxLength) {
+                        //   await Clipboard.setData(
+                        //     ClipboardData(text: link.toString()),
+                        //   ).then((_) {
+                        //     showSnackBar(context, 'Copied to your clipboard !');
+                        //   });
+                        // } else {
+                        //   await ShareService.shareLink(
+                        //     link,
+                        //     kya: widget.kya,
+                        //   );
+                        // }
+                      }
+                    },
+                    child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
-                      color: CustomColors.greyColor,
+                      colorFilter: ColorFilter.mode(
+                        CustomColors.greyColor,
+                        BlendMode.srcIn,
+                      ),
                       height: 26,
                       width: 26,
                     ),
+                  );
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    showSnackBar(context, 'Creating share link. Hold on tight');
+                  },
+                  child: const Center(
+                    child: LoadingIcon(radius: 20),
+                  ),
+                );
+              },
             ),
           ],
         ),
       ),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: AppSafeArea(
+        backgroundColor: CustomColors.appBodyColor,
+        horizontalPadding: 20,
         child: Column(
           children: [
-            Visibility(
-              visible: _visibleCardIndex <= 0,
-              child: SizedBox(
-                height: 50,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: AutoSizeText(
-                      'Swipe Left Or Right to Move to Next Card',
-                      maxLines: 2,
-                      style: CustomTextStyle.headline7(context)?.copyWith(
-                        color: CustomColors.appColorBlue,
+            BlocBuilder<KyaProgressCubit, double>(
+              builder: (context, state) {
+                if (state <= 0) {
+                  return SizedBox(
+                    height: 50,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: AutoSizeText(
+                          'Swipe Left Or Right to Move to Next Card',
+                          maxLines: 2,
+                          style: CustomTextStyle.headline7(context)?.copyWith(
+                            color: CustomColors.appColorBlue,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
+                  );
+                }
+
+                return SizedBox(
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child:
+                        KyaProgressBar(state + 1 / widget.kya.lessons.length),
                   ),
-                ),
-              ),
-            ),
-            Visibility(
-              visible: _visibleCardIndex >= 1,
-              child: SizedBox(
-                height: 50,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: KyaProgressBar(context.read<KyaProgressCubit>().state),
-                ),
-              ),
+                );
+              },
             ),
             const Spacer(),
             SizedBox(
               height: 400,
               child: AppinioSwiper(
                 padding: EdgeInsets.zero,
-                cards: _kyaCards,
+                cardsCount: widget.kya.lessons.length,
+                cardsBuilder: (BuildContext context, int index) {
+                  return KyaLessonCard(widget.kya.lessons[index], widget.kya);
+                },
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
                 controller: _swipeController,
-                onSwipe: _swipe,
+                onSwipe: _onSwipe,
                 duration: const Duration(milliseconds: 300),
-                unswipe: _unSwipe,
-                onEnd: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return KyaFinalPage(widget.kya);
-                      },
-                    ),
+                unswipe: _onUnSwipe,
+                onEnd: () async {
+                  List<Kya> kyaList = context.read<KyaBloc>().state;
+                  Kya kya = kyaList.firstWhere(
+                    (element) => element.id == widget.kya.id,
+                    orElse: () => widget.kya,
                   );
+                  if (kya.isInProgress()) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return KyaFinalPage(widget.kya);
+                        },
+                      ),
+                    );
+                  } else {
+                    await popNavigation(context);
+                  }
                 },
               ),
             ),
@@ -147,16 +191,18 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_visibleCardIndex >= 1) {
-                      _swipeController.unswipe();
-                    }
+                BlocBuilder<KyaProgressCubit, double>(
+                  builder: (context, state) {
+                    return GestureDetector(
+                      onTap: () {
+                        _swipeController.unswipe();
+                      },
+                      child: CircularKyaButton(
+                        icon: 'assets/icon/previous_arrow.svg',
+                        isActive: currentCard >= 1,
+                      ),
+                    );
                   },
-                  child: CircularKyaButton(
-                    icon: 'assets/icon/previous_arrow.svg',
-                    isActive: _visibleCardIndex >= 1,
-                  ),
                 ),
                 const SizedBox(
                   width: 38,
@@ -182,142 +228,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   initState() {
     super.initState();
-    for (final kyaLesson in widget.kya.lessons) {
-      _indexMappings[widget.kya.lessons.reversed.toList().indexOf(kyaLesson)] =
-          widget.kya.lessons.indexOf(kyaLesson);
-      _globalKeys.add(
-        GlobalKey(),
-      );
-    }
+    context.read<KyaProgressCubit>().updateProgress(0);
+  }
+
+  void _onSwipe(int card, AppinioSwiperDirection _) {
+    setState(() => currentCard = card);
     context
         .read<KyaProgressCubit>()
-        .updateProgress(widget.kya.getProgress(_visibleCardIndex));
+        .updateProgress(card / widget.kya.lessons.length);
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _kyaCards = widget.kya.lessons.map((e) => _kyaCard(e)).toList();
-  }
-
-  Future<void> _share() async {
-    if (_shareLoading) {
-      return;
-    }
-    setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: _globalKeys[_visibleCardIndex],
-      imageName: 'airqo_know_your_air',
-    );
-    if (complete && mounted) {
-      setState(() => _shareLoading = false);
-    }
-  }
-
-  void _swipe(int reversedIndex, AppinioSwiperDirection _) {
-    int index = _indexMappings[reversedIndex]!;
-    setState(() {
-      _visibleCardIndex = index + 1;
-    });
-    context
-        .read<KyaProgressCubit>()
-        .updateProgress(widget.kya.getProgress(_visibleCardIndex));
-  }
-
-  void _unSwipe(bool unSwiped) {
+  void _onUnSwipe(bool unSwiped) {
     if (unSwiped) {
-      setState(() {
-        _visibleCardIndex = _visibleCardIndex - 1;
-      });
+      setState(() => currentCard = currentCard - 1);
+      double currentProgress = context.read<KyaProgressCubit>().state;
+      double nextProgress = currentProgress - (1 / widget.kya.lessons.length);
       context
           .read<KyaProgressCubit>()
-          .updateProgress(widget.kya.getProgress(_visibleCardIndex));
+          .updateProgress(nextProgress < 0 ? 0 : nextProgress);
     }
-  }
-
-  Card _kyaCard(KyaLesson kyaItem) {
-    final int index = widget.kya.lessons.indexOf(kyaItem);
-
-    return Card(
-      color: Colors.white,
-      elevation: 5,
-      margin: EdgeInsets.zero,
-      shadowColor: CustomColors.appBodyColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: RepaintBoundary(
-        key: _globalKeys[index],
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 8.0,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  fit: BoxFit.fill,
-                  placeholder: (context, url) => const SizedBox(
-                    child: ContainerLoadingAnimation(
-                      height: 180,
-                      radius: 8,
-                    ),
-                  ),
-                  imageUrl: kyaItem.imageUrl,
-                  errorWidget: (context, url, error) => Icon(
-                    Icons.error_outline,
-                    color: CustomColors.aqiRed,
-                  ),
-                  cacheKey: kyaItem.imageUrlCacheKey(widget.kya),
-                  cacheManager: CacheManager(
-                    CacheService.cacheConfig(
-                      kyaItem.imageUrlCacheKey(widget.kya),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
-              child: AutoSizeText(
-                kyaItem.title,
-                maxLines: 2,
-                minFontSize: 20,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: CustomTextStyle.headline9(context),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
-              child: AutoSizeText(
-                kyaItem.body,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                minFontSize: 16,
-                style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.5),
-                    ),
-              ),
-            ),
-            const Spacer(),
-            SvgPicture.asset(
-              'assets/icon/tips_graphics.svg',
-              semanticsLabel: 'tips_graphics',
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

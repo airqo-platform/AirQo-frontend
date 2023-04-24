@@ -3,15 +3,12 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar(this.airQualityReading, {super.key});
@@ -40,8 +37,11 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 9.7,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           Text(
@@ -58,8 +58,11 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 12.14,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           const Spacer(),
@@ -78,11 +81,19 @@ class AnalyticsMoreInsights extends StatelessWidget {
 
     return Row(
       children: [
-        SvgPicture.asset(
-          'assets/icon/chart.svg',
-          semanticsLabel: 'chart',
+        Container(
           height: 16,
           width: 16,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            color: Colors.white,
+            size: 15,
+            Icons.bar_chart_rounded,
+            semanticLabel: 'Chart',
+          ),
         ),
         const SizedBox(
           width: 8.0,
@@ -94,122 +105,13 @@ class AnalyticsMoreInsights extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        SvgPicture.asset(
-          'assets/icon/more_arrow.svg',
-          semanticsLabel: 'more',
-          height: 6.99,
-          width: 4,
+        const Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 10,
+          semanticLabel: 'more',
+          weight: 1000,
         ),
       ],
-    );
-  }
-}
-
-class AnalyticsShareCard extends StatelessWidget {
-  const AnalyticsShareCard({
-    super.key,
-    required this.airQualityReading,
-  });
-
-  final AirQualityReading airQualityReading;
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 200,
-        maxWidth: 300,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(16.0),
-        ),
-        border: Border.fromBorderSide(
-          BorderSide(color: Colors.transparent),
-        ),
-      ),
-      child: Column(
-        children: [
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnalyticsAvatar(airQualityReading),
-              const SizedBox(width: 10.0),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AutoSizeText(
-                      airQualityReading.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 17,
-                      style: CustomTextStyle.headline9(context),
-                    ),
-                    AutoSizeText(
-                      airQualityReading.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 12,
-                      style: CustomTextStyle.bodyText4(context)?.copyWith(
-                        color: appColors.appColorBlack.withOpacity(0.3),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    AqiStringContainer(airQualityReading),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      airQualityReading.dateTime.shareString(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.black.withOpacity(0.3),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© ${DateTime.now().year} AirQo',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: appColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'www.airqo.africa',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: appColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
@@ -222,47 +124,38 @@ class AnalyticsCard extends StatelessWidget {
   });
   final AirQualityReading airQualityReading;
   final bool showHelpTip;
-  final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 251,
-        minHeight: 251,
-        minWidth: 328,
-        maxWidth: 328,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(
-          Radius.circular(
-            16.0,
-          ),
-        ),
-      ),
-      child: Stack(
+    return SizedBox(
+      height: 251,
+      width: double.infinity,
+      child: Column(
         children: [
-          RepaintBoundary(
-            key: _shareWidgetKey,
-            child: AnalyticsShareCard(
-              airQualityReading: airQualityReading,
-            ),
-          ),
-          InkWell(
-            onTap: () async {
-              await _goToInsights(context);
-            },
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(16.0),
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: CustomColors.appColorBlue,
+                elevation: 0,
+                side: const BorderSide(
+                  color: Colors.transparent,
+                  width: 0,
                 ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.zero,
               ),
+              onPressed: () async {
+                await navigateToInsights(context, airQualityReading);
+              },
               child: Column(
                 children: [
                   Row(
@@ -285,11 +178,7 @@ class AnalyticsCard extends StatelessWidget {
                           child: SizedBox(
                             height: 20,
                             width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/info_icon.svg',
-                              height: 20,
-                              width: 20,
-                            ),
+                            child: SvgIcons.information(),
                           ),
                         ),
                       ),
@@ -317,7 +206,6 @@ class AnalyticsCard extends StatelessWidget {
                               const SizedBox(
                                 width: 16.0,
                               ),
-                              // TODO : investigate ellipsis
                               Flexible(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,35 +304,21 @@ class AnalyticsCard extends StatelessWidget {
                         ),
                         child: AnalyticsMoreInsights(),
                       ),
-                      const SizedBox(height: 12),
-                      const Divider(
-                        color: Color(0xffC4C4C4),
-                        height: 1.0,
-                      ),
                     ],
-                  ),
-                  Expanded(
-                    child: AnalyticsCardFooter(
-                      shareKey: _shareWidgetKey,
-                      airQualityReading: airQualityReading,
-                    ),
                   ),
                 ],
               ),
             ),
           ),
+          const Divider(
+            color: Color(0xffC4C4C4),
+            height: 1.0,
+          ),
+          SizedBox(
+            height: 57,
+            child: AnalyticsCardFooter(airQualityReading),
+          ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _goToInsights(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
       ),
     );
   }
@@ -478,166 +352,142 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return InsightsPage(airQualityReading);
-            },
-          ),
-        );
+      onTap: () async {
+        await navigateToInsights(context, airQualityReading);
       },
-      child: ValueListenableBuilder<Box<AirQualityReading>>(
-        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .listenable(keys: [airQualityReading.placeId]),
-        builder: (context, box, widget) {
-          final airQualityReadings = box.values
-              .where((element) => element.placeId == airQualityReading.placeId)
-              .toList();
-          var reading = airQualityReading;
-          if (airQualityReadings.isNotEmpty) {
-            reading = airQualityReadings.first;
-          }
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-                border: Border.fromBorderSide(
-                  BorderSide(
-                    color: Colors.transparent,
-                  ),
-                ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(left: 32),
-                    child: Row(
-                      children: [
-                        MiniAnalyticsAvatar(airQualityReading: reading),
-                        const SizedBox(
-                          width: 12,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                reading.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: CustomTextStyle.headline8(context),
-                              ),
-                              Text(
-                                reading.location,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: CustomTextStyle.bodyText4(context)
-                                    ?.copyWith(
-                                  color:
-                                      appColors.appColorBlack.withOpacity(0.3),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () async => _updateFavPlace(),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 24,
-                            ),
-                            child: HeartIcon(
-                              showAnimation: _showHeartAnimation,
-                              airQualityReading: reading,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(
-                    color: Color(0xffC4C4C4),
-                  ),
-                  const SizedBox(
-                    height: 11,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Row(
-                      children: [
-                        Container(
-                          height: 16,
-                          width: 16,
-                          decoration: BoxDecoration(
-                            color: appColors.appColorBlue,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(3.0),
-                            ),
-                            border: const Border.fromBorderSide(
-                              BorderSide(
-                                color: Colors.transparent,
-                              ),
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.bar_chart,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        Text(
-                          'View More Insights',
-                          style: CustomTextStyle.caption3(context)?.copyWith(
-                            color: appColors.appColorBlue,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          height: 16,
-                          width: 16,
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: appColors.appColorBlue.withOpacity(0.24),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(3.0),
-                            ),
-                            border: const Border.fromBorderSide(
-                              BorderSide(
-                                color: Colors.transparent,
-                              ),
-                            ),
-                          ),
-                          child: SvgPicture.asset(
-                            'assets/icon/more_arrow.svg',
-                            semanticsLabel: 'more',
-                            height: 6.99,
-                            width: 4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+            border: Border.fromBorderSide(
+              BorderSide(
+                color: Colors.transparent,
               ),
             ),
-          );
-        },
+          ),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 5,
+              ),
+              Container(
+                padding: const EdgeInsets.only(left: 32),
+                child: Row(
+                  children: [
+                    MiniAnalyticsAvatar(airQualityReading: airQualityReading),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            airQualityReading.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.headline8(context),
+                          ),
+                          Text(
+                            airQualityReading.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.bodyText4(context)?.copyWith(
+                              color: appColors.appColorBlack.withOpacity(0.3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async => _updateFavPlace(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 24,
+                        ),
+                        child: HeartIcon(
+                          showAnimation: _showHeartAnimation,
+                          airQualityReading: airQualityReading,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(
+                color: Color(0xffC4C4C4),
+              ),
+              const SizedBox(
+                height: 11,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 16,
+                      width: 16,
+                      decoration: BoxDecoration(
+                        color: appColors.appColorBlue,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(3.0),
+                        ),
+                        border: const Border.fromBorderSide(
+                          BorderSide(
+                            color: Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.bar_chart,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Text(
+                      'View More Insights',
+                      style: CustomTextStyle.caption3(context)?.copyWith(
+                        color: appColors.appColorBlue,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      height: 16,
+                      width: 16,
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: appColors.appColorBlue.withOpacity(0.24),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(3.0),
+                        ),
+                        border: const Border.fromBorderSide(
+                          BorderSide(
+                            color: Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        semanticLabel: 'more',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -651,8 +501,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
       }
     });
 
-    context
-        .read<AccountBloc>()
-        .add(UpdateFavouritePlace(widget.airQualityReading));
+    context.read<FavouritePlaceBloc>().add(
+          UpdateFavouritePlace(
+            FavouritePlace.fromAirQualityReading(widget.airQualityReading),
+          ),
+        );
   }
 }

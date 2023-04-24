@@ -3,6 +3,7 @@ import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -17,11 +18,13 @@ void main() async {
   );
 
   await initializeMainMethod();
+  final PendingDynamicLinkData? initialLink =
+      await FirebaseDynamicLinks.instance.getInitialLink();
 
-  const configuredApp = AppConfig(
+  AppConfig configuredApp = AppConfig(
     appTitle: 'AirQo Dev',
     environment: Environment.dev,
-    child: AirQoApp(),
+    child: AirQoApp(initialLink),
   );
 
   if (kReleaseMode) {
@@ -30,7 +33,6 @@ void main() async {
       (options) {
         options
           ..dsn = Config.sentryDsn
-          ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(configuredApp),

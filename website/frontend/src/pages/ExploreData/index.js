@@ -13,21 +13,21 @@ import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
 import ManExploring from 'assets/img/explore/get-started-explore.png';
 import RegistrationCompleteSvg from 'assets/svg/explore/registration_complete_svg.svg';
 import { useDispatch } from 'react-redux';
-import {
-  Checkbox, FormControl, FormControlLabel, CircularProgress, Modal,
-} from '@mui/material';
+import { Checkbox, FormControl, FormControlLabel, CircularProgress, Modal } from '@mui/material';
 import { useExploreData } from 'reduxStore/ExploreData/selectors';
 import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreData/operations';
 import { isEmpty, isEqual } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
+import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
+import DownloadIcon from 'assets/svg/explore/download.svg'
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
   environmentalEnthusiasts: 'environmental enthusiasts',
   business: 'business',
-  governmentEnthusiasts: 'government enthusiasts',
+  governmentEnthusiasts: 'government enthusiasts'
 };
 
 const compareCategory = (value, target) => isEqual(value.toLowerCase(), target.toLowerCase());
@@ -39,69 +39,105 @@ export const PageWithImageLayout = ({ imgPath, children }) => {
   useInitScrollTop();
   return (
     <ExploreDataModal>
-        <div className="ExploreDataWrapper">
-            <div className="left-section">
-                <img src={imgPath || ManDownloadingApp} width="100%" height="100%" />
-            </div>
-            <div className="right-section">
-                <div className="nav-row">
-                    <button onClick={navigateBack}><ArrowBackIcon /></button>
-                    <Link to="/"><CloseIcon /></Link>
-                </div>
-                <div className="content">{children}</div>
-            </div>
+      <div className="ExploreDataWrapper">
+        <div className="left-section">
+          <img src={imgPath || ManDownloadingApp} width="100%" height="100%" />
         </div>
+        <div className="right-section">
+          <div className="nav-row">
+            <button onClick={navigateBack}>
+              <ArrowBackIcon />
+            </button>
+            <Link to="/">
+              <CloseIcon />
+            </Link>
+          </div>
+          <div className="content">{children}</div>
+        </div>
+      </div>
     </ExploreDataModal>
   );
 };
 
 export const ExploreFormTemplate = ({ children, onSubmit }) => (
-    <form className="create-account-form" onSubmit={onSubmit}>
-        {children}
-    </form>
+  <form className="create-account-form" onSubmit={onSubmit}>
+    {children}
+  </form>
 );
 
 export const ExploreTemplateFormFieldOption = ({
-  formOptionClassName, fieldId, label, inputType, children, fieldClassName, onChange,
+  formOptionClassName,
+  fieldId,
+  label,
+  inputType,
+  children,
+  fieldClassName,
+  onChange
 }) => (
-        <div className={`form-option ${formOptionClassName}`}>
-            {label && <label htmlFor={fieldId}>{label}*</label>}
-            <input type={inputType} id={fieldId} required className={fieldClassName || 'form-control'} onChange={onChange} /> {children}
-        </div>
+  <div className={`form-option ${formOptionClassName}`}>
+    {label && <label htmlFor={fieldId}>{label}*</label>}
+    <input
+      type={inputType}
+      id={fieldId}
+      required
+      className={fieldClassName || 'form-control'}
+      onChange={onChange}
+    />{' '}
+    {children}
+  </div>
 );
 
 export const ExploreApp = () => (
-    <PageWithImageLayout>
-        <div className="ExploreApp">
-            <div className="brand-icon"><AirQo /></div>
-            <h2>Get the AirQo app</h2>
-            <p>Discover the quality of air you are breathing.</p>
-            <div className="wrapper">
-                <QRcode />
-                <hr />
-                <div className="btn-group">
-                    <a target="_blank" href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091" rel="noreferrer">
-                        <AppleBtn style={{ marginBottom: '40px' }} />
-                    </a>
-                    <a target="_blank" href="https://play.google.com/store/apps/details?id=com.airqo.app" rel="noreferrer">
-                        <GoogleplayBtn />
-                    </a>
-                </div>
-            </div>
+  <PageWithImageLayout>
+    <div className="ExploreApp">
+      <div className="brand-icon">
+        <AirQo />
+      </div>
+      <h2>Get the AirQo app</h2>
+      <p>Discover the quality of air you are breathing.</p>
+      <div className="wrapper">
+        <QRcode />
+        <hr />
+        <div className="btn-group">
+          <a
+            target="_blank"
+            href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
+            rel="noreferrer">
+            <AppleBtn style={{ marginBottom: '40px' }} />
+          </a>
+          <a
+            target="_blank"
+            href="https://play.google.com/store/apps/details?id=com.airqo.app"
+            rel="noreferrer">
+            <GoogleplayBtn />
+          </a>
         </div>
-    </PageWithImageLayout>
+      </div>
+    </div>
+  </PageWithImageLayout>
 );
 
 export const ExploreGetStarted = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="ExploreGetStarted">
-            <div className="brand-icon"><AirQo /></div>
-            <h2>Clean air for all African cities</h2>
-            <p>Get access to an interactive air quality analytics platform.</p>
-            <Link to="/explore-data/get-started/user"><button className="nav-button">Create Account</button></Link>
-            <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
-        </div>
-    </PageWithImageLayout>
+  <PageWithImageLayout imgPath={ManExploring}>
+    <div className="ExploreGetStarted">
+      <div className="brand-icon">
+        <AirQo />
+      </div>
+      <h2>Clean air for all African cities</h2>
+      <p>Get access to an interactive air quality analytics platform.</p>
+      <Link to="/explore-data/get-started/user">
+        <button className="nav-button">Create Account</button>
+      </Link>
+      <small>
+        Already have an account?
+        <span>
+          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+            Log in
+          </a>
+        </span>
+      </small>
+    </div>
+  </PageWithImageLayout>
 );
 
 export const ExploreUserCategory = () => {
@@ -112,7 +148,9 @@ export const ExploreUserCategory = () => {
 
   const handleCategoryChange = (key, secondaryKey) => (e) => {
     // eslint-disable-next-line max-len
-    dispatch(updateExploreData({ userType: { ...state, [key]: e.target.checked, [secondaryKey]: false } }));
+    dispatch(
+      updateExploreData({ userType: { ...state, [key]: e.target.checked, [secondaryKey]: false } })
+    );
     e.target.checked && navigate(`/explore-data/get-started/user/${e.target.name}`);
   };
 
@@ -121,28 +159,36 @@ export const ExploreUserCategory = () => {
   }, [exploreData]);
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreGetStartedForm">
-                <h2>What best describes you?</h2>
-                <p>We will help you get started based on your response</p>
-                <FormControl className="radio-field">
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={state.individual} onChange={handleCategoryChange('individual', 'organization')} name="individual" />
-                        }
-                      label="Individual"
-                    />
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={state.organization} onChange={handleCategoryChange('organization', 'individual')} name="organisation" />
-                        }
-                      label="Organisation"
-                    />
-                </FormControl>
-            </div>
-        </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreGetStartedForm">
+        <h2>What best describes you?</h2>
+        <p>We will help you get started based on your response</p>
+        <FormControl className="radio-field">
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={state.individual}
+                onChange={handleCategoryChange('individual', 'organization')}
+                name="individual"
+              />
+            }
+            label="Individual"
+          />
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={state.organization}
+                onChange={handleCategoryChange('organization', 'individual')}
+                name="organisation"
+              />
+            }
+            label="Organisation"
+          />
+        </FormControl>
+      </div>
+    </PageWithImageLayout>
   );
 };
 
@@ -159,28 +205,39 @@ export const ExploreUserProfessionType = () => {
   };
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreGetStartedForm">
-                <h2>What best describes you?</h2>
-                <p>We will help you get started based on your response</p>
-                <FormControl className="radio-field">
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.researcher)} onChange={handleCategoryChange} name="researcher" />
-                        }
-                      label="Researcher"
-                    />
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.environmentalEnthusiasts)} onChange={handleCategoryChange} name="environmental enthusiasts" />
-                        }
-                      label="Environmental enthusiast"
-                    />
-                </FormControl>
-            </div>
-        </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreGetStartedForm">
+        <h2>What best describes you?</h2>
+        <p>We will help you get started based on your response</p>
+        <FormControl className="radio-field">
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={compareCategory(exploreData.category, CATEGORY_TYPE.researcher)}
+                onChange={handleCategoryChange}
+                name="researcher"
+              />
+            }
+            label="Researcher"
+          />
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={compareCategory(
+                  exploreData.category,
+                  CATEGORY_TYPE.environmentalEnthusiasts
+                )}
+                onChange={handleCategoryChange}
+                name="environmental enthusiasts"
+              />
+            }
+            label="Environmental enthusiast"
+          />
+        </FormControl>
+      </div>
+    </PageWithImageLayout>
   );
 };
 
@@ -201,28 +258,36 @@ export const ExploreOrganisationType = () => {
   };
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreGetStartedForm">
-                <h2>What best describes you?</h2>
-                <p>We will help you get started based on your response</p>
-                <FormControl className="radio-field">
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.business)} onChange={handleCategoryChange} name="business" />
-                        }
-                      label="Business Owner"
-                    />
-                    <FormControlLabel
-                      className="radio-field-option"
-                      control={
-                            <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.governmentEnthusiasts)} onChange={handleCategoryChange} name="government enthusiasts" />
-                        }
-                      label="Government or Policy Officer"
-                    />
-                </FormControl>
-            </div>
-        </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreGetStartedForm">
+        <h2>What best describes you?</h2>
+        <p>We will help you get started based on your response</p>
+        <FormControl className="radio-field">
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={compareCategory(exploreData.category, CATEGORY_TYPE.business)}
+                onChange={handleCategoryChange}
+                name="business"
+              />
+            }
+            label="Business Owner"
+          />
+          <FormControlLabel
+            className="radio-field-option"
+            control={
+              <Checkbox
+                checked={compareCategory(exploreData.category, CATEGORY_TYPE.governmentEnthusiasts)}
+                onChange={handleCategoryChange}
+                name="government enthusiasts"
+              />
+            }
+            label="Government or Policy Officer"
+          />
+        </FormControl>
+      </div>
+    </PageWithImageLayout>
   );
 };
 
@@ -233,27 +298,28 @@ export const ExploreUserRegistry = () => {
   const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
+  const handleChange = (id) => (e) =>
+    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
 
   const registerOrganisation = async (e) => {
     e.preventDefault();
 
     if (exploreDataLocal.category === CATEGORY_TYPE.business) {
-        navigate('/explore-data/get-started/user/register/business');
+      navigate('/explore-data/get-started/user/register/business');
     } else if (exploreDataLocal.category === CATEGORY_TYPE.governmentEnthusiasts) {
-        navigate('/explore-data/get-started/user/register/organisation');
+      navigate('/explore-data/get-started/user/register/organisation');
     } else {
-        setLoading(true);
-        await dispatch(
-            postExploreDataRequest({
-                ...exploreDataLocal,
-                long_organization: exploreDataLocal.category,
-                jobTitle: exploreDataLocal.category,
-                website: 'airqo.net',
-                description: 'Request Access to Data',
-            })
-        );
-        setLoading(false);
+      setLoading(true);
+      await dispatch(
+        postExploreDataRequest({
+          ...exploreDataLocal,
+          long_organization: exploreDataLocal.category,
+          jobTitle: exploreDataLocal.category,
+          website: 'airqo.net',
+          description: 'Request Access to Data'
+        })
+      );
+      setLoading(false);
     }
   };
 
@@ -265,61 +331,61 @@ export const ExploreUserRegistry = () => {
   }, [exploreData]);
 
   return (
-      <PageWithImageLayout imgPath={ManExploring}>
-          <div className="ExploreFormWrapper">
-              <h2>Create your AirQo account</h2>
-              <ExploreFormTemplate onSubmit={registerOrganisation}>
-                  <ExploreTemplateFormFieldOption
-                      label="First name"
-                      inputType="text"
-                      fieldId="firstName"
-                      onChange={handleChange('firstName')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      label="Last name"
-                      inputType="text"
-                      fieldId="lastName"
-                      onChange={handleChange('lastName')}
-                  />
-                  {exploreDataLocal.category === CATEGORY_TYPE.researcher && (
-                      <ExploreTemplateFormFieldOption
-                          label="Email address"
-                          inputType="email"
-                          fieldId="email"
-                          onChange={handleChange('email')}
-                      />
-                  )}
-                  {exploreDataLocal.category === CATEGORY_TYPE.environmentalEnthusiasts && (
-                      <ExploreTemplateFormFieldOption
-                          label="Email address"
-                          inputType="email"
-                          fieldId="emailAddress"
-                          onChange={handleChange('email')}
-                      />
-                  )}
-                  <ExploreTemplateFormFieldOption
-                      inputType="checkbox"
-                      fieldId="tos"
-                      radioOption
-                      fieldClassName="tos"
-                      formOptionClassName="tos">
-                      I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
-                      <Link to="/legal">Privacy Policy</Link>
-                  </ExploreTemplateFormFieldOption>
-                  <button className="nav-button" type="submit" onSubmit={registerOrganisation}>
-                      {loading ? <CircularProgress /> : 'Create Account'}
-                  </button>
-                  <small>
-                      Already have an account?
-                      <span>
-                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                              Log in
-                          </a>
-                      </span>
-                  </small>
-              </ExploreFormTemplate>
-          </div>
-      </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreFormWrapper">
+        <h2>Create your AirQo account</h2>
+        <ExploreFormTemplate onSubmit={registerOrganisation}>
+          <ExploreTemplateFormFieldOption
+            label="First name"
+            inputType="text"
+            fieldId="firstName"
+            onChange={handleChange('firstName')}
+          />
+          <ExploreTemplateFormFieldOption
+            label="Last name"
+            inputType="text"
+            fieldId="lastName"
+            onChange={handleChange('lastName')}
+          />
+          {exploreDataLocal.category === CATEGORY_TYPE.researcher && (
+            <ExploreTemplateFormFieldOption
+              label="Email address"
+              inputType="email"
+              fieldId="email"
+              onChange={handleChange('email')}
+            />
+          )}
+          {exploreDataLocal.category === CATEGORY_TYPE.environmentalEnthusiasts && (
+            <ExploreTemplateFormFieldOption
+              label="Email address"
+              inputType="email"
+              fieldId="emailAddress"
+              onChange={handleChange('email')}
+            />
+          )}
+          <ExploreTemplateFormFieldOption
+            inputType="checkbox"
+            fieldId="tos"
+            radioOption
+            fieldClassName="tos"
+            formOptionClassName="tos">
+            I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
+            <Link to="/legal">Privacy Policy</Link>
+          </ExploreTemplateFormFieldOption>
+          <button className="nav-button" type="submit" onSubmit={registerOrganisation}>
+            {loading ? <CircularProgress /> : 'Create Account'}
+          </button>
+          <small>
+            Already have an account?
+            <span>
+              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                Log in
+              </a>
+            </span>
+          </small>
+        </ExploreFormTemplate>
+      </div>
+    </PageWithImageLayout>
   );
 };
 
@@ -330,22 +396,25 @@ export const ExploreBusinessRegistry = () => {
   const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
+  const handleChange = (id) => (e) =>
+    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
 
-    await dispatch(postExploreDataRequest({
-      ...exploreDataLocal,
-      firstName: exploreDataLocal.firstName,
-      lastName: exploreData.lastName,
-      long_organization: exploreDataLocal.business,
-      jobTitle: exploreDataLocal.position,
-      website: 'airqo.net',
-      description: 'Request Access to Data',
-    }));
+    await dispatch(
+      postExploreDataRequest({
+        ...exploreDataLocal,
+        firstName: exploreDataLocal.firstName,
+        lastName: exploreData.lastName,
+        long_organization: exploreDataLocal.business,
+        jobTitle: exploreDataLocal.position,
+        website: 'airqo.net',
+        description: 'Request Access to Data'
+      })
+    );
 
     setLoading(false);
   };
@@ -358,51 +427,51 @@ export const ExploreBusinessRegistry = () => {
   }, [exploreData]);
 
   return (
-      <PageWithImageLayout imgPath={ManExploring}>
-          <div className="ExploreFormWrapper">
-              <h2>Details about your business</h2>
-              <ExploreFormTemplate onSubmit={handleSubmit}>
-                  <ExploreTemplateFormFieldOption
-                      label="Business name"
-                      inputType="text"
-                      fieldId="businessName"
-                      onChange={handleChange('business')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      label="Your position"
-                      inputType="text"
-                      fieldId="position"
-                      onChange={handleChange('position')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      label="Email address"
-                      inputType="email"
-                      fieldId="emailAddress"
-                      onChange={handleChange('email')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      inputType="checkbox"
-                      fieldId="tos"
-                      radioOption
-                      fieldClassName="tos"
-                      formOptionClassName="tos">
-                      I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
-                      <Link to="/terms">Privacy Policy</Link>
-                  </ExploreTemplateFormFieldOption>
-                  <button type="submit" className="nav-button">
-                      {loading ? <CircularProgress /> : 'Create Account'}
-                  </button>
-                  <small>
-                      Already have an account?
-                      <span>
-                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                              Log in
-                          </a>
-                      </span>
-                  </small>
-              </ExploreFormTemplate>
-          </div>
-      </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreFormWrapper">
+        <h2>Details about your business</h2>
+        <ExploreFormTemplate onSubmit={handleSubmit}>
+          <ExploreTemplateFormFieldOption
+            label="Business name"
+            inputType="text"
+            fieldId="businessName"
+            onChange={handleChange('business')}
+          />
+          <ExploreTemplateFormFieldOption
+            label="Your position"
+            inputType="text"
+            fieldId="position"
+            onChange={handleChange('position')}
+          />
+          <ExploreTemplateFormFieldOption
+            label="Email address"
+            inputType="email"
+            fieldId="emailAddress"
+            onChange={handleChange('email')}
+          />
+          <ExploreTemplateFormFieldOption
+            inputType="checkbox"
+            fieldId="tos"
+            radioOption
+            fieldClassName="tos"
+            formOptionClassName="tos">
+            I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
+            <Link to="/terms">Privacy Policy</Link>
+          </ExploreTemplateFormFieldOption>
+          <button type="submit" className="nav-button">
+            {loading ? <CircularProgress /> : 'Create Account'}
+          </button>
+          <small>
+            Already have an account?
+            <span>
+              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                Log in
+              </a>
+            </span>
+          </small>
+        </ExploreFormTemplate>
+      </div>
+    </PageWithImageLayout>
   );
 };
 
@@ -413,22 +482,25 @@ export const ExploreOrganisationRegistry = () => {
   const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
+  const handleChange = (id) => (e) =>
+    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
 
-    await dispatch(postExploreDataRequest({
-      ...exploreDataLocal,
-      firstName: exploreDataLocal.firstName,
-      lastName: exploreDataLocal.lastName,
-      long_organization: exploreDataLocal.business,
-      jobTitle: exploreDataLocal.position,
-      website: 'airqo.net',
-      description: 'Request Access to Data',
-    }));
+    await dispatch(
+      postExploreDataRequest({
+        ...exploreDataLocal,
+        firstName: exploreDataLocal.firstName,
+        lastName: exploreDataLocal.lastName,
+        long_organization: exploreDataLocal.business,
+        jobTitle: exploreDataLocal.position,
+        website: 'airqo.net',
+        description: 'Request Access to Data'
+      })
+    );
 
     setLoading(false);
   };
@@ -441,115 +513,149 @@ export const ExploreOrganisationRegistry = () => {
   }, [exploreData]);
 
   return (
-      <PageWithImageLayout imgPath={ManExploring}>
-          <div className="ExploreFormWrapper">
-              <h2>Details about your Organisation</h2>
-              <ExploreFormTemplate onSubmit={handleSubmit}>
-                  <ExploreTemplateFormFieldOption
-                      label="Organisation name"
-                      inputType="text"
-                      fieldId="orgName"
-                      onChange={handleChange('business')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      label="Your position"
-                      inputType="text"
-                      fieldId="position"
-                      onChange={handleChange('position')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      label="Email address"
-                      inputType="email"
-                      fieldId="emailAddress"
-                      onChange={handleChange('email')}
-                  />
-                  <ExploreTemplateFormFieldOption
-                      inputType="checkbox"
-                      fieldId="tos"
-                      radioOption
-                      fieldClassName="tos"
-                      formOptionClassName="tos">
-                      I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/terms">Privacy Policy</Link>
-                  </ExploreTemplateFormFieldOption>
-                  <button className="nav-button" type="submit">
-                      {loading ? <CircularProgress /> : 'Create Account'}
-                  </button>
-                  <small>
-                      Already have an account?
-                      <span>
-                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                              Log in
-                          </a>
-                      </span>
-                  </small>
-              </ExploreFormTemplate>
-          </div>
-      </PageWithImageLayout>
+    <PageWithImageLayout imgPath={ManExploring}>
+      <div className="ExploreFormWrapper">
+        <h2>Details about your Organisation</h2>
+        <ExploreFormTemplate onSubmit={handleSubmit}>
+          <ExploreTemplateFormFieldOption
+            label="Organisation name"
+            inputType="text"
+            fieldId="orgName"
+            onChange={handleChange('business')}
+          />
+          <ExploreTemplateFormFieldOption
+            label="Your position"
+            inputType="text"
+            fieldId="position"
+            onChange={handleChange('position')}
+          />
+          <ExploreTemplateFormFieldOption
+            label="Email address"
+            inputType="email"
+            fieldId="emailAddress"
+            onChange={handleChange('email')}
+          />
+          <ExploreTemplateFormFieldOption
+            inputType="checkbox"
+            fieldId="tos"
+            radioOption
+            fieldClassName="tos"
+            formOptionClassName="tos">
+            I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
+            <Link to="/terms">Privacy Policy</Link>
+          </ExploreTemplateFormFieldOption>
+          <button className="nav-button" type="submit">
+            {loading ? <CircularProgress /> : 'Create Account'}
+          </button>
+          <small>
+            Already have an account?
+            <span>
+              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                Log in
+              </a>
+            </span>
+          </small>
+        </ExploreFormTemplate>
+      </div>
+    </PageWithImageLayout>
   );
 };
 export const ExploreRegistryConfirmation = () => (
-    <ExploreDataModal>
-        <div className="ConfirmExploreDataMail">
-            <RegistrationCompleteSvg className="registration_svg" />
-            <div className="content">
-                <h2>Check your email for more details.</h2>
-                <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-            </div>
-            <Link to="/"><button className="nav-button">Back home</button></Link>
-        </div>
-    </ExploreDataModal>
+  <ExploreDataModal>
+    <div className="ConfirmExploreDataMail">
+      <RegistrationCompleteSvg className="registration_svg" />
+      <div className="content">
+        <h2>Check your email for more details.</h2>
+        <p>
+          Access real-time and historic air quality information across Africa through our
+          easy-to-use air quality analytics dashboard
+        </p>
+      </div>
+      <Link to="/">
+        <button className="nav-button">Back home</button>
+      </Link>
+    </div>
+  </ExploreDataModal>
 );
 
-export const ExploreDataModal = ({children}) => {
-    
-    return (
-        <div className="ExploreDataModal">
-            <SEO
-                title="Explore Data"
-                siteTitle="AirQo"
-                description="Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app."
-            />
-            <div className="ExploreDataModalWrapper">
-                {children}
-            </div>
-        </div>
-    );
-}
+export const ExploreDataModal = ({ children }) => {
+  return (
+    <div className="ExploreDataModal">
+      <SEO
+        title="Explore Data"
+        siteTitle="AirQo"
+        description="Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app."
+      />
+      <div className="ExploreDataModalWrapper">{children}</div>
+    </div>
+  );
+};
 
 const ExploreData = () => {
-    useInitScrollTop();
-    return (
-        <ExploreDataModal>
-            <div className="ExploreData">
-                <div className="left-section">
-                    <div className="nav">
-                        <Link to="/"><h3>Home</h3></Link><ArrowForwardIosIcon className="icon" /><h3 className="blur-text">Explore Data</h3>
-                    </div>
-                    <div className="content">
-                        <h2>Visualise air quality information.</h2>
-                        <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app.</p>
-                    </div>
+  useInitScrollTop();
+  return (
+    <ExploreDataModal>
+      <div className="ExploreData">
+        <div className="left-section">
+          <div className="nav">
+            <Link to="/">
+              <h3>Home</h3>
+            </Link>
+            <ArrowForwardIosIcon className="icon" />
+            <h3 className="blur-text">Explore Data</h3>
+          </div>
+          <div className="content">
+            <h2>Visualise air quality information.</h2>
+            <p>
+              Access real-time and historic air quality information across Africa through our
+              easy-to-use air quality analytics dashboard or mobile app.
+            </p>
+          </div>
+        </div>
+        <div className="right-section">
+          <div className="nav-icon">
+            <Link to="/">
+              <CloseIcon />
+            </Link>
+          </div>
+          <div className="nav">
+            <div className="nav-option">
+              <div className="img-wrapper">
+                <div className="img-1">
+                  <MobileApp />
                 </div>
-                <div className="right-section">
-                    <div className="nav-icon"><Link to="/"><CloseIcon /></Link></div>
-                    <div className="nav">
-                        <div className="nav-option">
-                            <div className="img-wrapper"><div className="img-1"><MobileApp /></div></div>
-                            <h6>Discover the quality of air you are breathing.</h6>
-                            <Link to="/explore-data/download-apps"><button className="nav-button">Download App</button></Link>
-                        </div>
-                        <div className="nav-option">
-                            <div className="img-wrapper">
-                                <div className="img-2"><AirqualityPlatform /></div>
-                            </div>
-                            <h6>An interactive air quality analytics platform</h6>
-                            <Link to="/explore-data/get-started"><button className="nav-button">Air Quality Dashboard</button></Link>
-                        </div>
-                    </div>
-                </div>
+              </div>
+              <h6>Discover the quality of air you are breathing.</h6>
+              <Link to="/explore-data/download-apps">
+                <button className="nav-button">Download App</button>
+              </Link>
             </div>
-        </ExploreDataModal>
-    );
-}
+            <div className="nav-option">
+              <div className="img-wrapper">
+                <div className="img-2">
+                  <AirqualityPlatform />
+                </div>
+              </div>
+              <h6>An interactive air quality analytics platform</h6>
+              <Link to={`${NETMANAGER_URL}`} target="_blank" rel="noopener noreferrer">
+                <button className="nav-button">Air Quality Dashboard</button>
+              </Link>
+            </div>
+          </div>
+          <button className="user-manual">
+            <DownloadIcon />
+            <a
+              href={UserManual}
+              download="AirQo_Analytics_Platform_User_Manual.pdf"
+              target="_blank"
+              rel="noopener noreferrer">
+              Air Quality Platform User Manual
+            </a>
+          </button>
+        </div>
+      </div>
+    </ExploreDataModal>
+  );
+};
 
 export default ExploreData;

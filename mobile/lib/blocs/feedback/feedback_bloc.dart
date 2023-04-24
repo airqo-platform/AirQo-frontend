@@ -20,20 +20,14 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     on<SetFeedbackChannel>(_onSetFeedbackChannel);
   }
 
-  Future<void> _onInitializeFeedback(
-    InitializeFeedback _,
+  void _onInitializeFeedback(
+    InitializeFeedback event,
     Emitter<FeedbackState> emit,
-  ) async {
-    final profile = await Profile.getProfile();
-
-    if (profile.emailAddress.isEmpty) {
-      return;
-    }
-
-    if (state.blocStatus == BlocStatus.success) {
+  ) {
+    if (state.blocStatus == FeedbackStateStatus.success) {
       return emit(
         const FeedbackState.initial().copyWith(
-          emailAddress: profile.emailAddress,
+          emailAddress: event.profile.emailAddress,
           feedbackChannel: FeedbackChannel.email,
         ),
       );
@@ -41,7 +35,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
 
     return emit(
       state.copyWith(
-        emailAddress: profile.emailAddress,
+        emailAddress: event.profile.emailAddress,
         feedbackChannel: FeedbackChannel.email,
       ),
     );
@@ -54,33 +48,42 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     _onClearErrors(emit);
 
     if (state.feedback.isEmpty) {
-      return (emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        errorMessage: 'Please type your message.',
-      )));
+      return emit(
+        state.copyWith(
+          blocStatus: FeedbackStateStatus.error,
+          errorMessage: 'Please type your message.',
+        ),
+      );
     }
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        errorMessage: AuthenticationError.noInternetConnection.message,
-      ));
+      return emit(
+        state.copyWith(
+          blocStatus: FeedbackStateStatus.error,
+          errorMessage: FirebaseAuthError.noInternetConnection.message,
+        ),
+      );
     }
 
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: FeedbackStateStatus.processing));
 
-    final bool success = await AirqoApiClient().sendFeedback(UserFeedback(
-      contactDetails: state.emailAddress,
-      message: state.feedback,
-      feedbackType: state.feedbackType,
-    ));
+    final bool success = await AirqoApiClient().sendFeedback(
+      UserFeedback(
+        contactDetails: state.emailAddress,
+        message: state.feedback,
+        feedbackType: state.feedbackType,
+      ),
+    );
 
-    return (emit(state.copyWith(
-      blocStatus: success ? BlocStatus.success : BlocStatus.error,
-      errorMessage:
-          success ? '' : 'Failed to submit feedback. Try again later.',
-    )));
+    return emit(
+      state.copyWith(
+        blocStatus:
+            success ? FeedbackStateStatus.success : FeedbackStateStatus.error,
+        errorMessage:
+            success ? '' : 'Failed to submit feedback. Try again later.',
+      ),
+    );
   }
 
   void _onGoToChannelStep(
@@ -90,10 +93,12 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     _onClearErrors(emit);
 
     if (state.feedbackType == FeedbackType.none) {
-      return (emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        errorMessage: 'Please select a feedback type.',
-      )));
+      return emit(
+        state.copyWith(
+          blocStatus: FeedbackStateStatus.error,
+          errorMessage: 'Please select a feedback type.',
+        ),
+      );
     }
 
     return emit(state.copyWith(step: FeedbackStep.channelStep));
@@ -106,17 +111,21 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     _onClearErrors(emit);
 
     if (state.feedbackChannel == FeedbackChannel.none) {
-      return (emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        errorMessage: 'Please select a communication channel.',
-      )));
+      return emit(
+        state.copyWith(
+          blocStatus: FeedbackStateStatus.error,
+          errorMessage: 'Please select a communication channel.',
+        ),
+      );
     }
 
     if (!state.emailAddress.isValidEmail()) {
-      return (emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        errorMessage: AuthenticationError.invalidEmailAddress.message,
-      )));
+      return emit(
+        state.copyWith(
+          blocStatus: FeedbackStateStatus.error,
+          errorMessage: FirebaseAuthError.invalidEmailAddress.message,
+        ),
+      );
     }
 
     return emit(state.copyWith(step: FeedbackStep.formStep));
@@ -144,19 +153,13 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     );
   }
 
-  void _onSetFeedbackType(
-    SetFeedbackType event,
-    Emitter<FeedbackState> emit,
-  ) {
+  void _onSetFeedbackType(SetFeedbackType event, Emitter<FeedbackState> emit) {
     _onClearErrors(emit);
 
     return emit(state.copyWith(feedbackType: event.feedbackType));
   }
 
-  void _onSetFeedback(
-    SetFeedback event,
-    Emitter<FeedbackState> emit,
-  ) {
+  void _onSetFeedback(SetFeedback event, Emitter<FeedbackState> emit) {
     _onClearErrors(emit);
 
     return emit(
@@ -164,12 +167,10 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     );
   }
 
-  void _onClearErrors(
-    Emitter<FeedbackState> emit,
-  ) {
+  void _onClearErrors(Emitter<FeedbackState> emit) {
     emit(
       state.copyWith(
-        blocStatus: BlocStatus.initial,
+        blocStatus: FeedbackStateStatus.initial,
         errorMessage: '',
       ),
     );

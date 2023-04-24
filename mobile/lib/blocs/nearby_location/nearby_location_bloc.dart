@@ -4,24 +4,33 @@ import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'nearby_location_event.dart';
 part 'nearby_location_state.dart';
 
 class NearbyLocationBloc
     extends Bloc<NearbyLocationEvent, NearbyLocationState> {
-  NearbyLocationBloc() : super(const NearbyLocationState.initial()) {
+  NearbyLocationBloc() : super(const NearbyLocationState()) {
     on<SearchLocationAirQuality>(_onSearchLocationAirQuality);
     on<UpdateLocationAirQuality>(_onUpdateLocationAirQuality);
+    on<DismissErrorMessage>(_onDismissErrorMessage);
+  }
+
+  void _onDismissErrorMessage(
+    DismissErrorMessage _,
+    Emitter<NearbyLocationState> emit,
+  ) {
+    return emit(state.copyWith(
+      showErrorMessage: false,
+      locationAirQuality: state.locationAirQuality,
+    ));
   }
 
   Future<bool> _isLocationEnabled(Emitter<NearbyLocationState> emit) async {
     final locationGranted = await LocationService.locationGranted();
     if (!locationGranted) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.error,
-        error: NearbyAirQualityError.locationDenied,
+        blocStatus: NearbyLocationStatus.locationDenied,
       ));
 
       return false;
@@ -30,8 +39,7 @@ class NearbyLocationBloc
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.error,
-        error: NearbyAirQualityError.locationDisabled,
+        blocStatus: NearbyLocationStatus.locationDisabled,
       ));
 
       return false;
@@ -45,30 +53,22 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     List<AirQualityReading> nearByAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
-
-    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.toList();
+        HiveService().getNearbyAirQualityReadings();
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
 
     nearByAirQualityReadings = nearByAirQualityReadings
         .map((element) {
-          List<AirQualityReading> referenceReadings = airQualityReadings
-              .where(
-                (reading) => reading.referenceSite == element.referenceSite,
-              )
-              .toList();
-          if (referenceReadings.isNotEmpty) {
-            return element.copyWith(
-              pm10: referenceReadings.first.pm10,
-              pm2_5: referenceReadings.first.pm2_5,
-              dateTime: referenceReadings.first.dateTime,
-            );
-          }
+          AirQualityReading referenceReading = airQualityReadings.firstWhere(
+            (reading) => reading.referenceSite == element.referenceSite,
+            orElse: () => element,
+          );
 
-          return element;
+          return element.copyWith(
+            pm10: referenceReading.pm10,
+            pm2_5: referenceReading.pm2_5,
+            dateTime: referenceReading.dateTime,
+          );
         })
         .toList()
         .sortByDistanceToReferenceSite();
@@ -77,19 +77,14 @@ class NearbyLocationBloc
 
     if (isLocationEnabled) {
       emit(state.copyWith(
-        blocStatus: nearByAirQualityReadings.isEmpty
-            ? NearbyLocationStatus.error
-            : NearbyLocationStatus.loaded,
-        error: nearByAirQualityReadings.isEmpty
-            ? NearbyAirQualityError.noNearbyAirQualityReadings
-            : NearbyAirQualityError.none,
         locationAirQuality: nearByAirQualityReadings.isEmpty
             ? null
             : nearByAirQualityReadings.first,
       ));
     }
 
-    await HiveService.updateNearbyAirQualityReadings(nearByAirQualityReadings);
+    await HiveService()
+        .updateNearbyAirQualityReadings(nearByAirQualityReadings);
   }
 
   Future<void> _onSearchLocationAirQuality(
@@ -97,13 +92,14 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     emit(state.copyWith(
+      locationAirQuality: state.locationAirQuality,
       blocStatus: NearbyLocationStatus.searching,
-      error: NearbyAirQualityError.none,
+      showErrorMessage: true,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
     if (!isLocationEnabled) {
-      await HiveService.updateNearbyAirQualityReadings([]);
+      await HiveService().updateNearbyAirQualityReadings([]);
 
       return;
     }
@@ -116,16 +112,11 @@ class NearbyLocationBloc
     airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
 
     emit(state.copyWith(
-      blocStatus: airQualityReadings.isEmpty
-          ? NearbyLocationStatus.error
-          : NearbyLocationStatus.loaded,
-      error: airQualityReadings.isEmpty
-          ? NearbyAirQualityError.noNearbyAirQualityReadings
-          : NearbyAirQualityError.none,
+      blocStatus: NearbyLocationStatus.searchComplete,
       locationAirQuality:
           airQualityReadings.isEmpty ? null : airQualityReadings.first,
     ));
 
-    await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
+    await HiveService().updateNearbyAirQualityReadings(airQualityReadings);
   }
 }

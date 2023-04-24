@@ -1,17 +1,14 @@
 import 'package:equatable/equatable.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import 'hive_type_id.dart';
 
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: kyaTypeId)
-class Kya extends HiveObject with EquatableMixin {
+class Kya extends Equatable {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
-  Kya({
+  const Kya({
     required this.title,
     required this.imageUrl,
     required this.id,
@@ -19,36 +16,63 @@ class Kya extends HiveObject with EquatableMixin {
     required this.progress,
     required this.completionMessage,
     required this.secondaryImageUrl,
+    required this.shareLink,
   });
 
-  @HiveField(2)
-  String title;
+  final String title;
 
-  @HiveField(
-    3,
-    defaultValue: 'You just finished your first Know You Air Lesson',
-  )
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
-  String completionMessage;
+  final String completionMessage;
 
-  @HiveField(4)
-  String imageUrl;
+  final String imageUrl;
 
-  @HiveField(5)
   @JsonKey(defaultValue: '')
-  String secondaryImageUrl;
+  final String secondaryImageUrl;
 
-  @HiveField(6)
-  String id;
+  final String id;
 
-  @HiveField(7)
-  List<KyaLesson> lessons = [];
+  final List<KyaLesson> lessons;
 
-  @HiveField(8, defaultValue: 0)
   @JsonKey(defaultValue: 0)
-  double progress;
+  final double progress;
+
+  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
+  @JsonKey(defaultValue: '')
+  final String shareLink;
+
+  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+    final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
+
+    return Kya(
+      title: '',
+      imageUrl: '',
+      id: id,
+      lessons: const [],
+      progress: 0,
+      completionMessage: '',
+      secondaryImageUrl: '',
+      shareLink: '',
+    );
+  }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  Kya copyWith({String? shareLink, double? progress}) {
+    return Kya(
+      title: title,
+      completionMessage: completionMessage,
+      imageUrl: imageUrl,
+      secondaryImageUrl: secondaryImageUrl,
+      id: id,
+      lessons: lessons,
+      progress: progress ?? this.progress,
+      shareLink: shareLink ?? this.shareLink,
+    );
+  }
+
+  String shareLinkParams() {
+    return 'kyaId=$id';
+  }
 
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';
@@ -59,19 +83,10 @@ class Kya extends HiveObject with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [
-        progress,
-        title,
-        completionMessage,
-        lessons,
-        id,
-        secondaryImageUrl,
-        imageUrl,
-      ];
+  List<Object> get props => [id];
 }
 
 @JsonSerializable(explicitToJson: true)
-@HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
 class KyaLesson extends Equatable {
   const KyaLesson({
     required this.title,
@@ -82,13 +97,10 @@ class KyaLesson extends Equatable {
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
 
-  @HiveField(0)
   final String title;
 
-  @HiveField(1)
   final String imageUrl;
 
-  @HiveField(2)
   final String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
@@ -103,4 +115,44 @@ class KyaLesson extends Equatable {
         imageUrl,
         body,
       ];
+}
+
+@JsonSerializable()
+class KyaProgress {
+  const KyaProgress({
+    required this.id,
+    required this.progress,
+  });
+
+  factory KyaProgress.fromJson(Map<String, dynamic> json) =>
+      _$KyaProgressFromJson(json);
+
+  factory KyaProgress.fromKya(Kya kya) => KyaProgress(
+        id: kya.id,
+        progress: kya.progress,
+      );
+
+  KyaProgress copyWith({double? progress}) {
+    return KyaProgress(
+      id: id,
+      progress: progress ?? this.progress,
+    );
+  }
+
+  final String id;
+  final double progress;
+
+  Map<String, dynamic> toJson() => _$KyaProgressToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class KyaList {
+  factory KyaList.fromJson(Map<String, dynamic> json) =>
+      _$KyaListFromJson(json);
+
+  KyaList({required this.data});
+
+  List<Kya> data;
+
+  Map<String, dynamic> toJson() => _$KyaListToJson(this);
 }

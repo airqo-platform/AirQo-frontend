@@ -1,29 +1,202 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
-  SearchBloc() : super(const SearchState.initial()) {
-    on<InitializeSearchPage>(_onInitializeSearchPage);
-    on<ReloadSearchPage>(_onReloadSearchPage);
-    on<FilterByAirQuality>(_onFilterByAirQuality);
-    on<SearchAirQuality>(_onSearchAirQuality);
-    on<ClearSearchResult>(_onClearSearchResult);
+  SearchBloc() : super(const SearchState()) {
+    on<InitializeSearchView>(_onInitializeSearchView);
+    on<ClearSearchHistory>(_onClearSearchHistory);
+    on<NoSearchInternetConnection>(_onNoSearchInternetConnection);
+    on<GetSearchRecommendations>(_onGetSearchRecommendations);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
   }
 
-  Future<void> _loadSearchHistory(Emitter<SearchState> emit) async {
+  Future<void> _onClearSearchHistory(
+    ClearSearchHistory _,
+    Emitter<SearchState> emit,
+  ) async {
+    emit(const SearchState());
+    await HiveService().deleteSearchHistory();
+  }
+
+  void _onLoadCountries(Emitter<SearchState> emit) {
+    final List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+    final List<String> countries =
+        airQualityReadings.map((e) => e.country).toSet().toList();
+
+    return emit(state.copyWith(countries: countries));
+  }
+
+  Future<void> _onInitializeSearchView(
+    InitializeSearchView _,
+    Emitter<SearchState> emit,
+  ) async {
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getNearbyAirQualityReadings();
+
     List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(HiveBox.searchHistory).values.toList();
+        HiveService().getSearchHistory().sortByDateTime().toList();
+
+    List<AirQualityReading> searchHistoryReadings =
+        await searchHistory.attachedAirQualityReadings();
+
+    airQualityReadings.addAll(searchHistoryReadings);
+
+    if (airQualityReadings.isEmpty) {
+      List<AirQualityReading> readings = HiveService().getAirQualityReadings();
+
+      final List<String> countries =
+          readings.map((e) => e.country).toSet().toList();
+
+      for (final country in countries) {
+        List<AirQualityReading> countryReadings = readings
+            .where((element) => element.country.equalsIgnoreCase(country))
+            .toList();
+        countryReadings.shuffle();
+        airQualityReadings
+            .addAll(countryReadings.take(2).toList().sortByAirQuality());
+      }
+
+      airQualityReadings.shuffle();
+      readings.removeWhere((e) => airQualityReadings
+          .map((e) => e.placeId)
+          .toList()
+          .contains(e.placeId));
+      airQualityReadings.addAll(readings);
+    }
+
+    emit(const SearchState().copyWith(
+      searchHistory: airQualityReadings,
+    ));
+
+    _onLoadCountries(emit);
+
+    return;
+  }
+
+  void _onSearchTermChanged(
+    SearchTermChanged event,
+    Emitter<SearchState> emit,
+  ) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        status: SearchStatus.noInternetConnection,
+      ));
+    }
+
+    final searchTerm = event.text;
+    emit(state.copyWith(searchTerm: searchTerm));
+
+    if (searchTerm.isEmpty) {
+      return emit(state.copyWith(status: SearchStatus.initial));
+    }
+
+    emit(state.copyWith(status: SearchStatus.autoCompleting));
+
+    if (state.countries.isEmpty) {
+      _onLoadCountries(emit);
+    }
+
+    try {
+      List<SearchResult> results = await SearchApiClient().search(searchTerm);
+
+      results = results.where((element) {
+        return state.countries.any((country) =>
+            element.location.toLowerCase().contains(country.toLowerCase()));
+      }).toList();
+
+      return emit(state.copyWith(
+        searchResults: results.toSet().toList(),
+        status: SearchStatus.autoCompleteFinished,
+      ));
+    } catch (error) {
+      return emit(state.copyWith(
+        status: SearchStatus.noAirQualityData,
+      ));
+    }
+  }
+
+  Future<void> _onGetSearchRecommendations(
+    GetSearchRecommendations event,
+    Emitter<SearchState> emit,
+  ) async {
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+
+    // Add sites within 4 kilometers
+    List<AirQualityReading> recommendations = airQualityReadings
+        .where(
+          (e) =>
+              metersToKmDouble(Geolocator.distanceBetween(
+                e.latitude,
+                e.longitude,
+                event.searchResult.latitude,
+                event.searchResult.longitude,
+              )) <=
+              Config.searchRadius * 2,
+        )
+        .toList();
+
+    airQualityReadings =
+        airQualityReadings.toSet().difference(recommendations.toSet()).toList();
+
+    List<String> queryTerms = event.searchResult.getSearchTerms();
+
+    for (String parameter in ['name', 'location', 'region', 'country']) {
+      recommendations.addAll(airQualityReadings
+          .where((reading) => queryTerms.any((queryTerm) =>
+              reading.getSearchTerms(parameter).contains(queryTerm)))
+          .toList());
+
+      airQualityReadings = airQualityReadings
+          .toSet()
+          .difference(recommendations.toSet())
+          .toList();
+    }
+
+    return emit(state.copyWith(
+      recommendations: recommendations,
+      status: SearchStatus.searchComplete,
+      searchTerm: event.searchResult.name,
+    ));
+  }
+
+  void _onNoSearchInternetConnection(
+    NoSearchInternetConnection _,
+    Emitter<SearchState> emit,
+  ) {
+    return emit(state.copyWith(status: SearchStatus.noInternetConnection));
+  }
+}
+
+class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
+  SearchFilterBloc() : super(const SearchFilterState()) {
+    on<InitializeSearchFilter>(_onInitializeSearchFilter);
+    on<ReloadSearchFilter>(_onReloadSearchFilter);
+    on<FilterByAirQuality>(_onFilterByAirQuality);
+  }
+
+  Future<void> _onInitializeSearchFilter(
+    InitializeSearchFilter _,
+    Emitter<SearchFilterState> emit,
+  ) async {
+    await _initialize(emit);
+  }
+
+  Future<void> _loadSearchHistory(Emitter<SearchFilterState> emit) async {
+    List<SearchHistory> searchHistory = HiveService().getSearchHistory();
     searchHistory = searchHistory.sortByDateTime().take(3).toList();
     List<AirQualityReading> recentSearches =
         await searchHistory.attachedAirQualityReadings();
@@ -31,11 +204,70 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return emit(state.copyWith(recentSearches: recentSearches));
   }
 
-  Future<void> _initialize(Emitter<SearchState> emit) async {
+  Future<void> _onReloadSearchFilter(
+    ReloadSearchFilter _,
+    Emitter<SearchFilterState> emit,
+  ) async {
+    emit(state.copyWith(status: SearchFilterStatus.loading));
+
+    bool success = await AppService().refreshAirQualityReadings();
+    if (success) {
+      final airQualityReadings = HiveService().getAirQualityReadings();
+      if (airQualityReadings.isNotEmpty) {
+        await _initialize(emit);
+
+        return;
+      }
+    }
+
+    return emit(const SearchFilterState().copyWith(
+      status: SearchFilterStatus.noAirQualityData,
+    ));
+  }
+
+  void _onFilterByAirQuality(
+    FilterByAirQuality event,
+    Emitter<SearchFilterState> emit,
+  ) {
+    List<AirQualityReading> nearbyAirQualityLocations = <AirQualityReading>[];
+    List<AirQualityReading> otherAirQualityLocations = <AirQualityReading>[];
+
+    nearbyAirQualityLocations = HiveService()
+        .getNearbyAirQualityReadings()
+        .where((element) =>
+            Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
+        .toList();
+
+    final List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+
+    otherAirQualityLocations = airQualityReadings
+        .where((element) =>
+            Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
+        .toList();
+
+    otherAirQualityLocations.removeWhere((element) => nearbyAirQualityLocations
+        .map((e) => e.placeId)
+        .toList()
+        .contains(element.placeId));
+
+    SearchFilterStatus status =
+        nearbyAirQualityLocations.isEmpty && otherAirQualityLocations.isEmpty
+            ? SearchFilterStatus.filterFailed
+            : SearchFilterStatus.filterSuccessful;
+
+    return emit(state.copyWith(
+      nearbyLocations: nearbyAirQualityLocations.sortByAirQuality(),
+      otherLocations: otherAirQualityLocations.sortByAirQuality(),
+      status: status,
+      filteredAirQuality: event.airQuality,
+    ));
+  }
+
+  Future<void> _initialize(Emitter<SearchFilterState> emit) async {
     List<AirQualityReading> africanCities = [];
 
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+    final airQualityReadings = HiveService().getAirQualityReadings();
     airQualityReadings.shuffle();
 
     final List<String> countries =
@@ -51,213 +283,25 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     africanCities.shuffle();
 
     if (africanCities.isEmpty) {
-      return emit(const SearchState.initial().copyWith(
-        searchStatus: SearchStatus.error,
-        searchError: SearchError.noAirQualityData,
+      return emit(const SearchFilterState().copyWith(
+        status: SearchFilterStatus.noAirQualityData,
       ));
     }
 
-    emit(const SearchState.initial().copyWith(
+    emit(const SearchFilterState().copyWith(
       africanCities: africanCities,
-      searchStatus: SearchStatus.initial,
-      searchError: SearchError.none,
+      status: SearchFilterStatus.initial,
     ));
 
     await _loadSearchHistory(emit);
 
     return;
   }
+}
 
-  Future<void> _onInitializeSearchPage(
-    InitializeSearchPage _,
-    Emitter<SearchState> emit,
-  ) async {
-    await _initialize(emit);
-  }
+class SearchPageCubit extends Cubit<SearchPageState> {
+  SearchPageCubit() : super(SearchPageState.filtering);
 
-  Future<void> _onReloadSearchPage(
-    ReloadSearchPage _,
-    Emitter<SearchState> emit,
-  ) async {
-    emit(state.copyWith(
-      searchStatus: SearchStatus.loading,
-      searchError: SearchError.none,
-    ));
-
-    bool success = await AppService().refreshAirQualityReadings();
-    if (success) {
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-      if (airQualityReadings.isNotEmpty) {
-        await _initialize(emit);
-
-        return;
-      }
-    }
-
-    return emit(const SearchState.initial().copyWith(
-      searchStatus: SearchStatus.error,
-      searchError: SearchError.noAirQualityData,
-    ));
-  }
-
-  void _onFilterByAirQuality(
-    FilterByAirQuality event,
-    Emitter<SearchState> emit,
-  ) {
-    List<AirQualityReading> nearbyAirQualityLocations = <AirQualityReading>[];
-    List<AirQualityReading> otherAirQualityLocations = <AirQualityReading>[];
-
-    if (event.airQuality != null) {
-      nearbyAirQualityLocations =
-          Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-              .values
-              .where((element) =>
-                  Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
-              .toList();
-
-      final List<AirQualityReading> airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      otherAirQualityLocations = airQualityReadings
-          .where((element) =>
-              Pollutant.pm2_5.airQuality(element.pm2_5) == event.airQuality)
-          .toList();
-
-      otherAirQualityLocations.removeWhere((element) =>
-          nearbyAirQualityLocations
-              .map((e) => e.placeId)
-              .toList()
-              .contains(element.placeId));
-    }
-
-    return emit(state.copyWith(
-      nearbyAirQualityLocations: nearbyAirQualityLocations.sortByAirQuality(),
-      otherAirQualityLocations: otherAirQualityLocations.sortByAirQuality(),
-      searchError: SearchError.none,
-      searchStatus: SearchStatus.initial,
-      featuredAirQuality: event.airQuality,
-      nullFeaturedAirQuality: event.airQuality == null ? true : false,
-    ));
-  }
-
-  Future<void> _onSearchAirQuality(
-    SearchAirQuality event,
-    Emitter<SearchState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        searchStatus: SearchStatus.error,
-        searchError: SearchError.noInternetConnection,
-      ));
-    }
-
-    emit(state.copyWith(searchStatus: SearchStatus.searchingAirQuality));
-
-    final SearchResult? searchResult =
-        await SearchApiClient().getPlaceDetails(event.searchResult);
-
-    if (searchResult == null) {
-      return emit(state.copyWith(
-        searchStatus: SearchStatus.airQualitySearchFailed,
-        nullSearchAirQuality: true,
-      ));
-    }
-
-    final nearestSite = await LocationService.getNearestSite(
-      searchResult.latitude,
-      searchResult.longitude,
-    );
-
-    if (nearestSite == null) {
-      return emit(state.copyWith(
-        searchStatus: SearchStatus.airQualitySearchFailed,
-        nullSearchAirQuality: true,
-      ));
-    }
-
-    AirQualityReading airQualityReading = nearestSite.copyWith(
-      name: event.searchResult.name,
-      location: event.searchResult.location,
-      placeId: event.searchResult.id,
-      latitude: searchResult.latitude,
-      longitude: searchResult.longitude,
-    );
-
-    List<AirQualityReading> recentSearches = List.of(state.recentSearches);
-    if (!recentSearches
-        .map((e) => e.placeId)
-        .toList()
-        .contains(airQualityReading.placeId)) {
-      recentSearches.insert(0, airQualityReading);
-    }
-
-    emit(state.copyWith(
-      searchStatus: SearchStatus.autoCompleteSearchSuccess,
-      searchAirQuality: airQualityReading,
-      recentSearches: recentSearches,
-    ));
-
-    await HiveService.updateSearchHistory(airQualityReading);
-  }
-
-  void _onClearSearchResult(ClearSearchResult _, Emitter<SearchState> emit) {
-    return emit(state.copyWith(
-      searchAirQuality: null,
-    ));
-  }
-
-  void _onSearchTermChanged(
-    SearchTermChanged event,
-    Emitter<SearchState> emit,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return emit(state.copyWith(
-        searchStatus: SearchStatus.error,
-        searchError: SearchError.noInternetConnection,
-      ));
-    }
-
-    final searchTerm = event.text;
-    emit(state.copyWith(searchTerm: searchTerm));
-
-    if (searchTerm.isEmpty) {
-      return emit(state.copyWith(searchStatus: SearchStatus.initial));
-    }
-
-    emit(state.copyWith(searchStatus: SearchStatus.autoCompleteSearching));
-
-    try {
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-      final List<String> countries =
-          airQualityReadings.map((e) => e.country).toSet().toList();
-
-      List<SearchResult> results = await SearchApiClient().search(searchTerm);
-
-      results = results.where((element) {
-        return countries.any((country) =>
-            element.location.toLowerCase().contains(country.toLowerCase()));
-      }).toList();
-
-      return emit(state.copyWith(
-        searchResults: results.toSet().toList(),
-        searchStatus: SearchStatus.autoCompleteSearchSuccess,
-        searchError: SearchError.none,
-      ));
-    } catch (error) {
-      return emit(state.copyWith(
-        searchError: SearchError.noAirQualityData,
-        searchStatus: SearchStatus.error,
-      ));
-    }
-  }
+  void showFiltering() => emit(SearchPageState.filtering);
+  void showSearching() => emit(SearchPageState.searching);
 }

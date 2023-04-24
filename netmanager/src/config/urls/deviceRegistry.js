@@ -42,9 +42,11 @@ export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events?tenant=airqo`;
 
 export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 
-export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds`;
+export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds?tenant=airqo`;
 
 export const REFRESH_AIRQLOUD = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds/refresh`;
+
+export const DASHBOARD_AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds/dashboard`;
 
 export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL}/devices/decrypt`;
 

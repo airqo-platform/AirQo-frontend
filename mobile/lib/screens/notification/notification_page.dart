@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,13 +14,10 @@ class NotificationPage extends StatelessWidget {
     return Scaffold(
       appBar: const AppTopBar('Notifications'),
       body: AppSafeArea(
-        widget: BlocBuilder<AccountBloc, AccountState>(
-          buildWhen: (previous, current) {
-            return previous.notifications != current.notifications;
-          },
+        child: BlocBuilder<NotificationBloc, List<AppNotification>>(
           builder: (context, state) {
-            if (state.notifications.isEmpty) {
-              context.read<AccountBloc>().add(const RefreshNotifications());
+            if (state.isEmpty) {
+              context.read<NotificationBloc>().add(const SyncNotifications());
 
               return const EmptyNotifications();
             }
@@ -37,19 +35,19 @@ class NotificationPage extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) {
                               return NotificationView(
-                                appNotification: state.notifications[index],
+                                appNotification: state[index],
                               );
                             },
                           ),
                         );
                       },
                       child: NotificationCard(
-                        appNotification: state.notifications[index],
+                        appNotification: state[index],
                       ),
                     ),
                   );
                 },
-                childCount: state.notifications.length,
+                childCount: state.length,
               ),
               onRefresh: () {
                 _refresh(context);
@@ -64,6 +62,6 @@ class NotificationPage extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshNotifications());
+    context.read<NotificationBloc>().add(const SyncNotifications());
   }
 }

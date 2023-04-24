@@ -1,0 +1,4 @@
+Insights redesign
+Showcase improvements
+Performance improvements
+Bug fixes

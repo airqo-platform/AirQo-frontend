@@ -1,12 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../settings/settings_page.dart';
 import 'analytics_widgets.dart';
@@ -16,21 +14,20 @@ class AnalyticsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(
+    return BlocBuilder<LocationHistoryBloc, List<LocationHistory>>(
       buildWhen: (previous, current) {
-        return previous.analytics != current.analytics;
+        return previous != current;
       },
       builder: (context, state) {
-        if (state.analytics.isEmpty) {
-          context.read<AccountBloc>().add(const RefreshAnalytics());
+        if (state.isEmpty) {
+          context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
         }
 
-        List<Analytics> analytics = state.analytics.sortByDateTime();
+        List<LocationHistory> locationHistory = state.sortByDateTime();
 
-        if (analytics.isEmpty) {
+        if (locationHistory.isEmpty) {
           return NoAnalyticsWidget(
             callBack: () async {
-              // TODO implement method using the bloc pattern
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -46,9 +43,8 @@ class AnalyticsView extends StatelessWidget {
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(
             (context, index) {
-              final airQualityReading =
-                  Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                      .get(analytics[index].site);
+              final AirQualityReading? airQualityReading =
+                  locationHistory[index].airQualityReading;
 
               if (airQualityReading == null) {
                 return Container();
@@ -66,7 +62,7 @@ class AnalyticsView extends StatelessWidget {
                 ),
               );
             },
-            childCount: analytics.length,
+            childCount: locationHistory.length,
           ),
           onRefresh: () {
             _refresh(context);
@@ -79,6 +75,6 @@ class AnalyticsView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<AccountBloc>().add(const RefreshAnalytics());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
 }

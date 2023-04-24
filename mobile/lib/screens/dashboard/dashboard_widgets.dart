@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -5,9 +6,9 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -46,9 +47,110 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
-class DashboardLocationButton extends StatelessWidget {
-  const DashboardLocationButton(this.error, {super.key});
-  final NearbyAirQualityError error;
+class SearchingAirQuality extends StatelessWidget {
+  const SearchingAirQuality({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Text(
+        "Searching for air quality near you, hold on tight.",
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: CustomColors.appColorBlue,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
+
+class NoLocationAirQualityMessage extends StatelessWidget {
+  const NoLocationAirQualityMessage(
+    this.message, {
+    super.key,
+    this.dismiss = true,
+  });
+  final String message;
+  final bool dismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/info_icon.svg',
+            height: 10,
+            width: 10,
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: CustomColors.appColorBlue,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: dismiss,
+            child: InkWell(
+              onTap: () {
+                context
+                    .read<NearbyLocationBloc>()
+                    .add(const DismissErrorMessage());
+              },
+              child: SizedBox(
+                width: 30,
+                child: SvgPicture.asset(
+                  'assets/icon/close.svg',
+                  height: 20,
+                  width: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LocationDeniedButton extends StatelessWidget {
+  const LocationDeniedButton({super.key});
+
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
@@ -56,7 +158,6 @@ class DashboardLocationButton extends StatelessWidget {
         await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(40),
         elevation: 2,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
@@ -69,17 +170,12 @@ class DashboardLocationButton extends StatelessWidget {
           horizontal: 14,
         ),
       ),
-      child: Text(
-        error.message,
+      child: const Text(
+        "Enable location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          height: 22 / 14,
-          letterSpacing: 16 * -0.022,
-        ),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -115,41 +211,48 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return GestureDetector(
+      onTap: nextScreenClickHandler,
       key: widgetKey,
-      child: GestureDetector(
-        onTap: nextScreenClickHandler,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.all(12.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          foregroundColor: CustomColors.appColorBlue,
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+            width: 0,
+          ),
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
-              Radius.circular(8.0),
+              Radius.circular(8),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 32,
-                width: getWidth(children.length),
-                child: Stack(
-                  children: children,
-                ),
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.zero,
+        ),
+        onPressed: nextScreenClickHandler,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 32,
+              width: getWidth(children.length),
+              child: Stack(
+                children: children,
               ),
-              const SizedBox(
-                width: 8,
+            ),
+            const SizedBox(
+              width: 8,
+            ),
+            Text(
+              title,
+              style: CustomTextStyle.bodyText4(context)?.copyWith(
+                color: CustomColors.appColorBlue,
               ),
-              Text(
-                title,
-                style: CustomTextStyle.bodyText4(context)?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -168,48 +271,45 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
+    if (airQualityReading == null) {
+      Positioned(
+        right: rightPadding,
+        child: const CircularLoadingAnimation(
+          size: 32,
+        ),
+      );
+    }
+
     return Positioned(
       right: rightPadding,
-      child: ValueListenableBuilder<Box<AirQualityReading>>(
-        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .listenable(keys: [favouritePlace.referenceSite]),
-        builder: (context, box, widget) {
-          final airQualityReading = box.get(favouritePlace.referenceSite);
-          if (airQualityReading == null) {
-            return const CircularLoadingAnimation(
-              size: 32,
-            );
-          }
-
-          return Container(
-            height: 32.0,
-            width: 32.0,
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-              border: Border.fromBorderSide(
-                BorderSide(
-                  color: CustomColors.appBodyColor,
-                  width: 2,
-                ),
-              ),
-              color: Pollutant.pm2_5.color(
-                airQualityReading.pm2_5,
-              ),
-              shape: BoxShape.circle,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
             ),
-            child: Center(
-              child: Text(
-                '${airQualityReading.pm2_5}',
-                style: TextStyle(
-                  fontSize: 7,
-                  color: Pollutant.pm2_5.textColor(
-                    value: airQualityReading.pm2_5,
-                  ),
-                ),
+          ),
+          color: Pollutant.pm2_5.color(
+            airQualityReading?.pm2_5 ?? 0,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            '${airQualityReading?.pm2_5}',
+            style: TextStyle(
+              fontSize: 7,
+              color: Pollutant.pm2_5.textColor(
+                value: airQualityReading?.pm2_5 ?? 0,
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

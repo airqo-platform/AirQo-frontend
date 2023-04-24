@@ -22,6 +22,9 @@ const PublicationsPage = () => {
   const ReportsData = publicationsData.filter(
     (publication) => publication.category === 'technical' || publication.category === 'policy'
   );
+  const GuidesData = publicationsData.filter(
+    (publication) => publication.category === 'guide' || publication.category === 'manual'
+  );
 
   const [currentpage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -29,8 +32,10 @@ const PublicationsPage = () => {
   const firstItem = lastItem - itemsPerPage;
   const currentResearch = ResearchData.slice(firstItem, lastItem);
   const currentReports = ReportsData.slice(firstItem, lastItem);
+  const currentGuides = GuidesData.slice(firstItem, lastItem);
   const totalResearch = ResearchData.length;
   const totalReports = ReportsData.length;
+  const totalGuides = GuidesData.length;
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
@@ -57,15 +62,31 @@ const PublicationsPage = () => {
               <span id="tab1">
                 <button
                   className={selectedTab === 'Research' ? 'selected' : 'unselected'}
-                  onClick={() => onClickTabItem('Research')}>
+                  onClick={() => {
+                    paginate(1);
+                    onClickTabItem('Research');
+                  }}>
                   Research Publications
                 </button>
               </span>
               <span id="tab2">
                 <button
                   className={selectedTab === 'Reports' ? 'selected' : 'unselected'}
-                  onClick={() => onClickTabItem('Reports')}>
+                  onClick={() => {
+                    paginate(1);
+                    onClickTabItem('Reports');
+                  }}>
                   Technical reports and Policy documents
+                </button>
+              </span>
+              <span id="tab3">
+                <button
+                  className={selectedTab === 'Guides' ? 'selected' : 'unselected'}
+                  onClick={() => {
+                    paginate(1);
+                    onClickTabItem('Guides');
+                  }}>
+                  Guides and manuals
                 </button>
               </span>
             </div>
@@ -96,6 +117,20 @@ const PublicationsPage = () => {
                   authors={publication.authors}
                   link={publication.link}
                   linkTitle={publication.link_title}
+                  showSecondAuthor={true}
+                />
+              ))
+            ) : (
+              <div />
+            )}
+            {selectedTab === 'Guides' ? (
+              currentGuides.map((guide) => (
+                <ReportComponent
+                  title={guide.title}
+                  authors={guide.authors}
+                  link={guide.link}
+                  linkTitle={guide.link_title}
+                  showSecondAuthor={false}
                 />
               ))
             ) : (
@@ -105,7 +140,11 @@ const PublicationsPage = () => {
         </div>
         <Pagination
           itemsPerPage={itemsPerPage}
-          totalItems={selectedTab === 'Research' ? totalResearch : totalReports}
+          totalItems={
+            (selectedTab === 'Research' && totalResearch) ||
+            (selectedTab === 'Reports' && totalReports) ||
+            (selectedTab === 'Guides' && totalGuides)
+          }
           paginate={paginate}
         />
       </div>

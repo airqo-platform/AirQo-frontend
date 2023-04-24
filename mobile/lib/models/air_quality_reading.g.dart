@@ -30,13 +30,16 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       pm10: fields[10] as double?,
       distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
       placeId: fields[12] == null ? '' : fields[12] as String,
+      shareLink: fields[14] == null ? '' : fields[14] as String,
+      healthTips:
+          fields[15] == null ? [] : (fields[15] as List).cast<HealthTip>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, AirQualityReading obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.referenceSite)
       ..writeByte(1)
@@ -62,7 +65,11 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(12)
       ..write(obj.placeId)
       ..writeByte(13)
-      ..write(obj.region);
+      ..write(obj.region)
+      ..writeByte(14)
+      ..write(obj.shareLink)
+      ..writeByte(15)
+      ..write(obj.healthTips);
   }
 
   @override

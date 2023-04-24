@@ -1,0 +1,48 @@
+@import "lib/colors";
+@import "lib/variables";
+
+.impact-numbers{
+    padding:60px 20px 0 40px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #fff;
+    .impact-card{
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        height:164px;
+        min-width: 158px;
+        p{
+            padding: none;
+            margin: 0;
+        }
+        .numbers{
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 28px;
+            padding: 22px 0;
+        }
+        .category{
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 24px;
+            text-transform: capitalize;
+        }
+    }
+}
+
+@media(max-width: $mainBreakPoint){
+    .impact-numbers{
+        padding: 40px 0px 0 35px;
+        align-items: flex-start;
+        justify-content: space-around;
+        .impact-card{
+            .numbers{
+                padding: 12px 0;
+            }
+        }
+    }
+}

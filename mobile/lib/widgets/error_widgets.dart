@@ -1,9 +1,8 @@
 import 'package:app/themes/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -11,7 +10,8 @@ import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
-  const NoSearchResultsWidget({super.key});
+  const NoSearchResultsWidget({super.key, this.message});
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +34,69 @@ class NoSearchResultsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 23),
             Text(
-              'Try adjusting your search to find what you’re looking for.',
+              message ??
+                  'Try adjusting your search to find what you’re looking for.',
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class KyaNotFoundWidget extends StatelessWidget {
+  const KyaNotFoundWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: AppSafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 33),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(),
+                SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+                const SizedBox(
+                  height: 50,
+                ),
+                Text(
+                  'We can’t seem to find the KYA content you’re looking for.',
+                  style: CustomTextStyle.errorTitle(context),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 23,
+                ),
+                Text(
+                  'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                  style: CustomTextStyle.errorSubTitle(context),
+                  textAlign: TextAlign.center,
+                ),
+                const Spacer(),
+                NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  text: 'Return home',
+                  callBack: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const HomePage();
+                        },
+                      ),
+                      (r) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -128,7 +186,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             text: TextSpan(children: [
               TextSpan(
                 text: 'Tap the ',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               WidgetSpan(
                 child: SvgPicture.asset(
@@ -141,7 +199,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
               TextSpan(
                 text:
                     ' Favorite icon on any location to add it to your favorites',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ]),
           ),
@@ -220,8 +278,8 @@ class NoAnalyticsWidget extends StatelessWidget {
   }
 }
 
-class NoKyaWidget extends StatelessWidget {
-  const NoKyaWidget({super.key, required this.callBack});
+class NoCompleteKyaWidget extends StatelessWidget {
+  const NoCompleteKyaWidget({super.key, required this.callBack});
   final Function() callBack;
 
   @override
@@ -255,14 +313,59 @@ class NoKyaWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Start learning',
-              ),
+            child: NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Start learning',
+              callBack: callBack,
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class NoKyaWidget extends StatelessWidget {
+  const NoKyaWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No lessons',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'We’re having issues with our network no worries, we’ll be back up soon.',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Reload',
             ),
           ),
           const Spacer(),
@@ -334,7 +437,7 @@ class AppErrorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSafeArea(
       horizontalPadding: 33,
-      widget: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -409,7 +512,7 @@ class AppCrushWidget extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -488,7 +591,7 @@ class ErrorPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -534,8 +637,10 @@ class ErrorPage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: () {
+            NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Return home',
+              callBack: () {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -546,10 +651,6 @@ class ErrorPage extends StatelessWidget {
                   (r) => false,
                 );
               },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Return home',
-              ),
             ),
           ],
         ),

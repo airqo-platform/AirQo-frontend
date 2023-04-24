@@ -1,0 +1,422 @@
+@import "lib/colors";
+@import "lib/variables";
+
+// COMPONENTS
+.product-page{
+    overflow-y: hidden;
+    h1{
+        font-size: 48px;
+        font-weight: 700;
+    }
+    h2{
+        font-size: 40px;
+        line-height: 48px;
+        font-weight: 700;
+        margin-top: 0;
+    }
+    p{
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 26px;
+        margin-top: 4px;
+    }
+    .content{
+        display: grid;
+        grid-template-columns: $gridColumn;
+    }
+    .grid-wrapper{
+        grid-column: 2 / 3;
+        padding: 80px 0;
+    }
+    .grid-full{
+        grid-column: 1 / 4;
+        padding-top: 80px;
+    }
+    .grid-full.column{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .grid-wrapper.row{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .grid-wrapper.column{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .header-wrapper{
+        background-color: $aq-blue-11;
+        .left{
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            .breadcrumb{
+                font-size: 12px;
+                font-weight: 400;
+                line-height: 28px;
+                span{
+                    margin-right: 8px;
+                }
+            }
+            .heading{
+                width: 92%;
+                h1{
+                    color: $aq-black-1;
+                }
+                p{
+                    color: $aq-black-1;
+                    width: 80%;
+                }
+            }
+        }
+        .right{
+            display: flex;
+            width: 100%;
+            img{
+                width: 100%;
+            }
+        }
+    }
+    .section{
+        .title{
+            color: $aq-blue-2;
+            .blue{
+                color: $aq-blue-0;
+            }
+        }
+        .row{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            .left{
+                width: 90%;
+            }
+            .right{
+                width: 100%;
+            }
+        }
+        .overlap-section{
+            position: relative;
+            width: 100%;
+            height: 540px;
+            margin-top: 46px;
+            .lapping-left.card{
+                position: absolute;
+                z-index: 99;
+                width: 44%;
+                left: 0;
+                top:25px;
+            }
+            .lapping-left.image{
+                height: 100%;
+                position: absolute;
+                right: 0;
+                img{
+                    height: 100%;
+                }
+                .image-overlap{
+                    z-index: 999;
+                    position: absolute;
+                    right: -120px;
+                    top: 50px;
+                }
+            }
+            .lapping-right.card{
+                position: absolute;
+                z-index: 99;
+                width: 44%;
+                top:50px;
+                right: 0;
+            }
+            .lapping-right.image{
+                position: absolute;
+                left: 0;
+                height: 100%;
+                &.africa{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: $aq-blue-11;
+                    width: 70%;
+                    padding:50px 0 20px 0px;
+                    border-radius: 8px;
+                }
+            }
+            .lapping-left.card.larger-top{
+                top: 70px;
+            }
+            .lapping-right.card.larger-top{
+                top: 78px;
+            }
+            .lapping-right.card.smaller-width{
+                width: 42%;
+            }
+        }
+        .card{
+            padding: 42px 40px;
+            border-radius: 8px;
+            h5{
+                font-weight: 500;
+                font-size: 28px;
+                line-height: 40px;
+                margin: 0;
+            }
+            p{
+                margin: 5px 0;
+            }
+            small{
+                font-size: 12px;
+                color: $aq-black-1;
+                opacity: 0.6;
+                font-weight: 400;
+                text-align: center;
+            }
+        }
+        .download-button{
+            width: 100%;
+            height:48px;
+            margin:38px 0 20px 0;
+
+            outline: none;
+            border: 1.5px solid black;
+            background-color: transparent;
+
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+
+            &:hover{
+                cursor: pointer;
+            }
+            &:focus{
+                opacity: 0.7;
+            }
+        }
+    }
+}
+
+// ANALYTICS PAGE
+.product-page.analytics{
+    .section.landscape-section{
+        background-color: $aq-blue-11;
+        overflow-x: hidden;
+        .column{
+            text-align: center;
+            max-width: $columnWidth;
+            a{
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                margin-top: 40px;
+            }
+        }
+        .NavTab.filled{
+            width: 159px;
+            margin: 0;
+        }
+        .smaller-width{
+            width: 623px;
+        }
+        .image{
+            margin-top: 90px;
+        }
+        
+    }
+}
+
+@media(max-width: 980px) {
+    .product-page{
+        .content{
+            padding: 0 16px;
+        }
+        .grid-wrapper{
+            padding: 55px 0;
+        }
+        .grid-wrapper.row{
+            flex-wrap: wrap;
+        }
+        .section{
+            .overlap-section{
+                display: flex;
+                flex-direction: column-reverse;
+                align-items: center;
+                height: 100%;
+                .lapping-left.card{
+                    position: relative;
+                    width: 90%;
+                    top: 0px;
+                    margin-top: -4%;
+                }
+                .lapping-left.image{
+                    position: relative;
+                    img{
+                        width: 100%;
+                        border-radius: 8px;
+                    }
+                }
+                .lapping-right.card{
+                    position: relative;
+                    width: 90%;
+                    top: 0px;
+                    margin-top: -4%;
+                }
+                .lapping-right.image{
+                    position: relative;
+                    &.africa{
+                        width: 100%;
+                        padding: 20px 0;
+                        img{
+                            width: auto;
+                        }
+                    }
+                    img{
+                        width: 100%;
+                        border-radius: 8px;
+                    }
+                }
+                .lapping-left.card.larger-top{
+                    top: 0;
+                }
+                .lapping-right.card.larger-top{
+                    top: 0;
+                }
+                .lapping-right.card.smaller-width{
+                    width: 90%;
+                    margin-top: -10%;
+                }
+            }
+        }
+    }
+    .product-page.analytics{
+        .header-wrapper{
+            padding: 0 16px;
+        }
+        .content{
+            padding: 0;
+        }
+        .section{
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        .section.landscape-section{
+            margin-top: 60px;
+            .smaller-width{
+                width: 100%;
+            }
+            .image{
+                margin-top: 90px;
+                width: 100%;
+                img{
+                    width: 100%;
+                }
+            }
+            
+        }
+    }
+}
+@media(max-width: $mainBreakPoint){
+    .product-page{
+        .header-wrapper{
+            .left{
+                .heading{
+                    width: 95%;
+                }
+            }
+        }
+        .section{
+            .row{
+                flex-wrap: wrap;
+            }
+            .overlap-section{
+                .lapping-left.card{
+                    width: 100%;
+                    margin-top: -4%;
+                }
+                .lapping-left.image{
+                    margin: 0 16px;
+                    overflow: hidden;
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 8px;
+                    &#section-1{
+                        img{
+                            object-position:-140px;
+                        }
+                    }
+                    &#section-3{
+                        img{
+                            object-position: -240px;
+                        }
+                    }
+                    img{
+                        width: auto;
+                        object-fit: cover;
+                    }
+                    .image-overlap{
+                        right: -80px;
+                        top: -10px;
+                    }
+                }
+                .lapping-right.card{
+                    width: 100%;
+                    margin-top: -5%;
+                }
+                .lapping-right.image{
+                    overflow: hidden;
+                    width: 100%;
+                    height: 100%;
+                    &#section-2{
+                        img{
+                            object-position:-80px;
+                        }
+                    }
+                    &.africa{
+                        border-radius: 8px;
+                        width: 100%;
+                        height: 560px;
+                        padding: 20px 0;
+                        img{
+                            width: 90%;
+                        }
+                    }
+                    img{
+                        width: auto;
+                        object-fit: cover;
+                        object-position: center;
+                    }
+                }
+                .larger-top{
+                    top:0px
+                }
+            }
+            .card{
+                padding: 40px 20px;
+            }
+        }
+    }
+    .product-page.analytics{
+        .section.landscape-section{
+            .image{
+                margin-top: 90px;
+                width: 100%;
+                img{
+                    width: auto;
+                    height: 350px;
+                }
+            }
+            
+        }
+    }
+}

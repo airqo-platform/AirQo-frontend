@@ -2,11 +2,11 @@ import SideBar from '@/components/SideBar';
 import TopBar from '@/components/TopBar';
 
 const Layout = ({ children }) => (
-  <div className='relative w-screen h-screen'>
+  <div className='relative w-screen h-screen bg-white'>
     <TopBar />
-    <div className='relative md:flex w-screen h-screen pt-16'>
+    <div className='relative lg:flex w-screen h-screen pt-16'>
       <SideBar />
-      <div className='w-auto'>{children}</div>
+      <div className='w-full overflow-x-hidden'>{children}</div>
     </div>
   </div>
 );
