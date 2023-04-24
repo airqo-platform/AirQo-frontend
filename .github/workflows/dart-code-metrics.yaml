@@ -1,4 +1,4 @@
-name: Dart Code Metrics
+name: mobile-app-code-metrics
 
 on: [push]
 

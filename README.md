@@ -1,4 +1,12 @@
-## AirQo-frontend
+# AirQo-frontend
+
+<a href="https://github.com/airqo-platform/AirQo-frontend/actions">
+<img src="https://github.com/airqo-platform/AirQo-frontend/workflows/mobile-app-code-tests/badge.svg" alt="Build Status">
+</a>
+
+<a href="https://github.com/airqo-platform/AirQo-frontend/actions">
+<img src="https://github.com/airqo-platform/AirQo-frontend/workflows/mobile-app-code-metrics/badge.svg" alt="Build Status">
+</a>
 
 This repo contains the frontend code for the AirQo platform. This includes the code for the Analytics platform, Calibrate App, Netmanager dashboard, AirQo website, mobile application and the documentation website.
 

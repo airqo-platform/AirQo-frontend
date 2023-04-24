@@ -86,12 +86,6 @@ void main() {
       expect(testData.last, secondItem);
       expect(testData.last.testInt, secondItem.testInt);
       expect(testData.last.testDateTime, secondItem.testDateTime);
-
-    });
-
-    test('should fail', () {
-      double fail = 1.0;
-      expect(fail, 2);
     });
   });
 }

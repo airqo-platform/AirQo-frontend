@@ -349,7 +349,8 @@ class SearchApiClient {
           try {
             searchResults.add(
               SearchResult.fromAutoCompleteAPI(
-                  jsonElement as Map<String, dynamic>),
+                jsonElement as Map<String, dynamic>,
+              ),
             );
           } catch (__, _) {}
         }

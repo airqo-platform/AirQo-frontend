@@ -45,11 +45,9 @@ jobs:
     - uses: subosito/flutter-action@v2.10.0
       with:
         channel: 'stable'
-        # relative_path: mobile/
-        # pull_request_comment: true
     - run: |
           cd mobile/
           echo "test-key=test-value" > .env.dev
           echo "test-key=test-value" > .env.prod
           flutter pub get
-          flutter test
+          flutter test --coverage
