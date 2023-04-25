@@ -62,18 +62,11 @@ class AppService {
     }
   }
 
-  static Future<List<Forecast>> fetchInsightsData(String siteId) async {
-    List<Forecast> forecast = await AirqoApiClient().fetchForecast(siteId);
-    await AirQoDatabase().insertForecast(forecast);
-
-    return forecast;
-  }
-
   Future<bool> refreshAirQualityReadings() async {
     try {
       final airQualityReadings =
           await AirqoApiClient().fetchAirQualityReadings();
-      await HiveService.updateAirQualityReadings(airQualityReadings);
+      await HiveService().updateAirQualityReadings(airQualityReadings);
 
       return true;
     } catch (exception, stackTrace) {

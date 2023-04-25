@@ -2,126 +2,77 @@ import 'package:app/models/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:app/utils/utils.dart';
 
-class Insight with EquatableMixin {
-  Insight({
-    required this.name,
+class Insight extends Equatable {
+  const Insight({
     required this.forecastMessage,
     required this.airQualityMessage,
     required this.dateTime,
     required this.pm2_5,
     required this.healthTips,
     required this.airQuality,
-    required this.isAvailable,
   });
 
   factory Insight.fromAirQualityReading(
     AirQualityReading airQualityReading, {
-    double? forecastValue,
+    Forecast? forecast,
   }) {
-    String airQualityMessage = '';
-    String forecastMessage = '';
-    AirQuality airQuality = airQualityReading.airQuality();
-    String verb = airQualityReading.dateTime.isToday()
-        ? "is"
-        : airQualityReading.dateTime.isYesterday() ||
-                airQualityReading.dateTime.isAPastDate()
-            ? "was"
-            : "might be";
-    String dateAdverb = airQualityReading.dateTime.isYesterday()
-        ? "yesterday"
-        : airQualityReading.dateTime.isTomorrow()
-            ? "tomorrow"
-            : "";
-
-    switch (airQuality) {
-      case AirQuality.good:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb quite ${airQuality.title}.';
-        break;
-      case AirQuality.moderate:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb at a ${airQuality.title} level.';
-        break;
-      case AirQuality.ufsgs:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title}.';
-        break;
-      case AirQuality.unhealthy:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} for everyone';
-        break;
-      case AirQuality.veryUnhealthy:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} reaching levels of high alert.';
-        break;
-      case AirQuality.hazardous:
-        airQualityMessage =
-            'The air quality $dateAdverb in ${airQualityReading.name} $verb ${airQuality.title} and can cause a health emergency.';
-        break;
-    }
-    if (forecastValue != null) {
-      switch (Pollutant.pm2_5.airQuality(forecastValue)) {
-        case AirQuality.good:
-        case AirQuality.moderate:
-        case AirQuality.hazardous:
-          forecastMessage =
-              'Expect ${Pollutant.pm2_5.airQuality(forecastValue).title.toLowerCase()} levels of air quality ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
-          break;
-        case AirQuality.ufsgs:
-          forecastMessage =
-              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for sensitive groups';
-          break;
-        case AirQuality.unhealthy:
-          forecastMessage =
-              'Expect ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow's" : ""} air quality to be unhealthy for everyone';
-          break;
-        case AirQuality.veryUnhealthy:
-          forecastMessage =
-              'Air quality is likely to be very unhealthy ${airQualityReading.dateTime.isTomorrow() ? "tomorrrow" : ""}';
-          break;
-      }
-    }
-
     List<HealthTip> healthTips = airQualityReading.dateTime.isAPastDate()
         ? []
         : airQualityReading.healthTips;
 
     return Insight(
-      name: airQualityReading.name,
-      forecastMessage: forecastMessage,
-      airQualityMessage: airQualityMessage,
+      forecastMessage: forecast != null
+          ? forecast.message.isEmpty
+              ? forecast.tempMessage
+              : forecast.message
+          : "Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.",
+      airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
-      airQuality: airQuality,
+      airQuality: airQualityReading.airQuality,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
-      isAvailable: true,
     );
   }
 
-  factory Insight.initializeEmpty(
-    AirQualityReading airQualityReading,
-    DateTime dateTime,
-  ) {
+  factory Insight.fromForecast(Forecast forecast) {
+    String message =
+        forecast.message.isEmpty ? forecast.tempMessage : forecast.message;
+
     return Insight(
-      forecastMessage: '',
-      airQualityMessage: '',
-      name: airQualityReading.name,
-      pm2_5: airQualityReading.pm2_5,
-      airQuality: airQualityReading.airQuality(),
-      healthTips: [],
-      dateTime: dateTime,
-      isAvailable: false,
+      forecastMessage: message,
+      airQualityMessage: message,
+      pm2_5: forecast.pm2_5,
+      airQuality: forecast.airQuality,
+      healthTips: forecast.healthTips,
+      dateTime: forecast.time,
     );
   }
 
-  final String name;
+  factory Insight.initializeEmpty(DateTime dateTime) {
+    return Insight(
+      forecastMessage:
+          'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.',
+      airQualityMessage:
+          'We’re having issues with our network no worries, we’ll be back up soon.',
+      pm2_5: null,
+      airQuality: null,
+      healthTips: const [],
+      dateTime: dateTime,
+    );
+  }
+
   final String airQualityMessage;
   final String forecastMessage;
-  final double pm2_5;
-  final AirQuality airQuality;
+  final double? pm2_5;
+  final AirQuality? airQuality;
   final List<HealthTip> healthTips;
   final DateTime dateTime;
-  final bool isAvailable;
+
+  bool get isFutureData => dateTime.isAFutureDate();
+
+  bool get isEmpty => pm2_5 == null || airQuality == null;
+
+  bool get isNotEmpty => pm2_5 != null && airQuality != null;
 
   @override
   List<Object> get props => [dateTime.day];

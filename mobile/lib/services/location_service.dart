@@ -210,7 +210,7 @@ class LocationService {
     double longitude,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings = airQualityReadings.map((element) {
       final double distanceInMeters = metersToKmDouble(
@@ -253,7 +253,7 @@ class LocationService {
         latitude: searchResult.latitude,
         longitude: searchResult.longitude,
       );
-      await HiveService.updateSearchHistory(airQualityReading);
+      await HiveService().updateSearchHistory(airQualityReading);
     }
 
     return airQualityReading;

@@ -53,9 +53,9 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     List<AirQualityReading> nearByAirQualityReadings =
-        HiveService.getNearbyAirQualityReadings();
+        HiveService().getNearbyAirQualityReadings();
     List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
+        HiveService().getAirQualityReadings();
 
     nearByAirQualityReadings = nearByAirQualityReadings
         .map((element) {
@@ -83,7 +83,8 @@ class NearbyLocationBloc
       ));
     }
 
-    await HiveService.updateNearbyAirQualityReadings(nearByAirQualityReadings);
+    await HiveService()
+        .updateNearbyAirQualityReadings(nearByAirQualityReadings);
   }
 
   Future<void> _onSearchLocationAirQuality(
@@ -98,7 +99,7 @@ class NearbyLocationBloc
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
     if (!isLocationEnabled) {
-      await HiveService.updateNearbyAirQualityReadings([]);
+      await HiveService().updateNearbyAirQualityReadings([]);
 
       return;
     }
@@ -116,6 +117,6 @@ class NearbyLocationBloc
           airQualityReadings.isEmpty ? null : airQualityReadings.first,
     ));
 
-    await HiveService.updateNearbyAirQualityReadings(airQualityReadings);
+    await HiveService().updateNearbyAirQualityReadings(airQualityReadings);
   }
 }

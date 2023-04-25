@@ -8,13 +8,13 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
+  static String get airqoApiV2Token => dotenv.env['AIRQO_API_V2_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
   static double get minimumTextScaleFactor => 1.0;
   static double get maximumTextScaleFactor => 1.1;
 
-  static String get airqoApiUrl =>
-      dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
+  static String get airqoApi => 'https://api.airqo.net/api';
 
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';

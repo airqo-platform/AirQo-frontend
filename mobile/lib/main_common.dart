@@ -146,7 +146,7 @@ Future<void> initializeMainMethod() async {
   await Future.wait([
     SystemProperties.setDefault(),
     dotenv.load(fileName: Config.environmentFile),
-    HiveService.initialize(),
+    HiveService().initialize(),
   ]);
 
   HttpOverrides.global = AppHttpOverrides();

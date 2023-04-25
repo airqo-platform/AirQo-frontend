@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -272,48 +271,45 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
+    if (airQualityReading == null) {
+      Positioned(
+        right: rightPadding,
+        child: const CircularLoadingAnimation(
+          size: 32,
+        ),
+      );
+    }
+
     return Positioned(
       right: rightPadding,
-      child: ValueListenableBuilder<Box<AirQualityReading>>(
-        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .listenable(keys: [favouritePlace.referenceSite]),
-        builder: (context, box, widget) {
-          final airQualityReading = box.get(favouritePlace.referenceSite);
-          if (airQualityReading == null) {
-            return const CircularLoadingAnimation(
-              size: 32,
-            );
-          }
-
-          return Container(
-            height: 32.0,
-            width: 32.0,
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-              border: Border.fromBorderSide(
-                BorderSide(
-                  color: CustomColors.appBodyColor,
-                  width: 2,
-                ),
-              ),
-              color: Pollutant.pm2_5.color(
-                airQualityReading.pm2_5,
-              ),
-              shape: BoxShape.circle,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
             ),
-            child: Center(
-              child: Text(
-                '${airQualityReading.pm2_5}',
-                style: TextStyle(
-                  fontSize: 7,
-                  color: Pollutant.pm2_5.textColor(
-                    value: airQualityReading.pm2_5,
-                  ),
-                ),
+          ),
+          color: Pollutant.pm2_5.color(
+            airQualityReading?.pm2_5 ?? 0,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            '${airQualityReading?.pm2_5}',
+            style: TextStyle(
+              fontSize: 7,
+              color: Pollutant.pm2_5.textColor(
+                value: airQualityReading?.pm2_5 ?? 0,
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
