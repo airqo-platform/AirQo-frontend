@@ -30,6 +30,7 @@ const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const CandidateList = lazy(() => import('./views/pages/CandidateList'));
+const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
 const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'));
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
@@ -65,6 +66,7 @@ const AppRoutes = () => {
           />
           <PrivateRoute exact path="/admin/users" component={UserList} layout={MainLayout} />
           <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+          <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
           <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
 
           <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />

@@ -26,3 +26,6 @@ export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboa
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
 export const URBAN_BETTER_DOWNLOAD_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data/download?tenant=urbanbetter`;
+
+// access control
+export const GET_ROLES_URI = `${BASE_ANALYTICS_URL}/users/roles`;
