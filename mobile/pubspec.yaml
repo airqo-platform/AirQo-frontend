@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.17+20033
+version: 2.0.19+20034
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -44,7 +44,7 @@ dependencies:
   shimmer: ^2.0.0
   google_fonts: ^4.0.3
   in_app_review: ^2.0.6
-  sentry_flutter: ^6.19.0
+  sentry_flutter: ^7.4.2
   lottie: ^2.2.0
   share_plus: ^6.3.0
   flutter_secure_storage: ^8.0.0
@@ -69,14 +69,13 @@ dependencies:
   path: ^1.8.2
   flutter_bloc: ^8.1.1
   equatable: ^2.0.5
-  drift: ^2.4.2
-  sqlite3_flutter_libs: ^0.5.12
-  appinio_swiper: ^1.1.1
+  appinio_swiper: ^2.0.0
   firebase_dynamic_links: ^5.0.11
   showcaseview: ^2.0.0+1
   url_launcher: ^6.1.9
   hydrated_bloc: ^9.1.0
   # https://pub.dev/packages/retry
+  # Drift previous database => airqo_app_db.sqlite
   
 dev_dependencies:
   flutter_test:
@@ -87,7 +86,6 @@ dev_dependencies:
   json_serializable: ^6.6.0
   dart_code_metrics: ^5.5.0
   hive_generator: ^2.0.0
-  drift_dev: ^2.4.1
 
 flutter:
   uses-material-design: true

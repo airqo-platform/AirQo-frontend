@@ -65,37 +65,31 @@ class HealthTipContainer extends StatelessWidget {
             width: 12,
           ),
           Expanded(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    healthTip.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline10(context),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  AutoSizeText(
-                    healthTip.description,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.5),
-                        ),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AutoSizeText(
+                  healthTip.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline10(context),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                AutoSizeText(
+                  healthTip.description,
+                  maxLines: 3,
+                  minFontSize: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
+                      ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(
-            width: 12,
           ),
         ],
       ),
@@ -327,8 +321,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           AutoSizeText(
@@ -344,8 +341,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           const Spacer(),
@@ -500,7 +500,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                       child: IconTextButton(
                         iconWidget: SvgPicture.asset(
                           'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
+                          colorFilter: ColorFilter.mode(
+                            CustomColors.greyColor,
+                            BlendMode.srcIn,
+                          ),
                           semanticsLabel: 'Share',
                         ),
                         text: 'Share',
@@ -551,9 +554,11 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       }
     });
 
-    context
-        .read<FavouritePlaceBloc>()
-        .add(UpdateFavouritePlace(widget.airQualityReading));
+    context.read<FavouritePlaceBloc>().add(
+          UpdateFavouritePlace(
+            FavouritePlace.fromAirQualityReading(widget.airQualityReading),
+          ),
+        );
   }
 }
 
@@ -572,15 +577,24 @@ class AppSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
-      color: backgroundColor ?? CustomColors.appBodyColor,
-      child: SafeArea(
-        minimum: EdgeInsets.symmetric(
-          vertical: verticalPadding ?? 0,
-          horizontal: horizontalPadding ?? 0,
+    final mediaQueryData = MediaQuery.of(context);
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      Config.minimumTextScaleFactor,
+      Config.maximumTextScaleFactor,
+    );
+
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
+        color: backgroundColor ?? CustomColors.appBodyColor,
+        child: SafeArea(
+          minimum: EdgeInsets.symmetric(
+            vertical: verticalPadding ?? 0,
+            horizontal: horizontalPadding ?? 0,
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }

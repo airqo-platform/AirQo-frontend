@@ -3,7 +3,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'map_event.dart';
 part 'map_state.dart';
@@ -22,7 +21,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     if (airQualityReadings.isEmpty) {
       final hasConnection = await hasNetworkConnection();
@@ -36,10 +35,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(state.copyWith(mapStatus: MapStatus.loading));
 
       await AppService().refreshAirQualityReadings().then((value) {
-        airQualityReadings =
-            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                .values
-                .toList();
+        airQualityReadings = HiveService().getAirQualityReadings();
         if (airQualityReadings.isEmpty) {
           emit(state.copyWith(mapStatus: MapStatus.noAirQuality));
         }
@@ -144,12 +140,10 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     Emitter<MapSearchState> emit,
   ) {
     List<AirQualityReading> nearbyAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList();
+        HiveService().getNearbyAirQualityReadings();
 
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings = nearbyAirQualityReadings.isEmpty
         ? airQualityReadings

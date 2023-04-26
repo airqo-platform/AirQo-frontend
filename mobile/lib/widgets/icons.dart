@@ -13,12 +13,11 @@ class SvgIcons {
   }
 
   static Widget airQualityEmoji(
-    AirQuality airQuality, {
+    AirQuality? airQuality, {
     double height = 18,
     double width = 30,
-    bool isEmpty = false,
   }) {
-    if (isEmpty) {
+    if (airQuality == null) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 3.0),
         child: SizedBox(
@@ -78,8 +77,11 @@ class SvgIcons {
       semanticsLabel: 'Pm2.5',
       height: 8,
       width: 16,
-      color: Pollutant.pm2_5.textColor(
-        value: value,
+      colorFilter: ColorFilter.mode(
+        Pollutant.pm2_5.textColor(
+          value: value,
+        ),
+        BlendMode.srcIn,
       ),
     );
   }
@@ -90,8 +92,11 @@ class SvgIcons {
       semanticsLabel: 'Unit',
       height: 10,
       width: 16,
-      color: Pollutant.pm2_5.textColor(
-        value: value,
+      colorFilter: ColorFilter.mode(
+        Pollutant.pm2_5.textColor(
+          value: value,
+        ),
+        BlendMode.srcIn,
       ),
     );
   }

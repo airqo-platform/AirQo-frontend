@@ -19,9 +19,9 @@ class ClearFavouritePlaces extends FavouritePlaceEvent {
 }
 
 class UpdateFavouritePlace extends FavouritePlaceEvent {
-  const UpdateFavouritePlace(this.airQualityReading);
-  final AirQualityReading airQualityReading;
+  const UpdateFavouritePlace(this.favouritePlace);
+  final FavouritePlace favouritePlace;
 
   @override
-  List<Object?> get props => [airQualityReading];
+  List<Object?> get props => [favouritePlace];
 }
