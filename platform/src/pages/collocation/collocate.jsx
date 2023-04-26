@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import HeaderNav from '@/components/Collocation/header';
+import HeaderNav from '@/components/Layout/header';
 import Layout from '@/components/Layout';
 import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
@@ -57,7 +57,7 @@ const collocate = () => {
 
   return (
     <Layout>
-      <HeaderNav component={'Collocate'}>
+      <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
             type={'error'}
@@ -70,8 +70,7 @@ const collocate = () => {
             <Button
               className={
                 'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-              }
-            >
+              }>
               <div className='mr-[10px]'>
                 <UploadIcon />
               </div>
@@ -82,8 +81,7 @@ const collocate = () => {
               className={
                 'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
               }
-              path='/collocation/add_monitor'
-            >
+              path='/collocation/add_monitor'>
               <div className='mr-[10px]'>
                 <BoxedAddIcon />
               </div>
@@ -122,8 +120,7 @@ const collocate = () => {
         ) : (
           <div
             className='flex justify-center items-center flex-col mx-auto py-20'
-            data-testid='collocate-empty-state'
-          >
+            data-testid='collocate-empty-state'>
             <Collocate />
             <div className='flex flex-col justify-center text-center mt-10'>
               <h4 className='text-xl font-normal mb-6'>
@@ -139,8 +136,7 @@ const collocate = () => {
                   className={
                     'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
                   }
-                  path='/collocation/add_monitor'
-                >
+                  path='/collocation/add_monitor'>
                   <div className='mr-[10px]'>
                     <BoxedAddIcon />
                   </div>
@@ -150,8 +146,7 @@ const collocate = () => {
                 <Button
                   className={
                     'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
-                  }
-                >
+                  }>
                   <div className='mr-[10px]'>
                     <UploadIcon />
                   </div>
