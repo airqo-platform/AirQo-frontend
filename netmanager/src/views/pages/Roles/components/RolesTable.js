@@ -14,10 +14,11 @@ import {
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import Chip from '@material-ui/core/Chip';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
-import { deleteUserRoleApi } from '../../../apis/accessControl';
+import { deleteUserRoleApi, updateUserRoleApi } from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
 import { loadUserRoles } from 'redux/AccessControl/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -49,7 +50,15 @@ const RolesTable = (props) => {
 
   const handleUpdateRole = (field) => (event) => {
     event.preventDefault();
-    setUpdatedRole({ ...updatedRole, [field]: event.target.value });
+    if (field === 'role_name') {
+      setUpdatedRole({
+        ...updatedRole,
+        role_name: event.target.value.toUpperCase(),
+        role_code: event.target.value.toUpperCase()
+      });
+    } else {
+      setUpdatedRole({ ...updatedRole, [field]: event.target.value });
+    }
   };
 
   const showEditDialog = (role) => {
@@ -64,9 +73,38 @@ const RolesTable = (props) => {
 
   const submitEditRole = (e) => {
     e.preventDefault();
-    if (updatedRole.role_name !== '') {
-      //   const data = { ...updatedRole, id: updatedRole.id };
-      hideEditDialog();
+    if (!isEmpty(updatedRole)) {
+      const data = { ...updatedRole };
+      updateUserRoleApi(updatedRole._id, data)
+        .then((res) => {
+          dispatch(loadUserRoles());
+          dispatch(
+            updateMainAlert({
+              message: res.message,
+              show: true,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((error) => {
+          dispatch(
+            updateMainAlert({
+              message: error.response && error.response.data && error.response.data.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        });
+      setUpdatedRole({});
+      setShowEditPopup(false);
+    } else {
+      dispatch(
+        updateMainAlert({
+          message: 'Please fill the fields you want to update',
+          show: true,
+          severity: 'error'
+        })
+      );
     }
   };
 
