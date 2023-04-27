@@ -18,6 +18,8 @@ Future<void> main() async {
   const String phoneNumber = "+256757800000";
 
   group('returnsMobileCarrier', () {
+    AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
+
     test('returns mocked carrier', () async {
       when(
         client.post(
@@ -32,15 +34,13 @@ Future<void> main() async {
           200,
         ),
       );
-
-      AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
       String carrier = await airqoApiClient.getCarrier(phoneNumber);
 
       expect(carrier, isA<String>());
       expect(carrier, "airtel");
     });
 
-    test('returns empty strong if phone number is empty', () async {
+    test('returns empty string if phone number is empty', () async {
       when(
         client.post(
           Uri.parse(
@@ -55,8 +55,7 @@ Future<void> main() async {
         ),
       );
 
-      AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
-      String carrier = await airqoApiClient.getCarrier(phoneNumber);
+      String carrier = await airqoApiClient.getCarrier("");
 
       expect(carrier, isA<String>());
       expect(carrier, "");

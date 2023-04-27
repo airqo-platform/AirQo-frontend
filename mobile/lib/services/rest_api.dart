@@ -25,15 +25,16 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
 }
 
 class AirqoApiClient {
-
-  static final Map<String, AirqoApiClient> _instances = <String, AirqoApiClient>{};
+  static final Map<String, AirqoApiClient> _instances =
+      <String, AirqoApiClient>{};
   final http.Client client;
 
   factory AirqoApiClient({http.Client? client}) {
-    if(client == null){
+    if (client == null) {
       final key = http.Client().hashCode.toString();
       final instance = AirqoApiClient._internal(http.Client());
       _instances[key] = instance;
+
       return instance;
     }
 
@@ -44,6 +45,7 @@ class AirqoApiClient {
     } else {
       final instance = AirqoApiClient._internal(client);
       _instances[key] = instance;
+
       return instance;
     }
   }
@@ -107,7 +109,8 @@ class AirqoApiClient {
       }
 
       final response = await client.post(
-        Uri.parse("${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(
+            "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
@@ -162,12 +165,13 @@ class AirqoApiClient {
 
   Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
     try {
-
       final response = await client.post(
-        Uri.parse("${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(
+            "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': emailAddress}),
       );
+
       return EmailAuthModel.fromJson(
         json.decode(response.body) as Map<String, dynamic>,
       );
@@ -181,11 +185,12 @@ class AirqoApiClient {
     return null;
   }
 
-  Future<EmailAuthModel?> sendEmailReAuthenticationCode(String emailAddress) async {
+  Future<EmailAuthModel?> sendEmailReAuthenticationCode(
+      String emailAddress) async {
     try {
-
       final response = await client.post(
-        Uri.parse("${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(
+            "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': emailAddress}),
       );
@@ -227,7 +232,6 @@ class AirqoApiClient {
       );
 
       for (final measurement in body['measurements'] as List<dynamic>) {
-
         try {
           airQualityReadings.add(
             AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
@@ -305,14 +309,16 @@ class AirqoApiClient {
 }
 
 class SearchApiClient {
-  static final Map<String, SearchApiClient> _instances = <String, SearchApiClient>{};
+  static final Map<String, SearchApiClient> _instances =
+      <String, SearchApiClient>{};
   final http.Client client;
 
   factory SearchApiClient({http.Client? client}) {
-    if(client == null){
+    if (client == null) {
       final key = http.Client().hashCode.toString();
       final instance = SearchApiClient._internal(http.Client());
       _instances[key] = instance;
+
       return instance;
     }
 
@@ -323,6 +329,7 @@ class SearchApiClient {
     } else {
       final instance = SearchApiClient._internal(client);
       _instances[key] = instance;
+
       return instance;
     }
   }

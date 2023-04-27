@@ -42,15 +42,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: 'actions/checkout@v3'
-      
-      - name: Google login
-        uses: google-github-actions/auth@v1.0.0
+        uses: actions/checkout@v3.5.2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1.1.0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
+      - name: Set up gcloud Cloud SDK environment
+        uses: google-github-actions/setup-gcloud@v1.1.0
 
       - name: Add .env files
         run: |
