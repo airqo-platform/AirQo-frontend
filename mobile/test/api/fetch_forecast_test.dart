@@ -33,6 +33,20 @@ Future<void> main() async {
         return element;
       });
       expect(forecast.time.isAfterOrEqualToToday(), true);
+    });
+
+    test('checks if forecast data has health tips', () async {
+      List<AirQualityReading> readings =
+          await AirqoApiClient().fetchAirQualityReadings();
+      List<String> siteIds = readings.map((e) => e.referenceSite).toList();
+      List<Forecast> forecasts = [];
+
+      for (String siteId in siteIds) {
+        if (forecasts.isNotEmpty) {
+          break;
+        }
+        forecasts = await AirqoApiClient().fetchForecast(siteId);
+      }
 
       List<Forecast> forecastsWithoutHealthTips =
           forecasts.where((element) => element.healthTips.isEmpty).toList();

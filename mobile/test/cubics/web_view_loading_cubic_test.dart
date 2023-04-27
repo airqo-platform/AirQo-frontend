@@ -23,7 +23,7 @@ void main() {
       'emits value when setProgress called',
       build: () => webViewLoadingCubit,
       act: (cubit) => cubit.setProgress(1),
-      expect: () => [1.0],
+      expect: () => [1],
     );
   });
 }

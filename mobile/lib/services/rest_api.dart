@@ -110,7 +110,8 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-            "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}"),
+          "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
@@ -167,7 +168,8 @@ class AirqoApiClient {
     try {
       final response = await client.post(
         Uri.parse(
-            "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}"),
+          "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': emailAddress}),
       );
@@ -186,11 +188,13 @@ class AirqoApiClient {
   }
 
   Future<EmailAuthModel?> sendEmailReAuthenticationCode(
-      String emailAddress) async {
+    String emailAddress,
+  ) async {
     try {
       final response = await client.post(
         Uri.parse(
-            "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}"),
+          "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': emailAddress}),
       );
