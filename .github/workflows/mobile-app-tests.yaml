@@ -41,13 +41,34 @@ jobs:
     if: needs.check.outputs.run_app_tests == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: subosito/flutter-action@v2.10.0
-      with:
-        channel: 'stable'
-    - run: |
+      - name: Checkout
+        uses: 'actions/checkout@v3'
+      
+      - name: Google login
+        uses: google-github-actions/auth@v1.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Add .env files
+        run: |
           cd mobile/
-          echo "test-key=test-value" > .env.dev
-          echo "test-key=test-value" > .env.prod
+          gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
+          gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.dev
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.10.0
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd mobile/
           flutter pub get
+        
+      - name: Run tests
+        run: |
+          cd mobile/
           flutter test --coverage
