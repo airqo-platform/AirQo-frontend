@@ -312,6 +312,9 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
       },
     );
   }
+
+  List<AirQualityReading> removeInvalidData() =>
+      where((element) => element.dateTime.isAfterOrEqualToYesterday()).toList();
 }
 
 extension ProfileExt on Profile {

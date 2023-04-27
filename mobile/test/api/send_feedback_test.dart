@@ -17,9 +17,10 @@ Future<void> main() async {
   await dotenv.load(fileName: Config.environmentFile);
   final client = MockClient();
   UserFeedback feedback = UserFeedback(
-      contactDetails: 'automated-tests@airqo.net',
-      message: 'This is an automated test. Please ignore',
-      feedbackType: FeedbackType.inquiry);
+    contactDetails: 'automated-tests@airqo.net',
+    message: 'This is an automated test. Please ignore',
+    feedbackType: FeedbackType.inquiry,
+  );
 
   group('sendFeedback', () {
     test('successfully sends mocked feedback', () async {

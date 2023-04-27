@@ -46,9 +46,9 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     dynamic jsonHealthTips = json['health_tips'];
 
     if (jsonHealthTips != null) {
-      for (final healthTip in jsonHealthTips as List<Map<String, dynamic>>) {
+      for (final healthTip in jsonHealthTips as List<dynamic>) {
         try {
-          healthTips.add(HealthTip.fromJson(healthTip));
+          healthTips.add(HealthTip.fromJson(healthTip as Map<String, dynamic>));
         } catch (_, __) {}
       }
     }

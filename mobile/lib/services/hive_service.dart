@@ -93,13 +93,11 @@ class HiveService {
   }
 
   List<AirQualityReading> getAirQualityReadings() {
-    return Hive.box<AirQualityReading>(
+    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
       _airQualityReadings,
-    )
-        .values
-        .toList()
-        .where((element) => element.dateTime.isAfterOrEqualToYesterday())
-        .toList();
+    ).values.toList();
+
+    return airQualityReadings.removeInvalidData();
   }
 
   List<SearchHistory> getSearchHistory() {

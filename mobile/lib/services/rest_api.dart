@@ -157,7 +157,7 @@ class AirqoApiClient {
       );
     }
 
-    return forecasts;
+    return forecasts.removeInvalidData();
   }
 
   Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
@@ -227,6 +227,7 @@ class AirqoApiClient {
       );
 
       for (final measurement in body['measurements'] as List<dynamic>) {
+
         try {
           airQualityReadings.add(
             AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
@@ -240,7 +241,7 @@ class AirqoApiClient {
       );
     }
 
-    return airQualityReadings;
+    return airQualityReadings.removeInvalidData();
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
@@ -282,6 +283,7 @@ class AirqoApiClient {
       params["TOKEN"] = Config.airqoApiV2Token;
 
       url = addQueryParameters(params, url);
+      print(url);
 
       final response = await client
           .get(
@@ -304,11 +306,29 @@ class AirqoApiClient {
 }
 
 class SearchApiClient {
-  factory SearchApiClient() {
-    return _instance;
+  static final Map<String, SearchApiClient> _instances = <String, SearchApiClient>{};
+  final http.Client client;
+
+  factory SearchApiClient({http.Client? client}) {
+    if(client == null){
+      final key = http.Client().hashCode.toString();
+      final instance = SearchApiClient._internal(http.Client());
+      _instances[key] = instance;
+      return instance;
+    }
+
+    final key = client.hashCode.toString();
+
+    if (_instances.containsKey(key)) {
+      return _instances[key]!;
+    } else {
+      final instance = SearchApiClient._internal(client);
+      _instances[key] = instance;
+      return instance;
+    }
   }
-  SearchApiClient._internal();
-  static final SearchApiClient _instance = SearchApiClient._internal();
+
+  SearchApiClient._internal(this.client);
 
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
@@ -324,7 +344,7 @@ class SearchApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await http.Client().get(
+      final response = await client.get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {
