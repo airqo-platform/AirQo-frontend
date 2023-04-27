@@ -1,5 +1,4 @@
 import 'package:app/models/models.dart';
-import 'package:app/models/parsers.dart';
 import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';

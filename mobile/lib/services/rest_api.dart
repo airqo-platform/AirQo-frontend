@@ -283,7 +283,6 @@ class AirqoApiClient {
       params["TOKEN"] = Config.airqoApiV2Token;
 
       url = addQueryParameters(params, url);
-      print(url);
 
       final response = await client
           .get(
