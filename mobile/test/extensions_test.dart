@@ -3,7 +3,7 @@ import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class TestModel  extends Equatable{
+class TestModel extends Equatable {
   const TestModel({
     required this.testDateTime,
     required this.testInt,
@@ -14,8 +14,8 @@ class TestModel  extends Equatable{
 
   @override
   List<Object?> get props => [testDateTime.day];
-
 }
+
 void main() {
   group('AppStoreVersion', () {
     test('store version should be greater than user version', () {
@@ -69,7 +69,8 @@ void main() {
   group('set', () {
     test('should add or update a set', () {
       Set<TestModel> testData = {};
-      TestModel updatedData = TestModel(testDateTime: DateTime.now(), testInt: 2);
+      TestModel updatedData =
+          TestModel(testDateTime: DateTime.now(), testInt: 2);
 
       testData.add(TestModel(testDateTime: DateTime.now(), testInt: 1));
       testData.addOrUpdate(updatedData);
@@ -79,7 +80,9 @@ void main() {
       expect(testData.first.testInt, updatedData.testInt);
       expect(testData.first.testDateTime, updatedData.testDateTime);
 
-      TestModel secondItem = TestModel(testDateTime: DateTime.now().add(const Duration(days: 1)), testInt: 3);
+      TestModel secondItem = TestModel(
+          testDateTime: DateTime.now().add(const Duration(days: 1)),
+          testInt: 3);
       testData.add(secondItem);
 
       expect(testData.length, 2);
