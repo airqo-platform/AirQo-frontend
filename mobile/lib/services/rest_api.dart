@@ -78,6 +78,7 @@ class AirqoApiClient {
     try {
       final response = await client.post(
         Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
+        headers: {'Content-Type': 'application/json'},
         body: json.encode({'phone_number': phoneNumber}),
       );
 
@@ -159,29 +160,34 @@ class AirqoApiClient {
     return forecasts;
   }
 
-  Future<EmailAuthModel?> requestEmailVerificationCode(
-    String emailAddress,
-    bool reAuthenticate,
-  ) async {
+  Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
     try {
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent(
-          'Content-Type',
-          () => 'application/json',
-        );
 
-      final body = {
-        'email': emailAddress,
-      };
+      final response = await client.post(
+        Uri.parse("${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': emailAddress}),
+      );
+      return EmailAuthModel.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
-      final uri = reAuthenticate
-          ? AirQoUrls.requestEmailReAuthentication
-          : AirQoUrls.requestEmailVerification;
+    return null;
+  }
 
-      final response = await http.post(
-        Uri.parse(uri),
-        headers: headers,
-        body: jsonEncode(body),
+  Future<EmailAuthModel?> sendEmailReAuthenticationCode(String emailAddress) async {
+    try {
+
+      final response = await client.post(
+        Uri.parse("${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': emailAddress}),
       );
 
       return EmailAuthModel.fromJson(
@@ -247,12 +253,9 @@ class AirqoApiClient {
         },
       );
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
-
       final response = await client.post(
-        Uri.parse(AirQoUrls.feedback),
-        headers: headers,
+        Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
+        headers: {'Content-Type': 'application/json'},
         body: body,
       );
 

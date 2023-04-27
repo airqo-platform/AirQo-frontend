@@ -11,10 +11,10 @@ class AirQoUrls {
 
   static String get measurements => '${Config.airqoApi}/v2/devices/events';
 
-  static String get requestEmailReAuthentication =>
-      '${Config.airqoApi}/v1/users/emailAuth';
+  static String get emailReAuthentication =>
+      '${Config.airqoApi}/v2/users/emailAuth';
 
-  static String get requestEmailVerification =>
+  static String get emailVerification =>
       '${Config.airqoApi}/v2/users/emailLogin';
 
   static String get feedback => '${Config.airqoApi}/v2/users/feedback';
