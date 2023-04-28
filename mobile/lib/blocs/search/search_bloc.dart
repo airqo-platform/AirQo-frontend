@@ -62,9 +62,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         List<AirQualityReading> countryReadings = readings
             .where((element) => element.country.equalsIgnoreCase(country))
             .toList();
-        countryReadings.shuffle();
-        airQualityReadings
-            .addAll(countryReadings.take(2).toList()..sortByAirQuality());
+        countryReadings
+          ..shuffle()
+          ..take(2).toList();
+        countryReadings.sortByAirQuality();
+
+        airQualityReadings.addAll(countryReadings);
       }
 
       airQualityReadings.shuffle();
@@ -256,10 +259,12 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
         nearbyAirQualityLocations.isEmpty && otherAirQualityLocations.isEmpty
             ? SearchFilterStatus.filterFailed
             : SearchFilterStatus.filterSuccessful;
+    nearbyAirQualityLocations.sortByAirQuality();
+    otherAirQualityLocations.sortByAirQuality();
 
     return emit(state.copyWith(
-      nearbyLocations: nearbyAirQualityLocations..sortByAirQuality(),
-      otherLocations: otherAirQualityLocations..sortByAirQuality(),
+      nearbyLocations: nearbyAirQualityLocations,
+      otherLocations: otherAirQualityLocations,
       status: status,
       filteredAirQuality: event.airQuality,
     ));

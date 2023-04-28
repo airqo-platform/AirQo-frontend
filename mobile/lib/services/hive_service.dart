@@ -1,3 +1,4 @@
+import 'package:app/models/hive_type_id.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -101,8 +102,11 @@ class HiveService {
   }
 
   List<SearchHistory> getSearchHistory() {
-    return Hive.box<SearchHistory>(_searchHistory).values.toList()
-      ..sortByDateTime();
+    List<SearchHistory> searchHistory =
+        Hive.box<SearchHistory>(_searchHistory).values.toList();
+    searchHistory.sortByDateTime();
+
+    return searchHistory;
   }
 
   List<AirQualityReading> getNearbyAirQualityReadings() {
@@ -136,8 +140,7 @@ class HiveService {
   ) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
 
-    nearbyAirQualityReadings = nearbyAirQualityReadings
-      ..sortByDistanceToReferenceSite();
+    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     for (final airQualityReading in nearbyAirQualityReadings) {
       airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;

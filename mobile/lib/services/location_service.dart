@@ -174,7 +174,7 @@ class LocationService {
       position.latitude,
       position.longitude,
     );
-    airQualityReadings = airQualityReadings..sortByDistanceToReferenceSite();
+    airQualityReadings.sortByDistanceToReferenceSite();
 
     Map<String, String?> address = await getAddress(
       latitude: position.latitude,
