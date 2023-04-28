@@ -16,6 +16,10 @@ class Config {
 
   static String get airqoApi => 'https://api.airqo.net/api';
 
+  static String get automatedTestsEmail => "automated-tests@airqo.net";
+
+  static String get automatedTestsPhoneNumber => "+256757800000";
+
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
 

@@ -13,19 +13,29 @@ import 'api.mocks.dart';
 
 @GenerateMocks([http.Client])
 Future<void> main() async {
-  await dotenv.load(fileName: Config.environmentFile);
-  final client = MockClient();
-  const String phoneNumber = "+256757800000";
+  late MockClient client;
+  late Map<String, String> headers;
+  late String phoneNumber;
+  late AirqoApiClient airqoApiClient;
 
   group('returnsMobileCarrier', () {
-    AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
+    setUpAll(() async {
+      await dotenv.load(fileName: Config.environmentFile);
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'JWT ${Config.airqoApiToken}'
+      };
+      client = MockClient();
+      phoneNumber = Config.automatedTestsPhoneNumber;
+      airqoApiClient = AirqoApiClient(client: client);
+    });
 
     test('returns mocked carrier', () async {
       when(
         client.post(
           Uri.parse(
               '${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: json.encode({'phone_number': phoneNumber}),
         ),
       ).thenAnswer(
@@ -45,7 +55,7 @@ Future<void> main() async {
         client.post(
           Uri.parse(
               '${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: json.encode({'phone_number': ''}),
         ),
       ).thenAnswer(

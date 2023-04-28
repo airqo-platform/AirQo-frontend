@@ -14,18 +14,28 @@ import 'api.mocks.dart';
 
 @GenerateMocks([http.Client])
 Future<void> main() async {
-  await dotenv.load(fileName: Config.environmentFile);
-  final client = MockClient();
-  String emailAddress = "automated-tests@airqo.net";
+  late MockClient client;
+  late Map<String, String> headers;
+  late String emailAddress;
 
   group('requestEmailVerificationCode', () {
+    setUpAll(() async {
+      await dotenv.load(fileName: Config.environmentFile);
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'JWT ${Config.airqoApiToken}'
+      };
+      client = MockClient();
+      emailAddress = Config.automatedTestsEmail;
+    });
+
     test('successfully sends a mocked verification code via email', () async {
       when(
         client.post(
           Uri.parse(
             '${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}',
           ),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'email': emailAddress}),
         ),
       ).thenAnswer(
@@ -52,7 +62,7 @@ Future<void> main() async {
           Uri.parse(
             '${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}',
           ),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({'email': emailAddress}),
         ),
       ).thenAnswer(

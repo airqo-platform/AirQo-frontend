@@ -14,20 +14,30 @@ import 'api.mocks.dart';
 
 @GenerateMocks([http.Client])
 Future<void> main() async {
-  await dotenv.load(fileName: Config.environmentFile);
-  final client = MockClient();
-  UserFeedback feedback = UserFeedback(
-    contactDetails: 'automated-tests@airqo.net',
-    message: 'This is an automated test. Please ignore',
-    feedbackType: FeedbackType.inquiry,
-  );
+  late MockClient client;
+  late Map<String, String> headers;
+  late UserFeedback feedback;
 
   group('sendFeedback', () {
+    setUpAll(() async {
+      await dotenv.load(fileName: Config.environmentFile);
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'JWT ${Config.airqoApiToken}'
+      };
+      client = MockClient();
+      feedback = UserFeedback(
+        contactDetails: 'automated-tests@airqo.net',
+        message: 'This is an automated test. Please ignore',
+        feedbackType: FeedbackType.inquiry,
+      );
+    });
+
     test('successfully sends mocked feedback', () async {
       when(
         client.post(
           Uri.parse('${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode(
             {
               'email': feedback.contactDetails,
@@ -54,7 +64,7 @@ Future<void> main() async {
       when(
         client.post(
           Uri.parse('${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode(
             {
               'email': feedback.contactDetails,

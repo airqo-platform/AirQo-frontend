@@ -13,17 +13,26 @@ import 'api.mocks.dart';
 
 @GenerateMocks([http.Client])
 Future<void> main() async {
-  await dotenv.load(fileName: Config.environmentFile);
-  final client = MockClient();
+  late MockClient client;
+  late Map<String, String> headers;
 
   group('checkIfUserExists', () {
+    setUpAll(() async {
+      await dotenv.load(fileName: Config.environmentFile);
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'JWT ${Config.airqoApiToken}'
+      };
+      client = MockClient();
+    });
+
     test('returns true if user is already signed up with email address',
         () async {
       when(
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"email": "guest@airqo.net"}),
         ),
       ).thenAnswer(
@@ -43,7 +52,7 @@ Future<void> main() async {
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"email": "guest@airqo.net"}),
         ),
       ).thenAnswer(
@@ -64,7 +73,7 @@ Future<void> main() async {
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"phoneNumber": "+256700000001"}),
         ),
       ).thenAnswer(
@@ -84,7 +93,7 @@ Future<void> main() async {
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"phoneNumber": "+256700000001"}),
         ),
       ).thenAnswer(
@@ -98,17 +107,12 @@ Future<void> main() async {
           false);
     });
 
-    test('returns null if a phone number or email is not provided', () async {
-      AirqoApiClient airqoApiClient = AirqoApiClient();
-      expect(await airqoApiClient.checkIfUserExists(), null);
-    });
-
     test('returns null if exists not in response body', () async {
       when(
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"phoneNumber": "+256700000001"}),
         ),
       ).thenAnswer(
@@ -127,7 +131,7 @@ Future<void> main() async {
         client.post(
           Uri.parse(
               '${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({"phoneNumber": "+256700000001"}),
         ),
       ).thenAnswer(
@@ -139,6 +143,11 @@ Future<void> main() async {
       expect(
           await airqoApiClient.checkIfUserExists(phoneNumber: "+256700000001"),
           null);
+    });
+
+    test('returns null if a phone number or email is not provided', () async {
+      AirqoApiClient airqoApiClient = AirqoApiClient();
+      expect(await airqoApiClient.checkIfUserExists(), null);
     });
   });
 }

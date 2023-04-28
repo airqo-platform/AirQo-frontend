@@ -52,6 +52,19 @@ class AirqoApiClient {
 
   AirqoApiClient._internal(this.client);
 
+  final Map<String, String> getHeaders = HashMap()
+    ..putIfAbsent(
+      'Authorization',
+      () => 'JWT ${Config.airqoApiToken}',
+    );
+
+  final Map<String, String> postHeaders = HashMap()
+    ..putIfAbsent(
+      'Authorization',
+      () => 'JWT ${Config.airqoApiToken}',
+    )
+    ..putIfAbsent('Content-Type', () => 'application/json');
+
   Future<AppStoreVersion?> getAppVersion({
     String bundleId = "",
     String packageName = "",
@@ -80,7 +93,7 @@ class AirqoApiClient {
     try {
       final response = await client.post(
         Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
-        headers: {'Content-Type': 'application/json'},
+        headers: postHeaders,
         body: json.encode({'phone_number': phoneNumber}),
       );
 
@@ -112,7 +125,7 @@ class AirqoApiClient {
         Uri.parse(
           "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: postHeaders,
         body: jsonEncode(body),
       );
 
@@ -170,7 +183,7 @@ class AirqoApiClient {
         Uri.parse(
           "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: postHeaders,
         body: jsonEncode({'email': emailAddress}),
       );
 
@@ -195,7 +208,7 @@ class AirqoApiClient {
         Uri.parse(
           "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: postHeaders,
         body: jsonEncode({'email': emailAddress}),
       );
 
@@ -264,7 +277,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
-        headers: {'Content-Type': 'application/json'},
+        headers: postHeaders,
         body: body,
       );
 
@@ -293,9 +306,7 @@ class AirqoApiClient {
       url = addQueryParameters(params, url);
 
       final response = await client
-          .get(
-            Uri.parse(url),
-          )
+          .get(Uri.parse(url), headers: getHeaders)
           .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
         // TODO : use advanced decoding

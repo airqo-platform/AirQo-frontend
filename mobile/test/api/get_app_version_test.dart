@@ -12,17 +12,27 @@ import 'api.mocks.dart';
 
 @GenerateMocks([http.Client])
 Future<void> main() async {
-  await dotenv.load(fileName: Config.environmentFile);
-  final client = MockClient();
-  const String bundleId = "com.airqo.net";
-  const String packageName = "com.airqo.app";
+  late MockClient client;
+  late Map<String, String> headers;
+  late String packageName;
+  late String bundleId;
 
   group('returnsCurrentAppVersion', () {
+    setUpAll(() async {
+      await dotenv.load(fileName: Config.environmentFile);
+      headers = {'Authorization': 'JWT ${Config.airqoApiToken}'};
+      client = MockClient();
+      bundleId = "com.airqo.net";
+      packageName = "com.airqo.app";
+    });
+
     test('returns mocked AppVersion', () async {
       when(
         client.get(
           Uri.parse(
-              '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}'),
+            '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}',
+          ),
+          headers: headers,
         ),
       ).thenAnswer(
         (_) async => http.Response(
@@ -42,9 +52,10 @@ Future<void> main() async {
     test('returns null if data not in response body', () async {
       when(
         client.get(
-          Uri.parse(
-              '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}'),
-        ),
+            Uri.parse(
+              '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}',
+            ),
+            headers: headers),
       ).thenAnswer(
         (_) async => http.Response(
             '{"version": "v1.0.0", "url": "https://api.airqo.net/version"}',
@@ -64,7 +75,9 @@ Future<void> main() async {
       when(
         client.get(
           Uri.parse(
-              '${AirQoUrls.appVersion}?bundleId=""&packageName=""&TOKEN=${Config.airqoApiV2Token}'),
+            '${AirQoUrls.appVersion}?bundleId=""&packageName=""&TOKEN=${Config.airqoApiV2Token}',
+          ),
+          headers: headers,
         ),
       ).thenAnswer(
         (_) async => http.Response('', 200),
@@ -82,7 +95,9 @@ Future<void> main() async {
     test('return Android version from API', () async {
       AirqoApiClient airqoApiClient = AirqoApiClient();
       AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
-          bundleId: bundleId, packageName: "");
+        bundleId: bundleId,
+        packageName: "",
+      );
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,
@@ -93,7 +108,9 @@ Future<void> main() async {
     test('returns iOS version from API', () async {
       AirqoApiClient airqoApiClient = AirqoApiClient();
       AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
-          bundleId: "", packageName: packageName);
+        bundleId: "",
+        packageName: packageName,
+      );
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,
