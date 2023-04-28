@@ -511,6 +511,12 @@ export const verifyToken = async (token) => {
     });
 };
 
+// Get user details
+export const getUserDetails = async (userId) => {
+  const response = await axios.get(`${GET_USERS_URI}/${userId}`);
+  return response.data;
+};
+
 // Set logged in user
 export const setCurrentUser = (decoded) => {
   return {

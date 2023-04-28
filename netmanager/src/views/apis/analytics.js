@@ -7,7 +7,12 @@ import {
 } from 'config/urls/analytics';
 import { URBAN_BETTER_DOWNLOAD_DATA_URI } from '../../config/urls/analytics';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+let token = localStorage.jwtToken;
+if (token) {
+  axios.defaults.headers.common.Authorization = token;
+} else {
+  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+}
 
 export const getMonitoringSitesInfoApi = async (pm25Category) => {
   return await axios.get(GET_DATA_MAP + pm25Category).then((response) => response.data);

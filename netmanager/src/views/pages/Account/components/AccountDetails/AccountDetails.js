@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { isEqual } from "underscore";
-import clsx from "clsx";
-import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/styles";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { isEqual } from 'underscore';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/styles';
 import {
   Card,
   CardHeader,
@@ -12,31 +12,31 @@ import {
   Divider,
   Grid,
   Button,
-  TextField,
-} from "@material-ui/core";
-import { useOrgData } from "redux/Join/selectors";
-import { updateAuthenticatedUserApi } from "views/apis/authService";
-import Alert from "@material-ui/lab/Alert";
-import { CircularLoader } from "views/components/Loader/CircularLoader";
-import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
-import usersStateConnector from "views/stateConnectors/usersStateConnector";
+  TextField
+} from '@material-ui/core';
+import { useOrgData } from 'redux/Join/selectors';
+import { updateAuthenticatedUserApi } from 'views/apis/authService';
+import Alert from '@material-ui/lab/Alert';
+import { CircularLoader } from 'views/components/Loader/CircularLoader';
+import { updateAuthenticatedUserSuccess } from 'redux/Join/actions';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    display: "flex",
-    flexWrap: "wrap",
+    display: 'flex',
+    flexWrap: 'wrap'
   },
   textField: {
     marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing.unit
   },
   dense: {
-    marginTop: 16,
+    marginTop: 16
   },
   menu: {
-    width: 200,
+    width: 200
   },
-  root: {},
+  root: {}
 }));
 
 const AccountDetails = (props) => {
@@ -48,12 +48,18 @@ const AccountDetails = (props) => {
 
   const dispatch = useDispatch();
 
-  const initialState = { ...user };
+  const initialState = {
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phoneNumber: user.phoneNumber
+  };
 
   const alertInitialState = {
     show: false,
-    message: "",
-    type: "success",
+    message: '',
+    type: 'success'
   };
 
   const orgData = useOrgData();
@@ -62,13 +68,13 @@ const AccountDetails = (props) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    var anchorElem = document.createElement("link");
+    var anchorElem = document.createElement('link');
     anchorElem.setAttribute(
-      "href",
-      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      'href',
+      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
     );
-    anchorElem.setAttribute("rel", "stylesheet");
-    anchorElem.setAttribute("id", "logincdn");
+    anchorElem.setAttribute('rel', 'stylesheet');
+    anchorElem.setAttribute('id', 'logincdn');
   });
 
   const closeAlert = () => {
@@ -78,7 +84,7 @@ const AccountDetails = (props) => {
   const handleChange = (e) => {
     setState({
       ...form,
-      [e.target.id]: e.target.value,
+      [e.target.id]: e.target.value
     });
   };
 
@@ -95,26 +101,26 @@ const AccountDetails = (props) => {
       .then((data) => {
         if (data.success) {
           const newUser = { ...user, ...form };
-          localStorage.setItem("currentUser", JSON.stringify(newUser));
+          localStorage.setItem('currentUser', JSON.stringify(newUser));
           dispatch(updateAuthenticatedUserSuccess(newUser, data.message));
           setAlert({
             show: true,
             message: data.message,
-            type: "success",
+            type: 'success'
           });
           return;
         }
         setAlert({
           show: true,
           message: data.message,
-          type: "error",
+          type: 'error'
         });
       })
       .catch((err) => {
         setAlert({
           show: true,
-          message: err.response.message,
-          type: "error",
+          message: err.response.data.message,
+          type: 'error'
         });
         clearState();
       });
@@ -140,7 +146,7 @@ const AccountDetails = (props) => {
                 value={form.firstName}
                 variant="outlined"
               />
-            </Grid>{" "}
+            </Grid>{' '}
             <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
@@ -152,7 +158,7 @@ const AccountDetails = (props) => {
                 value={form.lastName}
                 variant="outlined"
               />
-            </Grid>{" "}
+            </Grid>{' '}
             <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
@@ -164,7 +170,7 @@ const AccountDetails = (props) => {
                 value={form.email}
                 variant="outlined"
               />
-            </Grid>{" "}
+            </Grid>{' '}
             <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
@@ -175,11 +181,11 @@ const AccountDetails = (props) => {
                 value={form.phoneNumber}
                 variant="outlined"
               />
-            </Grid>{" "}
-          </Grid>{" "}
-        </CardContent>{" "}
+            </Grid>{' '}
+          </Grid>{' '}
+        </CardContent>{' '}
         <Divider />
-        <CardContent style={alert.show ? {} : { display: "none" }}>
+        <CardContent style={alert.show ? {} : { display: 'none' }}>
           <Alert severity={alert.type} onClose={closeAlert}>
             {alert.message}
           </Alert>
@@ -191,18 +197,18 @@ const AccountDetails = (props) => {
             onClick={onSubmit}
             disabled={isEqual(initialState, form)}
           >
-            Save details{" "}
-          </Button>{" "}
+            Save details{' '}
+          </Button>{' '}
           <CircularLoader loading={loading} />
-        </CardActions>{" "}
-      </form>{" "}
+        </CardActions>{' '}
+      </form>{' '}
     </Card>
   );
 };
 
 AccountDetails.propTypes = {
   className: PropTypes.string,
-  mappedAuth: PropTypes.object.isRequired,
+  mappedAuth: PropTypes.object.isRequired
 };
 
 export default usersStateConnector(AccountDetails);

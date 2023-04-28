@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { GET_ROLES_URI } from '../../config/urls/analytics';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+let token = localStorage.jwtToken;
+if (token) {
+  axios.defaults.headers.common.Authorization = token;
+} else {
+  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+}
 
 export const getUserRolesApi = async () => {
   return await axios.get(GET_ROLES_URI).then((response) => response.data);

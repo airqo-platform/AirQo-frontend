@@ -1,87 +1,67 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import {connect, useDispatch} from "react-redux";
-import clsx from "clsx";
-import { makeStyles } from "@material-ui/styles";
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { connect, useDispatch } from 'react-redux';
+import clsx from 'clsx';
+import { makeStyles } from '@material-ui/styles';
 import {
   Button,
   TextField,
   DialogTitle,
   DialogContent,
   Dialog,
-  DialogActions,
-} from "@material-ui/core";
+  DialogActions
+} from '@material-ui/core';
 
-import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import { useOrgData } from "redux/Join/selectors";
-import usersStateConnector from "views/stateConnectors/usersStateConnector";
-import { addUserApi } from "views/apis/authService";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { createAlertBarExtraContentFromObject } from "utils/objectManipulators";
-import { fetchUsers } from "redux/Join/actions";
-
+import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { useOrgData } from 'redux/Join/selectors';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import { addUserApi } from 'views/apis/authService';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { fetchUsers } from 'redux/Join/actions';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    "&$error": {
-      color: "red",
-    },
+    '&$error': {
+      color: 'red'
+    }
   },
   error: {},
   row: {
-    height: "42px",
-    display: "flex",
-    alignItems: "center",
-    marginTop: theme.spacing(1),
+    height: '42px',
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: theme.spacing(1)
   },
   spacer: {
-    flexGrow: 1,
+    flexGrow: 1
   },
   importButton: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   exportButton: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   searchInput: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   container: {
-    display: "flex",
-    flexWrap: "wrap",
+    display: 'flex',
+    flexWrap: 'wrap'
   },
   textField: {
     marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing.unit
   },
   dense: {
-    marginTop: 16,
+    marginTop: 16
   },
   menu: {
-    width: 200,
-  },
+    width: 200
+  }
 }));
-
-const roles = [
-  {
-    value: "user",
-    label: "user",
-  },
-  {
-    value: "collaborator",
-    label: "collaborator",
-  },
-  {
-    value: "netmanager",
-    label: "netmanager",
-  },
-  {
-    value: "admin",
-    label: "admin",
-  },
-];
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 const validEmailRegex = RegExp(
@@ -90,27 +70,27 @@ const validEmailRegex = RegExp(
 
 /***func starts here....... */
 const UsersToolbar = (props) => {
-  const { className, mappeduserState, mappedErrors, ...rest } = props;
+  const { className, mappeduserState, mappedErrors, roles, ...rest } = props;
 
   const [open, setOpen] = useState(false);
- const orgData = useOrgData();
+  const orgData = useOrgData();
 
   const initialState = {
-    firstName: "",
-    lastName: "",
+    firstName: '',
+    lastName: '',
     organization: orgData.name,
     long_organization: orgData.name,
-    email: "",
-    privilege: roles[0].value,
-    errors: {},
+    email: '',
+    role: roles[0].value,
+    errors: {}
   };
   const initialStateErrors = {
-    firstName: "",
-    lastName: "",
-    organization: "",
-    email: "",
-    privilege: "",
-    errors: "",
+    firstName: '',
+    lastName: '',
+    organization: '',
+    email: '',
+    role: '',
+    errors: ''
   };
 
   const dispatch = useDispatch();
@@ -129,8 +109,8 @@ const UsersToolbar = (props) => {
   //
   const handleClose = () => {
     setOpen(false);
-    setErrors(initialStateErrors)
-      setState(initialState)
+    setErrors(initialStateErrors);
+    setState(initialState);
   };
 
   const onChange = (e) => {
@@ -139,20 +119,20 @@ const UsersToolbar = (props) => {
     let errors = form.errors;
 
     switch (id) {
-      case "firstName":
-        errors.firstName = value.length === 0 ? "first name is required" : "";
+      case 'firstName':
+        errors.firstName = value.length === 0 ? 'first name is required' : '';
         break;
-      case "lastName":
-        errors.lastName = value.length === 0 ? "last name is required" : "";
+      case 'lastName':
+        errors.lastName = value.length === 0 ? 'last name is required' : '';
         break;
-      case "email":
-        errors.email = validEmailRegex.test(value) ? "" : "Email is not valid!";
+      case 'email':
+        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
         break;
-      case "userName":
-        errors.userName = value.length === 0 ? "userName is required" : "";
+      case 'userName':
+        errors.userName = value.length === 0 ? 'userName is required' : '';
         break;
-      case "privilege":
-        errors.privilege = value.length === 0 ? "role is required" : "";
+      case 'role':
+        errors.role = value.length === 0 ? 'role is required' : '';
         break;
 
       default:
@@ -162,7 +142,7 @@ const UsersToolbar = (props) => {
     setState(
       {
         ...form,
-        [id]: value,
+        [id]: value
       },
       () => {
         console.log(errors);
@@ -172,35 +152,32 @@ const UsersToolbar = (props) => {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    setOpen(false)
-    addUserApi(form).then(resData => {
-      dispatch(fetchUsers())
-      setErrors(initialStateErrors)
-      setState(initialState)
-      dispatch(
+    setOpen(false);
+    addUserApi(form)
+      .then((resData) => {
+        dispatch(fetchUsers());
+        setErrors(initialStateErrors);
+        setState(initialState);
+        dispatch(
           updateMainAlert({
             message: resData.message,
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
-    }).catch(error => {
-      const errors =
-          error.response && error.response.data && error.response.data.errors;
-      setErrors(errors || initialStateErrors);
-      dispatch(
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        setErrors(errors || initialStateErrors);
+        dispatch(
           updateMainAlert({
-            message:
-              error.response &&
-              error.response.data &&
-              error.response.data.message,
+            message: error.response && error.response.data && error.response.data.message,
             show: true,
-            severity: "error",
-            extra: createAlertBarExtraContentFromObject(
-              errors || {}),
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
-    })
+      });
   };
 
   const minimalSelectClasses = useMinimalSelectStyles();
@@ -210,28 +187,24 @@ const UsersToolbar = (props) => {
   }, []);
 
   const iconComponent = (props) => {
-    return (
-      <ExpandMoreIcon
-        className={props.className + " " + minimalSelectClasses.icon}
-      />
-    );
+    return <ExpandMoreIcon className={props.className + ' ' + minimalSelectClasses.icon} />;
   };
 
   // moves the menu below the select input
   const menuProps = {
     classes: {
       paper: minimalSelectClasses.paper,
-      list: minimalSelectClasses.list,
+      list: minimalSelectClasses.list
     },
     anchorOrigin: {
-      vertical: "bottom",
-      horizontal: "left",
+      vertical: 'bottom',
+      horizontal: 'left'
     },
     transformOrigin: {
-      vertical: "top",
-      horizontal: "left",
+      vertical: 'top',
+      horizontal: 'left'
     },
-    getContentAnchorEl: null,
+    getContentAnchorEl: null
   };
 
   return (
@@ -245,11 +218,7 @@ const UsersToolbar = (props) => {
           <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
           </Button>
-          <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="form-dialog-title"
-          >
+          <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
               <div>
@@ -311,43 +280,46 @@ const UsersToolbar = (props) => {
                 />
 
                 <TextField
-                  id="privilege"
+                  id="role"
                   select
                   fullWidth
                   label="Role"
-                  style={{marginTop: "15px"}}
-                  value={form.privilege}
+                  style={{ marginTop: '15px' }}
+                  value={form.role}
                   onChange={onChange}
                   SelectProps={{
                     native: true,
-                    style: { width: "100%", height: "50px" },
+                    style: { width: '100%', height: '50px' },
                     MenuProps: {
-                      className: classes.menu,
-                    },
+                      className: classes.menu
+                    }
                   }}
-                  helperText={errors.privilege}
-                  error={!!errors.privilege}
+                  helperText={errors.role}
+                  error={!!errors.role}
                   variant="outlined"
+                  isMulti
                 >
-                  {roles.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                  {roles &&
+                    roles.map((option) => (
+                      <option key={option.value} value={option.role_name}>
+                        {option.role_name}
+                      </option>
+                    ))}
                 </TextField>
               </div>
             </DialogContent>
 
             <DialogActions>
               <div>
-                <Button
-                  onClick={handleClose}
-                  color="primary"
-                  variant="outlined"
-                >
+                <Button onClick={handleClose} color="primary" variant="outlined">
                   Cancel
                 </Button>
-                <Button style={{margin: "0 15px"}} onClick={onSubmit} color="primary" variant="contained">
+                <Button
+                  style={{ margin: '0 15px' }}
+                  onClick={onSubmit}
+                  color="primary"
+                  variant="contained"
+                >
                   Submit
                 </Button>
               </div>
@@ -362,10 +334,10 @@ const UsersToolbar = (props) => {
 UsersToolbar.propTypes = {
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
-  className: PropTypes.string,
+  className: PropTypes.string
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors,
+  errors: state.errors
 });
 export default usersStateConnector(connect(mapStateToProps)(UsersToolbar));

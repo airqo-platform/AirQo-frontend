@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -19,6 +19,8 @@ import { useDispatch } from 'react-redux';
 import { loadUserRoles } from 'redux/AccessControl/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
+import { RemoveRedEye } from '@material-ui/icons';
+import UserPopupTable from './UserPopupTable';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -47,6 +49,13 @@ const RolesTable = (props) => {
   const [updatedRole, setUpdatedRole] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [roleDelState, setRoleDelState] = useState({ open: false, role: {} });
+  const [selectedRoleUsers, setSelectedRoleUsers] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedRoleUsers(null);
+  };
 
   const handleUpdateRole = (field) => (event) => {
     event.preventDefault();
@@ -165,24 +174,28 @@ const RolesTable = (props) => {
               {
                 title: 'Users',
                 render: (rowData) => {
-                  return rowData.role_users.map((user) => {
-                    return <div>{user}</div>;
-                  });
-                }
-              },
-              {
-                title: 'Network',
-                render: (rowData) => {
-                  return rowData.network.map((network) => {
-                    return <div>{network}</div>;
-                  });
+                  const users = rowData.role_users.length;
+
+                  return (
+                    <div>
+                      {rowData.role_users.length > 0 && (
+                        <RemoveRedEye
+                          style={{ color: 'green' }}
+                          onClick={() => {
+                            setSelectedRoleUsers(rowData.role_users);
+                            setOpen(true);
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
                 }
               },
               {
                 title: 'Permissions',
                 render: (rowData) => {
                   return rowData.role_permissions.map((permission) => {
-                    return <div>{permission}</div>;
+                    return <div>{permission.permission}</div>;
                   });
                 }
               },
@@ -190,7 +203,7 @@ const RolesTable = (props) => {
                 title: 'Action',
                 render: (role) => {
                   return (
-                    <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '90px' }}>
                       <Button color="primary" onClick={() => showEditDialog(role)}>
                         Update
                       </Button>
@@ -267,6 +280,22 @@ const RolesTable = (props) => {
             close={hideDeleteDialog}
             error
           />
+
+          {selectedRoleUsers && (
+            <Dialog open={open} onClose={handleClose} aria-labelledby="users-dialog-title">
+              <DialogTitle id="users-dialog-title">
+                <h6 style={{ textAlign: 'center' }}>Role Users</h6>
+              </DialogTitle>
+              <DialogContent>
+                <UserPopupTable users={selectedRoleUsers} />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleClose} color="primary">
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
+          )}
         </Card>
       )}
     </>

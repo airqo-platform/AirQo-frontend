@@ -21,7 +21,8 @@ import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { loadUserRoles } from 'redux/AccessControl/operations';
+import { getUserDetails } from 'redux/Join/actions';
+import { addCurrentUserRole } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -146,11 +147,13 @@ const Sidebar = (props) => {
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
-  const roles = useSelector((state) => state.accessControl.userRoles);
+  const currentRole = useSelector((state) => state.accessControl.currentRole);
 
   useEffect(() => {
-    if (isEmpty(roles)) {
-      dispatch(loadUserRoles());
+    if (!isEmpty(user)) {
+      getUserDetails(user._id).then((res) => {
+        dispatch(addCurrentUserRole(res.users[0].role));
+      });
     }
   }, []);
 
@@ -158,46 +161,40 @@ const Sidebar = (props) => {
     setLoading(true);
     // check whether user has a role
     if (!isEmpty(user)) {
-      if (user.role) {
-        if (roles) {
-          roles.map((role) => {
-            if (role._id === user.role) {
-              if (role.role_name === 'SUPER_ADMIN') {
-                const selectedUserPages = excludePages(allMainPages, []);
-                const selectedAdminPages = excludePages(allUserManagementPages, []);
-                setUserPages(selectedUserPages);
-                setAdminPages(selectedAdminPages);
-                setLoading(false);
-              } else if (role.role_name === 'NETWORK_ADMIN') {
-                const selectedUserPages = excludePages(allMainPages, []);
-                const selectedAdminPages = excludePages(allUserManagementPages, [
-                  'Users',
-                  'Candidates',
-                  'Roles'
-                ]);
-                setUserPages(selectedUserPages);
-                setAdminPages(selectedAdminPages);
-                setLoading(false);
-              } else {
-                const selectedUserPages = excludePages(allMainPages, [
-                  'Locate',
-                  'Network Monitoring',
-                  'Location Registry',
-                  'Device Registry',
-                  'Site Registry',
-                  'AirQloud Registry'
-                ]);
-                const selectedAdminPages = excludePages(allUserManagementPages, [
-                  'Users',
-                  'Candidates',
-                  'Roles'
-                ]);
-                setUserPages(selectedUserPages);
-                setAdminPages(selectedAdminPages);
-                setLoading(false);
-              }
-            }
-          });
+      if (!isEmpty(currentRole)) {
+        if (currentRole.role_name === 'SUPER_ADMIN') {
+          const selectedUserPages = excludePages(allMainPages, []);
+          const selectedAdminPages = excludePages(allUserManagementPages, []);
+          setUserPages(selectedUserPages);
+          setAdminPages(selectedAdminPages);
+          setLoading(false);
+        } else if (currentRole.role_name === 'NETWORK_ADMIN') {
+          const selectedUserPages = excludePages(allMainPages, []);
+          const selectedAdminPages = excludePages(allUserManagementPages, [
+            'Users',
+            'Candidates',
+            'Roles'
+          ]);
+          setUserPages(selectedUserPages);
+          setAdminPages(selectedAdminPages);
+          setLoading(false);
+        } else {
+          const selectedUserPages = excludePages(allMainPages, [
+            'Locate',
+            'Network Monitoring',
+            'Location Registry',
+            'Device Registry',
+            'Site Registry',
+            'AirQloud Registry'
+          ]);
+          const selectedAdminPages = excludePages(allUserManagementPages, [
+            'Users',
+            'Candidates',
+            'Roles'
+          ]);
+          setUserPages(selectedUserPages);
+          setAdminPages(selectedAdminPages);
+          setLoading(false);
         }
       }
     }
@@ -220,7 +217,7 @@ const Sidebar = (props) => {
       setAdminPages(selectedAdminPages);
       setLoading(false);
     }
-  }, [user, roles]);
+  }, [user, currentRole]);
 
   return (
     <Drawer

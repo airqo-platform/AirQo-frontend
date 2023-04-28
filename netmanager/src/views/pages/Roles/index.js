@@ -5,7 +5,7 @@ import RolesTable from './components/RolesTable';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { loadUserRoles } from '../../../redux/AccessControl/operations';
+import { loadUserRoles } from 'redux/AccessControl/operations';
 import RolesToolbar from './components/RolesToolbar';
 
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +27,8 @@ const Roles = () => {
       dispatch(loadUserRoles());
     }
   }, []);
+
+  console.log(roles);
 
   return (
     <ErrorBoundary>
