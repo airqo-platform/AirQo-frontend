@@ -40,6 +40,10 @@ jobs:
     needs: [check]
     if: needs.check.outputs.run_app_tests == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.2
@@ -54,7 +58,6 @@ jobs:
 
       - name: Add .env files
         run: |
-          cd mobile/
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.dev
 
@@ -64,11 +67,7 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies
-        run: |
-          cd mobile/
-          flutter pub get
+        run: flutter pub get
         
       - name: Run tests
-        run: |
-          cd mobile/
-          flutter test --coverage
+        run: flutter test --coverage
