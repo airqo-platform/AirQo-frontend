@@ -66,6 +66,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.5.2
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1.1.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Set up gcloud Cloud SDK environment
+        uses: google-github-actions/setup-gcloud@v1.1.0
+
+      - name: Add .env files
+        run: |
+          gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
+          gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.dev
+
+      - name: Add firebase options files
+        run: |
+          cd lib/
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-options-dev" > firebase_options_dev.dart
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase_options" > firebase_options.dart
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
@@ -74,5 +93,5 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      - name: Run tests
+      - name: Run code analysis
         run: flutter analyze

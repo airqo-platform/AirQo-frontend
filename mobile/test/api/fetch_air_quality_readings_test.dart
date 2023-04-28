@@ -27,9 +27,12 @@ Future<void> main() async {
           reading.dateTime
               .isAfter(DateTime.now().subtract(const Duration(days: 1))),
           true);
+    });
 
+    test('checks if all air quality readings have health tips.', () async {
+      List<AirQualityReading> readings = await AirqoApiClient().fetchAirQualityReadings();
       List<AirQualityReading> readingsWithoutHealthTips =
-          readings.where((element) => element.healthTips.isEmpty).toList();
+      readings.where((element) => element.healthTips.isEmpty).toList();
       expect(readingsWithoutHealthTips.isEmpty, true);
     });
   });
