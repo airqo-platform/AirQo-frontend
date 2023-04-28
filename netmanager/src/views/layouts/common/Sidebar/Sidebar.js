@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
@@ -17,9 +17,11 @@ import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
-import { useOrgData } from 'redux/Join/selectors';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import { useDispatch, useSelector } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { loadUserRoles } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -48,32 +50,6 @@ const excludePages = (pages, excludedArr) => {
   return pages.filter((element) => {
     return !excludedArr.includes(element.title);
   });
-};
-
-const roleExcludePageMapper = {
-  collaborator: [
-    'Users',
-    'Candidates',
-    'Locate',
-    'Network Monitoring',
-    'Location Registry',
-    'Device Registry',
-    'Site Registry',
-    'AirQloud Registry'
-  ],
-  user: [
-    'Users',
-    'Candidates',
-    'Locate',
-    'Network Monitoring',
-    'Location Registry',
-    'Device Registry',
-    'Site Registry',
-    'AirQloud Registry'
-  ],
-  netmanager: ['Users', 'Candidates', 'Roles'],
-  admin: ['Candidates', 'Roles'],
-  super: []
 };
 
 const allMainPages = [
@@ -161,22 +137,90 @@ const allUserManagementPages = [
 
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
-
   const classes = useStyles();
-
-  const orgData = useOrgData();
-
   const { mappedAuth } = props;
   let { user } = mappedAuth;
-  const excludedPages = roleExcludePageMapper[user.privilege] || roleExcludePageMapper.user;
-  let pages = excludePages(allMainPages, excludedPages);
-  const userPages = excludePages(allUserManagementPages, excludedPages);
 
-  if (orgData.name.toLowerCase() === 'airqo') {
-    pages = excludePages(pages, []);
-  } else {
-    pages = excludePages(pages, ['Overview', 'Network Monitoring', 'Locate']);
-  }
+  const [userPages, setUserPages] = useState([]);
+  const [adminPages, setAdminPages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const roles = useSelector((state) => state.accessControl.userRoles);
+
+  useEffect(() => {
+    if (isEmpty(roles)) {
+      dispatch(loadUserRoles());
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    // check whether user has a role
+    if (!isEmpty(user)) {
+      if (user.role) {
+        if (roles) {
+          roles.map((role) => {
+            if (role._id === user.role) {
+              if (role.role_name === 'SUPER_ADMIN') {
+                const selectedUserPages = excludePages(allMainPages, []);
+                const selectedAdminPages = excludePages(allUserManagementPages, []);
+                setUserPages(selectedUserPages);
+                setAdminPages(selectedAdminPages);
+                setLoading(false);
+              } else if (role.role_name === 'NETWORK_ADMIN') {
+                const selectedUserPages = excludePages(allMainPages, []);
+                const selectedAdminPages = excludePages(allUserManagementPages, [
+                  'Users',
+                  'Candidates',
+                  'Roles'
+                ]);
+                setUserPages(selectedUserPages);
+                setAdminPages(selectedAdminPages);
+                setLoading(false);
+              } else {
+                const selectedUserPages = excludePages(allMainPages, [
+                  'Locate',
+                  'Network Monitoring',
+                  'Location Registry',
+                  'Device Registry',
+                  'Site Registry',
+                  'AirQloud Registry'
+                ]);
+                const selectedAdminPages = excludePages(allUserManagementPages, [
+                  'Users',
+                  'Candidates',
+                  'Roles'
+                ]);
+                setUserPages(selectedUserPages);
+                setAdminPages(selectedAdminPages);
+                setLoading(false);
+              }
+            }
+          });
+        }
+      }
+    }
+
+    if (isEmpty(user)) {
+      const selectedUserPages = excludePages(allMainPages, [
+        'Locate',
+        'Network Monitoring',
+        'Location Registry',
+        'Device Registry',
+        'Site Registry',
+        'AirQloud Registry'
+      ]);
+      const selectedAdminPages = excludePages(allUserManagementPages, [
+        'Users',
+        'Candidates',
+        'Roles'
+      ]);
+      setUserPages(selectedUserPages);
+      setAdminPages(selectedAdminPages);
+      setLoading(false);
+    }
+  }, [user, roles]);
 
   return (
     <Drawer
@@ -189,11 +233,53 @@ const Sidebar = (props) => {
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
-        <SidebarNav className={classes.nav} pages={pages} />
-        <Divider className={classes.divider} />
-        <SidebarNav className={classes.nav} pages={userPages} />
-        <Divider className={classes.divider} />
-        <SidebarWidgets className={classes.nav} />
+        {loading ? (
+          <>
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#EEE',
+                height: '30px',
+                marginBottom: '12px'
+              }}
+            />
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#EEE',
+                height: '30px',
+                marginBottom: '12px'
+              }}
+            />
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#EEE',
+                height: '30px',
+                marginBottom: '12px'
+              }}
+            />
+            <div style={{ width: '100%', backgroundColor: '#EEE', height: '30px' }} />
+            <Divider className={classes.divider} />
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#EEE',
+                height: '30px',
+                marginBottom: '12px'
+              }}
+            />
+            <div style={{ width: '100%', backgroundColor: '#EEE', height: '30px' }} />
+          </>
+        ) : (
+          <>
+            <SidebarNav className={classes.nav} pages={userPages} />
+            <Divider className={classes.divider} />
+            <SidebarNav className={classes.nav} pages={adminPages} />
+            <Divider className={classes.divider} />
+            <SidebarWidgets className={classes.nav} />
+          </>
+        )}
       </div>
     </Drawer>
   );
