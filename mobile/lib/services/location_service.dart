@@ -127,6 +127,9 @@ class LocationService {
 
     address["name"] = landMark.thoroughfare ?? landMark.subLocality;
     address["name"] = address["name"] ?? landMark.locality;
+    address["name"] = address["name"] ?? landMark.subLocality;
+    address["name"] = address["name"] ?? landMark.subThoroughfare;
+    address["name"] = address["name"] ?? landMark.name;
 
     if (landMark.subAdministrativeArea == null) {
       address["location"] =

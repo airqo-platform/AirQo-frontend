@@ -26,53 +26,53 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  shared_preferences: ^2.0.17
-  google_maps_flutter: ^2.2.3
+  shared_preferences: ^2.1.0
+  google_maps_flutter: ^2.2.5
   json_annotation: ^4.8.0
   http: ^0.13.5
   cached_network_image: ^3.2.3
   geolocator: ^9.0.2
-  flutter_local_notifications: ^13.0.0
-  path_provider: ^2.0.12
+  flutter_local_notifications: ^14.0.0+1
+  path_provider: ^2.0.14
   animations: ^2.0.7
   provider: ^6.0.5
   intl: ^0.17.0
   uuid: ^3.0.7
-  flutter_svg: ^2.0.1
-  image_picker: ^0.8.6+1
+  flutter_svg: ^2.0.5
+  image_picker: ^0.8.7+4
   country_list_pick: ^1.0.1+6
   shimmer: ^2.0.0
-  google_fonts: ^4.0.3
+  google_fonts: ^4.0.4
   in_app_review: ^2.0.6
-  sentry_flutter: ^7.4.2
-  lottie: ^2.2.0
-  share_plus: ^6.3.0
+  sentry_flutter: ^7.5.0
+  lottie: ^2.3.2
+  share_plus: ^4.5.3
   flutter_secure_storage: ^8.0.0
-  geocoding: ^2.0.5
+  geocoding: ^2.1.0
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0
-  firebase_core: ^2.4.1
-  firebase_messaging: ^14.2.1
-  cloud_firestore: ^4.3.1
-  firebase_auth: ^4.2.5
-  firebase_analytics: ^10.1.0
-  firebase_storage: ^11.0.10
-  package_info_plus: ^3.0.2
-  webview_flutter: ^4.0.2
+  firebase_core: ^2.10.0
+  firebase_messaging: ^14.4.1
+  cloud_firestore: ^4.5.3
+  firebase_auth: ^4.4.2
+  firebase_analytics: ^10.2.1
+  firebase_storage: ^11.1.1
+  package_info_plus: ^3.1.2
+  webview_flutter: ^4.2.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  firebase_in_app_messaging: ^0.7.0+10
+  firebase_in_app_messaging: ^0.7.1+1
   permission_handler: ^10.2.0
-  firebase_crashlytics: ^3.0.11
+  firebase_crashlytics: ^3.1.2
   workmanager: ^0.5.1
   flutter_cache_manager: ^3.3.0
   path: ^1.8.2
-  flutter_bloc: ^8.1.1
+  flutter_bloc: ^8.1.2
   equatable: ^2.0.5
   appinio_swiper: ^2.0.0
-  firebase_dynamic_links: ^5.0.11
-  showcaseview: ^2.0.0+1
-  url_launcher: ^6.1.9
+  firebase_dynamic_links: ^5.1.1
+  showcaseview: ^2.0.3
+  url_launcher: ^6.1.10
   hydrated_bloc: ^9.1.0
   # https://pub.dev/packages/retry
   # Drift previous database => airqo_app_db.sqlite
