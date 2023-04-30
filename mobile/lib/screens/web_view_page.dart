@@ -4,7 +4,9 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+// ignore: depend_on_referenced_packages
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class WebViewLoadingCubit extends Cubit<int> {
@@ -35,7 +37,22 @@ class _WebViewScreenState extends State<WebViewScreen> {
       appBar: AppTopBar(
         widget.title.trimEllipsis(),
         actions: [
-          NavigationControls(_controller),
+          IconButton(
+            icon: Icon(
+              Icons.replay,
+              color: CustomColors.appColorBlue,
+            ),
+            onPressed: () {
+              try {
+                _controller.loadRequest(Uri.parse(widget.url));
+              } catch (e) {
+                showSnackBar(
+                  context,
+                  'Failed to reload. Try again later',
+                );
+              }
+            },
+          )
         ],
         centerTitle: false,
       ),
@@ -100,65 +117,5 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
     _controller = controller;
     checkNetworkConnection(context, notifyUser: true);
-  }
-}
-
-class NavigationControls extends StatelessWidget {
-  const NavigationControls(
-    this.controller, {
-    super.key,
-  });
-
-  final WebViewController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: CustomColors.appColorBlue,
-          ),
-          onPressed: () async {
-            if (await controller.canGoBack()) {
-              await controller.goBack();
-            } else {
-              showSnackBar(
-                context,
-                'No back history',
-              );
-
-              return;
-            }
-          },
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.arrow_forward_ios,
-            color: CustomColors.appColorBlue,
-          ),
-          onPressed: () async {
-            if (await controller.canGoForward()) {
-              await controller.goForward();
-            } else {
-              showSnackBar(
-                context,
-                'No forward history',
-              );
-
-              return;
-            }
-          },
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.replay,
-            color: CustomColors.appColorBlue,
-          ),
-          onPressed: () => controller.reload(),
-        ),
-      ],
-    );
   }
 }

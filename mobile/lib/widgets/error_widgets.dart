@@ -559,8 +559,8 @@ class AppCrushWidget extends StatelessWidget {
             const Spacer(),
             InkWell(
               onTap: () async {
+                // TODO log to  a backend service
                 PackageInfo packageInfo = await PackageInfo.fromPlatform();
-                String email = "support@airqo.net";
                 String subject = "Mobile App Crush";
                 String body = ""
                     "App Version : ${packageInfo.version}\n"
