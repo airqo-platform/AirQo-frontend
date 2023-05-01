@@ -896,6 +896,7 @@ extension NullStringExt on String? {
   bool isValidLocationName() {
     String? value = this;
     if (value == null) return false;
+
     return value.isNotEmpty;
   }
 }
