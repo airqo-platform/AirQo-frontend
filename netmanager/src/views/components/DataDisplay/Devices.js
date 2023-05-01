@@ -240,7 +240,10 @@ const CreateDevice = ({ open, setOpen }) => {
       .then((res) => res.data)
       .then((resData) => {
         handleRegisterClose();
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(
           updateMainAlert({
             message: resData.message,
@@ -387,7 +390,10 @@ const SoftCreateDevice = ({ open, setOpen }) => {
     })
       .then((resData) => {
         handleRegisterClose();
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(
           updateMainAlert({
             message: resData.message,
@@ -519,7 +525,10 @@ const DevicesTable = (props) => {
         .then(() => {
           delete devices[delDevice.name];
           setDeviceList(Object.values(devices));
-          dispatch(loadDevicesData());
+          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          if (!isEmpty(activeNetwork)) {
+            dispatch(loadDevicesData(activeNetwork.net_name));
+          }
           dispatch(
             updateMainAlert({
               show: true,
@@ -551,13 +560,17 @@ const DevicesTable = (props) => {
 
   useEffect(() => {
     if (isEmpty(devices)) {
-      dispatch(loadDevicesData());
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+      }
     }
+
     if (isEmpty(sites)) {
       dispatch(loadSitesData());
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, []);
+  }, [devices]);
 
   useEffect(() => {
     setDeviceList(Object.values(devices));

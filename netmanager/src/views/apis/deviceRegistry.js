@@ -24,8 +24,10 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
 
-export const getAllDevicesApi = async () => {
-  return await axios.get(ALL_DEVICES_URI).then((response) => response.data);
+export const getAllDevicesApi = async (networkID) => {
+  return await axios
+    .get(ALL_DEVICES_URI, { params: { network: networkID } })
+    .then((response) => response.data);
 };
 
 export const createDeviceComponentApi = async (deviceName, componentType, data) => {

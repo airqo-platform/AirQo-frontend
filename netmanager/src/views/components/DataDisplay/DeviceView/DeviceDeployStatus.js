@@ -376,7 +376,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
@@ -408,7 +411,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
