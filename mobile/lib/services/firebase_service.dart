@@ -438,7 +438,6 @@ class CloudStore {
 class CloudMessaging {
   static Future<String?> getDeviceToken() async {
     try {
-
       return await FirebaseMessaging.instance.getToken();
     } catch (exception, stackTrace) {
       await logException(
