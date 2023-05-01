@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
@@ -9,6 +9,7 @@ import UsersTable from './components/UsersTable';
 import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
+import { loadUserRoles, addActiveNetwork, addUserNetworks } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {

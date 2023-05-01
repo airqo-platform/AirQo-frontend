@@ -22,7 +22,12 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
-import { addCurrentUserRole } from 'redux/AccessControl/operations';
+import {
+  addCurrentUserRole,
+  addUserNetworks,
+  addActiveNetwork
+} from 'redux/AccessControl/operations';
+import NetworkDropdown from './components/NetworkDropdown';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -148,11 +153,19 @@ const Sidebar = (props) => {
 
   const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
+  const userNetworks = useSelector((state) => state.accessControl.userNetworks);
 
   useEffect(() => {
     if (!isEmpty(user)) {
       getUserDetails(user._id).then((res) => {
         dispatch(addCurrentUserRole(res.users[0].role));
+        dispatch(addUserNetworks(res.users[0].networks));
+        localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
+
+        if (isEmpty(JSON.parse(localStorage.activeNetwork))) {
+          localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
+          dispatch(addActiveNetwork(res.users[0].networks[0]));
+        }
       });
     }
   }, []);
@@ -270,6 +283,7 @@ const Sidebar = (props) => {
           </>
         ) : (
           <>
+            {userNetworks && <NetworkDropdown userNetworks={userNetworks} />}
             <SidebarNav className={classes.nav} pages={userPages} />
             <Divider className={classes.divider} />
             <SidebarNav className={classes.nav} pages={adminPages} />

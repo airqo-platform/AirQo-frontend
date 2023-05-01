@@ -14,7 +14,8 @@ import {
   TextField,
   DialogActions,
   ListItemText,
-  Divider
+  Divider,
+  Select
 } from '@material-ui/core';
 import { RemoveRedEye } from '@material-ui/icons';
 
@@ -182,7 +183,9 @@ const UsersTable = (props) => {
           },
           {
             title: 'Role',
-            field: 'privilege'
+            render: (user) => {
+              return <span>{user.role ? user.role.role_name : '---'}</span>;
+            }
           },
           {
             title: 'Joined',
@@ -304,28 +307,72 @@ const UsersTable = (props) => {
                 fullWidth
               />
               <TextField
-                id="privilege"
-                select
-                fullWidth
-                label="Role"
-                style={{ marginTop: '15px' }}
-                value={(updatedUser && updatedUser.privilege) || editUser.privilege}
-                onChange={handleUpdateUserChange('privilege')}
-                SelectProps={{
-                  native: true,
-                  style: { width: '100%', height: '50px' },
-                  MenuProps: {
-                    className: classes.menu
-                  }
-                }}
+                margin="dense"
+                id="jobTitle"
+                name="jobTitle"
+                label="jobTitle"
+                type="text"
+                value={(updatedUser && updatedUser.jobTitle) || editUser.jobTitle}
+                onChange={handleUpdateUserChange('jobTitle')}
                 variant="outlined"
-              >
-                {roles.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </TextField>
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="organization"
+                name="organization"
+                label="organization"
+                type="text"
+                value={(updatedUser && updatedUser.organization) || editUser.organization}
+                onChange={handleUpdateUserChange('organization')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="category"
+                name="category"
+                label="category"
+                type="text"
+                value={(updatedUser && updatedUser.category) || editUser.category}
+                onChange={handleUpdateUserChange('category')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="description"
+                name="description"
+                label="description"
+                type="text"
+                value={(updatedUser && updatedUser.description) || editUser.description}
+                onChange={handleUpdateUserChange('description')}
+                variant="outlined"
+                fullWidth
+                multiline
+              />
+              <TextField
+                margin="dense"
+                id="website"
+                name="website"
+                label="website"
+                type="text"
+                value={(updatedUser && updatedUser.website) || editUser.website}
+                onChange={handleUpdateUserChange('website')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="country"
+                name="country"
+                label="country"
+                type="text"
+                value={(updatedUser && updatedUser.country) || editUser.country}
+                onChange={handleUpdateUserChange('country')}
+                variant="outlined"
+                fullWidth
+              />
             </div>
           </DialogContent>
           <DialogActions>

@@ -1,7 +1,14 @@
-import { getUserRolesApi } from '../../views/apis/accessControl';
+import {
+  assignUserNetworkApi,
+  getNetworksApi,
+  getUserRolesApi
+} from '../../views/apis/accessControl';
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
+  LOAD_CURRENT_NETWORK_FAILURE,
+  LOAD_CURRENT_NETWORK_SUCCESS,
+  LOAD_CURRENT_USER_NETWORKS_SUCCESS,
   LOAD_CURRENT_USER_ROLE_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
@@ -24,9 +31,23 @@ export const loadUserRoles = () => async (dispatch) => {
     });
 };
 
-export const addCurrentUserRole = (data) => async (dispatch) => {
+export const addCurrentUserRole = (data) => (dispatch) => {
   return dispatch({
     type: LOAD_CURRENT_USER_ROLE_SUCCESS,
+    payload: data
+  });
+};
+
+export const addUserNetworks = (data) => (dispatch) => {
+  return dispatch({
+    type: LOAD_CURRENT_USER_NETWORKS_SUCCESS,
+    payload: data
+  });
+};
+
+export const addActiveNetwork = (data) => (dispatch) => {
+  return dispatch({
+    type: LOAD_CURRENT_NETWORK_SUCCESS,
     payload: data
   });
 };

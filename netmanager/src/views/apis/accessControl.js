@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GET_ROLES_URI } from '../../config/urls/analytics';
+import { GET_NETWORKS_URI, GET_ROLES_URI } from '../../config/urls/analytics';
 
 let token = localStorage.jwtToken;
 if (token) {
@@ -22,4 +22,14 @@ export const updateUserRoleApi = async (roleID, data) => {
 
 export const deleteUserRoleApi = async (roleID) => {
   return await axios.delete(`${GET_ROLES_URI}/${roleID}`).then((response) => response.data);
+};
+
+export const getNetworksApi = async () => {
+  return await axios.get(GET_NETWORKS_URI).then((response) => response.data);
+};
+
+export const assignUserNetworkApi = async (networkID, data) => {
+  return await axios
+    .post(`${GET_NETWORKS_URI}/${networkID}/assign-users`, data)
+    .then((response) => response.data);
 };

@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -12,15 +12,15 @@ import {
   Dialog,
   DialogActions
 } from '@material-ui/core';
-
-import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useOrgData } from 'redux/Join/selectors';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { addUserApi } from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { fetchUsers } from 'redux/Join/actions';
+import { fetchUsers, getUserDetails } from 'redux/Join/actions';
+import { addActiveNetwork } from 'redux/AccessControl/operations';
+import { isEmpty } from 'underscore';
+import { assignUserNetworkApi } from '../../../../apis/accessControl';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,14 +63,20 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
+const validWebsiteRegex = RegExp(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i);
+
+function capitalize(str) {
+  return str.toLowerCase().charAt(0).toUpperCase() + str.slice(1);
+}
 
 /***func starts here....... */
 const UsersToolbar = (props) => {
   const { className, mappeduserState, mappedErrors, roles, ...rest } = props;
+  const { mappedAuth } = props;
+  let { user } = mappedAuth;
 
   const [open, setOpen] = useState(false);
   const orgData = useOrgData();
@@ -78,19 +84,26 @@ const UsersToolbar = (props) => {
   const initialState = {
     firstName: '',
     lastName: '',
-    organization: orgData.name,
-    long_organization: orgData.name,
     email: '',
-    role: roles[0].value,
-    errors: {}
+    role: {},
+    errors: {},
+    privilege: 'user',
+    country: '',
+    jobTitle: '',
+    website: '',
+    long_organization: '',
+    organization: ''
   };
   const initialStateErrors = {
     firstName: '',
     lastName: '',
-    organization: '',
     email: '',
     role: '',
-    errors: ''
+    errors: '',
+    country: '',
+    jobTitle: '',
+    website: '',
+    long_organization: ''
   };
 
   const dispatch = useDispatch();
@@ -131,40 +144,79 @@ const UsersToolbar = (props) => {
       case 'userName':
         errors.userName = value.length === 0 ? 'userName is required' : '';
         break;
-      case 'role':
-        errors.role = value.length === 0 ? 'role is required' : '';
+      case 'country':
+        errors.country = value.length === 0 ? 'country is required' : '';
         break;
-
+      case 'jobTitle':
+        errors.jobTitle = value.length === 0 ? 'jobTitle is required' : '';
+        break;
+      case 'website':
+        errors.website = validWebsiteRegex.test(value) ? '' : 'website is not valid!';
+        break;
+      case 'long_organization':
+        errors.long_organization = value.length === 0 ? 'long_organization is required' : '';
+        break;
       default:
         break;
     }
 
-    setState(
-      {
+    if (id === 'role') {
+      setState({
         ...form,
-        [id]: value
-      },
-      () => {
-        console.log(errors);
-      }
-    );
+        role: {
+          ...form.role,
+          role_name: value,
+          role_code: value
+        }
+      });
+    } else if (id === 'country') {
+      setState({
+        ...form,
+        country: capitalize(value)
+      });
+    } else if (id === 'long_organization') {
+      setState({
+        ...form,
+        long_organization: value,
+        organization: value
+      });
+    } else {
+      setState(
+        {
+          ...form,
+          [id]: value
+        },
+        () => {
+          console.log(errors);
+        }
+      );
+    }
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
     setOpen(false);
+    // register user
     addUserApi(form)
       .then((resData) => {
-        dispatch(fetchUsers());
-        setErrors(initialStateErrors);
-        setState(initialState);
-        dispatch(
-          updateMainAlert({
-            message: resData.message,
-            show: true,
-            severity: 'success'
-          })
-        );
+        const userID = resData.user._id;
+        const activeNetwork = JSON.parse(localStorage.activeNetwork);
+
+        // assign user to network
+        if (!isEmpty(activeNetwork)) {
+          assignUserNetworkApi(activeNetwork._id, { user_ids: [userID] }).then((resData) => {
+            dispatch(fetchUsers());
+            setErrors(initialStateErrors);
+            setState(initialState);
+            dispatch(
+              updateMainAlert({
+                message: resData.message,
+                show: true,
+                severity: 'success'
+              })
+            );
+          });
+        }
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -180,38 +232,12 @@ const UsersToolbar = (props) => {
       });
   };
 
-  const minimalSelectClasses = useMinimalSelectStyles();
-
   useEffect(() => {
     clearState();
   }, []);
 
-  const iconComponent = (props) => {
-    return <ExpandMoreIcon className={props.className + ' ' + minimalSelectClasses.icon} />;
-  };
-
-  // moves the menu below the select input
-  const menuProps = {
-    classes: {
-      paper: minimalSelectClasses.paper,
-      list: minimalSelectClasses.list
-    },
-    anchorOrigin: {
-      vertical: 'bottom',
-      horizontal: 'left'
-    },
-    transformOrigin: {
-      vertical: 'top',
-      horizontal: 'left'
-    },
-    getContentAnchorEl: null
-  };
-
   return (
-    <div
-      // {...rest}
-      className={clsx(classes.root, className)}
-    >
+    <div className={clsx(classes.root, className)}>
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
@@ -266,15 +292,56 @@ const UsersToolbar = (props) => {
 
                 <TextField
                   margin="dense"
-                  id="organization"
-                  label="organization"
-                  name="organization"
+                  id="country"
+                  label="country"
+                  name="country"
                   type="text"
-                  helperText={errors.organization}
-                  error={!!errors.organization}
+                  helperText={errors.country}
+                  error={!!errors.country}
                   onChange={onChange}
-                  value={form.organization}
-                  disabled
+                  value={form.country}
+                  variant="outlined"
+                  fullWidth
+                />
+
+                <TextField
+                  margin="dense"
+                  id="long_organization"
+                  label="organization"
+                  name="long_organization"
+                  type="text"
+                  helperText={errors.long_organization}
+                  error={!!errors.long_organization}
+                  onChange={onChange}
+                  value={form.long_organization}
+                  variant="outlined"
+                  fullWidth
+                />
+
+                <TextField
+                  margin="dense"
+                  id="jobTitle"
+                  label="job title"
+                  name="jobTitle"
+                  type="text"
+                  helperText={errors.jobTitle}
+                  error={!!errors.jobTitle}
+                  onChange={onChange}
+                  value={form.jobTitle}
+                  variant="outlined"
+                  fullWidth
+                />
+
+                <TextField
+                  margin="dense"
+                  id="website"
+                  label="website"
+                  name="website"
+                  type="text"
+                  helperText={errors.website}
+                  error={!!errors.website}
+                  onChange={onChange}
+                  value={form.website}
                   variant="outlined"
                   fullWidth
                 />
@@ -283,9 +350,9 @@ const UsersToolbar = (props) => {
                   id="role"
                   select
                   fullWidth
-                  label="Role"
+                  label="role"
                   style={{ marginTop: '15px' }}
-                  value={form.role}
+                  value={form.role.role_name}
                   onChange={onChange}
                   SelectProps={{
                     native: true,

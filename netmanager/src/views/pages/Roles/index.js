@@ -28,8 +28,6 @@ const Roles = () => {
     }
   }, []);
 
-  console.log(roles);
-
   return (
     <ErrorBoundary>
       <div className={classes.root}>

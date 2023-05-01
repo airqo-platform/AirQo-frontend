@@ -178,14 +178,16 @@ const RolesTable = (props) => {
 
                   return (
                     <div>
-                      {rowData.role_users.length > 0 && (
+                      {rowData.role_users.length > 0 ? (
                         <RemoveRedEye
-                          style={{ color: 'green' }}
+                          style={{ color: 'green', cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedRoleUsers(rowData.role_users);
                             setOpen(true);
                           }}
                         />
+                      ) : (
+                        <RemoveRedEye style={{ color: 'grey' }} disabled />
                       )}
                     </div>
                   );
