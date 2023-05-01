@@ -221,6 +221,7 @@ const AccountDetails = (props) => {
                 value={form.description}
                 variant="outlined"
                 multiline
+                rows={3}
               />
             </Grid>
             <Grid item md={6} xs={12}>

@@ -8,7 +8,7 @@ const UserPopupTable = ({ users }) => {
           <th>First Name</th>
           <th>Last Name</th>
           <th>Email Address</th>
-          <th>Permissions</th>
+          <th>Category</th>
         </tr>
       </thead>
       <tbody>
@@ -17,15 +17,7 @@ const UserPopupTable = ({ users }) => {
             <td>{user.firstName}</td>
             <td>{user.lastName}</td>
             <td>{user.email}</td>
-            <td>
-              {user.role &&
-                user.role.role_permissions &&
-                user.role.role_permissions.map((permission) => (
-                  <>
-                    <input type="checkbox" value={permission.permission} /> {permission.permission}
-                  </>
-                ))}
-            </td>
+            <td>{user.category}</td>
           </tr>
         ))}
       </tbody>

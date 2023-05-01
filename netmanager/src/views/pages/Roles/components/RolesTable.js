@@ -5,10 +5,14 @@ import { makeStyles } from '@material-ui/styles';
 import {
   Button,
   Card,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
   TextField
 } from '@material-ui/core';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
@@ -50,7 +54,15 @@ const RolesTable = (props) => {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [roleDelState, setRoleDelState] = useState({ open: false, role: {} });
   const [selectedRoleUsers, setSelectedRoleUsers] = useState(null);
+  const [selectedRolePermissions, setSelectedRolePermissions] = useState(null);
   const [open, setOpen] = useState(false);
+
+  const handleChange = (event) => {
+    setSelectedRolePermissions({
+      ...selectedRolePermissions,
+      [event.target.name]: event.target.checked
+    });
+  };
 
   const handleClose = () => {
     setOpen(false);
@@ -183,6 +195,7 @@ const RolesTable = (props) => {
                           style={{ color: 'green', cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedRoleUsers(rowData.role_users);
+                            setSelectedRolePermissions(rowData.role_permissions);
                             setOpen(true);
                           }}
                         />
@@ -196,9 +209,20 @@ const RolesTable = (props) => {
               {
                 title: 'Permissions',
                 render: (rowData) => {
-                  return rowData.role_permissions.map((permission) => {
-                    return <div>{permission.permission}</div>;
-                  });
+                  return (
+                    <FormControl required component="fieldset" className={classes.formControl}>
+                      <FormGroup>
+                        {rowData.role_permissions &&
+                          rowData.role_permissions.map((permission) => (
+                            <FormControlLabel
+                              key={permission._id}
+                              control={<Checkbox onChange={handleChange} name="permission" />}
+                              label={permission.permission}
+                            />
+                          ))}
+                      </FormGroup>
+                    </FormControl>
+                  );
                 }
               },
               {
