@@ -22,3 +22,18 @@ class AirQoUrls {
   static String get mobileCarrier =>
       '${Config.airqoApi}/v1/meta-data/mobile-carrier';
 }
+
+enum ApiService {
+  deviceRegistry('device_registry'),
+  auth('auth'),
+  view('view'),
+  metaData('meta_data'),
+  forecast('forecast');
+
+  const ApiService(this.serviceName);
+
+  final String serviceName;
+
+  @override
+  String toString() => serviceName;
+}

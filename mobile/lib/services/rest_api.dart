@@ -76,6 +76,7 @@ class AirqoApiClient {
           "packageName": packageName,
         },
         AirQoUrls.appVersion,
+        apiService: ApiService.view,
       );
 
       return AppStoreVersion.fromJson(body['data'] as Map<String, dynamic>);
@@ -91,9 +92,12 @@ class AirqoApiClient {
 
   Future<String> getCarrier(String phoneNumber) async {
     try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.metaData.serviceName;
+
       final response = await client.post(
         Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
-        headers: postHeaders,
+        headers: headers,
         body: json.encode({'phone_number': phoneNumber}),
       );
 
@@ -121,11 +125,14 @@ class AirqoApiClient {
         body['email'] = emailAddress;
       }
 
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: postHeaders,
+        headers: headers,
         body: jsonEncode(body),
       );
 
@@ -149,6 +156,7 @@ class AirqoApiClient {
           "site_id": siteId,
         },
         AirQoUrls.forecast,
+        apiService: ApiService.forecast,
       );
 
       for (final forecast in body['forecasts'] as List<dynamic>) {
@@ -179,11 +187,14 @@ class AirqoApiClient {
 
   Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
     try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: postHeaders,
+        headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
 
@@ -204,11 +215,14 @@ class AirqoApiClient {
     String emailAddress,
   ) async {
     try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
         ),
-        headers: postHeaders,
+        headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
 
@@ -246,6 +260,7 @@ class AirqoApiClient {
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.measurements,
+        apiService: ApiService.deviceRegistry,
       );
 
       for (final measurement in body['measurements'] as List<dynamic>) {
@@ -267,6 +282,9 @@ class AirqoApiClient {
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
       final body = jsonEncode(
         {
           'email': feedback.contactDetails,
@@ -277,7 +295,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
-        headers: postHeaders,
+        headers: headers,
         body: body,
       );
 
@@ -297,6 +315,7 @@ class AirqoApiClient {
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
     String url, {
+    required ApiService apiService,
     Duration? timeout,
   }) async {
     try {
@@ -305,8 +324,11 @@ class AirqoApiClient {
 
       url = addQueryParameters(params, url);
 
+      Map<String, String> headers = Map.from(getHeaders);
+      headers["service"] = apiService.serviceName;
+
       final response = await client
-          .get(Uri.parse(url), headers: getHeaders)
+          .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
         // TODO : use advanced decoding
