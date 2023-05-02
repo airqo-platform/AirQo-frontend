@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 class NetworkConnectionException implements Exception {
@@ -23,14 +22,7 @@ Future<void> logException(
     return;
   }
 
-  try {
-    await FirebaseCrashlytics.instance.recordError(
-      exception,
-      stackTrace,
-      fatal: true,
-      printDetails: true,
-    );
-  } catch (e) {
+  try {} catch (e) {
     debugPrint(e.toString());
   }
 }
