@@ -20,7 +20,10 @@ Future<void> main() async {
   group('returnsCurrentAppVersion', () {
     setUpAll(() async {
       await dotenv.load(fileName: Config.environmentFile);
-      headers = {'Authorization': 'JWT ${Config.airqoApiToken}'};
+      headers = {
+        'Authorization': 'JWT ${Config.airqoApiToken}',
+        'service': ApiService.view.serviceName,
+      };
       client = MockClient();
       bundleId = "com.airqo.net";
       packageName = "com.airqo.app";
@@ -101,7 +104,7 @@ Future<void> main() async {
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,
-        Uri.parse("https://apps.apple.com/us/app/airqo/id1337573091?uo=4"),
+        Uri.parse("https://apps.apple.com/us/app/airqo-air-quality/id1337573091?uo=4"),
       );
     });
 

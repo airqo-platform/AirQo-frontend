@@ -1,4 +1,3 @@
-import 'package:app/models/hive_type_id.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';

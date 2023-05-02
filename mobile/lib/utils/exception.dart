@@ -22,6 +22,8 @@ Future<void> logException(
     return;
   }
 
+  // TODO reconfigure remote error logging
+  // ignore: no-empty-block
   try {} catch (e) {
     debugPrint(e.toString());
   }

@@ -34,7 +34,8 @@ void main() {
 
     await tester.pumpAndSettle();
     final personaliseFinder = find.text('Personalise your\nexperience');
-    final createAccountTextFinder = find.text('Create your account today and enjoy air quality updates and health tips.');
+    final createAccountTextFinder = find.text(
+        'Create your account today and enjoy air quality updates and health tips.');
 
     expect(personaliseFinder, findsOneWidget);
     expect(createAccountTextFinder, findsOneWidget);

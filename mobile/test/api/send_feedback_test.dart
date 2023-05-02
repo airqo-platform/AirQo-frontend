@@ -23,7 +23,8 @@ Future<void> main() async {
       await dotenv.load(fileName: Config.environmentFile);
       headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'JWT ${Config.airqoApiToken}'
+        'Authorization': 'JWT ${Config.airqoApiToken}',
+        'service': ApiService.auth.serviceName,
       };
       client = MockClient();
       feedback = UserFeedback(

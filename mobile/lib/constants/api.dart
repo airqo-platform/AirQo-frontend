@@ -24,10 +24,10 @@ class AirQoUrls {
 }
 
 enum ApiService {
-  deviceRegistry('device_registry'),
+  deviceRegistry('device-registry'),
   auth('auth'),
   view('view'),
-  metaData('meta_data'),
+  metaData('meta-data'),
   forecast('forecast');
 
   const ApiService(this.serviceName);
