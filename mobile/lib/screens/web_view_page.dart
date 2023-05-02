@@ -4,9 +4,9 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// ignore: depend_on_referenced_packages
+// ignore: depend_on_referenced_packages, required by package
 import 'package:webview_flutter_android/webview_flutter_android.dart';
-// ignore: depend_on_referenced_packages
+// ignore: depend_on_referenced_packages, required by package
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class WebViewLoadingCubit extends Cubit<int> {
@@ -52,7 +52,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 );
               }
             },
-          )
+          ),
         ],
         centerTitle: false,
       ),
