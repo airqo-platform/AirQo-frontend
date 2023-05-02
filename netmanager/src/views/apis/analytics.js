@@ -18,7 +18,13 @@ export const getSitesApi = async () => {
 };
 
 export const downloadDataApi = async (data) => {
-  return axios.post(DOWNLOAD_CUSTOMISED_DATA_URI, data).then((response) => response.data);
+  const headers = {
+    service: 'data-export'
+  };
+
+  return axios
+    .post(DOWNLOAD_CUSTOMISED_DATA_URI, data, { headers })
+    .then((response) => response.data);
 };
 
 export const loadD3ChartDataApi = async (data) => {
