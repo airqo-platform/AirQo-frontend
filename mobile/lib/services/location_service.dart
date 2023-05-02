@@ -125,8 +125,18 @@ class LocationService {
 
     final Placemark landMark = landMarks.first;
 
-    address["name"] = landMark.thoroughfare ?? landMark.subLocality;
-    address["name"] = address["name"] ?? landMark.locality;
+    address["name"] = landMark.thoroughfare;
+    address["name"] = address["name"].isValidLocationName()
+        ? address["name"]
+        : landMark.locality;
+    address["name"] = address["name"].isValidLocationName()
+        ? address["name"]
+        : landMark.subLocality;
+    address["name"] = address["name"].isValidLocationName()
+        ? address["name"]
+        : landMark.subThoroughfare;
+    address["name"] =
+        address["name"].isValidLocationName() ? address["name"] : landMark.name;
 
     if (landMark.subAdministrativeArea == null) {
       address["location"] =
@@ -183,8 +193,12 @@ class LocationService {
 
     if (airQualityReadings.isNotEmpty) {
       airQualityReadings.first = airQualityReadings.first.copyWith(
-        name: address["name"],
-        location: address["location"],
+        name: address["name"].isValidLocationName()
+            ? address["name"]
+            : airQualityReadings.first.name,
+        location: address["location"].isValidLocationName()
+            ? address["location"]
+            : airQualityReadings.first.location,
       );
     }
 

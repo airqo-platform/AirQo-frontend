@@ -4,7 +4,6 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +30,6 @@ void main() async {
     );
 
     if (kReleaseMode) {
-      FlutterError.onError =
-          FirebaseCrashlytics.instance.recordFlutterFatalError;
       await SentryFlutter.init(
         (options) {
           options

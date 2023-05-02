@@ -505,11 +505,11 @@ class ProfileSection extends StatelessWidget {
             color: CustomColors.appBodyColor,
             height: 0,
           ),
-          const CardSection(
+          CardSection(
             text: 'Favorites',
             icon: 'assets/icon/heart.svg',
-            iconColor: null,
-            nextPage: FavouritePlacesPage(),
+            iconColor: CustomColors.appColorRed,
+            nextPage: const FavouritePlacesPage(),
           ),
           Divider(
             color: CustomColors.appBodyColor,

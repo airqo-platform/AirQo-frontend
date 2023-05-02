@@ -101,17 +101,34 @@ class HiveService {
     List<Forecast> forecast,
     String siteId,
   ) async {
-    await Hive.box<List<Forecast>>(_forecast).put(
-      siteId,
-      forecast,
-    );
+    try {
+      await Hive.box<List<Forecast>>(_forecast).put(
+        siteId,
+        forecast,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
   }
 
   Future<List<Forecast>> getForecast(String siteId) async {
-    List<Forecast> forecast = Hive.box<List<Forecast>>(
-          _forecast,
-        ).get(siteId) ??
-        [];
+    List<Forecast> forecast = [];
+    try {
+      forecast = Hive.box<List<Forecast>>(
+        _forecast,
+      ).get(
+        siteId,
+        defaultValue: [],
+      ) as List<Forecast>;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
     return forecast.removeInvalidData();
   }
