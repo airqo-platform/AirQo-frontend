@@ -21,10 +21,12 @@ const AccountCreation = () => {
                 className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
                 required
               />
-              <button className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'>
-                {' '}
-                Continue
-              </button>
+              <Link href='/account/creation/step2'>
+                <button className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'>
+                  {' '}
+                  Continue
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -47,7 +49,7 @@ const AccountCreation = () => {
           <span className='text-sm text-grey-300'>Already have an account?</span>
           <span className='text-sm text-blue-900 font-medium'>
             {' '}
-            <Link href="/">Log in</Link>
+            <Link href='/'>Log in</Link>
           </span>
         </div>
       </div>
