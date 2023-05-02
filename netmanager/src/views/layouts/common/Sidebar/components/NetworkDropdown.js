@@ -5,6 +5,7 @@ import { Button, Menu, MenuItem } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
 
 const StyledMenu = withStyles({
   paper: {
@@ -50,6 +51,7 @@ export default function NetworkDropdown({ userNetworks }) {
       localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
       dispatch(addActiveNetwork(userNetworks[0]));
       dispatch(loadDevicesData(userNetworks[0].net_name));
+      dispatch(loadSitesData(userNetworks[0].net_name));
     }
   }, []);
 
@@ -65,6 +67,7 @@ export default function NetworkDropdown({ userNetworks }) {
     setSelectedNetwork(network);
     localStorage.setItem('activeNetwork', JSON.stringify(network));
     dispatch(loadDevicesData(network.net_name));
+    dispatch(loadSitesData(network.net_name));
     handleClose();
   };
 

@@ -559,15 +559,17 @@ const DevicesTable = (props) => {
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (isEmpty(devices)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
       }
     }
 
     if (isEmpty(sites)) {
-      dispatch(loadSitesData());
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
   }, [devices]);

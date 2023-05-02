@@ -16,6 +16,7 @@ import { createSiteApi } from 'views/apis/deviceRegistry';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -89,7 +90,10 @@ const SiteToolbar = (props) => {
     setOpen(false);
     createSiteApi(siteData)
       .then((resData) => {
-        dispatch(loadSitesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadSitesData(activeNetwork.net_name));
+        }
         handleSiteClose();
         dispatch(
           updateMainAlert({

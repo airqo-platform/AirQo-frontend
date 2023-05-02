@@ -46,7 +46,11 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-    dispatch(loadSitesData());
+
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSitesData(activeNetwork.net_name));
+    }
   };
 
   const weightedBool = (primary, secondary) => {
@@ -68,7 +72,10 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        dispatch(loadSitesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadSitesData(activeNetwork.net_name));
+        }
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.error) || {};
@@ -377,7 +384,12 @@ const SiteView = (props) => {
   const [site, setSite] = useState(sites[params.id] || {});
 
   useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSitesData());
+    if (isEmpty(sites)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
 
   useEffect(() => {

@@ -142,8 +142,10 @@ export const getEventsApi = async (params) => {
   return await axios.get(EVENTS, { params }).then((response) => response.data);
 };
 
-export const getSitesApi = async () => {
-  return await axios.get(SITES).then((response) => response.data);
+export const getSitesApi = async (networkID) => {
+  return await axios
+    .get(SITES, { params: { network: networkID } })
+    .then((response) => response.data);
 };
 
 export const updateSiteApi = async (site_id, siteData) => {

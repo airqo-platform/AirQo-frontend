@@ -254,7 +254,12 @@ const Download = (props) => {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(deviceRegistrySites)) dispatch(loadSitesData());
+    if (isEmpty(deviceRegistrySites)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
 
   useEffect(() => {

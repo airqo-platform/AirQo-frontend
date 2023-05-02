@@ -370,7 +370,12 @@ export default function DeviceEdit({ deviceData }) {
   const siteOptions = useSiteOptionsData();
 
   useEffect(() => {
-    if (isEmpty(siteOptions)) dispatch(loadSitesData());
+    if (isEmpty(siteOptions)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
   return (
     <div style={{ marginTop: '20px' }}>
