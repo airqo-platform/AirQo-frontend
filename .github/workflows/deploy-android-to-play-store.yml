@@ -6,30 +6,30 @@ on:
       android:
         description: "Deploy android to play store"
         required: false
-        type: boolean  
-        
+        type: boolean
+
 jobs:
   android:
     name: android build
     runs-on: ubuntu-latest
-    if: inputs.android == true      
+    if: inputs.android == true
     defaults:
       run:
         working-directory: mobile
     steps:
       - name: Checkout
-        uses: 'actions/checkout@v3'
+        uses: "actions/checkout@v3"
 
-      - name: set up JDK 
+      - name: set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'  
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.8.0
         with:
-          channel: 'stable'
+          channel: "stable"
 
       - name: Google login
         uses: google-github-actions/auth@v1.0.0
@@ -41,7 +41,7 @@ jobs:
 
       - name: Add google-services.json for Firebase
         run: gcloud secrets versions access latest --secret="prod-key-mobile-android-firebase-json" > android/app/google-services.json
-        
+
       - name: Add  keystore and key.properties files
         run: |
           cd android/
@@ -49,7 +49,6 @@ jobs:
           gcloud secrets versions access latest --secret="prod-key-mobile-airqo-dev-keystore" | base64 -di > app/airqo-dev-keystore.jks
           gcloud secrets versions access latest --secret="prod-key-mobile-app" > prod-key.properties
           gcloud secrets versions access latest --secret="prod-key-mobile-properties-CI" > key.properties
-
 
       - name: Add firebase options files
         run: |
@@ -62,23 +61,18 @@ jobs:
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="prod-env-mobile-CI" > .env.dev
 
-      - name: Add play store service account
-        run: |
-          cd android/
-          gcloud secrets versions access latest --secret="prod-key-mobile-play-store-service-account" > play-store-service-account.json
-
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
           ruby-version: "2.6"
           working-directory: mobile/android
-      
+
       - name: Install bundle
         run: |
           cd android/
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
-          
+
       - name: Deploy to play store
         run: |
           cd android/
@@ -87,5 +81,3 @@ jobs:
           bundle exec fastlane android production
         env:
           MOBILE_ANDROID_PLAYSTORE_SA: ${{secrets.MOBILE_ANDROID_PLAYSTORE_SA}}
-
-
