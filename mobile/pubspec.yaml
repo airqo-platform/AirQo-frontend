@@ -27,9 +27,9 @@ dependencies:
     sdk: flutter
 
   shared_preferences: ^2.1.0
-  google_maps_flutter: ^2.2.5
+  google_maps_flutter: ^2.2.6
   json_annotation: ^4.8.0
-  http: ^0.13.5
+  http: ^0.13.6
   cached_network_image: ^3.2.3
   geolocator: ^9.0.2
   flutter_local_notifications: ^14.0.0+1
@@ -72,6 +72,7 @@ dependencies:
   showcaseview: ^2.0.3
   url_launcher: ^6.1.10
   hydrated_bloc: ^9.1.0
+  sentry_flutter: ^7.5.1
   # Drift previous database => airqo_app_db.sqlite
   
 dev_dependencies:
