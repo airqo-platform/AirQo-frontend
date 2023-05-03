@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class NetworkConnectionException implements Exception {
   String cause;
@@ -23,14 +22,9 @@ Future<void> logException(
     return;
   }
 
-  try {
-    await Future.wait([
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace ?? '',
-      ),
-    ]);
-  } catch (e) {
+  // TODO reconfigure remote error logging
+  // ignore: no-empty-block
+  try {} catch (e) {
     debugPrint(e.toString());
   }
 }

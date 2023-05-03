@@ -184,7 +184,7 @@ class LocationService {
       position.latitude,
       position.longitude,
     );
-    airQualityReadings = airQualityReadings.sortByDistanceToReferenceSite();
+    airQualityReadings.sortByDistanceToReferenceSite();
 
     Map<String, String?> address = await getAddress(
       latitude: position.latitude,
@@ -213,10 +213,9 @@ class LocationService {
       latitude,
       longitude,
     );
+    nearestSites.sortByDistanceToReferenceSite();
 
-    return nearestSites.isEmpty
-        ? null
-        : nearestSites.sortByDistanceToReferenceSite().first;
+    return nearestSites.isEmpty ? null : nearestSites.first;
   }
 
   static Future<List<AirQualityReading>> getNearestSites(

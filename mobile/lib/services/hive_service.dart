@@ -1,8 +1,4 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -15,7 +11,6 @@ class HiveService {
 
   final String _searchHistory = 'searchHistory';
   final String _forecast = 'forecast';
-  final String _encryptionKey = 'hiveEncryptionKey';
   final String _airQualityReadings = 'airQualityReadings-v1';
   final String _nearByAirQualityReadings = 'nearByAirQualityReading-v1';
 
@@ -34,25 +29,6 @@ class HiveService {
       Hive.openBox<AirQualityReading>(_airQualityReadings),
       Hive.openBox<AirQualityReading>(_nearByAirQualityReadings),
     ]);
-  }
-
-  Future<Uint8List?>? getEncryptionKey() async {
-    try {
-      final secureStorage = SecureStorage();
-      var encodedKey = await secureStorage.getValue(_encryptionKey);
-      if (encodedKey == null) {
-        final secureKey = Hive.generateSecureKey();
-        await secureStorage.setValue(
-          key: _encryptionKey,
-          value: base64UrlEncode(secureKey),
-        );
-      }
-      encodedKey = await secureStorage.getValue(_encryptionKey);
-
-      return base64Url.decode(encodedKey!);
-    } catch (_, __) {
-      return null;
-    }
   }
 
   Future<void> clearUserData() async {
@@ -134,21 +110,19 @@ class HiveService {
   }
 
   List<AirQualityReading> getAirQualityReadings() {
-    return Hive.box<AirQualityReading>(
+    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
       _airQualityReadings,
-    )
-        .values
-        .toList()
-        .where((element) => element.dateTime.isAfterOrEqualToYesterday())
-        .toList();
+    ).values.toList();
+
+    return airQualityReadings.removeInvalidData();
   }
 
   List<SearchHistory> getSearchHistory() {
-    return Hive.box<SearchHistory>(_searchHistory)
-        .values
-        .toList()
-        .sortByDateTime()
-        .toList();
+    List<SearchHistory> searchHistory =
+        Hive.box<SearchHistory>(_searchHistory).values.toList();
+    searchHistory.sortByDateTime();
+
+    return searchHistory;
   }
 
   List<AirQualityReading> getNearbyAirQualityReadings() {
@@ -164,7 +138,9 @@ class HiveService {
         Hive.box<SearchHistory>(_searchHistory).values.toList();
     searchHistoryList
         .add(SearchHistory.fromAirQualityReading(airQualityReading));
-    searchHistoryList = searchHistoryList.sortByDateTime().take(10).toList();
+    searchHistoryList = searchHistoryList
+      ..sortByDateTime()
+      ..take(10).toList();
 
     final searchHistoryMap = <String, SearchHistory>{};
     for (final searchHistory in searchHistoryList) {
@@ -180,8 +156,7 @@ class HiveService {
   ) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
 
-    nearbyAirQualityReadings =
-        nearbyAirQualityReadings.sortByDistanceToReferenceSite();
+    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     for (final airQualityReading in nearbyAirQualityReadings) {
       airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;

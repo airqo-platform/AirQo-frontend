@@ -662,20 +662,6 @@ class SearchResults extends StatelessWidget {
   }
 }
 
-class SearchLoadingWidget extends StatelessWidget {
-  const SearchLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 20),
-      child: Center(
-        child: LoadingWidget(backgroundColor: Colors.transparent),
-      ),
-    );
-  }
-}
-
 class SearchWidget extends StatelessWidget {
   SearchWidget({super.key});
   final TextEditingController _searchController = TextEditingController();

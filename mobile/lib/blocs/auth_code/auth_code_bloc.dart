@@ -321,7 +321,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       }
 
       await apiClient
-          .requestEmailVerificationCode(emailAuthModel.emailAddress, false)
+          .sendEmailVerificationCode(emailAuthModel.emailAddress)
           .then((emailAuthModel) {
         if (emailAuthModel == null) {
           return emit(state.copyWith(

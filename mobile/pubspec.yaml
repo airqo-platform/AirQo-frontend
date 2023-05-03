@@ -44,7 +44,6 @@ dependencies:
   shimmer: ^2.0.0
   google_fonts: ^4.0.4
   in_app_review: ^2.0.6
-  sentry_flutter: ^7.5.0
   lottie: ^2.3.2
   share_plus: ^4.5.3
   flutter_secure_storage: ^8.0.0
@@ -73,18 +72,18 @@ dependencies:
   showcaseview: ^2.0.3
   url_launcher: ^6.1.10
   hydrated_bloc: ^9.1.0
-  # https://pub.dev/packages/retry
   # Drift previous database => airqo_app_db.sqlite
   
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  mockito: ^5.4.0
   flutter_lints: ^2.0.1
   build_runner: ^2.3.3
   json_serializable: ^6.6.0
   dart_code_metrics: ^5.5.0
   hive_generator: ^2.0.0
+  bloc_test: ^9.1.1
 
 flutter:
   uses-material-design: true

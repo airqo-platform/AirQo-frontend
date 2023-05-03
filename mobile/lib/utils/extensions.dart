@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
@@ -21,19 +20,9 @@ extension SetExt<T> on Set<T> {
   }
 }
 
-extension IntExt on int {
-  String toStringLength({int length = 1}) {
-    return toString().length == length ? '0$this' : '$this';
-  }
-}
-
 extension InsightListExt on List<Insight> {
-  List<Insight> sortByDateTime() {
-    List<Insight> data = List.of(this);
-
-    data.sort((x, y) => x.dateTime.compareTo(y.dateTime));
-
-    return data;
+  void sortByDateTime() {
+    sort((x, y) => x.dateTime.compareTo(y.dateTime));
   }
 }
 
@@ -83,18 +72,14 @@ extension KyaExt on Kya {
 }
 
 extension KyaListExt on List<Kya> {
-  List<Kya> sortByProgress() {
-    List<Kya> data = List.of(this);
-
-    data.sort((x, y) {
+  void sortByProgress() {
+    sort((x, y) {
       if (x.progress == -1) return 1;
 
       if (y.progress == -1) return -1;
 
       return -(x.progress.compareTo(y.progress));
     });
-
-    return data;
   }
 
   List<Kya> filterInProgressKya() {
@@ -129,30 +114,24 @@ extension AppNotificationListExt on List<AppNotification> {
 }
 
 extension LocationHistoryExt on List<LocationHistory> {
-  List<LocationHistory> sortByDateTime() {
-    List<LocationHistory> data = List.of(this);
-    data.sort(
+  void sortByDateTime() {
+    sort(
       (x, y) {
         return -(x.dateTime.compareTo(y.dateTime));
       },
     );
-
-    return data;
   }
 }
 
 extension SearchHistoryListExt on List<SearchHistory> {
-  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
-    List<SearchHistory> data = List.of(this);
-    data.sort((a, b) {
+  void sortByDateTime({bool latestFirst = true}) {
+    sort((a, b) {
       if (latestFirst) {
         return -(a.dateTime.compareTo(b.dateTime));
       }
 
       return a.dateTime.compareTo(b.dateTime);
     });
-
-    return data;
   }
 
   Future<List<AirQualityReading>> attachedAirQualityReadings() async {
@@ -294,28 +273,14 @@ extension SearchResultExt on SearchResult {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
-    List<AirQualityReading> data = List.of(this);
-    data.sort((a, b) {
+  void sortByAirQuality({bool sortCountries = false}) {
+    sort((a, b) {
       if (sortCountries && a.country.compareTo(b.country) != 0) {
         return a.country.compareTo(b.country);
       }
 
       return a.pm2_5.compareTo(b.pm2_5);
     });
-
-    return data;
-  }
-
-  List<AirQualityReading> filterNearestLocations() {
-    List<AirQualityReading> airQualityReadings = List.of(this);
-    airQualityReadings = airQualityReadings
-        .where(
-          (element) => element.distanceToReferenceSite <= Config.searchRadius,
-        )
-        .toList();
-
-    return airQualityReadings.sortByDistanceToReferenceSite();
   }
 
   List<AirQualityReading> shuffleByCountry() {
@@ -340,16 +305,16 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     return shuffledData;
   }
 
-  List<AirQualityReading> sortByDistanceToReferenceSite() {
-    List<AirQualityReading> data = List.of(this);
-    data.sort(
+  void sortByDistanceToReferenceSite() {
+    sort(
       (x, y) {
         return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
       },
     );
-
-    return data;
   }
+
+  List<AirQualityReading> removeInvalidData() =>
+      where((element) => element.dateTime.isAfterOrEqualToYesterday()).toList();
 }
 
 extension ProfileExt on Profile {
@@ -426,10 +391,6 @@ extension DateTimeExt on DateTime {
     return day == dateTime.day;
   }
 
-  String shareString() {
-    return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
-  }
-
   String analyticsCardString() {
     String dateString = DateFormat('hh:mm a').format(this);
     if (isYesterday()) {
@@ -489,90 +450,6 @@ extension DateTimeExt on DateTime {
     return lastDate.getDateOfFirstHourOfDay();
   }
 
-  DateTime getDateOfLastHourOfDay() {
-    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z');
-  }
-
-  String getDay({DateTime? datetime}) {
-    final referenceDay = datetime != null ? datetime.day : day;
-
-    return formatToString(referenceDay);
-  }
-
-  DateTime getFirstDateOfCalendarMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
-
-    while (firstDate.weekday != 1) {
-      firstDate = firstDate.subtract(const Duration(days: 1));
-    }
-
-    return firstDate;
-  }
-
-  String toApiString() {
-    return '$year-${formatToString(month)}-'
-        '${formatToString(day)}T'
-        '${formatToString(hour)}:${formatToString(minute)}:'
-        '${formatToString(second)}Z';
-  }
-
-  String formatToString(int value) {
-    if (value.toString().length > 1) {
-      return value.toString();
-    }
-
-    return '0$value';
-  }
-
-  DateTime getFirstDateOfMonth() {
-    return DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
-  }
-
-  DateTime getLastDateOfCalendarMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth()}'
-        '-${getDay(datetime: getLastDateOfMonth())}T00:00:00Z');
-
-    while (lastDate.weekday != 7) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-
-    return lastDate;
-  }
-
-  DateTime getLastDateOfMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth()}-26T00:00:00Z');
-    final referenceMonth = month;
-
-    while (lastDate.month == referenceMonth) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-    lastDate = lastDate.subtract(const Duration(days: 1));
-
-    return lastDate;
-  }
-
-  String getLongDate() {
-    return '${getDayPostfix()} ${getMonthString()}';
-  }
-
-  String getMonth({DateTime? datetime}) {
-    final referenceMonth = datetime != null ? datetime.month : month;
-
-    return formatToString(referenceMonth);
-  }
-
-  String getDayPostfix() {
-    if (day.toString().endsWith('1') && day != 11) {
-      return '${day}st';
-    } else if (day.toString().endsWith('2') && day != 12) {
-      return '${day}nd';
-    } else if (day.toString().endsWith('3') && day != 13) {
-      return '${day}rd';
-    } else {
-      return '${day}th';
-    }
-  }
-
   String getMonthString({bool abbreviate = false}) {
     switch (month) {
       case 1:
@@ -604,10 +481,6 @@ extension DateTimeExt on DateTime {
           '$month does’nt have a month string implementation',
         );
     }
-  }
-
-  String getShortDate() {
-    return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
   }
 
   int getUtcOffset() {
@@ -836,22 +709,6 @@ extension StringExt on String {
 
     return trim().replaceAll(" ", "").length >= 7 &&
         trim().replaceAll(" ", "").length <= 15;
-  }
-
-  String inValidPhoneNumberMessage() {
-    if (isNull()) {
-      return 'A phone number cannot be empty';
-    }
-
-    if (trim().replaceAll(" ", "").length < 7) {
-      return 'Looks like you missed a digit.';
-    }
-
-    if (trim().replaceAll(" ", "").length > 15) {
-      return 'Entered many digits.';
-    }
-
-    return FirebaseAuthError.invalidPhoneNumber.message;
   }
 
   bool isValidEmail() {

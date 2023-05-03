@@ -1,12 +1,17 @@
-name: mobile-app-code-analysis
+name: mobile-app-code-tests
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+      - master
 
 jobs:
   check:
     name: check for changes in the mobile app
     outputs:
-      run_code_anaysis: ${{ steps.check_files.outputs.run_code_anaysis }}
+      run_app_tests: ${{ steps.check_files.outputs.run_app_tests }}
 
     runs-on: ubuntu-latest
     steps:
@@ -24,44 +29,26 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_code_anaysis=false" >>$GITHUB_OUTPUT 
+          echo "run_app_tests=false" >>$GITHUB_OUTPUT 
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == mobile/* ]]; then
-              echo "run_code_anaysis=true" >>$GITHUB_OUTPUT
+              echo "run_app_tests=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
 
-  metrics:
-    name: App code metrics
+  drive:
+    name: App code tests
     needs: [check]
-    if: needs.check.outputs.run_code_anaysis == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3.5.2
-      - name: Dart Code Metrics Action
-        uses: dart-code-checker/dart-code-metrics-action@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          relative_path: mobile/
-          pull_request_comment: true
-          check_unused_files: true
-          fatal_performance: true
-          fatal_style: true
-          fatal_warnings: true
-
-  analysis:
-    name: App code analysis
-    needs: [check]
-    if: needs.check.outputs.run_code_anaysis == 'true'
+    if: needs.check.outputs.run_app_tests == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.2
@@ -79,12 +66,6 @@ jobs:
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.dev
 
-      - name: Add firebase options files
-        run: |
-          cd lib/
-          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-options-dev" > firebase_options_dev.dart
-          gcloud secrets versions access latest --secret="sta-key-mobile-firebase_options" > firebase_options.dart
-
       - name: Install Flutter
         uses: subosito/flutter-action@v2.10.0
         with:
@@ -93,5 +74,5 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      - name: Run code analysis
-        run: flutter analyze
+      - name: Run tests
+        run: flutter test --coverage
