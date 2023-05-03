@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Header = ({ pageTitle, title, subText, children }) => {
+const Header = ({ pageTitle, title, subText, children, style }) => {
   return (
-    <div className="header-wrapper">
+    <div className="header-wrapper" style={style}>
       <div className="content">
         <div className="grid-wrapper row">
           <div className="left">
