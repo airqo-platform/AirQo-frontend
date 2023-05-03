@@ -5,7 +5,6 @@ import {
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI
 } from 'config/urls/analytics';
-import { URBAN_BETTER_DOWNLOAD_DATA_URI } from '../../config/urls/analytics';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
@@ -29,8 +28,4 @@ export const downloadDataApi = async (data) => {
 
 export const loadD3ChartDataApi = async (data) => {
   return await axios.post(D3_CHART_DATA_URI, data).then((response) => response.data);
-};
-
-export const downloadUrbanBetterDataApi = async (data) => {
-  return await axios.post(URBAN_BETTER_DOWNLOAD_DATA_URI, data).then((response) => response.data);
 };
