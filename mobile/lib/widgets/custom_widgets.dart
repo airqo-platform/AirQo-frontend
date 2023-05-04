@@ -331,7 +331,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
           AutoSizeText(
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(fontSize: 20),
