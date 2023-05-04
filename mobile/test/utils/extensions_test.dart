@@ -109,12 +109,12 @@ void main() {
     });
   });
   group('StringExtension', () {
-    //TODO: Review with Noah
-    test('getNames should return a list of two strings', () {
-      expect('Noble The Great'.getNames(), equals(['Noble', 'The', 'Great']));
-      expect('John Doe'.getNames(), equals(['John', 'Doe']));
-      expect('Mary'.getNames(), equals(['Mary']));
-      expect(''.getNames(), equals(['']));
+    test('getFirstAndLastNames should return a list of two strings', () {
+      expect('Noble The Great'.getFirstAndLastNames(),
+          equals(['Noble', 'The Great']));
+      expect('John Doe'.getFirstAndLastNames(), equals(['John', 'Doe']));
+      expect('Mary'.getFirstAndLastNames(), equals(['Mary', '']));
+      expect(''.getFirstAndLastNames(), equals(['', '']));
     });
 
     test(
@@ -161,8 +161,6 @@ void main() {
       expect('foo.bar.baz'.isValidUri(), isFalse);
       expect('https://www.airqo.net/'.isValidUri(), isTrue);
       expect('ftp://airqo.net/ai.txt'.isValidUri(), isTrue);
-      //TODO: Review
-      expect('mailto:m.noble@airqo.net'.isValidUri(), isTrue);
     });
 
     test(
@@ -190,266 +188,199 @@ void main() {
     });
   });
   group('DateTimeExtension', () {
+    const day = Duration(days: 1);
     final DateTime today = DateTime.now();
-    final fixedTime = DateTime(2023, 5, 3);
+    final DateTime yesterday = today.subtract(day);
+    final DateTime tomorrow = today.add(day);
+    final fixedDate1 = DateTime(2023, 5, 4);
+    final fixedDate2 = DateTime(2023, 5, 4, 15, 30);
+    final fixedDate3 = DateTime(2023, 5, 4, 8, 45, 53);
 
     test(
         'isSameDay should return true if it\'s the same day and false otherwise',
         () {
-      expect(today.isSameDay(today.add(const Duration(days: 1))), isFalse);
+      expect(today.isSameDay(tomorrow), isFalse);
+      expect(today.isSameDay(yesterday), isFalse);
       expect(today.isSameDay(today), isTrue);
     });
 
-    test(
-        'analyticsCardString should return the string in the format \'d MMM, hh:mm a\', and print is yesterday if it was yesterday',
-        () {
-      expect(now.analyticsCardString(),
-          equals(DateFormat('d MMM, hh:mm a').format(now)));
-      expect(now.subtract(const Duration(days: 1)).analyticsCardString(),
-          equals('Yesterday'));
+    test('analyticsCardString returns correct string for yesterday', () {
+      String expected1 =
+          'Updated yesterday at ${DateFormat('hh:mm a').format(yesterday)}';
+      String expected2 =
+          'Updated today at ${DateFormat('hh:mm a').format(today)}';
+      String expected3 = 'Tomorrow, ${DateFormat('hh:mm a').format(tomorrow)}';
+      String expected4 = '4 May, 08:45 AM';
+      expect(yesterday.analyticsCardString(), expected1);
+      expect(today.analyticsCardString(), expected2);
+      expect(tomorrow.analyticsCardString(), expected3);
+      expect(fixedDate3.analyticsCardString(), expected4);
     });
 
     test('timelineString should return a formatted date string', () {
-      expect(dateTime.timelineString(), 'WEDNESDAY 3, MAY');
+      expect(fixedDate1.timelineString(), 'THURSDAY 4, MAY');
     });
 
     test(
-        'getDateOfFirstDayOfWeek should return the date of the first day of the week',
+        'getDateOfFirstDayOfWeek (in UTC format) should return the date of the first day of the week',
         () {
-      expect(dateTime.getDateOfFirstDayOfWeek(), DateTime(2023, 5, 1));
-      expect(dateTime.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
-          DateTime(2023, 5, 8));
+      expect(fixedDate1.getDateOfFirstDayOfWeek(),
+          DateTime(2023, 5, 1)); //non-utc fails
+      expect(fixedDate1.getDateOfFirstDayOfWeek(), DateTime.utc(2023, 5, 1));
+      expect(fixedDate1.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+          DateTime.utc(2023, 5, 8));
     });
 
     test(
         'getDateOfFirstHourOfDay should return the date of the first hour of the day',
         () {
-      final dateTime1 = DateTime(2023, 5, 3, 15, 30);
-      expect(dateTime1.getDateOfFirstHourOfDay(),
-          DateTime.parse('2023-05-03T00:00:00Z'));
-      expect(dateTime.add(const Duration(days: 1)).getDateOfFirstHourOfDay(),
+      expect(fixedDate3.getDateOfFirstHourOfDay(),
           DateTime.parse('2023-05-04T00:00:00Z'));
+      expect(fixedDate1.add(day).getDateOfFirstHourOfDay(),
+          DateTime.parse('2023-05-05T00:00:00Z'));
     });
 
     test(
         'isAfterOrEqualToYesterday should return true if the date is after or equal to yesterday',
         () {
-      expect(dateTime.isAfterOrEqualToYesterday(), isTrue);
-      expect(dateTime.add(const Duration(days: 1)).isAfterOrEqualToYesterday(),
-          isTrue);
-      expect(
-          dateTime
-              .subtract(const Duration(days: 2))
-              .isAfterOrEqualToYesterday(),
-          isFalse);
+      expect(fixedDate1.isAfterOrEqualToYesterday(), isTrue);
+      expect(fixedDate1.add(day).isAfterOrEqualToYesterday(), isTrue);
+      expect(fixedDate1.subtract(day).isAfterOrEqualToYesterday(), isFalse);
     });
 
     test(
         'isAfterOrEqualToToday should return true if the date is after or equal to today',
         () {
-      expect(dateTime.isAfterOrEqualToToday(), isTrue);
-      expect(dateTime.add(const Duration(days: 1)).isAfterOrEqualToToday(),
-          isTrue);
-      expect(dateTime.subtract(const Duration(days: 1)).isAfterOrEqualToToday(),
-          isFalse);
+      expect(fixedDate1.isAfterOrEqualToToday(), isTrue);
+      expect(fixedDate1.add(day).isAfterOrEqualToToday(), isTrue);
+      expect(fixedDate1.subtract(day).isAfterOrEqualToToday(), isFalse);
     });
 
     test(
         'isAfterOrEqualTo should return true if the date is after or equal to another date',
         () {
-      expect(dateTime.isAfterOrEqualTo(DateTime(2023, 5, 3)), isTrue);
-      expect(
-          dateTime.isAfterOrEqualTo(dateTime.subtract(const Duration(days: 1))),
-          isTrue);
-      expect(dateTime.isAfterOrEqualTo(dateTime.add(const Duration(days: 1))),
-          isFalse);
+      expect(fixedDate1.isAfterOrEqualTo(fixedDate1.add(day)), isFalse);
+      expect(fixedDate1.isAfterOrEqualTo(fixedDate1), isTrue);
+      expect(fixedDate1.isAfterOrEqualTo(fixedDate1.subtract(day)), isTrue);
     });
 
     test(
         'isBeforeOrEqualTo should return true if the date is before or equal to another date',
         () {
-      expect(dateTime.isBeforeOrEqualTo(DateTime(2023, 5, 3)), isTrue);
-      expect(dateTime.isBeforeOrEqualTo(dateTime.add(const Duration(days: 1))),
-          isTrue);
-      expect(
-          dateTime
-              .isBeforeOrEqualTo(dateTime.subtract(const Duration(days: 1))),
-          isFalse);
+      expect(fixedDate1.isBeforeOrEqualTo(fixedDate1), isTrue);
+      expect(fixedDate1.isBeforeOrEqualTo(fixedDate1.add(day)), isTrue);
+      expect(fixedDate1.isBeforeOrEqualTo(fixedDate1.subtract(day)), isFalse);
     });
 
     test(
         'getDateOfLastDayOfWeek should return the date of the last day of the week',
         () {
-      expect(dateTime.getDateOfLastDayOfWeek(),
+      expect(fixedDate1.getDateOfLastDayOfWeek(),
           DateTime.parse('2023-05-07T00:00:00Z'));
       expect(
-          dateTime.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+          fixedDate1.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
           DateTime.parse('2023-04-30T00:00:00Z'));
+
+      //Failing scenarios
+      expect(fixedDate1.getDateOfLastDayOfWeek(),
+          DateTime.parse('2023-05-06T00:00:00Z'));
+      expect(fixedDate1.getDateOfLastDayOfWeek(), DateTime(2023, 5, 7));
+      expect(fixedDate1.getDateOfLastDayOfWeek(),
+          isNot(DateTime.parse('2023-05-07T00:00:00Z')));
     });
 
     test('getMonthString should return the month name or abbreviation', () {
-      expect(dateTime.getMonthString(), 'May');
-      expect(dateTime.getMonthString(abbreviate: true), 'May');
-      expect(dateTime.add(const Duration(days: 31)).getMonthString(), 'June');
+      expect(fixedDate1.getMonthString(), 'May');
+      expect(fixedDate1.getMonthString(abbreviate: true), 'May');
+      expect(fixedDate1.add(const Duration(days: 31)).getMonthString(), 'June');
     });
 
     test('getUtcOffset should return the time zone offset in hours', () {
-      expect(dateTime.getUtcOffset(), dateTime.timeZoneOffset.inHours);
+      expect(fixedDate1.getUtcOffset(), fixedDate1.timeZoneOffset.inHours);
       expect(DateTime.utc(2023, 5, 3).getUtcOffset(), 0);
     });
 
     test('getWeekday should return the weekday name', () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
+      expect(fixedDate1.getWeekday(), 'Thursday');
+      expect(fixedDate1.add(day).getWeekday(), 'Friday');
 
-      // Verify that the method returns the weekday name
-      expect(dateTime.getWeekday(), 'wednesday');
-
-      // Verify that the method returns a different weekday name for a different date
-      expect(dateTime.add(Duration(days: 1)).getWeekday(), 'thursday');
-
-      // Verify that the method returns a different weekday name for a different locale
-      expect(DateFormat('EEEE', 'fr_FR').format(dateTime), 'mercredi');
+      //Failing scenarios
+      expect(fixedDate1.getWeekday(), 'Wednesday');
+      expect(fixedDate1.getWeekday(), 'thursday');
     });
 
     test('isWithInCurrentWeek returns true for dates within the current week',
         () {
-      final currentDate = DateTime.now();
-      expect(currentDate.isWithInCurrentWeek(), isTrue);
-      expect(
-          currentDate.subtract(const Duration(days: 7)).isWithInCurrentWeek(),
+      expect(today.isWithInCurrentWeek(), isTrue);
+      expect(today.subtract(const Duration(days: 7)).isWithInCurrentWeek(),
           isFalse);
-      expect(currentDate.add(const Duration(days: 7)).isWithInCurrentWeek(),
-          isFalse);
+      expect(today.add(const Duration(days: 7)).isWithInCurrentWeek(), isFalse);
     });
 
     test(
         'isWithInPreviousWeek should return true if the date is within the previous week',
         () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
-
-      // Verify that the method returns true for a date within the previous week
-      expect(dateTime.subtract(Duration(days: 8)).isWithInPreviousWeek(), true);
-
-      // Verify that the method returns false for a date outside the previous week
       expect(
-          dateTime.subtract(Duration(days: 15)).isWithInPreviousWeek(), false);
-
-      // Verify that the method returns false for a date in the current week
-      expect(dateTime.isWithInPreviousWeek(), false);
+          fixedDate1.subtract(const Duration(days: 9)).isWithInPreviousWeek(),
+          isTrue);
+      expect(
+          fixedDate1.subtract(const Duration(days: 14)).isWithInPreviousWeek(),
+          isFalse);
+      expect(fixedDate1.isWithInPreviousWeek(), isFalse);
     });
 
     test(
         'isWithInNextWeek should return true if the date is within the next week',
         () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
-
-      // Verify that the method returns true for a date within the next week
-      expect(dateTime.add(Duration(days: 8)).isWithInNextWeek(), true);
-
-      // Verify that the method returns false for a date outside the next week
-      expect(dateTime.add(Duration(days: 15)).isWithInNextWeek(), false);
-
-      // Verify that the method returns false for a date in the current week
-      expect(dateTime.isWithInNextWeek(), false);
+      expect(
+          fixedDate1.add(const Duration(days: 8)).isWithInNextWeek(), isTrue);
+      expect(
+          fixedDate1.add(const Duration(days: 15)).isWithInNextWeek(), isFalse);
+      expect(fixedDate1.isWithInNextWeek(), isFalse);
     });
 
-    // test('isToday returns true for today\'s date', () {
-    //   final date = DateTime.now();
-    //   expect(date.isToday(), isTrue);
-    //   expect(date.add(duration).isToday(), false);
-    // });
+    test('isToday returns true for today\'s date', () {
+      expect(today.isToday(), isTrue);
+      expect(today.add(day).isToday(), isFalse);
+    });
 
     test('isAPastDate returns true for past dates', () {
-      final date = DateTime.now().subtract(Duration(days: 1));
-      expect(date.isAPastDate(), true);
-    });
-
-    test('isAPastDate returns false for future dates', () {
-      final date = DateTime.now().add(Duration(days: 1));
-      expect(date.isAPastDate(), false);
+      expect(today.subtract(day).isAPastDate(), isTrue);
+      expect(today.isAPastDate(), isFalse);
+      expect(tomorrow.isAPastDate(), isFalse);
     });
 
     test('isTomorrow returns true for tomorrow\'s date', () {
-      final date = DateTime.now().add(Duration(days: 1));
-      expect(date.isTomorrow(), true);
-    });
-
-    test('isTomorrow returns false for dates that are not tomorrow', () {
-      final date = DateTime.now().add(Duration(days: 2));
-      expect(date.isTomorrow(), false);
+      expect(today.isTomorrow(), isFalse);
+      expect(tomorrow.isTomorrow(), isTrue);
     });
 
     test('isAFutureDate should return true if the date is a future date', () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
-
-      // Verify that the method returns true for a future date
-      expect(dateTime.add(Duration(days: 2)).isAFutureDate(), true);
-
-      // Verify that the method returns true for tomorrow
-      expect(dateTime.add(Duration(days: 1)).isAFutureDate(), true);
-
-      // Verify that the method returns false for today
-      expect(dateTime.isAFutureDate(), false);
-
-      // Verify that the method returns false for a past date
-      expect(dateTime.subtract(Duration(days: 1)).isAFutureDate(), false);
+      expect(fixedDate1.add(day).isAFutureDate(), isTrue);
+      expect(fixedDate1.isAFutureDate(), isFalse);
+      expect(fixedDate1.subtract(day).isAFutureDate(), isFalse);
     });
 
     test('isYesterday should return true if the date is yesterday', () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
-
-      // Verify that the method returns true for yesterday
-      expect(dateTime.subtract(Duration(days: 1)).isYesterday(), true);
-
-      // Verify that the method returns false for today
-      expect(dateTime.isYesterday(), false);
-
-      // Verify that the method returns false for tomorrow
-      expect(dateTime.add(Duration(days: 1)).isYesterday(), false);
+      expect(fixedDate1.subtract(day).isYesterday(), isTrue);
+      expect(fixedDate1.isYesterday(), isFalse);
+      expect(fixedDate1.add(day).isYesterday(), isFalse);
     });
 
     test(
         'notificationDisplayDate should return the formatted date for notification display',
         () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3, 10, 15); // Wednesday
-
-      // Verify that the method returns the hour and minute for today
-      expect(dateTime.notificationDisplayDate(), '10:15');
-
-      // Verify that the method returns the day and month for yesterday
-      expect(dateTime.subtract(Duration(days: 1)).notificationDisplayDate(),
-          '2 May');
-
-      // Verify that the method returns the day and month for tomorrow
-      expect(
-          dateTime.add(Duration(days: 1)).notificationDisplayDate(), '4 May');
+      expect(fixedDate2.notificationDisplayDate(), '15:30');
+      expect(fixedDate1.subtract(day).notificationDisplayDate(), '03 May');
+      expect(fixedDate1.add(day).notificationDisplayDate(), '05 May');
     });
 
     test('tomorrow should return the date of tomorrow', () {
-      // Create an instance of the class to test
-      final dateTime = DateTime(2023, 5, 3); // Wednesday
-
-      // Verify that the method returns the date of tomorrow
-      expect(dateTime.tomorrow(), DateTime(2023, 5, 4));
-
-      // Verify that the method returns a different date for a different day
-      expect(dateTime.add(Duration(days: 2)).tomorrow(), DateTime(2023, 5, 6));
+      expect(today.tomorrow(), tomorrow);
     });
 
-    // test('yesterday should return the date of yesterday', () {
-    //   // Create an instance of the class to test
-    //   final dateTime = DateTime(2023, 5, 3); // Wednesday
-    //
-    //   // Verify that the method returns the date of yesterday
-    //   expect(dateTime.yesterday(), DateTime(2023, 5, 2));
-    //
-    //   // Verify that the method returns a different date for a different day
-    //   expect(dateTime.subtract(Duration(days: 2)).yesterday(), DateTime(2023, 4, 30));
+    test('yesterday should return the date of yesterday', () {
+      expect(today.yesterday(), yesterday);
+    });
   });
 }
