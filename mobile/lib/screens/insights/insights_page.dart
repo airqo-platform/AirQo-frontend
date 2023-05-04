@@ -118,6 +118,7 @@ class InsightsPage extends StatelessWidget {
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
               Insight? selectedInsight = state.selectedInsight;
+
               if (selectedInsight == null) {
                 return NoAirQualityDataWidget(callBack: () {
                   context
@@ -125,6 +126,8 @@ class InsightsPage extends StatelessWidget {
                       .add(InitializeInsightsPage(airQualityReading));
                 });
               }
+              AirQualityReading selectedAirQualityReading =
+                  airQualityReading.copyWith(pm2_5: selectedInsight.pm2_5);
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -156,7 +159,7 @@ class InsightsPage extends StatelessWidget {
                   const SizedBox(
                     height: 8,
                   ),
-                  InsightsCalendar(airQualityReading),
+                  InsightsCalendar(selectedAirQualityReading),
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,

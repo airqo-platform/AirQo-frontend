@@ -548,16 +548,22 @@ class _AirQualityActionsState extends State<AirQualityActions> {
 
   void _updateFavPlace(BuildContext context) {
     setState(() => _showHeartAnimation = true);
+    FavouritePlace favouritePlace =
+        FavouritePlace.fromAirQualityReading(widget.airQualityReading);
+    List<FavouritePlace> favouritePlaces =
+        List.of(context.read<FavouritePlaceBloc>().state);
+
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }
+    }).then((_) {
+      if (!favouritePlaces.contains(favouritePlace) && mounted) {
+        showFavouritePlaceSnackBar(context, widget.airQualityReading);
+      }
     });
-
     context.read<FavouritePlaceBloc>().add(
-          UpdateFavouritePlace(
-            FavouritePlace.fromAirQualityReading(widget.airQualityReading),
-          ),
+          UpdateFavouritePlace(favouritePlace),
         );
   }
 }
