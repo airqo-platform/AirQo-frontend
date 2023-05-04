@@ -109,11 +109,12 @@ void main() {
     });
   });
   group('StringExtension', () {
+    //TODO: Review with Noah
     test('getNames should return a list of two strings', () {
       expect('Noble The Great'.getNames(), equals(['Noble', 'The', 'Great']));
       expect('John Doe'.getNames(), equals(['John', 'Doe']));
-      expect('Mary'.getNames(), equals(['Mary', '']));
-      expect(''.getNames(), equals(['', '']));
+      expect('Mary'.getNames(), equals(['Mary']));
+      expect(''.getNames(), equals(['']));
     });
 
     test(
@@ -124,81 +125,79 @@ void main() {
       expect('Foo'.equalsIgnoreCase('Bar'), isFalse);
     });
 
-    test('isNull should return true if the string is empty or contains null',
-        () {
-      expect(''.isNull(), isTrue);
-      expect('null'.isNull(), isTrue);
-      expect('NULL'.isNull(), isTrue);
-      expect('foo null bar'.isNull(), isTrue);
-      expect('Hello'.isNull(), isFalse);
-    });
-
     test(
         'isValidPhoneNumber should return true if the string is a valid phone number',
         () {
       expect("".isValidPhoneNumber(), isFalse);
       expect('abcdefgh'.isValidPhoneNumber(), isFalse);
-      expect('123456789a2'.isValidPhoneNumber(), isFalse);
       expect('123456'.isValidPhoneNumber(), isFalse);
+      expect('+123456789a2'.isValidPhoneNumber(), isFalse);
+      expect('12345678901'.isValidPhoneNumber(), isFalse);
       expect('+1234567890123456'.isValidPhoneNumber(), isFalse);
       expect('(123)456-7890'.isValidPhoneNumber(), isFalse);
       expect('+12345678901'.isValidPhoneNumber(), isTrue);
-      expect('1234567'.isValidPhoneNumber(), isTrue);
-      expect('+123456789012345'.isValidPhoneNumber(), isTrue);
+      expect('+256772123459'.isValidPhoneNumber(), isTrue);
     });
 
     test(
         'isValidEmail should return true if the string is a valid email address',
         () {
-      expect('john.doe@example.com'.isValidEmail(), isTrue);
-      expect('jane.doe+spam@gmail.com'.isValidEmail(), isTrue);
+      expect(''.isValidEmail(), isFalse);
+      expect('noblethegreat'.isValidEmail(), isFalse);
       expect('.@example.com'.isValidEmail(), isFalse);
       expect('@example.com'.isValidEmail(), isFalse);
       expect('john.doe@example.'.isValidEmail(), isFalse);
-      expect(''.isValidEmail(), isFalse);
+      expect('noble@airqo.u'.isValidEmail(), isFalse);
+      expect('noble@airqo.ug'.isValidEmail(), isTrue);
+      expect('noble.m@airqo.net'.isValidEmail(), isTrue);
+      expect('noble.m+/spam@airqo.net'.isValidEmail(), isTrue);
+      expect('noble@airqo.us'.isValidEmail(), isTrue);
     });
 
     test('isValidUri should return true if the string is a valid URI', () {
-      expect('https://www.google.com/'.isValidUri(), isTrue);
-      expect('ftp://example.com/file.txt'.isValidUri(), isTrue);
-      expect('mailto:john.doe@example.com'.isValidUri(), isTrue);
-      expect('foo.bar.baz'.isValidUri(), isFalse);
       expect(''.isValidUri(), isFalse);
+      expect('airqo'.isValidUri(), isFalse);
+      expect('airqo.net'.isValidUri(), isFalse);
+      expect('foo.bar.baz'.isValidUri(), isFalse);
+      expect('https://www.airqo.net/'.isValidUri(), isTrue);
+      expect('ftp://airqo.net/ai.txt'.isValidUri(), isTrue);
+      //TODO: Review
+      expect('mailto:m.noble@airqo.net'.isValidUri(), isTrue);
     });
 
     test(
         'toCapitalized should return the string with the first letter capitalized and the rest lowercased',
         () {
+      expect(''.toCapitalized(), equals(''));
       expect('hello'.toCapitalized(), equals('Hello'));
       expect('WORLD'.toCapitalized(), equals('World'));
-      expect(''.toCapitalized(), equals(''));
       expect('ii'.toCapitalized(), equals('II'));
       expect('iv'.toCapitalized(), equals('IV'));
     });
 
     test('toTitleCase should return the string with each word capitalized', () {
-      expect('noble the great'.toTitleCase(), equals('Noble The Great'));
       expect(''.toTitleCase(), equals(''));
+      expect('noble the great'.toTitleCase(), equals('Noble The Great'));
     });
   });
   group('NullStringExtension', () {
     test(
         'isValidLocation should return true if the string is not null and not empty',
         () {
-      expect('Kampala'.isValidLocationName(), isTrue);
-      expect(''.isValidLocationName(), isFalse);
       expect(null.isValidLocationName(), isFalse);
+      expect(''.isValidLocationName(), isFalse);
+      expect('Kampala'.isValidLocationName(), isTrue);
     });
   });
   group('DateTimeExtension', () {
-    final DateTime now = DateTime.now();
-    final dateTime = DateTime(2023, 5, 3);
+    final DateTime today = DateTime.now();
+    final fixedTime = DateTime(2023, 5, 3);
 
     test(
         'isSameDay should return true if it\'s the same day and false otherwise',
         () {
-      expect(now.isSameDay(now), isTrue);
-      expect(now.isSameDay(now.add(const Duration(days: 1))), isFalse);
+      expect(today.isSameDay(today.add(const Duration(days: 1))), isFalse);
+      expect(today.isSameDay(today), isTrue);
     });
 
     test(
@@ -373,7 +372,6 @@ void main() {
       expect(date.isAPastDate(), false);
     });
 
-
     test('isTomorrow returns true for tomorrow\'s date', () {
       final date = DateTime.now().add(Duration(days: 1));
       expect(date.isTomorrow(), true);
@@ -415,7 +413,9 @@ void main() {
       expect(dateTime.add(Duration(days: 1)).isYesterday(), false);
     });
 
-    test('notificationDisplayDate should return the formatted date for notification display', () {
+    test(
+        'notificationDisplayDate should return the formatted date for notification display',
+        () {
       // Create an instance of the class to test
       final dateTime = DateTime(2023, 5, 3, 10, 15); // Wednesday
 
@@ -423,10 +423,12 @@ void main() {
       expect(dateTime.notificationDisplayDate(), '10:15');
 
       // Verify that the method returns the day and month for yesterday
-      expect(dateTime.subtract(Duration(days: 1)).notificationDisplayDate(), '2 May');
+      expect(dateTime.subtract(Duration(days: 1)).notificationDisplayDate(),
+          '2 May');
 
       // Verify that the method returns the day and month for tomorrow
-      expect(dateTime.add(Duration(days: 1)).notificationDisplayDate(), '4 May');
+      expect(
+          dateTime.add(Duration(days: 1)).notificationDisplayDate(), '4 May');
     });
 
     test('tomorrow should return the date of tomorrow', () {

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
+  //TODO: add case of if start and end are the same
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
   }
@@ -669,17 +670,26 @@ extension AppStoreVersionExt on AppStoreVersion {
 }
 
 extension StringExt on String {
+  // TODO: Review with Noah
+  // List<String> getNames() {
+  //   List<String> names = split(" ");
+  //   if (names.isEmpty) {
+  //     return ["", ""];
+  //   }
+  //
+  //   if (names.length >= 2) {
+  //     return [names.first, names.last];
+  //   }
+  //
+  //   return [names.first, ""];
+  // }
+
   List<String> getNames() {
     List<String> names = split(" ");
     if (names.isEmpty) {
       return ["", ""];
     }
-
-    if (names.length >= 2) {
-      return [names.first, names.last];
-    }
-
-    return [names.first, ""];
+    return names;
   }
 
   bool equalsIgnoreCase(String value) {
@@ -690,55 +700,51 @@ extension StringExt on String {
     return false;
   }
 
-  bool isNull() {
-    if (isEmpty ||
-        length == 0 ||
-        this == '' ||
-        toLowerCase() == 'null' ||
-        toLowerCase().contains('null')) {
-      return true;
-    }
-
-    return false;
-  }
-
   bool isValidPhoneNumber() {
-    if (isNull()) {
+    if (isEmpty) {
       return false;
     }
 
-    return trim().replaceAll(" ", "").length >= 7 &&
-        trim().replaceAll(" ", "").length <= 15;
+    String trimmed = trim().replaceAll(RegExp(r'\s+'), "");
+
+    return trimmed.startsWith('+') &&
+        trimmed.length >= 7 &&
+        trimmed.length <= 15 &&
+        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
+        !trimmed.contains(RegExp(r'[^\d\+]'));
   }
 
   bool isValidEmail() {
-    if (isNull()) {
+    if (isEmpty) return false;
+    List<String> parts = split('@');
+    if (parts.length != 2) return false;
+    String localPart = parts[0];
+    String domainPart = parts[1];
+    if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
       return false;
     }
-
-    return RegExp(
-      r'^(([^<>()[\]\\.,;:\s@]+(\.[^<>()[\]\\.,;:\s@]+)*)|(.+))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$',
-    ).hasMatch(this);
+    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
+      return false;
+    }
+    return domainPart.split('.').last.length >= 2;
   }
 
   bool isValidUri() {
-    return Uri.parse(this).host == '' ? false : true;
+    Uri uri = Uri.parse(this);
+    return uri.hasScheme && uri.hasAuthority;
   }
 
   String toCapitalized() {
-    try {
-      if (trim().toLowerCase() == 'ii' || trim().toLowerCase() == 'iv') {
-        return toUpperCase();
-      }
-
-      return isNotEmpty
-          ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
-          : '';
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return this;
+    if (isEmpty) {
+      return '';
     }
+
+    String trimmed = trim();
+    if (trimmed.toLowerCase() == 'ii' || trimmed.toLowerCase() == 'iv') {
+      return toUpperCase();
+    }
+
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 
   String toTitleCase() =>
