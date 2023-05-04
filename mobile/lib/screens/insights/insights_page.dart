@@ -156,7 +156,7 @@ class InsightsPage extends StatelessWidget {
                   const SizedBox(
                     height: 8,
                   ),
-                  const InsightsCalendar(),
+                  InsightsCalendar(airQualityReading),
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,

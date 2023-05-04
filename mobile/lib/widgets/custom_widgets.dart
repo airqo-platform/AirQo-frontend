@@ -401,8 +401,8 @@ class HeartIcon extends StatelessWidget {
   }
 }
 
-class AnalyticsCardFooter extends StatefulWidget {
-  const AnalyticsCardFooter(
+class AirQualityActions extends StatefulWidget {
+  const AirQualityActions(
     this.airQualityReading, {
     super.key,
     this.radius = 16,
@@ -412,10 +412,10 @@ class AnalyticsCardFooter extends StatefulWidget {
   final double radius;
 
   @override
-  State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
+  State<AirQualityActions> createState() => _AirQualityActionsState();
 }
 
-class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
+class _AirQualityActionsState extends State<AirQualityActions> {
   bool _showHeartAnimation = false;
 
   late ButtonStyle _leftButtonStyle;

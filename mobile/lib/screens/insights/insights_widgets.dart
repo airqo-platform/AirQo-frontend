@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -350,7 +351,8 @@ class InsightsDayReading extends StatelessWidget {
 }
 
 class InsightsCalendar extends StatelessWidget {
-  const InsightsCalendar({super.key});
+  const InsightsCalendar(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -363,51 +365,73 @@ class InsightsCalendar extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(16.0),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: state.insights
-                        .map(
-                          (e) => InsightsDayReading(
-                            e,
-                            isActive: e == selectedInsight,
-                          ),
-                        )
-                        .toList(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
                 ),
-                const SizedBox(
-                  height: 21,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: state.insights
+                            .map(
+                              (e) => InsightsDayReading(
+                                e,
+                                isActive: e == selectedInsight,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityWidget(
+                        selectedInsight,
+                        name: state.name,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityMessageWidget(selectedInsight),
+                    ),
+                  ],
                 ),
-                InsightAirQualityWidget(
-                  selectedInsight,
-                  name: state.name,
-                ),
-                const SizedBox(
-                  height: 21,
-                ),
-                InsightAirQualityMessageWidget(selectedInsight),
-                const Divider(
-                  color: Color(0xffC4C4C4),
-                  height: 1.0,
-                ),
-              ],
-            ),
+              ),
+              const Divider(
+                color: Color(0xffC4C4C4),
+                height: 1.0,
+              ),
+              SizedBox(
+                height: 57,
+                child: AirQualityActions(airQualityReading),
+              ),
+            ],
           ),
         );
       },
