@@ -470,7 +470,9 @@ extension DateTimeExt on DateTime {
       );
     }
     final monthString = months[month - 1];
+
     return abbreviate ? monthString.substring(0, 3) : monthString;
+
   }
 
   int getUtcOffset() {
@@ -492,7 +494,9 @@ extension DateTimeExt on DateTime {
         '$weekday does not have a weekday string implementation',
       );
     }
+
     return weekdays[weekday - 1];
+
   }
 
   bool isWithInCurrentWeek() {
@@ -587,10 +591,12 @@ extension DateTimeExt on DateTime {
 
   String notificationDisplayDate() {
     final now = DateTime.now();
+
     return (day == now.day)
         ? DateFormat('HH:mm')
             .format(DateTime(now.year, now.month, now.day, hour, minute))
         : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
+
   }
 
   DateTime tomorrow() {
