@@ -18,9 +18,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   void _loadAirQualityReadings(Emitter<DashboardState> emit) {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
-    List<AirQualityReading> nearbyAirQualityReadings = HiveService()
-        .getNearbyAirQualityReadings()
-        .sortByDistanceToReferenceSite();
+    List<AirQualityReading> nearbyAirQualityReadings =
+        HiveService().getNearbyAirQualityReadings();
+
+    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     if (nearbyAirQualityReadings.length > 1) {
       airQualityCards.add(nearbyAirQualityReadings[1]);

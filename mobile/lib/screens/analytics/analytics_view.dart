@@ -23,8 +23,8 @@ class AnalyticsView extends StatelessWidget {
           context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
         }
 
-        List<LocationHistory> locationHistory = state.sortByDateTime();
-
+        List<LocationHistory> locationHistory = state;
+        locationHistory.sortByDateTime();
         if (locationHistory.isEmpty) {
           return NoAnalyticsWidget(
             callBack: () async {
