@@ -8,8 +8,10 @@ if (token) {
   axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 }
 
-export const getUserRolesApi = async () => {
-  return await axios.get(GET_ROLES_URI).then((response) => response.data);
+export const getUserRolesApi = async (networkID) => {
+  return await axios
+    .get(GET_ROLES_URI, { params: { network_id: networkID } })
+    .then((response) => response.data);
 };
 
 export const addUserRoleApi = async (data) => {
@@ -43,6 +45,12 @@ export const getNetworkPermissionsApi = async (networkID) => {
 export const assignPermissionsToRoleApi = async (roleID, data) => {
   return await axios
     .post(`${GET_ROLES_URI}/${roleID}/permissions`, data)
+    .then((response) => response.data);
+};
+
+export const removePermissionsFromRoleApi = async (roleID, permissionID) => {
+  return await axios
+    .delete(`${GET_ROLES_URI}/${roleID}/permissions/${permissionID}`)
     .then((response) => response.data);
 };
 

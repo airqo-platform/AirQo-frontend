@@ -207,8 +207,9 @@ const Topbar = (props) => {
 
   useEffect(() => {
     if (!isEmpty(user)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       getUserDetails(user._id).then((res) => {
-        if (isEmpty(JSON.parse(localStorage.activeNetwork))) {
+        if (isEmpty(activeNetwork)) {
           localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
           dispatch(addActiveNetwork(res.users[0].networks[0]));
         }

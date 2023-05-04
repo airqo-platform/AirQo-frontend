@@ -29,7 +29,10 @@ const Roles = () => {
   useEffect(() => {
     setLoading(true);
     if (isEmpty(roles)) {
-      dispatch(loadUserRoles());
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadUserRoles(activeNetwork._id));
+      }
     }
     setLoading(false);
   }, []);

@@ -215,7 +215,8 @@ export const editUser = (userToEdit) => (dispatch) => {
           })
         );
         dispatch(editUserSuccess(response.data, response.data.message));
-        dispatch(fetchNetworkUsers());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        dispatch(fetchNetworkUsers(activeNetwork._id));
       } else {
         dispatch(editUserFailed(response.data.message));
         dispatch(

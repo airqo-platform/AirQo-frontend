@@ -204,7 +204,7 @@ const UsersToolbar = (props) => {
         // assign user to network
         if (!isEmpty(activeNetwork)) {
           assignUserNetworkApi(activeNetwork._id, { user_ids: [userID] }).then((resData) => {
-            dispatch(fetchNetworkUsers());
+            dispatch(fetchNetworkUsers(activeNetwork._id));
             setErrors(initialStateErrors);
             setState(initialState);
             dispatch(

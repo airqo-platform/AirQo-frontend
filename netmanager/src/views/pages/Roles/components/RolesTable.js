@@ -14,7 +14,11 @@ import {
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import Chip from '@material-ui/core/Chip';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
-import { deleteUserRoleApi, updateUserRoleApi } from '../../../apis/accessControl';
+import {
+  deleteUserRoleApi,
+  removePermissionsFromRoleApi,
+  updateUserRoleApi
+} from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
 import { loadUserRoles } from 'redux/AccessControl/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -100,10 +104,69 @@ const RolesTable = (props) => {
       updateUserRoleApi(updatedRole._id, data)
         .then((res) => {
           // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
+          // if (selectedPermissions) {
+          //   const newPermissions = selectedPermissions.filter(
+          //     (permission) =>
+          //       !updatedRole.role_permissions.some(
+          //         (rolePermission) => rolePermission._id === permission.value
+          //       )
+          //   );
+          //   if (newPermissions.length > 0) {
+          //     const permissionIds = newPermissions.map((permission) => permission.value);
+          //     removePermissionsFromRoleApi(updatedRole._id, { permissions: permissionIds })
+          //       .then((res) => {
+          //         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          //         if (!isEmpty(activeNetwork)) {
+          //           dispatch(loadUserRoles(activeNetwork._id));
+          //         }
+          //         dispatch(
+          //           updateMainAlert({
+          //             message: res.message,
+          //             show: true,
+          //             severity: 'success'
+          //           })
+          //         );
+          //       })
+          //       .catch((error) => {
+          //         dispatch(
+          //           updateMainAlert({
+          //             message: error.response && error.response.data && error.response.data.message,
+          //             show: true,
+          //             severity: 'error'
+          //           })
+          //         );
+          //       });
+          //   }
+          // }
 
           // check for permissions that have been removed and unassign them from role
+          // if (rolePermissionsOptions) {
+          //   const removedPermissions = rolePermissionsOptions.filter(
+          //     (permission) =>
+          //       !selectedPermissions.some(
+          //         (selectedPermission) => selectedPermission.value === permission.value
+          //       )
+          //   );
+          //   if (removedPermissions.length > 0) {
+          //     const permissionIds = removedPermissions.map((permission) => permission.value);
+          //     updateUserRoleApi(updatedRole._id, { removePermissions: permissionIds })
+          //       .then((res) => {})
+          //       .catch((error) => {
+          //         dispatch(
+          //           updateMainAlert({
+          //             message: error.response && error.response.data && error.response.data.message,
+          //             show: true,
+          //             severity: 'error'
+          //           })
+          //         );
+          //       });
+          //   }
+          // }
 
-          dispatch(loadUserRoles());
+          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          if (!isEmpty(activeNetwork)) {
+            dispatch(loadUserRoles(activeNetwork._id));
+          }
           dispatch(
             updateMainAlert({
               message: res.message,
@@ -145,7 +208,10 @@ const RolesTable = (props) => {
   const deleteRole = () => {
     deleteUserRoleApi(roleDelState.role._id)
       .then((res) => {
-        dispatch(loadUserRoles());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadUserRoles(activeNetwork._id));
+        }
         hideDeleteDialog();
         dispatch(
           updateMainAlert({
@@ -170,7 +236,7 @@ const RolesTable = (props) => {
 
   return (
     <>
-      {roles && (
+      {roles ? (
         <Card {...rest} className={clsx(classes.root, className)}>
           <CustomMaterialTable
             title={'role'}
@@ -335,6 +401,8 @@ const RolesTable = (props) => {
             </Dialog>
           )}
         </Card>
+      ) : (
+        <div>No records found</div>
       )}
     </>
   );

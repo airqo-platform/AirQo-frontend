@@ -105,19 +105,22 @@ const RolesToolbar = (props) => {
   const onSubmit = (e) => {
     e.preventDefault();
     setOpen(false);
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     const body = {
       role_code: form.roleName,
-      role_name: form.roleName
+      role_name: form.roleName,
+      network_id: activeNetwork._id
     };
     addUserRoleApi(body)
       .then((resData) => {
         // assign permissions to role
-        assignPermissionsToRoleApi(
-          resData.roles._id,
-          selectedPermissions.map((permission) => permission.value)
-        )
+        const permissions = selectedPermissions.map((permission) => permission.value);
+        assignPermissionsToRoleApi(resData.created_role._id, { permissions })
           .then((resData) => {
-            dispatch(loadUserRoles());
+            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+            if (!isEmpty(activeNetwork)) {
+              dispatch(loadUserRoles(activeNetwork._id));
+            }
             setState(initialState);
             dispatch(
               updateMainAlert({

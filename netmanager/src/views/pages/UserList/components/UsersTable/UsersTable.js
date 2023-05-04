@@ -93,6 +93,7 @@ const UsersTable = (props) => {
 
   const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
+    setUpdatedUser(userToEdit);
     setShowEditPopup(true);
   };
 
@@ -122,6 +123,8 @@ const UsersTable = (props) => {
   const deleteUser = () => {
     props.mappedConfirmDeleteUser(userDelState.user);
     setUserDelState({ open: false, user: {} });
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    dispatch(fetchNetworkUsers(activeNetwork._id));
   };
 
   const classes = useStyles();
@@ -137,7 +140,7 @@ const UsersTable = (props) => {
 
   return (
     <>
-      {users && (
+      {users ? (
         <Card {...rest} className={clsx(classes.root, className)}>
           <CustomMaterialTable
             title={'Users'}
@@ -270,7 +273,7 @@ const UsersTable = (props) => {
                     type="text"
                     label="email"
                     variant="outlined"
-                    value={(updatedUser && updatedUser.email) || editUser.email}
+                    value={updatedUser.email}
                     onChange={handleUpdateUserChange('email')}
                     fullWidth
                   />
@@ -280,7 +283,7 @@ const UsersTable = (props) => {
                     name="firstName"
                     label="first name"
                     type="text"
-                    value={(updatedUser && updatedUser.firstName) || editUser.firstName}
+                    value={updatedUser.firstName}
                     onChange={handleUpdateUserChange('firstName')}
                     variant="outlined"
                     fullWidth
@@ -291,7 +294,7 @@ const UsersTable = (props) => {
                     label="last name"
                     name="lastName"
                     type="text"
-                    value={(updatedUser && updatedUser.lastName) || editUser.lastName}
+                    value={updatedUser.lastName}
                     onChange={handleUpdateUserChange('lastName')}
                     variant="outlined"
                     fullWidth
@@ -302,7 +305,7 @@ const UsersTable = (props) => {
                     name="userName"
                     label="user name"
                     type="text"
-                    value={(updatedUser && updatedUser.userName) || editUser.userName}
+                    value={updatedUser.userName}
                     onChange={handleUpdateUserChange('userName')}
                     variant="outlined"
                     fullWidth
@@ -313,7 +316,7 @@ const UsersTable = (props) => {
                     name="jobTitle"
                     label="jobTitle"
                     type="text"
-                    value={(updatedUser && updatedUser.jobTitle) || editUser.jobTitle}
+                    value={updatedUser.jobTitle}
                     onChange={handleUpdateUserChange('jobTitle')}
                     variant="outlined"
                     fullWidth
@@ -324,7 +327,7 @@ const UsersTable = (props) => {
                     name="organization"
                     label="organization"
                     type="text"
-                    value={(updatedUser && updatedUser.organization) || editUser.organization}
+                    value={updatedUser.organization}
                     onChange={handleUpdateUserChange('organization')}
                     variant="outlined"
                     fullWidth
@@ -335,7 +338,7 @@ const UsersTable = (props) => {
                     name="category"
                     label="category"
                     type="text"
-                    value={(updatedUser && updatedUser.category) || editUser.category}
+                    value={updatedUser.category}
                     onChange={handleUpdateUserChange('category')}
                     variant="outlined"
                     fullWidth
@@ -346,7 +349,7 @@ const UsersTable = (props) => {
                     name="description"
                     label="description"
                     type="text"
-                    value={(updatedUser && updatedUser.description) || editUser.description}
+                    value={updatedUser.description}
                     onChange={handleUpdateUserChange('description')}
                     variant="outlined"
                     fullWidth
@@ -358,7 +361,7 @@ const UsersTable = (props) => {
                     name="website"
                     label="website"
                     type="text"
-                    value={(updatedUser && updatedUser.website) || editUser.website}
+                    value={updatedUser.website}
                     onChange={handleUpdateUserChange('website')}
                     variant="outlined"
                     fullWidth
@@ -369,7 +372,7 @@ const UsersTable = (props) => {
                     name="country"
                     label="country"
                     type="text"
-                    value={(updatedUser && updatedUser.country) || editUser.country}
+                    value={updatedUser.country}
                     onChange={handleUpdateUserChange('country')}
                     variant="outlined"
                     fullWidth
@@ -408,6 +411,8 @@ const UsersTable = (props) => {
             error
           />
         </Card>
+      ) : (
+        <div>No records found</div>
       )}
     </>
   );
@@ -415,7 +420,6 @@ const UsersTable = (props) => {
 
 UsersTable.propTypes = {
   className: PropTypes.string,
-  users: PropTypes.array.isRequired,
   auth: PropTypes.object.isRequired
 };
 

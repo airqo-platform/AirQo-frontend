@@ -157,12 +157,13 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     if (!isEmpty(user)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       getUserDetails(user._id).then((res) => {
         dispatch(addCurrentUserRole(res.users[0].role));
         dispatch(addUserNetworks(res.users[0].networks));
         localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
-        if (isEmpty(JSON.parse(localStorage.activeNetwork))) {
+        if (isEmpty(activeNetwork)) {
           localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
           dispatch(addActiveNetwork(res.users[0].networks[0]));
         }

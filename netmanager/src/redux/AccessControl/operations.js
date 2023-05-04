@@ -2,18 +2,17 @@ import { getNetworkUsersListApi, getUserRolesApi } from '../../views/apis/access
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
-  LOAD_CURRENT_NETWORK_FAILURE,
   LOAD_CURRENT_NETWORK_SUCCESS,
   LOAD_CURRENT_USER_NETWORKS_SUCCESS,
-  LOAD_CURRENT_USER_ROLE_SUCCESS
+  LOAD_CURRENT_USER_ROLE_SUCCESS,
+  LOAD_NETWORK_USERS_FAILURE,
+  LOAD_NETWORK_USERS_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
 
-export const loadUserRoles = () => async (dispatch) => {
-  return await getUserRolesApi()
+export const loadUserRoles = (networkID) => async (dispatch) => {
+  return await getUserRolesApi(networkID)
     .then((resData) => {
-      if (isEmpty(resData.roles || [])) return;
-
       dispatch({
         type: LOAD_ALL_USER_ROLES_SUCCESS,
         payload: resData.roles
@@ -51,16 +50,14 @@ export const addActiveNetwork = (data) => (dispatch) => {
 export const fetchNetworkUsers = (networkId) => async (dispatch) => {
   return await getNetworkUsersListApi(networkId)
     .then((resData) => {
-      if (isEmpty(resData.users || [])) return;
-
       dispatch({
-        type: LOAD_CURRENT_NETWORK_SUCCESS,
-        payload: resData.users
+        type: LOAD_NETWORK_USERS_SUCCESS,
+        payload: resData.assigned_users
       });
     })
     .catch((err) => {
       dispatch({
-        type: LOAD_CURRENT_NETWORK_FAILURE,
+        type: LOAD_NETWORK_USERS_FAILURE,
         payload: err
       });
     });
