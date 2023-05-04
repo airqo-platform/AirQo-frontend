@@ -462,7 +462,7 @@ extension DateTimeExt on DateTime {
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
     if (month < 1 || month > 12) {
       throw UnimplementedError(
@@ -485,7 +485,7 @@ extension DateTimeExt on DateTime {
       'Thursday',
       'Friday',
       'Saturday',
-      'Sunday'
+      'Sunday',
     ];
     if (weekday < 1 || weekday > 7) {
       throw UnimplementedError(
@@ -587,12 +587,10 @@ extension DateTimeExt on DateTime {
 
   String notificationDisplayDate() {
     final now = DateTime.now();
-    if (day == now.day) {
-      return DateFormat('HH:mm')
-          .format(DateTime(now.year, now.month, now.day, hour, minute));
-    } else {
-      return DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
-    }
+    return (day == now.day)
+        ? DateFormat('HH:mm')
+            .format(DateTime(now.year, now.month, now.day, hour, minute))
+        : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
   }
 
   DateTime tomorrow() {
@@ -655,6 +653,7 @@ extension StringExt on String {
     if (names.length >= 2) {
       String firstName = names.first;
       String lastName = names.sublist(1).join(" ");
+
       return [firstName, lastName];
     }
 
@@ -687,7 +686,7 @@ extension StringExt on String {
     if (isEmpty) return false;
     List<String> parts = split('@');
     if (parts.length != 2) return false;
-    String localPart = parts[0];
+    String localPart = parts.first;
     String domainPart = parts[1];
     if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
       return false;
@@ -695,12 +694,16 @@ extension StringExt on String {
     if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
       return false;
     }
+
     return domainPart.split('.').last.length >= 2;
+
   }
 
   bool isValidUri() {
     Uri uri = Uri.parse(this);
+
     return uri.hasScheme && uri.hasAuthority;
+
   }
 
   String toCapitalized() {
