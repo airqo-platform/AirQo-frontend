@@ -12,9 +12,9 @@ import {
   DialogActions
 } from '@material-ui/core';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { addUserRoleApi } from '../../../apis/accessControl';
+import { addUserRoleApi, assignPermissionsToRoleApi } from '../../../apis/accessControl';
 import { loadUserRoles } from 'redux/AccessControl/operations';
+import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,18 +53,31 @@ const useStyles = makeStyles((theme) => ({
   },
   menu: {
     width: 200
+  },
+  modelWidth: {
+    minWidth: 450
   }
 }));
 
 const RolesToolbar = (props) => {
   const classes = useStyles();
-  const { className, mappeduserState, mappedErrors, ...rest } = props;
+  const { className, mappeduserState, mappedErrors, permissions, ...rest } = props;
   const dispatch = useDispatch();
   const initialState = {
     roleName: ''
   };
   const [form, setState] = useState(initialState);
   const [open, setOpen] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+
+  const permissionOptions =
+    permissions &&
+    permissions.map((permission) => {
+      return {
+        value: permission._id,
+        label: permission.permission
+      };
+    });
 
   const clearState = () => {
     setState({ ...initialState });
@@ -83,15 +96,10 @@ const RolesToolbar = (props) => {
     e.preventDefault();
     const { id, value } = e.target;
 
-    setState(
-      {
-        ...form,
-        [id]: value
-      },
-      () => {
-        console.log(errors);
-      }
-    );
+    setState({
+      ...form,
+      [id]: value
+    });
   };
 
   const onSubmit = (e) => {
@@ -103,15 +111,31 @@ const RolesToolbar = (props) => {
     };
     addUserRoleApi(body)
       .then((resData) => {
-        dispatch(loadUserRoles());
-        setState(initialState);
-        dispatch(
-          updateMainAlert({
-            message: resData.message,
-            show: true,
-            severity: 'success'
+        // assign permissions to role
+        assignPermissionsToRoleApi(
+          resData.roles._id,
+          selectedPermissions.map((permission) => permission.value)
+        )
+          .then((resData) => {
+            dispatch(loadUserRoles());
+            setState(initialState);
+            dispatch(
+              updateMainAlert({
+                message: 'New role added successfully',
+                show: true,
+                severity: 'success'
+              })
+            );
           })
-        );
+          .catch((error) => {
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error'
+              })
+            );
+          });
       })
       .catch((error) => {
         dispatch(
@@ -139,9 +163,8 @@ const RolesToolbar = (props) => {
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add Role</DialogTitle>
             <DialogContent>
-              <div>
+              <div className={classes.modelWidth}>
                 <TextField
-                  autoFocus
                   margin="dense"
                   id="roleName"
                   name="role_name"
@@ -151,6 +174,21 @@ const RolesToolbar = (props) => {
                   variant="outlined"
                   value={form.roleName}
                   fullWidth
+                  style={{ marginBottom: '30px' }}
+                  required
+                />
+
+                <OutlinedSelect
+                  className="reactSelect"
+                  label="Permissions"
+                  onChange={(options) => setSelectedPermissions(options)}
+                  options={permissionOptions}
+                  value={selectedPermissions}
+                  fullWidth
+                  isMulti
+                  scrollable
+                  height={'100px'}
+                  required
                 />
               </div>
             </DialogContent>

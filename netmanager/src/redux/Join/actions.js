@@ -70,6 +70,7 @@ import {
   DEFAULTS_URI
 } from 'config/urls/authService';
 import { setDefaultAirQloud } from '../AirQloud/operations';
+import { fetchNetworkUsers } from '../AccessControl/operations';
 
 /***************************errors ********************************* */
 
@@ -92,44 +93,6 @@ export const updateOrganization = (orgData) => (dispatch) => {
     type: UPDATE_ORGANIZATION_SUCCESS,
     payload: orgData
   });
-};
-
-/***************************fetching users ********************************* */
-export const fetchUsers = () => {
-  return (dispatch) => {
-    dispatch(fetchUsersRequest());
-    return axios
-      .get(GET_USERS_URI)
-      .then((response) => response.data)
-      .then((responseData) => {
-        dispatch(fetchUsersSuccess(responseData.users, responseData.message));
-      })
-      .catch((err) => {
-        dispatch(fetchUsersFailed(err.response.data));
-      });
-  };
-};
-
-export const fetchUsersRequest = () => {
-  return {
-    type: GET_USERS_REQUEST
-  };
-};
-
-export const fetchUsersSuccess = (users, message) => {
-  return {
-    type: GET_USERS_SUCCESS,
-    users: users,
-    message: message,
-    receiveAt: Date.now
-  };
-};
-
-export const fetchUsersFailed = (error) => {
-  return {
-    type: GET_USERS_FAILED,
-    error
-  };
 };
 
 /*********************** fetching Candidatess ********************************/
@@ -252,7 +215,7 @@ export const editUser = (userToEdit) => (dispatch) => {
           })
         );
         dispatch(editUserSuccess(response.data, response.data.message));
-        dispatch(fetchUsers());
+        dispatch(fetchNetworkUsers());
       } else {
         dispatch(editUserFailed(response.data.message));
         dispatch(

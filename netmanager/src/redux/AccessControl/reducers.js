@@ -3,14 +3,16 @@ import {
   LOAD_ALL_USER_ROLES_SUCCESS,
   LOAD_CURRENT_NETWORK_SUCCESS,
   LOAD_CURRENT_USER_NETWORKS_SUCCESS,
-  LOAD_CURRENT_USER_ROLE_SUCCESS
+  LOAD_CURRENT_USER_ROLE_SUCCESS,
+  LOAD_NETWORK_USERS_SUCCESS
 } from './actions';
 
 const initialState = {
   userRoles: null,
   currentRole: {},
   userNetworks: null,
-  activeNetwork: {}
+  activeNetwork: {},
+  networkUsers: null
 };
 
 export default function accessControlReducer(state = initialState, action) {
@@ -23,6 +25,8 @@ export default function accessControlReducer(state = initialState, action) {
       return { ...state, userNetworks: action.payload };
     case LOAD_CURRENT_NETWORK_SUCCESS:
       return { ...state, activeNetwork: action.payload };
+    case LOAD_NETWORK_USERS_SUCCESS:
+      return { ...state, networkUsers: action.payload };
     default:
       return state;
   }

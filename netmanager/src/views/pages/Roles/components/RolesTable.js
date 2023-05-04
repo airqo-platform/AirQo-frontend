@@ -5,14 +5,10 @@ import { makeStyles } from '@material-ui/styles';
 import {
   Button,
   Card,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  FormControlLabel,
-  FormGroup,
   TextField
 } from '@material-ui/core';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
@@ -25,6 +21,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import { RemoveRedEye } from '@material-ui/icons';
 import UserPopupTable from './UserPopupTable';
+import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -47,22 +44,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const RolesTable = (props) => {
-  const { className, roles, ...rest } = props;
+  const { className, roles, loading, ...rest } = props;
   const classes = useStyles();
   const dispatch = useDispatch();
   const [updatedRole, setUpdatedRole] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [roleDelState, setRoleDelState] = useState({ open: false, role: {} });
   const [selectedRoleUsers, setSelectedRoleUsers] = useState(null);
-  const [selectedRolePermissions, setSelectedRolePermissions] = useState(null);
+  const [rolePermissionsOptions, setRolePermissionsOptionsOptions] = useState(null);
+  const [selectedPermissions, setSelectedPermissions] = useState(null);
   const [open, setOpen] = useState(false);
-
-  const handleChange = (event) => {
-    setSelectedRolePermissions({
-      ...selectedRolePermissions,
-      [event.target.name]: event.target.checked
-    });
-  };
 
   const handleClose = () => {
     setOpen(false);
@@ -85,6 +76,16 @@ const RolesTable = (props) => {
   const showEditDialog = (role) => {
     setShowEditPopup(true);
     setUpdatedRole(role);
+
+    const permissionOptions =
+      role.role_permissions &&
+      role.role_permissions.map((permission) => {
+        return {
+          value: permission._id,
+          label: permission.permission
+        };
+      });
+    setRolePermissionsOptionsOptions(permissionOptions);
   };
 
   const hideEditDialog = () => {
@@ -98,6 +99,10 @@ const RolesTable = (props) => {
       const data = { ...updatedRole };
       updateUserRoleApi(updatedRole._id, data)
         .then((res) => {
+          // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
+
+          // check for permissions that have been removed and unassign them from role
+
           dispatch(loadUserRoles());
           dispatch(
             updateMainAlert({
@@ -171,6 +176,7 @@ const RolesTable = (props) => {
             title={'role'}
             userPreferencePaginationKey={'roles'}
             data={roles}
+            loading={loading}
             columns={[
               {
                 title: 'Role Name',
@@ -195,7 +201,6 @@ const RolesTable = (props) => {
                           style={{ color: 'green', cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedRoleUsers(rowData.role_users);
-                            setSelectedRolePermissions(rowData.role_permissions);
                             setOpen(true);
                           }}
                         />
@@ -210,18 +215,12 @@ const RolesTable = (props) => {
                 title: 'Permissions',
                 render: (rowData) => {
                   return (
-                    <FormControl required component="fieldset" className={classes.formControl}>
-                      <FormGroup>
-                        {rowData.role_permissions &&
-                          rowData.role_permissions.map((permission) => (
-                            <FormControlLabel
-                              key={permission._id}
-                              control={<Checkbox onChange={handleChange} name="permission" />}
-                              label={permission.permission}
-                            />
-                          ))}
-                      </FormGroup>
-                    </FormControl>
+                    <>
+                      {rowData.role_permissions &&
+                        rowData.role_permissions.map((permission) => (
+                          <div>{permission.permission}</div>
+                        ))}
+                    </>
                   );
                 }
               },
@@ -262,6 +261,7 @@ const RolesTable = (props) => {
                   value={updatedRole && updatedRole.role_name}
                   onChange={handleUpdateRole('role_name')}
                   fullWidth
+                  required
                 />
                 <TextField
                   margin="dense"
@@ -270,9 +270,21 @@ const RolesTable = (props) => {
                   type="text"
                   label="Status"
                   variant="outlined"
+                  fullWidth
                   value={updatedRole && updatedRole.role_status}
                   onChange={handleUpdateRole('role_status')}
+                />
+                <OutlinedSelect
+                  className="reactSelect"
+                  label="Permissions"
+                  onChange={(options) => setSelectedPermissions(options)}
+                  options={rolePermissionsOptions}
+                  value={selectedPermissions}
                   fullWidth
+                  isMulti
+                  scrollable
+                  height={'100px'}
+                  required
                 />
               </div>
             </DialogContent>

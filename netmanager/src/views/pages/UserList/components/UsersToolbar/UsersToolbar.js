@@ -17,10 +17,9 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { addUserApi } from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
-import { fetchUsers, getUserDetails } from 'redux/Join/actions';
-import { addActiveNetwork } from 'redux/AccessControl/operations';
 import { isEmpty } from 'underscore';
 import { assignUserNetworkApi } from '../../../../apis/accessControl';
+import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -205,7 +204,7 @@ const UsersToolbar = (props) => {
         // assign user to network
         if (!isEmpty(activeNetwork)) {
           assignUserNetworkApi(activeNetwork._id, { user_ids: [userID] }).then((resData) => {
-            dispatch(fetchUsers());
+            dispatch(fetchNetworkUsers());
             setErrors(initialStateErrors);
             setState(initialState);
             dispatch(

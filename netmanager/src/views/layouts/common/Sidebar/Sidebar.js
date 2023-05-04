@@ -212,7 +212,7 @@ const Sidebar = (props) => {
       }
     }
 
-    if (isEmpty(user)) {
+    if (isEmpty(user) || isEmpty(currentRole)) {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
         'Network Monitoring',

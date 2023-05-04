@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { ArrowDropDown } from '@material-ui/icons';
 
 const StyledMenu = withStyles({
   paper: {
@@ -80,7 +81,7 @@ export default function NetworkDropdown({ userNetworks }) {
         variant="contained"
         color="primary"
       >
-        {selectedNetwork ? selectedNetwork.net_name : 'Select a network'}
+        {selectedNetwork ? selectedNetwork.net_name : 'Select a network'} <ArrowDropDown />
       </Button>
       <StyledMenu
         id="network-menu"

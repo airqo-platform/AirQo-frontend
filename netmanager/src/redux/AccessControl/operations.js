@@ -1,8 +1,4 @@
-import {
-  assignUserNetworkApi,
-  getNetworksApi,
-  getUserRolesApi
-} from '../../views/apis/accessControl';
+import { getNetworkUsersListApi, getUserRolesApi } from '../../views/apis/accessControl';
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
@@ -50,4 +46,22 @@ export const addActiveNetwork = (data) => (dispatch) => {
     type: LOAD_CURRENT_NETWORK_SUCCESS,
     payload: data
   });
+};
+
+export const fetchNetworkUsers = (networkId) => async (dispatch) => {
+  return await getNetworkUsersListApi(networkId)
+    .then((resData) => {
+      if (isEmpty(resData.users || [])) return;
+
+      dispatch({
+        type: LOAD_CURRENT_NETWORK_SUCCESS,
+        payload: resData.users
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_CURRENT_NETWORK_FAILURE,
+        payload: err
+      });
+    });
 };

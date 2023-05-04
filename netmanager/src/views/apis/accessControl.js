@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GET_NETWORKS_URI, GET_ROLES_URI } from '../../config/urls/analytics';
+import { GET_NETWORKS_URI, GET_PERMISSIONS_URI, GET_ROLES_URI } from '../../config/urls/analytics';
 
 let token = localStorage.jwtToken;
 if (token) {
@@ -31,5 +31,23 @@ export const getNetworksApi = async () => {
 export const assignUserNetworkApi = async (networkID, data) => {
   return await axios
     .post(`${GET_NETWORKS_URI}/${networkID}/assign-users`, data)
+    .then((response) => response.data);
+};
+
+export const getNetworkPermissionsApi = async (networkID) => {
+  return await axios
+    .get(GET_PERMISSIONS_URI, { params: { network: networkID } })
+    .then((response) => response.data);
+};
+
+export const assignPermissionsToRoleApi = async (roleID, data) => {
+  return await axios
+    .post(`${GET_ROLES_URI}/${roleID}/permissions`, data)
+    .then((response) => response.data);
+};
+
+export const getNetworkUsersListApi = async (networkID) => {
+  return await axios
+    .get(`${GET_NETWORKS_URI}/${networkID}/assigned-users`)
     .then((response) => response.data);
 };

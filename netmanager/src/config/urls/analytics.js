@@ -31,3 +31,5 @@ export const URBAN_BETTER_DOWNLOAD_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/d
 export const GET_ROLES_URI = `${BASE_ANALYTICS_URL}/users/roles`;
 
 export const GET_NETWORKS_URI = `${BASE_ANALYTICS_URL}/users/networks`;
+
+export const GET_PERMISSIONS_URI = `${BASE_ANALYTICS_URL}/users/permissions`;
