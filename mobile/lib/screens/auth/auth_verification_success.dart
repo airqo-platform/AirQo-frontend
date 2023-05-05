@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,7 @@ import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
-class AuthVerificationSuccessWidget extends StatefulWidget {
+class AuthVerificationSuccessWidget extends StatelessWidget {
   const AuthVerificationSuccessWidget({
     super.key,
     required this.authProcedure,
@@ -21,13 +22,6 @@ class AuthVerificationSuccessWidget extends StatefulWidget {
   final AuthMethod authMethod;
   final String code;
 
-  @override
-  State<AuthVerificationSuccessWidget> createState() =>
-      _AuthVerificationSuccessWidgetState();
-}
-
-class _AuthVerificationSuccessWidgetState
-    extends State<AuthVerificationSuccessWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +36,27 @@ class _AuthVerificationSuccessWidgetState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AuthTitle(
-                "Your ${widget.authMethod == AuthMethod.phone ? 'number' : 'email'} has been verified",
+                "Your ${authMethod == AuthMethod.phone ? 'number' : 'email'} has been verified",
               ),
               const AuthSubTitle(
                 'Pheww, almost done, hold in there.',
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-                child: ValidOptField(widget.code),
+                child: ValidOptField(code),
               ),
               const Spacer(),
               const AuthSuccessWidget(),
               const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
+                    await _goToNextPage(context);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -61,22 +64,12 @@ class _AuthVerificationSuccessWidgetState
     );
   }
 
-  Future<void> _initialize() async {
-    await _goToNextPage();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
   Future<bool> _onWillPop() {
     return Future.value(false);
   }
 
-  Future<void> _goToNextPage() async {
-    switch (widget.authProcedure) {
+  Future<void> _goToNextPage(BuildContext context) async {
+    switch (authProcedure) {
       case AuthProcedure.signup:
         await AppService.postSignInActions(context).then((_) async {
           await Future.delayed(const Duration(seconds: 2)).then((_) async {

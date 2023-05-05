@@ -54,7 +54,7 @@ class NextButton extends StatelessWidget {
             ),
             SvgPicture.asset(
               'assets/icon/next_arrow.svg',
-              semanticsLabel: 'Share',
+              semanticsLabel: 'Next',
               height: 17.42,
               width: 10.9,
             ),

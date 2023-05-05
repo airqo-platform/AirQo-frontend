@@ -128,11 +128,7 @@ class AuthSuccessWidget extends StatelessWidget {
             Radius.circular(15.0),
           ),
         ),
-        child: Icon(
-          size: 100,
-          Icons.check_circle_rounded,
-          color: CustomColors.appColorValid,
-        ),
+        child: MaterialIcons.circleIcon(),
       ),
     );
   }

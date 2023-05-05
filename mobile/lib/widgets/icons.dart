@@ -103,6 +103,14 @@ class SvgIcons {
 }
 
 class MaterialIcons {
+  static Widget circleIcon(){
+    return Icon(
+      size: 100,
+      Icons.check_circle_rounded,
+      color: CustomColors.appColorValid,
+    );
+  }
+
   static Widget closeSearchFilter() {
     return Container(
       height: 24,
