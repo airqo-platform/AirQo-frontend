@@ -58,6 +58,23 @@ const excludePages = (pages, excludedArr) => {
   });
 };
 
+const checkAccess = (pages, rolePermissions) => {
+  const accessDenied = [];
+  pages.forEach((page) => {
+    if (page.permission) {
+      const requiredPermission = page.permission;
+      // the role permissions is an array of permission objects
+      // we need to extract the permission names from the objects
+      const permissions = rolePermissions.map((permission) => permission.permission);
+
+      if (!permissions.includes(requiredPermission)) {
+        accessDenied.push(page);
+      }
+    }
+  });
+  return accessDenied;
+};
+
 const allMainPages = [
   {
     title: 'Overview',
@@ -67,7 +84,8 @@ const allMainPages = [
   {
     title: 'Map',
     href: '/map',
-    icon: <MapIcon />
+    icon: <MapIcon />,
+    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
   },
   {
     title: 'Dashboard',
@@ -89,6 +107,7 @@ const allMainPages = [
     title: 'Network Monitoring',
     href: '/manager',
     icon: <ManageIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
     collapse: true,
     nested: true,
     nestItems: [
@@ -99,17 +118,20 @@ const allMainPages = [
   {
     title: 'Device Registry',
     href: '/registry',
-    icon: <AddIcon />
+    icon: <AddIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
     title: 'Site Registry',
     href: '/sites',
-    icon: <EditLocationIcon />
+    icon: <EditLocationIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
   },
   {
     title: 'AirQloud Registry',
     href: '/airqlouds',
-    icon: <AirQloudIcon />
+    icon: <AirQloudIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS'
   }
 ];
 
@@ -117,17 +139,20 @@ const allUserManagementPages = [
   {
     title: 'Users',
     href: '/admin/users',
-    icon: <PeopleIcon />
+    icon: <PeopleIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
     title: 'Candidates',
     href: '/candidates',
-    icon: <SupervisedUserCircleIcon />
+    icon: <SupervisedUserCircleIcon />,
+    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
     title: 'Roles',
     href: '/roles',
-    icon: <SupervisorAccountIcon />
+    icon: <SupervisorAccountIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
   },
   {
     title: 'Account',
@@ -176,36 +201,21 @@ const Sidebar = (props) => {
     // check whether user has a role
     if (!isEmpty(user)) {
       if (!isEmpty(currentRole)) {
-        if (currentRole.role_name === 'SUPER_ADMIN') {
-          const selectedUserPages = excludePages(allMainPages, []);
-          const selectedAdminPages = excludePages(allUserManagementPages, []);
-          setUserPages(selectedUserPages);
-          setAdminPages(selectedAdminPages);
-          setLoading(false);
-        } else if (currentRole.role_name === 'NETWORK_ADMIN') {
-          const selectedUserPages = excludePages(allMainPages, []);
-          const selectedAdminPages = excludePages(allUserManagementPages, [
-            'Users',
-            'Candidates',
-            'Roles'
-          ]);
-          setUserPages(selectedUserPages);
-          setAdminPages(selectedAdminPages);
-          setLoading(false);
-        } else {
-          const selectedUserPages = excludePages(allMainPages, [
-            'Locate',
-            'Network Monitoring',
-            'Location Registry',
-            'Device Registry',
-            'Site Registry',
-            'AirQloud Registry'
-          ]);
-          const selectedAdminPages = excludePages(allUserManagementPages, [
-            'Users',
-            'Candidates',
-            'Roles'
-          ]);
+        if (currentRole.role_permissions) {
+          // get pages that the user doesn't have access to
+          const accessDeniedForUserPages = checkAccess(allMainPages, currentRole.role_permissions);
+          const accessDeniedForAdminPages = checkAccess(
+            allUserManagementPages,
+            currentRole.role_permissions
+          );
+
+          // exclude those pages from the main pages to hide their visibility
+          const selectedUserPages = excludePages(allMainPages, accessDeniedForUserPages);
+          const selectedAdminPages = excludePages(
+            allUserManagementPages,
+            accessDeniedForAdminPages
+          );
+
           setUserPages(selectedUserPages);
           setAdminPages(selectedAdminPages);
           setLoading(false);
@@ -213,6 +223,7 @@ const Sidebar = (props) => {
       }
     }
 
+    // if user has no role or organisation, show default pages
     if (isEmpty(user) || isEmpty(currentRole)) {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
