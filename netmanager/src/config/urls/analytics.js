@@ -3,12 +3,13 @@ import { stripTrailingSlash } from '../utils';
 const BASE_ANALYTICS_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_ANALYTICS_URL || process.env.REACT_APP_BASE_URL
 );
+const BASE_ANALYTICS_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
 
 export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/data`;
 
 export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/historical/daily-averages`;
 
-export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data-download`;
+export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL_V2}/analytics/data-download`;
 
 export const D3_CHART_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/d3/data`;
 
@@ -24,5 +25,3 @@ export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
-
-export const URBAN_BETTER_DOWNLOAD_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data/download?tenant=urbanbetter`;
