@@ -206,14 +206,9 @@ const Topbar = (props) => {
   }
 
   useEffect(() => {
-    if (!isEmpty(user)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      getUserDetails(user._id).then((res) => {
-        if (isEmpty(activeNetwork)) {
-          localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
-          dispatch(addActiveNetwork(res.users[0].networks[0]));
-        }
-      });
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(addActiveNetwork(activeNetwork));
     }
   }, []);
 
@@ -284,7 +279,7 @@ const Topbar = (props) => {
             fontWeight: 'bold'
           }}
         >
-          {activeNetwork.net_name}
+          {activeNetwork && activeNetwork.net_name}
         </div>
 
         <Hidden mdDown>
