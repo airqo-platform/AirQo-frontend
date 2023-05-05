@@ -522,6 +522,10 @@ export const clearState = () => (dispatch) => {
 export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
   localStorage.removeItem('jwtToken');
+  // Remove token from local storage
+  localStorage.removeItem('currentUser');
+  // Remove token from local storage
+  localStorage.removeItem('activeNetwork');
   // Remove auth header for future requests
   setAuthToken(false);
   // clear redux state on logout
