@@ -51,7 +51,7 @@ Future<void> main() async {
           await airqoApiClient.sendEmailVerificationCode(emailAddress);
       expect(emailAuthModel, isA<EmailAuthModel>());
       expect(emailAuthModel?.emailAddress, emailAddress);
-      expect(emailAuthModel?.token, 123);
+      expect(emailAuthModel?.validToken, 123);
       expect(emailAuthModel?.signInLink, "test-login-link");
       expect(emailAuthModel?.reAuthenticationLink, "");
     });
@@ -78,7 +78,7 @@ Future<void> main() async {
           await airqoApiClient.sendEmailReAuthenticationCode(emailAddress);
       expect(emailAuthModel, isA<EmailAuthModel>());
       expect(emailAuthModel?.emailAddress, emailAddress);
-      expect(emailAuthModel?.token, 123);
+      expect(emailAuthModel?.validToken, 123);
       expect(emailAuthModel?.signInLink, "");
       expect(emailAuthModel?.reAuthenticationLink, "test-auth-link");
     });
@@ -89,7 +89,7 @@ Future<void> main() async {
           await airqoApiClient.sendEmailVerificationCode(emailAddress);
       expect(emailAuthModel, isA<EmailAuthModel>());
       expect(emailAuthModel?.emailAddress, emailAddress);
-      expect(emailAuthModel?.token.toString().length, 6);
+      expect(emailAuthModel?.validToken.toString().length, 6);
       expect(emailAuthModel?.signInLink.isEmpty, false);
       expect(emailAuthModel?.reAuthenticationLink.isEmpty, true);
     });
@@ -100,7 +100,7 @@ Future<void> main() async {
           await airqoApiClient.sendEmailReAuthenticationCode(emailAddress);
       expect(emailAuthModel, isA<EmailAuthModel>());
       expect(emailAuthModel?.emailAddress, emailAddress);
-      expect(emailAuthModel?.token.toString().length, 6);
+      expect(emailAuthModel?.validToken.toString().length, 6);
       expect(emailAuthModel?.signInLink.isEmpty, true);
       expect(emailAuthModel?.reAuthenticationLink.isEmpty, false);
     });

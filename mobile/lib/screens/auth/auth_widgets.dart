@@ -383,7 +383,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
 
         switch (state.status) {
           case EmailAuthStatus.initial:
-          case EmailAuthStatus.verificationCodeSent:
+          case EmailAuthStatus.authCodeSent:
             if (state.emailAddress.isValidEmail()) {
               formColor = CustomColors.appColorValid;
               textColor = CustomColors.appColorValid;
@@ -407,7 +407,7 @@ class _EmailInputFieldState extends State<EmailInputField> {
             );
 
             break;
-          case EmailAuthStatus.error:
+          case EmailAuthStatus.invalidAuthCode:
           case EmailAuthStatus.emailAddressDoesNotExist:
           case EmailAuthStatus.emailAddressTaken:
           case EmailAuthStatus.invalidEmailAddress:

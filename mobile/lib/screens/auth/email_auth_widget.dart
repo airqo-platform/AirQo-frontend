@@ -11,8 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
-import 'auth_verification.dart';
 import 'auth_verification_success.dart';
 import 'auth_widgets.dart';
 import 'email_verification.dart';
@@ -33,13 +31,11 @@ class _EmailAuthWidget extends StatefulWidget {
 
 class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
   DateTime? _exitTime;
-  late BuildContext _loadingContext;
   bool _keyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _loadingContext = context;
     context.read<EmailAuthBloc>().add(InitializeEmailAuth(
           emailAddress: widget.emailAddress ?? '',
           authProcedure: widget.authProcedure,
@@ -59,40 +55,33 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
           horizontalPadding: 24,
           child: BlocBuilder<EmailAuthBloc, EmailAuthState>(
             builder: (context, state) {
+              switch (state.status) {
+                case EmailAuthStatus.authCodeSent:
+                case EmailAuthStatus.invalidAuthCode:
+                  return const EmailVerificationWidget();
+                case EmailAuthStatus.success:
+                  return AuthVerificationSuccessWidget(
+                    authProcedure: state.authProcedure,
+                    authMethod: AuthMethod.email,
+                    code: state.emailAuthModel.validToken.toString(),
+                  );
+                case EmailAuthStatus.initial:
+                case EmailAuthStatus.invalidEmailAddress:
+                case EmailAuthStatus.emailAddressDoesNotExist:
+                case EmailAuthStatus.emailAddressTaken:
+                  break;
+              }
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  /// initial Status
-                  Visibility(
-                    visible: state.status == EmailAuthStatus.initial ||
-                        state.status == EmailAuthStatus.codeSent,
-                    child: AuthTitle(
-                      AuthMethod.email.optionsText(state.authProcedure),
-                    ),
+                  AuthTitle(
+                    AuthMethod.email.optionsText(state.authProcedure),
                   ),
 
-                  Visibility(
-                    visible: state.status == EmailAuthStatus.initial ||
-                        state.status == EmailAuthStatus.codeSent,
-                    child: const AuthSubTitle(
-                      'We’ll send you a verification code',
-                    ),
-                  ),
-
-                  /// Success Status
-                  Visibility(
-                    visible: state.status == EmailAuthStatus.success,
-                    child: const AuthTitle(
-                      "Success",
-                    ),
-                  ),
-
-                  Visibility(
-                    visible: state.status == EmailAuthStatus.success,
-                    child: const AuthSubTitle(
-                      'Great, few more steps before you can breathe',
-                    ),
+                  const AuthSubTitle(
+                    'We’ll send you a verification code',
                   ),
 
                   /// Invalid Email Status
@@ -104,14 +93,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                             state.status == EmailAuthStatus.invalidEmailAddress,
                     child: const AuthTitle(
                       "Oops, Something’s wrong with your email",
-                    ),
-                  ),
-
-                  /// Custom Error
-                  Visibility(
-                    visible: state.status == EmailAuthStatus.serverError,
-                    child: const AuthTitle(
-                      "Oops, Something wrong happened",
                     ),
                   ),
 
@@ -167,88 +148,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                           : const SignUpOptions(authMethod: AuthMethod.email),
                     ),
                   ),
-
-                  /// listeners
-                  MultiBlocListener(
-                    listeners: [
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          FocusScope.of(context).requestFocus(
-                            FocusNode(),
-                          );
-                          loadingScreen(_loadingContext);
-                        },
-                        listenWhen: (_, current) {
-                          return current.loading;
-                        },
-                      ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) {
-                          Navigator.pop(_loadingContext);
-                        },
-                        listenWhen: (previous, current) {
-                          return !current.loading && previous.loading;
-                        },
-                      ),
-                      BlocListener<EmailAuthBloc, EmailAuthState>(
-                        listener: (context, state) async {
-                          context
-                              .read<AuthCodeBloc>()
-                              .add(InitializeAuthCodeState(
-                                emailAuthModel: state.emailAuthModel,
-                                authProcedure: state.authProcedure,
-                                authMethod: AuthMethod.email,
-                              ));
-
-                          Widget nextScreen;
-                          switch (state.authProcedure) {
-                            case AuthProcedure.deleteAccount:
-                            case AuthProcedure.anonymousLogin:
-                            case AuthProcedure.logout:
-                            case AuthProcedure.login:
-                              nextScreen = const HomePage();
-                              break;
-                            case AuthProcedure.signup:
-                              nextScreen = const ProfileSetupScreen();
-                              break;
-                          }
-
-                          await verifyAuthCode(context).then((success) async {
-                            if (success) {
-                              loadingScreen(_loadingContext);
-                              await Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => nextScreen,
-                                ),
-                                (r) => false,
-                              );
-                            } else {
-                              context.read<EmailAuthBloc>().add(
-                                    InitializeEmailAuth(
-                                      emailAddress: state.emailAddress,
-                                      authProcedure: state.authProcedure,
-                                    ),
-                                  );
-                            }
-                            if (mounted) {
-                              context
-                                  .read<AuthCodeBloc>()
-                                  .add(InitializeAuthCodeState(
-                                    authMethod: AuthMethod.email,
-                                    authProcedure: state.authProcedure,
-                                  ));
-                            }
-                          });
-                        },
-                        listenWhen: (previous, current) {
-                          return current.status ==
-                              EmailAuthStatus.codeSent;
-                        },
-                      ),
-                    ],
-                    child: Container(),
-                  ),
                 ],
               );
             },
@@ -258,8 +157,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     );
   }
 
-
-  Future<bool> _confirmEmailAddress() async {
+  Future<AuthStepResult> _confirmEmailAddress() async {
     final confirmation = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
@@ -270,22 +168,23 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
         );
       },
     );
-
-    return confirmation != null || confirmation != ConfirmationAction.cancel;
+    if (confirmation == ConfirmationAction.ok) {
+      return AuthStepResult.success;
+    }
+    return AuthStepResult.fail;
   }
 
-  Future<bool> _emailAddressExistsChecks() async {
+  Future<AuthStepResult> _emailAddressExistsChecks() async {
     EmailAuthState state = context.read<EmailAuthBloc>().state;
     AuthProcedure authProcedure = state.authProcedure;
-    bool success = true;
+    AuthStepResult result = AuthStepResult.success;
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
-        context.read<PhoneAuthBloc>().add(const UpdateStatus(
-          status: PhoneAuthStatus.error,
-          errorMessage: 'Check your internet connection',
-        ));
+        context.read<EmailAuthBloc>().add(const UpdateEmailAuthErrorMessage(
+              'Check your internet connection',
+            ));
 
-        return false;
+        return AuthStepResult.fail;
       } else {
         loadingScreen(context);
 
@@ -293,68 +192,90 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             .checkIfUserExists(
           emailAddress: state.emailAddress,
         )
-            .then((exists) {
-
+            .then((exists) async {
           Navigator.pop(context);
 
           if (exists == null) {
-            context.read<PhoneAuthBloc>().add(const UpdateStatus(
-              status: PhoneAuthStatus.error,
-              errorMessage:
-              "Failed to validate email address. Try again later",
-            ));
-
-            success = false;
+            result = AuthStepResult.error;
           } else {
             if (exists && authProcedure == AuthProcedure.signup) {
-              context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                status: PhoneAuthStatus.phoneNumberDoesNotExist,
-                errorMessage:
-                'An account already exists with this email address.',
-              ));
-
-              success = false;
+              context.read<EmailAuthBloc>().add(const UpdateEmailAuthStatus(
+                  EmailAuthStatus.emailAddressTaken));
+              result = AuthStepResult.fail;
             }
             if (!exists && authProcedure == AuthProcedure.login) {
-              context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                status: PhoneAuthStatus.phoneNumberDoesNotExist,
-                errorMessage: 'This email address is not linked to any account.',
-              ));
-
-              success = false;
+              context.read<EmailAuthBloc>().add(const UpdateEmailAuthStatus(
+                  EmailAuthStatus.emailAddressDoesNotExist));
+              result = AuthStepResult.fail;
             }
           }
         });
       }
     });
 
-    return success;
+    return result;
   }
 
   Future<void> _sendAuthToken() async {
-    bool success = await _confirmEmailAddress();
-    if (!mounted || !success) return;
+    AuthStepResult stepResult = await _confirmEmailAddress();
 
-    success = await _emailAddressExistsChecks();
-    if (!mounted || !success) return;
+    if (!mounted) return;
+    switch (stepResult) {
+      case AuthStepResult.success:
+        break;
+      case AuthStepResult.fail:
+        return;
+      case AuthStepResult.error:
+        await showDialog<ConfirmationAction>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const AuthFailureDialog();
+          },
+        );
+        return;
+    }
+
+    stepResult = await _emailAddressExistsChecks();
+    if (!mounted) return;
+    switch (stepResult) {
+      case AuthStepResult.success:
+        break;
+      case AuthStepResult.fail:
+        return;
+      case AuthStepResult.error:
+        await showDialog<ConfirmationAction>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const AuthFailureDialog();
+          },
+        );
+        return;
+    }
+
+    if (!mounted) return;
 
     EmailAuthState state = context.read<EmailAuthBloc>().state;
 
     loadingScreen(context);
 
     await AirqoApiClient()
-        .requestEmailVerificationCode(state.emailAddress, false)
-        .then((emailAuthModel) {
+        .sendEmailVerificationCode(state.emailAddress)
+        .then((emailAuthModel) async {
       if (emailAuthModel == null) {
-        // return emit(state.copyWith(
-        //   status: EmailAuthStatus.error,
-        //   errorMessage: "Failed to send verification code. Try again later",
-        // ));
-      } else{
-        // return emit(state.copyWith(
-        //   status: EmailAuthStatus.verificationCodeSent,
-        //   emailAuthModel: emailAuthModel,
-        // ));
+        await showDialog<ConfirmationAction>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const AuthFailureDialog();
+          },
+        );
+      } else {
+        context.read<EmailAuthBloc>().add(UpdateEmailAuthModel(emailAuthModel));
+        context
+            .read<EmailAuthBloc>()
+            .add(const UpdateEmailAuthStatus(EmailAuthStatus.authCodeSent));
       }
     });
   }

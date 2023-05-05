@@ -3,7 +3,6 @@ import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 class EditOptField extends StatelessWidget {
   const EditOptField({
     super.key,
@@ -64,12 +63,12 @@ class EditOptField extends StatelessWidget {
               cursorColor: textColor,
               keyboardType: TextInputType.number,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 32,
-                fontWeight: FontWeight.w500,
-                color: textColor,
-                letterSpacing: 16 * 0.41,
-                height: 40 / 32,
-              ),
+                    fontSize: 32,
+                    fontWeight: FontWeight.w500,
+                    color: textColor,
+                    letterSpacing: 16 * 0.41,
+                    height: 40 / 32,
+                  ),
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 10,
@@ -125,12 +124,12 @@ class ValidOptField extends StatelessWidget {
           cursorColor: textColor,
           keyboardType: TextInputType.number,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-            color: textColor,
-            letterSpacing: 16 * 0.41,
-            height: 40 / 32,
-          ),
+                fontSize: 32,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+                letterSpacing: 16 * 0.41,
+                height: 40 / 32,
+              ),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(
               vertical: 10,

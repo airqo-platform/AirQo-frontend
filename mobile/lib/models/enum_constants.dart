@@ -45,6 +45,12 @@ enum AppPermission {
   photosStorage,
 }
 
+enum AuthStepResult {
+  fail,
+  success,
+  error;
+}
+
 enum FeedbackStep {
   channelStep,
   typeStep,

@@ -2,23 +2,34 @@ part of 'email_auth_bloc.dart';
 
 enum EmailAuthStatus {
   initial,
-  error,
   invalidEmailAddress,
   emailAddressDoesNotExist,
   emailAddressTaken,
-  verificationCodeSent,
+  authCodeSent,
+  invalidAuthCode,
   success;
 }
 
 class EmailAuthState extends Equatable {
   const EmailAuthState({
-    this.emailAddress = '',
-    this.errorMessage = '',
-    this.authProcedure = AuthProcedure.login,
-    this.status = EmailAuthStatus.initial,
-    this.emailAuthModel,
-    this.loading = false,
+    required this.emailAddress,
+    required this.errorMessage,
+    required this.authProcedure,
+    required this.status,
+    required this.emailAuthModel,
+    required this.loading,
+    required this.codeCountDown,
   });
+
+  factory EmailAuthState.initial() => EmailAuthState(
+        emailAddress: '',
+        errorMessage: '',
+        authProcedure: AuthProcedure.login,
+        status: EmailAuthStatus.initial,
+        emailAuthModel: EmailAuthModel.initial(),
+        loading: false,
+        codeCountDown: 0,
+      );
 
   EmailAuthState copyWith({
     String? emailAddress,
@@ -27,6 +38,7 @@ class EmailAuthState extends Equatable {
     EmailAuthStatus? status,
     EmailAuthModel? emailAuthModel,
     bool? loading,
+    int? codeCountDown,
   }) {
     return EmailAuthState(
       emailAddress: emailAddress ?? this.emailAddress,
@@ -35,6 +47,7 @@ class EmailAuthState extends Equatable {
       status: status ?? this.status,
       emailAuthModel: emailAuthModel ?? this.emailAuthModel,
       loading: loading ?? false,
+      codeCountDown: codeCountDown ?? this.codeCountDown,
     );
   }
 
@@ -43,7 +56,8 @@ class EmailAuthState extends Equatable {
   final AuthProcedure authProcedure;
   final EmailAuthStatus status;
   final bool loading;
-  final EmailAuthModel? emailAuthModel;
+  final EmailAuthModel emailAuthModel;
+  final int codeCountDown;
 
   @override
   List<Object?> get props => [
@@ -53,5 +67,6 @@ class EmailAuthState extends Equatable {
         loading,
         emailAuthModel,
         errorMessage,
+        codeCountDown,
       ];
 }

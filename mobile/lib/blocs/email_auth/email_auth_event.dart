@@ -26,12 +26,35 @@ class UpdateEmailAddress extends EmailAuthEvent {
 class ClearEmailAddress extends EmailAuthEvent {
   const ClearEmailAddress();
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
-class ValidateEmailAddress extends EmailAuthEvent {
-  const ValidateEmailAddress();
-
+class UpdateEmailAuthStatus extends EmailAuthEvent {
+  const UpdateEmailAuthStatus(this.status);
+  final EmailAuthStatus status;
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [status];
+}
+
+class UpdateEmailAuthErrorMessage extends EmailAuthEvent {
+  const UpdateEmailAuthErrorMessage(this.errorMessage);
+
+  final String errorMessage;
+  @override
+  List<Object> get props => [errorMessage];
+}
+
+class UpdateEmailAuthModel extends EmailAuthEvent {
+  const UpdateEmailAuthModel(this.model);
+
+  final EmailAuthModel model;
+  @override
+  List<Object> get props => [model];
+}
+
+class UpdateEmailAuthCountDown extends EmailAuthEvent {
+  const UpdateEmailAuthCountDown(this.countDown);
+  final int countDown;
+  @override
+  List<Object> get props => [countDown];
 }

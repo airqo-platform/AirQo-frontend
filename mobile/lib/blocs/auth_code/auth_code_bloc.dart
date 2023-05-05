@@ -59,7 +59,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       ));
     }
 
-    if (int.parse(state.inputAuthCode) != emailAuthModel.token) {
+    if (int.parse(state.inputAuthCode) != emailAuthModel.validToken) {
       return emit(state.copyWith(status: AuthCodeStatus.invalidCode));
     }
 

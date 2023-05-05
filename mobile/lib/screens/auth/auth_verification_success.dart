@@ -5,7 +5,9 @@ import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
+import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
+import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
 class AuthVerificationSuccessWidget extends StatefulWidget {
@@ -75,13 +77,29 @@ class _AuthVerificationSuccessWidgetState
 
   Future<void> _goToNextPage() async {
     switch (widget.authProcedure) {
-      case AuthProcedure.login:
       case AuthProcedure.signup:
+        await AppService.postSignInActions(context).then((_) async {
+          await Future.delayed(const Duration(seconds: 2)).then((_) async {
+            await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProfileSetupScreen(),
+              ),
+              (r) => false,
+            );
+          });
+        });
+        break;
+      case AuthProcedure.login:
       case AuthProcedure.anonymousLogin:
         await AppService.postSignInActions(context).then((_) async {
-          await Future.delayed(const Duration(seconds: 2)).then((_) {
-            Navigator.pop(context, true);
-          });
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+            (r) => false,
+          );
         });
         break;
       case AuthProcedure.deleteAccount:

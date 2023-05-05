@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../screens/home_page.dart';
+
 Future<void> openPhoneSettings(BuildContext context, String message) async {
   final confirmation = await showDialog<ConfirmationAction>(
     context: context,
@@ -428,6 +430,49 @@ class AuthMethodDialog extends StatelessWidget {
           isDestructiveAction: false,
           child: Text(
             'Yes',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class AuthFailureDialog extends StatelessWidget {
+  const AuthFailureDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: const Text(
+        'Oops, an error occurred while authenticating',
+        textAlign: TextAlign.center,
+      ),
+      content: const Text(
+        "Try again later. send me to air quality readings",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 18 / 16,
+        ),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () async {
+            await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+              (r) => false,
+            );
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            'Proceed to viewing air quality readings',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
