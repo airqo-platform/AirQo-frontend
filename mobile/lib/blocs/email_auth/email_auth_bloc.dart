@@ -14,6 +14,15 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     on<UpdateEmailAuthErrorMessage>(_onUpdateEmailAuthErrorMessage);
     on<UpdateEmailAuthModel>(_onUpdateEmailAuthModel);
     on<UpdateEmailAuthCountDown>(_onUpdateEmailAuthCountDown);
+    on<UpdateEmailInputCode>(_onUpdateEmailInputCode);
+  }
+
+  void _onUpdateEmailInputCode(
+    UpdateEmailInputCode event,
+    Emitter<EmailAuthState> emit,
+  ) {
+    emit(state.copyWith(
+        emailAuthModel: state.emailAuthModel.copyWith(inputToken: event.code)));
   }
 
   void _onUpdateEmailAuthCountDown(

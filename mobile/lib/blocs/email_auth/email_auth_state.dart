@@ -17,7 +17,6 @@ class EmailAuthState extends Equatable {
     required this.authProcedure,
     required this.status,
     required this.emailAuthModel,
-    required this.loading,
     required this.codeCountDown,
   });
 
@@ -27,7 +26,6 @@ class EmailAuthState extends Equatable {
         authProcedure: AuthProcedure.login,
         status: EmailAuthStatus.initial,
         emailAuthModel: EmailAuthModel.initial(),
-        loading: false,
         codeCountDown: 0,
       );
 
@@ -46,7 +44,6 @@ class EmailAuthState extends Equatable {
       authProcedure: authProcedure ?? this.authProcedure,
       status: status ?? this.status,
       emailAuthModel: emailAuthModel ?? this.emailAuthModel,
-      loading: loading ?? false,
       codeCountDown: codeCountDown ?? this.codeCountDown,
     );
   }
@@ -55,7 +52,6 @@ class EmailAuthState extends Equatable {
   final String errorMessage;
   final AuthProcedure authProcedure;
   final EmailAuthStatus status;
-  final bool loading;
   final EmailAuthModel emailAuthModel;
   final int codeCountDown;
 
@@ -64,7 +60,6 @@ class EmailAuthState extends Equatable {
         emailAddress,
         authProcedure,
         status,
-        loading,
         emailAuthModel,
         errorMessage,
         codeCountDown,

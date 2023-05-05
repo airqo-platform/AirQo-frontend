@@ -72,9 +72,9 @@ class EmailVerificationWidgetState extends State<EmailVerificationWidget> {
               padding: const EdgeInsets.only(top: 20.0),
               child: EditOptField(
                 callbackFn: (String value) {
-                  context.read<AuthCodeBloc>().add(UpdateAuthCode(
-                        value: value,
-                      ));
+                  context
+                      .read<EmailAuthBloc>()
+                      .add(UpdateEmailInputCode(int.parse(value)));
                 },
               ),
             ),

@@ -58,3 +58,11 @@ class UpdateEmailAuthCountDown extends EmailAuthEvent {
   @override
   List<Object> get props => [countDown];
 }
+
+class UpdateEmailInputCode extends EmailAuthEvent {
+  const UpdateEmailInputCode(this.code);
+  final int code;
+
+  @override
+  List<Object> get props => [code];
+}

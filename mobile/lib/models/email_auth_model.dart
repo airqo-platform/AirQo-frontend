@@ -1,18 +1,21 @@
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'email_auth_model.g.dart';
 
 @JsonSerializable(createToJson: false)
-class EmailAuthModel {
-  EmailAuthModel({
+class EmailAuthModel extends Equatable {
+  const EmailAuthModel({
     required this.validToken,
     required this.emailAddress,
     required this.signInLink,
     required this.reAuthenticationLink,
+    this.inputToken = 0,
   });
 
-  factory EmailAuthModel.initial() => EmailAuthModel(
+  factory EmailAuthModel.initial() => const EmailAuthModel(
       validToken: 0,
+      inputToken: 0,
       emailAddress: '',
       signInLink: '',
       reAuthenticationLink: '');
@@ -23,7 +26,8 @@ class EmailAuthModel {
   @JsonKey(name: 'token')
   final int validToken;
 
-  int inputToken = 0;
+  @JsonKey(includeFromJson: false)
+  final int inputToken;
 
   @JsonKey(name: 'email')
   final String emailAddress;
@@ -35,4 +39,22 @@ class EmailAuthModel {
   final String reAuthenticationLink;
 
   bool isValidInputToken() => inputToken == validToken;
+
+  EmailAuthModel copyWith({int? inputToken}) {
+    return EmailAuthModel(
+        inputToken: inputToken ?? this.inputToken,
+        validToken: validToken,
+        emailAddress: emailAddress,
+        signInLink: signInLink,
+        reAuthenticationLink: reAuthenticationLink);
+  }
+
+  @override
+  List<Object?> get props => [
+        validToken,
+        inputToken,
+        emailAddress,
+        signInLink,
+        reAuthenticationLink,
+      ];
 }
