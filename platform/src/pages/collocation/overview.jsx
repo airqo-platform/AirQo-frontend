@@ -20,6 +20,7 @@ import {
   removeOverviewBatch,
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import EmptyState from '@/components/Collocation/Overview/empty_state';
+import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Overview';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -141,7 +142,7 @@ const CollocationOverview = () => {
     <Layout>
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {deviceSummaryLoading || collocationStatisticsLoading ? (
-        <div>I am a skeleton</div>
+        <OverviewSkeleton />
       ) : collocationStatisticsSuccess ? (
         <ContentBox>
           <div className='grid grid-cols-1 divide-y divide-grey-150'>
