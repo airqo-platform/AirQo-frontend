@@ -9,6 +9,7 @@ const collocationDataSlice = createSlice({
     collocationResults: null,
     activeSelectedDeviceReport: null,
     activeSelectedDeviceCollocationReportData: null,
+    overviewBatch: null,
   },
   reducers: {
     addCollocationData(state, action) {
@@ -26,6 +27,17 @@ const collocationDataSlice = createSlice({
     addActiveSelectedDeviceCollocationReportData(state, action) {
       state.activeSelectedDeviceCollocationReportData = action.payload;
     },
+    addOverviewBatch(state, action) {
+      state.overviewBatch = action.payload;
+    },
+    removeOverviewBatch(state) {
+      state.overviewBatch = null;
+    },
+    removeDevicefromOverviewBatch(state, action) {
+      state.overviewBatch = state.overviewBatch.filter(
+        (device) => device.device_name !== action.payload,
+      );
+    },
     removeActiveSelectedDeviceCollocationReportData(state) {
       state.activeSelectedDeviceCollocationReportData = null;
     },
@@ -40,6 +52,9 @@ export const {
   addDeviceStatusSummary,
   addActiveSelectedDeviceCollocationReportData,
   addActiveSelectedDeviceReport,
+  addOverviewBatch,
+  removeOverviewBatch,
+  removeDevicefromOverviewBatch,
   removeActiveSelectedDeviceCollocationReportData,
   removeActiveSelectedDeviceReport,
 } = collocationDataSlice.actions;
