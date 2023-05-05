@@ -2,8 +2,6 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:app/utils/utils.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -32,8 +30,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   });
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
-    DateTime dateTime = DateTime.parse(json["time"] as String);
-    dateTime = dateTime.add(Duration(hours: DateTime.now().getUtcOffset()));
+    DateTime dateTime = dateTimeFromUtcString(json["time"]);
     PollutantValue pm2_5 =
         PollutantValue.fromJson(json["pm2_5"] as Map<String, dynamic>);
     PollutantValue pm10 =
@@ -45,12 +42,13 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       throw Exception("pm2.5 is null for site ${site.getName()}");
     }
     List<HealthTip> healthTips = [];
+    dynamic jsonHealthTips = json['health_tips'];
 
-    for (final healthTip in json['health_tips']) {
-      try {
-        healthTips.add(HealthTip.fromJson(healthTip));
-      } catch (exception, __) {
-        debugPrint(exception.toString());
+    if (jsonHealthTips != null) {
+      for (final healthTip in jsonHealthTips as List<dynamic>) {
+        try {
+          healthTips.add(HealthTip.fromJson(healthTip as Map<String, dynamic>));
+        } catch (_, __) {}
       }
     }
 
@@ -73,42 +71,6 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     );
   }
 
-  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
-    AirQualityReading airQualityReading = Hive.box<AirQualityReading>(
-      HiveBox.airQualityReadings,
-    ).values.firstWhere(
-      (element) => element.referenceSite == favouritePlace.referenceSite,
-      orElse: () {
-        return AirQualityReading(
-          referenceSite: favouritePlace.referenceSite,
-          source: '',
-          latitude: favouritePlace.latitude,
-          longitude: favouritePlace.longitude,
-          country: '',
-          name: favouritePlace.name,
-          location: favouritePlace.location,
-          region: '',
-          dateTime: DateTime.now(),
-          pm2_5: 0,
-          pm10: 0,
-          distanceToReferenceSite: 0,
-          placeId: favouritePlace.placeId,
-          shareLink: '',
-          healthTips: [],
-        );
-      },
-    );
-
-    return airQualityReading.copyWith(
-      referenceSite: favouritePlace.referenceSite,
-      latitude: favouritePlace.latitude,
-      longitude: favouritePlace.longitude,
-      name: favouritePlace.name,
-      location: favouritePlace.location,
-      placeId: favouritePlace.placeId,
-    );
-  }
-
   factory AirQualityReading.fromDynamicLink(
     PendingDynamicLinkData dynamicLinkData,
   ) {
@@ -122,9 +84,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
         dynamicLinkData.link.queryParameters['longitude'] ?? '0.0';
 
     AirQualityReading airQualityReading =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .values
-            .firstWhere(
+        HiveService().getAirQualityReadings().firstWhere(
       (element) => element.referenceSite == referenceSite,
       orElse: () {
         String country = dynamicLinkData.link.queryParameters['country'] ?? '';
@@ -257,6 +217,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
 
   @HiveField(15, defaultValue: [])
   final List<HealthTip> healthTips;
+
+  AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 
   @override
   List<Object?> get props => [placeId, dateTime];

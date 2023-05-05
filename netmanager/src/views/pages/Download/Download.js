@@ -30,8 +30,10 @@ import { useInitScrollTop, usePollutantsOptions } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
-import { useDashboardAirqloudsData } from '../../../redux/AirQloud/selectors';
-import { fetchDashboardAirQloudsData } from '../../../redux/AirQloud/operations';
+import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
+import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSitesData } from 'redux/SiteRegistry/selectors';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,6 +56,61 @@ const useStyles = makeStyles((theme) => ({
     }
   }
 }));
+
+const normalizeRegionCountry = (region, country) => {
+  if (!region || !country) {
+    return '';
+  }
+
+  // Remove punctuation and extra spaces, then convert to lower case
+  const normalizedRegion = region.replace(/[.,]/g, '').trim().toLowerCase();
+  const normalizedCountry = country.replace(/[.,]/g, '').trim().toLowerCase();
+
+  // Return the normalized key
+  return `${normalizedRegion} - ${normalizedCountry}`;
+};
+
+const groupSitesByRegion = (sites) => {
+  const regionGroups = {};
+
+  for (const site of sites) {
+    const regionCountryKey = normalizeRegionCountry(site.region, site.country);
+
+    if (!regionGroups[regionCountryKey]) {
+      regionGroups[regionCountryKey] = {
+        region: `${site.region}, ${site.country}`,
+        label: `${site.region}, ${site.country}`,
+        value: [],
+        country: site.country
+      };
+    }
+
+    regionGroups[regionCountryKey].value.push(site._id);
+  }
+
+  const groupedRegions = Object.values(regionGroups);
+
+  // sort groupedRegions by country
+  groupedRegions.sort((a, b) => {
+    if (a.country < b.country) return -1;
+    if (a.country > b.country) return 1;
+    return 0;
+  });
+
+  return groupedRegions;
+};
+
+const createDeviceRegistrySiteOptions = (sites) => {
+  const options = [];
+  sites.map((site) =>
+    options.push({
+      _id: site._id,
+      region: site.region,
+      country: site.country
+    })
+  );
+  return options;
+};
 
 const createSiteOptions = (sites) => {
   const options = [];
@@ -101,6 +158,14 @@ const getValues = (options) => {
   return values;
 };
 
+function extractSiteIds(options) {
+  const siteIds = options.reduce((ids, obj) => {
+    return ids.concat(obj.value);
+  }, []);
+
+  return siteIds;
+}
+
 const Download = (props) => {
   useInitScrollTop();
   const { className, staticContext, ...rest } = props;
@@ -113,6 +178,11 @@ const Download = (props) => {
   const sites = useDashboardSitesData();
   const [siteOptions, setSiteOptions] = useState([]);
   const [selectedSites, setSelectedSites] = useState([]);
+
+  const deviceRegistrySites = useSitesData();
+  const [deviceRegistrySiteOptions, setDeviceRegistrySiteOptions] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
+  const [selectedRegions, setSelectedRegions] = useState([]);
 
   const deviceList = useDevicesData();
   const [deviceOptions, setDeviceOptions] = useState([]);
@@ -184,6 +254,10 @@ const Download = (props) => {
   }, []);
 
   useEffect(() => {
+    if (isEmpty(deviceRegistrySites)) dispatch(loadSitesData());
+  }, []);
+
+  useEffect(() => {
     if (isEmpty(deviceList)) {
       dispatch(loadDevicesData());
     }
@@ -196,10 +270,20 @@ const Download = (props) => {
   }, [sites, deviceList, airqlouds]);
 
   useEffect(() => {
+    setDeviceRegistrySiteOptions(
+      createDeviceRegistrySiteOptions(Object.values(deviceRegistrySites))
+    );
+  }, [deviceRegistrySites]);
+
+  useEffect(() => {
     if (isEmpty(airqlouds)) {
       dispatch(fetchDashboardAirQloudsData());
     }
   }, []);
+
+  useEffect(() => {
+    setRegionOptions(groupSitesByRegion(deviceRegistrySiteOptions));
+  }, [deviceRegistrySiteOptions]);
 
   const disableDownloadBtn = (exportType) => {
     if (exportType === 'sites') {
@@ -248,6 +332,22 @@ const Download = (props) => {
         ) || loading
       );
     }
+
+    if (exportType === 'regions') {
+      return (
+        !(
+          startDate &&
+          endDate &&
+          !isEmpty(selectedRegions) &&
+          !isEmpty(pollutants) &&
+          fileType &&
+          fileType.value &&
+          frequency &&
+          frequency.value &&
+          outputFormat
+        ) || loading
+      );
+    }
   };
 
   // Function to export data as a file
@@ -285,18 +385,36 @@ const Download = (props) => {
         setSelectedAirqlouds([]);
         setSelectedDevices([]);
         setSelectedSites([]);
+        setSelectedRegions([]);
         setPollutants([]);
         setOutputFormat(null);
         setFrequency(null);
-      })
-      .catch((err) => {
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message: 'Air quality data download successful',
             show: true,
-            severity: 'error'
+            severity: 'success'
           })
         );
+      })
+      .catch((err) => {
+        if (err.response.data.status === 'success') {
+          dispatch(
+            updateMainAlert({
+              message: 'Uh-oh! No data found for the selected parameters.',
+              show: true,
+              severity: 'success'
+            })
+          );
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: err.response.data.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
 
         setLoading(false);
         setStartDate(null);
@@ -305,6 +423,7 @@ const Download = (props) => {
         setSelectedAirqlouds([]);
         setSelectedDevices([]);
         setSelectedSites([]);
+        setSelectedRegions([]);
         setPollutants([]);
         setOutputFormat(null);
         setFrequency(null);
@@ -365,6 +484,24 @@ const Download = (props) => {
     downloadDataFunc(body);
   };
 
+  const exportDataByRegion = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let data = {
+      sites: extractSiteIds(selectedRegions),
+      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+      frequency: frequency.value,
+      pollutants: getValues(pollutants),
+      downloadType: 'json',
+      outputFormat: outputFormat.value
+    };
+
+    downloadDataFunc(data);
+  };
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
@@ -395,6 +532,7 @@ const Download = (props) => {
                 <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
                 <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
+                <Tab disableTouchRipple label="Export by Regions" {...a11yProps(3)} />
               </Tabs>
 
               <TabPanel value={value} index={0}>
@@ -800,6 +938,147 @@ const Download = (props) => {
                         variant="outlined"
                         type="submit"
                         disabled={disableDownloadBtn('airqlouds')}
+                      >
+                        {' '}
+                        Download Data
+                      </Button>
+                      {loading && (
+                        <CircularProgress
+                          size={24}
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            marginTop: '-12px',
+                            marginLeft: '-12px'
+                          }}
+                        />
+                      )}
+                    </span>
+                  </CardActions>
+                </form>
+              </TabPanel>
+
+              <TabPanel value={value} index={3}>
+                <form onSubmit={exportDataByRegion}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item md={6} xs={12}>
+                        <TextField
+                          label="Start Date"
+                          className="reactSelect"
+                          fullWidth
+                          variant="outlined"
+                          value={startDate}
+                          InputLabelProps={{ shrink: true }}
+                          type="date"
+                          onChange={(event) => setStartDate(event.target.value)}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <TextField
+                          label="End Date"
+                          className="reactSelect"
+                          fullWidth
+                          variant="outlined"
+                          value={endDate}
+                          InputLabelProps={{ shrink: true }}
+                          type="date"
+                          onChange={(event) => setEndDate(event.target.value)}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          className="reactSelect"
+                          name="region"
+                          placeholder="Select Region(s)"
+                          value={selectedRegions}
+                          options={regionOptions}
+                          onChange={(options) => setSelectedRegions(options)}
+                          isMulti
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Frequency"
+                          className=""
+                          name="chart-frequency"
+                          placeholder="Frequency"
+                          value={frequency}
+                          options={frequencyOptions}
+                          onChange={(options) => setFrequency(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="Pollutant"
+                          className="reactSelect"
+                          name="pollutant"
+                          placeholder="Pollutant(s)"
+                          value={pollutants}
+                          options={pollutantOptions}
+                          onChange={(options) => setPollutants(options)}
+                          isMulti
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="File Type"
+                          className="reactSelect"
+                          name="file-type"
+                          placeholder="File Type"
+                          value={fileType}
+                          options={typeOptions}
+                          onChange={(options) => setFileType(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <Select
+                          fullWidth
+                          label="File Output Standard"
+                          className="reactSelect"
+                          name="file-output-format"
+                          placeholder="File Output Standard"
+                          value={outputFormat}
+                          options={typeOutputFormatOptions}
+                          onChange={(options) => setOutputFormat(options)}
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+
+                  <Divider />
+                  <CardActions>
+                    <span style={{ position: 'relative' }}>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        type="submit"
+                        disabled={disableDownloadBtn('regions')}
                       >
                         {' '}
                         Download Data

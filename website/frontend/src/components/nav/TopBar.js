@@ -51,6 +51,12 @@ const TopBar = () => {
                     <h4>Access and visualise air quality data</h4>
                   </Link>
                 </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
+                    <h3>Mobile App</h3>
+                    <h4>Discover the quality of air around you</h4>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -80,7 +86,45 @@ const TopBar = () => {
               </div>
             </div>
           </div>
-          <NavTab text="About" path="/about-us" hideArrow />
+          <div className="nav-dropdown-item single-links">
+            <NavTab text="About" />
+            <div className="dropdown" id="solutions-dropdown">
+              <h3 className="title">About AirQo</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/about-us">
+                    <h3>About Us</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/contact">
+                    <h3>Contact Us</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/careers">
+                    <h3>Careers</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/events">
+                    <h3>Events</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/publications">
+                    <h3>Publications</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/press">
+                    <h3>Press</h3>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* <NavTab text="About" path="/about-us" hideArrow /> */}
           <NavTab text="Get involved" hideArrow colored onClick={showModal} />
           <NavTab text="Explore data" path="/explore-data" hideArrow filled />
         </div>

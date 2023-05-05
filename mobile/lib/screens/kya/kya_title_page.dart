@@ -8,7 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-
+import 'package:app/constants/constants.dart' as config;
 import 'kya_lessons_page.dart';
 import 'kya_widgets.dart';
 
@@ -18,40 +18,52 @@ class KyaTitlePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KyaBloc, List<Kya>>(
-      builder: (context, state) {
-        Kya cachedKya = state.firstWhere(
-          (element) => element.id == kya.id,
-          orElse: () => kya,
-        );
-        if (!cachedKya.isEmpty()) return PageScaffold(cachedKya);
+    final mediaQueryData = MediaQuery.of(context);
 
-        return FutureBuilder<Kya?>(
-          future: AppService.getKya(kya),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              if (snapshot.error.runtimeType == NetworkConnectionException) {
-                return NoInternetConnectionWidget(
-                  callBack: () => context.read<KyaBloc>().add(const SyncKya()),
-                );
-              }
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      config.Config.minimumTextScaleFactor,
+      config.Config.maximumTextScaleFactor,
+    );
 
-              return const KyaNotFoundWidget();
-            }
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: BlocBuilder<KyaBloc, List<Kya>>(
+        builder: (context, state) {
+          Kya cachedKya = state.firstWhere(
+            (element) => element.id == kya.id,
+            orElse: () => kya,
+          );
 
-            if (snapshot.hasData) {
-              final Kya? kya = snapshot.data;
-              if (kya == null) {
+          if (!cachedKya.isEmpty()) return PageScaffold(cachedKya);
+
+          return FutureBuilder<Kya?>(
+            future: AppService.getKya(kya),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                if (snapshot.error.runtimeType == NetworkConnectionException) {
+                  return NoInternetConnectionWidget(
+                    callBack: () =>
+                        context.read<KyaBloc>().add(const SyncKya()),
+                  );
+                }
+
                 return const KyaNotFoundWidget();
               }
 
-              return PageScaffold(kya);
-            }
+              if (snapshot.hasData) {
+                final Kya? kya = snapshot.data;
+                if (kya == null) {
+                  return const KyaNotFoundWidget();
+                }
 
-            return const KyaLoadingWidget();
-          },
-        );
-      },
+                return PageScaffold(kya);
+              }
+
+              return const KyaLoadingWidget();
+            },
+          );
+        },
+      ),
     );
   }
 }

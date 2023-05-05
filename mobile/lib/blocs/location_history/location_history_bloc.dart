@@ -22,40 +22,79 @@ class LocationHistoryBloc
     emit([]);
   }
 
+  Set<LocationHistory> _updateAirQuality(Set<LocationHistory> data) {
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+
+    return Set.of(data).map((place) {
+      try {
+        AirQualityReading airQualityReading = airQualityReadings
+            .firstWhere((element) => element.referenceSite == place.site);
+
+        return place.copyWith(airQualityReading: airQualityReading);
+      } catch (e) {
+        return place;
+      }
+    }).toSet();
+  }
+
   Future<void> _onAddLocationHistory(
     AddLocationHistory event,
     Emitter<List<LocationHistory>> emit,
   ) async {
-    List<LocationHistory> locationHistory = [
-      LocationHistory.fromAirQualityReading(event.airQualityReading),
-    ];
+    Set<LocationHistory> locationHistory = state.toSet();
+    locationHistory
+        .add(LocationHistory.fromAirQualityReading(event.airQualityReading));
 
-    Set<LocationHistory> locationHistorySet = state.toSet();
-    locationHistorySet.addAll(locationHistory.toSet());
+    locationHistory = _updateAirQuality(locationHistory);
 
-    emit(locationHistorySet.toList());
+    emit(locationHistory.toList());
 
-    await CloudStore.updateLocationHistory(state);
+    await CloudStore.updateLocationHistory(locationHistory.toList());
   }
 
   Future<void> _onSyncLocationHistory(
     SyncLocationHistory _,
     Emitter<List<LocationHistory>> emit,
   ) async {
-    List<LocationHistory> locationHistory =
+    List<LocationHistory> cloudLocationHistory =
         await CloudStore.getLocationHistory();
 
-    Set<LocationHistory> locationHistorySet = state.toSet();
-    locationHistorySet.addAll(locationHistory.toSet());
+    Set<LocationHistory> locationHistory = state.toSet();
+    locationHistory.addAll(cloudLocationHistory);
 
-    emit(locationHistorySet.toList());
+    locationHistory = _updateAirQuality(locationHistory);
 
-    await CloudStore.updateLocationHistory(state);
+    emit(locationHistory.toList());
+
+    Set<LocationHistory> updatedLocationHistory = {};
+    for (final place in locationHistory) {
+      final nearestSite = await LocationService.getNearestSite(
+        place.latitude,
+        place.longitude,
+      );
+
+      if (nearestSite != null) {
+        updatedLocationHistory
+            .add(place.copyWith(site: nearestSite.referenceSite));
+      } else {
+        updatedLocationHistory.add(place);
+      }
+    }
+
+    updatedLocationHistory = _updateAirQuality(updatedLocationHistory);
+
+    emit(updatedLocationHistory.toList());
+    await CloudStore.updateLocationHistory(updatedLocationHistory.toList());
   }
 
   @override
   List<LocationHistory>? fromJson(Map<String, dynamic> json) {
-    return LocationHistoryList.fromJson(json).data;
+    List<LocationHistory> locationHistory =
+        LocationHistoryList.fromJson(json).data;
+    locationHistory = _updateAirQuality(locationHistory.toSet()).toList();
+
+    return locationHistory;
   }
 
   @override

@@ -32,6 +32,9 @@
         grid-column: 1 / 4;
         padding-top: 80px;
     }
+    .grid-section{
+        grid-column: 2 / 3;
+    }
     .grid-full.column{
         display: flex;
         flex-direction: column;
@@ -148,6 +151,12 @@
                     padding:50px 0 20px 0px;
                     border-radius: 8px;
                 }
+                .image-overlap{
+                    z-index: 999;
+                    position: absolute;
+                    top: 126px;
+                    left: -120px;
+                }
             }
             .lapping-left.card.larger-top{
                 top: 70px;
@@ -209,6 +218,7 @@
 
 // ANALYTICS PAGE
 .product-page.analytics{
+    overflow: hidden;
     .section.landscape-section{
         background-color: $aq-blue-11;
         overflow-x: hidden;
@@ -233,6 +243,42 @@
             margin-top: 90px;
         }
         
+    }
+}
+
+// MOBILE PAGE
+.product-page.mobile-app{
+    overflow: hidden;
+    .section.section-1{
+        .overlap-section{
+            .lapping-left.card{
+                top: 12px;
+            }
+            .lapping-left.image{
+                .image-overlap{
+                    top: 140px;
+                }
+            }
+        }
+    }
+    .section.section-3{
+        .lapping-left.card{
+            top: 113px;
+        }
+        .lapping-left.image#section-3{
+            background-color: $aq-blue-11;
+            width:70%;
+            border-radius: 8px;
+            img{
+                position: absolute;
+                top: -40px;
+                right: 60px;
+                height: 100%;
+            }
+        }
+    }
+    .get-app{
+        height: 860px;
     }
 }
 
@@ -287,14 +333,14 @@
                     }
                 }
                 .lapping-left.card.larger-top{
-                    top: 0;
+                    top: -40px;
                 }
                 .lapping-right.card.larger-top{
-                    top: 0;
+                    top: -40px;
                 }
                 .lapping-right.card.smaller-width{
                     width: 90%;
-                    margin-top: -10%;
+                    margin-top: -17%;
                 }
             }
         }
@@ -307,8 +353,8 @@
             padding: 0;
         }
         .section{
-            padding-left: 16px;
-            padding-right: 16px;
+            padding-left: 8px;
+            padding-right: 8px;
         }
         .section.landscape-section{
             margin-top: 60px;
@@ -323,6 +369,68 @@
                 }
             }
             
+        }
+    }
+    .product-page.mobile-app{
+        .section{
+            .lapping-left.card{
+                width: 85%;
+            }
+            .lapping-right.card{
+                width: 85%;
+                top: -80px;
+            }
+            .lapping-right.card.larger-top{
+                top: -90px;
+            }
+            .lapping-right.image{
+                .image-overlap{
+                    top: 20px;
+                    left: 20px;
+                }
+            }
+        }
+        .section.section-1{
+            .overlap-section{
+                .lapping-left.card{
+                    top: -40px;
+                }
+                .lapping-left.image{
+                    .image-overlap{
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        margin: 0 auto;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: min-content;
+                        height: min-content;
+                        img{
+                            width: auto;
+                        }
+                    }
+                }
+            }
+        }
+        .section.section-3{
+            .lapping-left.card{
+                top: -28px;
+            }
+            .lapping-left.image#section-3{
+                width: 100%;
+                left: 0;
+                right: 0;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                img{
+                    position: relative;
+                    right: 0;
+                    width: auto;
+                }
+            }
         }
     }
 }
@@ -419,4 +527,41 @@
             
         }
     }
+    .product-page.mobile-app{
+        .section{
+            .lapping-right.image{
+                .image-overlap{
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    margin: 0 auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: min-content;
+                    height: min-content;
+                }
+            }
+            .lapping-right.image#section-2{
+                img{
+                    object-position: 0;
+                }
+            }
+        }
+        .section.section-3{
+            .lapping-left.card{
+                top: 0px;
+            }
+            .lapping-left.image#section-3{
+                img{
+                    object-position: 0;
+                    top: 10px;
+                }
+            }
+        }
+        .get-app{
+            height: 760px;
+        }
+    }
 }
+
