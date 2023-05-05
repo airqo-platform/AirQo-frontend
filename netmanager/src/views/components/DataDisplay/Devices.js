@@ -354,7 +354,7 @@ const CreateDevice = ({ open, setOpen }) => {
   );
 };
 
-const SoftCreateDevice = ({ open, setOpen }) => {
+const SoftCreateDevice = ({ open, setOpen, network }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -514,6 +514,7 @@ const DevicesTable = (props) => {
   const devices = useDevicesData();
   const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
 
@@ -559,7 +560,6 @@ const DevicesTable = (props) => {
   const [softRegisterOpen, setSoftRegisterOpen] = useState(false);
 
   useEffect(() => {
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (isEmpty(devices)) {
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
@@ -637,8 +637,12 @@ const DevicesTable = (props) => {
           }}
         />
 
-        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} />
-        <SoftCreateDevice open={softRegisterOpen} setOpen={setSoftRegisterOpen} />
+        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} network={activeNetwork} />
+        <SoftCreateDevice
+          open={softRegisterOpen}
+          setOpen={setSoftRegisterOpen}
+          network={activeNetwork}
+        />
 
         <ConfirmDialog
           open={delDevice.open}

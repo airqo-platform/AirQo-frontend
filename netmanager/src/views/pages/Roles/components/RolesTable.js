@@ -235,176 +235,170 @@ const RolesTable = (props) => {
   };
 
   return (
-    <>
-      {roles ? (
-        <Card {...rest} className={clsx(classes.root, className)}>
-          <CustomMaterialTable
-            title={'role'}
-            userPreferencePaginationKey={'roles'}
-            data={roles}
-            loading={loading}
-            columns={[
-              {
-                title: 'Role Name',
-                field: 'role_name'
-              },
-              {
-                title: 'Status',
-                field: 'role_status',
-                render: (rowData) => {
-                  return <Chip label={rowData.role_status} />;
-                }
-              },
-              {
-                title: 'Users',
-                render: (rowData) => {
-                  const users = rowData.role_users.length;
-
-                  return (
-                    <div>
-                      {rowData.role_users.length > 0 ? (
-                        <RemoveRedEye
-                          style={{ color: 'green', cursor: 'pointer' }}
-                          onClick={() => {
-                            setSelectedRoleUsers(rowData.role_users);
-                            setOpen(true);
-                          }}
-                        />
-                      ) : (
-                        <RemoveRedEye style={{ color: 'grey' }} disabled />
-                      )}
-                    </div>
-                  );
-                }
-              },
-              {
-                title: 'Permissions',
-                render: (rowData) => {
-                  return (
-                    <>
-                      {rowData.role_permissions &&
-                        rowData.role_permissions.map((permission) => (
-                          <div>{permission.permission}</div>
-                        ))}
-                    </>
-                  );
-                }
-              },
-              {
-                title: 'Action',
-                render: (role) => {
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '90px' }}>
-                      <Button color="primary" onClick={() => showEditDialog(role)}>
-                        Update
-                      </Button>
-
-                      <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(role)}>
-                        Delete
-                      </Button>
-                    </div>
-                  );
-                }
-              }
-            ]}
-            options={{
-              search: true,
-              searchFieldAlignment: 'left',
-              showTitle: false
-            }}
-          />
-          <Dialog open={showEditPopup} onClose={hideEditDialog} aria-labelledby="form-dialog-title">
-            <DialogTitle>Edit Role</DialogTitle>
-            <DialogContent>
-              <div>
-                <TextField
-                  margin="dense"
-                  id="role_name"
-                  name="role_name"
-                  type="text"
-                  label="role"
-                  variant="outlined"
-                  value={updatedRole && updatedRole.role_name}
-                  onChange={handleUpdateRole('role_name')}
-                  fullWidth
-                  required
-                />
-                <TextField
-                  margin="dense"
-                  id="role_status"
-                  name="role_status"
-                  type="text"
-                  label="Status"
-                  variant="outlined"
-                  fullWidth
-                  value={updatedRole && updatedRole.role_status}
-                  onChange={handleUpdateRole('role_status')}
-                />
-                <OutlinedSelect
-                  className="reactSelect"
-                  label="Permissions"
-                  onChange={(options) => setSelectedPermissions(options)}
-                  options={rolePermissionsOptions}
-                  value={selectedPermissions}
-                  fullWidth
-                  isMulti
-                  scrollable
-                  height={'100px'}
-                  required
-                />
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <div>
-                <Button color="primary" variant="outlined" onClick={hideEditDialog}>
-                  Cancel
-                </Button>
-                <Button
-                  style={{ margin: '0 15px' }}
-                  onClick={submitEditRole}
-                  color="primary"
-                  variant="contained"
-                >
-                  Submit
-                </Button>
-              </div>
-            </DialogActions>
-          </Dialog>
-
-          <ConfirmDialog
-            title={'Delete Role'}
-            open={roleDelState.open}
-            message={
-              <span>
-                Are you sure you want to delete this role —
-                <strong>{roleDelState.role.role_name}</strong>?
-              </span>
+    <Card {...rest} className={clsx(classes.root, className)}>
+      <CustomMaterialTable
+        title={'role'}
+        userPreferencePaginationKey={'roles'}
+        data={!isEmpty(roles) ? roles : []}
+        loading={loading}
+        columns={[
+          {
+            title: 'Role Name',
+            field: 'role_name'
+          },
+          {
+            title: 'Status',
+            field: 'role_status',
+            render: (rowData) => {
+              return <Chip label={rowData.role_status} />;
             }
-            confirm={deleteRole}
-            close={hideDeleteDialog}
-            error
-          />
+          },
+          {
+            title: 'Users',
+            render: (rowData) => {
+              const users = rowData.role_users.length;
 
-          {selectedRoleUsers && (
-            <Dialog open={open} onClose={handleClose} aria-labelledby="users-dialog-title">
-              <DialogTitle id="users-dialog-title">
-                <h6 style={{ textAlign: 'center' }}>Role Users</h6>
-              </DialogTitle>
-              <DialogContent>
-                <UserPopupTable users={selectedRoleUsers} />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose} color="primary">
-                  Close
-                </Button>
-              </DialogActions>
-            </Dialog>
-          )}
-        </Card>
-      ) : (
-        <div>No records found</div>
+              return (
+                <div>
+                  {rowData.role_users.length > 0 ? (
+                    <RemoveRedEye
+                      style={{ color: 'green', cursor: 'pointer' }}
+                      onClick={() => {
+                        setSelectedRoleUsers(rowData.role_users);
+                        setOpen(true);
+                      }}
+                    />
+                  ) : (
+                    <RemoveRedEye style={{ color: 'grey' }} disabled />
+                  )}
+                </div>
+              );
+            }
+          },
+          {
+            title: 'Permissions',
+            render: (rowData) => {
+              return (
+                <>
+                  {rowData.role_permissions &&
+                    rowData.role_permissions.map((permission) => (
+                      <div>{permission.permission}</div>
+                    ))}
+                </>
+              );
+            }
+          },
+          {
+            title: 'Action',
+            render: (role) => {
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '90px' }}>
+                  <Button color="primary" onClick={() => showEditDialog(role)}>
+                    Update
+                  </Button>
+
+                  <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(role)}>
+                    Delete
+                  </Button>
+                </div>
+              );
+            }
+          }
+        ]}
+        options={{
+          search: true,
+          searchFieldAlignment: 'left',
+          showTitle: false
+        }}
+      />
+      <Dialog open={showEditPopup} onClose={hideEditDialog} aria-labelledby="form-dialog-title">
+        <DialogTitle>Edit Role</DialogTitle>
+        <DialogContent>
+          <div>
+            <TextField
+              margin="dense"
+              id="role_name"
+              name="role_name"
+              type="text"
+              label="role"
+              variant="outlined"
+              value={updatedRole && updatedRole.role_name}
+              onChange={handleUpdateRole('role_name')}
+              fullWidth
+              required
+            />
+            <TextField
+              margin="dense"
+              id="role_status"
+              name="role_status"
+              type="text"
+              label="Status"
+              variant="outlined"
+              fullWidth
+              value={updatedRole && updatedRole.role_status}
+              onChange={handleUpdateRole('role_status')}
+            />
+            <OutlinedSelect
+              className="reactSelect"
+              label="Permissions"
+              onChange={(options) => setSelectedPermissions(options)}
+              options={rolePermissionsOptions}
+              value={selectedPermissions}
+              fullWidth
+              isMulti
+              scrollable
+              height={'100px'}
+              required
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <div>
+            <Button color="primary" variant="outlined" onClick={hideEditDialog}>
+              Cancel
+            </Button>
+            <Button
+              style={{ margin: '0 15px' }}
+              onClick={submitEditRole}
+              color="primary"
+              variant="contained"
+            >
+              Submit
+            </Button>
+          </div>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmDialog
+        title={'Delete Role'}
+        open={roleDelState.open}
+        message={
+          <span>
+            Are you sure you want to delete this role —
+            <strong>{roleDelState.role.role_name}</strong>?
+          </span>
+        }
+        confirm={deleteRole}
+        close={hideDeleteDialog}
+        error
+      />
+
+      {selectedRoleUsers && (
+        <Dialog open={open} onClose={handleClose} aria-labelledby="users-dialog-title">
+          <DialogTitle id="users-dialog-title">
+            <h6 style={{ textAlign: 'center' }}>Role Users</h6>
+          </DialogTitle>
+          <DialogContent>
+            <UserPopupTable users={selectedRoleUsers} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
-    </>
+    </Card>
   );
 };
 

@@ -49,6 +49,7 @@ export default function NetworkDropdown({ userNetworks }) {
     if (activeNetwork) {
       setSelectedNetwork(activeNetwork);
     } else {
+      setSelectedNetwork(userNetworks[0]);
       localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
       dispatch(addActiveNetwork(userNetworks[0]));
       dispatch(loadDevicesData(userNetworks[0].net_name));
@@ -86,7 +87,7 @@ export default function NetworkDropdown({ userNetworks }) {
         variant="contained"
         color="primary"
       >
-        {selectedNetwork ? selectedNetwork.net_name : 'Select a network'} <ArrowDropDown />
+        {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
       </Button>
       <StyledMenu
         id="network-menu"

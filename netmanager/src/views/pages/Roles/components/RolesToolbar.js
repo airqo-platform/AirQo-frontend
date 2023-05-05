@@ -114,14 +114,14 @@ const RolesToolbar = (props) => {
     addUserRoleApi(body)
       .then((resData) => {
         // assign permissions to role
-        const permissions = selectedPermissions.map((permission) => permission.value);
+        const permissions = selectedPermissions.map((permission) => permission.label);
         assignPermissionsToRoleApi(resData.created_role._id, { permissions })
           .then((resData) => {
+            setState(initialState);
             const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
             if (!isEmpty(activeNetwork)) {
               dispatch(loadUserRoles(activeNetwork._id));
             }
-            setState(initialState);
             dispatch(
               updateMainAlert({
                 message: 'New role added successfully',
@@ -129,11 +129,12 @@ const RolesToolbar = (props) => {
                 severity: 'success'
               })
             );
+            // window.location.reload();
           })
           .catch((error) => {
             dispatch(
               updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
+                message: 'Unable to create new role. Please try again.',
                 show: true,
                 severity: 'error'
               })
