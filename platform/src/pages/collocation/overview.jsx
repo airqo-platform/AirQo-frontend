@@ -21,6 +21,7 @@ import {
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import EmptyState from '@/components/Collocation/Overview/empty_state';
 import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Overview';
+import Toast from '@/components/Toast';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -55,11 +56,16 @@ const CollocationOverview = () => {
     data: deviceStatusSummary,
     isSuccess: deviceSummarySuccess,
     isLoading: deviceSummaryLoading,
+    isError: deviceSummaryError,
   } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummaryList = deviceStatusSummary ? deviceStatusSummary.data : [];
   const [
     getCollocationStatistics,
-    { isLoading: collocationStatisticsLoading, isSuccess: collocationStatisticsSuccess },
+    {
+      isLoading: collocationStatisticsLoading,
+      isSuccess: collocationStatisticsSuccess,
+      isError: collocationStatisticsError,
+    },
   ] = useGetCollocationStatisticsMutation();
 
   // matching devices
@@ -147,13 +153,17 @@ const CollocationOverview = () => {
   return (
     <Layout>
       <HeaderNav category={'Collocation'} component={'Overview'} />
+      {collocationStatisticsError && (
+        <Toast type={'error'} timeout={10000} message={'Uh-oh! Unable to load all stats'} />
+      )}
+
       {deviceSummaryLoading || collocationStatisticsLoading ? (
         <OverviewSkeleton />
       ) : collocationStatisticsSuccess || (!collocationStatisticsSuccess && selectedBatch) ? (
         <ContentBox>
-          <div className='grid grid-cols-1 divide-y divide-grey-150'>
-            <div className='md:p-6 p-4'>
-              <div className='flex justify-between'>
+          <div className='grid grid-cols-1 divide-y divide-grey-150 px-6'>
+            <div className='py-6'>
+              <div className='flex flex-col md:flex-row justify-between'>
                 <div>
                   <h5 className='font-semibold text-lg'>Today</h5>
                   <p className='text-base font-normal opacity-40'>
@@ -196,8 +206,9 @@ const CollocationOverview = () => {
                                 dispatch(addOverviewBatch(firstBatchPair));
                               } else {
                                 dispatch(removeOverviewBatch());
-                                dispatch(addOverviewBatch(allmatchingDevices[index][0]));
+                                dispatch(addOverviewBatch(allmatchingDevices[index]));
                               }
+                              // console.log(allmatchingDevices[index]);
                               setActiveCollocationPeriod(period);
                               setActiveIndex(index);
                               setIsOpen(false);
@@ -214,7 +225,7 @@ const CollocationOverview = () => {
                 </div>
               </div>
             </div>
-            <div className='grid grid-cols-1 lg:grid-cols-2 divide-x divide-grey-150'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 lg:divide-x divide-grey-150'>
               {!isEmpty(selectedBatch) &&
               selectedBatch.length > 1 &&
               !isEmpty(deviceStatistics) &&
@@ -250,12 +261,12 @@ const CollocationOverview = () => {
               )}
             </div>
             <div className='divide-y pt-20'>
-              <div className='flex flex-row items-center justify-between p-7 md:px-12'>
+              <div className='flex flex-row items-center justify-between p-6 md:px-12'>
                 <span className='font-normal text-base opacity-60'>Monitor name</span>
                 <span className='font-normal text-base opacity-60 text-left'>End date</span>
               </div>
               {device1 && (
-                <div className='flex flex-row items-center justify-between p-7 md:px-12'>
+                <div className='flex flex-row items-center justify-between p-6 md:px-12'>
                   <span className='font-semibold text-base flex justify-between items-center uppercase'>
                     {device1}
                   </span>
@@ -264,7 +275,7 @@ const CollocationOverview = () => {
               )}
 
               {device2 && (
-                <div className='flex flex-row items-center justify-between p-7 md:px-12'>
+                <div className='flex flex-row items-center justify-between p-6 md:px-12'>
                   <span className='font-semibold text-base flex justify-between items-center uppercase'>
                     {device2}
                   </span>

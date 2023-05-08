@@ -17,7 +17,7 @@ import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
-import EmptyState from '../../common/components/Collocation/Collocate/empty_state';
+import EmptyState from '@/components/Collocation/Collocate/empty_state';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;

@@ -10,7 +10,6 @@ import {
 } from '@/lib/store/services/collocation/collocationDataSlice';
 
 const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
-  console.log(data);
   const dispatch = useDispatch();
   const [pollutantConcentration, setPollutantConcentration] = useState('2.5');
   const [isOpen, setIsOpen] = useState(false);
@@ -49,135 +48,137 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
   };
 
   return (
-    <div className='grid grid-cols-2 divide-x divide-grey-150'>
-      <div className={`${secondGraph && 'col-span-1'} flex flex-col pt-4 md:px-6 ml-2`}>
-        <div className='flex flex-row items-center justify-between'>
-          <div className='relative'>
-            <Button onClick={() => setToggleDeviceDropdown(!toggleDeviceDropdown)}>
-              <span className='font-semibold text-base flex justify-between items-center uppercase'>
-                {device.device_name}{' '}
-                {batch && batch.length > 1 && (
+    <div className='md:grid md:grid-cols-5 md:divide-x divide-grey-150'>
+      <div className='md:col-span-3'>
+        <div className='flex flex-col py-4 md:px-6'>
+          <div className='flex flex-row items-center justify-between'>
+            <div className='relative'>
+              <Button onClick={() => setToggleDeviceDropdown(!toggleDeviceDropdown)}>
+                <span className='font-semibold text-base flex justify-between items-center uppercase'>
+                  {device.device_name}{' '}
+                  {batch && batch.length > 1 && (
+                    <span className='text-lg ml-2'>
+                      <MdArrowDropDown />
+                    </span>
+                  )}
+                </span>
+              </Button>
+              {batch && toggleDeviceDropdown && (
+                <ul
+                  tabIndex={0}
+                  className='absolute z-50 mt-1 ml-6 w-32 border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-white-900 rounded-md bg-white'
+                >
+                  {batch.map((option) => {
+                    if (option.device_name !== device.device_name) {
+                      return (
+                        <li
+                          role='button'
+                          key={option.device_name}
+                          onClick={() => toggleDropdown(option)}
+                          className='text-sm text-grey leading-5'
+                        >
+                          <a>{option.device_name}</a>
+                        </li>
+                      );
+                    }
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <span className='text-sm text-blue'>Full report</span>
+          </div>
+          <div className='flex flex-row'>
+            <div className='dropdown'>
+              <Button onClick={() => setIsOpen(!isOpen)}>
+                <span className='mt-4 text-sm font-semibold flex justify-between items-center rounded border border-grey-150 p-1'>
+                  PM<sub>{pollutantConcentration}</sub>
                   <span className='text-lg ml-2'>
                     <MdArrowDropDown />
                   </span>
-                )}
-              </span>
-            </Button>
-            {batch && toggleDeviceDropdown && (
-              <ul
-                tabIndex={0}
-                className='absolute z-50 mt-1 ml-6 w-32 border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-white-900 rounded-md bg-white'
-              >
-                {batch.map((option) => {
-                  if (option.device_name !== device.device_name) {
-                    return (
-                      <li
-                        role='button'
-                        key={option.device_name}
-                        onClick={() => toggleDropdown(option)}
-                        className='text-sm text-grey leading-5'
-                      >
-                        <a>{option.device_name}</a>
-                      </li>
-                    );
-                  }
-                })}
-              </ul>
-            )}
-          </div>
-
-          <span className='text-sm text-blue'>Full report</span>
-        </div>
-        <div className='flex flex-row'>
-          <div className='dropdown'>
-            <Button onClick={() => setIsOpen(!isOpen)}>
-              <span className='mt-4 text-sm font-semibold flex justify-between items-center rounded border border-grey-150 p-1'>
-                PM<sub>{pollutantConcentration}</sub>
-                <span className='text-lg ml-2'>
-                  <MdArrowDropDown />
                 </span>
-              </span>
-            </Button>
-            {isOpen && (
-              <ul
-                tabIndex={0}
-                className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44'
-              >
-                {pollutantOptions.map((option) => (
-                  <li
-                    role='button'
-                    key={option.value}
-                    onClick={() => togglePmConcentration(option.value)}
-                    className='text-sm text-grey leading-5'
-                  >
-                    <a>{option.label}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
+              </Button>
+              {isOpen && (
+                <ul
+                  tabIndex={0}
+                  className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44'
+                >
+                  {pollutantOptions.map((option) => (
+                    <li
+                      role='button'
+                      key={option.value}
+                      onClick={() => togglePmConcentration(option.value)}
+                      className='text-sm text-grey leading-5'
+                    >
+                      <a>{option.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
+          {secondGraph ? (
+            <div className='w-full h-44'>
+              <ResponsiveContainer width='100%' height='100%'>
+                <BarChart barCategoryGap={30} data={data} barGap={32}>
+                  <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
+                  <XAxis dataKey={'deviceName'} />
+                  <CartesianGrid
+                    vertical={false}
+                    stroke='#000000'
+                    strokeOpacity='0.1'
+                    strokeWidth={0.5}
+                  />
+                  <Tooltip formatter={tooltipFormatter} />
+                  <Bar
+                    dataKey={pollutantConcentration === '2.5' ? 's1_pm2_5_mean' : 's1_pm10_mean'}
+                    fill='#FE9E35'
+                    name={'Sensor 01'}
+                    background={{ fill: '#F4F6F8' }}
+                  />
+                  <Bar
+                    dataKey={pollutantConcentration === '2.5' ? 's2_pm2_5_mean' : 's2_pm10_mean'}
+                    fill='#0CE87E'
+                    name={'Sensor 02'}
+                    background={{ fill: '#F4F6F8' }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className='w-full h-44'>
+              <ResponsiveContainer width='100%' height='100%'>
+                <BarChart width={'100%'} height={140} barCategoryGap={30} data={data} barGap={32}>
+                  <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
+                  <XAxis dataKey={'deviceName'} />
+                  <CartesianGrid
+                    vertical={false}
+                    stroke='#000000'
+                    strokeOpacity='0.1'
+                    strokeWidth={0.5}
+                  />
+                  <Tooltip formatter={tooltipFormatter} />
+                  <Bar
+                    dataKey={pollutantConcentration === '2.5' ? 's1_pm2_5_mean' : 's1_pm10_mean'}
+                    fill='#FE9E35'
+                    name={'Sensor 01'}
+                    background={{ fill: '#F4F6F8' }}
+                  />
+                  <Bar
+                    dataKey={pollutantConcentration === '2.5' ? 's2_pm2_5_mean' : 's2_pm10_mean'}
+                    fill='#0CE87E'
+                    name={'Sensor 02'}
+                    background={{ fill: '#F4F6F8' }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
-        {secondGraph ? (
-          <div className='w-full h-44'>
-            <ResponsiveContainer width='100%' height='100%'>
-              <BarChart barCategoryGap={30} data={data} barGap={32}>
-                <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
-                <XAxis dataKey={'deviceName'} />
-                <CartesianGrid
-                  vertical={false}
-                  stroke='#000000'
-                  strokeOpacity='0.1'
-                  strokeWidth={0.5}
-                />
-                <Tooltip formatter={tooltipFormatter} />
-                <Bar
-                  dataKey={pollutantConcentration === '2.5' ? 's1_pm2_5_mean' : 's1_pm10_mean'}
-                  fill='#FE9E35'
-                  name={'Sensor 01'}
-                  background={{ fill: '#F4F6F8' }}
-                />
-                <Bar
-                  dataKey={pollutantConcentration === '2.5' ? 's2_pm2_5_mean' : 's2_pm10_mean'}
-                  fill='#0CE87E'
-                  name={'Sensor 02'}
-                  background={{ fill: '#F4F6F8' }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className='w-full h-44'>
-            <ResponsiveContainer width='100%' height='100%'>
-              <BarChart width={'100%'} height={140} barCategoryGap={30} data={data} barGap={32}>
-                <YAxis label={{ value: 'µg/m3', angle: -90, position: 'insideLeft' }} />
-                <XAxis dataKey={'deviceName'} />
-                <CartesianGrid
-                  vertical={false}
-                  stroke='#000000'
-                  strokeOpacity='0.1'
-                  strokeWidth={0.5}
-                />
-                <Tooltip formatter={tooltipFormatter} />
-                <Bar
-                  dataKey={pollutantConcentration === '2.5' ? 's1_pm2_5_mean' : 's1_pm10_mean'}
-                  fill='#FE9E35'
-                  name={'Sensor 01'}
-                  background={{ fill: '#F4F6F8' }}
-                />
-                <Bar
-                  dataKey={pollutantConcentration === '2.5' ? 's2_pm2_5_mean' : 's2_pm10_mean'}
-                  fill='#0CE87E'
-                  name={'Sensor 02'}
-                  background={{ fill: '#F4F6F8' }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
       </div>
-      <div className={`${secondGraph && 'col-span-1'}`}>
-        <div className='flex flex-col'>
-          <div className='w-full border-b border-grey-150 p-4'>
+      <div className='md:col-span-2'>
+        <div className='flex flex-col py-6'>
+          <div className='w-full border-b border-grey-150 pl-5 pr-6 pb-6'>
             <div className='flex flex-row items-center'>
               <div
                 className={
@@ -201,7 +202,7 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
               </span>
             </div>
           </div>
-          <div className='p-4'>
+          <div className='w-full pl-5 pr-6 py-6'>
             <div className='flex flex-row items-center'>
               <div
                 className={
@@ -212,7 +213,7 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
               ></div>
               <span className='text-sm font-semibold'>Sensor 02</span>
             </div>
-            <div className='mt-1 mb-4'>
+            <div className='mt-1 md:mb-4'>
               <span className='md:text-5xl font-normal text-3xl'>
                 {pollutantConcentration === '2.5'
                   ? data?.[0]?.s2_pm2_5_mean?.toFixed(1)
