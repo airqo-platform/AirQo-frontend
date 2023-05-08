@@ -12,7 +12,7 @@ const OverviewSkeleton = () => {
         <GraphCard />
         <GraphCard />
       </div>
-      <div className='divide-y divide-skeleton pt-20 mb-20'>
+      <div className='divide-y divide-skeleton pt-20 mb-6 md:mb-20'>
         <div className='flex flex-row items-center justify-between p-6 md:px-12'>
           <div className='bg-skeleton w-[121px] h-6 rounded mr-2' />
           <div className='bg-skeleton w-[121px] h-6 rounded' />
