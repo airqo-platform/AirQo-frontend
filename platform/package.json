@@ -16,6 +16,7 @@
     "@svgr/webpack": "^6.4.0",
     "@tailwindcss/typography": "^0.5.9",
     "autoprefixer": "^10.4.12",
+    "axios": "^1.4.0",
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",

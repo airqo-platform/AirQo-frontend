@@ -23,6 +23,8 @@ module.exports = {
         'baby-blue': '#F5F8FF',
         'link-blue': '#2E72D2',
         'form-input': '#F3F4F7',
+        'check-box':'#D1D2D2',
+        'radio-input':'#1C1B1F',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
