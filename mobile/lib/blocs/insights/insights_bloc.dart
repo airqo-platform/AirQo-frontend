@@ -95,7 +95,9 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         selectedInsight: insights.firstWhere(
           (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
         ),
-        insights: insights.toList().sortByDateTime().take(7).toList(),
+        insights: insights.toList()
+          ..sortByDateTime()
+          ..take(7).toList(),
       ),
     );
   }

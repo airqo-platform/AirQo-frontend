@@ -1,4 +1,3 @@
-import 'package:app/models/parsers.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -6,6 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'enum_constants.dart';
 import 'health_tip.dart';
 import 'hive_type_id.dart';
+import 'json_parsers.dart';
 
 part 'forecast.g.dart';
 

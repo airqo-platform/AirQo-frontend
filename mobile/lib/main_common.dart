@@ -17,7 +17,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp(this.initialLink, {super.key});
@@ -104,7 +103,6 @@ class AirQoApp extends StatelessWidget {
         navigatorKey: navigatorKey,
         navigatorObservers: [
           FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-          SentryNavigatorObserver(),
         ],
         title: config.appTitle,
         theme: customTheme(),

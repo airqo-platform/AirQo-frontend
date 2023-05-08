@@ -6,18 +6,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class NotificationView extends StatefulWidget {
+class NotificationView extends StatelessWidget {
   const NotificationView({
     super.key,
     required this.appNotification,
   });
   final AppNotification appNotification;
 
-  @override
-  State<NotificationView> createState() => _NotificationViewState();
-}
-
-class _NotificationViewState extends State<NotificationView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +77,7 @@ class _NotificationViewState extends State<NotificationView> {
                                 shape: BoxShape.circle,
                               ),
                               child: SvgPicture.asset(
-                                widget.appNotification.icon,
+                                appNotification.icon,
                                 height: 24,
                                 width: 36,
                               ),
@@ -91,7 +86,7 @@ class _NotificationViewState extends State<NotificationView> {
                               height: 17,
                             ),
                             AutoSizeText(
-                              widget.appNotification.title,
+                              appNotification.title,
                               textAlign: TextAlign.center,
                               style: CustomTextStyle.headline10(context),
                             ),
@@ -99,7 +94,7 @@ class _NotificationViewState extends State<NotificationView> {
                               height: 8.0,
                             ),
                             AutoSizeText(
-                              widget.appNotification.body,
+                              appNotification.body,
                               textAlign: TextAlign.center,
                               maxLines: 4,
                               style: Theme.of(context)

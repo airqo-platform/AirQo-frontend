@@ -19,10 +19,13 @@ Future<bool> checkNetworkConnection(
   BuildContext buildContext, {
   bool notifyUser = false,
 }) async {
-  final hasConnection = await hasNetworkConnection();
-  if (!hasConnection && notifyUser) {
-    showSnackBar(buildContext, Config.connectionErrorMessage);
-  }
+  bool hasConnection = false;
+  await hasNetworkConnection().then((value) {
+    hasConnection = value;
+    if (!value && notifyUser) {
+      showSnackBar(buildContext, Config.connectionErrorMessage);
+    }
+  });
 
   return hasConnection;
 }

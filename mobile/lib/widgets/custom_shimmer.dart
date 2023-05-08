@@ -128,24 +128,6 @@ void loadingScreen(BuildContext context) async {
   );
 }
 
-class LoadingWidget extends StatelessWidget {
-  const LoadingWidget({super.key, this.backgroundColor});
-  final Color? backgroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: backgroundColor ?? CustomColors.appBodyColor,
-      child: Center(
-        child: CupertinoActivityIndicator(
-          radius: 20,
-          color: CustomColors.appColorBlue,
-        ),
-      ),
-    );
-  }
-}
-
 class SizedContainerLoadingAnimation extends StatelessWidget {
   const SizedContainerLoadingAnimation({
     super.key,
@@ -176,42 +158,6 @@ class SizedContainerLoadingAnimation extends StatelessWidget {
             color: CustomColors.appLoadingColor,
             borderRadius: BorderRadius.all(
               Radius.circular(radius),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TextLoadingAnimation extends StatelessWidget {
-  const TextLoadingAnimation({
-    super.key,
-    required this.height,
-    required this.width,
-  });
-  final double height;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      width: width,
-      child: Shimmer.fromColors(
-        baseColor: CustomColors.appLoadingColor,
-        highlightColor: Colors.white,
-        child: Container(
-          constraints: BoxConstraints(
-            minWidth: width,
-            minHeight: height,
-            maxWidth: width,
-            maxHeight: height,
-          ),
-          decoration: BoxDecoration(
-            color: CustomColors.appLoadingColor,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(2),
             ),
           ),
         ),
