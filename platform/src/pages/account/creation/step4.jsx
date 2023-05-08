@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '../../../common/components/Account/Layout';
-import RadioComponent from '../../../common/components/Account/RadioComponent';
+import AccountPageLayout from '@/components/Account/Layout';
+import RadioComponent from '@/components/Account/RadioComponent';
 
 const AccountCreationPage4 = () => {
   const radioButtonText = [

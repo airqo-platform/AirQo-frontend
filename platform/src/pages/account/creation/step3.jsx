@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '../../../common/components/Account/Layout';
+import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
-import { createUser } from '../../../lib/store/services/account/CreationSlice';
+import { createUser } from '@/lib/store/services/account/CreationSlice';
 
 const AccountCreationPage3 = () => {
   const userData = useSelector((state) => state.account.userData);

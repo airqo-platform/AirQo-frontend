@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '../../../common/components/Account/Layout';
+import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
@@ -7,7 +7,7 @@ import {
   setUserFirstName,
   setUserLastName,
   setUserPassword,
-} from '../../../lib/store/services/account/CreationSlice';
+} from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
 
 const AccountCreationPage2 = () => {

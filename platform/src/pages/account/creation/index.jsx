@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AccountPageLayout from '../../../common/components/Account/Layout';
+import AccountPageLayout from '@/components/Account/Layout';
 import GoogleLogo from '@/icons/Common/google_logo.svg';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
