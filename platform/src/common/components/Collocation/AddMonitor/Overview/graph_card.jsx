@@ -48,9 +48,9 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
   };
 
   return (
-    <div className='md:grid md:grid-cols-5 md:divide-x divide-grey-150'>
-      <div className='md:col-span-3'>
-        <div className='flex flex-col py-4 md:px-6'>
+    <div className='md:grid md:grid-cols-4 md:divide-x divide-grey-150'>
+      <div className='md:col-span-3 lg:col-span-2'>
+        <div className='flex flex-col py-4 md:px-4'>
           <div className='flex flex-row items-center justify-between'>
             <div className='relative'>
               <Button onClick={() => setToggleDeviceDropdown(!toggleDeviceDropdown)}>
@@ -176,7 +176,7 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
           )}
         </div>
       </div>
-      <div className='md:col-span-2'>
+      <div className='md:col-span-1 lg:col-span-2'>
         <div className='flex flex-col py-6'>
           <div className='w-full border-b border-grey-150 pl-5 pr-6 pb-6'>
             <div className='flex flex-row items-center'>

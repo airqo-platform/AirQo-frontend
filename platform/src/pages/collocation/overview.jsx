@@ -154,7 +154,7 @@ const CollocationOverview = () => {
     <Layout>
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {collocationStatisticsError && (
-        <Toast type={'error'} timeout={10000} message={'Uh-oh! Unable to load all stats'} />
+        <Toast type={'error'} timeout={10000} message={'Server error!'} />
       )}
 
       {deviceSummaryLoading || collocationStatisticsLoading ? (
@@ -225,7 +225,11 @@ const CollocationOverview = () => {
                 </div>
               </div>
             </div>
-            <div className='grid grid-cols-1 lg:grid-cols-2 lg:divide-x divide-grey-150'>
+            <div
+              className={`grid grid-cols-1 ${
+                selectedBatch.length === 2 && 'lg:grid-cols-2'
+              } lg:divide-x divide-grey-150`}
+            >
               {!isEmpty(selectedBatch) &&
               selectedBatch.length > 1 &&
               !isEmpty(deviceStatistics) &&
