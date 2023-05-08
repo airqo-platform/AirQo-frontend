@@ -14,7 +14,7 @@ import moment from 'moment';
 import { wrapper } from '@/lib/store';
 import Button from '@/components/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { isEmpty } from 'underscore';
+import { isEmpty, uniq } from 'underscore';
 import {
   addOverviewBatch,
   removeOverviewBatch,
@@ -37,10 +37,13 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 
 const CollocationOverview = () => {
   const dispatch = useDispatch();
-  const [deviceStatistics, setDeviceStatistics] = useState([]);
+  const [deviceStatistics, setDeviceStatistics] = useState(null);
   const [allmatchingDevices, setAllmatchingDevices] = useState(null);
+  const [collocationPeriods, setCollocationPeriods] = useState(null);
+  const [activeCollocationPeriod, setActiveCollocationPeriod] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  const [activeIndex, setActiveIndex] = useState(0);
   const [device1, setDevice1] = useState(null);
   const [device2, setDevice2] = useState(null);
 
@@ -64,15 +67,18 @@ const CollocationOverview = () => {
     if (!deviceStatusSummaryList) return;
 
     if (!isEmpty(deviceStatusSummaryList)) {
-      const matchingDevices = findAllMatchingDevices(deviceStatusSummaryList);
-      setAllmatchingDevices(matchingDevices);
+      const { matchingDevicePairs, uniqueDatePairs } =
+        findAllMatchingDevices(deviceStatusSummaryList);
+      setAllmatchingDevices(matchingDevicePairs);
+      setCollocationPeriods(uniqueDatePairs);
+      setActiveCollocationPeriod(uniqueDatePairs[0]);
+      setActiveIndex(0);
 
-      if (!isEmpty(matchingDevices)) {
-        if (matchingDevices.length > 1) {
-          const firstBatchPair = [matchingDevices[0][0], matchingDevices[0][1]];
-          dispatch(addOverviewBatch(firstBatchPair));
+      if (!isEmpty(matchingDevicePairs)) {
+        if (matchingDevicePairs.length > 1) {
+          dispatch(addOverviewBatch([matchingDevicePairs[0][0], matchingDevicePairs[0][1]]));
         } else {
-          dispatch(addOverviewBatch(matchingDevices[0][0]));
+          dispatch(addOverviewBatch(matchingDevicePairs[0][0]));
         }
       }
     }
@@ -85,7 +91,7 @@ const CollocationOverview = () => {
         setDevice1(selectedBatch[0].device_name);
         setDevice2(selectedBatch[1].device_name);
       } else {
-        setDevice1(selectedBatch.device_name);
+        setDevice1(selectedBatch[0].device_name);
         setDevice2(null);
       }
     }
@@ -115,9 +121,9 @@ const CollocationOverview = () => {
           }
         } else {
           const response = await getCollocationStatistics({
-            devices: [selectedBatch.device_name],
-            startDate: moment(selectedBatch.start_date).format('YYYY-MM-DD'),
-            endDate: moment(selectedBatch.end_date).format('YYYY-MM-DD'),
+            devices: [selectedBatch[0].device_name],
+            startDate: moment(selectedBatch[0].start_date).format('YYYY-MM-DD'),
+            endDate: moment(selectedBatch[0].end_date).format('YYYY-MM-DD'),
           });
 
           if (!response.error) {
@@ -143,7 +149,7 @@ const CollocationOverview = () => {
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {deviceSummaryLoading || collocationStatisticsLoading ? (
         <OverviewSkeleton />
-      ) : collocationStatisticsSuccess ? (
+      ) : collocationStatisticsSuccess || (!collocationStatisticsSuccess && selectedBatch) ? (
         <ContentBox>
           <div className='grid grid-cols-1 divide-y divide-grey-150'>
             <div className='md:p-6 p-4'>
@@ -164,14 +170,10 @@ const CollocationOverview = () => {
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <span>
-                        {!isEmpty(selectedBatch) &&
-                          (selectedBatch.length > 1
-                            ? `${moment(selectedBatch[0].start_date).format(
-                                'MMM DD, yyyy',
-                              )} - ${moment(selectedBatch[0].end_date).format('MMM DD, yyyy')}`
-                            : `${moment(selectedBatch.start_date).format(
-                                'MMM DD, yyyy',
-                              )} - ${moment(selectedBatch.end_date).format('MMM DD, yyyy')}`)}
+                        {!isEmpty(activeCollocationPeriod) &&
+                          `${moment(activeCollocationPeriod.start_date).format(
+                            'MMM DD, yyyy',
+                          )} - ${moment(activeCollocationPeriod.end_date).format('MMM DD, yyyy')}`}
                       </span>
                     </Button>
                     {isOpen && (
@@ -179,25 +181,30 @@ const CollocationOverview = () => {
                         tabIndex={0}
                         className='absolute z-30 mt-1 ml-6 w-auto border border-gray-200 max-h-60 overflow-y-auto text-sm p-2 shadow bg-base-100 rounded-md'
                       >
-                        {allmatchingDevices.map((batch, index) => (
+                        {collocationPeriods.map((period, index) => (
                           <li
                             role='button'
                             key={index}
                             className='text-sm text-grey leading-5 p-2 hover:bg-gray-200 rounded'
                             onClick={() => {
-                              if (batch.length > 1) {
-                                const firstBatchPair = [batch[0], batch[1]];
+                              if (allmatchingDevices[index].length > 1) {
+                                const firstBatchPair = [
+                                  allmatchingDevices[index][0],
+                                  allmatchingDevices[index][1],
+                                ];
                                 dispatch(removeOverviewBatch());
                                 dispatch(addOverviewBatch(firstBatchPair));
                               } else {
                                 dispatch(removeOverviewBatch());
-                                dispatch(addOverviewBatch(batch[0]));
+                                dispatch(addOverviewBatch(allmatchingDevices[index][0]));
                               }
+                              setActiveCollocationPeriod(period);
+                              setActiveIndex(index);
                               setIsOpen(false);
                             }}
                           >
-                            <a>{`${moment(batch[0].start_date).format('MMM DD')} - ${moment(
-                              batch[0].end_date,
+                            <a>{`${moment(period.start_date).format('MMM DD')} - ${moment(
+                              period.end_date,
                             ).format('MMM DD')}`}</a>
                           </li>
                         ))}
@@ -215,14 +222,16 @@ const CollocationOverview = () => {
                 <>
                   <GraphCard
                     data={[deviceStatistics[0]]}
-                    batch={allmatchingDevices[0]}
+                    batch={allmatchingDevices[activeIndex]}
                     device={selectedBatch[0]}
+                    selectedBatch={selectedBatch}
                   />
                   <GraphCard
                     data={[deviceStatistics[1]]}
                     secondGraph={true}
-                    batch={allmatchingDevices[0]}
+                    batch={allmatchingDevices[activeIndex]}
                     device={selectedBatch[1]}
+                    selectedBatch={selectedBatch}
                   />
                 </>
               ) : (
@@ -232,8 +241,9 @@ const CollocationOverview = () => {
                     <GraphCard
                       data={[deviceStatistics[0]]}
                       secondGraph={true}
-                      batch={allmatchingDevices[0]}
-                      device={selectedBatch}
+                      batch={allmatchingDevices[activeIndex]}
+                      device={selectedBatch[0]}
+                      selectedBatch={selectedBatch}
                     />
                   </>
                 )

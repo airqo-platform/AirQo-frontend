@@ -28,15 +28,14 @@ const collocationDataSlice = createSlice({
       state.activeSelectedDeviceCollocationReportData = action.payload;
     },
     addOverviewBatch(state, action) {
-      state.overviewBatch = action.payload;
+      if (state.overviewBatch) state.overviewBatch = null;
+
+      if (action.payload && Array.isArray(action.payload)) {
+        state.overviewBatch = [...action.payload];
+      }
     },
     removeOverviewBatch(state) {
       state.overviewBatch = null;
-    },
-    removeDevicefromOverviewBatch(state, action) {
-      state.overviewBatch = state.overviewBatch.filter(
-        (device) => device.device_name !== action.payload,
-      );
     },
     removeActiveSelectedDeviceCollocationReportData(state) {
       state.activeSelectedDeviceCollocationReportData = null;
@@ -54,7 +53,6 @@ export const {
   addActiveSelectedDeviceReport,
   addOverviewBatch,
   removeOverviewBatch,
-  removeDevicefromOverviewBatch,
   removeActiveSelectedDeviceCollocationReportData,
   removeActiveSelectedDeviceReport,
 } = collocationDataSlice.actions;

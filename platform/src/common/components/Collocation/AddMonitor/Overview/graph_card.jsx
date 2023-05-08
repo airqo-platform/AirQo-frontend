@@ -9,7 +9,8 @@ import {
   removeOverviewBatch,
 } from '@/lib/store/services/collocation/collocationDataSlice';
 
-const GraphCard = ({ data, secondGraph, batch, device }) => {
+const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
+  console.log(data);
   const dispatch = useDispatch();
   const [pollutantConcentration, setPollutantConcentration] = useState('2.5');
   const [isOpen, setIsOpen] = useState(false);
@@ -29,9 +30,22 @@ const GraphCard = ({ data, secondGraph, batch, device }) => {
   };
 
   const toggleDropdown = (option) => {
-    dispatch(removeDevicefromOverviewBatch(device));
-    dispatch(addOverviewBatch(option));
-    setToggleDeviceDropdown(false);
+    const newArray = [...selectedBatch];
+    const currentDeviceIndex = newArray.findIndex(
+      (item) => item.device_name === device.device_name,
+    );
+    if (currentDeviceIndex !== -1) {
+      const optionIndex = newArray.findIndex((item) => {
+        // Replace 'device_name' with the appropriate key for your objects
+        return item.device_name === option.device_name;
+      });
+
+      if (optionIndex === -1) {
+        newArray[currentDeviceIndex] = option;
+        dispatch(addOverviewBatch(newArray));
+      }
+      setToggleDeviceDropdown(false);
+    }
   };
 
   return (
@@ -177,8 +191,8 @@ const GraphCard = ({ data, secondGraph, batch, device }) => {
             <div className='mt-1 mb-4'>
               <span className='md:text-5xl font-normal text-3xl'>
                 {pollutantConcentration === '2.5'
-                  ? data && data[0] && data[0].s1_pm2_5_mean.toFixed(1)
-                  : data && data[0] && data[0].s1_pm10_mean.toFixed(1)}
+                  ? data?.[0]?.s1_pm2_5_mean?.toFixed(1)
+                  : data?.[0]?.s1_pm10_mean?.toFixed(1)}
               </span>
               <span className='opacity-30 font-normal text-3xl'>
                 <sub>
@@ -201,8 +215,8 @@ const GraphCard = ({ data, secondGraph, batch, device }) => {
             <div className='mt-1 mb-4'>
               <span className='md:text-5xl font-normal text-3xl'>
                 {pollutantConcentration === '2.5'
-                  ? data && data[0] && data[0].s2_pm2_5_mean.toFixed(1)
-                  : data && data[0] && data[0].s2_pm10_mean.toFixed(1)}
+                  ? data?.[0]?.s2_pm2_5_mean?.toFixed(1)
+                  : data?.[0]?.s2_pm10_mean?.toFixed(1)}
               </span>
               <span className='opacity-30 font-normal text-3xl'>
                 <sub>
