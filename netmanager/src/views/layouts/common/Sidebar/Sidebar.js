@@ -186,6 +186,7 @@ const Sidebar = (props) => {
       getUserDetails(user._id).then((res) => {
         dispatch(addCurrentUserRole(res.users[0].role));
         dispatch(addUserNetworks(res.users[0].networks));
+        localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
         localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
         if (isEmpty(activeNetwork)) {
