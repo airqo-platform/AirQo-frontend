@@ -6,8 +6,8 @@ import { isEmpty } from 'underscore';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
-import { useSitesArrayData } from 'redux/SiteRegistry/selectors';
+import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
+import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from '../../containers/ConfirmDialog';
 import { deleteSiteApi } from 'views/apis/deviceRegistry';
@@ -22,7 +22,7 @@ const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_
 const SitesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
-  const sites = useSitesArrayData();
+  const sites = useSitesSummaryData();
 
   const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
@@ -31,10 +31,7 @@ const SitesTable = () => {
     //code to retrieve all locations data
     if (isEmpty(sites)) {
       setIsLoading(true);
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+      dispatch(loadSitesSummary());
       setIsLoading(false);
     }
   }, []);
