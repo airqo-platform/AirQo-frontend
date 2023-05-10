@@ -1,22 +1,23 @@
-import React from "react";
-import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
-import { useHistory, useParams } from "react-router-dom";
-import { ArrowBackIosRounded } from "@material-ui/icons";
-import { Button, Grid, Paper, TextField } from "@material-ui/core";
-import CustomMaterialTable from "../Table/CustomMaterialTable";
-import { useInitScrollTop } from "utils/customHooks";
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
+import { useHistory, useParams } from 'react-router-dom';
+import { ArrowBackIosRounded } from '@material-ui/icons';
+import { Button, Grid, Paper, TextField } from '@material-ui/core';
+import CustomMaterialTable from '../Table/CustomMaterialTable';
+import { useInitScrollTop } from 'utils/customHooks';
 
-import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
-import { refreshAirQloud } from "redux/AirQloud/operations";
+// redux
+import { useSelectedAirqloudData } from 'redux/AirQloud/selectors';
+import { getAirqloudDetails, removeAirQloudData, refreshAirQloud } from 'redux/AirQloud/operations';
 
 // css
-import "react-leaflet-fullscreen/dist/styles.css";
-import "assets/css/location-registry.css";
+import 'react-leaflet-fullscreen/dist/styles.css';
+import 'assets/css/location-registry.css';
 
 const gridItemStyle = {
-  padding: "5px",
-  margin: "5px 0",
+  padding: '5px',
+  margin: '5px 0'
 };
 
 const AirQloudForm = ({ airqloud }) => {
@@ -26,41 +27,42 @@ const AirQloudForm = ({ airqloud }) => {
   return (
     <Paper
       style={{
-        margin: "0 auto",
-        minHeight: "400px",
-        padding: "20px 20px",
-        maxWidth: "1500px",
+        margin: '0 auto',
+        minHeight: '400px',
+        padding: '20px 20px',
+        maxWidth: '1500px'
       }}
     >
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           color="primary"
-          onClick={() =>
-            dispatch(refreshAirQloud(airqloud.long_name, airqloud._id))
-          }
+          onClick={() => dispatch(refreshAirQloud(airqloud.long_name, airqloud._id))}
         >
           Refresh AirQloud
         </Button>
       </div>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          fontSize: "1.2rem",
-          fontWeight: "bold",
-          margin: "20px 0",
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: '1.2rem',
+          fontWeight: 'bold',
+          margin: '20px 0'
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "5px",
+            display: 'flex',
+            alignItems: 'center',
+            padding: '5px'
           }}
         >
           <ArrowBackIosRounded
-            style={{ color: "#3f51b5", cursor: "pointer" }}
-            onClick={() => history.push("/airqlouds")}
+            style={{ color: '#3f51b5', cursor: 'pointer' }}
+            onClick={() => {
+              history.push('/airqlouds');
+              dispatch(removeAirQloudData());
+            }}
           />
         </div>
         AirQloud Details
@@ -101,7 +103,7 @@ const AirQloudForm = ({ airqloud }) => {
             id="isCustom"
             label="Is Custom"
             variant="outlined"
-            value={(airqloud.isCustom && "Yes") || "No"}
+            value={(airqloud.isCustom && 'Yes') || 'No'}
             fullWidth
           />
         </Grid>
@@ -147,14 +149,17 @@ const AirQloudView = (props) => {
   let params = useParams();
   const history = useHistory();
   const dispatch = useDispatch();
-  const airqlouds = useAirQloudsData();
-  const airqloud = airqlouds[params.id] || {};
+  const airqloud = useSelectedAirqloudData(params.id);
+
+  useEffect(() => {
+    dispatch(getAirqloudDetails(params.id));
+  }, []);
 
   return (
     <div
       style={{
-        width: "96%",
-        margin: " 20px auto",
+        width: '96%',
+        margin: ' 20px auto'
       }}
     >
       <AirQloudForm airqloud={airqloud} key={`${airqloud._id}`} />
@@ -162,35 +167,35 @@ const AirQloudView = (props) => {
       <div>
         <div
           style={{
-            margin: "50px auto",
+            margin: '50px auto',
             // minHeight: "400px",
-            maxWidth: "1500px",
+            maxWidth: '1500px'
           }}
         >
           <CustomMaterialTable
             title="AirQloud Sites details"
-            userPreferencePaginationKey={"siteDevices"}
+            userPreferencePaginationKey={'siteDevices'}
             columns={[
               {
-                title: "Site Name",
-                field: "name",
+                title: 'Site Name',
+                field: 'name'
               },
               {
-                title: "Site ID",
-                field: "generated_name",
+                title: 'Site ID',
+                field: 'generated_name'
               },
               {
-                title: "District",
-                field: "district",
+                title: 'District',
+                field: 'district'
               },
               {
-                title: "Region",
-                field: "region",
+                title: 'Region',
+                field: 'region'
               },
               {
-                title: "Country",
-                field: "country",
-              },
+                title: 'Country',
+                field: 'country'
+              }
             ]}
             data={airqloud.sites || []}
             onRowClick={(event, rowData) => {
@@ -200,16 +205,16 @@ const AirQloudView = (props) => {
             options={{
               search: true,
               exportButton: true,
-              searchFieldAlignment: "right",
+              searchFieldAlignment: 'right',
               showTitle: true,
               searchFieldStyle: {
-                fontFamily: "Open Sans",
+                fontFamily: 'Open Sans'
               },
               headerStyle: {
-                fontFamily: "Open Sans",
+                fontFamily: 'Open Sans',
                 fontSize: 14,
-                fontWeight: 600,
-              },
+                fontWeight: 600
+              }
             }}
           />
         </div>
@@ -219,7 +224,7 @@ const AirQloudView = (props) => {
 };
 
 AirQloudView.propTypes = {
-  className: PropTypes.string,
+  className: PropTypes.string
 };
 
 export default AirQloudView;
