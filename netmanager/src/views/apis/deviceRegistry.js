@@ -148,6 +148,10 @@ export const getSitesApi = async (networkID) => {
     .then((response) => response.data);
 };
 
+export const getSitesSummaryApi = async () => {
+  return await axios.get(SITES).then((response) => response.data);
+};
+
 export const updateSiteApi = async (site_id, siteData) => {
   return await axios
     .put(SITES, siteData, { params: { id: site_id } })
