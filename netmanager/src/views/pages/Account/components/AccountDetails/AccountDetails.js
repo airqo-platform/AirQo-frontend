@@ -65,7 +65,6 @@ const AccountDetails = (props) => {
     if (!isEmpty(user)) {
       getUserDetails(user._id).then((res) => {
         initialState = {
-          ...form,
           firstName: res.users[0].firstName,
           lastName: res.users[0].lastName,
           email: res.users[0].email,
