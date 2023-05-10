@@ -140,8 +140,8 @@ export const getEventsApi = async (params) => {
   return await axios.get(EVENTS, { params }).then((response) => response.data);
 };
 
-export const getSitesApi = async (siteID) => {
-  return await axios.get(SITES, { params: { id: siteID } }).then((response) => response.data);
+export const getSitesApi = async (params) => {
+  return await axios.get(SITES, { params }).then((response) => response.data);
 };
 
 export const getSitesSummaryApi = async () => {

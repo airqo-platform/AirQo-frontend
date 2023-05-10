@@ -6,8 +6,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import { Button, Grid, Paper, TextField } from '@material-ui/core';
 
-import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
+import { loadSiteDetails } from 'redux/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import { humanReadableDate } from 'utils/dateTime';
@@ -46,7 +46,7 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-    dispatch(loadSitesData());
+    dispatch(loadSiteDetails(site._id));
   };
 
   const weightedBool = (primary, secondary) => {
@@ -68,7 +68,7 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        dispatch(loadSitesData());
+        dispatch(loadSiteDetails(site._id));
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.error) || {};
@@ -372,17 +372,12 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const sites = useSitesData();
+  const site = useSiteDetailsData(params.id);
   const dispatch = useDispatch();
-  const [site, setSite] = useState(sites[params.id] || {});
 
   useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSitesData());
+    if (isEmpty(site)) dispatch(loadSiteDetails(params.id));
   }, []);
-
-  useEffect(() => {
-    setSite(sites[params.id] || {});
-  }, [sites]);
 
   return (
     <div
