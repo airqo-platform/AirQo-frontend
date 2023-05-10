@@ -16,3 +16,7 @@ export const useSiteOptionsData = () => {
 export const useSitesSummaryData = () => {
   return useSelector((state) => Object.values(state.siteRegistry.sitesSummary));
 };
+
+export const useSiteDetailsData = () => {
+  return useSelector((state) => state.siteRegistry.siteDetails);
+};

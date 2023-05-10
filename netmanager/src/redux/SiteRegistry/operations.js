@@ -57,7 +57,7 @@ export const loadSitesSummary = () => {
 
 export const loadSiteDetails = (siteId) => {
   return async (dispatch) => {
-    return await getSitesApi(siteId)
+    return await getSitesApi({ id: siteId })
       .then((responseData) => {
         const siteDetails = responseData.sites[0];
         dispatch({
