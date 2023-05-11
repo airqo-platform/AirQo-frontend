@@ -6,9 +6,8 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
-import { loadUserRoles } from 'redux/AccessControl/operations';
 import RolesToolbar from './components/RolesToolbar';
-import { getNetworkPermissionsApi } from '../../apis/accessControl';
+import { getNetworkPermissionsApi, getRolesSummaryApi } from '../../apis/accessControl';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,16 +21,28 @@ const useStyles = makeStyles((theme) => ({
 const Roles = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const roles = useSelector((state) => state.accessControl.userRoles);
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState(null);
 
   useEffect(() => {
     setLoading(true);
     if (isEmpty(roles)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadUserRoles(activeNetwork._id));
+        getRolesSummaryApi(activeNetwork._id)
+          .then((res) => {
+            setRoles(res.roles);
+          })
+          .catch((error) => {
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error'
+              })
+            );
+          });
       }
     }
     setLoading(false);

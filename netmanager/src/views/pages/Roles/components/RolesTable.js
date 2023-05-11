@@ -5,17 +5,19 @@ import { makeStyles } from '@material-ui/styles';
 import {
   Button,
   Card,
+  CardContent,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
+  TextField,
+  Typography
 } from '@material-ui/core';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
-import Chip from '@material-ui/core/Chip';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import {
   deleteRoleApi,
+  getUsersWithRole,
   removePermissionsFromRoleApi,
   updateRoleApi
 } from '../../../apis/accessControl';
@@ -58,6 +60,7 @@ const RolesTable = (props) => {
   const [rolePermissionsOptions, setRolePermissionsOptionsOptions] = useState(null);
   const [selectedPermissions, setSelectedPermissions] = useState(null);
   const [open, setOpen] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const handleClose = () => {
     setOpen(false);
@@ -248,32 +251,7 @@ const RolesTable = (props) => {
           },
           {
             title: 'Status',
-            field: 'role_status',
-            render: (rowData) => {
-              return <Chip label={rowData.role_status} />;
-            }
-          },
-          {
-            title: 'Users',
-            render: (rowData) => {
-              const users = rowData.role_users.length;
-
-              return (
-                <div>
-                  {rowData.role_users.length > 0 ? (
-                    <RemoveRedEye
-                      style={{ color: 'green', cursor: 'pointer' }}
-                      onClick={() => {
-                        setSelectedRoleUsers(rowData.role_users);
-                        setOpen(true);
-                      }}
-                    />
-                  ) : (
-                    <RemoveRedEye style={{ color: 'grey' }} disabled />
-                  )}
-                </div>
-              );
-            }
+            field: 'role_status'
           },
           {
             title: 'Permissions',
@@ -285,6 +263,37 @@ const RolesTable = (props) => {
                       <div>{permission.permission}</div>
                     ))}
                 </>
+              );
+            }
+          },
+          {
+            title: 'More',
+            render: (rowData) => {
+              return (
+                <RemoveRedEye
+                  style={{ color: 'green', cursor: 'pointer' }}
+                  onClick={() => {
+                    setLoading(true);
+                    // get role users
+                    getUsersWithRole(rowData._id)
+                      .then((res) => {
+                        setSelectedRoleUsers(res.users_with_role);
+                        setOpen(true);
+                        setLoading(false);
+                      })
+                      .catch((error) => {
+                        dispatch(
+                          updateMainAlert({
+                            message:
+                              error.response && error.response.data && error.response.data.message,
+                            show: true,
+                            severity: 'error'
+                          })
+                        );
+                        setLoading(false);
+                      });
+                  }}
+                />
               );
             }
           },
@@ -386,10 +395,20 @@ const RolesTable = (props) => {
       {selectedRoleUsers && (
         <Dialog open={open} onClose={handleClose} aria-labelledby="users-dialog-title">
           <DialogTitle id="users-dialog-title">
-            <h6 style={{ textAlign: 'center' }}>Role Users</h6>
+            <heading style={{ textAlign: 'center' }}>Role Users</heading>
           </DialogTitle>
           <DialogContent>
-            <UserPopupTable users={selectedRoleUsers} />
+            {!isEmpty(selectedRoleUsers) ? (
+              <UserPopupTable users={selectedRoleUsers} />
+            ) : (
+              <Card>
+                <CardContent>
+                  <Typography variant="h5" component="h2">
+                    No users found
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose} color="primary">

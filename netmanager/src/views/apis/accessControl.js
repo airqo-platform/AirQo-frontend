@@ -19,6 +19,16 @@ export const getRolesApi = async (networkID) => {
     .then((response) => response.data);
 };
 
+export const getRolesSummaryApi = async (networkID) => {
+  return await axios
+    .get(`${GET_ROLES_URI}/summary`, { params: { network_id: networkID } })
+    .then((response) => response.data);
+};
+
+export const getUsersWithRole = async (roleID) => {
+  return await axios.get(`${GET_ROLES_URI}/${roleID}/users`).then((response) => response.data);
+};
+
 export const addRoleApi = async (data) => {
   return await axios.post(GET_ROLES_URI, data).then((response) => response.data);
 };
