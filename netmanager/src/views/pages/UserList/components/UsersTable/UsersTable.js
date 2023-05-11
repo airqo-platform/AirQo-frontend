@@ -148,9 +148,6 @@ const UsersTable = (props) => {
   const deleteUser = () => {
     props.mappedConfirmDeleteUser(userDelState.user);
     setUserDelState({ open: false, user: {} });
-    setLoading(true);
-    dispatch(fetchNetworkUsers(activeNetwork._id));
-    setLoading(false);
   };
 
   useEffect(() => {

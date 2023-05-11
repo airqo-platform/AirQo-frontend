@@ -1,4 +1,5 @@
 // map state from store to props
+import { fetchNetworkUsers } from '../../redux/AccessControl/operations';
 import * as userActions from '../../redux/Join/actions';
 import { connect } from 'react-redux';
 
@@ -22,7 +23,10 @@ const mapDispatchToProps = (dispatch) => {
 
     mappedShowDeleteDialog: (userToDelete) => dispatch(userActions.deleteUserDialog(userToDelete)),
     mappedHideDeleteDialog: () => dispatch(userActions.hideDeleteDialog()),
-    mappedConfirmDeleteUser: (userToDelete) => dispatch(userActions.deleteUser(userToDelete)),
+    mappedConfirmDeleteUser: (userToDelete) => {
+      dispatch(userActions.deleteUser(userToDelete));
+      dispatch(fetchNetworkUsers(JSON.parse(localStorage.getItem('activeNetwork'))._id));
+    },
 
     mappedShowConfirmDialog: (userToConfirm) =>
       dispatch(userActions.confirmUserDialog(userToConfirm)),
