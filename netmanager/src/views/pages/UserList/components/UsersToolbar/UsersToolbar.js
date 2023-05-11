@@ -18,7 +18,7 @@ import { addUserApi } from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
-import { assignUserNetworkApi } from '../../../../apis/accessControl';
+import { assignUserNetworkApi, assignUserToRoleApi } from '../../../../apis/accessControl';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
@@ -163,9 +163,7 @@ const UsersToolbar = (props) => {
       setState({
         ...form,
         role: {
-          ...form.role,
-          role_name: value,
-          role_code: value
+          id: value
         }
       });
     } else if (id === 'country') {
@@ -203,17 +201,32 @@ const UsersToolbar = (props) => {
 
         // assign user to network
         if (!isEmpty(activeNetwork)) {
-          assignUserNetworkApi(activeNetwork._id, { user_ids: [userID] }).then((resData) => {
-            dispatch(fetchNetworkUsers(activeNetwork._id));
-            setErrors(initialStateErrors);
-            setState(initialState);
-            dispatch(
-              updateMainAlert({
-                message: resData.message,
-                show: true,
-                severity: 'success'
+          assignUserNetworkApi(activeNetwork._id, userID).then((response) => {
+            assignUserToRoleApi(form.role.id, { user: userID })
+              .then((resData) => {
+                dispatch(fetchNetworkUsers(activeNetwork._id));
+                setErrors(initialStateErrors);
+                setState(initialState);
+                dispatch(
+                  updateMainAlert({
+                    message: 'User successfully added to the organisation',
+                    show: true,
+                    severity: 'success'
+                  })
+                );
               })
-            );
+              .catch((error) => {
+                const errors = error.response && error.response.data && error.response.data.errors;
+                setErrors(errors || initialStateErrors);
+                dispatch(
+                  updateMainAlert({
+                    message: error.response && error.response.data && error.response.data.message,
+                    show: true,
+                    severity: 'error',
+                    extra: createAlertBarExtraContentFromObject(errors || {})
+                  })
+                );
+              });
           });
         }
       })
@@ -351,7 +364,6 @@ const UsersToolbar = (props) => {
                   fullWidth
                   label="role"
                   style={{ marginTop: '15px' }}
-                  value={form.role.role_name}
                   onChange={onChange}
                   SelectProps={{
                     native: true,
@@ -367,7 +379,7 @@ const UsersToolbar = (props) => {
                 >
                   {roles &&
                     roles.map((option) => (
-                      <option key={option.value} value={option.role_name}>
+                      <option key={option._id} value={option._id}>
                         {option.role_name}
                       </option>
                     ))}

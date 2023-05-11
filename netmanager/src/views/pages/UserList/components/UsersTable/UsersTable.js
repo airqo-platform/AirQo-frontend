@@ -27,6 +27,8 @@ import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { assignUserToRoleApi } from '../../../../apis/accessControl';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -63,7 +65,7 @@ const UsersTable = (props) => {
    *
    */
 
-  const { className, mappeduserState, ...rest } = props;
+  const { className, mappeduserState, roles, ...rest } = props;
   const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
   const dispatch = useDispatch();
@@ -73,6 +75,7 @@ const UsersTable = (props) => {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showMoreDetailsPopup, setShowMoreDetailsPopup] = useState(false);
   const userToDelete = mappeduserState.userToDelete;
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   //the methods:
 
@@ -93,7 +96,7 @@ const UsersTable = (props) => {
 
   const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
-    setUpdatedUser(userToEdit);
+    setUpdatedUser({ ...userToEdit, role: userToEdit.role._id });
     setShowEditPopup(true);
   };
 
@@ -107,6 +110,21 @@ const UsersTable = (props) => {
     e.preventDefault();
     if (updatedUser.userName !== '') {
       const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
+      // update user role
+      if (updatedUser.role !== props.mappeduserState.userToEdit.role._id) {
+        assignUserToRoleApi(updatedUser.role, { user: props.mappeduserState.userToEdit._id }).then(
+          (res) => {
+            dispatch(fetchNetworkUsers(activeNetwork._id));
+            dispatch(
+              updateMainAlert({
+                message: 'User successfully added to the organisation',
+                show: true,
+                severity: 'success'
+              })
+            );
+          }
+        );
+      }
       hideEditDialog();
       props.mappedEditUser(data);
     }
@@ -123,7 +141,6 @@ const UsersTable = (props) => {
   const deleteUser = () => {
     props.mappedConfirmDeleteUser(userDelState.user);
     setUserDelState({ open: false, user: {} });
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     dispatch(fetchNetworkUsers(activeNetwork._id));
   };
 
@@ -132,7 +149,6 @@ const UsersTable = (props) => {
   const users = useSelector((state) => state.accessControl.networkUsers);
 
   useEffect(() => {
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (!isEmpty(activeNetwork)) {
       dispatch(fetchNetworkUsers(activeNetwork._id));
     }
@@ -296,6 +312,29 @@ const UsersTable = (props) => {
                 variant="outlined"
                 fullWidth
               />
+              <TextField
+                id="role"
+                select
+                fullWidth
+                label="role"
+                style={{ marginTop: '15px' }}
+                onChange={handleUpdateUserChange('role')}
+                SelectProps={{
+                  native: true,
+                  style: { width: '100%', height: '50px' },
+                  MenuProps: {
+                    className: classes.menu
+                  }
+                }}
+                variant="outlined"
+              >
+                {roles &&
+                  roles.map((option) => (
+                    <option key={option._id} value={option._id}>
+                      {option.role_name}
+                    </option>
+                  ))}
+              </TextField>
               <TextField
                 margin="dense"
                 id="jobTitle"

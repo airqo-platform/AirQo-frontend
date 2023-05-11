@@ -13,31 +13,37 @@ export const createAccessToken = async (data) => {
   return await axios.post(GET_ACCESS_TOKEN, data).then((response) => response.data);
 };
 
-export const getUserRolesApi = async (networkID) => {
+export const getRolesApi = async (networkID) => {
   return await axios
     .get(GET_ROLES_URI, { params: { network_id: networkID } })
     .then((response) => response.data);
 };
 
-export const addUserRoleApi = async (data) => {
+export const addRoleApi = async (data) => {
   return await axios.post(GET_ROLES_URI, data).then((response) => response.data);
 };
 
-export const updateUserRoleApi = async (roleID, data) => {
+export const updateRoleApi = async (roleID, data) => {
   return await axios.put(`${GET_ROLES_URI}/${roleID}`, data).then((response) => response.data);
 };
 
-export const deleteUserRoleApi = async (roleID) => {
+export const deleteRoleApi = async (roleID) => {
   return await axios.delete(`${GET_ROLES_URI}/${roleID}`).then((response) => response.data);
+};
+
+export const assignUserToRoleApi = async (roleID, data) => {
+  return await axios
+    .post(`${GET_ROLES_URI}/${roleID}/user`, data)
+    .then((response) => response.data);
 };
 
 export const getNetworksApi = async () => {
   return await axios.get(GET_NETWORKS_URI).then((response) => response.data);
 };
 
-export const assignUserNetworkApi = async (networkID, data) => {
+export const assignUserNetworkApi = async (networkID, userID) => {
   return await axios
-    .post(`${GET_NETWORKS_URI}/${networkID}/assign-users`, data)
+    .put(`${GET_NETWORKS_URI}/${networkID}/assign-user/${userID}`)
     .then((response) => response.data);
 };
 

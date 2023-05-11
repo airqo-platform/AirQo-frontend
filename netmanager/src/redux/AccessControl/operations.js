@@ -1,4 +1,4 @@
-import { getNetworkUsersListApi, getUserRolesApi } from '../../views/apis/accessControl';
+import { getNetworkUsersListApi, getRolesApi } from '../../views/apis/accessControl';
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
@@ -11,7 +11,7 @@ import {
 import { isEmpty } from 'underscore';
 
 export const loadUserRoles = (networkID) => async (dispatch) => {
-  return await getUserRolesApi(networkID)
+  return await getRolesApi(networkID)
     .then((resData) => {
       dispatch({
         type: LOAD_ALL_USER_ROLES_SUCCESS,

@@ -12,7 +12,7 @@ import {
   DialogActions
 } from '@material-ui/core';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { addUserRoleApi, assignPermissionsToRoleApi } from '../../../apis/accessControl';
+import { addRoleApi, assignPermissionsToRoleApi } from '../../../apis/accessControl';
 import { loadUserRoles } from 'redux/AccessControl/operations';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 
@@ -111,7 +111,7 @@ const RolesToolbar = (props) => {
       role_name: form.roleName,
       network_id: activeNetwork._id
     };
-    addUserRoleApi(body)
+    addRoleApi(body)
       .then((resData) => {
         // assign permissions to role
         const permissions = selectedPermissions.map((permission) => permission.label);

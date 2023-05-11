@@ -48,7 +48,7 @@ const UserList = (props) => {
       <div className={classes.root}>
         <UsersToolbar roles={roles} />
         <div className={classes.content}>
-          <UsersTable users={users} />
+          <UsersTable users={users} roles={roles} />
         </div>
       </div>
     </ErrorBoundary>

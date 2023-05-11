@@ -15,9 +15,9 @@ import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import Chip from '@material-ui/core/Chip';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import {
-  deleteUserRoleApi,
+  deleteRoleApi,
   removePermissionsFromRoleApi,
-  updateUserRoleApi
+  updateRoleApi
 } from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
 import { loadUserRoles } from 'redux/AccessControl/operations';
@@ -101,7 +101,7 @@ const RolesTable = (props) => {
     e.preventDefault();
     if (!isEmpty(updatedRole)) {
       const data = { ...updatedRole };
-      updateUserRoleApi(updatedRole._id, data)
+      updateRoleApi(updatedRole._id, data)
         .then((res) => {
           // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
           // if (selectedPermissions) {
@@ -149,7 +149,7 @@ const RolesTable = (props) => {
           //   );
           //   if (removedPermissions.length > 0) {
           //     const permissionIds = removedPermissions.map((permission) => permission.value);
-          //     updateUserRoleApi(updatedRole._id, { removePermissions: permissionIds })
+          //     updateRoleApi(updatedRole._id, { removePermissions: permissionIds })
           //       .then((res) => {})
           //       .catch((error) => {
           //         dispatch(
@@ -206,7 +206,7 @@ const RolesTable = (props) => {
   };
 
   const deleteRole = () => {
-    deleteUserRoleApi(roleDelState.role._id)
+    deleteRoleApi(roleDelState.role._id)
       .then((res) => {
         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
         if (!isEmpty(activeNetwork)) {
