@@ -166,10 +166,6 @@ const UsersTable = (props) => {
             field: 'email'
           },
           {
-            title: 'Country',
-            field: 'country'
-          },
-          {
             title: 'Username',
             field: 'userName'
           },
@@ -227,6 +223,8 @@ const UsersTable = (props) => {
           <DialogContent>
             <div style={{ minWidth: 500 }}>
               <ListItemText primary="Job Title" secondary={editUser.jobTitle || 'Not provided'} />
+              <Divider />
+              <ListItemText primary="Country" secondary={editUser.country || 'Not provided'} />
               <Divider />
               <ListItemText primary="Category" secondary={editUser.category || 'Not provided'} />
               <Divider />
