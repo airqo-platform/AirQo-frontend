@@ -1,4 +1,8 @@
-import { getNetworkUsersListApi, getRolesApi } from '../../views/apis/accessControl';
+import {
+  getNetworkUsersListApi,
+  getRolesApi,
+  getRolesSummaryApi
+} from '../../views/apis/accessControl';
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
@@ -6,9 +10,12 @@ import {
   LOAD_CURRENT_USER_NETWORKS_SUCCESS,
   LOAD_CURRENT_USER_ROLE_SUCCESS,
   LOAD_NETWORK_USERS_FAILURE,
-  LOAD_NETWORK_USERS_SUCCESS
+  LOAD_NETWORK_USERS_SUCCESS,
+  LOAD_ROLES_SUMMARY_FAILURE,
+  LOAD_ROLES_SUMMARY_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 
 export const loadUserRoles = (networkID) => async (dispatch) => {
   return await getRolesApi(networkID)
@@ -23,6 +30,25 @@ export const loadUserRoles = (networkID) => async (dispatch) => {
         type: LOAD_ALL_USER_ROLES_FAILURE,
         payload: err
       });
+    });
+};
+
+export const loadRolesSummary = (networkID) => async (dispatch) => {
+  return await getRolesSummaryApi(networkID)
+    .then((resData) => {
+      dispatch({
+        type: LOAD_ROLES_SUMMARY_SUCCESS,
+        payload: resData.roles
+      });
+    })
+    .catch((error) => {
+      dispatch(
+        updateMainAlert({
+          message: error.response && error.response.data && error.response.data.message,
+          show: true,
+          severity: 'error'
+        })
+      );
     });
 };
 

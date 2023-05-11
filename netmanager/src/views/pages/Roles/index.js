@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import RolesToolbar from './components/RolesToolbar';
-import { getNetworkPermissionsApi, getRolesSummaryApi } from '../../apis/accessControl';
+import { getNetworkPermissionsApi } from '../../apis/accessControl';
+import { loadRolesSummary } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,26 +24,14 @@ const Roles = () => {
   const dispatch = useDispatch();
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [roles, setRoles] = useState(null);
+  const roles = useSelector((state) => state.accessControl.rolesSummary);
 
   useEffect(() => {
     setLoading(true);
     if (isEmpty(roles)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
-        getRolesSummaryApi(activeNetwork._id)
-          .then((res) => {
-            setRoles(res.roles);
-          })
-          .catch((error) => {
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error'
-              })
-            );
-          });
+        dispatch(loadRolesSummary(activeNetwork._id));
       }
     }
     setLoading(false);

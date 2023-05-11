@@ -13,8 +13,8 @@ import {
 } from '@material-ui/core';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { addRoleApi, assignPermissionsToRoleApi } from '../../../apis/accessControl';
-import { loadUserRoles } from 'redux/AccessControl/operations';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
+import { loadRolesSummary } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -68,7 +68,9 @@ const RolesToolbar = (props) => {
   };
   const [form, setState] = useState(initialState);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const permissionOptions =
     permissions &&
@@ -104,24 +106,23 @@ const RolesToolbar = (props) => {
 
   const onSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
     setOpen(false);
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     const body = {
       role_code: form.roleName,
       role_name: form.roleName,
       network_id: activeNetwork._id
     };
+    // add new role
     addRoleApi(body)
       .then((resData) => {
         // assign permissions to role
-        const permissions = selectedPermissions.map((permission) => permission.label);
+        const permissions = selectedPermissions.map((permission) => permission.value);
         assignPermissionsToRoleApi(resData.created_role._id, { permissions })
           .then((resData) => {
             setState(initialState);
-            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-            if (!isEmpty(activeNetwork)) {
-              dispatch(loadUserRoles(activeNetwork._id));
-            }
+            setSelectedPermissions([]);
+            dispatch(loadRolesSummary(activeNetwork._id));
             dispatch(
               updateMainAlert({
                 message: 'New role added successfully',
@@ -129,7 +130,7 @@ const RolesToolbar = (props) => {
                 severity: 'success'
               })
             );
-            // window.location.reload();
+            setLoading(false);
           })
           .catch((error) => {
             dispatch(
@@ -139,6 +140,7 @@ const RolesToolbar = (props) => {
                 severity: 'error'
               })
             );
+            setLoading(false);
           });
       })
       .catch((error) => {
@@ -149,6 +151,7 @@ const RolesToolbar = (props) => {
             severity: 'error'
           })
         );
+        setLoading(false);
       });
   };
 
@@ -161,7 +164,7 @@ const RolesToolbar = (props) => {
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
             Add Role
           </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">

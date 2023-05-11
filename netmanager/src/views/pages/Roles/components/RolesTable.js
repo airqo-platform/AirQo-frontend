@@ -22,12 +22,12 @@ import {
   updateRoleApi
 } from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
-import { loadUserRoles } from 'redux/AccessControl/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { isEmpty } from 'underscore';
 import { RemoveRedEye } from '@material-ui/icons';
 import UserPopupTable from './UserPopupTable';
 import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
+import { loadRolesSummary } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -61,6 +61,7 @@ const RolesTable = (props) => {
   const [selectedPermissions, setSelectedPermissions] = useState(null);
   const [open, setOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const handleClose = () => {
     setOpen(false);
@@ -102,6 +103,7 @@ const RolesTable = (props) => {
 
   const submitEditRole = (e) => {
     e.preventDefault();
+    setLoading(true);
     if (!isEmpty(updatedRole)) {
       const data = { ...updatedRole };
       updateRoleApi(updatedRole._id, data)
@@ -165,11 +167,8 @@ const RolesTable = (props) => {
           //       });
           //   }
           // }
+          dispatch(loadRolesSummary(activeNetwork._id));
 
-          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          if (!isEmpty(activeNetwork)) {
-            dispatch(loadUserRoles(activeNetwork._id));
-          }
           dispatch(
             updateMainAlert({
               message: res.message,
@@ -177,6 +176,7 @@ const RolesTable = (props) => {
               severity: 'success'
             })
           );
+          setLoading(false);
         })
         .catch((error) => {
           dispatch(
@@ -186,6 +186,7 @@ const RolesTable = (props) => {
               severity: 'error'
             })
           );
+          setLoading(false);
         });
       setUpdatedRole({});
       setShowEditPopup(false);
@@ -197,6 +198,7 @@ const RolesTable = (props) => {
           severity: 'error'
         })
       );
+      setLoading(false);
     }
   };
 
@@ -209,11 +211,11 @@ const RolesTable = (props) => {
   };
 
   const deleteRole = () => {
+    setLoading(true);
     deleteRoleApi(roleDelState.role._id)
       .then((res) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
         if (!isEmpty(activeNetwork)) {
-          dispatch(loadUserRoles(activeNetwork._id));
+          dispatch(loadRolesSummary(activeNetwork._id));
         }
         hideDeleteDialog();
         dispatch(
@@ -223,6 +225,7 @@ const RolesTable = (props) => {
             severity: 'success'
           })
         );
+        setLoading(false);
       })
       .catch((error) => {
         dispatch(
@@ -232,6 +235,7 @@ const RolesTable = (props) => {
             severity: 'error'
           })
         );
+        setLoading(false);
       });
 
     setRoleDelState({ open: false, role: {} });
@@ -302,11 +306,15 @@ const RolesTable = (props) => {
             render: (role) => {
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '90px' }}>
-                  <Button color="primary" onClick={() => showEditDialog(role)}>
+                  <Button color="primary" onClick={() => showEditDialog(role)} disabled={isLoading}>
                     Update
                   </Button>
 
-                  <Button style={{ color: 'red' }} onClick={() => showDeleteDialog(role)}>
+                  <Button
+                    style={{ color: 'red' }}
+                    onClick={() => showDeleteDialog(role)}
+                    disabled={isLoading}
+                  >
                     Delete
                   </Button>
                 </div>
