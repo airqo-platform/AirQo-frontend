@@ -27,6 +27,7 @@ import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { capitalize } from 'utils/string';
 import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { formatDateString, isDateInPast } from 'utils/dateTime';
 
 const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
@@ -201,6 +202,12 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                 {getFirstNDurations(elapsedDurationMapper, 2)}
               </span>{' '}
               ago.
+              {!isDateInPast(recentFeed.created_at) && (
+                <div className={classes.error}>
+                  Error: Start date for this device is set to{' '}
+                  {formatDateString(recentFeed.created_at)}
+                </div>
+              )}
             </span>
           </div>
           <div
