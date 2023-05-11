@@ -82,6 +82,7 @@ const RolesTable = (props) => {
   };
 
   const showEditDialog = (role) => {
+    console.log(role);
     setShowEditPopup(true);
     setUpdatedRole(role);
 
@@ -106,90 +107,97 @@ const RolesTable = (props) => {
     setLoading(true);
     if (!isEmpty(updatedRole)) {
       const data = { ...updatedRole };
-      updateRoleApi(updatedRole._id, data)
-        .then((res) => {
-          // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
-          // if (selectedPermissions) {
-          //   const newPermissions = selectedPermissions.filter(
-          //     (permission) =>
-          //       !updatedRole.role_permissions.some(
-          //         (rolePermission) => rolePermission._id === permission.value
-          //       )
-          //   );
-          //   if (newPermissions.length > 0) {
-          //     const permissionIds = newPermissions.map((permission) => permission.value);
-          //     removePermissionsFromRoleApi(updatedRole._id, { permissions: permissionIds })
-          //       .then((res) => {
-          //         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-          //         if (!isEmpty(activeNetwork)) {
-          //           dispatch(loadUserRoles(activeNetwork._id));
-          //         }
-          //         dispatch(
-          //           updateMainAlert({
-          //             message: res.message,
-          //             show: true,
-          //             severity: 'success'
-          //           })
-          //         );
-          //       })
-          //       .catch((error) => {
-          //         dispatch(
-          //           updateMainAlert({
-          //             message: error.response && error.response.data && error.response.data.message,
-          //             show: true,
-          //             severity: 'error'
-          //           })
-          //         );
-          //       });
-          //   }
-          // }
+      // updateRoleApi(updatedRole._id, data)
+      //   .then((res) => {
+      //     // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
+      //     if (selectedPermissions) {
+      //       const newPermissions = selectedPermissions.filter(
+      //         (permission) =>
+      //           !updatedRole.role_permissions.some(
+      //             (rolePermission) => rolePermission._id === permission.value
+      //           )
+      //       );
+      //       if (newPermissions.length > 0) {
+      //         const permissionIds = newPermissions.map((permission) => permission.value);
+      //         removePermissionsFromRoleApi(updatedRole._id, { permissions: permissionIds })
+      //           .then((res) => {
+      //             const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      //             if (!isEmpty(activeNetwork)) {
+      //               dispatch(loadUserRoles(activeNetwork._id));
+      //             }
+      //             dispatch(
+      //               updateMainAlert({
+      //                 message: res.message,
+      //                 show: true,
+      //                 severity: 'success'
+      //               })
+      //             );
+      //           })
+      //           .catch((error) => {
+      //             dispatch(
+      //               updateMainAlert({
+      //                 message: error.response && error.response.data && error.response.data.message,
+      //                 show: true,
+      //                 severity: 'error'
+      //               })
+      //             );
+      //           });
+      //       }
+      //     }
 
-          // check for permissions that have been removed and unassign them from role
-          // if (rolePermissionsOptions) {
-          //   const removedPermissions = rolePermissionsOptions.filter(
-          //     (permission) =>
-          //       !selectedPermissions.some(
-          //         (selectedPermission) => selectedPermission.value === permission.value
-          //       )
-          //   );
-          //   if (removedPermissions.length > 0) {
-          //     const permissionIds = removedPermissions.map((permission) => permission.value);
-          //     updateRoleApi(updatedRole._id, { removePermissions: permissionIds })
-          //       .then((res) => {})
-          //       .catch((error) => {
-          //         dispatch(
-          //           updateMainAlert({
-          //             message: error.response && error.response.data && error.response.data.message,
-          //             show: true,
-          //             severity: 'error'
-          //           })
-          //         );
-          //       });
-          //   }
-          // }
-          dispatch(loadRolesSummary(activeNetwork._id));
+      //     // check for permissions that have been removed and unassign them from role
+      //     if (rolePermissionsOptions) {
+      //       const removedPermissions = rolePermissionsOptions.filter(
+      //         (permission) =>
+      //           !selectedPermissions.some(
+      //             (selectedPermission) => selectedPermission.value === permission.value
+      //           )
+      //       );
+      //       if (removedPermissions.length > 0) {
+      //         const permissionIds = removedPermissions.map((permission) => permission.value);
+      //         updateRoleApi(updatedRole._id, { removePermissions: permissionIds })
+      //           .then((res) => {
+      //             dispatch(loadRolesSummary(activeNetwork._id));
 
-          dispatch(
-            updateMainAlert({
-              message: res.message,
-              show: true,
-              severity: 'success'
-            })
-          );
-          setLoading(false);
-        })
-        .catch((error) => {
-          dispatch(
-            updateMainAlert({
-              message: error.response && error.response.data && error.response.data.message,
-              show: true,
-              severity: 'error'
-            })
-          );
-          setLoading(false);
-        });
-      setUpdatedRole({});
-      setShowEditPopup(false);
+      //             dispatch(
+      //               updateMainAlert({
+      //                 message: res.message,
+      //                 show: true,
+      //                 severity: 'success'
+      //               })
+      //             );
+      //     setLoading(false);
+      //     setUpdatedRole({});
+      // setShowEditPopup(false);
+      //           })
+      //           .catch((error) => {
+      //             setLoading(false);
+      //             setUpdatedRole({});
+      // setShowEditPopup(false);
+      //             dispatch(
+      //               updateMainAlert({
+      //                 message: error.response && error.response.data && error.response.data.message,
+      //                 show: true,
+      //                 severity: 'error'
+      //               })
+      //             );
+      //           });
+      //       }
+      //     }
+
+      //   })
+      //   .catch((error) => {
+      //     dispatch(
+      //       updateMainAlert({
+      //         message: error.response && error.response.data && error.response.data.message,
+      //         show: true,
+      //         severity: 'error'
+      //       })
+      //     );
+      //     setLoading(false);
+      //     setUpdatedRole({});
+      // setShowEditPopup(false);
+      //   });
     } else {
       dispatch(
         updateMainAlert({

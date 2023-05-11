@@ -528,6 +528,10 @@ export const logoutUser = () => (dispatch) => {
   localStorage.removeItem('activeNetwork');
   // Remove auth header for future requests
   setAuthToken(false);
+  // Remove token from local storage
+  localStorage.removeItem('userNetworks');
+  // Remove auth header for future requests
+  setAuthToken(false);
   // clear redux state on logout
   dispatch(clearState());
   dispatch({ type: LOGOUT_USER_SUCCESS });

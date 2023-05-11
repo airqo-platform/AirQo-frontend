@@ -79,6 +79,7 @@ const UsersToolbar = (props) => {
 
   const [open, setOpen] = useState(false);
   const orgData = useOrgData();
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const initialState = {
     firstName: '',
@@ -90,8 +91,8 @@ const UsersToolbar = (props) => {
     country: '',
     jobTitle: '',
     website: '',
-    long_organization: '',
-    organization: ''
+    long_organization: activeNetwork.net_name,
+    organization: activeNetwork.net_name
   };
   const initialStateErrors = {
     firstName: '',
@@ -172,12 +173,6 @@ const UsersToolbar = (props) => {
         ...form,
         country: capitalize(value)
       });
-    } else if (id === 'long_organization') {
-      setState({
-        ...form,
-        long_organization: value,
-        organization: value
-      });
     } else {
       setState(
         {
@@ -199,8 +194,6 @@ const UsersToolbar = (props) => {
     addUserApi(form)
       .then((resData) => {
         const userID = resData.user._id;
-        const activeNetwork = JSON.parse(localStorage.activeNetwork);
-
         // assign user to network
         if (!isEmpty(activeNetwork)) {
           assignUserNetworkApi(activeNetwork._id, userID).then((response) => {
@@ -259,7 +252,7 @@ const UsersToolbar = (props) => {
         <span className={classes.spacer} />
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
-            {loading ? 'Loading...' : 'Add User'}
+            {loading ? 'Loading...' : 'Add new user'}
           </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
@@ -333,6 +326,7 @@ const UsersToolbar = (props) => {
                   value={form.long_organization}
                   variant="outlined"
                   fullWidth
+                  disabled
                 />
 
                 <TextField

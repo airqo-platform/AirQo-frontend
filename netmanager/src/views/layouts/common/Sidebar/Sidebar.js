@@ -90,18 +90,21 @@ const allMainPages = [
   {
     title: 'Dashboard',
     href: '/dashboard',
-    icon: <DashboardIcon />
+    icon: <DashboardIcon />,
+    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
   },
 
   {
     title: 'Export',
     href: '/download',
-    icon: <CloudDownloadIcon />
+    icon: <CloudDownloadIcon />,
+    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
   },
   {
     title: 'Locate',
     href: '/locate',
-    icon: <LocateIcon />
+    icon: <LocateIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
   },
   {
     title: 'Network Monitoring',

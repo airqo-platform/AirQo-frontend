@@ -58,9 +58,7 @@ export const assignUserNetworkApi = async (networkID, userID) => {
 };
 
 export const getNetworkPermissionsApi = async (networkID) => {
-  return await axios
-    .get(GET_PERMISSIONS_URI, { params: { network: networkID } })
-    .then((response) => response.data);
+  return await axios.get(GET_PERMISSIONS_URI).then((response) => response.data);
 };
 
 export const assignPermissionsToRoleApi = async (roleID, data) => {
