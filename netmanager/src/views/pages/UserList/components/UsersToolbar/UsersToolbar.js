@@ -108,6 +108,7 @@ const UsersToolbar = (props) => {
   const dispatch = useDispatch();
   const [form, setState] = useState(initialState);
   const [errors, setErrors] = useState(initialStateErrors);
+  const [loading, setLoading] = useState(false);
 
   const clearState = () => {
     setState({ ...initialState });
@@ -191,6 +192,7 @@ const UsersToolbar = (props) => {
   };
 
   const onSubmit = (e) => {
+    setLoading(true);
     e.preventDefault();
     setOpen(false);
     // register user
@@ -214,6 +216,7 @@ const UsersToolbar = (props) => {
                     severity: 'success'
                   })
                 );
+                setLoading(false);
               })
               .catch((error) => {
                 const errors = error.response && error.response.data && error.response.data.errors;
@@ -226,6 +229,7 @@ const UsersToolbar = (props) => {
                     extra: createAlertBarExtraContentFromObject(errors || {})
                   })
                 );
+                setLoading(false);
               });
           });
         }
@@ -233,6 +237,7 @@ const UsersToolbar = (props) => {
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
         setErrors(errors || initialStateErrors);
+        setLoading(false);
         dispatch(
           updateMainAlert({
             message: error.response && error.response.data && error.response.data.message,
@@ -253,8 +258,8 @@ const UsersToolbar = (props) => {
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
-            Add User
+          <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
+            {loading ? 'Loading...' : 'Add User'}
           </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>

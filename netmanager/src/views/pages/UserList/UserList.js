@@ -22,8 +22,6 @@ const useStyles = makeStyles((theme) => ({
 
 const UserList = (props) => {
   const classes = useStyles();
-
-  const users = useSelector((state) => state.accessControl.networkUsers);
   const dispatch = useDispatch();
   const roles = useSelector((state) => state.accessControl.userRoles);
 
@@ -48,7 +46,7 @@ const UserList = (props) => {
       <div className={classes.root}>
         <UsersToolbar roles={roles} />
         <div className={classes.content}>
-          <UsersTable users={users} roles={roles} />
+          <UsersTable roles={roles} />
         </div>
       </div>
     </ErrorBoundary>
