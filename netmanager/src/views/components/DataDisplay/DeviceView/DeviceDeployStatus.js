@@ -28,6 +28,7 @@ import { capitalize } from 'utils/string';
 import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
+import { purple } from '@material-ui/core/colors';
 
 const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
@@ -44,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
   },
   grey: {
     color: grey[200]
+  },
+  future: {
+    color: purple[900],
+    fontWeight: 'bold'
   }
 }));
 
@@ -208,11 +213,11 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                   ago.
                 </>
               ) : (
-                <span className={classes.error}>in the future.</span>
+                <span className={classes.future}>in the future.</span>
               )}
             </span>
             {!isDateInPast(recentFeed.created_at) && (
-              <div className={classes.error}>
+              <div className={classes.future}>
                 Error: Start date for this device is set to{' '}
                 {formatDateString(recentFeed.created_at)}
               </div>
