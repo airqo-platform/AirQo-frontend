@@ -77,6 +77,12 @@ export const removePermissionsFromRoleApi = async (roleID, permissionID) => {
     .then((response) => response.data);
 };
 
+export const updatePermissionsToRoleApi = async (roleID, data) => {
+  return await axios
+    .put(`${GET_ROLES_URI}/${roleID}/permissions`, data)
+    .then((response) => response.data);
+};
+
 export const getNetworkUsersListApi = async (networkID) => {
   return await axios
     .get(`${GET_NETWORKS_URI}/${networkID}/assigned-users`)

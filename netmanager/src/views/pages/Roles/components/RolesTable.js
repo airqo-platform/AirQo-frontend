@@ -21,6 +21,7 @@ import {
   deleteRoleApi,
   getUsersWithRole,
   removePermissionsFromRoleApi,
+  updatePermissionsToRoleApi,
   updateRoleApi
 } from '../../../apis/accessControl';
 import { useDispatch } from 'react-redux';
@@ -75,15 +76,7 @@ const RolesTable = (props) => {
 
   const handleUpdateRole = (field) => (event) => {
     event.preventDefault();
-    if (field === 'role_name') {
-      setUpdatedRole({
-        ...updatedRole,
-        role_name: event.target.value.toUpperCase(),
-        role_code: event.target.value.toUpperCase()
-      });
-    } else {
-      setUpdatedRole({ ...updatedRole, [field]: event.target.value });
-    }
+    setUpdatedRole({ ...updatedRole, [field]: event.target.value });
   };
 
   const showEditDialog = (role) => {
@@ -120,66 +113,40 @@ const RolesTable = (props) => {
     e.preventDefault();
     setLoading(true);
     if (!isEmpty(updatedRole)) {
-      const data = {
-        role_name: updatedRole.role_name,
-        role_status: updatedRole.role_status,
-        role_code: updatedRole.role_name
-      };
-      updateRoleApi(updatedRole._id, data)
-        .then((res) => {
-          // update role permissions
-          if (selectedPermissions) {
-            const newPermissions =
-              updatedRole.role_permissions &&
-              selectedPermissions.map((permission) => permission.value);
+      // update role permissions
+      if (selectedPermissions && selectedPermissions.length > 0) {
+        const permissionIds = selectedPermissions.map((permission) => permission.value);
 
-            if (newPermissions.length > 0) {
-              const permissionIds = newPermissions.map((permission) => permission.value);
-
-              assignPermissionsToRoleApi(updatedRole._id, { permissions: permissionIds })
-                .then((res) => {
-                  if (!isEmpty(activeNetwork)) {
-                    dispatch(loadRolesSummary(activeNetwork._id));
-                  }
-
-                  dispatch(
-                    updateMainAlert({
-                      message: res.message,
-                      show: true,
-                      severity: 'success'
-                    })
-                  );
-                  setLoading(false);
-                  setUpdatedRole({});
-                  setShowEditPopup(false);
-                })
-                .catch((error) => {
-                  setLoading(false);
-                  setUpdatedRole({});
-                  setShowEditPopup(false);
-                  dispatch(
-                    updateMainAlert({
-                      message: 'Error: Unable to update role permissions',
-                      show: true,
-                      severity: 'error'
-                    })
-                  );
-                });
+        updatePermissionsToRoleApi(updatedRole._id, { permission_ids: permissionIds })
+          .then((res) => {
+            if (!isEmpty(activeNetwork)) {
+              dispatch(loadRolesSummary(activeNetwork._id));
             }
-          }
-        })
-        .catch((error) => {
-          dispatch(
-            updateMainAlert({
-              message: 'Error: Unable to update role details',
-              show: true,
-              severity: 'error'
-            })
-          );
-          setLoading(false);
-          setUpdatedRole({});
-          setShowEditPopup(false);
-        });
+
+            dispatch(
+              updateMainAlert({
+                message: res.message,
+                show: true,
+                severity: 'success'
+              })
+            );
+            setLoading(false);
+            setUpdatedRole({});
+            setShowEditPopup(false);
+          })
+          .catch((error) => {
+            setLoading(false);
+            setUpdatedRole({});
+            setShowEditPopup(false);
+            dispatch(
+              updateMainAlert({
+                message: 'Error: Unable to update role permissions',
+                show: true,
+                severity: 'error'
+              })
+            );
+          });
+      }
     } else {
       dispatch(
         updateMainAlert({
@@ -319,7 +286,7 @@ const RolesTable = (props) => {
         }}
       />
       <Dialog open={showEditPopup} onClose={hideEditDialog} aria-labelledby="form-dialog-title">
-        <DialogTitle>Edit Role</DialogTitle>
+        <DialogTitle>Edit Role Permissions</DialogTitle>
         <DialogContent>
           <div>
             <TextField
@@ -333,29 +300,8 @@ const RolesTable = (props) => {
               onChange={handleUpdateRole('role_name')}
               fullWidth
               required
+              disabled
             />
-            <TextField
-              margin="dense"
-              id="role_status"
-              name="role_status"
-              type="text"
-              label="Status"
-              variant="outlined"
-              fullWidth
-              value={updatedRole && updatedRole.role_status}
-              onChange={handleUpdateRole('role_status')}
-              select
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' },
-                MenuProps: {
-                  className: classes.menu
-                }
-              }}
-            >
-              <option value={'active'}>Active</option>
-              <option value={'inactive'}>Inactive</option>
-            </TextField>
             <OutlinedSelect
               className="reactSelect"
               label="Permissions"
