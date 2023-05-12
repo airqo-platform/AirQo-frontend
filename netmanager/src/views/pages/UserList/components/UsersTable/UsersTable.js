@@ -14,7 +14,8 @@ import {
   TextField,
   DialogActions,
   ListItemText,
-  Divider
+  Divider,
+  Select
 } from '@material-ui/core';
 import { RemoveRedEye } from '@material-ui/icons';
 
@@ -23,25 +24,12 @@ import { formatDateString } from 'utils/dateTime';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
-
-const roles = [
-  {
-    value: 'user',
-    label: 'user'
-  },
-  {
-    value: 'collaborator',
-    label: 'collaborator'
-  },
-  {
-    value: 'netmanager',
-    label: 'netmanager'
-  },
-  {
-    value: 'admin',
-    label: 'admin'
-  }
-];
+import { isEmpty } from 'underscore';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { assignUserToRoleApi } from '../../../../apis/accessControl';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import LoadingOverlay from 'react-loading-overlay';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -78,16 +66,20 @@ const UsersTable = (props) => {
    *
    */
 
-  const { className, mappeduserState, ...rest } = props;
+  const { className, mappeduserState, roles, ...rest } = props;
   const [userDelState, setUserDelState] = useState({ open: false, user: {} });
 
-  const users = mappeduserState.users;
+  const dispatch = useDispatch();
   const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
   const [updatedUser, setUpdatedUser] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showMoreDetailsPopup, setShowMoreDetailsPopup] = useState(false);
   const userToDelete = mappeduserState.userToDelete;
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+  const [isLoading, setLoading] = useState(false);
+  const classes = useStyles();
+  const users = useSelector((state) => state.accessControl.networkUsers);
 
   //the methods:
 
@@ -108,6 +100,12 @@ const UsersTable = (props) => {
 
   const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
+    if (userToEdit.role) {
+      setUpdatedUser({ ...userToEdit, role: userToEdit.role._id });
+    } else {
+      setUpdatedUser(userToEdit);
+    }
+
     setShowEditPopup(true);
   };
 
@@ -118,12 +116,33 @@ const UsersTable = (props) => {
   };
 
   const submitEditUser = (e) => {
+    setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
       const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
+      // update user role
+      if (props.mappeduserState.userToEdit.role) {
+        if (updatedUser.role !== props.mappeduserState.userToEdit.role._id) {
+          assignUserToRoleApi(updatedUser.role, {
+            user: props.mappeduserState.userToEdit._id
+          }).then((res) => {
+            dispatch(fetchNetworkUsers(activeNetwork._id));
+            dispatch(
+              updateMainAlert({
+                message: 'User successfully added to the organisation',
+                show: true,
+                severity: 'success'
+              })
+            );
+            setLoading(false);
+          });
+        }
+      }
+
       hideEditDialog();
       props.mappedEditUser(data);
     }
+    setLoading(false);
   };
 
   const showDeleteDialog = (user) => {
@@ -139,10 +158,12 @@ const UsersTable = (props) => {
     setUserDelState({ open: false, user: {} });
   };
 
-  const classes = useStyles();
-
   useEffect(() => {
-    props.fetchUsers();
+    setLoading(true);
+    if (!isEmpty(activeNetwork)) {
+      dispatch(fetchNetworkUsers(activeNetwork._id));
+    }
+    setLoading(false);
   }, []);
 
   return (
@@ -150,7 +171,7 @@ const UsersTable = (props) => {
       <CustomMaterialTable
         title={'Users'}
         userPreferencePaginationKey={'users'}
-        data={users}
+        data={!isEmpty(users) ? users : []}
         columns={[
           {
             title: 'Full Name',
@@ -173,16 +194,14 @@ const UsersTable = (props) => {
             field: 'email'
           },
           {
-            title: 'Country',
-            field: 'country'
-          },
-          {
             title: 'Username',
             field: 'userName'
           },
           {
             title: 'Role',
-            field: 'privilege'
+            render: (user) => {
+              return <span>{user.role ? user.role.role_name : '---'}</span>;
+            }
           },
           {
             title: 'Joined',
@@ -233,6 +252,8 @@ const UsersTable = (props) => {
             <div style={{ minWidth: 500 }}>
               <ListItemText primary="Job Title" secondary={editUser.jobTitle || 'Not provided'} />
               <Divider />
+              <ListItemText primary="Country" secondary={editUser.country || 'Not provided'} />
+              <Divider />
               <ListItemText primary="Category" secondary={editUser.category || 'Not provided'} />
               <Divider />
               <ListItemText primary="Website" secondary={editUser.website || 'Not provided'} />
@@ -266,7 +287,7 @@ const UsersTable = (props) => {
                 type="text"
                 label="email"
                 variant="outlined"
-                value={(updatedUser && updatedUser.email) || editUser.email}
+                value={updatedUser.email}
                 onChange={handleUpdateUserChange('email')}
                 fullWidth
               />
@@ -276,7 +297,7 @@ const UsersTable = (props) => {
                 name="firstName"
                 label="first name"
                 type="text"
-                value={(updatedUser && updatedUser.firstName) || editUser.firstName}
+                value={updatedUser.firstName}
                 onChange={handleUpdateUserChange('firstName')}
                 variant="outlined"
                 fullWidth
@@ -287,7 +308,7 @@ const UsersTable = (props) => {
                 label="last name"
                 name="lastName"
                 type="text"
-                value={(updatedUser && updatedUser.lastName) || editUser.lastName}
+                value={updatedUser.lastName}
                 onChange={handleUpdateUserChange('lastName')}
                 variant="outlined"
                 fullWidth
@@ -298,19 +319,18 @@ const UsersTable = (props) => {
                 name="userName"
                 label="user name"
                 type="text"
-                value={(updatedUser && updatedUser.userName) || editUser.userName}
+                value={updatedUser.userName}
                 onChange={handleUpdateUserChange('userName')}
                 variant="outlined"
                 fullWidth
               />
               <TextField
-                id="privilege"
+                id="role"
                 select
                 fullWidth
-                label="Role"
+                label="role"
                 style={{ marginTop: '15px' }}
-                value={(updatedUser && updatedUser.privilege) || editUser.privilege}
-                onChange={handleUpdateUserChange('privilege')}
+                onChange={handleUpdateUserChange('role')}
                 SelectProps={{
                   native: true,
                   style: { width: '100%', height: '50px' },
@@ -320,12 +340,121 @@ const UsersTable = (props) => {
                 }}
                 variant="outlined"
               >
-                {roles.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                {roles &&
+                  roles.map((option, index) => {
+                    if (index === 0) {
+                      return (
+                        <>
+                          <option
+                            key={option._id}
+                            value={
+                              (props.mappeduserState.userToEdit.role &&
+                                option._id === props.mappeduserState.userToEdit.role._id) ||
+                              option._id
+                                ? props.mappeduserState.userToEdit.role?.role_name
+                                : option._id
+                            }
+                          >
+                            {(props.mappeduserState.userToEdit.role &&
+                              option._id === props.mappeduserState.userToEdit.role._id) ||
+                            option._id
+                              ? props.mappeduserState.userToEdit.role?.role_name
+                              : option.role_name}
+                          </option>
+                          {roles.map((option, index) => {
+                            if (props.mappeduserState.userToEdit.role) {
+                              if (
+                                index !== 0 &&
+                                option._id !== props.mappeduserState.userToEdit.role._id
+                              ) {
+                                return (
+                                  <option key={option._id} value={option._id}>
+                                    {option.role_name}
+                                  </option>
+                                );
+                              }
+                            } else {
+                              if (index !== 0) {
+                                return (
+                                  <option key={option._id} value={option._id}>
+                                    {option.role_name}
+                                  </option>
+                                );
+                              }
+                            }
+                          })}
+                        </>
+                      );
+                    }
+                  })}
               </TextField>
+              <TextField
+                margin="dense"
+                id="jobTitle"
+                name="jobTitle"
+                label="jobTitle"
+                type="text"
+                value={updatedUser.jobTitle}
+                onChange={handleUpdateUserChange('jobTitle')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="organization"
+                name="organization"
+                label="organization"
+                type="text"
+                value={updatedUser.organization}
+                onChange={handleUpdateUserChange('organization')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="category"
+                name="category"
+                label="category"
+                type="text"
+                value={updatedUser.category}
+                onChange={handleUpdateUserChange('category')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="description"
+                name="description"
+                label="description"
+                type="text"
+                value={updatedUser.description}
+                onChange={handleUpdateUserChange('description')}
+                variant="outlined"
+                fullWidth
+                multiline
+              />
+              <TextField
+                margin="dense"
+                id="website"
+                name="website"
+                label="website"
+                type="text"
+                value={updatedUser.website}
+                onChange={handleUpdateUserChange('website')}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="country"
+                name="country"
+                label="country"
+                type="text"
+                value={updatedUser.country}
+                onChange={handleUpdateUserChange('country')}
+                variant="outlined"
+                fullWidth
+              />
             </div>
           </DialogContent>
           <DialogActions>
@@ -365,9 +494,7 @@ const UsersTable = (props) => {
 
 UsersTable.propTypes = {
   className: PropTypes.string,
-  users: PropTypes.array.isRequired,
-  auth: PropTypes.object.isRequired,
-  fetchUsers: PropTypes.func.isRequired
+  auth: PropTypes.object.isRequired
 };
 
 export default usersStateConnector(UsersTable);
