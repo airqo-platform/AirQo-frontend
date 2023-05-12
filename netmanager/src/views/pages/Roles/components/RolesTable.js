@@ -10,12 +10,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   TextField,
   Typography
 } from '@material-ui/core';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import {
+  assignPermissionsToRoleApi,
   deleteRoleApi,
   getUsersWithRole,
   removePermissionsFromRoleApi,
@@ -46,11 +48,14 @@ const useStyles = makeStyles((theme) => ({
   },
   actions: {
     justifyContent: 'flex-end'
+  },
+  menu: {
+    width: 400
   }
 }));
 
 const RolesTable = (props) => {
-  const { className, roles, loading, ...rest } = props;
+  const { className, roles, permissions, loading, ...rest } = props;
   const classes = useStyles();
   const dispatch = useDispatch();
   const [updatedRole, setUpdatedRole] = useState({});
@@ -82,19 +87,28 @@ const RolesTable = (props) => {
   };
 
   const showEditDialog = (role) => {
-    console.log(role);
-    setShowEditPopup(true);
-    setUpdatedRole(role);
-
     const permissionOptions =
-      role.role_permissions &&
-      role.role_permissions.map((permission) => {
+      permissions &&
+      permissions.map((permission) => {
         return {
           value: permission._id,
           label: permission.permission
         };
       });
     setRolePermissionsOptionsOptions(permissionOptions);
+
+    // set selected permissions to the role permissions
+    const selectedPermissions =
+      role.role_permissions &&
+      role.role_permissions.map((rolePermission) => {
+        return {
+          value: rolePermission._id,
+          label: rolePermission.permission
+        };
+      });
+    setSelectedPermissions(selectedPermissions);
+    setShowEditPopup(true);
+    setUpdatedRole(role);
   };
 
   const hideEditDialog = () => {
@@ -106,98 +120,66 @@ const RolesTable = (props) => {
     e.preventDefault();
     setLoading(true);
     if (!isEmpty(updatedRole)) {
-      const data = { ...updatedRole };
-      // updateRoleApi(updatedRole._id, data)
-      //   .then((res) => {
-      //     // check if selected permissions are same as the role permissions, if not assign the new permissions to the role
-      //     if (selectedPermissions) {
-      //       const newPermissions = selectedPermissions.filter(
-      //         (permission) =>
-      //           !updatedRole.role_permissions.some(
-      //             (rolePermission) => rolePermission._id === permission.value
-      //           )
-      //       );
-      //       if (newPermissions.length > 0) {
-      //         const permissionIds = newPermissions.map((permission) => permission.value);
-      //         removePermissionsFromRoleApi(updatedRole._id, { permissions: permissionIds })
-      //           .then((res) => {
-      //             const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      //             if (!isEmpty(activeNetwork)) {
-      //               dispatch(loadUserRoles(activeNetwork._id));
-      //             }
-      //             dispatch(
-      //               updateMainAlert({
-      //                 message: res.message,
-      //                 show: true,
-      //                 severity: 'success'
-      //               })
-      //             );
-      //           })
-      //           .catch((error) => {
-      //             dispatch(
-      //               updateMainAlert({
-      //                 message: error.response && error.response.data && error.response.data.message,
-      //                 show: true,
-      //                 severity: 'error'
-      //               })
-      //             );
-      //           });
-      //       }
-      //     }
+      const data = {
+        role_name: updatedRole.role_name,
+        role_status: updatedRole.role_status,
+        role_code: updatedRole.role_name
+      };
+      updateRoleApi(updatedRole._id, data)
+        .then((res) => {
+          // update role permissions
+          if (selectedPermissions) {
+            const newPermissions =
+              updatedRole.role_permissions &&
+              selectedPermissions.map((permission) => permission.value);
 
-      //     // check for permissions that have been removed and unassign them from role
-      //     if (rolePermissionsOptions) {
-      //       const removedPermissions = rolePermissionsOptions.filter(
-      //         (permission) =>
-      //           !selectedPermissions.some(
-      //             (selectedPermission) => selectedPermission.value === permission.value
-      //           )
-      //       );
-      //       if (removedPermissions.length > 0) {
-      //         const permissionIds = removedPermissions.map((permission) => permission.value);
-      //         updateRoleApi(updatedRole._id, { removePermissions: permissionIds })
-      //           .then((res) => {
-      //             dispatch(loadRolesSummary(activeNetwork._id));
+            if (newPermissions.length > 0) {
+              const permissionIds = newPermissions.map((permission) => permission.value);
 
-      //             dispatch(
-      //               updateMainAlert({
-      //                 message: res.message,
-      //                 show: true,
-      //                 severity: 'success'
-      //               })
-      //             );
-      //     setLoading(false);
-      //     setUpdatedRole({});
-      // setShowEditPopup(false);
-      //           })
-      //           .catch((error) => {
-      //             setLoading(false);
-      //             setUpdatedRole({});
-      // setShowEditPopup(false);
-      //             dispatch(
-      //               updateMainAlert({
-      //                 message: error.response && error.response.data && error.response.data.message,
-      //                 show: true,
-      //                 severity: 'error'
-      //               })
-      //             );
-      //           });
-      //       }
-      //     }
+              assignPermissionsToRoleApi(updatedRole._id, { permissions: permissionIds })
+                .then((res) => {
+                  if (!isEmpty(activeNetwork)) {
+                    dispatch(loadRolesSummary(activeNetwork._id));
+                  }
 
-      //   })
-      //   .catch((error) => {
-      //     dispatch(
-      //       updateMainAlert({
-      //         message: error.response && error.response.data && error.response.data.message,
-      //         show: true,
-      //         severity: 'error'
-      //       })
-      //     );
-      //     setLoading(false);
-      //     setUpdatedRole({});
-      // setShowEditPopup(false);
-      //   });
+                  dispatch(
+                    updateMainAlert({
+                      message: res.message,
+                      show: true,
+                      severity: 'success'
+                    })
+                  );
+                  setLoading(false);
+                  setUpdatedRole({});
+                  setShowEditPopup(false);
+                })
+                .catch((error) => {
+                  setLoading(false);
+                  setUpdatedRole({});
+                  setShowEditPopup(false);
+                  dispatch(
+                    updateMainAlert({
+                      message: 'Error: Unable to update role permissions',
+                      show: true,
+                      severity: 'error'
+                    })
+                  );
+                });
+            }
+          }
+        })
+        .catch((error) => {
+          dispatch(
+            updateMainAlert({
+              message: 'Error: Unable to update role details',
+              show: true,
+              severity: 'error'
+            })
+          );
+          setLoading(false);
+          setUpdatedRole({});
+          setShowEditPopup(false);
+        });
     } else {
       dispatch(
         updateMainAlert({
@@ -362,7 +344,18 @@ const RolesTable = (props) => {
               fullWidth
               value={updatedRole && updatedRole.role_status}
               onChange={handleUpdateRole('role_status')}
-            />
+              select
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' },
+                MenuProps: {
+                  className: classes.menu
+                }
+              }}
+            >
+              <option value={'active'}>Active</option>
+              <option value={'inactive'}>Inactive</option>
+            </TextField>
             <OutlinedSelect
               className="reactSelect"
               label="Permissions"

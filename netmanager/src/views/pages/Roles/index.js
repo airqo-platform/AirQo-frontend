@@ -61,7 +61,7 @@ const Roles = () => {
       <div className={classes.root}>
         <RolesToolbar permissions={permissions && permissions} />
         <div className={classes.content}>
-          <RolesTable loading={loading} roles={roles} />
+          <RolesTable loading={loading} roles={roles} permissions={permissions && permissions} />
         </div>
       </div>
     </ErrorBoundary>
