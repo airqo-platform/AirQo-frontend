@@ -194,6 +194,7 @@ const Sidebar = (props) => {
         getRoleDetailsApi(res.users[0].role._id)
           .then((res) => {
             dispatch(addCurrentUserRole(res.roles[0]));
+            localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;

@@ -16,8 +16,9 @@ import DeviceOverview from './DeviceOverview/DeviceOverview';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useInitScrollTop } from 'utils/customHooks';
+import { withPermission } from '../../../containers/PageAccess';
 
-export default function DeviceView() {
+function DeviceView() {
   const dispatch = useDispatch();
   const match = useRouteMatch();
   const params = useParams();
@@ -79,3 +80,5 @@ export default function DeviceView() {
     </div>
   );
 }
+
+export default withPermission(DeviceView, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

@@ -28,6 +28,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'assets/css/device-registry.css';
 import { capitalize } from '../../../utils/string';
 import { softCreateDeviceApi } from '../../apis/deviceRegistry';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -740,4 +741,4 @@ DevicesTable.propTypes = {
   users: PropTypes.array.isRequired
 };
 
-export default DevicesTable;
+export default withPermission(DevicesTable, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

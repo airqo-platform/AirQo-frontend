@@ -18,6 +18,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+import { withPermission } from '../../containers/PageAccess';
 
 const gridItemStyle = {
   padding: '5px',
@@ -510,4 +511,4 @@ SiteView.propTypes = {
   className: PropTypes.string
 };
 
-export default SiteView;
+export default withPermission(SiteView, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

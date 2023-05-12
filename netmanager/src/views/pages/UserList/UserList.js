@@ -10,6 +10,7 @@ import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -58,4 +59,6 @@ UserList.propTypes = {
   userState: PropTypes.object.isRequired
 };
 
-export default usrsStateConnector(UserList);
+const userStateConnector = usrsStateConnector(UserList);
+
+export default withPermission(userStateConnector, 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS');

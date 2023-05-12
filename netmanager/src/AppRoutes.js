@@ -11,6 +11,7 @@ import Landing from './views/layouts/Landing';
 import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
+import PermissionDenied from './views/pages/PermissionDenied';
 
 // lazy imports
 const Account = lazy(() => import('./views/pages/Account'));
@@ -90,6 +91,12 @@ const AppRoutes = () => {
           <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
           <PrivateRoute extact path="/registry" component={Devices} layout={MainLayout} />
           <PrivateRoute component={NotFoundView} exact layout={MinimalLayout} path="/not-found" />
+          <PrivateRoute
+            component={PermissionDenied}
+            exact
+            layout={MinimalLayout}
+            path="/permission-denied"
+          />
         </Switch>
         <div
           style={{

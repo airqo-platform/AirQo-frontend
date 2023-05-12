@@ -9,6 +9,7 @@ import { isEmpty } from 'underscore';
 import RolesToolbar from './components/RolesToolbar';
 import { getNetworkPermissionsApi } from '../../apis/accessControl';
 import { loadRolesSummary } from 'redux/AccessControl/operations';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -68,4 +69,4 @@ const Roles = () => {
   );
 };
 
-export default Roles;
+export default withPermission(Roles, 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES');
