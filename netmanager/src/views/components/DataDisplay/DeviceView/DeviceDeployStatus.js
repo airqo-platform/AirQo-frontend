@@ -198,17 +198,25 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
           >
             <span>
               Device last pushed data{' '}
-              <span className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}>
-                {getFirstNDurations(elapsedDurationMapper, 2)}
-              </span>{' '}
-              ago.
-              {!isDateInPast(recentFeed.created_at) && (
-                <div className={classes.error}>
-                  Error: Start date for this device is set to{' '}
-                  {formatDateString(recentFeed.created_at)}
-                </div>
+              {isDateInPast(recentFeed.created_at) ? (
+                <>
+                  <span
+                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}
+                  >
+                    {getFirstNDurations(elapsedDurationMapper, 2)}
+                  </span>{' '}
+                  ago.
+                </>
+              ) : (
+                <span className={classes.error}>in the future.</span>
               )}
             </span>
+            {!isDateInPast(recentFeed.created_at) && (
+              <div className={classes.error}>
+                Error: Start date for this device is set to{' '}
+                {formatDateString(recentFeed.created_at)}
+              </div>
+            )}
           </div>
           <div
             style={{
