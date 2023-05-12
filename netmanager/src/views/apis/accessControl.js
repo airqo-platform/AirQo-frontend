@@ -41,6 +41,10 @@ export const deleteRoleApi = async (roleID) => {
   return await axios.delete(`${GET_ROLES_URI}/${roleID}`).then((response) => response.data);
 };
 
+export const getRoleDetailsApi = async (roleID) => {
+  return await axios.get(`${GET_ROLES_URI}/${roleID}`).then((response) => response.data);
+};
+
 export const assignUserToRoleApi = async (roleID, data) => {
   return await axios
     .post(`${GET_ROLES_URI}/${roleID}/user`, data)

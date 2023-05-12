@@ -28,6 +28,9 @@ import {
   addActiveNetwork
 } from 'redux/AccessControl/operations';
 import NetworkDropdown from './components/NetworkDropdown';
+import { getRoleDetailsApi } from '../../../apis/accessControl';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -52,23 +55,18 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const excludePages = (pages, excludedArr) => {
-  return pages.filter((element) => {
-    return !excludedArr.includes(element.title);
-  });
+const excludePages = (allPages, unwantedPages) => {
+  return allPages.filter((page) => !unwantedPages.includes(page.title));
 };
 
 const checkAccess = (pages, rolePermissions) => {
   const accessDenied = [];
+  const permissions = rolePermissions.map((permission) => permission.permission);
   pages.forEach((page) => {
     if (page.permission) {
       const requiredPermission = page.permission;
-      // the role permissions is an array of permission objects
-      // we need to extract the permission names from the objects
-      const permissions = rolePermissions.map((permission) => permission.permission);
-
       if (!permissions.includes(requiredPermission)) {
-        accessDenied.push(page);
+        accessDenied.push(page.title);
       }
     }
   });
@@ -84,21 +82,18 @@ const allMainPages = [
   {
     title: 'Map',
     href: '/map',
-    icon: <MapIcon />,
-    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
+    icon: <MapIcon />
   },
   {
     title: 'Dashboard',
     href: '/dashboard',
-    icon: <DashboardIcon />,
-    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
+    icon: <DashboardIcon />
   },
 
   {
     title: 'Export',
     href: '/download',
-    icon: <CloudDownloadIcon />,
-    permission: 'VIEW_AIR_QUALITY_FOR_NETWORK'
+    icon: <CloudDownloadIcon />
   },
   {
     title: 'Locate',
@@ -187,7 +182,6 @@ const Sidebar = (props) => {
     if (!isEmpty(user)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       getUserDetails(user._id).then((res) => {
-        dispatch(addCurrentUserRole(res.users[0].role));
         dispatch(addUserNetworks(res.users[0].networks));
         localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
         localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
@@ -196,6 +190,22 @@ const Sidebar = (props) => {
           localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
           dispatch(addActiveNetwork(res.users[0].networks[0]));
         }
+
+        getRoleDetailsApi(res.users[0].role._id)
+          .then((res) => {
+            dispatch(addCurrentUserRole(res.roles[0]));
+          })
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+          });
       });
     }
   }, []);
