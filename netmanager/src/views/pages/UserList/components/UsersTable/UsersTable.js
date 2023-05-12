@@ -341,11 +341,52 @@ const UsersTable = (props) => {
                 variant="outlined"
               >
                 {roles &&
-                  roles.map((option) => (
-                    <option key={option._id} value={option._id}>
-                      {option.role_name}
-                    </option>
-                  ))}
+                  roles.map((option, index) => {
+                    if (index === 0) {
+                      return (
+                        <>
+                          <option
+                            key={option._id}
+                            value={
+                              (props.mappeduserState.userToEdit.role &&
+                                option._id === props.mappeduserState.userToEdit.role._id) ||
+                              option._id
+                                ? props.mappeduserState.userToEdit.role?.role_name
+                                : option._id
+                            }
+                          >
+                            {(props.mappeduserState.userToEdit.role &&
+                              option._id === props.mappeduserState.userToEdit.role._id) ||
+                            option._id
+                              ? props.mappeduserState.userToEdit.role?.role_name
+                              : option.role_name}
+                          </option>
+                          {roles.map((option, index) => {
+                            if (props.mappeduserState.userToEdit.role) {
+                              if (
+                                index !== 0 &&
+                                option._id !== props.mappeduserState.userToEdit.role._id
+                              ) {
+                                return (
+                                  <option key={option._id} value={option._id}>
+                                    {option.role_name}
+                                  </option>
+                                );
+                              }
+                            } else {
+                              if (index !== 0) {
+                                return (
+                                  <option key={option._id} value={option._id}>
+                                    {option.role_name}
+                                  </option>
+                                );
+                              }
+                            }
+                          })}
+                        </>
+                      );
+                    }
+                  })}
               </TextField>
               <TextField
                 margin="dense"
