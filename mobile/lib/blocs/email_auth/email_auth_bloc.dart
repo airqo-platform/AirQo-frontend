@@ -119,7 +119,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     }
 
     await apiClient
-        .requestEmailVerificationCode(state.emailAddress, false)
+        .sendEmailVerificationCode(state.emailAddress)
         .then((emailAuthModel) {
       if (emailAuthModel == null) {
         return emit(state.copyWith(

@@ -6,5 +6,4 @@ export 'location_service.dart';
 export 'native_api.dart';
 export 'notification_service.dart';
 export 'rest_api.dart';
-export 'secure_storage.dart';
 export 'widget_service.dart';

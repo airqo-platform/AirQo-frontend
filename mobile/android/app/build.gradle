@@ -24,8 +24,8 @@ if (googleMapApiKey == null) {
     throw new GradleException("Google Maps Key not found. Define google.maps.key in the key.properties file.")
 }
 
-def googleMapApiKey_airqodev = appProperties.getProperty('google.maps.key_dev')
-if (googleMapApiKey_airqodev == null) {
+def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev')
+if (googleMapApiKeyDev == null) {
     throw new GradleException("Google Maps Key not found. Define google.maps.key_dev in the key.properties file.")
 }
 
@@ -41,7 +41,6 @@ if (flutterVersionName == null) {
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 // Signing
@@ -97,7 +96,7 @@ android {
         airqodev {
             dimension "airqo"
             applicationIdSuffix ".dev"
-            manifestPlaceholders = [googleMapsKey:googleMapApiKey_airqodev]
+            manifestPlaceholders = [googleMapsKey:googleMapApiKeyDev]
         }
         
     }

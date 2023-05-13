@@ -3,7 +3,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 part 'map_event.dart';
 part 'map_state.dart';
@@ -22,7 +21,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     if (airQualityReadings.isEmpty) {
       final hasConnection = await hasNetworkConnection();
@@ -36,10 +35,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(state.copyWith(mapStatus: MapStatus.loading));
 
       await AppService().refreshAirQualityReadings().then((value) {
-        airQualityReadings =
-            Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                .values
-                .toList();
+        airQualityReadings = HiveService().getAirQualityReadings();
         if (airQualityReadings.isEmpty) {
           emit(state.copyWith(mapStatus: MapStatus.noAirQuality));
         }
@@ -51,8 +47,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     countries.removeWhere((element) => element.isEmpty);
     countries.sort();
-    airQualityReadings =
-        airQualityReadings.sortByAirQuality(sortCountries: true);
+    airQualityReadings.sortByAirQuality(sortCountries: true);
 
     return emit(const MapState.initial().copyWith(
       airQualityReadings: airQualityReadings,
@@ -80,13 +75,13 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         .toList();
 
     regions.sort();
+    airQualityReadings.sortByAirQuality(sortCountries: true);
 
     return emit(state.copyWith(
       regions: regions,
       featuredCountry: event.country.toTitleCase(),
       mapStatus: MapStatus.showingRegions,
-      featuredAirQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      featuredAirQualityReadings: airQualityReadings,
     ));
   }
 
@@ -99,10 +94,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
             e.country.equalsIgnoreCase(state.featuredCountry) &&
             e.region.equalsIgnoreCase(event.region))
         .toList();
+    airQualityReadings.sortByAirQuality(sortCountries: true);
 
     return emit(state.copyWith(
-      featuredAirQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      featuredAirQualityReadings: airQualityReadings,
       featuredRegion: event.region.toTitleCase(),
       mapStatus: MapStatus.showingRegionSites,
     ));
@@ -144,18 +139,18 @@ class MapSearchBloc extends Bloc<MapEvent, MapSearchState> {
     Emitter<MapSearchState> emit,
   ) {
     List<AirQualityReading> nearbyAirQualityReadings =
-        HiveService.getNearbyAirQualityReadings();
+        HiveService().getNearbyAirQualityReadings();
 
     List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings = nearbyAirQualityReadings.isEmpty
         ? airQualityReadings
         : nearbyAirQualityReadings;
+    airQualityReadings.sortByAirQuality(sortCountries: true);
 
     return emit(state.copyWith(
-      airQualityReadings:
-          airQualityReadings.sortByAirQuality(sortCountries: true),
+      airQualityReadings: airQualityReadings,
     ));
   }
 

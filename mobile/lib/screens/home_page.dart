@@ -283,6 +283,9 @@ class _HomePageState extends State<HomePage> {
       case 1:
         context.read<MapBloc>().add(const InitializeMapState());
         break;
+      case 2:
+        context.read<ProfileBloc>().add(const SyncProfile());
+        break;
     }
   }
 

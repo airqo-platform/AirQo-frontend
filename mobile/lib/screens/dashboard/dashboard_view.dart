@@ -284,7 +284,9 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
-                      List<Kya> kya = state.filterPartiallyComplete();
+                      List<Kya> kya = state
+                        ..filterPartiallyComplete()
+                        ..sortByProgress();
                       if (kya.isEmpty) {
                         kya = state.filterInProgressKya();
                       }
@@ -305,7 +307,7 @@ class _DashboardViewState extends State<DashboardView>
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
-                            kya.sortByProgress().first,
+                            kya.first,
                           ),
                         ),
                       );
@@ -472,6 +474,8 @@ class _DashboardViewState extends State<DashboardView>
       context.read<MapBloc>().add(const InitializeMapState());
     }
     await WidgetService.sendAndUpdate();
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
 
   Future<void> _startShowcase() async {

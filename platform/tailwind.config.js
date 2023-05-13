@@ -22,10 +22,14 @@ module.exports = {
         'light-text': '#6D7175',
         'baby-blue': '#F5F8FF',
         'link-blue': '#2E72D2',
+        'form-input': '#F3F4F7',
+        'check-box':'#D1D2D2',
+        'radio-input':'#1C1B1F',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
           900: '#135DFF',
+          950: '#0F4ACC',
         },
         grey: {
           100: '#363A4414',
@@ -40,6 +44,7 @@ module.exports = {
           900: '#808080',
         },
         skeleton: '#363A4429',
+        skeleton2: '#F9F9F9',
         black: {
           600: '#202223',
           700: '#353E52',
@@ -52,7 +57,9 @@ module.exports = {
           200: '#A4E8F2',
         },
         green: {
+          50: '#C6FFE4',
           200: '#AEE9D1',
+          550: '#0CE87E',
         },
         red: {
           200: '#FED3D1',
@@ -63,6 +70,9 @@ module.exports = {
           550: '#877651',
           600: '#8776F51A',
           700: '#584CAB',
+        },
+        orange: {
+          450: '#FE9E35',
         },
       },
     },

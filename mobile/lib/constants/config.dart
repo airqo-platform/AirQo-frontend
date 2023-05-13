@@ -8,13 +8,17 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
+  static String get airqoApiV2Token => dotenv.env['AIRQO_API_V2_TOKEN'] ?? '';
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
   static double get minimumTextScaleFactor => 1.0;
   static double get maximumTextScaleFactor => 1.1;
 
-  static String get airqoApiUrl =>
-      dotenv.env['AIRQO_API_URL'] ?? 'https://api.airqo.net/api/v1/';
+  static String get airqoApi => 'https://api.airqo.net/api';
+
+  static String get automatedTestsEmail => "automated-tests@airqo.net";
+
+  static String get automatedTestsPhoneNumber => "+256757800000";
 
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
@@ -48,8 +52,6 @@ class Config {
   static String get forYouPageShowcase => 'forYouPageShowcase';
 
   static String get restartTourShowcase => 'restartTourShowcase';
-
-  static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get iosMinimumShareVersion =>
       dotenv.env['IOS_MINIMUM_SHARE_VERSION'] ?? '2.0.17';
