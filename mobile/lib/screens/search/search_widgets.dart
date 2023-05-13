@@ -679,8 +679,8 @@ class AutoCompleteLoadingWidget extends StatelessWidget {
   }
 }
 
-class SearchBar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchBar({super.key});
+class CustomSearchBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
