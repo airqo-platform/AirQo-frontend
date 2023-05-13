@@ -1,42 +1,38 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import {
-  Route,
-  Switch,
-  Redirect,
-  useParams,
-  useRouteMatch,
-} from "react-router-dom";
-import "chartjs-plugin-annotation";
-import { isEmpty } from "underscore";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Route, Switch, Redirect, useParams, useRouteMatch } from 'react-router-dom';
+import 'chartjs-plugin-annotation';
+import { isEmpty } from 'underscore';
 
 //css
-import "assets/css/device-view.css";
+import 'assets/css/device-view.css';
 
 // others
-import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
-import DeviceEdit from "./DeviceEdit";
-import DeviceLogs from "./DeviceLogs";
-import DevicePhotos from "./DevicePhotos";
-import DeviceOverview from "./DeviceOverview/DeviceOverview";
-import { useDevicesData } from "redux/DeviceRegistry/selectors";
-import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useInitScrollTop } from "utils/customHooks";
+import { DeviceToolBar, DeviceToolBarContainer } from './DeviceToolBar';
+import DeviceEdit from './DeviceEdit';
+import DeviceLogs from './DeviceLogs';
+import DevicePhotos from './DevicePhotos';
+import DeviceOverview from './DeviceOverview/DeviceOverview';
+import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { useInitScrollTop } from 'utils/customHooks';
+import { withPermission } from '../../../containers/PageAccess';
 
-export default function DeviceView() {
+function DeviceView() {
   const dispatch = useDispatch();
   const match = useRouteMatch();
   const params = useParams();
   const devices = useDevicesData();
-  const [deviceData, setDeviceData] = useState(
-    devices[params.deviceName] || {}
-  );
+  const [deviceData, setDeviceData] = useState(devices[params.deviceName] || {});
 
   useInitScrollTop();
 
   useEffect(() => {
     if (isEmpty(devices)) {
-      dispatch(loadDevicesData());
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+      }
     }
   }, []);
 
@@ -47,10 +43,10 @@ export default function DeviceView() {
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexWrap: "wrap",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexWrap: 'wrap'
       }}
     >
       <DeviceToolBar deviceName={deviceData.name} />
@@ -64,18 +60,13 @@ export default function DeviceView() {
           <Route
             exact
             path={`${match.url}/edit`}
-            component={() => (
-              <DeviceEdit deviceData={deviceData} />
-            )}
+            component={() => <DeviceEdit deviceData={deviceData} />}
           />
           <Route
             exact
             path={`${match.url}/maintenance-logs`}
             component={() => (
-              <DeviceLogs
-                deviceName={deviceData.name}
-                deviceLocation={deviceData.locationID}
-              />
+              <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID} />
             )}
           />
           <Route
@@ -89,3 +80,5 @@ export default function DeviceView() {
     </div>
   );
 }
+
+export default withPermission(DeviceView, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
