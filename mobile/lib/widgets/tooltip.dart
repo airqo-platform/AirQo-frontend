@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:ui';
 
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
@@ -218,7 +217,8 @@ class ToolTip {
     }
 
     _showRect = rect ?? _getWidgetGlobalRect(widgetKey!);
-    _screenSize = window.physicalSize / window.devicePixelRatio;
+    _screenSize =
+        View.of(context).physicalSize / View.of(context).devicePixelRatio;
 
     _calculatePosition(context);
 

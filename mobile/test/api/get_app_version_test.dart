@@ -104,7 +104,8 @@ Future<void> main() async {
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,
-        Uri.parse("https://apps.apple.com/us/app/airqo-air-quality/id1337573091?uo=4"),
+        Uri.parse(
+            "https://apps.apple.com/us/app/airqo-air-quality/id1337573091?uo=4"),
       );
     });
 
