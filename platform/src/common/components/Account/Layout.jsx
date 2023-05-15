@@ -8,7 +8,9 @@ const AccountPageLayout = ({ children, rightImage }) => {
         <div>
           <SmallLogo />
         </div>
-        <div className='mt-20 flex flex-col justify-center items-start lg:h-240 overflow-hidden'>{children}</div>
+        <div className='mt-20 flex flex-col justify-center items-start lg:h-[480px] overflow-hidden'>
+          {children}
+        </div>
       </div>
       <div className='lg:col-span-5 bg-emerald-200'>{rightImage}</div>
     </div>

@@ -23,6 +23,8 @@ module.exports = {
         'baby-blue': '#F5F8FF',
         'link-blue': '#2E72D2',
         'form-input': '#F3F4F7',
+        'check-box':'#D1D2D2',
+        'radio-input':'#1C1B1F',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
@@ -42,6 +44,7 @@ module.exports = {
           900: '#808080',
         },
         skeleton: '#363A4429',
+        skeleton2: '#F9F9F9',
         black: {
           600: '#202223',
           700: '#353E52',
@@ -81,11 +84,6 @@ module.exports = {
         xl: '5rem',
         '2xl': '6rem',
       },
-    },
-    height: {
-      200: '400px',
-      240: '480px',
-      250: '500px',
     },
   },
   plugins: [require('@tailwindcss/typography'), require('daisyui'), require('flowbite/plugin')],

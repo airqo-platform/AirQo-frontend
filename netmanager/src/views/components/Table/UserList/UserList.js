@@ -1,14 +1,16 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { connect } from "react-redux";
-import {connectedUsersTable as UsersTable, connectedUsersToolbar as UsersToolbar} from '../components/Users/containers/Users';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  connectedUsersTable as UsersTable,
+  connectedUsersToolbar as UsersToolbar
+} from '../components/Users/containers/Users';
+import { isEmpty } from 'underscore';
+import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 
-
-import mockData from './data';
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(3)
   },
@@ -17,16 +19,18 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-
 const UserList = (props) => {
   const classes = useStyles();
+  const dispatch = useDispatch();
 
-  const users = props.mappeduserState.users;
+  const users = useSelector((state) => state.accessControl.networkUsers);
 
-  useEffect(()=>{
-  props.fetchUsers();
-
-  },[]);
+  useEffect(() => {
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(fetchNetworkUsers(activeNetwork._id));
+    }
+  }, []);
 
   return (
     <div className={classes.root}>
@@ -43,7 +47,5 @@ UserList.propTypes = {
   errors: PropTypes.object.isRequired,
   userState: PropTypes.object.isRequired
 };
-
-
 
 export default UserList;

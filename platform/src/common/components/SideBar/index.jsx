@@ -42,7 +42,7 @@ const SideBar = () => {
         } bg-white h-[calc(100vh-64px)] lg:relative flex-col justify-between overflow-y-scroll border-t-0 border-r-[1px] border-r-grey-750`}
       >
         <div>
-          <div className='border border-grey-750 h-14 p-3 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
+          {/* <div className='border border-grey-750 h-14 p-3 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
               <div className='bg-grey-700 w-8 h-8 p-[5px] flex items-center justify-center rounded-full mr-4'>
                 <h3 className='text-sm font-normal'>FP</h3>
@@ -50,9 +50,9 @@ const SideBar = () => {
               <h3 className='text-sm font-normal'>Fort Portal</h3>
             </div>
             <ArrowDropDownIcon />
-          </div>
+          </div> */}
           <div className='mt-5 mx-2'>
-            <SideBarItem label='Home' Icon={BarChartIcon} navPath='/' />
+            {/* <SideBarItem label='Home' Icon={BarChartIcon} navPath='/' />
             <SideBarItem label='Notifications' Icon={BarChartIcon} />
             <SideBarItem
               label='Analytics'
@@ -64,11 +64,11 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
-            </SideBarItem>
+            </SideBarItem> */}
 
-            <hr className='my-3 h-[0.5px] bg-grey-150' />
+            {/* <hr className='my-3 h-[0.5px] bg-grey-150' />
 
-            <SideBarItem label='Network' Icon={BarChartIcon} />
+            <SideBarItem label='Network' Icon={BarChartIcon} /> */}
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -79,14 +79,14 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
-            <SideBarItem label='Calibrate' Icon={BarChartIcon} />
-            <SideBarItem label='Other tools' Icon={BarChartIcon} />
+            {/* <SideBarItem label='Calibrate' Icon={BarChartIcon} />
+            <SideBarItem label='Other tools' Icon={BarChartIcon} /> */}
           </div>
         </div>
 
-        <div className='mx-2'>
+        {/* <div className='mx-2'>
           <SideBarItem label='Settings' Icon={BarChartIcon} active />
-        </div>
+        </div> */}
       </div>
       <div
         className='lg:hidden fixed top-5 left-4 z-30'

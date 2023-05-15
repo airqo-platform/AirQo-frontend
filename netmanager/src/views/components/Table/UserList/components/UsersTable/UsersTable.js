@@ -37,8 +37,9 @@ import { connect } from 'react-redux';
 import { getInitials } from 'helpers';
 import { showEditDialog } from 'redux/Join/actions';
 import UserEditForm from 'views/components/Users/UserEditForm';
+import { isEmpty } from 'underscore';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
     padding: 0
@@ -65,7 +66,7 @@ function withMyHook(Component) {
   };
 }
 
-const UsersTable = props => {
+const UsersTable = (props) => {
   //the props
   //need to get the ones from the state
   /***
@@ -78,14 +79,13 @@ const UsersTable = props => {
   console.log('the mapped user state for UsersTable is here:');
   console.dir(mappeduserState);
 
-  const users = mappeduserState.users;
   const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
   const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
 
-  const showEditDialog = userToEdit => {
+  const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
   };
 
@@ -93,7 +93,7 @@ const UsersTable = props => {
     props.mappedhideEditDialog();
   };
 
-  const submitEditUser = e => {
+  const submitEditUser = (e) => {
     e.preventDefault();
     const editForm = document.getElementById('EditUserForm');
     const userData = props.mappeduserState;
@@ -111,7 +111,7 @@ const UsersTable = props => {
     }
   };
 
-  const showDeleteDialog = userToDelete => {
+  const showDeleteDialog = (userToDelete) => {
     props.mappedShowDeleteDialog(userToDelete);
   };
 
@@ -123,7 +123,7 @@ const UsersTable = props => {
     props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
   };
 
-  const showConfirmDialog = userToConfirm => {
+  const showConfirmDialog = (userToConfirm) => {
     props.mappedShowConfirmDialog(userToConfirm);
   };
 
@@ -140,11 +140,11 @@ const UsersTable = props => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
 
-  const handleSelectAll = event => {
+  const handleSelectAll = (event) => {
     let selectedUsers;
 
     if (event.target.checked) {
-      selectedUsers = users.map(user => user._id);
+      selectedUsers = users.map((user) => user._id);
     } else {
       selectedUsers = [];
     }
@@ -176,13 +176,18 @@ const UsersTable = props => {
     setPage(page);
   };
 
-  const handleRowsPerPageChange = event => {
+  const handleRowsPerPageChange = (event) => {
     setRowsPerPage(event.target.value);
   };
   //
 
+  const users = useSelector((state) => state.accessControl.networkUsers);
+
   useEffect(() => {
-    props.fetchUsers();
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(fetchNetworkUsers(activeNetwork._id));
+    }
   }, []);
 
   return (
@@ -209,8 +214,7 @@ const UsersTable = props => {
                       checked={selectedUsers.length === users.length}
                       color="primary"
                       indeterminate={
-                        selectedUsers.length > 0 &&
-                        selectedUsers.length < users.length
+                        selectedUsers.length > 0 && selectedUsers.length < users.length
                       }
                       onChange={handleSelectAll}
                     />
@@ -224,26 +228,25 @@ const UsersTable = props => {
               </TableHead>
               <TableBody>
                 {/* this is where we iterate the users array */}
-                {users.slice(0, rowsPerPage).map(user => (
+                {users.slice(0, rowsPerPage).map((user) => (
                   <TableRow
                     className={classes.tableRow}
                     hover
                     key={user._id}
-                    selected={selectedUsers.indexOf(user.firstName) !== -1}>
+                    selected={selectedUsers.indexOf(user.firstName) !== -1}
+                  >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedUsers.indexOf(user._id) !== -1}
                         color="primary"
-                        onChange={event => handleSelectOne(event, user._id)}
+                        onChange={(event) => handleSelectOne(event, user._id)}
                         value="true"
                       />
                     </TableCell>
                     <TableCell>
                       <div className={classes.nameContainer}>
                         <Avatar className={classes.avatar} src={user.avatarUrl}>
-                          {getInitials(
-                            `${user.firstName + ' ' + user.lastName}`
-                          )}
+                          {getInitials(`${user.firstName + ' ' + user.lastName}`)}
                         </Avatar>
                         <Typography variant="body1">
                           {' '}
@@ -258,15 +261,10 @@ const UsersTable = props => {
                     <TableCell>{user.userName}</TableCell>
                     <TableCell>{user.privilege}</TableCell>
                     <TableCell>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}>
+                      <Button color="primary" onClick={() => showEditDialog(user)}>
                         Update
                       </Button>{' '}
-                      |
-                      <Button onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>{' '}
+                      |<Button onClick={() => showDeleteDialog(user)}>Delete</Button>{' '}
                       {/* |
                       <Button onClick={() => showConfirmDialog(user)}>
                         Confirm
@@ -296,15 +294,14 @@ const UsersTable = props => {
       <Dialog
         open={props.mappeduserState.showEditDialog}
         onClose={hideEditDialog}
-        aria-labelledby="form-dialog-title">
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle></DialogTitle>
         <DialogContent></DialogContent>
         <DialogContent>
           <DialogContentText>Edit the user's details</DialogContentText>
 
-          {editUser && (
-            <UserEditForm userData={editUser} editUser={submitEditUser} />
-          )}
+          {editUser && <UserEditForm userData={editUser} editUser={submitEditUser} />}
 
           {editUser && mappeduserState.isFetching && (
             <Alert icon={<Check fontSize="inherit" />} severity="success">
@@ -319,15 +316,12 @@ const UsersTable = props => {
             </Alert>
           )}
 
-          {editUser &&
-            !mappeduserState.isFetching &&
-            mappeduserState.successMsg && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                <strong>{editUser.firstName}</strong>{' '}
-                {mappeduserState.successMsg}
-              </Alert>
-            )}
+          {editUser && !mappeduserState.isFetching && mappeduserState.successMsg && (
+            <Alert severity="success">
+              <AlertTitle>Success</AlertTitle>
+              <strong>{editUser.firstName}</strong> {mappeduserState.successMsg}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={hideEditDialog} color="primary" variant="contained">
@@ -341,20 +335,19 @@ const UsersTable = props => {
       <Dialog
         open={props.mappeduserState.showDeleteDialog}
         onClose={hideDeleteDialog}
-        aria-labelledby="form-dialog-title">
+        aria-labelledby="form-dialog-title"
+      >
         <DialogContent>
           <DialogContentText>Delete User</DialogContentText>
 
-          {props.mappeduserState.userToDelete &&
-            !userToDelete.error &&
-            !userToDelete.isFetching && (
-              <Alert severity="warning">
-                <AlertTitle>Warning</AlertTitle>
-                Are you sure you want to delete this user —{' '}
-                <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
-                <strong> {mappeduserState.error} </strong>
-              </Alert>
-            )}
+          {props.mappeduserState.userToDelete && !userToDelete.error && !userToDelete.isFetching && (
+            <Alert severity="warning">
+              <AlertTitle>Warning</AlertTitle>
+              Are you sure you want to delete this user —{' '}
+              <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
+              <strong> {mappeduserState.error} </strong>
+            </Alert>
+          )}
 
           {mappeduserState.userToDelete && mappeduserState.error && (
             <Alert severity="error">
@@ -363,22 +356,18 @@ const UsersTable = props => {
             </Alert>
           )}
 
-          {mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            mappeduserState.isFetching && (
-              <Alert severity="success">
-                <strong> Deleting.... </strong>
-              </Alert>
-            )}
+          {mappeduserState.userToDelete && !mappeduserState.error && mappeduserState.isFetching && (
+            <Alert severity="success">
+              <strong> Deleting.... </strong>
+            </Alert>
+          )}
 
-          {!mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            !mappeduserState.isFetching && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                User <strong> {mappeduserState.successMsg}</strong>
-              </Alert>
-            )}
+          {!mappeduserState.userToDelete && !mappeduserState.error && !mappeduserState.isFetching && (
+            <Alert severity="success">
+              <AlertTitle>Success</AlertTitle>
+              User <strong> {mappeduserState.successMsg}</strong>
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           {!mappeduserState.successMsg && !mappeduserState.isFetching && (
@@ -403,8 +392,7 @@ const UsersTable = props => {
 UsersTable.propTypes = {
   className: PropTypes.string,
   users: PropTypes.array.isRequired,
-  auth: PropTypes.object.isRequired,
-  fetchUsers: PropTypes.func.isRequired
+  auth: PropTypes.object.isRequired
 };
 
 export default UsersTable;

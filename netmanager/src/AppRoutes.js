@@ -11,6 +11,7 @@ import Landing from './views/layouts/Landing';
 import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
+import PermissionDenied from './views/pages/PermissionDenied';
 
 // lazy imports
 const Account = lazy(() => import('./views/pages/Account'));
@@ -30,6 +31,7 @@ const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const CandidateList = lazy(() => import('./views/pages/CandidateList'));
+const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
 const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'));
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
@@ -65,6 +67,7 @@ const AppRoutes = () => {
           />
           <PrivateRoute exact path="/admin/users" component={UserList} layout={MainLayout} />
           <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+          <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
           <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
 
           <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
@@ -88,6 +91,12 @@ const AppRoutes = () => {
           <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
           <PrivateRoute extact path="/registry" component={Devices} layout={MainLayout} />
           <PrivateRoute component={NotFoundView} exact layout={MinimalLayout} path="/not-found" />
+          <PrivateRoute
+            component={PermissionDenied}
+            exact
+            layout={MinimalLayout}
+            path="/permission-denied"
+          />
         </Switch>
         <div
           style={{
