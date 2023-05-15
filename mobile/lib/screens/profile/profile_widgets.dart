@@ -925,8 +925,8 @@ class GuestProfileView extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            Row(
-              children: const [
+            const Row(
+              children: [
                 ProfilePicPlaceHolder(
                   'A',
                 ),
@@ -943,10 +943,10 @@ class GuestProfileView extends StatelessWidget {
           ],
         ),
       ),
-      body: AppSafeArea(
+      body: const AppSafeArea(
         horizontalPadding: 16.0,
         child: Column(
-          children: const <Widget>[
+          children: <Widget>[
             SizedBox(
               height: 24,
             ),
