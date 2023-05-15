@@ -146,8 +146,8 @@ export const getSitesApi = async (params) => {
   return await axios.get(SITES, { params }).then((response) => response.data);
 };
 
-export const getSitesSummaryApi = async () => {
-  return await axios.get(`${SITES}/summary`).then((response) => response.data);
+export const getSitesSummaryApi = async (params) => {
+  return await axios.get(`${SITES}/summary`, { params }).then((response) => response.data);
 };
 
 export const getSiteDetailsApi = async (site_id) => {

@@ -13,7 +13,7 @@ import { createSiteOptions } from 'utils/sites';
 
 export const loadSitesData = (networkID) => {
   return async (dispatch) => {
-    return await getSitesApi(networkID)
+    return await getSitesApi({ network: networkID })
       .then((responseData) => {
         dispatch({
           type: LOAD_SITES_SUCCESS,
@@ -33,9 +33,9 @@ export const loadSitesData = (networkID) => {
   };
 };
 
-export const loadSitesSummary = () => {
+export const loadSitesSummary = (networkID) => {
   return async (dispatch) => {
-    return await getSitesSummaryApi()
+    return await getSitesSummaryApi({ network: networkID })
       .then((responseData) => {
         dispatch({
           type: LOAD_SITES_SUMMARY_SUCCESS,
@@ -55,9 +55,9 @@ export const loadSitesSummary = () => {
   };
 };
 
-export const loadSiteDetails = (siteId) => {
+export const loadSiteDetails = (siteId, networkID) => {
   return async (dispatch) => {
-    return await getSitesApi({ id: siteId })
+    return await getSitesApi({ id: siteId, network: networkID })
       .then((responseData) => {
         const siteDetails = responseData.sites[0];
         dispatch({

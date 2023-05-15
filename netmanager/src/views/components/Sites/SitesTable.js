@@ -26,12 +26,15 @@ const SitesTable = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     //code to retrieve all locations data
     if (isEmpty(sites)) {
       setIsLoading(true);
-      dispatch(loadSitesSummary());
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesSummary(activeNetwork.net_name));
+      }
       setIsLoading(false);
     }
   }, []);
