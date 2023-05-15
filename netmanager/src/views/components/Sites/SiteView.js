@@ -18,6 +18,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+import { withPermission } from '../../containers/PageAccess';
 
 const gridItemStyle = {
   padding: '5px',
@@ -46,7 +47,11 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-    dispatch(loadSiteDetails(site._id));
+
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSitesData(activeNetwork.net_name));
+    }
   };
 
   const weightedBool = (primary, secondary) => {
@@ -68,7 +73,10 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        dispatch(loadSiteDetails(site._id));
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadSitesData(activeNetwork.net_name));
+        }
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.error) || {};
@@ -376,7 +384,12 @@ const SiteView = (props) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (isEmpty(site)) dispatch(loadSiteDetails(params.id));
+    if (isEmpty(sites)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
 
   return (
@@ -493,4 +506,4 @@ SiteView.propTypes = {
   className: PropTypes.string
 };
 
-export default SiteView;
+export default withPermission(SiteView, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

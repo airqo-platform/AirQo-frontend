@@ -71,7 +71,10 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -367,7 +370,12 @@ export default function DeviceEdit({ deviceData }) {
   const siteOptions = useSiteOptionsData();
 
   useEffect(() => {
-    if (isEmpty(siteOptions)) dispatch(loadSitesData());
+    if (isEmpty(siteOptions)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
   return (
     <div style={{ marginTop: '20px' }}>
