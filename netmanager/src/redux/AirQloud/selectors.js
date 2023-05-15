@@ -12,3 +12,7 @@ export const useCurrentAirQloudData = () => {
 export const useDashboardAirqloudsData = () => {
   return useSelector((state) => state.airqloudRegistry.dashboardAirQlouds);
 };
+
+export const useSelectedAirqloudData = () => {
+  return useSelector((state) => state.airqloudRegistry.selectedAirqloud);
+};

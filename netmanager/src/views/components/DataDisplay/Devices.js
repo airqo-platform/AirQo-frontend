@@ -28,6 +28,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'assets/css/device-registry.css';
 import { capitalize } from '../../../utils/string';
 import { softCreateDeviceApi } from '../../apis/deviceRegistry';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -202,13 +203,25 @@ const createDeviceColumns = (history, setDelState) => [
   }
 ];
 
+const CATEGORIES = [
+  { value: 'lowcost', name: 'Lowcost' },
+  { value: 'bam', name: 'BAM' }
+];
+
+const NETWORKS = [
+  { value: 'airqo', name: 'AirQo' },
+  { value: 'kcca', name: 'KCCA' },
+  { value: 'usembassy', name: 'US EMBASSY' },
+  { value: 'mukwano', name: 'MUKWANO' }
+];
+
 const CreateDevice = ({ open, setOpen }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
-    category: '',
-    network: ''
+    category: CATEGORIES[0].value,
+    network: NETWORKS[0].value
   };
 
   const initialErrors = {
@@ -220,47 +233,80 @@ const CreateDevice = ({ open, setOpen }) => {
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
 
+  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
+
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
   };
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice(newDeviceInitState);
-    setErrors(initialErrors);
+    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: NETWORKS[0].value });
+    setErrors({ long_name: '', category: '', network: '' });
   };
 
   let handleRegisterSubmit = (e) => {
     setOpen(false);
 
-    axios
-      .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then((res) => res.data)
-      .then((resData) => {
-        handleRegisterClose();
-        dispatch(loadDevicesData());
+    if (!isEmpty(userNetworks)) {
+      const userNetworksNames = userNetworks.map((network) => network.net_name);
+
+      if (!userNetworksNames.includes(newDevice.network)) {
         dispatch(
           updateMainAlert({
-            message: resData.message,
+            message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
             show: true,
-            severity: 'success'
+            severity: 'error'
           })
         );
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        setErrors(errors || initialErrors);
-        dispatch(
-          updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
-            show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
+
+        //clear the new device form
+        setNewDevice({
+          long_name: '',
+          category: CATEGORIES[0].value,
+          network: NETWORKS[0].value
+        });
+        setErrors({ long_name: '', category: '', network: '' });
+
+        return;
+      } else {
+        axios
+          .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
+            headers: { 'Content-Type': 'application/json' }
           })
-        );
-      });
+          .then((res) => res.data)
+          .then((resData) => {
+            handleRegisterClose();
+            if (!isEmpty(activeNetwork)) {
+              dispatch(loadDevicesData(activeNetwork.net_name));
+            }
+            dispatch(
+              updateMainAlert({
+                message: `${resData.message}. ${
+                  newDevice.network !== activeNetwork.net_name
+                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                    : ''
+                }`,
+                show: true,
+                severity: 'success'
+              })
+            );
+          })
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            setErrors(errors || initialErrors);
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+          });
+      }
+    }
   };
 
   return (
@@ -304,8 +350,11 @@ const CreateDevice = ({ open, setOpen }) => {
             helperText={errors.category}
             required
           >
-            <option value={'lowcost'}>Lowcost</option>
-            <option value={'bam'}>BAM</option>
+            {CATEGORIES.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.name}
+              </option>
+            ))}
           </TextField>
           <TextField
             select
@@ -323,9 +372,11 @@ const CreateDevice = ({ open, setOpen }) => {
             helperText={errors.network}
             required
           >
-            <option value={'airqo'}>AirQo</option>
-            <option value={'kcca'}>KCCA</option>
-            <option value={'usembassy'}>US EMBASSY</option>
+            {NETWORKS.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.name}
+              </option>
+            ))}
           </TextField>
         </form>
       </DialogContent>
@@ -351,13 +402,13 @@ const CreateDevice = ({ open, setOpen }) => {
   );
 };
 
-const SoftCreateDevice = ({ open, setOpen }) => {
+const SoftCreateDevice = ({ open, setOpen, network }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
-    category: '',
-    network: ''
+    category: CATEGORIES[0].value,
+    network: NETWORKS[0].value
   };
 
   const initialErrors = {
@@ -368,6 +419,8 @@ const SoftCreateDevice = ({ open, setOpen }) => {
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
+  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
@@ -375,39 +428,66 @@ const SoftCreateDevice = ({ open, setOpen }) => {
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice(newDeviceInitState);
-    setErrors(initialErrors);
+    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: NETWORKS[0].value });
+    setErrors({ long_name: '', category: '', network: '' });
   };
 
   let handleRegisterSubmit = (e) => {
     setOpen(false);
+    // check device is in user's networks, if not inform them that only members of the network can add devices
+    if (!isEmpty(userNetworks)) {
+      const userNetworksNames = userNetworks.map((network) => network.net_name);
 
-    softCreateDeviceApi(dropEmpty(newDevice), {
-      headers: { 'Content-Type': 'application/json' }
-    })
-      .then((resData) => {
-        handleRegisterClose();
-        dispatch(loadDevicesData());
+      if (!userNetworksNames.includes(newDevice.network)) {
         dispatch(
           updateMainAlert({
-            message: resData.message,
+            message: `You are not a member of the ${newDevice.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
             show: true,
-            severity: 'success'
+            severity: 'error'
           })
         );
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        setErrors(errors || initialErrors);
-        dispatch(
-          updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
-            show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
+
+        //clear the new device form
+        setNewDevice({
+          long_name: '',
+          category: CATEGORIES[0].value,
+          network: NETWORKS[0].value
+        });
+        setErrors({ long_name: '', category: '', network: '' });
+
+        return;
+      } else {
+        softCreateDeviceApi(dropEmpty(newDevice), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+          .then((resData) => {
+            handleRegisterClose();
+            dispatch(
+              updateMainAlert({
+                message: `${resData.message}. ${
+                  newDevice.network !== activeNetwork.net_name
+                    ? `Switch to the ${newDevice.network} organisation to see the new device.`
+                    : ''
+                }`,
+                show: true,
+                severity: 'success'
+              })
+            );
           })
-        );
-      });
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            setErrors(errors || initialErrors);
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+          });
+      }
+    }
   };
 
   return (
@@ -451,8 +531,11 @@ const SoftCreateDevice = ({ open, setOpen }) => {
             helperText={errors.category}
             required
           >
-            <option value={'lowcost'}>Lowcost</option>
-            <option value={'bam'}>BAM</option>
+            {CATEGORIES.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.name}
+              </option>
+            ))}
           </TextField>
           <TextField
             select
@@ -470,9 +553,11 @@ const SoftCreateDevice = ({ open, setOpen }) => {
             helperText={errors.network}
             required
           >
-            <option value={'airqo'}>AirQo</option>
-            <option value={'kcca'}>KCCA</option>
-            <option value={'usembassy'}>US EMBASSY</option>
+            {NETWORKS.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.name}
+              </option>
+            ))}
           </TextField>
         </form>
       </DialogContent>
@@ -508,6 +593,7 @@ const DevicesTable = (props) => {
   const devices = useDevicesData();
   const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const [delDevice, setDelDevice] = useState({ open: false, name: '' });
 
@@ -519,7 +605,10 @@ const DevicesTable = (props) => {
         .then(() => {
           delete devices[delDevice.name];
           setDeviceList(Object.values(devices));
-          dispatch(loadDevicesData());
+          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          if (!isEmpty(activeNetwork)) {
+            dispatch(loadDevicesData(activeNetwork.net_name));
+          }
           dispatch(
             updateMainAlert({
               show: true,
@@ -551,13 +640,18 @@ const DevicesTable = (props) => {
 
   useEffect(() => {
     if (isEmpty(devices)) {
-      dispatch(loadDevicesData());
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+      }
     }
+
     if (isEmpty(sites)) {
-      dispatch(loadSitesData());
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
     }
     dispatch(updateDeviceBackUrl(location.pathname));
-  }, []);
+  }, [devices]);
 
   useEffect(() => {
     setDeviceList(Object.values(devices));
@@ -622,8 +716,12 @@ const DevicesTable = (props) => {
           }}
         />
 
-        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} />
-        <SoftCreateDevice open={softRegisterOpen} setOpen={setSoftRegisterOpen} />
+        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} network={activeNetwork} />
+        <SoftCreateDevice
+          open={softRegisterOpen}
+          setOpen={setSoftRegisterOpen}
+          network={activeNetwork}
+        />
 
         <ConfirmDialog
           open={delDevice.open}
@@ -643,4 +741,4 @@ DevicesTable.propTypes = {
   users: PropTypes.array.isRequired
 };
 
-export default DevicesTable;
+export default withPermission(DevicesTable, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
