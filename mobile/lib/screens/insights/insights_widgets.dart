@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
@@ -28,7 +29,7 @@ class InsightAirQualityWidget extends StatelessWidget {
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -38,9 +39,12 @@ class InsightAirQualityWidget extends StatelessWidget {
               children: [
                 AutoSizeText(
                   name,
-                  maxLines: 2,
+                  maxLines: 1,
+                  minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyle.headline8(context),
+                  style: CustomTextStyle.headline8(context)?.copyWith(
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
                 const SizedBox(
                   height: 7,
@@ -50,18 +54,55 @@ class InsightAirQualityWidget extends StatelessWidget {
                       ? 'No air quality data available'
                       : '${insight.airQuality?.title}',
                   maxLines: 1,
+                  minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context)?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
+                ),
+                const SizedBox(
+                  height: 7,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${insight.pm2_5 == null ? '--' : insight.pm2_5?.toInt()}",
+                      style: CustomTextStyle.airQualityValue(
+                        pollutant: Pollutant.pm2_5,
+                        value: insight.pm2_5,
+                      )?.copyWith(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        height: 37 / 30,
+                        letterSpacing: 16 * -0.022,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 7,
+                    ),
+                    SvgPicture.asset(
+                      'assets/icon/unit.svg',
+                      semanticsLabel: 'Unit',
+                      height: 15.14,
+                      width: 32.45,
+                      colorFilter: ColorFilter.mode(
+                        Pollutant.pm2_5.textColor(
+                          value: insight.pm2_5,
+                        ),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           SvgIcons.airQualityEmoji(
             insight.airQuality,
-            height: 38,
-            width: 48,
+            height: 50,
+            width: 80,
           ),
         ],
       ),
@@ -309,7 +350,8 @@ class InsightsDayReading extends StatelessWidget {
 }
 
 class InsightsCalendar extends StatelessWidget {
-  const InsightsCalendar({super.key});
+  const InsightsCalendar(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -322,47 +364,73 @@ class InsightsCalendar extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(16.0),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: state.insights
-                        .map(
-                          (e) => InsightsDayReading(
-                            e,
-                            isActive: e == selectedInsight,
-                          ),
-                        )
-                        .toList(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
                 ),
-                const SizedBox(
-                  height: 21,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: state.insights
+                            .map(
+                              (e) => InsightsDayReading(
+                                e,
+                                isActive: e == selectedInsight,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityWidget(
+                        selectedInsight,
+                        name: state.name,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityMessageWidget(selectedInsight),
+                    ),
+                  ],
                 ),
-                InsightAirQualityWidget(
-                  selectedInsight,
-                  name: state.name,
-                ),
-                const SizedBox(
-                  height: 21,
-                ),
-                InsightAirQualityMessageWidget(selectedInsight),
-              ],
-            ),
+              ),
+              const Divider(
+                color: Color(0xffC4C4C4),
+                height: 1.0,
+              ),
+              SizedBox(
+                height: 57,
+                child: AirQualityActions(airQualityReading),
+              ),
+            ],
           ),
         );
       },
@@ -441,13 +509,13 @@ class HealthTipsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (insight.healthTips.isEmpty) {
       return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 500),
         child: Container(),
       );
     }
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 500),
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
