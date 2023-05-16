@@ -3,7 +3,7 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('kyaextension', () {
+  group('kyaExtension', () {
     List<Kya> kyas = [];
     bool isNotSorted(List<Kya> kyas) {
       for (int x = 0, y = 1; x < kyas.length - 1; x++, y++) {
@@ -54,6 +54,31 @@ void main() {
               unsortedKyas[0],
               unsortedKyas[1],
               unsortedKyas[3]
+            ]));
+      });
+
+
+      test('Should sort Kyas in descending order by progress', () {
+        Kya kya = kyas[0];
+
+        List<Kya> testKyas = [
+          kya.copyWith(progress: 0),
+          kya.copyWith(progress: 0.6),
+          kya.copyWith(progress: -1),
+          kya.copyWith(progress: 0.4),
+          kya.copyWith(progress: -1)
+        ];
+
+        testKyas.sortByProgress();
+
+        expect(
+            testKyas,
+            containsAllInOrder([
+              kya.copyWith(progress: -1),
+              kya.copyWith(progress: -1),
+              kya.copyWith(progress: 0.6),
+              kya.copyWith(progress: 0.4),
+              kya.copyWith(progress: 0),
             ]));
       });
     });
