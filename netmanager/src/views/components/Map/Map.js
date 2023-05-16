@@ -1,62 +1,56 @@
-import React from "react";
-import { connect } from "react-redux";
-import { mapRenderDefaults } from "redux/Maps/actions";
-import PropTypes from "prop-types";
-import Select from "react-select";
+import React from 'react';
+import { connect } from 'react-redux';
+import { mapRenderDefaults } from 'redux/Maps/actions';
+import PropTypes from 'prop-types';
+import Select from 'react-select';
 
-import {
-  Map,
-  FeatureGroup,
-  LayerGroup,
-  TileLayer,
-  Marker,
-  Popup,
-} from "react-leaflet";
-import { EditControl } from "react-leaflet-draw";
-import axios from "axios";
-import L from "leaflet";
-import FullscreenControl from "react-leaflet-fullscreen";
-import "react-leaflet-fullscreen/dist/styles.css";
+import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from 'react-leaflet';
+import { EditControl } from 'react-leaflet-draw';
+import axios from 'axios';
+import L from 'leaflet';
+import FullscreenControl from 'react-leaflet-fullscreen';
+import 'react-leaflet-fullscreen/dist/styles.css';
 
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import { CardActions, Divider } from "@material-ui/core";
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import { CardActions, Divider } from '@material-ui/core';
 
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import Collapse from "@material-ui/core/Collapse";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
-import SaveIcon from "@material-ui/icons/Save";
-import ExpandLess from "@material-ui/icons/ExpandLess";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import CloseIcon from "@material-ui/icons/Close";
-import UpdateIcon from "@material-ui/icons/Update";
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import Collapse from '@material-ui/core/Collapse';
+import InboxIcon from '@material-ui/icons/MoveToInbox';
+import SaveIcon from '@material-ui/icons/Save';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import CloseIcon from '@material-ui/icons/Close';
+import UpdateIcon from '@material-ui/icons/Update';
 import {
   GET_LOCATE_MAP,
   SAVE_LOCATE_MAP,
   UPDATE_LOCATE_MAP,
   DELETE_LOCATE_MAP,
-  RUN_LOCATE_MODEL,
-} from "config/urls/locate";
+  RUN_LOCATE_MODEL
+} from 'config/urls/locate';
 
 //download csv and pdf
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import jsonexport from "jsonexport";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import jsonexport from 'jsonexport';
 
 // css
-import "assets/scss/locate.sass";
+import 'assets/scss/locate.sass';
+import { withPermission } from '../../containers/PageAccess';
 
 const typeOptions = [
-  { value: "", label: "choose download option" },
-  { value: "CSV", label: "CSV" },
-  { value: "PDF", label: "PDF" },
+  { value: '', label: 'choose download option' },
+  { value: 'CSV', label: 'CSV' },
+  { value: 'PDF', label: 'PDF' }
 ];
 
 const initialState = {
@@ -67,7 +61,7 @@ const initialState = {
   plan: {},
   // State: locate form
   numberOfDevices: 0,
-  mustHaveCoord: "",
+  mustHaveCoord: '',
   // activates/deactivates locate submit button accordingly
   btnSubmit: false,
   // activates/deactivates clear planning space button accordingly
@@ -77,24 +71,24 @@ const initialState = {
   clear: true,
 
   //newly added - passed to the model endpoint
-  geoJSONDATA: "",
+  geoJSONDATA: '',
   // added from locateSave -- helps with saving data and dialog boxes
   open: false,
   openSave: false,
   confirmDialog: false,
   savedPlan: [], // stores previously saved data
-  space_name: "",
+  space_name: '',
 
   // states for opening and updating previously saved data
-  selected_name: "",
+  selected_name: '',
   selected_plan: {},
   isPlanSelected: false,
   isUpdateCancel: false,
   isAlreadyOpened: 0, // prevents the map from loading more than once on every state change
 
   // handle all the popup msg
-  confirmDialogMsg: "",
-  selectedOption: { value: " ", label: "" },
+  confirmDialogMsg: '',
+  selectedOption: { value: ' ', label: '' }
 };
 
 class Maps extends React.Component {
@@ -123,8 +117,7 @@ class Maps extends React.Component {
   // added from locateSave
   onOpenClicked = () => {
     axios
-      .get(GET_LOCATE_MAP + 
-        "?userId=" + this.props.auth.user._id)
+      .get(GET_LOCATE_MAP + '?userId=' + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
@@ -147,19 +140,19 @@ class Maps extends React.Component {
         {
           userId: this.props.auth.user._id,
           spaceName: this.state.space_name,
-          plan: this.state.plan,
+          plan: this.state.plan
         },
         {
           headers: {
-            "Content-Type": "application/json",
-          },
+            'Content-Type': 'application/json'
+          }
         }
       )
       .then((res) => {
         console.log(res);
         this.setState({ confirmDialogMsg: res.data.message });
         this.setState((prevState) => ({
-          confirmDialog: !prevState.confirmDialog,
+          confirmDialog: !prevState.confirmDialog
         })); //
       })
       .catch((e) => console.log(e));
@@ -212,26 +205,28 @@ class Maps extends React.Component {
   };
   // update saved space
   onUpdatePlanSpace = () => {
-    console.log("onUpdate: ", this.state.selected_name);
+    console.log('onUpdate: ', this.state.selected_name);
     axios
       .put(
-        UPDATE_LOCATE_MAP + 
-        "?userId=" + this.props.auth.user._id + 
-        "&spaceName=" + this.state.selected_name,
+        UPDATE_LOCATE_MAP +
+          '?userId=' +
+          this.props.auth.user._id +
+          '&spaceName=' +
+          this.state.selected_name,
         {
-          plan: this.state.selected_plan,
+          plan: this.state.selected_plan
         },
         {
           headers: {
-            "Content-Type": "application/json",
-          },
+            'Content-Type': 'application/json'
+          }
         }
       )
       .then((res) => {
         console.log(res.data);
         this.setState({ confirmDialogMsg: res.data.message });
         this.setState((prevState) => ({
-          confirmDialog: !prevState.confirmDialog,
+          confirmDialog: !prevState.confirmDialog
         })); //
       })
       .catch((e) => console.log(e));
@@ -248,16 +243,14 @@ class Maps extends React.Component {
 
   // Delete previously saved space
   onDeletePlanSpace = (name) => {
-    console.log("onDelete :", name);
+    console.log('onDelete :', name);
     axios
-      .delete(DELETE_LOCATE_MAP + 
-        "?userId=" + this.props.auth.user._id + 
-        "&spaceName=" + name)
+      .delete(DELETE_LOCATE_MAP + '?userId=' + this.props.auth.user._id + '&spaceName=' + name)
       .then((res) => {
         console.log(res.data);
         this.setState({ confirmDialogMsg: res.data.message });
         this.setState((prevState) => ({
-          confirmDialog: !prevState.confirmDialog,
+          confirmDialog: !prevState.confirmDialog
         })); //
       })
       .catch((e) => {
@@ -270,7 +263,7 @@ class Maps extends React.Component {
   changeHandler = (e) => {
     this.setState({ [e.target.name]: e.target.value });
     // toggle submit button ON and OFF
-    if (e.target.name == "numberOfDevices") {
+    if (e.target.name == 'numberOfDevices') {
       if (e.target.value != 0 && /^\d+$/.test(e.target.value)) {
         this.setState({ btnSubmit: true });
       } else {
@@ -286,15 +279,12 @@ class Maps extends React.Component {
       must_have_coordinates: this.state.mustHaveCoord,
       // checking if the user selected a previously saved plan
       // if true, use its geoGjson data, otherwise use the selected plan
-      polygon:
-        this.state.isPlanSelected == true
-          ? this.state.selected_plan
-          : this.state.plan,
+      polygon: this.state.isPlanSelected == true ? this.state.selected_plan : this.state.plan
     };
     console.log(api_data);
     axios
       .post(RUN_LOCATE_MODEL, api_data, {
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' }
       })
       .then((res) => {
         const myData = res.data;
@@ -304,27 +294,27 @@ class Maps extends React.Component {
 
         try {
           myData.forEach((element) => {
-            if (element["properties.district"]) {
+            if (element['properties.district']) {
               myPolygons.push({
-                type: "Feature",
+                type: 'Feature',
                 properties: {
-                  district: element["properties.district"],
-                  subcounty: element["properties.subcounty"],
-                  parish: element["properties.parish"],
-                  lat: element["properties.lat"],
-                  long: element["properties.long"],
-                  color: element["color"],
-                  fill_color: element["fill_color"],
-                  type: element.type,
+                  district: element['properties.district'],
+                  subcounty: element['properties.subcounty'],
+                  parish: element['properties.parish'],
+                  lat: element['properties.lat'],
+                  long: element['properties.long'],
+                  color: element['color'],
+                  fill_color: element['fill_color'],
+                  type: element.type
                 },
                 geometry: {
-                  type: "Polygon",
-                  coordinates: element["geometry.coordinates"],
-                },
+                  type: 'Polygon',
+                  coordinates: element['geometry.coordinates']
+                }
               });
             } else {
               myPolygons.push({
-                type: "Feature",
+                type: 'Feature',
                 properties: {
                   district: element.properties.district,
                   subcounty: element.properties.subcounty,
@@ -333,70 +323,62 @@ class Maps extends React.Component {
                   long: element.properties.long,
                   color: element.color,
                   fill_color: element.fill_color,
-                  type: element.type,
+                  type: element.type
                 },
                 geometry: {
-                  type: "Polygon",
-                  coordinates: element.geometry.coordinates,
-                },
+                  type: 'Polygon',
+                  coordinates: element.geometry.coordinates
+                }
               });
             }
           });
 
           this.setState({
             polygons: myPolygons,
-            btnClear: true,
+            btnClear: true
           });
           {
             /*download files*/
           }
           let toCsv = [];
-          if (this.state.selectedOption.value === "CSV") {
+          if (this.state.selectedOption.value === 'CSV') {
             myData.forEach((element) => {
               toCsv.push({
-                type: "Feature",
+                type: 'Feature',
                 properties: {
-                  district: element["properties.district"],
-                  subcounty: element["properties.subcounty"],
-                  parish: element["properties.parish"],
-                  lat: element["properties.lat"],
-                  long: element["properties.long"],
-                },
+                  district: element['properties.district'],
+                  subcounty: element['properties.subcounty'],
+                  parish: element['properties.parish'],
+                  lat: element['properties.lat'],
+                  long: element['properties.long']
+                }
               });
             });
             jsonexport(toCsv, function (err, csv) {
               if (err) return console.log(err);
-              var filename = "parish_recommendations.csv";
-              var link = document.createElement("a");
+              var filename = 'parish_recommendations.csv';
+              var link = document.createElement('a');
               link.setAttribute(
-                "href",
-                "data:text/csv;charset=utf-8,%EF%BB%BF" +
-                  encodeURIComponent(csv)
+                'href',
+                'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv)
               );
-              link.setAttribute("download", filename);
-              link.style.visibility = "hidden";
+              link.setAttribute('download', filename);
+              link.style.visibility = 'hidden';
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
             });
           } else {
-            var doc = new jsPDF("p", "pt", "a4");
+            var doc = new jsPDF('p', 'pt', 'a4');
             var rows = [];
             var header = function (data) {
               doc.setFontSize(18);
               doc.setTextColor(40);
-              doc.setFontStyle("normal");
+              doc.setFontStyle('normal');
               //doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 20, 50, 50);
-              doc.text("RECOMMENDED PARISHES", data.settings.margin.left, 50);
+              doc.text('RECOMMENDED PARISHES', data.settings.margin.left, 50);
             };
-            var col = [
-              "type",
-              "District",
-              "Subcounty",
-              "Parish",
-              "lat",
-              "long",
-            ];
+            var col = ['type', 'District', 'Subcounty', 'Parish', 'lat', 'long'];
             myPolygons.forEach((element) => {
               var temp = [
                 element.type,
@@ -404,18 +386,18 @@ class Maps extends React.Component {
                 element.properties.subcounty,
                 element.properties.parish,
                 element.properties.lat,
-                element.properties.long,
+                element.properties.long
               ];
               rows.push(temp);
             });
             doc.autoTable(col, rows, {
               margin: { top: 80 },
-              beforePageContent: header,
+              beforePageContent: header
             });
-            doc.save("parish_recommendations.pdf");
+            doc.save('parish_recommendations.pdf');
           }
         } catch (error) {
-          console.log("An error occured. Please try again");
+          console.log('An error occured. Please try again');
         }
       });
   };
@@ -430,12 +412,12 @@ class Maps extends React.Component {
       this.setState({ plan: layer.toGeoJSON() });
       this.setState({ selected_plan: layer.toGeoJSON() });
       this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-      console.log("edit saved plan: ", JSON.stringify(layer.toGeoJSON()));
+      console.log('edit saved plan: ', JSON.stringify(layer.toGeoJSON()));
     } else {
       // otherwise
       this.setState({ plan: layer.toGeoJSON() });
       this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-      console.log("edit new plan: ", JSON.stringify(layer.toGeoJSON()));
+      console.log('edit new plan: ', JSON.stringify(layer.toGeoJSON()));
     }
 
     //console.log("_onEdited", type, JSON.stringify(layer.toGeoJSON()));
@@ -444,11 +426,11 @@ class Maps extends React.Component {
   _onCreated = (e) => {
     let type = e.layerType;
     let layer = e.layer;
-    if (type === "marker") {
+    if (type === 'marker') {
       // Do marker specific actions
-      console.log("_onCreated: marker created", e);
+      console.log('_onCreated: marker created', e);
     }
-    if (type === "polygon") {
+    if (type === 'polygon') {
       // here you got the polygon points
       ///const points = layer._latlngs;
       console.log(JSON.stringify(layer.toGeoJSON()));
@@ -457,11 +439,11 @@ class Maps extends React.Component {
       //newly added
       this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
       if (this.state.clear) {
-        this.setState({ geoJSONDATA: "" });
+        this.setState({ geoJSONDATA: '' });
       }
     }
     if (this.state.clear) {
-      this.setState({ geoJSONDATA: "" });
+      this.setState({ geoJSONDATA: '' });
     }
   };
 
@@ -470,33 +452,33 @@ class Maps extends React.Component {
     const { numberOfDevices, mustHaveCoord } = this.state;
 
     const styles = {
-      backgroundColor: "#FFF",
+      backgroundColor: '#FFF',
       zIndex: 999,
-      position: "absolute",
-      height: "auto",
+      position: 'absolute',
+      height: 'auto',
       width: 250,
-      opacity: 0.8,
+      opacity: 0.8
       //marginTop: "7em"
     };
 
     // Save planning styles
     const nested = {
-      paddingLeft: "2em",
+      paddingLeft: '2em'
     };
     // styling the save planning space menu
     const savePlan = {
-      backgroundColor: "#FFF",
+      backgroundColor: '#FFF',
       zIndex: 999,
-      position: "absolute",
-      height: "auto",
+      position: 'absolute',
+      height: 'auto',
       width: 250,
       opacity: 0.8,
-      top: "30em",
+      top: '30em'
     };
     // styling the delete planning space buttons
     const btnStyles = {
-      color: "red",
-      fontWeight: ".3em",
+      color: 'red',
+      fontWeight: '.3em'
     };
     return (
       <div>
@@ -531,13 +513,13 @@ class Maps extends React.Component {
               options={typeOptions}
               value={this.state.selectedOption}
               onChange={this.handleDownloadChange}
-              placeholder={"choose download option"}
+              placeholder={'choose download option'}
             />
             <CardActions>
               <Button
                 type="submit"
                 name="submit"
-                disabled={this.state.btnSubmit === false ? "true" : ""}
+                disabled={this.state.btnSubmit === false ? 'true' : ''}
                 color="secondary"
                 variant="contained"
                 size="small"
@@ -547,7 +529,7 @@ class Maps extends React.Component {
               <Button
                 type="button"
                 name="clear"
-                disabled={this.state.btnClear === false ? "true" : ""}
+                disabled={this.state.btnClear === false ? 'true' : ''}
                 onClick={this.handleClear}
                 color="secondary"
                 variant="contained"
@@ -564,43 +546,24 @@ class Maps extends React.Component {
         <div>
           {/* Update planning space controls */}
           {this.state.isPlanSelected == true ? (
-            <List
-              component="nav"
-              aria-labelledby="nested-list-subheader"
-              style={savePlan}
-            >
+            <List component="nav" aria-labelledby="nested-list-subheader" style={savePlan}>
               <ListItem button>
                 <ListItemIcon>
                   <UpdateIcon />
                 </ListItemIcon>
-                <ListItemText
-                  primary="Update"
-                  onClick={this.onUpdatePlanSpace}
-                />
+                <ListItemText primary="Update" onClick={this.onUpdatePlanSpace} />
               </ListItem>
               <ListItem button>
                 <ListItemIcon>
                   <CloseIcon style={btnStyles} />
                 </ListItemIcon>
-                <ListItemText
-                  primary="Cancel"
-                  onClick={this.onCancelUpdatePlanSpace}
-                />
+                <ListItemText primary="Cancel" onClick={this.onCancelUpdatePlanSpace} />
               </ListItem>
             </List>
           ) : (
             //save new placing space , list saved planning space
-            <List
-              component="nav"
-              aria-labelledby="nested-list-subheader"
-              style={savePlan}
-            >
-              <ListItem
-                button
-                disabled={
-                  Object.keys(this.state.plan).length === 0 ? "true" : ""
-                }
-              >
+            <List component="nav" aria-labelledby="nested-list-subheader" style={savePlan}>
+              <ListItem button disabled={Object.keys(this.state.plan).length === 0 ? 'true' : ''}>
                 <ListItemIcon>
                   <SaveIcon />
                 </ListItemIcon>
@@ -621,26 +584,19 @@ class Maps extends React.Component {
                         <ListItem key={s._id} button style={nested}>
                           <ListItemText
                             primary={s.space_name}
-                            onClick={this.onSelectPrevSpace.bind(
-                              this,
-                              s.space_name,
-                              s.plan
-                            )}
+                            onClick={this.onSelectPrevSpace.bind(this, s.space_name, s.plan)}
                             z
                           />
                           <Button
                             variant="contained"
                             size="small"
-                            onClick={this.onDeletePlanSpace.bind(
-                              this,
-                              s.space_name
-                            )}
+                            onClick={this.onDeletePlanSpace.bind(this, s.space_name)}
                           >
                             <CloseIcon style={btnStyles} />
                           </Button>
                         </ListItem>
                       ))
-                    : ""}
+                    : ''}
                 </List>
               </Collapse>
             </List>
@@ -655,8 +611,8 @@ class Maps extends React.Component {
             {/* <DialogTitle id="form-dialog-title">Save Planning Space</DialogTitle> */}
             <DialogContent>
               <DialogContentText>
-                To save this planning space, please enter the name in the text
-                field below. Thank you for using AirQo Locate service.
+                To save this planning space, please enter the name in the text field below. Thank
+                you for using AirQo Locate service.
               </DialogContentText>
               <TextField
                 autoFocus
@@ -706,7 +662,7 @@ class Maps extends React.Component {
         {/* End of Locate Save Menu */}
 
         {/* Map component starts here */}
-        <div className={"locate-map-container"}>
+        <div className={'locate-map-container'}>
           <Map
             center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
             zoom={this.props.mapDefaults.zoom}
@@ -724,20 +680,20 @@ class Maps extends React.Component {
                   key={location.parish}
                   position={{
                     lat: location.properties.lat,
-                    lng: location.properties.long,
+                    lng: location.properties.long
                   }}
                   icon={
                     new L.Icon({
                       iconUrl:
-                        "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-" +
+                        'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-' +
                         location.properties.color +
-                        ".png",
+                        '.png',
                       shadowUrl:
-                        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+                        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                       iconSize: [25, 41],
                       iconAnchor: [12, 41],
                       popupAnchor: [1, -34],
-                      shadowSize: [41, 41],
+                      shadowSize: [41, 41]
                     })
                   }
                   onMouseOver={(e) => {
@@ -784,7 +740,7 @@ class Maps extends React.Component {
                 draw={{
                   rectangle: false,
                   circle: false,
-                  circlemarker: false,
+                  circlemarker: false
                 }}
               />
             </FeatureGroup>
@@ -808,39 +764,37 @@ class Maps extends React.Component {
           let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i], {
             onEachFeature: function (feature, layer) {
               let popup_string =
-                "<b>DISTRICT: </b>" +
-                feature["properties"]["district"] +
-                "<br/><b>SUBCOUNTY: </b>" +
-                feature["properties"]["subcounty"] +
-                "<br/><b>PARISH: </b>" +
-                feature["properties"]["parish"] +
-                "<br/><b>TYPE: </b>" +
-                feature["properties"]["type"];
+                '<b>DISTRICT: </b>' +
+                feature['properties']['district'] +
+                '<br/><b>SUBCOUNTY: </b>' +
+                feature['properties']['subcounty'] +
+                '<br/><b>PARISH: </b>' +
+                feature['properties']['parish'] +
+                '<br/><b>TYPE: </b>' +
+                feature['properties']['type'];
               layer.bindPopup(popup_string);
-              layer.on("mouseover", function (e) {
+              layer.on('mouseover', function (e) {
                 this.openPopup();
               });
-              layer.on("mouseout", function (e) {
+              layer.on('mouseout', function (e) {
                 this.closePopup();
               });
             },
             style: {
-              fillColor: this.state.polygons[i]["properties"]["fill_color"],
-              color: this.state.polygons[i]["properties"]["color"],
-              opacity: 100,
-            },
+              fillColor: this.state.polygons[i]['properties']['fill_color'],
+              color: this.state.polygons[i]['properties']['color'],
+              opacity: 100
+            }
           });
           let leafletFG = this._editableFG.leafletElement;
           leafletGeoJSON.eachLayer((layer) => leafletFG.addLayer(layer));
         } catch (error) {
-          console.log(
-            "An error occured and some polygons may not have been shown!"
-          );
+          console.log('An error occured and some polygons may not have been shown!');
         }
       }
       //console.log(toString(count)+' invalid polygons in results')
     } else {
-      console.log("No polygons");
+      console.log('No polygons');
     }
     //Opening previously saved data
     if (this.state.isPlanSelected && this.state.isAlreadyOpened == 0) {
@@ -866,7 +820,7 @@ class Maps extends React.Component {
       // });
       //draw.deleteAll().getAll();
       this.setState({ isPlanSelected: false });
-      this.setState({ selected_name: "" });
+      this.setState({ selected_name: '' });
       this.setState({ selected_plan: {} });
       this.setState({ isUpdateCancel: false });
     }
@@ -876,12 +830,15 @@ class Maps extends React.Component {
 Maps.propTypes = {
   mapRenderDefaults: PropTypes.func.isRequired,
   mapDefaults: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired,
+  auth: PropTypes.object.isRequired
 };
 
 const mapStateToProps = (state) => ({
   mapDefaults: state.mapDefaults.initMap,
-  auth: state.auth,
+  auth: state.auth
 });
 
-export default connect(mapStateToProps, { mapRenderDefaults })(Maps);
+const MapPermission = withPermission(Maps, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'); // Wrap with permission HOC
+const MapsWithState = connect(mapStateToProps, { mapRenderDefaults })(MapPermission); // Wrap with Redux connect HOC
+
+export default MapsWithState;

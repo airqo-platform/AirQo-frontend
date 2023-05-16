@@ -627,9 +627,9 @@ class CustomTextStyle {
         );
   }
 
-  static TextStyle? insightsAvatar({
+  static TextStyle? airQualityValue({
     required Pollutant pollutant,
-    required double value,
+    required double? value,
   }) {
     return GoogleFonts.robotoMono(
       color: pollutant.textColor(
