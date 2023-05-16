@@ -4,15 +4,11 @@ import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
 import usrsStateConnector from 'views/stateConnectors/usersStateConnector';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-
-import UsersTable from './components/UsersTable';
-import UsersToolbar from './components/UsersToolbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { loadRolesSummary, fetchNetworkUsers } from 'redux/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
 import AvailableUsersTable from './components/UsersTable/AvailableUsersTable';
-import { fetchAvailableNetworkUsers } from '../../../redux/AccessControl/operations';
+import { fetchAvailableNetworkUsers } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
