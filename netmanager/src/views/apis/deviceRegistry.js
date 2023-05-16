@@ -142,10 +142,16 @@ export const getEventsApi = async (params) => {
   return await axios.get(EVENTS, { params }).then((response) => response.data);
 };
 
-export const getSitesApi = async (networkID) => {
-  return await axios
-    .get(SITES, { params: { network: networkID } })
-    .then((response) => response.data);
+export const getSitesApi = async (params) => {
+  return await axios.get(SITES, { params }).then((response) => response.data);
+};
+
+export const getSitesSummaryApi = async (params) => {
+  return await axios.get(`${SITES}/summary`, { params }).then((response) => response.data);
+};
+
+export const getSiteDetailsApi = async (site_id) => {
+  return await axios.get(SITES, { params: { id: site_id } }).then((response) => response.data);
 };
 
 export const updateSiteApi = async (site_id, siteData) => {
