@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserEmail } from '@/lib/store/services/account/CreationSlice';
 import { useRouter } from 'next/router';
+import { getGoogleAuthDetails } from '@/core/apis/Account';
 
 const AccountCreation = () => {
   const [email, setEmail] = useState();
@@ -38,7 +39,9 @@ const AccountCreation = () => {
                 className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
                 required
               />
-              {error && <div className='text-xs text-red-600 py-2'>This email is already in use!</div>}
+              {error && (
+                <div className='text-xs text-red-600 py-2'>This email is already in use!</div>
+              )}
               <button
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
                 onClick={() => handleChange()}>
@@ -54,7 +57,11 @@ const AccountCreation = () => {
           <span className='w-full border border-grey-200'></span>
         </div>
         <div className='mt-6'>
-          <button className='btn bg-form-input rounded-none w-full outline-none border-none flex flex-row items-center justify-center hover:bg-grey-200'>
+          <button
+            className='btn bg-form-input rounded-none w-full outline-none border-none flex flex-row items-center justify-center hover:bg-grey-200'
+            onClick={() => {
+              getGoogleAuthDetails();
+            }}>
             <span style={{ color: '#000000', fontWeight: '400', opacity: '0.5' }}>
               Sign up with
             </span>
