@@ -107,7 +107,7 @@ void main() {
         final pendingCompletionKyas = kyas.filterPendingCompletion();
         expect(pendingCompletionKyas.length, 1);
         expect(pendingCompletionKyas.contains(kyas[0]), isTrue);
-        expect(othersSet.toSet().intersection(pendingCompletionKyasSet).isEmpty,
+        expect(pendingCompletionKyas.toSet().intersection(othersSet).isEmpty,
             isTrue);
       });
     });
@@ -124,7 +124,7 @@ void main() {
         expect(inProgressKyas.length, 1);
         expect(inProgressKyas.contains(kyas[1]), isTrue);
         expect(
-            othersSet.toSet().intersection(inProgressKyasSet).isEmpty, isTrue);
+            inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
       });
     });
   });
