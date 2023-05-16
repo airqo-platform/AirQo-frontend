@@ -1,15 +1,14 @@
-import moment from "moment-timezone";
+import moment from 'moment-timezone';
 
 const client_IANA_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const formatDateString = (
-  t=moment(), // set default datetime to current time
+  t = moment(), // set default datetime to current time
   format = 'DD-MM-YYYY HH:mm:ss' // set default datetime format
 ) => moment.utc(t).tz(client_IANA_timezone).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
-  let delta =
-    Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
+  let delta = Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
   let seconds = delta;
   let result = {};
   let structure = {
@@ -19,7 +18,7 @@ export const getElapsedDurationMapper = (dateTimeStr) => {
     day: 86400, // feel free to add your own row
     hour: 3600,
     minute: 60,
-    second: 1,
+    second: 1
   };
 
   Object.keys(structure).forEach(function (key) {
@@ -31,13 +30,13 @@ export const getElapsedDurationMapper = (dateTimeStr) => {
 };
 
 export const getFirstNDurations = (duration, n) => {
-  let format = "";
+  let format = '';
   let count = n;
-  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
+  const keys = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
   for (const key of keys) {
     const elapsedTime = duration[key];
     if (elapsedTime > 0) {
-      format = `${format} ${elapsedTime} ${key}${elapsedTime > 1 ? "s" : ""},`;
+      format = `${format} ${elapsedTime} ${key}${elapsedTime > 1 ? 's' : ''},`;
       count -= 1;
     }
 
@@ -54,26 +53,32 @@ export const getFirstDuration = (dateTimeStr) => {
 
 export const humanReadableDate = (dateString, options) => {
   const format = (options && options.format) || {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   };
-  if (!dateString) return "N/A";
+  if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString(undefined, format);
 };
 
 export const formatDate = (date) => {
-    if(!date) return '-';
+  if (!date) return '-';
 
-    date = new Date(date)
-    let day = date.getDate();
-    let month = date.getMonth()+1;
-    const year = date.getFullYear();
+  date = new Date(date);
+  let day = date.getDate();
+  let month = date.getMonth() + 1;
+  const year = date.getFullYear();
 
-    if (day < 10) day = `0${day}`
-    if (month < 10) month = `0${month}`
+  if (day < 10) day = `0${day}`;
+  if (month < 10) month = `0${month}`;
 
   return [year, month, day].join('-');
+};
+
+export const isDateInPast = (dateTimeStr) => {
+  let now = moment.utc();
+  let datetime = moment.utc(dateTimeStr);
+  return datetime.diff(now) < 0;
 };
 
 export const roundToEndOfDay = (dateISOString) => {
@@ -89,13 +94,13 @@ export const roundToStartOfDay = (dateISOString) => {
 };
 
 export const getDateString = (ISODateString) => {
-  if (ISODateString) return ISODateString.split("T")[0];
-  return "";
+  if (ISODateString) return ISODateString.split('T')[0];
+  return '';
 };
 
 export const getGMTOffset = () => {
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const offsetAbsoluteValue = Math.abs(timezoneOffset);
-    const hourDifference = ('00' + Math.floor(offsetAbsoluteValue/60)).slice(-2);
-    return `GMT${timezoneOffset < 0 ? '+' : '-'}${hourDifference}`;
-  }
+  const timezoneOffset = new Date().getTimezoneOffset();
+  const offsetAbsoluteValue = Math.abs(timezoneOffset);
+  const hourDifference = ('00' + Math.floor(offsetAbsoluteValue / 60)).slice(-2);
+  return `GMT${timezoneOffset < 0 ? '+' : '-'}${hourDifference}`;
+};

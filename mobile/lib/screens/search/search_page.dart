@@ -19,7 +19,7 @@ class SearchPage extends StatelessWidget {
     });
 
     return Scaffold(
-      appBar: const SearchBar(),
+      appBar: const CustomSearchBar(),
       body: AppSafeArea(
         horizontalPadding: 18,
         child: BlocBuilder<SearchPageCubit, SearchPageState>(

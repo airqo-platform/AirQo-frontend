@@ -58,6 +58,15 @@ export const collocateApi = createApi({
         };
       },
     }),
+    getCollocationStatistics: builder.mutation({
+      query: (addCollocationStatisticsInput) => {
+        return {
+          url: '/statistics',
+          method: 'POST',
+          body: addCollocationStatisticsInput,
+        };
+      },
+    }),
   }),
 });
 
@@ -67,6 +76,7 @@ export const {
   useGetCollocationResultsMutation,
   useGetDataCompletenessResultsMutation,
   useGetIntraSensorCorrelationMutation,
+  useGetCollocationStatisticsMutation,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
@@ -77,4 +87,5 @@ export const {
   getCollocationResults,
   getDataCompletenessResults,
   getIntraSensorCorrelation,
+  getCollocationStatistics,
 } = collocateApi.endpoints;

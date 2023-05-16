@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Remove border click effect for Daisy UI input */
+input:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+textarea:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}

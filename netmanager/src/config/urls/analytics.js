@@ -25,3 +25,10 @@ export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
+
+// access control
+export const GET_ROLES_URI = `${BASE_ANALYTICS_URL}/users/roles`;
+
+export const GET_NETWORKS_URI = `${BASE_ANALYTICS_URL}/users/networks`;
+
+export const GET_PERMISSIONS_URI = `${BASE_ANALYTICS_URL}/users/permissions`;

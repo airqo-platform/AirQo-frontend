@@ -93,9 +93,9 @@ class FeedbackPage extends StatelessWidget {
                     return const FeedbackStartButton();
                   case FeedbackStep.channelStep:
                   case FeedbackStep.formStep:
-                    return Row(
+                    return const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
+                      children: [
                         FeedbackBackButton(),
                         FeedbackNextButton(),
                       ],
