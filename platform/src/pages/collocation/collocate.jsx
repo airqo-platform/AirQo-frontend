@@ -102,20 +102,20 @@ const collocate = () => {
                 <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
               </Tab>
               <Tab label='Passed'>
-                <Table collocationDevices={filterDevicesByStatus('passed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('PASSED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Failed'>
-                <Table collocationDevices={filterDevicesByStatus('failed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('FAILED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Running'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('running')}
+                  collocationDevices={filterDevicesByStatus('RUNNING')}
                   isLoading={isLoading}
                 />
               </Tab>
               <Tab label='Scheduled'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('scheduled')}
+                  collocationDevices={filterDevicesByStatus('SCHEDULED')}
                   isLoading={isLoading}
                 />
               </Tab>
