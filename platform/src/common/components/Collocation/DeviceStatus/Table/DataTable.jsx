@@ -16,6 +16,8 @@ const STATUS_COLOR_CODES = {
   failed: 'bg-red-200',
   running: 'bg-turquoise-200',
   scheduled: 'bg-yellow-200',
+  overdue: 'bg-red-200',
+  re_run_required: 'bg-red-200',
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
@@ -156,10 +158,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
                         className={`${
-                          STATUS_COLOR_CODES[device.status]
+                          STATUS_COLOR_CODES[device.status.toLowerCase()]
                         } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
                       >
-                        {device.status}
+                        {device.status.toLowerCase()}
                       </span>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
