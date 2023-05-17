@@ -5,7 +5,7 @@ import ContentBox from '@/components/Layout/content_box';
 import { format } from 'date-fns';
 import GraphCard from '@/components/Collocation/AddMonitor/Overview/graph_card';
 import {
-  useGetCollocationStatisticsMutation,
+  useGetCollocationStatisticsQuery,
   useGetDeviceStatusSummaryQuery,
   getRunningQueriesThunk,
 } from '@/lib/store/services/collocation';
@@ -14,7 +14,7 @@ import moment from 'moment';
 import { wrapper } from '@/lib/store';
 import Button from '@/components/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { isEmpty, uniq } from 'underscore';
+import { isEmpty } from 'underscore';
 import {
   addOverviewBatch,
   removeOverviewBatch,
@@ -43,10 +43,12 @@ const CollocationOverview = () => {
   const [collocationPeriods, setCollocationPeriods] = useState(null);
   const [activeCollocationPeriod, setActiveCollocationPeriod] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [skip, setSkip] = useState(true);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [device1, setDevice1] = useState(null);
   const [device2, setDevice2] = useState(null);
+  const [statisticsParams, setStatisticsParams] = useState({});
 
   // get list of selectedCollocateDevices from redux store
   const selectedBatch = useSelector((state) => state.collocationData.overviewBatch);
@@ -59,14 +61,13 @@ const CollocationOverview = () => {
     isError: deviceSummaryError,
   } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummaryList = deviceStatusSummary ? deviceStatusSummary.data : [];
-  const [
-    getCollocationStatistics,
-    {
-      isLoading: collocationStatisticsLoading,
-      isSuccess: collocationStatisticsSuccess,
-      isError: collocationStatisticsError,
-    },
-  ] = useGetCollocationStatisticsMutation();
+  const {
+    data: collocationStatistics,
+    isLoading: collocationStatisticsLoading,
+    isSuccess: collocationStatisticsSuccess,
+    isError: collocationStatisticsError,
+  } = useGetCollocationStatisticsQuery(statisticsParams, { skip: skip });
+  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
 
   // matching devices
   useEffect(() => {
@@ -81,7 +82,7 @@ const CollocationOverview = () => {
       setActiveIndex(0);
 
       if (!isEmpty(matchingDevicePairs)) {
-        if (matchingDevicePairs.length > 1) {
+        if (matchingDevicePairs[0].length > 1) {
           dispatch(addOverviewBatch([matchingDevicePairs[0][0], matchingDevicePairs[0][1]]));
         } else {
           dispatch(addOverviewBatch(matchingDevicePairs[0][0]));
@@ -104,51 +105,40 @@ const CollocationOverview = () => {
   }, [selectedBatch]);
 
   useEffect(() => {
-    const fetchCollocationDeviceStatistics = async () => {
+    const fetchCollocationDeviceStatistics = () => {
       if (!isEmpty(selectedBatch)) {
         if (selectedBatch.length > 1) {
-          const response = await getCollocationStatistics({
+          setStatisticsParams({
             devices: [selectedBatch[0].device_name, selectedBatch[1].device_name],
-            startDate: moment(selectedBatch[0].start_date).format('YYYY-MM-DD'),
-            endDate: moment(selectedBatch[0].end_date).format('YYYY-MM-DD'),
+            batchId: selectedBatch[0].batch_id,
           });
-
-          if (!response.error) {
-            const transformedStatistics = Object.entries(response.data.data).map(
-              ([deviceName, deviceData]) => ({
-                deviceName,
-                s1_pm10_mean: deviceData.s1_pm10_mean,
-                s1_pm2_5_mean: deviceData.s1_pm2_5_mean,
-                s2_pm10_mean: deviceData.s2_pm10_mean,
-                s2_pm2_5_mean: deviceData.s2_pm2_5_mean,
-              }),
-            );
-            setDeviceStatistics(transformedStatistics);
-          }
+          setSkip(false);
         } else {
-          const response = await getCollocationStatistics({
+          setStatisticsParams({
             devices: [selectedBatch[0].device_name],
-            startDate: moment(selectedBatch[0].start_date).format('YYYY-MM-DD'),
-            endDate: moment(selectedBatch[0].end_date).format('YYYY-MM-DD'),
+            batchId: selectedBatch[0].batch_id,
           });
-
-          if (!response.error) {
-            const transformedStatistics = Object.entries(response.data.data).map(
-              ([deviceName, deviceData]) => ({
-                deviceName,
-                s1_pm10_mean: deviceData.s1_pm10_mean,
-                s1_pm2_5_mean: deviceData.s1_pm2_5_mean,
-                s2_pm10_mean: deviceData.s2_pm10_mean,
-                s2_pm2_5_mean: deviceData.s2_pm2_5_mean,
-              }),
-            );
-            setDeviceStatistics(transformedStatistics);
-          }
+          setSkip(false);
         }
       }
     };
     fetchCollocationDeviceStatistics();
   }, [selectedBatch]);
+
+  useEffect(() => {
+    if (!isEmpty(collocationStatisticsList)) {
+      const transformedStatistics = Object.entries(collocationStatisticsList).map(
+        ([deviceName, deviceData]) => ({
+          deviceName,
+          s1_pm10_mean: deviceData.s1_pm10_mean,
+          s1_pm2_5_mean: deviceData.s1_pm2_5_mean,
+          s2_pm10_mean: deviceData.s2_pm10_mean,
+          s2_pm2_5_mean: deviceData.s2_pm2_5_mean,
+        }),
+      );
+      setDeviceStatistics(transformedStatistics);
+    }
+  }, [collocationStatisticsList]);
 
   return (
     <Layout>
