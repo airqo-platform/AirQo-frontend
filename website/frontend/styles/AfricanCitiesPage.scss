@@ -54,6 +54,29 @@
     }
   }
 
+  .city-content{
+    margin-top: 24px;
+    .nav-tab{
+      button{
+        text-transform: capitalize;
+        border: none;
+        outline: none;
+        padding: 10px;
+        background-color: transparent;
+        color: #353E52A3;
+        margin-right: 15px;
+        border-bottom: 1px solid $aq-grey-5;
+      }
+      button.selected{
+        border-bottom: 2px solid $aq-blue-2;
+        color: #121723;
+      }
+      button:hover{
+        cursor: pointer;
+      }
+    }
+  }
+
   .city-banner {
     width: 100%;
     max-width: 900px;
@@ -77,7 +100,7 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    margin-bottom: 120px;
+    margin-bottom: 20px;
 
     .city-tabs {
       display: flex;
@@ -92,13 +115,12 @@
         align-items: center;
         padding: 0 20px;
         cursor: pointer;
-
-        min-width: 144px;
         height: 56px;
         background: $aq-blue-3;
         border-radius: 1000px;
         border: none;
         margin-right: 23px;
+        width: fit-content;
         .text {
           display: flex;
           align-items: center;
@@ -123,6 +145,7 @@
         }
 
       .not-available {
+        border: 1px solid green;
         display: flex;
         flex-direction: row;
         justify-content: center;
@@ -134,8 +157,9 @@
         height: 56px;
         background: $aq-grey-2;
         border-radius: 1000px;
-        border: none;
+        // border: none;
         margin-right: 23px;
+        width: fit-content;
         .text {
           display: flex;
           align-items: center;
