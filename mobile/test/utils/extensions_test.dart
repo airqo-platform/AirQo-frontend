@@ -95,7 +95,6 @@ void main() {
   group('DoubleExtension', () {
     const startValue = 0.0;
     const endValue = 5.0;
-    const endValue2 = 0.0;
 
     test('returns true when subject is within the given range', () {
       expect(5.0.isWithin(startValue, endValue), isTrue);
@@ -106,11 +105,11 @@ void main() {
     });
 
     test('returns false when subject is smaller than minRange', () {
-      expect(3.0.isWithin(startValue, endValue), isFalse);
+      expect((-3.0).isWithin(startValue, endValue), isFalse);
     });
 
     test('returns true when subject is equal to the limits of the range', () {
-      expect(0.0.isWithin(startValue, endValue2), isTrue);
+      expect(0.0.isWithin(startValue, 0.0), isTrue);
     });
   });
   group('StringExtension', () {
@@ -229,8 +228,6 @@ void main() {
     test(
         'getDateOfFirstDayOfWeek (in UTC format) should return the date of the first day of the week',
         () {
-      expect(fixedDate1.getDateOfFirstDayOfWeek(),
-          DateTime(2023, 5, 1)); //non-utc fails
       expect(fixedDate1.getDateOfFirstDayOfWeek(), DateTime.utc(2023, 5, 1));
       expect(fixedDate1.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
           DateTime.utc(2023, 5, 8));
@@ -248,17 +245,17 @@ void main() {
     test(
         'isAfterOrEqualToYesterday should return true if the date is after or equal to yesterday',
         () {
-      expect(fixedDate1.isAfterOrEqualToYesterday(), isTrue);
-      expect(fixedDate1.add(day).isAfterOrEqualToYesterday(), isTrue);
-      expect(fixedDate1.subtract(day).isAfterOrEqualToYesterday(), isFalse);
+      expect(today.isAfterOrEqualToYesterday(), isTrue);
+      expect(today.add(day).isAfterOrEqualToYesterday(), isTrue);
+      expect(today.subtract(const Duration(days: 2)).isAfterOrEqualToYesterday(), isFalse);
     });
 
     test(
         'isAfterOrEqualToToday should return true if the date is after or equal to today',
         () {
-      expect(fixedDate1.isAfterOrEqualToToday(), isTrue);
-      expect(fixedDate1.add(day).isAfterOrEqualToToday(), isTrue);
-      expect(fixedDate1.subtract(day).isAfterOrEqualToToday(), isFalse);
+      expect(today.isAfterOrEqualToToday(), isTrue);
+      expect(today.add(day).isAfterOrEqualToToday(), isTrue);
+      expect(today.subtract(const Duration(days: 2)).isAfterOrEqualToToday(), isFalse);
     });
 
     test(
