@@ -38,14 +38,14 @@ extension KyaExt on Kya {
   String getKyaMessage() {
     if (isInProgress()) {
       return 'Continue';
-    } else if (isPartiallyComplete()) {
+    } else if (isPendingCompletion()) {
       return 'Complete! Move to For You';
     } else {
       return 'Start learning';
     }
   }
 
-  bool isPartiallyComplete() {
+  bool isPendingCompletion() {
     return progress == 1;
   }
 
@@ -61,7 +61,7 @@ extension KyaExt on Kya {
     return progress > 0 && progress < 1;
   }
 
-  bool hasNoProgress() {
+  bool todo() {
     return progress == 0;
   }
 
@@ -73,9 +73,9 @@ extension KyaExt on Kya {
 extension KyaListExt on List<Kya> {
   void sortByProgress() {
     sort((x, y) {
-      if (x.progress == -1) return 1;
+      if (x.progress == -1) return -1;
 
-      if (y.progress == -1) return -1;
+      if (y.progress == -1) return 1;
 
       return -(x.progress.compareTo(y.progress));
     });
@@ -87,15 +87,15 @@ extension KyaListExt on List<Kya> {
     }).toList();
   }
 
-  List<Kya> filterHasNoProgress() {
+  List<Kya> filterToDo() {
     return where((element) {
-      return element.hasNoProgress();
+      return element.todo();
     }).toList();
   }
 
-  List<Kya> filterPartiallyComplete() {
+  List<Kya> filterPendingCompletion() {
     return where((element) {
-      return element.isPartiallyComplete();
+      return element.isPendingCompletion();
     }).toList();
   }
 
