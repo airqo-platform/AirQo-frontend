@@ -5,18 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('kyaExtension', () {
     List<Kya> kyas = [];
-    bool isNotSorted(List<Kya> kyas) {
-      for (int x = 0, y = 1; x < kyas.length - 1; x++, y++) {
-        double a = kyas[x].progress == -1 ? 2 : kyas[x].progress;
-        double b = kyas[y].progress == -1 ? 2 : kyas[y].progress;
-        if (a < b) {
-          return true;
-        }
-      }
-      kyas.shuffle();
-      isNotSorted(kyas);
-      return true;
-    }
 
     setUp(() => {
           kyas = List.generate(
@@ -41,23 +29,6 @@ void main() {
         });
 
     group('sortByProgress', () {
-      test('Should sort Kyas in descending order by progress', () {
-        List<Kya> unsortedKyas = [kyas[0], kyas[1], kyas[2], kyas[3]];
-        if (isNotSorted(kyas)) {
-          kyas.sortByProgress();
-        }
-
-        expect(
-            kyas,
-            containsAllInOrder([
-              unsortedKyas[2],
-              unsortedKyas[0],
-              unsortedKyas[1],
-              unsortedKyas[3]
-            ]));
-      });
-
-
       test('Should sort Kyas in descending order by progress', () {
         Kya kya = kyas[0];
 
@@ -84,7 +55,7 @@ void main() {
     });
 
     group('Filter Complete', () {
-      test('returns empty list when all Kyas are in progress', () {
+      test('returns empty list when all Kyas are not yet completed', () {
         kyas = [kyas[0], kyas[1], kyas[3]];
 
         final filteredKyas = kyas.filterComplete();
