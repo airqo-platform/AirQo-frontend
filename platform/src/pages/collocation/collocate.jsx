@@ -66,32 +66,33 @@ const collocate = () => {
             message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
           />
         )}
-        {deviceStatusSummary && (
-          <div className='flex'>
-            <Button
-              className={
-                'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-              }
-            >
-              <div className='mr-[10px]'>
-                <UploadIcon />
-              </div>
-              Import data
-            </Button>
-            <div className='mr-[14px]'></div>
-            <Button
-              className={
-                'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
-              }
-              path='/collocation/add_monitor'
-            >
-              <div className='mr-[10px]'>
-                <BoxedAddIcon />
-              </div>
-              Test monitor
-            </Button>
-          </div>
-        )}
+        {isLoading ||
+          (isSuccess && (
+            <div className='flex'>
+              <Button
+                className={
+                  'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
+                }
+              >
+                <div className='mr-[10px]'>
+                  <UploadIcon />
+                </div>
+                Import data
+              </Button>
+              <div className='mr-[14px]'></div>
+              <Button
+                className={
+                  'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                }
+                path='/collocation/add_monitor'
+              >
+                <div className='mr-[10px]'>
+                  <BoxedAddIcon />
+                </div>
+                Test monitor
+              </Button>
+            </div>
+          ))}
       </HeaderNav>
       <ContentBox>
         {isLoading || isSuccess ? (
