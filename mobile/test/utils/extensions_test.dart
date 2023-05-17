@@ -372,7 +372,8 @@ void main() {
     });
 
     test('yesterday should return the date of yesterday', () {
-      expect(today.yesterday(), today.subtract(day));
+      expect(today.yesterday().copyWith(microsecond: 0, millisecond: 0),
+          today.subtract(day).copyWith(microsecond: 0, millisecond: 0));
     });
   });
 }
