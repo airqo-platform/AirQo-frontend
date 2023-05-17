@@ -273,7 +273,7 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
     if (airQualityReading == null) {
-      Positioned(
+      return Positioned(
         right: rightPadding,
         child: const CircularLoadingAnimation(
           size: 32,
@@ -295,17 +295,17 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
             ),
           ),
           color: Pollutant.pm2_5.color(
-            airQualityReading?.pm2_5 ?? 0,
+            airQualityReading.pm2_5,
           ),
           shape: BoxShape.circle,
         ),
         child: Center(
           child: Text(
-            '${airQualityReading?.pm2_5}',
+            '${airQualityReading.pm2_5}',
             style: TextStyle(
               fontSize: 7,
               color: Pollutant.pm2_5.textColor(
-                value: airQualityReading?.pm2_5 ?? 0,
+                value: airQualityReading.pm2_5,
               ),
             ),
           ),
