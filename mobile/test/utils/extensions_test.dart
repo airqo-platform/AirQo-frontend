@@ -247,7 +247,9 @@ void main() {
         () {
       expect(today.isAfterOrEqualToYesterday(), isTrue);
       expect(today.add(day).isAfterOrEqualToYesterday(), isTrue);
-      expect(today.subtract(const Duration(days: 2)).isAfterOrEqualToYesterday(), isFalse);
+      expect(
+          today.subtract(const Duration(days: 2)).isAfterOrEqualToYesterday(),
+          isFalse);
     });
 
     test(
@@ -255,7 +257,8 @@ void main() {
         () {
       expect(today.isAfterOrEqualToToday(), isTrue);
       expect(today.add(day).isAfterOrEqualToToday(), isTrue);
-      expect(today.subtract(const Duration(days: 2)).isAfterOrEqualToToday(), isFalse);
+      expect(today.subtract(const Duration(days: 2)).isAfterOrEqualToToday(),
+          isFalse);
     });
 
     test(
@@ -282,13 +285,6 @@ void main() {
       expect(
           fixedDate1.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
           DateTime.parse('2023-04-30T00:00:00Z'));
-
-      //Failing scenarios
-      expect(fixedDate1.getDateOfLastDayOfWeek(),
-          DateTime.parse('2023-05-06T00:00:00Z'));
-      expect(fixedDate1.getDateOfLastDayOfWeek(), DateTime(2023, 5, 7));
-      expect(fixedDate1.getDateOfLastDayOfWeek(),
-          isNot(DateTime.parse('2023-05-07T00:00:00Z')));
     });
 
     test('getMonthString should return the month name or abbreviation', () {
@@ -305,10 +301,6 @@ void main() {
     test('getWeekday should return the weekday name', () {
       expect(fixedDate1.getWeekday(), 'Thursday');
       expect(fixedDate1.add(day).getWeekday(), 'Friday');
-
-      //Failing scenarios
-      expect(fixedDate1.getWeekday(), 'Wednesday');
-      expect(fixedDate1.getWeekday(), 'thursday');
     });
 
     test('isWithInCurrentWeek returns true for dates within the current week',
@@ -322,8 +314,7 @@ void main() {
     test(
         'isWithInPreviousWeek should return true if the date is within the previous week',
         () {
-      expect(
-          fixedDate1.subtract(const Duration(days: 9)).isWithInPreviousWeek(),
+      expect(today.subtract(const Duration(days: 6)).isWithInPreviousWeek(),
           isTrue);
       expect(
           fixedDate1.subtract(const Duration(days: 14)).isWithInPreviousWeek(),
@@ -334,11 +325,9 @@ void main() {
     test(
         'isWithInNextWeek should return true if the date is within the next week',
         () {
-      expect(
-          fixedDate1.add(const Duration(days: 8)).isWithInNextWeek(), isTrue);
-      expect(
-          fixedDate1.add(const Duration(days: 15)).isWithInNextWeek(), isFalse);
-      expect(fixedDate1.isWithInNextWeek(), isFalse);
+      expect(today.add(const Duration(days: 8)).isWithInNextWeek(), isTrue);
+      expect(today.add(const Duration(days: 15)).isWithInNextWeek(), isFalse);
+      expect(today.isWithInNextWeek(), isFalse);
     });
 
     test('isToday returns true for today\'s date', () {
@@ -358,31 +347,32 @@ void main() {
     });
 
     test('isAFutureDate should return true if the date is a future date', () {
-      expect(fixedDate1.add(day).isAFutureDate(), isTrue);
-      expect(fixedDate1.isAFutureDate(), isFalse);
-      expect(fixedDate1.subtract(day).isAFutureDate(), isFalse);
+      expect(today.add(day).isAFutureDate(), isTrue);
+      expect(today.isAFutureDate(), isFalse);
+      expect(today.subtract(day).isAFutureDate(), isFalse);
     });
 
     test('isYesterday should return true if the date is yesterday', () {
-      expect(fixedDate1.subtract(day).isYesterday(), isTrue);
-      expect(fixedDate1.isYesterday(), isFalse);
-      expect(fixedDate1.add(day).isYesterday(), isFalse);
+      expect(today.subtract(day).isYesterday(), isTrue);
+      expect(today.isYesterday(), isFalse);
+      expect(today.add(day).isYesterday(), isFalse);
     });
 
     test(
         'notificationDisplayDate should return the formatted date for notification display',
         () {
-      expect(fixedDate2.notificationDisplayDate(), '15:30');
+      expect(fixedDate2.notificationDisplayDate(), '04 May');
       expect(fixedDate1.subtract(day).notificationDisplayDate(), '03 May');
       expect(fixedDate1.add(day).notificationDisplayDate(), '05 May');
     });
 
     test('tomorrow should return the date of tomorrow', () {
-      expect(today.tomorrow(), tomorrow);
+      expect(today.tomorrow().copyWith(millisecond: 0, microsecond: 0),
+          today.add(day).copyWith(millisecond: 0, microsecond: 0));
     });
 
     test('yesterday should return the date of yesterday', () {
-      expect(today.yesterday(), yesterday);
+      expect(today.yesterday(), today.subtract(day));
     });
   });
 }
