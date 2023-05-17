@@ -472,7 +472,6 @@ extension DateTimeExt on DateTime {
     final monthString = months[month - 1];
 
     return abbreviate ? monthString.substring(0, 3) : monthString;
-
   }
 
   int getUtcOffset() {
@@ -496,7 +495,6 @@ extension DateTimeExt on DateTime {
     }
 
     return weekdays[weekday - 1];
-
   }
 
   bool isWithInCurrentWeek() {
@@ -596,7 +594,6 @@ extension DateTimeExt on DateTime {
         ? DateFormat('HH:mm')
             .format(DateTime(now.year, now.month, now.day, hour, minute))
         : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
-
   }
 
   DateTime tomorrow() {
@@ -702,14 +699,19 @@ extension StringExt on String {
     }
 
     return domainPart.split('.').last.length >= 2;
-
   }
 
   bool isValidUri() {
-    Uri uri = Uri.parse(this);
+    try {
+      Uri uri = Uri.parse(this);
 
-    return uri.hasScheme && uri.hasAuthority;
+      return uri.hasScheme && uri.hasAuthority;
 
+    } catch (e) {
+
+      return false;
+
+    }
   }
 
   String toCapitalized() {

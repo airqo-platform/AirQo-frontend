@@ -95,6 +95,7 @@ void main() {
   group('DoubleExtension', () {
     const startValue = 0.0;
     const endValue = 5.0;
+    const endValue2 = 0.0;
 
     test('returns true when subject is within the given range', () {
       expect(5.0.isWithin(startValue, endValue), isTrue);
@@ -106,6 +107,10 @@ void main() {
 
     test('returns false when subject is smaller than minRange', () {
       expect(3.0.isWithin(startValue, endValue), isFalse);
+    });
+
+    test('returns true when subject is equal to the limits of the range', () {
+      expect(0.0.isWithin(startValue, endValue2), isTrue);
     });
   });
   group('StringExtension', () {
