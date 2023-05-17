@@ -16,6 +16,7 @@ import { createSiteApi } from 'views/apis/deviceRegistry';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -44,6 +45,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const NETWORKS = [
+  { value: 'airqo', name: 'AirQo' },
+  { value: 'kcca', name: 'KCCA' },
+  { value: 'usembassy', name: 'US EMBASSY' },
+  { value: 'mukwano', name: 'MUKWANO' }
+];
+
 const SiteToolbar = (props) => {
   const { className, ...rest } = props;
 
@@ -55,7 +63,7 @@ const SiteToolbar = (props) => {
     latitude: '',
     longitude: '',
     name: '',
-    network: ''
+    network: NETWORKS[0].value
   };
 
   const initErrorData = {
@@ -68,6 +76,9 @@ const SiteToolbar = (props) => {
   const [open, setOpen] = useState(false);
   const [siteData, setSiteData] = useState(initSiteData);
   const [errors, setErrors] = useState(initErrorData);
+
+  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleSiteClose = () => {
     setOpen(false);
@@ -87,30 +98,56 @@ const SiteToolbar = (props) => {
 
   const handleSiteSubmit = (e) => {
     setOpen(false);
-    createSiteApi(siteData)
-      .then((resData) => {
-        dispatch(loadSitesData());
-        handleSiteClose();
+    if (!isEmpty(userNetworks)) {
+      const userNetworksNames = userNetworks.map((network) => network.net_name);
+
+      if (!userNetworksNames.includes(siteData.network)) {
         dispatch(
           updateMainAlert({
-            message: resData.message,
+            message: `You are not a member of the ${siteData.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
             show: true,
-            severity: 'success'
+            severity: 'error'
           })
         );
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        setErrors(errors || initErrorData);
-        dispatch(
-          updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
-            show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
+
+        // clear the form
+        setSiteData(initSiteData);
+        setErrors(initErrorData);
+        return;
+      } else {
+        createSiteApi(siteData)
+          .then((resData) => {
+            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+            if (!isEmpty(activeNetwork)) {
+              dispatch(loadSitesData(activeNetwork.net_name));
+            }
+            handleSiteClose();
+            dispatch(
+              updateMainAlert({
+                message: `${resData.message}. ${
+                  siteData.network !== activeNetwork.net_name
+                    ? `Switch to the ${siteData.network} organisation to see the new device.`
+                    : ''
+                }`,
+                show: true,
+                severity: 'success'
+              })
+            );
           })
-        );
-      });
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            setErrors(errors || initErrorData);
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+          });
+      }
+    }
   };
 
   return (
@@ -194,9 +231,11 @@ const SiteToolbar = (props) => {
               helperText={errors.network}
               required
             >
-              <option value={'airqo'}>AirQo</option>
-              <option value={'kcca'}>KCCA</option>
-              <option value={'usembassy'}>US EMBASSY</option>
+              {NETWORKS.map((option, index) => (
+                <option key={index} value={option.value}>
+                  {option.name}
+                </option>
+              ))}
             </TextField>
           </form>
         </DialogContent>

@@ -27,6 +27,8 @@ import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { capitalize } from 'utils/string';
 import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { formatDateString, isDateInPast } from 'utils/dateTime';
+import { purple } from '@material-ui/core/colors';
 
 const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
@@ -43,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
   },
   grey: {
     color: grey[200]
+  },
+  future: {
+    color: purple[900],
+    fontWeight: 'bold'
   }
 }));
 
@@ -197,11 +203,25 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
           >
             <span>
               Device last pushed data{' '}
-              <span className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}>
-                {getFirstNDurations(elapsedDurationMapper, 2)}
-              </span>{' '}
-              ago.
+              {isDateInPast(recentFeed.created_at) ? (
+                <>
+                  <span
+                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}
+                  >
+                    {getFirstNDurations(elapsedDurationMapper, 2)}
+                  </span>{' '}
+                  ago.
+                </>
+              ) : (
+                <span className={classes.future}>in the future.</span>
+              )}
             </span>
+            {!isDateInPast(recentFeed.created_at) && (
+              <div className={classes.future}>
+                Error: Start date for this device is set to{' '}
+                {formatDateString(recentFeed.created_at)}
+              </div>
+            )}
           </div>
           <div
             style={{
@@ -376,8 +396,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
-        dispatch(loadDevicesData());
-        dispatch(loadSitesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+          dispatch(loadSitesData(activeNetwork.net_name));
+        }
+
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -408,8 +432,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
-        dispatch(loadDevicesData());
-        dispatch(loadSitesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+          dispatch(loadSitesData(activeNetwork.net_name));
+        }
+
         dispatch(
           updateMainAlert({
             message: responseData.message,

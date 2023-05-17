@@ -1,18 +1,19 @@
 /* eslint-disable */
-import React, { useEffect } from "react";
-import { makeStyles } from "@material-ui/styles";
-import PropTypes from "prop-types";
-import usersStateConnector from "views/stateConnectors/usersStateConnector";
-import CandidatesTable from "./components/CandidatesTable";
-import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
+import React, { useEffect } from 'react';
+import { makeStyles } from '@material-ui/styles';
+import PropTypes from 'prop-types';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import CandidatesTable from './components/CandidatesTable';
+import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(3),
+    padding: theme.spacing(3)
   },
   content: {
-    marginTop: theme.spacing(2),
-  },
+    marginTop: theme.spacing(2)
+  }
 }));
 
 const CandidateList = (props) => {
@@ -25,18 +26,19 @@ const CandidateList = (props) => {
   }, []);
 
   return (
-      <ErrorBoundary>
-        <div className={classes.root}>
-          <div className={classes.content}>
-            <CandidatesTable candidates={candidates} />
-          </div>
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <div className={classes.content}>
+          <CandidatesTable candidates={candidates} />
         </div>
-      </ErrorBoundary>
+      </div>
+    </ErrorBoundary>
   );
 };
 
 CandidateList.propTypes = {
-  errors: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired
 };
 
-export default usersStateConnector(CandidateList);
+const usrsStateConnector = usersStateConnector(CandidateList);
+export default withPermission(usrsStateConnector, 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES');

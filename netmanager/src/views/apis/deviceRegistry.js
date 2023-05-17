@@ -24,8 +24,10 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
 
-export const getAllDevicesApi = async () => {
-  return await axios.get(ALL_DEVICES_URI).then((response) => response.data);
+export const getAllDevicesApi = async (networkID) => {
+  return await axios
+    .get(ALL_DEVICES_URI, { params: { network: networkID } })
+    .then((response) => response.data);
 };
 
 export const createDeviceComponentApi = async (deviceName, componentType, data) => {
@@ -140,8 +142,16 @@ export const getEventsApi = async (params) => {
   return await axios.get(EVENTS, { params }).then((response) => response.data);
 };
 
-export const getSitesApi = async () => {
-  return await axios.get(SITES).then((response) => response.data);
+export const getSitesApi = async (params) => {
+  return await axios.get(SITES, { params }).then((response) => response.data);
+};
+
+export const getSitesSummaryApi = async (params) => {
+  return await axios.get(`${SITES}/summary`, { params }).then((response) => response.data);
+};
+
+export const getSiteDetailsApi = async (site_id) => {
+  return await axios.get(SITES, { params: { id: site_id } }).then((response) => response.data);
 };
 
 export const updateSiteApi = async (site_id, siteData) => {

@@ -1,6 +1,6 @@
 // for representing chained operations using redux-thunk
-import axios from "axios";
-import { isEmpty } from "underscore";
+import axios from 'axios';
+import { isEmpty } from 'underscore';
 import {
   REFRESH_FILTER_LOCATION_DATA_SUCCESS,
   REFRESH_FILTER_LOCATION_DATA_ERROR,
@@ -13,27 +13,27 @@ import {
   LOAD_DASHBOARD_SITES_SUCCESS,
   LOAD_DASHBOARD_SITES_FAILURE,
   UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
-  UPDATE_USER_DEFAULT_GRAPHS_FAILURE,
-} from "./actions";
-import { DEFAULTS_URI } from "config/urls/authService";
-import { getMonitoringSitesLocationsApi } from "views/apis/location";
-import { getUserChartDefaultsApi } from "views/apis/authService";
-import { getSitesApi } from "views/apis/analytics";
-import { transformArray } from "../utils";
+  UPDATE_USER_DEFAULT_GRAPHS_FAILURE
+} from './actions';
+import { DEFAULTS_URI } from 'config/urls/authService';
+import { getMonitoringSitesLocationsApi } from 'views/apis/location';
+import { getUserChartDefaultsApi } from 'views/apis/authService';
+import { getSitesApi } from 'views/apis/analytics';
+import { transformArray } from '../utils';
 
-export const loadSites = () => async (dispatch) => {
-  return await getSitesApi()
+export const loadSites = (networkID) => async (dispatch) => {
+  return await getSitesApi(networkID)
     .then((res) => {
       if (isEmpty(res.data)) return;
       dispatch({
         type: LOAD_DASHBOARD_SITES_SUCCESS,
-        payload: transformArray(res.data || [], "_id"),
+        payload: transformArray(res.data || [], '_id')
       });
     })
     .catch((err) => {
       dispatch({
         type: LOAD_DASHBOARD_SITES_FAILURE,
-        payload: err,
+        payload: err
       });
     });
 };
@@ -44,13 +44,13 @@ export const refreshFilterLocationData = () => {
       .then((responseData) => {
         dispatch({
           type: REFRESH_FILTER_LOCATION_DATA_SUCCESS,
-          payload: responseData.airquality_monitoring_sites,
+          payload: responseData.airquality_monitoring_sites
         });
       })
       .catch((err) => {
         dispatch({
           type: REFRESH_FILTER_LOCATION_DATA_ERROR,
-          payload: err,
+          payload: err
         });
       });
   };
@@ -65,13 +65,13 @@ export const loadUserDefaultGraphData = () => {
       .then(async (userDefaultsData) => {
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: userDefaultsData.defaults || [],
+          payload: userDefaultsData.defaults || []
         });
       })
       .catch((err) => {
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_ERROR,
-          payload: err,
+          payload: err
         });
       });
   };
@@ -80,7 +80,7 @@ export const loadUserDefaultGraphData = () => {
 export const resetDefaultGraphData = () => (dispatch) => {
   dispatch({
     type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-    payload: [],
+    payload: []
   });
   dispatch(loadUserDefaultGraphData());
 };
@@ -91,19 +91,19 @@ export const setUserDefaultGraphData = (filter) => {
     const { chartTitle } = filter;
     return await axios
       .put(DEFAULTS_URI, filter, {
-        params: { user, chartTitle },
+        params: { user, chartTitle }
       })
       .then((res) => res.data)
       .then((responseData) => {
         dispatch({
           type: SET_USER_DEFAULTS_GRAPHS_SUCCESS,
-          payload: responseData,
+          payload: responseData
         });
       })
       .catch((err) => {
         dispatch({
           type: SET_USER_DEFAULTS_GRAPHS_ERROR,
-          payload: err,
+          payload: err
         });
       });
   };
@@ -112,7 +112,7 @@ export const setUserDefaultGraphData = (filter) => {
 export const updateUserDefaultGraphData = (newChartDefault) => (dispatch) => {
   return dispatch({
     type: UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
-    payload: newChartDefault,
+    payload: newChartDefault
   });
 };
 

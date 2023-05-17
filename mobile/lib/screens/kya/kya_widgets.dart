@@ -60,7 +60,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.isPartiallyComplete()) {
+    if (kya.isPendingCompletion()) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -141,7 +141,7 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.isPartiallyComplete()) {
+        if (kya.isPendingCompletion()) {
           context.read<KyaBloc>().add(CompleteKya(kya));
         } else {
           await Navigator.push(
@@ -380,10 +380,10 @@ class KyaLoadingWidget extends StatelessWidget {
                           Radius.circular(16.0),
                         ),
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: const [
+                          children: [
                             SizedBox(
                               height: 48,
                             ),

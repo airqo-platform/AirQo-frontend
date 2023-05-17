@@ -6,8 +6,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import { Button, Grid, Paper, TextField } from '@material-ui/core';
 
-import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
+import { loadSiteDetails } from 'redux/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import { humanReadableDate } from 'utils/dateTime';
@@ -18,6 +18,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+import { withPermission } from '../../containers/PageAccess';
 
 const gridItemStyle = {
   padding: '5px',
@@ -36,6 +37,7 @@ const SiteForm = ({ site }) => {
   const [loading, setLoading] = useState(false);
   const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const handleSiteInfoChange = (event) => {
     const id = event.target.id;
@@ -46,7 +48,9 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-    dispatch(loadSitesData());
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+    }
   };
 
   const weightedBool = (primary, secondary) => {
@@ -68,7 +72,9 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        dispatch(loadSitesData());
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+        }
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.error) || {};
@@ -372,17 +378,17 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const sites = useSitesData();
+  const site = useSiteDetailsData(params.id);
   const dispatch = useDispatch();
-  const [site, setSite] = useState(sites[params.id] || {});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSitesData());
+    if (isEmpty(site)) {
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+      }
+    }
   }, []);
-
-  useEffect(() => {
-    setSite(sites[params.id] || {});
-  }, [sites]);
 
   return (
     <div
@@ -498,4 +504,4 @@ SiteView.propTypes = {
   className: PropTypes.string
 };
 
-export default SiteView;
+export default withPermission(SiteView, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');
