@@ -39,7 +39,7 @@ class SearchAvatar extends StatelessWidget {
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(
@@ -150,7 +150,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
             minFontSize: 8,
             maxFontSize: 17,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQuality.value,
             )?.copyWith(
@@ -679,8 +679,8 @@ class AutoCompleteLoadingWidget extends StatelessWidget {
   }
 }
 
-class SearchBar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchBar({super.key});
+class CustomSearchBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {

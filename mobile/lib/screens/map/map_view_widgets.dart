@@ -566,7 +566,7 @@ class MapAnalyticsCard extends StatelessWidget {
           ),
           SizedBox(
             height: 58,
-            child: AnalyticsCardFooter(
+            child: AirQualityActions(
               airQualityReading,
               radius: 0,
             ),

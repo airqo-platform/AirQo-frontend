@@ -380,10 +380,10 @@ class KyaLoadingWidget extends StatelessWidget {
                           Radius.circular(16.0),
                         ),
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: const [
+                          children:  [
                             SizedBox(
                               height: 48,
                             ),
