@@ -88,3 +88,9 @@ export const getNetworkUsersListApi = async (networkID) => {
     .get(`${GET_NETWORKS_URI}/${networkID}/assigned-users`)
     .then((response) => response.data);
 };
+
+export const getAvailableNetworkUsersListApi = async (networkID) => {
+  return await axios
+    .get(`${GET_NETWORKS_URI}/${networkID}/available-users`)
+    .then((response) => response.data);
+};
