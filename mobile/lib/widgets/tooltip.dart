@@ -17,6 +17,7 @@ class ToolTip {
     _popupHeight = height ?? 64.0;
     _popupWidth = width ?? 261.0;
   }
+
   late double _popupWidth;
   late double _popupHeight;
 
@@ -217,8 +218,8 @@ class ToolTip {
     }
 
     _showRect = rect ?? _getWidgetGlobalRect(widgetKey!);
-    _screenSize =
-        View.of(context).physicalSize / View.of(context).devicePixelRatio;
+    final view = View.of(context);
+    _screenSize = view.physicalSize / view.devicePixelRatio;
 
     _calculatePosition(context);
 
@@ -281,6 +282,7 @@ class TrianglePainter extends CustomPainter {
     this.isDownArrow = true,
     required this.color,
   });
+
   bool isDownArrow;
   Color color;
 

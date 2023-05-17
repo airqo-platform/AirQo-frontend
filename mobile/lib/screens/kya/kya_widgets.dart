@@ -383,7 +383,7 @@ class KyaLoadingWidget extends StatelessWidget {
                       child: const Center(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                          children:  [
                             SizedBox(
                               height: 48,
                             ),

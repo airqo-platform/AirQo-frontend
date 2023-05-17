@@ -37,3 +37,5 @@ export const CONFIRM_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/
 export const DELETE_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
 
 export const USER_FEEDBACK_URI = `${BASE_AUTH_SERVICE_URL}/users/feedback`;
+
+export const GET_ACCESS_TOKEN = `${BASE_AUTH_SERVICE_URL}/users/tokens`;

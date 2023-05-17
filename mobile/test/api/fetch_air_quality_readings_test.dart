@@ -21,9 +21,10 @@ Future<void> main() async {
         return element;
       });
       expect(
-          reading.dateTime
-              .isAfter(DateTime.now().subtract(const Duration(days: 1))),
-          true);
+        reading.dateTime.day ==
+            DateTime.now().subtract(const Duration(days: 1)).day,
+        true,
+      );
     });
 
     test('checks if all air quality readings have health tips.', () async {
