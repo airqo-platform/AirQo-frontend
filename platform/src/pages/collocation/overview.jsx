@@ -129,7 +129,7 @@ const CollocationOverview = () => {
     if (!isEmpty(collocationStatisticsList)) {
       const transformedStatistics = Object.entries(collocationStatisticsList).map(
         ([deviceName, deviceData]) => ({
-          deviceName,
+          deviceName: deviceData.device_name,
           s1_pm10_mean: deviceData.s1_pm10_mean,
           s1_pm2_5_mean: deviceData.s1_pm2_5_mean,
           s2_pm10_mean: deviceData.s2_pm10_mean,
