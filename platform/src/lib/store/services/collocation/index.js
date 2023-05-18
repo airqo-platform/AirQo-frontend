@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { HYDRATE } from 'next-redux-wrapper';
-import { NEXT_PUBLIC_AUTHORISATION } from '../../../envConstants';
+import { NEXT_PUBLIC_API_TOKEN } from '../../../envConstants';
 import { COLLOCATION } from '@/core/urls/deviceMonitoring';
 import { addCollocationData } from './collocationDataSlice';
 
@@ -8,12 +8,6 @@ export const collocateApi = createApi({
   reducerPath: 'collocateApi',
   baseQuery: fetchBaseQuery({
     baseUrl: COLLOCATION,
-    prepareHeaders: (headers) => {
-      const token = `JWT ${NEXT_PUBLIC_AUTHORISATION}`;
-      headers.set('Authorization', token);
-
-      return headers;
-    },
   }),
   extractRehydrationInfo(action, { reducerPath }) {
     if (action.type === HYDRATE) {
@@ -23,45 +17,46 @@ export const collocateApi = createApi({
   endpoints: (builder) => ({
     collocateDevices: builder.mutation({
       query: (addMonitorInput) => ({
-        url: '/schedule',
+        url: `?token=${NEXT_PUBLIC_API_TOKEN}`,
         method: 'POST',
         body: addMonitorInput,
       }),
     }),
     getDeviceStatusSummary: builder.query({
-      query: () => '/summary',
+      query: () => `/summary?token=${NEXT_PUBLIC_API_TOKEN}`,
     }),
-    getCollocationResults: builder.mutation({
-      query: ({ devices, startDate, endDate }) => {
+    getCollocationResults: builder.query({
+      query: ({ devices, batchId }) => {
         return {
-          url: '/data',
-          method: 'POST',
-          body: { devices: [devices], startDate, endDate },
+          url: `/data?token=${NEXT_PUBLIC_API_TOKEN}`,
+          params: { devices, batchId },
         };
       },
     }),
     getDataCompletenessResults: builder.mutation({
       query: (addDataCompletenessInput) => {
         return {
-          url: '/data-completeness',
+          url: `/data-completeness?token=${NEXT_PUBLIC_API_TOKEN}`,
           method: 'POST',
           body: addDataCompletenessInput,
         };
       },
     }),
-    getIntraSensorCorrelation: builder.mutation({
+    getIntraSensorCorrelation: builder.query({
       query: (addIntraSensorInput) => {
         return {
-          url: '/intra',
-          method: 'POST',
-          body: addIntraSensorInput,
+          url: `/intra?token=${NEXT_PUBLIC_API_TOKEN}`,
+          params: {
+            devices: addIntraSensorInput.devices,
+            batchId: addIntraSensorInput.batchId,
+          },
         };
       },
     }),
     getCollocationStatistics: builder.query({
       query: (addCollocationStatisticsInput) => {
         return {
-          url: '/statistics',
+          url: `/statistics?token=${NEXT_PUBLIC_API_TOKEN}`,
           params: {
             devices: addCollocationStatisticsInput.devices,
             batchId: addCollocationStatisticsInput.batchId,
@@ -75,9 +70,9 @@ export const collocateApi = createApi({
 export const {
   useCollocateDevicesMutation,
   useGetDeviceStatusSummaryQuery,
-  useGetCollocationResultsMutation,
+  useGetCollocationResultsQuery,
   useGetDataCompletenessResultsMutation,
-  useGetIntraSensorCorrelationMutation,
+  useGetIntraSensorCorrelationQuery,
   useGetCollocationStatisticsQuery,
   util: { getRunningQueriesThunk },
 } = collocateApi;

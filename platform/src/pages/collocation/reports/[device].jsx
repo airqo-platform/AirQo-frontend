@@ -4,72 +4,51 @@ import Box from '@/components/Collocation/Report/box';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import { useEffect, useState } from 'react';
-import {
-  useGetCollocationResultsMutation,
-  useGetIntraSensorCorrelationMutation,
-} from '@/lib/store/services/collocation';
 import CorrelationBarChart from '@/components/Collocation/Report/Charts/CorrelationBarChart';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
+import {
+  useGetCollocationResultsQuery,
+  useGetIntraSensorCorrelationQuery,
+} from '@/lib/store/services/collocation';
 
 const Reports = () => {
   const router = useRouter();
-  const { device, startDate, endDate } = router.query;
+  const { device, batchId } = router.query;
 
-  const [intraSensorCorrelationResults, setIntraSensorCorrelationResults] = useState(null);
-  const [collocationResults, setCollocationResults] = useState(null);
-
-  const [
-    getIntraSensorCorrelationData,
-    {
-      isLoading: isIntraSensorCorrelationDataLoading,
-      isSuccess: isIntraSensorCorrelationDataSuccess,
-      isError: isFetchIntraSensorCorrelationDataError,
-    },
-  ] = useGetIntraSensorCorrelationMutation();
-  const [
-    getCollocationResultsData,
-    {
-      isLoading: isCollocationResultsLoading,
-      isSuccess: isCollocationResultsSuccess,
-      isError: isFetchCollocationResultsError,
-    },
-  ] = useGetCollocationResultsMutation();
-
-  useEffect(() => {
-    const fetchIntraSensorCorrelationData = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getIntraSensorCorrelationData({
-        devices: [device],
-        startDate,
-        endDate,
-      });
-
-      if (!response.error) {
-        setIntraSensorCorrelationResults(response.data.data);
-      }
-    };
-    fetchIntraSensorCorrelationData();
-  }, [getIntraSensorCorrelationData, device, startDate, endDate]);
-
-  useEffect(() => {
-    const fetchCollocationResults = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getCollocationResultsData({
-        devices: device,
-        startDate,
-        endDate,
-      });
-
-      if (!response.error) {
-        setCollocationResults(response.data.data);
-      }
-    };
-    fetchCollocationResults();
-  }, [getCollocationResultsData, device, startDate, endDate]);
-
+  const [skipIntraSensorCorrelation, setSkipIntraSensorCorrelation] = useState(true);
+  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
+  const [input, setInput] = useState(null);
   const [pmConcentration, setPmConcentration] = useState('10');
+
+  const {
+    data: intraSensorCorrelationData,
+    isLoading: isIntraSensorCorrelationDataLoading,
+    isSuccess: isIntraSensorCorrelationDataSuccess,
+    isError: isFetchIntraSensorCorrelationDataError,
+  } = useGetIntraSensorCorrelationQuery(input, { skip: skipIntraSensorCorrelation });
+  const {
+    data: collocationResultsData,
+    isLoading: isCollocationResultsLoading,
+    isSuccess: isCollocationResultsSuccess,
+    isError: isFetchCollocationResultsError,
+  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+
+  const intraSensorCorrelationList = intraSensorCorrelationData
+    ? intraSensorCorrelationData.data
+    : null;
+  const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
+
+  useEffect(() => {
+    if (!device || !batchId) return;
+    setInput({
+      devices: [device],
+      batchId,
+    });
+    setSkipIntraSensorCorrelation(false);
+    setSkipCollocationResults(false);
+  }, [device, batchId]);
 
   const togglePmConcentrationChange = (newValue) => {
     setPmConcentration(newValue);
@@ -89,7 +68,7 @@ const Reports = () => {
         <Box
           title='Intra Sensor Correlation'
           subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
         >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
@@ -106,9 +85,9 @@ const Reports = () => {
               </div>
             ) : (
               <>
-                {collocationResults && (
+                {isCollocationResultsSuccess && (
                   <CorrelationChart
-                    data={collocationResults}
+                    data={collocationResultsList}
                     pmConcentration={pmConcentration}
                     height={'210'}
                     isInterSensorCorrelation
@@ -121,7 +100,7 @@ const Reports = () => {
         <Box
           title='Intra Sensor Correlation'
           subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
         >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
@@ -138,11 +117,11 @@ const Reports = () => {
               </div>
             ) : (
               <>
-                {intraSensorCorrelationResults && (
+                {isIntraSensorCorrelationDataSuccess && (
                   <CorrelationBarChart
                     height={'210'}
                     pmConcentration={pmConcentration}
-                    data={intraSensorCorrelationResults}
+                    data={intraSensorCorrelationList}
                   />
                 )}
               </>

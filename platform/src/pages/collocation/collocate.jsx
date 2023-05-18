@@ -119,6 +119,18 @@ const collocate = () => {
                   isLoading={isLoading}
                 />
               </Tab>
+              <Tab label='Overdue'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('OVERDUE')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Re-run required'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
+                  isLoading={isLoading}
+                />
+              </Tab>
             </Tabs>
           </div>
         ) : (

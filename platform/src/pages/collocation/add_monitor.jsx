@@ -60,10 +60,6 @@ const AddMonitor = () => {
         startDate,
         endDate,
         devices: selectedCollocateDevices,
-        expectedRecordsPerDay: 24,
-        completenessThreshold: 0.5,
-        correlationThreshold: 0.4,
-        verbose: true,
       };
 
       const response = await collocateDevices(body);
