@@ -3,7 +3,8 @@ import {
   GET_DATA_MAP,
   GET_SITES,
   DOWNLOAD_CUSTOMISED_DATA_URI,
-  D3_CHART_DATA_URI
+  D3_CHART_DATA_URI,
+  GENERATE_AIRQLOUD_DATA_SUMMARY_URI
 } from 'config/urls/analytics';
 
 let token = localStorage.jwtToken;
@@ -33,4 +34,10 @@ export const downloadDataApi = async (data) => {
 
 export const loadD3ChartDataApi = async (data) => {
   return await axios.post(D3_CHART_DATA_URI, data).then((response) => response.data);
+};
+
+
+export const generateAirQloudDataSummaryApi = async (data) => {
+  return await axios.post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data)
+    .then((response) => response.data);
 };

@@ -32,3 +32,5 @@ export const GET_ROLES_URI = `${BASE_ANALYTICS_URL}/users/roles`;
 export const GET_NETWORKS_URI = `${BASE_ANALYTICS_URL}/users/networks`;
 
 export const GET_PERMISSIONS_URI = `${BASE_ANALYTICS_URL}/users/permissions`;
+
+export const GENERATE_AIRQLOUD_DATA_SUMMARY_URI = `${BASE_ANALYTICS_URL}/analytics/data/summary`;

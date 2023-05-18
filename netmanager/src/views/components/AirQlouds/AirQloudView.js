@@ -1,12 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
-import { Button, Grid, Paper, TextField } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Card, CardContent,CardHeader, CardActions, Divider, CircularProgress,} from '@material-ui/core';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
-
+import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import clsx from 'clsx';
+import { makeStyles } from '@material-ui/styles';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
+import { generateAirQloudDataSummaryApi } from 'views/apis/analytics';
 // redux
 import { useSelectedAirqloudData } from 'redux/AirQloud/selectors';
 import { getAirqloudDetails, removeAirQloudData, refreshAirQloud } from 'redux/AirQloud/operations';
@@ -14,6 +19,14 @@ import { getAirqloudDetails, removeAirQloudData, refreshAirQloud } from 'redux/A
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(4)
+  },
+ 
+}));
+
 
 const gridItemStyle = {
   padding: '5px',
@@ -23,6 +36,7 @@ const gridItemStyle = {
 const AirQloudForm = ({ airqloud }) => {
   const history = useHistory();
   const dispatch = useDispatch();
+
 
   return (
     <Paper
@@ -145,11 +159,84 @@ const AirQloudForm = ({ airqloud }) => {
 
 const AirQloudView = (props) => {
   const { className, ...rest } = props;
+  const classes = useStyles();
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
   const dispatch = useDispatch();
   const airqloud = useSelectedAirqloudData(params.id);
+
+  const [loading, setLoading] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  const disableReportGenerationBtn = () => {
+    return (
+        !(
+          startDate &&
+          endDate       
+        ) || loading
+      );
+    
+  };
+
+  const generateAirQloudDataReport = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let data = {
+      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+      airqloud: params.id
+    };
+
+    generateAirQloudDataReportFunc(data);
+  };
+
+  const generateAirQloudDataReportFunc = async (body) => {
+    await generateAirQloudDataSummaryApi(body)
+      .then((response) => response.data)
+      .then((resData) => {
+        
+       //TODO: Populate the charts and reports to be displayed.
+
+        setLoading(false);
+        setStartDate(null);
+        setEndDate(null);       
+        dispatch(
+          updateMainAlert({
+            message: 'Calibratd Data Availability Report Generated ',
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        if (err.response.data.status === 'success') {
+          dispatch(
+            updateMainAlert({
+              message: 'Uh-oh! No data found for the selected time period.',
+              show: true,
+              severity: 'success'
+            })
+          );
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: err.response.data.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
+
+        setLoading(false);
+        setStartDate(null);
+        setEndDate(null);
+      });
+  };
+
 
   useEffect(() => {
     dispatch(getAirqloudDetails(params.id));
@@ -218,6 +305,91 @@ const AirQloudView = (props) => {
             }}
           />
         </div>
+      </div>
+      
+      <div style={{
+            margin: '50px auto',
+            // minHeight: "400px",
+            maxWidth: '1500px'
+          }}>
+      <ErrorBoundary>
+      <div className={classes.rootxx}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Card
+              {...rest}
+              className={clsx(classes.root, className)}
+              style={{ overflow: 'visible' }}
+            >
+              <CardHeader
+                subheader="View Calibrated Data Available for AirQloud"
+                title="Calibrated Data Availability For the AirQloud"
+              />
+           
+              <form onSubmit={generateAirQloudDataReport}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item md={6} xs={12}>
+                        <TextField
+                          label="Start Date"
+                          className="reactSelect"
+                          fullWidth
+                          variant="outlined"
+                          value={startDate}
+                          InputLabelProps={{ shrink: true }}
+                          type="date"
+                          onChange={(event) => setStartDate(event.target.value)}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <TextField
+                          label="End Date"
+                          className="reactSelect"
+                          fullWidth
+                          variant="outlined"
+                          value={endDate}
+                          InputLabelProps={{ shrink: true }}
+                          type="date"
+                          onChange={(event) => setEndDate(event.target.value)}
+                        />
+                      </Grid>
+
+                    </Grid>
+                  </CardContent>
+
+                  <Divider />
+                  <CardActions>
+                    <span style={{ position: 'relative' }}>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        type="submit"
+                        disabled={disableReportGenerationBtn()}
+                      >
+                        {' '}
+                        Generate Report for Calibrated Data
+                      </Button>
+                      {loading && (
+                        <CircularProgress
+                          size={24}
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            marginTop: '-12px',
+                            marginLeft: '-12px'
+                          }}
+                        />
+                      )}
+                    </span>
+                  </CardActions>
+                </form>
+            </Card>
+          </Grid>
+        </Grid>
+      </div>
+    </ErrorBoundary>
       </div>
     </div>
   );
