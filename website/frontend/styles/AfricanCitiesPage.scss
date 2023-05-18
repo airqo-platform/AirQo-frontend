@@ -319,7 +319,7 @@
           font-style: normal;
           font-weight: 500;
           font-size: 16px;
-          line-height: 24px;
+          line-height: 16px;
 
           color: $aq-blue-0;
 
@@ -590,8 +590,12 @@
 }
 @media (max-width: 980px){
 .AfricanCitiesPage {
+  .city-banner{
+    padding: 0 16px;
+  }
   .city-tabs-wrapper{
     padding: 0 12px;
+    overflow-x: auto;
   }
   .city-content {
     padding: 0 18px;
@@ -605,6 +609,9 @@
           }
         }
     }
+    .nav-tabs{
+     overflow-x: auto; 
+    }
   }
   .cities-divider{
     margin-bottom: 30px;
@@ -614,7 +621,7 @@
 @media(max-width: $mainBreakPoint) {
   .AfricanCitiesPage {
     .cities-divider {
-      margin: 64px auto;
+      margin: 48px auto;
     }
     .approach-section {
       .section-row {
@@ -630,46 +637,65 @@
       }
     }
 
-    .cities-content {
-      .ug-container {
-        .consult-images {
-          display: block;
-          height: auto;
+    .city-content{
+      .cities-content {
+        .cities-container {
+          .grid-tiles {
+            grid-template-columns: 1fr;
+            img{
+              max-height: 450px;
+            }
+            .background-shape {
+              left: -40%;
+              top: 4.74%;
+              transform: rotate(2.54deg);
+            }
+            .grid-tile:first-child:nth-last-child(2) {
+              img{
+                max-height: 230px;
+              }
+            }
+            .grid-tile:nth-child(2) {
+              img{
+                max-height: 230px;
+              }
+            }
+            
+            // .img-small {
+            //   display: block;
+            //   width: 100%;
+            //   height: 231px;
+            //   object-fit: cover;
+            //   margin-bottom: 24px;
+            // }
+
+            // .img-long {
+            //   display: none;
+            // }
+
+            // .img-long-right {
+            //   display: none;
+            // }
+          }
+
+          .consult-text {
+            .number-list {
+              flex-direction: column;
+              justify-content: flex-start;
+              align-items: flex-start;
+    
+              span:first-child {
+                margin-bottom: 0px;
+              }
+    
+              span:last-child {
+                width: 100%;
+                margin: 0;
+              }
+            }
+          }
           
-          .img-small {
-            display: block;
-            width: 100%;
-            height: 231px;
-            object-fit: cover;
-            margin-bottom: 24px;
-          }
-
-          .img-long {
-            display: none;
-          }
-
-          .img-long-right {
-            display: none;
-          }
         }
-
-        .consult-text {
-          .number-list {
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
-  
-            span:first-child {
-              margin-bottom: 0px;
-            }
-  
-            span:last-child {
-              width: 100%;
-              margin: 0;
-            }
-          }
-        }
-        
       }
     }
   }
