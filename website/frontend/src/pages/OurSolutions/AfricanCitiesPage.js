@@ -95,7 +95,7 @@ const AfricanCitiesApproach = () => (
   </section>
 );
 
- // TODO: styling for 3 and 4 image number variations
+// TODO: styling for 3 and 4 image number variations
 export const CityContent = ({ content }) => {
   return (
     <>
@@ -113,7 +113,7 @@ export const CityContent = ({ content }) => {
               </div>
               <div className="grid-tiles">
                 {content.image.length > 0 ? (
-                  content.image.slice(0,2).map((img) => (
+                  content.image.slice(0, 2).map((img) => (
                     <div className="grid-tile">
                       <img src={img.image} alt="" key={img.id} />
                       <BackgroundShape className="background-shape" />
@@ -147,20 +147,22 @@ const CityTab = ({ cities }) => {
 
   return (
     <div className="city-content-wrapper">
-      {cities.map((city) => (
-        <>
-          <span className="nav-tab" key={city.id}>
-            <button
-              className={selectedTab === city.city_name ? 'selected' : 'unselected'}
-              onClick={() => {
-                onClickTabItem(city.city_name);
-                setActiveTab(city.city_name);
-              }}>
-              {city.city_name}
-            </button>
-          </span>
-        </>
-      ))}
+      <div className="nav-tabs">
+        {cities.map((city) => (
+          <>
+            <span className="nav-tab" key={city.id}>
+              <button
+                className={selectedTab === city.city_name ? 'selected' : 'unselected'}
+                onClick={() => {
+                  onClickTabItem(city.city_name);
+                  setActiveTab(city.city_name);
+                }}>
+                {city.city_name}
+              </button>
+            </span>
+          </>
+        ))}
+      </div>
       {
         <div>
           {selectedTab === activeTab &&
@@ -195,8 +197,6 @@ const CountryTabs = ({ countries, activeCountry, loading }) => {
     setActiveTab(activeCountry[0]);
     setActivatedCountry(activeCountry[0]);
   }, [countries]);
-
- 
 
   return (
     <>
