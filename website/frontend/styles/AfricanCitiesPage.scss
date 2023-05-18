@@ -135,7 +135,7 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        max-width: 430px;
+        width: 40%;
         min-height: 346px;
         padding-right: 30px;
 
@@ -588,7 +588,29 @@
   }
 
 }
-
+@media (max-width: 980px){
+.AfricanCitiesPage {
+  .city-tabs-wrapper{
+    padding: 0 12px;
+  }
+  .city-content {
+    padding: 0 18px;
+    .cities-content{
+      .cities-container {
+          flex-direction: column;
+          .consult-text{
+            width: 98%;
+            margin-bottom: 28px;
+            padding: 0;
+          }
+        }
+    }
+  }
+  .cities-divider{
+    margin-bottom: 30px;
+  }
+}
+}
 @media(max-width: $mainBreakPoint) {
   .AfricanCitiesPage {
     .cities-divider {
