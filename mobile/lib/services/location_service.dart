@@ -149,12 +149,20 @@ class LocationService {
     return address;
   }
 
-  static Future<Position?> getCurrentPosition() async {
+  static Future<CurrentLocation?> getCurrentLocation() async {
     try {
-      return await Geolocator.getCurrentPosition(
+      Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
       ).timeout(const Duration(seconds: 60));
+
+      Map<String, String?> address = await getAddress(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      return CurrentLocation.fromPosition(position,
+          name: address["name"] ?? "", location: address["location"] ?? "");
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
@@ -171,47 +179,13 @@ class LocationService {
     return null;
   }
 
-  static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
-    Position? position,
-  }) async {
-    position ??= await getCurrentPosition();
-
-    if (position == null) {
-      return [];
-    }
-
-    List<AirQualityReading> airQualityReadings = await getNearestSites(
-      position.latitude,
-      position.longitude,
-    );
-    airQualityReadings.sortByDistanceToReferenceSite();
-
-    Map<String, String?> address = await getAddress(
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
-
-    if (airQualityReadings.isNotEmpty) {
-      airQualityReadings.first = airQualityReadings.first.copyWith(
-        name: address["name"].isValidLocationName()
-            ? address["name"]
-            : airQualityReadings.first.name,
-        location: address["location"].isValidLocationName()
-            ? address["location"]
-            : airQualityReadings.first.location,
-      );
-    }
-
-    return airQualityReadings;
-  }
-
   static Future<AirQualityReading?> getNearestSite(
     double latitude,
     double longitude,
   ) async {
     List<AirQualityReading> nearestSites = await getNearestSites(
-      latitude,
-      longitude,
+      latitude: latitude,
+      longitude: longitude,
     );
     nearestSites.sortByDistanceToReferenceSite();
 
@@ -219,9 +193,7 @@ class LocationService {
   }
 
   static Future<List<AirQualityReading>> getNearestSites(
-    double latitude,
-    double longitude,
-  ) async {
+      {required double latitude, required double longitude}) async {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
@@ -238,10 +210,14 @@ class LocationService {
       return element.copyWith(distanceToReferenceSite: distanceInMeters);
     }).toList();
 
-    return airQualityReadings
+    airQualityReadings = airQualityReadings
         .where((element) =>
             element.distanceToReferenceSite < Config.searchRadius.toDouble())
         .toList();
+
+    airQualityReadings.sortByDistanceToReferenceSite();
+
+    return airQualityReadings;
   }
 
   static Future<AirQualityReading?> getSearchAirQuality(

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -148,14 +149,30 @@ class NoLocationAirQualityMessage extends StatelessWidget {
   }
 }
 
-class LocationDeniedButton extends StatelessWidget {
-  const LocationDeniedButton({super.key});
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await LocationService.requestLocation(context, true);
+        await Geolocator.requestPermission().then((value) async {
+          switch (value) {
+            case LocationPermission.deniedForever:
+            case LocationPermission.denied:
+              await Geolocator.openAppSettings();
+              break;
+            case LocationPermission.unableToDetermine:
+              break;
+            case LocationPermission.whileInUse:
+            case LocationPermission.always:
+              bool isLocationOn = await Geolocator.isLocationServiceEnabled();
+              if(!isLocationOn){
+                await Geolocator.openLocationSettings();
+              }
+              break;
+          }
+        });
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
@@ -171,7 +188,7 @@ class LocationDeniedButton extends StatelessWidget {
         ),
       ),
       child: const Text(
-        "Enable location to get air quality near you",
+        "Turn on location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
