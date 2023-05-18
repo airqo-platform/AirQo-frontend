@@ -23,6 +23,7 @@ import SEO from 'utils/seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
+import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 
 const CityHeroSection = () => {
   return (
@@ -94,12 +95,50 @@ const AfricanCitiesApproach = () => (
   </section>
 );
 
+ // TODO: styling for 3 and 4 image number variations
+export const CityContent = ({ content }) => {
+  return (
+    <>
+      {content.map((content) => (
+        <div key={content.id}>
+          <div className="cities-content">
+            <div className="cities-container">
+              <div className="consult-text">
+                <div>
+                  <p className="title">{content.title}</p>
+                  {content.description.map((p) => (
+                    <p key={p.id}>{p.paragraph}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="grid-tiles">
+                {content.image.length > 0 ? (
+                  content.image.slice(0,2).map((img) => (
+                    <div className="grid-tile">
+                      <img src={img.image} alt="" key={img.id} />
+                      <BackgroundShape className="background-shape" />
+                    </div>
+                  ))
+                ) : (
+                  <div>
+                    <BackgroundShape className="background-shape" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="cities-divider" />
+        </div>
+      ))}
+    </>
+  );
+};
+
 const CityTab = ({ cities }) => {
   const activeCity = cities.map((entry) => entry.city_name);
   const [selectedTab, setSelectedTab] = useState();
   const [activeTab, setActiveTab] = useState();
   const onClickTabItem = (tab) => setSelectedTab(tab);
-  console.log('Cities:', cities);
 
   useEffect(() => {
     setSelectedTab(activeCity[0]);
@@ -107,10 +146,10 @@ const CityTab = ({ cities }) => {
   }, [cities]);
 
   return (
-    <div>
+    <div className="city-content-wrapper">
       {cities.map((city) => (
         <>
-          <span className="nav-tab">
+          <span className="nav-tab" key={city.id}>
             <button
               className={selectedTab === city.city_name ? 'selected' : 'unselected'}
               onClick={() => {
@@ -134,18 +173,21 @@ const CityTab = ({ cities }) => {
   );
 };
 
-const CountryTab = ({ className, flag, name, onClick }) => (
-  <div onClick={onClick}>
+const CountryTab = ({ className, flag, name, onClick, keyValue }) => (
+  <div onClick={onClick} key={keyValue}>
     <span className={className}>
       <img src={flag} alt="" height={22} width={28} /> <span className="text">{name}</span>
     </span>
   </div>
 );
 
-const CountryTabs = ({ countries, activeCountry }) => {
+const CountryTabs = ({ countries, activeCountry, loading }) => {
   const [activeTab, setActiveTab] = useState();
   const [activatedCountry, setActivatedCountry] = useState();
-  const handleClick = (country) => () => setActiveTab(country);
+  const handleClick = (country) => {
+    setActiveTab(country);
+    setActivatedCountry(country);
+  };
 
   const markActive = (country) => (country === activeTab ? 'active' : '');
 
@@ -154,29 +196,28 @@ const CountryTabs = ({ countries, activeCountry }) => {
     setActivatedCountry(activeCountry[0]);
   }, [countries]);
 
-  console.log(activatedCountry);
-  console.log(activeTab);
-  // TODO: Find out why activatedCountry and activeTab are not syncing
-  // TODO: styling the content container to maintain width with or without images
-  // TODO: styling for different image number variations
-  // TODO: try to reduce Big(O) of time
+ 
 
   return (
     <>
       <div className="city-tabs-wrapper">
-        <div className="city-tabs">
-          {countries.map((country) => (
-            <CountryTab
-              className={`available ${markActive(country.country_name)}`}
-              flag={country.country_flag}
-              name={country.country_name}
-              onClick={() => {
-                setActivatedCountry(country.country_name);
-                handleClick(country.country_name);
-              }}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <SectionLoader />
+        ) : (
+          <div className="city-tabs">
+            {countries.map((country) => (
+              <CountryTab
+                keyValue={country.id}
+                className={`available ${markActive(country.country_name)}`}
+                flag={country.country_flag}
+                name={country.country_name}
+                onClick={() => {
+                  handleClick(country.country_name);
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
       {
         <div className="city-content">
@@ -186,44 +227,6 @@ const CountryTabs = ({ countries, activeCountry }) => {
               .map((country) => <CityTab cities={country.city} />)}
         </div>
       }
-    </>
-  );
-};
-
-export const CityContent = ({ content }) => {
-  return (
-    <>
-      {content.map((content) => (
-        <div className="cities-content" key={content.id}>
-          <div className="cities-content">
-            <div className="ke-container">
-              <div className="consult-text">
-                <div>
-                  <p>{content.title}</p>
-                  {content.description.map((p) => (
-                    <p key={p.id}>{p.paragraph}</p>
-                  ))}
-                </div>
-              </div>
-              <div className="consult-images">
-                {content.image.length > 0 ? (
-                  content.image.map((img) => (
-                    <>
-                      <img src={img.image} alt="" className="img-long" />
-                      <BackgroundShape className="background-shape" />
-                    </>
-                  ))
-                ) : (
-                  <div>
-                    <BackgroundShape className="background-shape" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="cities-divider" />
-        </div>
-      ))}
     </>
   );
 };
@@ -263,6 +266,7 @@ const AfricanCitiesPage = () => {
   const citiesData = useSelector((state) => state.citiesData.cities);
   const africanCountries = citiesData.filter((country) => country.id).sort((a, b) => a.id - b.id);
   const activeCountry = africanCountries.map((entry) => entry.country_name);
+  const loadingStatus = useSelector((state) => state.citiesData.loading);
 
   useEffect(() => {
     if (isEmpty(citiesData)) {
@@ -279,12 +283,18 @@ const AfricanCitiesPage = () => {
           description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
         />
         <CityHeroSection />
-        <CityBanner />
-        <div className="cities-divider" />
-        <AfricanCitiesApproach />
-        <CountryTabs countries={africanCountries} activeCountry={activeCountry} />
-        <Outlet />
-        <PublicationsSection />
+        <div className="content-wrapper">
+          <CityBanner />
+          <div className="cities-divider" />
+          <AfricanCitiesApproach />
+          <CountryTabs
+            countries={africanCountries}
+            activeCountry={activeCountry}
+            loading={loadingStatus}
+          />
+          <Outlet />
+          <PublicationsSection />
+        </div>
       </div>
     </Page>
   );
