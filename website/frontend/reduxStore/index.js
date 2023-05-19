@@ -11,6 +11,7 @@ import boardReducer from './Board/reducers';
 import publicationsReducer from './Publications/reducers';
 import EventsNavTabReducer from './EventsNav/NavigationSlice';
 import EventsReducer from './Events/EventSlice';
+import CitiesReducer from './AfricanCities/CitiesSlice';
 
 export default combineReducers({
   airqlouds: airqloudsReducer,
@@ -24,5 +25,6 @@ export default combineReducers({
   boardData: boardReducer,
   publicationsData: publicationsReducer,
   eventsNavTab: EventsNavTabReducer,
-  eventsData: EventsReducer
+  eventsData: EventsReducer,
+  citiesData: CitiesReducer
 });

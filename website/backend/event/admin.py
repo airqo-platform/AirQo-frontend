@@ -29,7 +29,7 @@ class PartnerLogoInline(nested_admin.NestedTabularInline):
     extra = 0
 
 class ResourceInline(nested_admin.NestedTabularInline):
-    fields=('title','link', 'resource')
+    fields=('title','link', 'resource', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Resource
     extra = 0
