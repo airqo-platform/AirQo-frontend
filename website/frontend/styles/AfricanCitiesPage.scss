@@ -67,6 +67,9 @@
       grid-column: 2 / 3;
       padding: 0 5px;
     }
+    .nav-tabs{
+      overflow-x: auto; 
+    }
     .nav-tab{
       button{
         text-transform: capitalize;
@@ -290,6 +293,7 @@
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    overflow-x: auto;
 
     .city-tabs {
       display: flex;
@@ -381,8 +385,6 @@
     }
   }
 
-  
-
   .advocate-wrapper {
     display: flex;
     justify-content: center;
@@ -431,8 +433,6 @@
       }
     }
   }
-
-
 
   .publications-section {
     display: flex;
@@ -595,7 +595,6 @@
   }
   .city-tabs-wrapper{
     padding: 0 12px;
-    overflow-x: auto;
   }
   .city-content {
     padding: 0 18px;
@@ -608,9 +607,6 @@
             padding: 0;
           }
         }
-    }
-    .nav-tabs{
-     overflow-x: auto; 
     }
   }
   .cities-divider{
