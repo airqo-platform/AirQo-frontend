@@ -1,9 +1,20 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
-import { Button, Grid, Paper, TextField, Card, CardContent,CardHeader, CardActions, Divider, CircularProgress,} from '@material-ui/core';
+import {
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  Card,
+  CardContent,
+  CardHeader,
+  CardActions,
+  Divider,
+  CircularProgress
+} from '@material-ui/core';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
@@ -25,9 +36,15 @@ const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4)
   },
- 
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
+  },
+  titleSpacing: {
+    marginBottom: theme.spacing(2)
+  }
 }));
-
 
 const gridItemStyle = {
   padding: '5px',
@@ -37,7 +54,6 @@ const gridItemStyle = {
 const AirQloudForm = ({ airqloud }) => {
   const history = useHistory();
   const dispatch = useDispatch();
-
 
   return (
     <Paper
@@ -179,13 +195,7 @@ const AirQloudView = (props) => {
   };
 
   const disableReportGenerationBtn = () => {
-    return (
-        !(
-          startDate &&
-          endDate       
-        ) || loading
-      );
-    
+    return !(startDate && endDate) || loading;
   };
 
   const generateAirQloudDataReport = (e) => {
@@ -206,13 +216,12 @@ const AirQloudView = (props) => {
     await generateAirQloudDataSummaryApi(body)
       .then((response) => response.data)
       .then((resData) => {
-        
-       //TODO: Populate the charts and reports to be displayed.
+        //TODO: Populate the charts and reports to be displayed.
         setAirQloudDataSummaryReport(resData);
         setLoading(false);
         setStartDate(null);
-        setEndDate(null);  
-        setDataSummaryReady(true)     
+        setEndDate(null);
+        setDataSummaryReady(true);
         dispatch(
           updateMainAlert({
             message: 'AirQloud Data Summary Report Generated ',
@@ -225,7 +234,8 @@ const AirQloudView = (props) => {
         if (err.response.data.status === 'success') {
           dispatch(
             updateMainAlert({
-              message: 'Uh-oh! No data summary report generated for the selected time period. no data',
+              message:
+                'Uh-oh! No data summary report generated for the selected time period. no data',
               show: true,
               severity: 'success'
             })
@@ -246,21 +256,75 @@ const AirQloudView = (props) => {
       });
   };
 
-
   useEffect(() => {
     dispatch(getAirqloudDetails(params.id));
   }, []);
 
   return (
-    <div
-      style={{
-        width: '96%',
-        margin: ' 20px auto'
-      }}
-    >
-      <AirQloudForm airqloud={airqloud} key={`${airqloud._id}`} />
+    <ErrorBoundary>
+      <div
+        style={{
+          width: '96%',
+          margin: ' 20px auto'
+        }}
+      >
+        <AirQloudForm airqloud={airqloud} key={`${airqloud._id}`} />
 
-      <div>
+        <div>
+          <div
+            style={{
+              margin: '50px auto',
+              maxWidth: '1500px'
+            }}
+          >
+            <CustomMaterialTable
+              title="AirQloud Sites details"
+              userPreferencePaginationKey={'siteDevices'}
+              columns={[
+                {
+                  title: 'Site Name',
+                  field: 'name'
+                },
+                {
+                  title: 'Site ID',
+                  field: 'generated_name'
+                },
+                {
+                  title: 'District',
+                  field: 'district'
+                },
+                {
+                  title: 'Region',
+                  field: 'region'
+                },
+                {
+                  title: 'Country',
+                  field: 'country'
+                }
+              ]}
+              data={airqloud.sites || []}
+              onRowClick={(event, rowData) => {
+                event.preventDefault();
+                return history.push(`/sites/${rowData._id}/`);
+              }}
+              options={{
+                search: true,
+                exportButton: true,
+                searchFieldAlignment: 'right',
+                showTitle: true,
+                searchFieldStyle: {
+                  fontFamily: 'Open Sans'
+                },
+                headerStyle: {
+                  fontFamily: 'Open Sans',
+                  fontSize: 14,
+                  fontWeight: 600
+                }
+              }}
+            />
+          </div>
+        </div>
+
         <div
           style={{
             margin: '50px auto',
@@ -268,238 +332,187 @@ const AirQloudView = (props) => {
             maxWidth: '1500px'
           }}
         >
-          <CustomMaterialTable
-            title="AirQloud Sites details"
-            userPreferencePaginationKey={'siteDevices'}
-            columns={[
-              {
-                title: 'Site Name',
-                field: 'name'
-              },
-              {
-                title: 'Site ID',
-                field: 'generated_name'
-              },
-              {
-                title: 'District',
-                field: 'district'
-              },
-              {
-                title: 'Region',
-                field: 'region'
-              },
-              {
-                title: 'Country',
-                field: 'country'
-              }
-            ]}
-            data={airqloud.sites || []}
-            onRowClick={(event, rowData) => {
-              event.preventDefault();
-              return history.push(`/sites/${rowData._id}/`);
-            }}
-            options={{
-              search: true,
-              exportButton: true,
-              searchFieldAlignment: 'right',
-              showTitle: true,
-              searchFieldStyle: {
-                fontFamily: 'Open Sans'
-              },
-              headerStyle: {
-                fontFamily: 'Open Sans',
-                fontSize: 14,
-                fontWeight: 600
-              }
-            }}
-          />
+          <div className={classes.rootxx}>
+            <Grid container spacing={4}>
+              <Grid item xs={12}>
+                <Card
+                  {...rest}
+                  className={clsx(classes.root, className)}
+                  style={{ overflow: 'visible' }}
+                >
+                  <Typography className={classes.cardTitle}>
+                    Generate AirQloud Data Summary Report
+                  </Typography>
+                  <p>
+                    Select the time period of your interest to generate the report for this airqloud
+                  </p>
+                  <form onSubmit={generateAirQloudDataReport}>
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item md={12} xs={12}>
+                          <h4 style={{ textTransform: 'capitalize' }}></h4>
+                        </Grid>
+                        <Grid item md={6} xs={12}>
+                          <TextField
+                            label="Start Date"
+                            className="reactSelect"
+                            fullWidth
+                            variant="outlined"
+                            value={startDate}
+                            InputLabelProps={{ shrink: true }}
+                            type="date"
+                            onChange={(event) => setStartDate(event.target.value)}
+                          />
+                        </Grid>
+
+                        <Grid item md={6} xs={12}>
+                          <TextField
+                            label="End Date"
+                            className="reactSelect"
+                            fullWidth
+                            variant="outlined"
+                            value={endDate}
+                            InputLabelProps={{ shrink: true }}
+                            type="date"
+                            onChange={(event) => setEndDate(event.target.value)}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+
+                    <Divider />
+                    <CardActions>
+                      <span style={{ position: 'relative' }}>
+                        <Button
+                          color="primary"
+                          variant="outlined"
+                          type="submit"
+                          disabled={disableReportGenerationBtn()}
+                        >
+                          {' '}
+                          Generate Data Summary Report
+                        </Button>
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </span>
+                    </CardActions>
+                  </form>
+                </Card>
+              </Grid>
+            </Grid>
+          </div>
         </div>
-      </div>
-      
-      <div style={{
+
+        <div
+          style={{
             margin: '50px auto',
-            // minHeight: "400px",
             maxWidth: '1500px'
-          }}>
-      <ErrorBoundary>
-      <div className={classes.rootxx}>
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <Card
-              {...rest}
-              className={clsx(classes.root, className)}
-              style={{ overflow: 'visible' }}
-            >
-              {/*<CardHeader
-                subheader="Generate Data Summary For the AirQloud"
-                title= {airqloud.name} 
-                //"Calibrated Data Availability For the AirQloud"
-        /> */}
-           
-              <form onSubmit={generateAirQloudDataReport}>
-                  <CardContent>
-                    <Grid container spacing={2}>
-                    <Grid item md={12} xs={12}>
-                     
-                     <h4>Generate Data Summary For {airqloud.name} For the Selected Time Period</h4>
-              
-                     </Grid>
-                      <Grid item md={6} xs={12}>
-                        <TextField
-                          label="Start Date"
-                          className="reactSelect"
-                          fullWidth
-                          variant="outlined"
-                          value={startDate}
-                          InputLabelProps={{ shrink: true }}
-                          type="date"
-                          onChange={(event) => setStartDate(event.target.value)}
-                        />
-                      </Grid>
+          }}
+        >
+          {dataSummaryReady ? (
+            <div className={classes.rootxx}>
+              <Grid container spacing={4}>
+                <Grid item xs={12}>
+                  <Card
+                    {...rest}
+                    className={clsx(classes.root, className)}
+                    style={{ overflow: 'visible' }}
+                  >
+                    <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
+                      {`Data Summary For ${airQloudDataSummaryReport.airqloud} From ${formatDate(
+                        airQloudDataSummaryReport.start_date_time,
+                        'YYYY-MM-DD'
+                      )} to ${formatDate(airQloudDataSummaryReport.end_date_time, 'YYYY-MM-DD')}`}
+                    </Typography>
 
-                      <Grid item md={6} xs={12}>
-                        <TextField
-                          label="End Date"
-                          className="reactSelect"
-                          fullWidth
-                          variant="outlined"
-                          value={endDate}
-                          InputLabelProps={{ shrink: true }}
-                          type="date"
-                          onChange={(event) => setEndDate(event.target.value)}
-                        />
-                      </Grid>
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item md={12} xs={12} container spacing={3}>
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Hourly Records
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudDataSummaryReport.hourly_records}
+                            </Typography>
+                          </Grid>
 
-                    </Grid>
-                  </CardContent>
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Calibrated Records
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudDataSummaryReport.calibrated_records}
+                            </Typography>
+                          </Grid>
 
-                  <Divider />
-                  <CardActions>
-                    <span style={{ position: 'relative' }}>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        type="submit"
-                        disabled={disableReportGenerationBtn()}
-                      >
-                        {' '}
-                        Generate Data Summary Report
-                      </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
-                  </CardActions>
-                </form>
-            </Card>
-          </Grid>
-        </Grid>
-      </div>
-    </ErrorBoundary>
-      </div>
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Uncalibrated Records
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudDataSummaryReport.uncalibrated_records}
+                            </Typography>
+                          </Grid>
 
-      <div style={{
-            margin: '50px auto',
-            // minHeight: "400px",
-            maxWidth: '1500px'
-          }}>
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Calibrated Records(%)
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudDataSummaryReport.calibrated_percentage.toFixed(2)}
+                            </Typography>
+                          </Grid>
 
-{dataSummaryReady && (<div className={classes.rootxx}>
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <Card
-              {...rest}
-              className={clsx(classes.root, className)}
-              style={{ overflow: 'visible' }}
-            >
-              {/*<CardHeader
-                //subheader="Data Summary For the AirQloud"
-                //title= {airqloud.name} 
-              >  
-               
-</CardHeader> */}
-           
-                <Divider />
-                  <CardContent>
-                    <Grid container spacing={2}>
-                      <Grid item md={12} xs={12}>
-                     
-                      <h4>Data Summary For {airQloudDataSummaryReport.airqloud} From {formatDate(airQloudDataSummaryReport.start_date_time, 'YYYY-MM-DD')} to {formatDate(airQloudDataSummaryReport.end_date_time,'YYYY-MM-DD')}</h4>
-               
-                      </Grid>
-                      <Grid item md={12} xs={12} container spacing={4}>
-                        <Grid  item lg={2} sm={6} xl={2} xs={12}>
-                        <Typography className={classes.title}
-                            color="textSecondary"
-                            gutterBottom
-                            variant="body2"
-                          >
-                            Hourly Records
-                          </Typography>
-                          <Typography variant="h3">{airQloudDataSummaryReport.hourly_records}</Typography> 
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              UnCalibrated Records (%)
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudDataSummaryReport.uncalibrated_percentage.toFixed(2)}
+                            </Typography>
+                          </Grid>
                         </Grid>
 
-                        <Grid  item lg={2} sm={6} xl={2} xs={12}>
-                        <Typography className={classes.title}
-                            color="textSecondary"
-                            gutterBottom
-                            variant="body2"
-                          >
-                            Calibrated Records:
-                          </Typography>
-                          <Typography variant="h3">{airQloudDataSummaryReport.calibrated_records}</Typography> 
-                        </Grid>
-                      
-                        <Grid  item lg={2} sm={6} xl={2} xs={12}>
-                        <Typography className={classes.title}
-                            color="textSecondary"
-                            gutterBottom
-                            variant="body2"
-                          >
-                            Uncalibrated Records
-                          </Typography>
-                          <Typography variant="h3">{airQloudDataSummaryReport.uncalibrated_records}</Typography> 
-                        </Grid>
-                        
-                        <Grid  item lg={2} sm={6} xl={2} xs={12}>
-                        <Typography className={classes.title}
-                            color="textSecondary"
-                            gutterBottom
-                            variant="body2"
-                          >
-                            Calibrated Records(%)
-                          </Typography>
-                          <Typography variant="h3">{airQloudDataSummaryReport.calibrated_percentage.toFixed(2)}</Typography> 
-                        </Grid>
-
-                        <Grid  item lg={2} sm={6} xl={2} xs={12}>
-                        
-                        <Typography className={classes.title}
-                            color="textSecondary"
-                            gutterBottom
-                            variant="body2"
-                          >
-                           Un Calibrated Records (%)
-                          </Typography>
-                          <Typography variant="h3">{airQloudDataSummaryReport.uncalibrated_percentage.toFixed(2)}</Typography> 
-                        </Grid>
-                      
-    
-                      </Grid>
-
-                      <Grid item md={12} xs={12}>
-                      <CustomMaterialTable
-                          title="AirQloud Sites Data Summary "
-                           userPreferencePaginationKey={'siteDevices'}
+                        <Grid item md={12} xs={12}>
+                          <CustomMaterialTable
+                            title="AirQloud Sites Data Summary "
+                            userPreferencePaginationKey={'siteDevices'}
                             columns={[
                               {
                                 title: 'Site Name',
@@ -514,7 +527,7 @@ const AirQloudView = (props) => {
                                 field: 'calibrated_records'
                               },
                               {
-                                title: 'Un Calibrated Data (Records Count)',
+                                title: 'UnCalibrated Data (Records Count)',
                                 field: 'uncalibrated_records'
                               },
                               {
@@ -526,32 +539,28 @@ const AirQloudView = (props) => {
                                 field: 'uncalibrated_percentage'
                               }
                             ]}
-            data={airQloudDataSummaryReport.sites || []}
-            /*onRowClick={(event, rowData) => {
-              event.preventDefault();
-              return history.push(`/sites/${rowData._id}/`);
-            }}*/
-            options={{
-              search: true,
-              exportButton: true,
-              searchFieldAlignment: 'right',
-              showTitle: true,
-              searchFieldStyle: {
-                fontFamily: 'Open Sans'
-              },
-              headerStyle: {
-                fontFamily: 'Open Sans',
-                fontSize: 14,
-                fontWeight: 600
-              }
-            }}
-          />
-                      </Grid>
+                            data={airQloudDataSummaryReport.sites || []}
+                            options={{
+                              search: true,
+                              exportButton: true,
+                              searchFieldAlignment: 'right',
+                              showTitle: true,
+                              searchFieldStyle: {
+                                fontFamily: 'Open Sans'
+                              },
+                              headerStyle: {
+                                fontFamily: 'Open Sans',
+                                fontSize: 14,
+                                fontWeight: 600
+                              }
+                            }}
+                          />
+                        </Grid>
 
-                      <Grid item md={12} xs={12}>
-                      <CustomMaterialTable
-                          title="AirQloud Devices Data Summary "
-                           userPreferencePaginationKey={'airqloudDevices'}
+                        <Grid item md={12} xs={12}>
+                          <CustomMaterialTable
+                            title="AirQloud Devices Data Summary "
+                            userPreferencePaginationKey={'airqloudDevices'}
                             columns={[
                               {
                                 title: 'Device',
@@ -578,35 +587,37 @@ const AirQloudView = (props) => {
                                 field: 'uncalibrated_percentage'
                               }
                             ]}
-            data={airQloudDataSummaryReport.devices || []}
-            options={{
-              search: true,
-              exportButton: true,
-              searchFieldAlignment: 'right',
-              showTitle: true,
-              searchFieldStyle: {
-                fontFamily: 'Open Sans'
-              },
-              headerStyle: {
-                fontFamily: 'Open Sans',
-                fontSize: 14,
-                fontWeight: 600
-              }
-            }}
-          />
+                            data={airQloudDataSummaryReport.devices || []}
+                            options={{
+                              search: true,
+                              exportButton: true,
+                              searchFieldAlignment: 'right',
+                              showTitle: true,
+                              searchFieldStyle: {
+                                fontFamily: 'Open Sans'
+                              },
+                              headerStyle: {
+                                fontFamily: 'Open Sans',
+                                fontSize: 14,
+                                fontWeight: 600
+                              }
+                            }}
+                          />
+                        </Grid>
                       </Grid>
-
-                    </Grid>
-                  </CardContent>
-              
-            </Card>
-          </Grid>
-        </Grid>
-      </div>)}
-            
-
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </div>
+          ) : (
+            <Paper style={{ textAlign: 'center', padding: '50px' }}>
+              <p>Reports will appear here</p>
+            </Paper>
+          )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
