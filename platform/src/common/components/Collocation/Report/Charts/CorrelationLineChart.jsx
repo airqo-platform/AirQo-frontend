@@ -43,7 +43,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
           key={`${device}_${sensorKey1}`}
           type='monotone'
           dataKey={`${device}.${sensorKey1}`}
-          name={`${sensorKey1} - ${device}`}
+          name='Sensor 01'
           stroke={color}
           dot={false}
           strokeWidth='1.5'
@@ -56,7 +56,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
           key={`${device}_${sensorKey2}`}
           type='monotone'
           dataKey={`${device}.${sensorKey2}`}
-          name={`${sensorKey2} - ${device}`}
+          name='Sensor 02'
           stroke={color}
           dot={false}
           strokeWidth='1.5'
@@ -79,8 +79,8 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
           <Legend />
           <XAxis
             dataKey={'timestamp'}
-            tickFormatter={(timestamp) => moment(timestamp).format('D MMM')}
-            padding={{ left: 60, right: 60 }}
+            tickFormatter={(timestamp) => moment(timestamp).format('DD MMM')}
+            padding={{ left: 60, right: 20 }}
             strokeWidth='0.5'
             stroke='#000000'
             strokeOpacity='0.1'
@@ -92,7 +92,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
             strokeWidth={0.5}
             tickMargin='-30'
           />
-          <Tooltip />
+          <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-base' />
 
           {renderLines()}
         </LineChart>
