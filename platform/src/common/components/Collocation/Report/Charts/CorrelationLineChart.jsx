@@ -10,13 +10,27 @@ import {
 } from 'recharts';
 import moment from 'moment';
 
+const sortDataByTimestamp = (data) => {
+  const dataArray = [...data];
+
+  const sortedData = dataArray.sort((a, b) => {
+    const timestampA = new Date(a.timestamp).getTime();
+    const timestampB = new Date(b.timestamp).getTime();
+    return timestampA - timestampB;
+  });
+
+  return sortedData;
+};
+
 const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, height }) => {
   const sensorKey1 = `s1_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
   const sensorKey2 = `s2_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
 
+  const sortedData = sortDataByTimestamp(data);
+
   const devices = isInterSensorCorrelation
-    ? Object.keys(data[0]).filter((key) => key !== 'timestamp')
-    : [Object.keys(data[0])[1]]; // Gets the device names
+    ? Object.keys(sortedData[0]).filter((key) => key !== 'timestamp')
+    : [Object.keys(sortedData[0])[1]]; // Gets the device names
 
   const renderLines = () => {
     const lines = [];
@@ -60,7 +74,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
   return (
     <div className={`w-full ${height ? `h-[${height}px]` : 'h-80'}`}>
       <ResponsiveContainer width='100%' height='100%'>
-        <LineChart data={data} className='text-xs -ml-7'>
+        <LineChart data={sortedData} className='text-xs -ml-7'>
           <CartesianGrid vertical={false} stroke='#000000' strokeOpacity='0.1' strokeWidth={0.5} />
           <Legend />
           <XAxis
