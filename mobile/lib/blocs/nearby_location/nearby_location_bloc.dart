@@ -1,3 +1,4 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
@@ -69,28 +70,55 @@ class NearbyLocationBloc
     CurrentLocation? newLocation =
         event.newLocation ?? await LocationService.getCurrentLocation();
 
-    if (newLocation == null ||
-        (currentLocation != null &&
-            !currentLocation.hasChangedCurrentLocation(newLocation))) {
+    if (newLocation == null) {
       return;
     }
 
-    List<AirQualityReading> airQualityReadings =
-        await LocationService.getNearestSites(
+    if (currentLocation != null &&
+        !currentLocation.hasChangedCurrentLocation(newLocation)) {
+      return;
+    }
+
+    AirQualityReading? nearestSite = await LocationService.getNearestSite(
+      newLocation.latitude,
+      newLocation.longitude,
+    );
+
+    Map<String, String?> newLocationNames = await LocationService.getAddress(
       latitude: newLocation.latitude,
       longitude: newLocation.longitude,
     );
-    if (airQualityReadings.isNotEmpty) {
+
+    if (nearestSite != null) {
       newLocation = newLocation.copyWith(
-        referenceSite: airQualityReadings.first.referenceSite,
+        referenceSite: nearestSite.referenceSite,
+        name: newLocationNames["name"],
+        location: newLocationNames["location"],
       );
+    } else {
+      newLocation = newLocation.copyWith(referenceSite: "");
     }
 
-    emit(state.copyWith(
-      currentLocation: newLocation,
-      blocStatus: NearbyLocationStatus.searchComplete,
-    ));
+    List<AirQualityReading> surroundingSites = [];
+    int surroundingSitesRadius = Config.searchRadius;
 
-    await HiveService().updateNearbyAirQualityReadings(airQualityReadings);
+    while (surroundingSites.length < 5 &&
+        surroundingSitesRadius <
+            Config.surroundingsSitesMaxRadiusInKilometres) {
+      surroundingSites = await LocationService.getSurroundingSites(
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      );
+      surroundingSitesRadius = surroundingSitesRadius * 2;
+    }
+
+    surroundingSites = surroundingSites.take(10).toList();
+
+    emit(state.copyWith(
+        currentLocation: newLocation,
+        blocStatus: NearbyLocationStatus.searchComplete,
+        surroundingSites: surroundingSites));
+
+    await HiveService().updateNearbyAirQualityReadings(surroundingSites);
   }
 }

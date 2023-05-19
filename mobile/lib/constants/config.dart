@@ -87,6 +87,8 @@ class Config {
 
   static int get searchRadius => 4;
 
+  static int get surroundingsSitesMaxRadiusInKilometres => 20;
+
   static int get shareLinkMaxLength => 56;
 
   static String get termsUrl =>
