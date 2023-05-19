@@ -11,3 +11,5 @@ export const GET_LOCATE_MAP = `${BASE_LOCATE_URL}/locate/map/get`;
 export const UPDATE_LOCATE_MAP = `${BASE_LOCATE_URL}/locate/map/update`;
 
 export const DELETE_LOCATE_MAP = `${BASE_LOCATE_URL}/locate/map/delete`;
+
+export const RUN_LOCATE_MODEL_V2 = `${BASE_LOCATE_URL}/locate/map/recommendations`;

@@ -35,7 +35,8 @@ import {
   SAVE_LOCATE_MAP,
   UPDATE_LOCATE_MAP,
   DELETE_LOCATE_MAP,
-  RUN_LOCATE_MODEL
+  RUN_LOCATE_MODEL,
+  RUN_LOCATE_MODEL_V2
 } from 'config/urls/locate';
 
 //download csv and pdf
@@ -283,7 +284,7 @@ class Maps extends React.Component {
     };
     console.log(api_data);
     axios
-      .post(RUN_LOCATE_MODEL, api_data, {
+      .post(RUN_LOCATE_MODEL_V2, api_data, {
         headers: { 'Content-Type': 'application/json' }
       })
       .then((res) => {
@@ -294,15 +295,19 @@ class Maps extends React.Component {
 
         try {
           myData.forEach((element) => {
-            if (element['properties.district']) {
+            let firstPair = element['geometry.coordinates'][0][0];
+            let latitude = firstPair[0];
+            let longitude = firstPair[1]
+            if (element['properties.name_1']) {
               myPolygons.push({
                 type: 'Feature',
                 properties: {
-                  district: element['properties.district'],
-                  subcounty: element['properties.subcounty'],
-                  parish: element['properties.parish'],
-                  lat: element['properties.lat'],
-                  long: element['properties.long'],
+                  name_1: element['properties.name_1'],
+                  name_2: element['properties.name_2'],
+                  name_3: element['properties.name_3'],
+                  name_4: element['properties.name_4'],
+                  lat: latitude,
+                  long: longitude,
                   color: element['color'],
                   fill_color: element['fill_color'],
                   type: element.type
@@ -316,11 +321,12 @@ class Maps extends React.Component {
               myPolygons.push({
                 type: 'Feature',
                 properties: {
-                  district: element.properties.district,
-                  subcounty: element.properties.subcounty,
-                  parish: element.properties.parish,
-                  lat: element.properties.lat,
-                  long: element.properties.long,
+                  name_1: element.properties.name_1,
+                  name_2: element.properties.name_2,
+                  name_3: element.properties.name_3,
+                  name_4: element.properties.name_4,
+                  lat: latitude,
+                  long: longitude,
                   color: element.color,
                   fill_color: element.fill_color,
                   type: element.type
@@ -343,20 +349,26 @@ class Maps extends React.Component {
           let toCsv = [];
           if (this.state.selectedOption.value === 'CSV') {
             myData.forEach((element) => {
+              let firstPair = element['geometry.coordinates'][0][0];
+              let latitude = firstPair[0];
+              let longitude = firstPair[1];
+
               toCsv.push({
                 type: 'Feature',
                 properties: {
-                  district: element['properties.district'],
-                  subcounty: element['properties.subcounty'],
-                  parish: element['properties.parish'],
-                  lat: element['properties.lat'],
-                  long: element['properties.long']
+
+                  name_1: element['properties.name_1'],
+                  name_2: element['properties.name_2'],
+                  name_3: element['properties.name_'],
+                  name_4: element['properties.name_4'],
+                  lat: latitude,
+                  long: longitude,
                 }
               });
             });
             jsonexport(toCsv, function (err, csv) {
               if (err) return console.log(err);
-              var filename = 'parish_recommendations.csv';
+              var filename = 'recommendations.csv';
               var link = document.createElement('a');
               link.setAttribute(
                 'href',
@@ -376,17 +388,22 @@ class Maps extends React.Component {
               doc.setTextColor(40);
               doc.setFontStyle('normal');
               //doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 20, 50, 50);
-              doc.text('RECOMMENDED PARISHES', data.settings.margin.left, 50);
+              doc.text('RECOMMENDED ADMINISTRATIVE LEVEL (AREAS)', data.settings.margin.left, 50);
             };
-            var col = ['type', 'District', 'Subcounty', 'Parish', 'lat', 'long'];
+            var col = ['type', 'Name 1', 'Name 2', 'Name 3', 'Name 4', 'lat', 'long'];
             myPolygons.forEach((element) => {
+              let firstPair = element['geometry.coordinates'][0][0];
+              let latitude = firstPair[0];
+              let longitude = firstPair[1];
+             
               var temp = [
                 element.type,
-                element.properties.district,
-                element.properties.subcounty,
-                element.properties.parish,
-                element.properties.lat,
-                element.properties.long
+                element.properties.name_1,
+                element.properties.name_2,
+                element.properties.name_3,
+                element.properties.name_4,
+                latitude,
+                longitude
               ];
               rows.push(temp);
             });
@@ -394,7 +411,7 @@ class Maps extends React.Component {
               margin: { top: 80 },
               beforePageContent: header
             });
-            doc.save('parish_recommendations.pdf');
+            doc.save('recommendations.pdf');
           }
         } catch (error) {
           console.log('An error occured. Please try again');
