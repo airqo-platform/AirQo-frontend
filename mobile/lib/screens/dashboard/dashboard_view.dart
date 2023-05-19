@@ -252,8 +252,8 @@ class _DashboardViewState extends State<DashboardView>
 
                       return ValueListenableBuilder<Box<AirQualityReading>>(
                         valueListenable: Hive.box<AirQualityReading>(
-                                _hiveService.airQualityReadingsBox,)
-                            .listenable(),
+                          _hiveService.airQualityReadingsBox,
+                        ).listenable(),
                         builder: (context, box, widget) {
                           List<AirQualityReading> airQualityReadings = box
                               .values
@@ -275,8 +275,14 @@ class _DashboardViewState extends State<DashboardView>
                                 : Container();
                           }
 
-                          AirQualityReading airQualityReading = airQualityReadings.first.copyWith(name: currentLocation.name, location: currentLocation.location,);
-                          context.read<LocationHistoryBloc>().add(AddLocationHistory(airQualityReading));
+                          AirQualityReading airQualityReading =
+                              airQualityReadings.first.copyWith(
+                            name: currentLocation.name,
+                            location: currentLocation.location,
+                          );
+                          context
+                              .read<LocationHistoryBloc>()
+                              .add(AddLocationHistory(airQualityReading));
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
@@ -474,10 +480,15 @@ class _DashboardViewState extends State<DashboardView>
             longitude: position.longitude,
           );
           if (mounted) {
-            context.read<NearbyLocationBloc>().add(SearchLocationAirQuality(
-                newLocation: CurrentLocation.fromPosition(position,
-                    name: address["name"] ?? "",
-                    location: address["location"] ?? ""),),);
+            context.read<NearbyLocationBloc>().add(
+                  SearchLocationAirQuality(
+                    newLocation: CurrentLocation.fromPosition(
+                      position,
+                      name: address["name"] ?? "",
+                      location: address["location"] ?? "",
+                    ),
+                  ),
+                );
           }
         }
       },

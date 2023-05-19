@@ -15,9 +15,13 @@ extension DoubleExtension on double {
 extension CurrentLocationExt on CurrentLocation {
   bool hasChangedCurrentLocation(CurrentLocation newLocation) {
     final double distance = Geolocator.distanceBetween(
-        latitude, longitude, newLocation.latitude, newLocation.longitude);
+      latitude,
+      longitude,
+      newLocation.latitude,
+      newLocation.longitude,
+    );
 
-    return distance >= Config.locationChangeRadius;
+    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 

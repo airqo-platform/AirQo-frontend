@@ -77,10 +77,13 @@ class NearbyLocationBloc
 
     List<AirQualityReading> airQualityReadings =
         await LocationService.getNearestSites(
-            latitude: newLocation.latitude, longitude: newLocation.longitude,);
+      latitude: newLocation.latitude,
+      longitude: newLocation.longitude,
+    );
     if (airQualityReadings.isNotEmpty) {
       newLocation = newLocation.copyWith(
-          referenceSite: airQualityReadings.first.referenceSite,);
+        referenceSite: airQualityReadings.first.referenceSite,
+      );
     }
 
     emit(state.copyWith(

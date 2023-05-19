@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:geolocator/geolocator.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -156,23 +155,7 @@ class DashboardLocationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await Geolocator.requestPermission().then((value) async {
-          switch (value) {
-            case LocationPermission.deniedForever:
-            case LocationPermission.denied:
-              await Geolocator.openAppSettings();
-              break;
-            case LocationPermission.unableToDetermine:
-              break;
-            case LocationPermission.whileInUse:
-            case LocationPermission.always:
-              bool isLocationOn = await Geolocator.isLocationServiceEnabled();
-              if(!isLocationOn){
-                await Geolocator.openLocationSettings();
-              }
-              break;
-          }
-        });
+        await LocationService.requestLocation();
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
