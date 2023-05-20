@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Page from '../Page';
 import Uganda from 'icons/africanCities/countries/uganda.svg';
 import Kenya from 'icons/africanCities/countries/kenya.svg';
@@ -20,6 +20,10 @@ import KCCACollabImg3 from 'assets/img/community/AirQo_Web_IMG07.jpg';
 import UnepKenyaImg1 from 'assets/img/AfricanCities/UnepKenya.jpg';
 import UnepKenyaImg2 from 'assets/img/AfricanCities/UnepKenya-2.jpg';
 import SEO from 'utils/seo';
+import { useDispatch, useSelector } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { getAllCities } from '../../../reduxStore/AfricanCities/CitiesSlice';
+import SectionLoader from '../../components/LoadSpinner/SectionLoader';
 
 const CityHeroSection = () => {
   return (
@@ -91,179 +95,139 @@ const AfricanCitiesApproach = () => (
   </section>
 );
 
-const CityTab = ({ className, flag, name, link, onClick }) => (
-  <Link to={link} onClick={onClick}>
-    <span className={className}>
-      {flag} <span className="text">{name}</span>
-    </span>
-  </Link>
-);
-
-const CityTabs = () => {
-  const [active, setActive] = useState('uganda');
-  const handleClick = (country) => () => setActive(country);
-
-  const markActive = (country) => (country === active ? 'active' : '');
+// TODO: styling for 3 and 4 image number variations
+export const CityContent = ({ content }) => {
   return (
-    <div className="city-tabs-wrapper">
-      <div className="city-tabs">
-        <CityTab
-          className={`available ${markActive('uganda')}`}
-          flag={<Uganda />}
-          name="Kampala"
-          link="/solutions/african-cities/uganda"
-          onClick={handleClick('uganda')}
-        />
-        {/* <CityTab
-                    className={`available ${markActive("kenya")}`}
-                    flag={<Kenya />}
-                    name="Nairobi"
-                    link="/solutions/african-cities/kenya"
-                    onClick={handleClick("kenya")}
-                /> */}
-        <span className="not-available">
-          <Kenya /> <span className="text">Nairobi</span>
-        </span>
-        <span className="not-available">
-          <Nigeria /> <span className="text">Lagos</span>
-        </span>
-        <span className="not-available">
-          <Ghana /> <span className="text">Accra</span>
-        </span>
-        <span className="not-available">
-          <Burundi /> <span className="text">Bujumbura</span>
-        </span>
-        <span className="not-available">
-          <Senegal /> <span className="text">Dakar</span>
-        </span>
-        <span className="not-available extended">
-          <Mozambique /> <span className="text text-extended">Manica and Maputo</span>
-        </span>
-      </div>
-    </div>
-  );
-};
-
-export const ContentUganda = () => {
-  return (
-    <div className="cities-content">
-      <div className="ug-container">
-        <div className="consult-text">
-          <div>
-            <p>Collaboration with KCCA</p>
-            <p>
-              AirQo partnered with the Kampala Capital City Authority (KCCA) in 2018, to facilitate
-              air quality monitoring and data analytics tools across Kampala and other cities around
-              the country.
-            </p>
-            <span className="number-list">
-              <span>1</span>
-              <span>
-                Developed a physical network of low-cost air quality sensors in Kampala and the
-                metropolitan areas comprising over 70 installations.
-              </span>
-            </span>
-            <span className="number-list">
-              <span>2</span>
-              <span>
-                Developed a dedicated data analytics dashboard and supporting capacity development
-                on air quality monitoring.
-              </span>
-            </span>
-            <span className="number-list">
-              <span>3</span>
-              <span>
-                Improved air quality monitoring resolution. Kampala city is now one of the cities in
-                Africa with the highest concentration of air quality monitors.
-              </span>
-            </span>
-          </div>
-        </div>
-        <div className="consult-images">
-          <img className="img-small" src={KCCACollabImg1} alt="consult image" />
-          <img className="img-long" src={KCCACollabImg3} alt="consult long image" />
-          <img className="img-small" src={KCCACollabImg2} alt="consult image 2" />
-          <BackgroundShape className="background-shape" />
-        </div>
-      </div>
-
-      <div className="cities-divider" />
-
-      <div className="ug-container">
-        <div className="consult-text">
-          <div>
-            <p>Collaboration with NEMA</p>
-            <p>
-              National Environment Management Authority (NEMA) is the lead government agency mandated to coordinate, supervise, and regulate
-              environmental management in Uganda.
-            </p>
-            <span className="number-list">
-              <span>1</span>
-              <span>
-                AirQo contributes to the air quality chapter in the national state of the
-                environment report, a biennal statutory requirement.
-              </span>
-            </span>
-            <span className="number-list">
-              <span>2</span>
-              <span>
-                Officially contributed to the development of the national air quality regulations
-                and standards for Uganda.
-              </span>
-            </span>
-            <span className="number-list">
-              <span>3</span>
-              <span>
-                Raise the profile of air quality as a national priority. Air quality is now featured
-                as an important priority in the country’s National Development Plan III.
-              </span>
-            </span>
-          </div>
-        </div>
-        <div className="consult-images">
-          <img className="img-small" src={NEMACollabImg2} alt="consult image" />
-          <img className="img-long-right" src={NEMACollabImg1} alt="consult long image" />
-          <img className="img-small" src={NEMACollabImg3} alt="consult image 2" />
-          <BackgroundShape className="background-shape" />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const ContentKenya = () => {
-  return (
-    <div className="cities-content">
-      <div className="cities-content">
-        <div className="ke-container">
-          <div className="consult-text">
-            <div>
-              <p>Network deployment in Kenya</p>
-              <p>
-                Nairobi is located over 600 km from Kampala. It is the first city outside Uganda to
-                have an AirQo monitor.
-              </p>
-              <p>
-                We are in advanced stages of developing the air quality network in Nairobi and have
-                so far established a collocation installation in Nairobi in partnership with United
-                Nations Environment Programme (UNEP).
-              </p>
-              <p>
-                The collocation will also be an opportunity to support existing initiatives on data
-                quality assurance for low-cost monitors.
-              </p>
+    <>
+      {content.map((content) => (
+        <div key={content.id}>
+          <div className="cities-content">
+            <div className="cities-container">
+              <div className="consult-text">
+                <div>
+                  <p className="title">{content.title}</p>
+                  {content.description.map((p) => (
+                    <p key={p.id}>{p.paragraph}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="grid-tiles">
+                {content.image.length > 0 ? (
+                  content.image.slice(0, 2).map((img) => (
+                    <div className="grid-tile">
+                      <img src={img.image} alt="" key={img.id} />
+                      <BackgroundShape className="background-shape" />
+                    </div>
+                  ))
+                ) : (
+                  <div>
+                    <BackgroundShape className="background-shape" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="consult-images">
-            <img className="img-small" src={UnepKenyaImg2} alt="consult image" />
-            <img className="img-long" src={UnepKenyaImg1} alt="consult long image" />
-            <img className="img-small" src={UnepKenyaImg2} alt="consult image 2" />
-            <BackgroundShape className="background-shape" />
-          </div>
+          <div className="cities-divider" />
         </div>
+      ))}
+    </>
+  );
+};
+
+const CityTab = ({ cities }) => {
+  const activeCity = cities.map((entry) => entry.city_name);
+  const [selectedTab, setSelectedTab] = useState();
+  const [activeTab, setActiveTab] = useState();
+  const onClickTabItem = (tab) => setSelectedTab(tab);
+
+  useEffect(() => {
+    setSelectedTab(activeCity[0]);
+    setActiveTab(activeCity[0]);
+  }, [cities]);
+
+  return (
+    <div className="city-content-wrapper">
+      <div className="nav-tabs">
+        {cities.map((city) => (
+          <>
+            <span className="nav-tab" key={city.id}>
+              <button
+                className={selectedTab === city.city_name ? 'selected' : 'unselected'}
+                onClick={() => {
+                  onClickTabItem(city.city_name);
+                  setActiveTab(city.city_name);
+                }}>
+                {city.city_name}
+              </button>
+            </span>
+          </>
+        ))}
       </div>
-      <div className="cities-divider" />
+      {
+        <div>
+          {selectedTab === activeTab &&
+            cities
+              .filter((city) => city.city_name === activeTab)
+              .map((city) => <CityContent content={city.content} />)}
+        </div>
+      }
     </div>
+  );
+};
+
+const CountryTab = ({ className, flag, name, onClick, keyValue }) => (
+  <div onClick={onClick} key={keyValue}>
+    <span className={className}>
+      <img src={flag} alt="" height={22} width={28} /> <span className="text">{name}</span>
+    </span>
+  </div>
+);
+
+const CountryTabs = ({ countries, activeCountry, loading }) => {
+  const [activeTab, setActiveTab] = useState();
+  const [activatedCountry, setActivatedCountry] = useState();
+  const handleClick = (country) => {
+    setActiveTab(country);
+    setActivatedCountry(country);
+  };
+
+  const markActive = (country) => (country === activeTab ? 'active' : '');
+
+  useEffect(() => {
+    setActiveTab(activeCountry[0]);
+    setActivatedCountry(activeCountry[0]);
+  }, [countries]);
+
+  return (
+    <>
+      <div className="city-tabs-wrapper">
+        {loading ? (
+          <SectionLoader />
+        ) : (
+          <div className="city-tabs">
+            {countries.map((country) => (
+              <CountryTab
+                keyValue={country.id}
+                className={`available ${markActive(country.country_name)}`}
+                flag={country.country_flag}
+                name={country.country_name}
+                onClick={() => {
+                  handleClick(country.country_name);
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      {
+        <div className="city-content">
+          {activeTab === activatedCountry &&
+            countries
+              .filter((country) => country.country_name === activatedCountry)
+              .map((country) => <CityTab cities={country.city} />)}
+        </div>
+      }
+    </>
   );
 };
 
@@ -297,25 +261,43 @@ const PublicationsSection = () => {
 };
 
 const AfricanCitiesPage = () => {
-    useInitScrollTop();
-    return (
-      <Page>
-        <div className="AfricanCitiesPage">
-          <SEO
-            title="Our Solutions"
-            siteTitle="For African Cities"
-            description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
-          />
-          <CityHeroSection />
+  useInitScrollTop();
+  const dispatch = useDispatch();
+  const citiesData = useSelector((state) => state.citiesData.cities);
+  const africanCountries = citiesData.filter((country) => country.id).sort((a, b) => a.id - b.id);
+  const activeCountry = africanCountries.map((entry) => entry.country_name);
+  const loadingStatus = useSelector((state) => state.citiesData.loading);
+
+  useEffect(() => {
+    if (isEmpty(citiesData)) {
+      dispatch(getAllCities());
+    }
+  }, [dispatch]);
+
+  return (
+    <Page>
+      <div className="AfricanCitiesPage">
+        <SEO
+          title="Our Solutions"
+          siteTitle="For African Cities"
+          description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
+        />
+        <CityHeroSection />
+        <div className="content-wrapper">
           <CityBanner />
           <div className="cities-divider" />
           <AfricanCitiesApproach />
-          <CityTabs />
+          <CountryTabs
+            countries={africanCountries}
+            activeCountry={activeCountry}
+            loading={loadingStatus}
+          />
           <Outlet />
           <PublicationsSection />
         </div>
-      </Page>
-    );
-}
+      </div>
+    </Page>
+  );
+};
 
 export default AfricanCitiesPage;
