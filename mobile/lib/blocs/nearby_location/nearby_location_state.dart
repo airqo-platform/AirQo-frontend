@@ -3,37 +3,36 @@ part of 'nearby_location_bloc.dart';
 enum NearbyLocationStatus {
   searchComplete,
   searching,
-  locationDenied,
   locationDisabled,
 }
 
 class NearbyLocationState extends Equatable {
   const NearbyLocationState({
-    this.locationAirQuality,
+    this.currentLocation,
     this.blocStatus = NearbyLocationStatus.searching,
     this.showErrorMessage = true,
   });
 
   NearbyLocationState copyWith({
-    AirQualityReading? locationAirQuality,
+    CurrentLocation? currentLocation,
     NearbyLocationStatus? blocStatus,
     bool? showErrorMessage,
   }) {
     return NearbyLocationState(
-      locationAirQuality: locationAirQuality,
+      currentLocation: currentLocation,
       blocStatus: blocStatus ?? this.blocStatus,
       showErrorMessage: showErrorMessage ?? this.showErrorMessage,
     );
   }
 
-  final AirQualityReading? locationAirQuality;
   final NearbyLocationStatus blocStatus;
+  final CurrentLocation? currentLocation;
   final bool showErrorMessage;
 
   @override
   List<Object?> get props => [
-        locationAirQuality,
         blocStatus,
         showErrorMessage,
+        currentLocation,
       ];
 }

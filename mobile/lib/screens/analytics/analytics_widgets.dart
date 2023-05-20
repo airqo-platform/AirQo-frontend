@@ -48,7 +48,7 @@ class AnalyticsAvatar extends StatelessWidget {
             airQualityReading.pm2_5.toInt().toString(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             ),
@@ -316,7 +316,7 @@ class AnalyticsCard extends StatelessWidget {
           ),
           SizedBox(
             height: 57,
-            child: AnalyticsCardFooter(airQualityReading),
+            child: AirQualityActions(airQualityReading),
           ),
         ],
       ),
@@ -461,16 +461,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     Container(
                       height: 16,
                       width: 16,
-                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: appColors.appColorBlue.withOpacity(0.24),
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
-                        ),
-                        border: const Border.fromBorderSide(
-                          BorderSide(
-                            color: Colors.transparent,
-                          ),
                         ),
                       ),
                       child: const Icon(

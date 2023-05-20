@@ -17,3 +17,4 @@ export 'insight.dart';
 export 'health_tip.dart';
 export 'phone_auth_model.dart';
 export 'insight.dart';
+export 'current_location.dart';

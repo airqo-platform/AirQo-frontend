@@ -13,6 +13,7 @@ class HiveService {
   final String _forecast = 'forecast';
   final String _airQualityReadings = 'airQualityReadings-v1';
   final String _nearByAirQualityReadings = 'nearByAirQualityReading-v1';
+  String get airQualityReadingsBox => _airQualityReadings;
 
   Future<void> initialize() async {
     await Hive.initFlutter();

@@ -39,7 +39,7 @@ class SearchAvatar extends StatelessWidget {
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(
@@ -150,7 +150,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
             minFontSize: 8,
             maxFontSize: 17,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQuality.value,
             )?.copyWith(

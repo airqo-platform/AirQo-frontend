@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -56,6 +57,7 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
   final ScrollController _scrollController = ScrollController();
+  final HiveService _hiveService = HiveService();
 
   @override
   Widget build(BuildContext context) {
@@ -226,72 +228,94 @@ class _DashboardViewState extends State<DashboardView>
                 children: [
                   BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
                     builder: (context, state) {
+                      CurrentLocation? currentLocation = state.currentLocation;
                       switch (state.blocStatus) {
                         case NearbyLocationStatus.searchComplete:
                           break;
                         case NearbyLocationStatus.searching:
-                          if (state.locationAirQuality == null) {
+                          if (currentLocation == null) {
                             return const SearchingAirQuality();
                           }
                           break;
-                        case NearbyLocationStatus.locationDenied:
-                          return const Padding(
-                            padding: EdgeInsets.only(top: 16),
-                            child: LocationDeniedButton(),
-                          );
                         case NearbyLocationStatus.locationDisabled:
                           return const Padding(
                             padding: EdgeInsets.only(top: 16),
-                            child: NoLocationAirQualityMessage(
-                              "Turn on location to get air quality near you.",
-                              dismiss: false,
-                            ),
+                            child: DashboardLocationButton(),
                           );
                       }
 
-                      final AirQualityReading? nearbyAirQuality =
-                          state.locationAirQuality;
-                      if (nearbyAirQuality == null) {
-                        _nearbyLocationExists = false;
-
+                      if (currentLocation == null) {
                         return state.showErrorMessage
                             ? const Padding(
                                 padding: EdgeInsets.only(top: 16),
                                 child: NoLocationAirQualityMessage(
-                                  "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                  "We’re unable to get your current location. Explore locations below in the meantime.",
                                 ),
                               )
                             : Container();
                       }
-                      context.read<LocationHistoryBloc>().add(
-                            AddLocationHistory(nearbyAirQuality),
-                          );
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: CustomShowcaseWidget(
-                          showcaseKey: _nearestLocationShowcaseKey,
-                          descriptionHeight: screenSize.height * 0.17,
-                          description:
-                              "This card shows the air quality of your nearest location",
-                          child: AnalyticsCard(
-                            nearbyAirQuality,
-                            false,
-                          ),
-                        ),
+                      return ValueListenableBuilder<Box<AirQualityReading>>(
+                        valueListenable: Hive.box<AirQualityReading>(
+                          _hiveService.airQualityReadingsBox,
+                        ).listenable(),
+                        builder: (context, box, widget) {
+                          List<AirQualityReading> airQualityReadings = box
+                              .values
+                              .where((element) =>
+                                  element.referenceSite ==
+                                  currentLocation.referenceSite)
+                              .toList();
+
+                          if (airQualityReadings.isEmpty) {
+                            _nearbyLocationExists = false;
+
+                            return state.showErrorMessage
+                                ? const Padding(
+                                    padding: EdgeInsets.only(top: 16),
+                                    child: NoLocationAirQualityMessage(
+                                      "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                    ),
+                                  )
+                                : Container();
+                          }
+
+                          AirQualityReading airQualityReading =
+                              airQualityReadings.first.copyWith(
+                            name: currentLocation.name,
+                            location: currentLocation.location,
+                          );
+                          context
+                              .read<LocationHistoryBloc>()
+                              .add(AddLocationHistory(airQualityReading));
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: CustomShowcaseWidget(
+                              showcaseKey: _nearestLocationShowcaseKey,
+                              descriptionHeight: screenSize.height * 0.17,
+                              description:
+                                  "This card shows the air quality of your nearest location",
+                              child: AnalyticsCard(
+                                airQualityReading,
+                                false,
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
                   BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
                       List<Kya> kya = state
-                        ..filterPartiallyComplete()
+                        ..filterPendingCompletion()
                         ..sortByProgress();
                       if (kya.isEmpty) {
                         kya = state.filterInProgressKya();
                       }
                       if (kya.isEmpty) {
-                        kya = state.filterHasNoProgress();
+                        kya = state.filterToDo();
                       }
                       if (kya.isEmpty) {
                         _kyaExists = false;
@@ -455,10 +479,24 @@ class _DashboardViewState extends State<DashboardView>
     _locationPositionStream = Geolocator.getPositionStream(
       locationSettings: Config.locationSettings(),
     ).listen(
-      (Position? position) {
-        context
-            .read<NearbyLocationBloc>()
-            .add(SearchLocationAirQuality(position: position));
+      (Position? position) async {
+        if (position != null) {
+          Map<String, String?> address = await LocationService.getAddress(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          );
+          if (mounted) {
+            context.read<NearbyLocationBloc>().add(
+                  SearchLocationAirQuality(
+                    newLocation: CurrentLocation.fromPosition(
+                      position,
+                      name: address["name"] ?? "",
+                      location: address["location"] ?? "",
+                    ),
+                  ),
+                );
+          }
+        }
       },
       onError: (error) {
         debugPrint('error listening to location updates : $error');
@@ -469,7 +507,6 @@ class _DashboardViewState extends State<DashboardView>
   void _refresh({bool refreshMap = true}) async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
-    context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
