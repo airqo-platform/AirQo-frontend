@@ -486,7 +486,7 @@ class _DashboardViewState extends State<DashboardView>
     _locationPositionStream = Geolocator.getPositionStream(
       locationSettings: Config.locationSettings(),
     ).listen(
-      (Position? position) async {
+      (Position? position) {
         if (position != null) {
           if (mounted) {
             context.read<NearbyLocationBloc>().add(

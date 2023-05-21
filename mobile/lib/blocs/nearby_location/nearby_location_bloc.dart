@@ -89,15 +89,13 @@ class NearbyLocationBloc
       longitude: newLocation.longitude,
     );
 
-    if (nearestSite != null) {
-      newLocation = newLocation.copyWith(
-        referenceSite: nearestSite.referenceSite,
-        name: newLocationNames["name"],
-        location: newLocationNames["location"],
-      );
-    } else {
-      newLocation = newLocation.copyWith(referenceSite: "");
-    }
+    newLocation = nearestSite == null
+        ? newLocation.copyWith(referenceSite: "")
+        : newLocation.copyWith(
+            referenceSite: nearestSite.referenceSite,
+            name: newLocationNames["name"],
+            location: newLocationNames["location"],
+          );
 
     List<AirQualityReading> surroundingSites = [];
     int surroundingSitesRadius = Config.searchRadius;
@@ -115,9 +113,10 @@ class NearbyLocationBloc
     surroundingSites = surroundingSites.take(10).toList();
 
     emit(state.copyWith(
-        currentLocation: newLocation,
-        blocStatus: NearbyLocationStatus.searchComplete,
-        surroundingSites: surroundingSites));
+      currentLocation: newLocation,
+      blocStatus: NearbyLocationStatus.searchComplete,
+      surroundingSites: surroundingSites,
+    ));
 
     await HiveService().updateNearbyAirQualityReadings(surroundingSites);
   }
