@@ -1,27 +1,13 @@
 import 'dart:io';
 
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
-  }
-}
-
-extension CurrentLocationExt on CurrentLocation {
-  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
-    final double distance = Geolocator.distanceBetween(
-      latitude,
-      longitude,
-      newLocation.latitude,
-      newLocation.longitude,
-    );
-
-    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 
@@ -53,14 +39,14 @@ extension KyaExt on Kya {
   String getKyaMessage() {
     if (isInProgress()) {
       return 'Continue';
-    } else if (isPendingCompletion()) {
+    } else if (isPartiallyComplete()) {
       return 'Complete! Move to For You';
     } else {
       return 'Start learning';
     }
   }
 
-  bool isPendingCompletion() {
+  bool isPartiallyComplete() {
     return progress == 1;
   }
 
@@ -76,7 +62,7 @@ extension KyaExt on Kya {
     return progress > 0 && progress < 1;
   }
 
-  bool todo() {
+  bool hasNoProgress() {
     return progress == 0;
   }
 
@@ -88,9 +74,9 @@ extension KyaExt on Kya {
 extension KyaListExt on List<Kya> {
   void sortByProgress() {
     sort((x, y) {
-      if (x.progress == -1) return -1;
+      if (x.progress == -1) return 1;
 
-      if (y.progress == -1) return 1;
+      if (y.progress == -1) return -1;
 
       return -(x.progress.compareTo(y.progress));
     });
@@ -102,15 +88,15 @@ extension KyaListExt on List<Kya> {
     }).toList();
   }
 
-  List<Kya> filterToDo() {
+  List<Kya> filterHasNoProgress() {
     return where((element) {
-      return element.todo();
+      return element.hasNoProgress();
     }).toList();
   }
 
-  List<Kya> filterPendingCompletion() {
+  List<Kya> filterPartiallyComplete() {
     return where((element) {
-      return element.isPendingCompletion();
+      return element.isPartiallyComplete();
     }).toList();
   }
 
@@ -406,9 +392,7 @@ extension DateTimeExt on DateTime {
   }
 
   String analyticsCardString() {
-    const String timeFormat = 'hh:mm a';
-    const String dateTimeFormat = 'd MMM, $timeFormat';
-    String dateString = DateFormat(timeFormat).format(this);
+    String dateString = DateFormat('hh:mm a').format(this);
     if (isYesterday()) {
       return 'Updated yesterday at $dateString';
     } else if (isToday()) {
@@ -416,7 +400,7 @@ extension DateTimeExt on DateTime {
     } else if (isTomorrow()) {
       return 'Tomorrow, $dateString';
     } else {
-      return DateFormat(dateTimeFormat).format(this);
+      return DateFormat('d MMM, hh:mm a').format(this);
     }
   }
 
@@ -427,13 +411,15 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstDayOfWeek() {
     DateTime firstDate = this;
-    firstDate = firstDate.subtract(Duration(days: firstDate.weekday - 1));
+    while (firstDate.weekday != 1) {
+      firstDate = firstDate.subtract(const Duration(days: 1));
+    }
 
     return firstDate.getDateOfFirstHourOfDay();
   }
 
   DateTime getDateOfFirstHourOfDay() {
-    return DateTime.utc(year, month, day);
+    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
   }
 
   bool isAfterOrEqualToYesterday() {
@@ -465,28 +451,36 @@ extension DateTimeExt on DateTime {
   }
 
   String getMonthString({bool abbreviate = false}) {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    if (month < 1 || month > 12) {
-      throw UnimplementedError(
-        '$month does not have a month string implementation',
-      );
+    switch (month) {
+      case 1:
+        return abbreviate ? 'Jan' : 'January';
+      case 2:
+        return abbreviate ? 'Feb' : 'February';
+      case 3:
+        return abbreviate ? 'Mar' : 'March';
+      case 4:
+        return abbreviate ? 'Apr' : 'April';
+      case 5:
+        return 'May';
+      case 6:
+        return abbreviate ? 'Jun' : 'June';
+      case 7:
+        return abbreviate ? 'Jul' : 'July';
+      case 8:
+        return abbreviate ? 'Aug' : 'August';
+      case 9:
+        return abbreviate ? 'Sept' : 'September';
+      case 10:
+        return abbreviate ? 'Oct' : 'October';
+      case 11:
+        return abbreviate ? 'Nov' : 'November';
+      case 12:
+        return abbreviate ? 'Dec' : 'December';
+      default:
+        throw UnimplementedError(
+          '$month does’nt have a month string implementation',
+        );
     }
-    final monthString = months[month - 1];
-
-    return abbreviate ? monthString.substring(0, 3) : monthString;
   }
 
   int getUtcOffset() {
@@ -494,22 +488,26 @@ extension DateTimeExt on DateTime {
   }
 
   String getWeekday() {
-    final weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    if (weekday < 1 || weekday > 7) {
-      throw UnimplementedError(
-        '$weekday does not have a weekday string implementation',
-      );
+    switch (weekday) {
+      case 1:
+        return 'monday';
+      case 2:
+        return 'tuesday';
+      case 3:
+        return 'wednesday';
+      case 4:
+        return 'thursday';
+      case 5:
+        return 'friday';
+      case 6:
+        return 'saturday';
+      case 7:
+        return 'sunday';
+      default:
+        throw UnimplementedError(
+          '$weekday does’nt have a weekday string implementation',
+        );
     }
-
-    return weekdays[weekday - 1];
   }
 
   bool isWithInCurrentWeek() {
@@ -603,19 +601,28 @@ extension DateTimeExt on DateTime {
   }
 
   String notificationDisplayDate() {
-    final now = DateTime.now();
+    if (day == DateTime.now().day) {
+      var hours = hour.toString();
+      if (hours.length <= 1) {
+        hours = '0$hour';
+      }
 
-    return (day == now.day)
-        ? DateFormat('HH:mm')
-            .format(DateTime(now.year, now.month, now.day, hour, minute))
-        : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
+      var minutes = minute.toString();
+      if (minutes.length <= 1) {
+        minutes = '0$minutes';
+      }
+
+      return '$hours:$minutes';
+    } else {
+      return '$day ${getMonthString(abbreviate: true)}';
+    }
   }
 
   DateTime tomorrow() {
     return DateTime.now().add(const Duration(days: 1));
   }
 
-  DateTime yesterday() {
+  static DateTime yesterday() {
     return DateTime.now().subtract(const Duration(days: 1));
   }
 }
@@ -662,17 +669,14 @@ extension AppStoreVersionExt on AppStoreVersion {
 }
 
 extension StringExt on String {
-  List<String> getFirstAndLastNames() {
+  List<String> getNames() {
     List<String> names = split(" ");
     if (names.isEmpty) {
       return ["", ""];
     }
 
     if (names.length >= 2) {
-      String firstName = names.first;
-      String lastName = names.sublist(1).join(" ");
-
-      return [firstName, lastName];
+      return [names.first, names.last];
     }
 
     return [names.first, ""];
@@ -686,57 +690,55 @@ extension StringExt on String {
     return false;
   }
 
+  bool isNull() {
+    if (isEmpty ||
+        length == 0 ||
+        this == '' ||
+        toLowerCase() == 'null' ||
+        toLowerCase().contains('null')) {
+      return true;
+    }
+
+    return false;
+  }
+
   bool isValidPhoneNumber() {
-    if (isEmpty) {
+    if (isNull()) {
       return false;
     }
 
-    String trimmed = trim().replaceAll(RegExp(r'\s+'), "");
-
-    return trimmed.startsWith('+') &&
-        trimmed.length >= 7 &&
-        trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+    return trim().replaceAll(" ", "").length >= 7 &&
+        trim().replaceAll(" ", "").length <= 15;
   }
 
   bool isValidEmail() {
-    if (isEmpty) return false;
-    List<String> parts = split('@');
-    if (parts.length != 2) return false;
-    String localPart = parts.first;
-    String domainPart = parts[1];
-    if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
-      return false;
-    }
-    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
+    if (isNull()) {
       return false;
     }
 
-    return domainPart.split('.').last.length >= 2;
+    return RegExp(
+      r'^(([^<>()[\]\\.,;:\s@]+(\.[^<>()[\]\\.,;:\s@]+)*)|(.+))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$',
+    ).hasMatch(this);
   }
 
   bool isValidUri() {
-    try {
-      Uri uri = Uri.parse(this);
-
-      return uri.hasScheme && uri.hasAuthority;
-    } catch (e) {
-      return false;
-    }
+    return Uri.parse(this).host == '' ? false : true;
   }
 
   String toCapitalized() {
-    if (isEmpty) {
-      return '';
-    }
+    try {
+      if (trim().toLowerCase() == 'ii' || trim().toLowerCase() == 'iv') {
+        return toUpperCase();
+      }
 
-    String trimmed = trim();
-    if (trimmed.toLowerCase() == 'ii' || trimmed.toLowerCase() == 'iv') {
-      return toUpperCase();
-    }
+      return isNotEmpty
+          ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
+          : '';
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
 
-    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
+      return this;
+    }
   }
 
   String toTitleCase() =>

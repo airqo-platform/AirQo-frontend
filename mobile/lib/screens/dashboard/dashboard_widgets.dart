@@ -148,14 +148,14 @@ class NoLocationAirQualityMessage extends StatelessWidget {
   }
 }
 
-class DashboardLocationButton extends StatelessWidget {
-  const DashboardLocationButton({super.key});
+class LocationDeniedButton extends StatelessWidget {
+  const LocationDeniedButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await LocationService.requestLocation();
+        await LocationService.requestLocation(context, true);
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
@@ -171,7 +171,7 @@ class DashboardLocationButton extends StatelessWidget {
         ),
       ),
       child: const Text(
-        "Turn on location to get air quality near you",
+        "Enable location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
@@ -273,7 +273,7 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
     if (airQualityReading == null) {
-      return Positioned(
+      Positioned(
         right: rightPadding,
         child: const CircularLoadingAnimation(
           size: 32,
@@ -295,17 +295,17 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
             ),
           ),
           color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
+            airQualityReading?.pm2_5 ?? 0,
           ),
           shape: BoxShape.circle,
         ),
         child: Center(
           child: Text(
-            '${airQualityReading.pm2_5}',
+            '${airQualityReading?.pm2_5}',
             style: TextStyle(
               fontSize: 7,
               color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
+                value: airQualityReading?.pm2_5 ?? 0,
               ),
             ),
           ),
