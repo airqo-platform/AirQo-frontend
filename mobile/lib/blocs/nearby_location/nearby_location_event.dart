@@ -5,11 +5,18 @@ abstract class NearbyLocationEvent extends Equatable {
 }
 
 class SearchLocationAirQuality extends NearbyLocationEvent {
-  const SearchLocationAirQuality({this.newLocation});
-  final CurrentLocation? newLocation;
+  const SearchLocationAirQuality({this.position});
+  final Position? position;
 
   @override
-  List<Object?> get props => [newLocation];
+  List<Object?> get props => [position];
+}
+
+class UpdateLocationAirQuality extends NearbyLocationEvent {
+  const UpdateLocationAirQuality();
+
+  @override
+  List<Object> get props => [];
 }
 
 class DismissErrorMessage extends NearbyLocationEvent {

@@ -14,13 +14,16 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.21+20037
+version: 2.0.20+20036
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+
+  flutter_localizations:
     sdk: flutter
 
   shared_preferences: ^2.1.0
@@ -33,7 +36,7 @@ dependencies:
   path_provider: ^2.0.14
   animations: ^2.0.7
   provider: ^6.0.5
-  intl: ^0.17.0
+  intl: ^0.18.0
   uuid: ^3.0.7
   flutter_svg: ^2.0.5
   image_picker: ^0.8.7+4

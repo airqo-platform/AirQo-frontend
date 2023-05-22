@@ -77,7 +77,6 @@ class ProfileSetupNameInputField extends StatelessWidget {
     super.key,
     required this.controller,
   });
-
   final TextEditingController controller;
 
   @override
@@ -95,7 +94,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
             FocusScope.of(context).requestFocus(
               FocusNode(),
             );
-            List<String> names = controller.text.getFirstAndLastNames();
+            List<String> names = controller.text.getNames();
             context.read<ProfileBloc>().add(
                   UpdateProfile(
                     profile.copyWith(
@@ -110,7 +109,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
           cursorColor: CustomColors.appColorBlue,
           keyboardType: TextInputType.name,
           onChanged: (text) {
-            List<String> names = text.getFirstAndLastNames();
+            List<String> names = text.getNames();
             context.read<ProfileBloc>().add(
                   UpdateProfile(
                     profile.copyWith(
@@ -160,7 +159,6 @@ class TitleToggleListOption extends StatelessWidget {
     required this.title,
     required this.currentTitle,
   });
-
   final TitleOptions title;
   final TitleOptions currentTitle;
 
@@ -194,7 +192,6 @@ class TitleToggleListOption extends StatelessWidget {
 
 class SkipOnboardScreen extends StatelessWidget {
   const SkipOnboardScreen(this.nextScreen, {super.key});
-
   final Widget nextScreen;
 
   @override
@@ -308,7 +305,6 @@ class TaglineWidget extends StatelessWidget {
     super.key,
     required this.visible,
   });
-
   final bool visible;
 
   @override
@@ -344,7 +340,6 @@ class TaglineWidget extends StatelessWidget {
 
 class OnBoardingTopBar extends StatelessWidget implements PreferredSizeWidget {
   const OnBoardingTopBar({super.key, this.backgroundColor});
-
   final Color? backgroundColor;
 
   @override
