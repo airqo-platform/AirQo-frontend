@@ -383,10 +383,8 @@ const SiteView = (props) => {
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(site)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
     }
   }, []);
 
