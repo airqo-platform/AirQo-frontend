@@ -2,11 +2,7 @@ import Layout from '@/components/Layout';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import { useRouter } from 'next/router';
 import DataCompletenessTable from '@/components/Collocation/Report/MonitorReport/DataCompletenessTable';
-import {
-  useGetCollocationResultsMutation,
-  useGetDataCompletenessResultsMutation,
-  useGetDeviceStatusSummaryQuery,
-} from '@/lib/store/services/collocation';
+import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 import { useEffect, useState } from 'react';
 import InterCorrelationChart from '@/components/Collocation/Report/MonitorReport/InterCorrelation';
 import IntraCorrelationChart from '@/components/Collocation/Report/MonitorReport/IntraCorrelation';
@@ -16,6 +12,13 @@ import {
   addActiveSelectedDeviceCollocationReportData,
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
+import {
+  useGetCollocationResultsQuery,
+  useGetDataCompletenessResultsQuery,
+} from '@/lib/store/services/collocation';
+import { isEmpty } from 'underscore';
+import Spinner from '@/components/Spinner';
+import ContentBox from '@/components/Layout/content_box';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -28,32 +31,38 @@ const MonitorReport = () => {
   );
 
   const router = useRouter();
-  const { device, startDate, endDate } = router.query;
+  const { device, batchId } = router.query;
 
-  const [dataCompletenessResults, setDataCompletenessResults] = useState(null);
+  const [input, setInput] = useState(null);
+  const [dataCompletenessRecords, setDataCompletenessRecords] = useState(null);
 
-  const [
-    getCollocationResultsData,
-    {
-      isError: isFetchCollocationResultsError,
-      isSuccess: isFetchCollocationResultsSuccess,
-      isLoading: isFetchCollocationResultsLoading,
-    },
-  ] = useGetCollocationResultsMutation();
-  const [
-    getDataCompletenessResults,
-    {
-      isError: isFetchDataCompletenessError,
-      isSuccess: isFetchDataCompletenessSuccess,
-      isLoading: isFetchDataCompletenessLoading,
-    },
-  ] = useGetDataCompletenessResultsMutation();
+  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
+  const [skipDataCompleteness, setSkipDataCompleteness] = useState(true);
+
+  const {
+    data: collocationResultsData,
+    isError: isFetchCollocationResultsError,
+    isSuccess: isFetchCollocationResultsSuccess,
+    isLoading: isFetchCollocationResultsLoading,
+  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+  const {
+    data: dataCompletenessResultsData,
+    isError: isFetchDataCompletenessError,
+    isSuccess: isFetchDataCompletenessSuccess,
+    isLoading: isFetchDataCompletenessLoading,
+  } = useGetDataCompletenessResultsQuery(input, { skip: skipDataCompleteness });
+
+  const collocationResults = collocationResultsData ? collocationResultsData.data : null;
+  const dataCompletenessResults = dataCompletenessResultsData
+    ? dataCompletenessResultsData.data
+    : null;
+
   const {
     data: data,
-    isLoading,
-    isSuccess,
-    isError,
-    error,
+    isLoading: isSummaryLoading,
+    isSuccess: isSummarySuccess,
+    isError: isSummaryError,
+    error: summaryError,
     refetch,
   } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
@@ -61,37 +70,47 @@ const MonitorReport = () => {
   let passedDevices = deviceStatusSummary.filter((device) => device.status === 'passed');
 
   useEffect(() => {
-    const fetchCollocationResults = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getCollocationResultsData({
-        devices: device,
-        startDate,
-        endDate,
-      });
-
-      if (!response.error) {
-        dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
-      }
-    };
-    fetchCollocationResults();
-  }, [getCollocationResultsData, device, startDate, endDate]);
+    if (!device || !batchId) return;
+    setInput({
+      devices: [device],
+      batchId,
+    });
+    setSkipDataCompleteness(false);
+    setSkipCollocationResults(false);
+  }, [device, batchId]);
 
   useEffect(() => {
-    const fetchDataCompletenessResults = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getDataCompletenessResults({
-        devices: [device],
-        startDate,
-        endDate,
-        expectedRecordsPerHour: 24,
-      });
+    if (!isEmpty(dataCompletenessResults)) {
+      const transformedStatistics = Object.entries(dataCompletenessResults).map(
+        ([deviceName, deviceData]) => ({
+          deviceName,
+          expected_number_of_records: deviceData.expected_number_of_records,
+          completeness: deviceData.completeness,
+          missing: deviceData.missing,
+          actual_number_of_records: deviceData.actual_number_of_records,
+          start_date: deviceData.start_date,
+          end_date: deviceData.end_date,
+        }),
+      );
+      setDataCompletenessRecords(transformedStatistics);
+    }
+  }, [dataCompletenessResults]);
 
-      if (!response.error) {
-        setDataCompletenessResults(response.data.data);
-      }
-    };
-    fetchDataCompletenessResults();
-  }, [getDataCompletenessResults, device, startDate, endDate]);
+  // useEffect(() => {
+  //   const fetchCollocationResults = async () => {
+  //     if (!device || !startDate || !endDate) return;
+  //     const response = await getCollocationResultsData({
+  //       devices: device,
+  //       startDate,
+  //       endDate,
+  //     });
+
+  //     if (!response.error) {
+  //       dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
+  //     }
+  //   };
+  //   fetchCollocationResults();
+  // }, [getCollocationResultsData, device, startDate, endDate]);
 
   const [correlationDevices, setCorrelationDevices] = useState([device]);
   const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
@@ -108,7 +127,7 @@ const MonitorReport = () => {
   return (
     <Layout>
       <NavigationBreadCrumb
-        backLink={`/collocation/reports/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+        backLink={`/collocation/reports/${device}?device=${device}&batchId=${batchId}`}
         navTitle={'Monitor Report'}
       />
       {(isFetchCollocationResultsError || isFetchDataCompletenessError) && (
@@ -119,7 +138,7 @@ const MonitorReport = () => {
           dataTestId={'monitor-report-error-toast'}
         />
       )}
-      <div data-testid='correlation-chart'>
+      {/* <div data-testid='correlation-chart'>
         <IntraCorrelationChart
           collocationResults={activeSelectedDeviceCollocationReportData}
           intraCorrelationConcentration={intraCorrelationConcentration}
@@ -136,12 +155,14 @@ const MonitorReport = () => {
           deviceList={passedDevices}
           isLoading={isFetchCollocationResultsLoading}
         />
-      </div>
+      </div> */}
 
-      <DataCompletenessTable
-        dataCompletenessResults={dataCompletenessResults}
-        isLoading={isFetchDataCompletenessLoading}
-      />
+      {(isFetchCollocationResultsLoading || isFetchCollocationResultsSuccess) && (
+        <DataCompletenessTable
+          dataCompletenessResults={dataCompletenessRecords}
+          isLoading={isFetchDataCompletenessLoading}
+        />
+      )}
     </Layout>
   );
 };

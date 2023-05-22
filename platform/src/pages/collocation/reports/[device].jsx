@@ -46,8 +46,8 @@ const Reports = () => {
     isSuccess: collocationStatisticsSuccess,
     isError: collocationStatisticsError,
   } = useGetCollocationStatisticsQuery(input, { skip: skipStatistics });
-  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
 
+  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
   const intraSensorCorrelationList = intraSensorCorrelationData
     ? intraSensorCorrelationData.data
     : null;
@@ -159,8 +159,8 @@ const Reports = () => {
           </div>
         </Box>
       </div>
-      <div>
-        {collocationStatisticsSuccess && !isEmpty(deviceStatistics) ? (
+      <ContentBox>
+        {(collocationStatisticsSuccess || collocationStatisticsLoading) && (
           <CustomTable
             headers={[
               'Monitor Name',
@@ -172,19 +172,11 @@ const Reports = () => {
             ]}
             sortableColumns={['Sensor 01']}
             data={deviceStatistics}
+            isLoading={collocationStatisticsLoading}
+            type='device statistics'
           />
-        ) : collocationStatisticsLoading ||
-          isCollocationResultsLoading ||
-          isIntraSensorCorrelationDataLoading ? (
-          <Spinner />
-        ) : (
-          <ContentBox>
-            <p className='p-6 text-center text-gray-400'>
-              Unable to calculate stats for this device
-            </p>
-          </ContentBox>
         )}
-      </div>
+      </ContentBox>
     </Layout>
   );
 };

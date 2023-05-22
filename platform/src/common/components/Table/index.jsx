@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import ArrowDownIcon from '@/icons/Common/arrow_down';
 import ArrowUpIcon from '@/icons/Common/arrow_up';
 import { useWindowSize } from '@/lib/windowSize';
+import moment from 'moment';
+import { isEmpty } from 'underscore';
+import Spinner from '@/components/Spinner';
 
 const CustomTable = ({
   headers,
@@ -10,6 +13,8 @@ const CustomTable = ({
   onRowSelect,
   dataTestId,
   activeColumnIndex,
+  isLoading,
+  type,
 }) => {
   const size = useWindowSize();
   const [selectedRows, setSelectedRows] = useState([]);
@@ -43,7 +48,7 @@ const CustomTable = ({
     }
   };
 
-  const sortedData = [...data];
+  const sortedData = !isEmpty(data) ? [...data] : [];
   if (sortColumn !== null) {
     sortedData.sort((a, b) => {
       if (sortDirection === 'asc') {
@@ -89,25 +94,53 @@ const CustomTable = ({
             ))}
           </tr>
         </thead>
-        <tbody>
-          {sortedData.map((row, rowIndex) => (
-            <tr key={rowIndex} className='border-b border-b-slate-300'>
-              <td className='px-4 py-2 w-[61px] h-14'>
-                <input
-                  type='checkbox'
-                  className='h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
-                  checked={selectedRows.includes(rowIndex)}
-                  onChange={() => toggleRow(rowIndex)}
-                />
+
+        {isLoading ? (
+          <tbody>
+            <tr>
+              <td colSpan={(headers.length + 1).toString()} className='mx-auto'>
+                <Spinner />
               </td>
-              {Object.values(row).map((cell, cellIndex) => (
-                <td key={cellIndex} className='px-4 py-2 font-normal'>
-                  {typeof cell === 'number' ? cell.toFixed(2) : cell}
-                </td>
-              ))}
             </tr>
-          ))}
-        </tbody>
+          </tbody>
+        ) : (
+          <tbody>
+            {!isEmpty(sortedData) ? (
+              <>
+                {sortedData.map((row, rowIndex) => (
+                  <tr key={rowIndex} className='border-b border-b-slate-300'>
+                    <td className='px-4 py-2 w-[61px] h-14'>
+                      <input
+                        type='checkbox'
+                        className='h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
+                        checked={selectedRows.includes(rowIndex)}
+                        onChange={() => toggleRow(rowIndex)}
+                      />
+                    </td>
+                    {Object.values(row).map((cell, cellIndex) => (
+                      <td key={cellIndex} className='px-4 py-2 font-normal'>
+                        {typeof cell === 'number'
+                          ? cell.toFixed(2)
+                          : moment(cell).isValid()
+                          ? moment(cell).format('MMM DD, YYYY')
+                          : cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </>
+            ) : (
+              <tr>
+                <td
+                  colSpan={(headers.length + 1).toString()}
+                  className='text-center pt-6 text-grey-300'
+                >
+                  Unable to get {type} information
+                </td>
+              </tr>
+            )}
+          </tbody>
+        )}
       </table>
     </div>
   );

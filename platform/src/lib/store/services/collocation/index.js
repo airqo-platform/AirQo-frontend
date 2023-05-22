@@ -2,7 +2,6 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { HYDRATE } from 'next-redux-wrapper';
 import { NEXT_PUBLIC_API_TOKEN } from '../../../envConstants';
 import { COLLOCATION } from '@/core/urls/deviceMonitoring';
-import { addCollocationData } from './collocationDataSlice';
 
 export const collocateApi = createApi({
   reducerPath: 'collocateApi',
@@ -33,12 +32,11 @@ export const collocateApi = createApi({
         };
       },
     }),
-    getDataCompletenessResults: builder.mutation({
-      query: (addDataCompletenessInput) => {
+    getDataCompletenessResults: builder.query({
+      query: ({ devices, batchId }) => {
         return {
           url: `/data-completeness?token=${NEXT_PUBLIC_API_TOKEN}`,
-          method: 'POST',
-          body: addDataCompletenessInput,
+          params: { devices, batchId },
         };
       },
     }),
@@ -71,7 +69,7 @@ export const {
   useCollocateDevicesMutation,
   useGetDeviceStatusSummaryQuery,
   useGetCollocationResultsQuery,
-  useGetDataCompletenessResultsMutation,
+  useGetDataCompletenessResultsQuery,
   useGetIntraSensorCorrelationQuery,
   useGetCollocationStatisticsQuery,
   util: { getRunningQueriesThunk },
