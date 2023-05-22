@@ -5,7 +5,6 @@ import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import Spinner from '@/components/Spinner';
 import { useEffect, useState } from 'react';
-import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -13,22 +12,7 @@ import {
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import { useRouter } from 'next/router';
-
-const CustomLegend = () => {
-  return (
-    <div className='flex items-center justify-end mt-4 mb-3 mr-7'>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-400 mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 01</span>
-      </div>
-      <span className='uppercase mx-2 text-[10px] text-grey-800'>Compared to</span>
-      <div className='flex justify-center items-center bg-grey-200 h-5 w-[93px] rounded-md'>
-        <hr className='w-4 h-[2px] border border-purple-400 border-dashed mr-2' />
-        <span className='text-xs text-grey-300'>Sensor 02</span>
-      </div>
-    </div>
-  );
-};
+import CustomLegend from './custom_legend';
 
 const IntraCorrelationChart = ({
   intraCorrelationConcentration,
@@ -38,7 +22,7 @@ const IntraCorrelationChart = ({
   deviceList,
 }) => {
   const router = useRouter();
-  const { device, startDate, endDate } = router.query;
+  const { device, batchId } = router.query;
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,47 +41,40 @@ const IntraCorrelationChart = ({
 
   useEffect(() => {
     const getActiveSelectedDeviceReport = () => {
-      if (!device || !startDate || !endDate) return;
-      dispatch(addActiveSelectedDeviceReport({ device, startDate, endDate }));
+      if (!device || !batchId) return;
+
+      dispatch(addActiveSelectedDeviceReport({ device, batchId }));
     };
 
     getActiveSelectedDeviceReport();
-  }, [device, startDate, endDate]);
-  const [
-    getCollocationResultsData,
-    {
-      isError: isFetchCollocationResultsError,
-      isSuccess: isFetchCollocationResultsSuccess,
-      isLoading: isFetchCollocationResultsLoading,
-    },
-  ] = useGetCollocationResultsMutation();
+  }, [device, batchId]);
 
   const handleSelect = async (newDevice, newStartDate, newEndDate) => {
-    let startDate = moment(newStartDate).format('YYYY-MM-DD');
-    let endDate = moment(newEndDate).format('YYYY-MM-DD');
-    dispatch(addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }));
+    // let startDate = moment(newStartDate).format('YYYY-MM-DD');
+    // let endDate = moment(newEndDate).format('YYYY-MM-DD');
+    // dispatch(addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }));
 
-    const response = await getCollocationResultsData({
-      devices: newDevice,
-      startDate,
-      endDate,
-    });
+    // const response = await getCollocationResultsData({
+    //   devices: newDevice,
+    //   startDate,
+    //   endDate,
+    // });
 
-    if (!response.error) {
-      const updatedQuery = {
-        ...router.query,
-        device: newDevice,
-        startDate,
-        endDate,
-      };
+    // if (!response.error) {
+    //   const updatedQuery = {
+    //     ...router.query,
+    //     device: newDevice,
+    //     startDate,
+    //     endDate,
+    //   };
 
-      router.replace({
-        pathname: `/collocation/reports/monitor_report/${newDevice}`,
-        query: updatedQuery,
-      });
+    //   router.replace({
+    //     pathname: `/collocation/reports/monitor_report/${newDevice}`,
+    //     query: updatedQuery,
+    //   });
 
-      dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
-    }
+    //   dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
+    // }
     setIsOpen(false);
   };
 
@@ -106,9 +83,8 @@ const IntraCorrelationChart = ({
       isBigTitle
       title='Intra Sensor Correlation'
       subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
-      contentLink='#'
     >
-      {isLoading || isFetchCollocationResultsLoading ? (
+      {isLoading ? (
         <div className='h-20' data-testid='correlation-data-loader'>
           <Spinner />
         </div>
@@ -161,7 +137,7 @@ const IntraCorrelationChart = ({
               isInterSensorCorrelation
             />
           ) : (
-            <div className='text-center text-grey-300'>No data available</div>
+            <div className='text-center text-grey-300 text-sm'>No data found</div>
           )}
           <CustomLegend />
         </div>

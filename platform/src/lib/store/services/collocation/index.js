@@ -51,6 +51,17 @@ export const collocateApi = createApi({
         };
       },
     }),
+    getInterSensorCorrelation: builder.query({
+      query: (addInterSensorInput) => {
+        return {
+          url: `/inter?token=${NEXT_PUBLIC_API_TOKEN}`,
+          params: {
+            devices: addInterSensorInput.devices,
+            batchId: addInterSensorInput.batchId,
+          },
+        };
+      },
+    }),
     getCollocationStatistics: builder.query({
       query: (addCollocationStatisticsInput) => {
         return {
@@ -72,6 +83,7 @@ export const {
   useGetDataCompletenessResultsQuery,
   useGetIntraSensorCorrelationQuery,
   useGetCollocationStatisticsQuery,
+  useGetInterSensorCorrelationQuery,
   util: { getRunningQueriesThunk },
 } = collocateApi;
 
@@ -82,5 +94,6 @@ export const {
   getCollocationResults,
   getDataCompletenessResults,
   getIntraSensorCorrelation,
+  getInterSensorCorrelation,
   getCollocationStatistics,
 } = collocateApi.endpoints;

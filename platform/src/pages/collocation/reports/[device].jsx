@@ -16,6 +16,7 @@ import {
 import CustomTable from '@/components/Table';
 import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
+import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 
 const Reports = () => {
   const router = useRouter();
@@ -116,12 +117,15 @@ const Reports = () => {
             ) : (
               <>
                 {isCollocationResultsSuccess && (
-                  <CorrelationChart
-                    data={collocationResultsList}
-                    pmConcentration={pmConcentration}
-                    height={'210'}
-                    isInterSensorCorrelation
-                  />
+                  <>
+                    <CorrelationChart
+                      data={collocationResultsList}
+                      pmConcentration={pmConcentration}
+                      height={'210'}
+                      isInterSensorCorrelation
+                    />
+                    <CustomLegend />
+                  </>
                 )}
               </>
             )}

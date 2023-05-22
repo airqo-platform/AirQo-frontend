@@ -2,6 +2,7 @@ import ContentBox from '@/components/Layout/content_box';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { isEmpty } from 'underscore';
 
 const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
   const router = useRouter();
@@ -14,7 +15,7 @@ const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
             <h3 className={`${isBigTitle ? 'text-xl mb-1' : 'text-sm'} font-semibold`}>{title}</h3>
             <p className='text-sm text-black-900 opacity-80 md:max-w-[75%]'>
               {subtitle}{' '}
-              {contentLink && (
+              {!isEmpty(contentLink) && (
                 <span className='text-link-blue'>
                   <Link href={contentLink}>Read more</Link>
                 </span>

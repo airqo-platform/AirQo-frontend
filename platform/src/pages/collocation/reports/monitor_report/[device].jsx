@@ -15,6 +15,7 @@ import {
 import {
   useGetCollocationResultsQuery,
   useGetDataCompletenessResultsQuery,
+  useGetInterSensorCorrelationQuery,
 } from '@/lib/store/services/collocation';
 import { isEmpty } from 'underscore';
 import Spinner from '@/components/Spinner';
@@ -38,6 +39,7 @@ const MonitorReport = () => {
 
   const [skipCollocationResults, setSkipCollocationResults] = useState(true);
   const [skipDataCompleteness, setSkipDataCompleteness] = useState(true);
+  const [skipInterSensorCorrelation, setSkipInterSensorCorrelation] = useState(true);
 
   const {
     data: collocationResultsData,
@@ -51,10 +53,19 @@ const MonitorReport = () => {
     isSuccess: isFetchDataCompletenessSuccess,
     isLoading: isFetchDataCompletenessLoading,
   } = useGetDataCompletenessResultsQuery(input, { skip: skipDataCompleteness });
+  const {
+    data: interSensorCorrelationData,
+    isLoading: isInterSensorCorrelationDataLoading,
+    isSuccess: isInterSensorCorrelationDataSuccess,
+    isError: isFetchInterSensorCorrelationDataError,
+  } = useGetInterSensorCorrelationQuery(input, { skip: skipInterSensorCorrelation });
 
   const collocationResults = collocationResultsData ? collocationResultsData.data : null;
   const dataCompletenessResults = dataCompletenessResultsData
     ? dataCompletenessResultsData.data
+    : null;
+  const interSensorCorrelationList = interSensorCorrelationData
+    ? interSensorCorrelationData.data
     : null;
 
   const {
@@ -77,6 +88,7 @@ const MonitorReport = () => {
     });
     setSkipDataCompleteness(false);
     setSkipCollocationResults(false);
+    setSkipInterSensorCorrelation(false);
   }, [device, batchId]);
 
   useEffect(() => {
@@ -113,8 +125,8 @@ const MonitorReport = () => {
   // }, [getCollocationResultsData, device, startDate, endDate]);
 
   const [correlationDevices, setCorrelationDevices] = useState([device]);
-  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('10');
-  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('10');
+  const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
+  const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('2.5');
 
   const toggleIntraCorrelationConcentrationChange = (newValue) => {
     setIntraCorrelationConcentration(newValue);
@@ -138,24 +150,24 @@ const MonitorReport = () => {
           dataTestId={'monitor-report-error-toast'}
         />
       )}
-      {/* <div data-testid='correlation-chart'>
+      <div data-testid='correlation-chart'>
         <IntraCorrelationChart
-          collocationResults={activeSelectedDeviceCollocationReportData}
+          collocationResults={collocationResults}
           intraCorrelationConcentration={intraCorrelationConcentration}
           toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
           isLoading={isFetchCollocationResultsLoading}
           deviceList={passedDevices}
         />
 
-        <InterCorrelationChart
-          collocationResults={activeSelectedDeviceCollocationReportData}
+        {/* <InterCorrelationChart
+          collocationResults={interSensorCorrelationList}
           interCorrelationConcentration={interCorrelationConcentration}
           toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
           correlationDevices={correlationDevices}
           deviceList={passedDevices}
           isLoading={isFetchCollocationResultsLoading}
-        />
-      </div> */}
+        /> */}
+      </div>
 
       {(isFetchCollocationResultsLoading || isFetchCollocationResultsSuccess) && (
         <DataCompletenessTable

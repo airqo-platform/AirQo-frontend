@@ -73,7 +73,6 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
         isBigTitle
         title='Data Completeness'
         subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
-        contentLink='#'
       >
         <>
           <div className='flex items-center flex-wrap md:flex-nowrap w-full px-6'>
