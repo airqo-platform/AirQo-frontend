@@ -9,6 +9,7 @@ enum NearbyLocationStatus {
 class NearbyLocationState extends Equatable {
   const NearbyLocationState({
     this.currentLocation,
+    this.surroundingSites = const [],
     this.blocStatus = NearbyLocationStatus.searching,
     this.showErrorMessage = true,
   });
@@ -16,10 +17,12 @@ class NearbyLocationState extends Equatable {
   NearbyLocationState copyWith({
     CurrentLocation? currentLocation,
     NearbyLocationStatus? blocStatus,
+    List<AirQualityReading>? surroundingSites,
     bool? showErrorMessage,
   }) {
     return NearbyLocationState(
       currentLocation: currentLocation,
+      surroundingSites: surroundingSites ?? this.surroundingSites,
       blocStatus: blocStatus ?? this.blocStatus,
       showErrorMessage: showErrorMessage ?? this.showErrorMessage,
     );
@@ -27,6 +30,7 @@ class NearbyLocationState extends Equatable {
 
   final NearbyLocationStatus blocStatus;
   final CurrentLocation? currentLocation;
+  final List<AirQualityReading> surroundingSites;
   final bool showErrorMessage;
 
   @override
@@ -34,5 +38,6 @@ class NearbyLocationState extends Equatable {
         blocStatus,
         showErrorMessage,
         currentLocation,
+        surroundingSites,
       ];
 }

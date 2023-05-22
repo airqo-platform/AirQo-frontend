@@ -365,34 +365,47 @@ class _DashboardViewState extends State<DashboardView>
                           return const DashboardLoadingWidget();
                       }
 
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: state.airQualityReadings.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return (index == 0)
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: CustomShowcaseWidget(
-                                    showcaseKey: _analyticsShowcaseKey,
-                                    descriptionHeight: screenSize.height * 0.17,
-                                    customize: ShowcaseOptions.up,
-                                    showLine: false,
-                                    description:
-                                        "Find the air quality of different locations across Africa here.",
-                                    child: AnalyticsCard(
-                                      state.airQualityReadings[index],
-                                      false,
-                                    ),
-                                  ),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    state.airQualityReadings[index],
-                                    false,
-                                  ),
-                                );
+                      return BlocBuilder<NearbyLocationBloc,
+                          NearbyLocationState>(
+                        builder: (context, surroundingSitesState) {
+                          List<AirQualityReading> surroundingSites = List.of(
+                            surroundingSitesState.surroundingSites,
+                          );
+                          surroundingSites = surroundingSites.take(5).toList();
+                          surroundingSites.shuffle();
+                          surroundingSites.addAll(state.airQualityReadings);
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: surroundingSites.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return (index == 0)
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: CustomShowcaseWidget(
+                                        showcaseKey: _analyticsShowcaseKey,
+                                        descriptionHeight:
+                                            screenSize.height * 0.17,
+                                        customize: ShowcaseOptions.up,
+                                        showLine: false,
+                                        description:
+                                            "Find the air quality of different locations across Africa here.",
+                                        child: AnalyticsCard(
+                                          surroundingSites[index],
+                                          false,
+                                        ),
+                                      ),
+                                    )
+                                  : Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: AnalyticsCard(
+                                        surroundingSites[index],
+                                        false,
+                                      ),
+                                    );
+                            },
+                          );
                         },
                       );
                     },
@@ -473,20 +486,12 @@ class _DashboardViewState extends State<DashboardView>
     _locationPositionStream = Geolocator.getPositionStream(
       locationSettings: Config.locationSettings(),
     ).listen(
-      (Position? position) async {
+      (Position? position) {
         if (position != null) {
-          Map<String, String?> address = await LocationService.getAddress(
-            latitude: position.latitude,
-            longitude: position.longitude,
-          );
           if (mounted) {
             context.read<NearbyLocationBloc>().add(
                   SearchLocationAirQuality(
-                    newLocation: CurrentLocation.fromPosition(
-                      position,
-                      name: address["name"] ?? "",
-                      location: address["location"] ?? "",
-                    ),
+                    newLocation: CurrentLocation.fromPosition(position),
                   ),
                 );
           }
@@ -504,6 +509,7 @@ class _DashboardViewState extends State<DashboardView>
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
+
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
