@@ -11,7 +11,11 @@ import Spinner from '@/components/Spinner';
 import {
   useGetCollocationResultsQuery,
   useGetIntraSensorCorrelationQuery,
+  useGetCollocationStatisticsQuery,
 } from '@/lib/store/services/collocation';
+import CustomTable from '@/components/Table';
+import { isEmpty } from 'underscore';
+import ContentBox from '@/components/Layout/content_box';
 
 const Reports = () => {
   const router = useRouter();
@@ -19,8 +23,10 @@ const Reports = () => {
 
   const [skipIntraSensorCorrelation, setSkipIntraSensorCorrelation] = useState(true);
   const [skipCollocationResults, setSkipCollocationResults] = useState(true);
+  const [skipStatistics, setSkipStatistics] = useState(true);
   const [input, setInput] = useState(null);
-  const [pmConcentration, setPmConcentration] = useState('10');
+  const [deviceStatistics, setDeviceStatistics] = useState([]);
+  const [pmConcentration, setPmConcentration] = useState('2.5');
 
   const {
     data: intraSensorCorrelationData,
@@ -34,6 +40,13 @@ const Reports = () => {
     isSuccess: isCollocationResultsSuccess,
     isError: isFetchCollocationResultsError,
   } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+  const {
+    data: collocationStatistics,
+    isLoading: collocationStatisticsLoading,
+    isSuccess: collocationStatisticsSuccess,
+    isError: collocationStatisticsError,
+  } = useGetCollocationStatisticsQuery(input, { skip: skipStatistics });
+  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
 
   const intraSensorCorrelationList = intraSensorCorrelationData
     ? intraSensorCorrelationData.data
@@ -48,7 +61,24 @@ const Reports = () => {
     });
     setSkipIntraSensorCorrelation(false);
     setSkipCollocationResults(false);
+    setSkipStatistics(false);
   }, [device, batchId]);
+
+  useEffect(() => {
+    if (!isEmpty(collocationStatisticsList)) {
+      const transformedStatistics = Object.entries(collocationStatisticsList).map(
+        ([deviceName, deviceData]) => ({
+          deviceName,
+          s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
+          s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
+          battery_voltage_mean: deviceData.battery_voltage_mean,
+          internal_humidity_mean: deviceData.internal_humidity_mean || 0,
+          internal_temperature_max: deviceData.internal_temperature_max || 0,
+        }),
+      );
+      setDeviceStatistics(transformedStatistics);
+    }
+  }, [collocationStatisticsList]);
 
   const togglePmConcentrationChange = (newValue) => {
     setPmConcentration(newValue);
@@ -128,6 +158,32 @@ const Reports = () => {
             )}
           </div>
         </Box>
+      </div>
+      <div>
+        {collocationStatisticsSuccess && !isEmpty(deviceStatistics) ? (
+          <CustomTable
+            headers={[
+              'Monitor Name',
+              'Sensor 01',
+              'Sensor 02',
+              'Voltage',
+              'Internal Humidity',
+              'Internal Temperature',
+            ]}
+            sortableColumns={['Sensor 01']}
+            data={deviceStatistics}
+          />
+        ) : collocationStatisticsLoading ||
+          isCollocationResultsLoading ||
+          isIntraSensorCorrelationDataLoading ? (
+          <Spinner />
+        ) : (
+          <ContentBox>
+            <p className='p-6 text-center text-gray-400'>
+              Unable to calculate stats for this device
+            </p>
+          </ContentBox>
+        )}
       </div>
     </Layout>
   );
