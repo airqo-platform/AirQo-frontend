@@ -79,7 +79,12 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
           <Legend />
           <XAxis
             dataKey={'timestamp'}
-            tickFormatter={(timestamp) => moment(timestamp).format('DD MMM')}
+            tickFormatter={(timestamp, index) => {
+              if (index % 24 === 0) {
+                return moment(timestamp).format('DD MMM');
+              }
+              return '';
+            }}
             padding={{ left: 60, right: 20 }}
             strokeWidth='0.5'
             stroke='#000000'
