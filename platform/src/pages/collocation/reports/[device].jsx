@@ -10,7 +10,6 @@ import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
 import {
   useGetCollocationResultsQuery,
-  useGetIntraSensorCorrelationQuery,
   useGetCollocationStatisticsQuery,
 } from '@/lib/store/services/collocation';
 import CustomTable from '@/components/Table';
@@ -22,19 +21,13 @@ const Reports = () => {
   const router = useRouter();
   const { device, batchId } = router.query;
 
-  const [skipIntraSensorCorrelation, setSkipIntraSensorCorrelation] = useState(true);
+  const [deviceStatisticsInput, setDeviceStatisticsInput] = useState(null);
   const [skipCollocationResults, setSkipCollocationResults] = useState(true);
   const [skipStatistics, setSkipStatistics] = useState(true);
   const [input, setInput] = useState(null);
   const [deviceStatistics, setDeviceStatistics] = useState([]);
   const [pmConcentration, setPmConcentration] = useState('2.5');
 
-  const {
-    data: intraSensorCorrelationData,
-    isLoading: isIntraSensorCorrelationDataLoading,
-    isSuccess: isIntraSensorCorrelationDataSuccess,
-    isError: isFetchIntraSensorCorrelationDataError,
-  } = useGetIntraSensorCorrelationQuery(input, { skip: skipIntraSensorCorrelation });
   const {
     data: collocationResultsData,
     isLoading: isCollocationResultsLoading,
@@ -46,21 +39,20 @@ const Reports = () => {
     isLoading: collocationStatisticsLoading,
     isSuccess: collocationStatisticsSuccess,
     isError: collocationStatisticsError,
-  } = useGetCollocationStatisticsQuery(input, { skip: skipStatistics });
+  } = useGetCollocationStatisticsQuery(deviceStatisticsInput, { skip: skipStatistics });
 
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
-  const intraSensorCorrelationList = intraSensorCorrelationData
-    ? intraSensorCorrelationData.data
-    : null;
   const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
 
   useEffect(() => {
     if (!device || !batchId) return;
     setInput({
-      devices: [device],
       batchId,
     });
-    setSkipIntraSensorCorrelation(false);
+    setDeviceStatisticsInput({
+      batchId,
+    });
+
     setSkipCollocationResults(false);
     setSkipStatistics(false);
   }, [device, batchId]);
@@ -88,7 +80,7 @@ const Reports = () => {
   return (
     <Layout>
       <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Reports'} />
-      {(isFetchCollocationResultsError || isFetchIntraSensorCorrelationDataError) && (
+      {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
           type={'error'}
           timeout={20000}
@@ -145,20 +137,27 @@ const Reports = () => {
                 { value: '10', label: 'pm10' },
               ]}
             />
-            {isIntraSensorCorrelationDataLoading ? (
+            {collocationStatisticsLoading ? (
               <div className='mb-6'>
                 <Spinner />
               </div>
-            ) : (
+            ) : !isEmpty(deviceStatistics) ? (
               <>
-                {isIntraSensorCorrelationDataSuccess && (
-                  <CorrelationBarChart
-                    height={'210'}
-                    pmConcentration={pmConcentration}
-                    data={intraSensorCorrelationList}
-                  />
+                {collocationStatisticsSuccess && (
+                  <>
+                    <CorrelationBarChart
+                      height={'210'}
+                      pmConcentration={pmConcentration}
+                      data={deviceStatistics}
+                    />
+                    <CustomLegend />
+                  </>
                 )}
               </>
+            ) : (
+              <div className='text-center text-xs text-grey-300'>
+                Unable to calculate mean sensor values
+              </div>
             )}
           </div>
         </Box>

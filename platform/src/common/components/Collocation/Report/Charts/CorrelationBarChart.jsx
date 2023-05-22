@@ -52,32 +52,30 @@ const CorrelationBarChart = ({ height, pmConcentration, data }) => {
           />
           <YAxis
             type='category'
-            dataKey='device'
+            dataKey='deviceName'
             stroke='#000000'
             strokeOpacity='0.1'
-            padding={{ bottom: 56 }}
             strokeWidth={0.5}
             axisLine={false}
             tickLine={false}
             tick={false}
           />
-          <Tooltip />
-          <Legend />
+          <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-base' />
           <Bar
-            dataKey={
-              pmConcentration === '2.5' ? 'pm2_5_pearson_correlation' : 'pm10_pearson_correlation'
-            }
+            dataKey={pmConcentration === '2.5' ? 's1_pm2_5_mean' : 's2_pm2_5_mean'}
             fill='#8884d8'
             barSize={18}
+            name='Sensor 01'
           >
-            <LabelList content={<CustomBarLabel customValue='Sensor 1' />} />
+            <LabelList content={<CustomBarLabel customValue='Sensor 01' />} />
           </Bar>
           <Bar
-            dataKey={pmConcentration === '2.5' ? 'pm2_5_r2' : 'pm10_r2'}
+            dataKey={pmConcentration === '2.5' ? 's2_pm2_5_mean' : 's2_pm2_5_mean'}
             fill='#82ca9d'
             barSize={18}
+            name='Sensor 02'
           >
-            <LabelList content={<CustomBarLabel customValue='Sensor 2' />} />
+            <LabelList content={<CustomBarLabel customValue='Sensor 02' />} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
