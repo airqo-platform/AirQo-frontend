@@ -1,9 +1,12 @@
 import 'dart:math';
 
+import 'package:app/models/current_location.dart';
 import 'package:app/services/location_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:home_widget/home_widget.dart';
 
+//import location_service.dart';
+import '../blocs/nearby_location/nearby_location_bloc.dart';
 import '../blocs/search/search_bloc.dart';
 import '../models/air_quality_reading.dart';
 import '../models/widget_data.dart';
@@ -11,29 +14,23 @@ import 'hive_service.dart';
 
 class WidgetService {
   static Future<void> sendData() async {
-    AirQualityReading? airQualityReading;
-    Position? position = await LocationService.getCurrentPosition();
-    List<AirQualityReading> airQualityReadings = await LocationService.getNearbyAirQualityReadings(position: position);
-    if (airQualityReadings.isEmpty) {
-      final searchBloc = SearchBloc();
-      if (searchBloc.state.searchHistory.isEmpty) {
-        List<AirQualityReading> airQualityReadings =
-        HiveService.getAirQualityReadings();
-        if (airQualityReadings.isNotEmpty) {
-          final random = Random();
-          airQualityReading =
-          airQualityReadings[random.nextInt(airQualityReadings.length)];
-        }
-      } else {
-        airQualityReading = searchBloc.state.searchHistory.first;
-      }
-    } else {
-      airQualityReading = airQualityReadings.first;
+    CurrentLocation? currentLocation =
+        await LocationService.getCurrentLocation();
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+
+    AirQualityReading airQualityReading = airQualityReadings.firstWhere(
+        (location) =>
+            location.latitude == currentLocation!.latitude &&
+            location.longitude == currentLocation.longitude,
+        orElse: () => airQualityReadings[0]);
+
+    if (currentLocation == null) {
+      return;
     }
-    if (airQualityReading == null) return;
 
     WidgetData widgetData =
-    WidgetData.initializeFromAirQualityReading(airQualityReading);
+        WidgetData.initializeFromAirQualityReading(airQualityReading);
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });
