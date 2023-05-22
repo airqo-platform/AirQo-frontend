@@ -1,12 +1,27 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
+  }
+}
+
+extension CurrentLocationExt on CurrentLocation {
+  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
+    final double distance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      newLocation.latitude,
+      newLocation.longitude,
+    );
+
+    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 
@@ -706,11 +721,8 @@ extension StringExt on String {
       Uri uri = Uri.parse(this);
 
       return uri.hasScheme && uri.hasAuthority;
-
     } catch (e) {
-
       return false;
-
     }
   }
 

@@ -148,14 +148,14 @@ class NoLocationAirQualityMessage extends StatelessWidget {
   }
 }
 
-class LocationDeniedButton extends StatelessWidget {
-  const LocationDeniedButton({super.key});
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await LocationService.requestLocation(context, true);
+        await LocationService.requestLocation();
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
@@ -171,7 +171,7 @@ class LocationDeniedButton extends StatelessWidget {
         ),
       ),
       child: const Text(
-        "Enable location to get air quality near you",
+        "Turn on location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,

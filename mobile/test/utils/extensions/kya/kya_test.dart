@@ -119,8 +119,7 @@ void main() {
         final inProgressKyas = kyas.filterInProgressKya();
         expect(inProgressKyas.length, 1);
         expect(inProgressKyas.contains(kyas[1]), isTrue);
-        expect(
-            inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
+        expect(inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
       });
     });
   });

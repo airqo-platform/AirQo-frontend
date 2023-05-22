@@ -73,3 +73,12 @@ export const loadSiteDetails = (siteId, networkID) => {
       });
   };
 };
+
+export const clearSiteDetails = () => {
+  return (dispatch) => {
+    dispatch({
+      type: GET_SITE_DETAILS_SUCCESS,
+      payload: {}
+    });
+  };
+};

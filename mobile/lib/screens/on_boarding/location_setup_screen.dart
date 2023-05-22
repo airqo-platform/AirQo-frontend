@@ -101,7 +101,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     if (hasPermission && mounted) {
       await _goToNextScreen();
     } else {
-      LocationService.requestLocation(context, true);
+      await LocationService.requestLocation();
     }
   }
 
