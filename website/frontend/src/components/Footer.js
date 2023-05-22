@@ -142,7 +142,7 @@ const Footer = () => {
               <span>Solutions</span>
               <div>
                 <span>
-                  <Link to="/solutions/african-cities/uganda">For African cities</Link>
+                  <Link to="/solutions/african-cities">For African cities</Link>
                 </span>
                 <span>
                   <Link to="/solutions/communities">For Communities</Link>
