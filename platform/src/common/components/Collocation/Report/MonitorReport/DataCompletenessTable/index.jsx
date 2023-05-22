@@ -61,8 +61,8 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? a.device_name.localeCompare(b.device_name)
-        : b.device_name.localeCompare(a.device_name),
+        ? a.deviceName.localeCompare(b.deviceName)
+        : b.deviceName.localeCompare(a.deviceName),
     );
     return sortedData;
   };

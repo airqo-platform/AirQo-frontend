@@ -36,7 +36,7 @@ export const collocateApi = createApi({
       query: ({ devices, batchId }) => {
         return {
           url: `/data-completeness?token=${NEXT_PUBLIC_API_TOKEN}`,
-          params: { devices, batchId },
+          params: { batchId },
         };
       },
     }),
