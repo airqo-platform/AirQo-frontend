@@ -103,16 +103,7 @@ class LocationService {
         forceAndroidLocationManager: true,
       ).timeout(const Duration(seconds: 60));
 
-      Map<String, String?> address = await getAddress(
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
-
-      return CurrentLocation.fromPosition(
-        position,
-        name: address["name"] ?? "",
-        location: address["location"] ?? "",
-      );
+      return CurrentLocation.fromPosition(position);
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
@@ -133,16 +124,33 @@ class LocationService {
     double latitude,
     double longitude,
   ) async {
-    List<AirQualityReading> nearestSites = await getNearestSites(
-      latitude: latitude,
-      longitude: longitude,
-    );
+    List<AirQualityReading> nearestSites =
+        HiveService().getAirQualityReadings();
+
+    nearestSites = nearestSites.map((element) {
+      final double distanceInMeters = metersToKmDouble(
+        Geolocator.distanceBetween(
+          element.latitude,
+          element.longitude,
+          latitude,
+          longitude,
+        ),
+      );
+
+      return element.copyWith(distanceToReferenceSite: distanceInMeters);
+    }).toList();
+
+    nearestSites = nearestSites
+        .where((element) =>
+            element.distanceToReferenceSite < Config.searchRadius.toDouble())
+        .toList();
+
     nearestSites.sortByDistanceToReferenceSite();
 
     return nearestSites.isEmpty ? null : nearestSites.first;
   }
 
-  static Future<List<AirQualityReading>> getNearestSites({
+  static Future<List<AirQualityReading>> getSurroundingSites({
     required double latitude,
     required double longitude,
   }) async {

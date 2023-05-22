@@ -26,17 +26,13 @@ class CurrentLocation extends Equatable {
     );
   }
 
-  factory CurrentLocation.fromPosition(
-    Position position, {
-    required String name,
-    required String location,
-  }) {
+  factory CurrentLocation.fromPosition(Position position) {
     return CurrentLocation(
       referenceSite: "",
       latitude: position.latitude,
       longitude: position.longitude,
-      name: name,
-      location: location,
+      name: "",
+      location: "",
     );
   }
 
