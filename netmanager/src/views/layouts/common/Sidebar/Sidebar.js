@@ -17,6 +17,7 @@ import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
+import BusinessIcon from '@material-ui/icons/Business';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
@@ -162,6 +163,11 @@ const allUserManagementPages = [
     title: 'Account',
     href: '/account',
     icon: <AccountBoxIcon />
+  },
+  {
+    title: 'Organisation',
+    href: '/organisation',
+    icon: <BusinessIcon />
   },
   {
     title: 'Settings',
