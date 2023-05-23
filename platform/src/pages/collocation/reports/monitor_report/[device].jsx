@@ -20,6 +20,7 @@ import {
 import { isEmpty } from 'underscore';
 import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
+import { generateRandomColors } from '@/core/utils/colors';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -78,7 +79,8 @@ const MonitorReport = () => {
   } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
 
-  let passedDevices = deviceStatusSummary.filter((device) => device.status === 'passed');
+  let batchDevices = deviceStatusSummary.filter((device) => device.batch_id === batchId);
+  let graphColors = generateRandomColors(batchDevices.length);
 
   useEffect(() => {
     if (!device || !batchId) return;
@@ -155,7 +157,8 @@ const MonitorReport = () => {
           intraCorrelationConcentration={intraCorrelationConcentration}
           toggleIntraCorrelationConcentrationChange={toggleIntraCorrelationConcentrationChange}
           isLoading={isFetchCollocationResultsLoading}
-          deviceList={passedDevices}
+          deviceList={batchDevices}
+          graphColors={graphColors}
         />
 
         {/* <InterCorrelationChart
@@ -163,7 +166,7 @@ const MonitorReport = () => {
           interCorrelationConcentration={interCorrelationConcentration}
           toggleInterCorrelationConcentrationChange={toggleInterCorrelationConcentrationChange}
           correlationDevices={correlationDevices}
-          deviceList={passedDevices}
+          deviceList={batchDevices}
           isLoading={isFetchCollocationResultsLoading}
         /> */}
       </div>

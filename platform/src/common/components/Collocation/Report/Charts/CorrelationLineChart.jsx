@@ -22,7 +22,13 @@ const sortDataByTimestamp = (data) => {
   return sortedData;
 };
 
-const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, height }) => {
+const CorrelationChart = ({
+  pmConcentration,
+  isInterSensorCorrelation,
+  data,
+  height,
+  graphColors,
+}) => {
   const sensorKey1 = `s1_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
   const sensorKey2 = `s2_${pmConcentration === '2.5' ? 'pm2_5' : 'pm10'}`;
 
@@ -69,7 +75,7 @@ const CorrelationChart = ({ pmConcentration, isInterSensorCorrelation, data, hei
     return lines;
   };
 
-  const colors = ['#D476F5', '#8776F5']; // Colors for each line
+  const colors = [...graphColors];
 
   return (
     <div className={`w-full ${height ? `h-[${height}px]` : 'h-80'}`}>

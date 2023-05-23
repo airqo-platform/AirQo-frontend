@@ -16,6 +16,7 @@ import CustomTable from '@/components/Table';
 import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
+import { generateRandomColors } from '@/core/utils/colors';
 
 const Reports = () => {
   const router = useRouter();
@@ -27,6 +28,7 @@ const Reports = () => {
   const [input, setInput] = useState(null);
   const [deviceStatistics, setDeviceStatistics] = useState([]);
   const [pmConcentration, setPmConcentration] = useState('2.5');
+  const [batchList, setBatchList] = useState([]);
 
   const {
     data: collocationResultsData,
@@ -43,6 +45,8 @@ const Reports = () => {
 
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
   const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
+
+  let graphColors = generateRandomColors(1);
 
   useEffect(() => {
     if (!device || !batchId) return;
@@ -117,8 +121,11 @@ const Reports = () => {
                       pmConcentration={pmConcentration}
                       height={'210'}
                       isInterSensorCorrelation
+                      graphColors={graphColors}
                     />
-                    <CustomLegend />
+                    {batchList && graphColors && (
+                      <CustomLegend devices={[{ device_name: device }]} graphColors={graphColors} />
+                    )}
                   </>
                 )}
               </>
@@ -126,7 +133,7 @@ const Reports = () => {
           </div>
         </Box>
         <Box
-          title='Intra Sensor Correlation'
+          title='Mean sensor values'
           subtitle='Detailed comparison of data between two sensors that are located within the same device.'
           contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
         >
@@ -152,7 +159,6 @@ const Reports = () => {
                       pmConcentration={pmConcentration}
                       data={deviceStatistics}
                     />
-                    <CustomLegend />
                   </>
                 )}
               </>

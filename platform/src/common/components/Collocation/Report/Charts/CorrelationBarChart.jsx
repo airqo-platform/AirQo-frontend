@@ -60,6 +60,7 @@ const CorrelationBarChart = ({ height, pmConcentration, data }) => {
             tickLine={false}
             tick={false}
           />
+          <Legend />
           <Tooltip formatter={(value) => value.toFixed(2)} wrapperClassName='text-base' />
           <Bar
             dataKey={pmConcentration === '2.5' ? 's1_pm2_5_mean' : 's2_pm2_5_mean'}

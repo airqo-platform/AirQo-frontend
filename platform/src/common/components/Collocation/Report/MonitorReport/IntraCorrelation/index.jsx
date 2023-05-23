@@ -20,6 +20,7 @@ const IntraCorrelationChart = ({
   collocationResults,
   isLoading,
   deviceList,
+  graphColors,
 }) => {
   const router = useRouter();
   const { device, batchId } = router.query;
@@ -34,15 +35,12 @@ const IntraCorrelationChart = ({
   );
 
   useEffect(() => {
-    if (!activeSelectedDeviceCollocationReportData) {
-      dispatch(addActiveSelectedDeviceCollocationReportData(collocationResults));
-    }
+    dispatch(addActiveSelectedDeviceCollocationReportData(collocationResults));
   }, [activeSelectedDeviceCollocationReportData, collocationResults]);
 
   useEffect(() => {
     const getActiveSelectedDeviceReport = () => {
       if (!device || !batchId) return;
-
       dispatch(addActiveSelectedDeviceReport({ device, batchId }));
     };
 
@@ -135,11 +133,14 @@ const IntraCorrelationChart = ({
               data={activeSelectedDeviceCollocationReportData}
               pmConcentration={intraCorrelationConcentration}
               isInterSensorCorrelation
+              graphColors={graphColors}
             />
           ) : (
             <div className='text-center text-grey-300 text-sm'>No data found</div>
           )}
-          <CustomLegend />
+          {deviceList && graphColors && (
+            <CustomLegend devices={deviceList} graphColors={graphColors} />
+          )}
         </div>
       )}
     </Box>
