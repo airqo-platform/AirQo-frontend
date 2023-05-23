@@ -88,7 +88,7 @@ const AddMonitor = () => {
         <SkeletonFrame />
       ) : (
         <>
-          <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
+          <NavigationBreadCrumb navTitle={'Add monitor'}>
             <div className='flex'>
               {/* {isCollocating && (
                 <Button className={'mr-1'}>

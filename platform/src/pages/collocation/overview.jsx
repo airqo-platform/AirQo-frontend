@@ -43,12 +43,14 @@ const CollocationOverview = () => {
   const [collocationPeriods, setCollocationPeriods] = useState(null);
   const [activeCollocationPeriod, setActiveCollocationPeriod] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [openDeviceMenu, setOpenDeviceMenu] = useState(false);
   const [skip, setSkip] = useState(true);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [device1, setDevice1] = useState(null);
   const [device2, setDevice2] = useState(null);
   const [statisticsParams, setStatisticsParams] = useState({});
+  const [alternativeActiveDevice, setAlternativeActiveDevice] = useState(null);
 
   // get list of selectedCollocateDevices from redux store
   const selectedBatch = useSelector((state) => state.collocationData.overviewBatch);
@@ -252,6 +254,14 @@ const CollocationOverview = () => {
                     />
                   </>
                 )
+              )}
+              {collocationStatisticsSuccess && isEmpty(deviceStatistics) && (
+                <div className='flex flex-col items-center justify-center col-span-2 p-8'>
+                  <p className='text-base font-normal opacity-40 mt-4'>
+                    No data available for the current devices. Compare other devices or collocation
+                    period
+                  </p>
+                </div>
               )}
             </div>
             <div className='divide-y pt-20'>

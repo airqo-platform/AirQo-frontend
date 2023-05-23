@@ -88,7 +88,7 @@ const Reports = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Reports'} />
+      <NavigationBreadCrumb navTitle={'Reports'} />
       {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
           type={'error'}

@@ -85,6 +85,7 @@ const MonitorReport = () => {
   useEffect(() => {
     if (!device || !batchId) return;
     setInput({
+      devices: [device],
       batchId,
     });
     setSkipDataCompleteness(false);
@@ -109,22 +110,6 @@ const MonitorReport = () => {
     }
   }, [dataCompletenessResults]);
 
-  // useEffect(() => {
-  //   const fetchCollocationResults = async () => {
-  //     if (!device || !startDate || !endDate) return;
-  //     const response = await getCollocationResultsData({
-  //       devices: device,
-  //       startDate,
-  //       endDate,
-  //     });
-
-  //     if (!response.error) {
-  //       dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
-  //     }
-  //   };
-  //   fetchCollocationResults();
-  // }, [getCollocationResultsData, device, startDate, endDate]);
-
   const [correlationDevices, setCorrelationDevices] = useState([device]);
   const [intraCorrelationConcentration, setIntraCorrelationConcentration] = useState('2.5');
   const [interCorrelationConcentration, setInterCorrelationConcentration] = useState('2.5');
@@ -139,10 +124,7 @@ const MonitorReport = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb
-        backLink={`/collocation/reports/${device}?device=${device}&batchId=${batchId}`}
-        navTitle={'Monitor Report'}
-      />
+      <NavigationBreadCrumb navTitle={'Monitor Report'} />
       {(isFetchCollocationResultsError || isFetchDataCompletenessError) && (
         <Toast
           type={'error'}

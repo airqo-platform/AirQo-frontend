@@ -5,7 +5,6 @@ import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import Spinner from '@/components/Spinner';
 import { useEffect, useState } from 'react';
-import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addActiveSelectedDeviceCollocationReportData,
@@ -13,6 +12,7 @@ import {
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import { useRouter } from 'next/router';
 import CustomLegend from './custom_legend';
+import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 
 const IntraCorrelationChart = ({
   intraCorrelationConcentration,
@@ -26,6 +26,8 @@ const IntraCorrelationChart = ({
   const { device, batchId } = router.query;
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState(null);
+  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
 
   const activeSelectedDeviceCollocationReportData = useSelector(
     (state) => state.collocationData.activeSelectedDeviceCollocationReportData,
@@ -33,6 +35,14 @@ const IntraCorrelationChart = ({
   const activeSelectedDeviceReport = useSelector(
     (state) => state.collocationData.activeSelectedDeviceReport,
   );
+
+  const {
+    data: collocationResultsData,
+    isError: isFetchCollocationResultsError,
+    isSuccess: isFetchCollocationResultsSuccess,
+    isLoading: isFetchCollocationResultsLoading,
+  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+  const newCollocationResults = collocationResultsData ? collocationResultsData.data : null;
 
   useEffect(() => {
     dispatch(addActiveSelectedDeviceCollocationReportData(collocationResults));
@@ -47,34 +57,27 @@ const IntraCorrelationChart = ({
     getActiveSelectedDeviceReport();
   }, [device, batchId]);
 
-  const handleSelect = async (newDevice, newStartDate, newEndDate) => {
-    // let startDate = moment(newStartDate).format('YYYY-MM-DD');
-    // let endDate = moment(newEndDate).format('YYYY-MM-DD');
-    // dispatch(addActiveSelectedDeviceReport({ device: newDevice, startDate, endDate }));
-
-    // const response = await getCollocationResultsData({
-    //   devices: newDevice,
-    //   startDate,
-    //   endDate,
-    // });
-
-    // if (!response.error) {
-    //   const updatedQuery = {
-    //     ...router.query,
-    //     device: newDevice,
-    //     startDate,
-    //     endDate,
-    //   };
-
-    //   router.replace({
-    //     pathname: `/collocation/reports/monitor_report/${newDevice}`,
-    //     query: updatedQuery,
-    //   });
-
-    //   dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
-    // }
+  const handleSelect = async (newDevice, batchId) => {
+    dispatch(addActiveSelectedDeviceReport({ device: newDevice, batchId }));
+    setInput({ device: newDevice, batchId });
+    setSkipCollocationResults(false);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (isFetchCollocationResultsSuccess) {
+      const updatedQuery = {
+        ...input,
+      };
+
+      router.replace({
+        pathname: `/collocation/reports/monitor_report/${updatedQuery.device}`,
+        query: updatedQuery,
+      });
+
+      dispatch(addActiveSelectedDeviceCollocationReportData(newCollocationResults));
+    }
+  }, [input, isFetchCollocationResultsSuccess, newCollocationResults]);
 
   return (
     <Box
@@ -82,7 +85,7 @@ const IntraCorrelationChart = ({
       title='Intra Sensor Correlation'
       subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
     >
-      {isLoading ? (
+      {isLoading || isFetchCollocationResultsLoading ? (
         <div className='h-20' data-testid='correlation-data-loader'>
           <Spinner />
         </div>
@@ -100,7 +103,7 @@ const IntraCorrelationChart = ({
                 <ArrowDropDownIcon fillColor='#584CAB' />
               </span>
             </Button>
-            {isOpen && (
+            {isOpen && deviceList.length > 1 && (
               <ul className='absolute z-30 bg-white mt-1 ml-6 py-1 w-36 rounded border border-gray-200 max-h-60 overflow-y-auto text-sm'>
                 {deviceList.map((device, index) => (
                   <>
@@ -108,9 +111,7 @@ const IntraCorrelationChart = ({
                       <li
                         key={index}
                         className='px-4 py-2 hover:bg-gray-200 cursor-pointer text-xs uppercase'
-                        onClick={() =>
-                          handleSelect(device.device_name, device.start_date, device.end_date)
-                        }
+                        onClick={() => handleSelect(device.device_name, device.batch_id)}
                       >
                         {device.device_name}
                       </li>
@@ -138,8 +139,16 @@ const IntraCorrelationChart = ({
           ) : (
             <div className='text-center text-grey-300 text-sm'>No data found</div>
           )}
-          {deviceList && graphColors && (
-            <CustomLegend devices={deviceList} graphColors={graphColors} />
+          {graphColors && activeSelectedDeviceReport && (
+            <CustomLegend
+              devices={[
+                {
+                  device_name: activeSelectedDeviceReport.device,
+                },
+              ]}
+              graphColors={graphColors}
+              isSingleDevice
+            />
           )}
         </div>
       )}
