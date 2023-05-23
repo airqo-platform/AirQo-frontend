@@ -47,10 +47,10 @@ const collocate = () => {
     deviceStatusSummary.filter((device) => device.status === status);
 
   useEffect(() => {
+    // Fetch data every 2 minutes
     const intervalId = setInterval(() => {
-      // Fetch data every 5 seconds
       refetch();
-    }, 50000);
+    }, 200000);
 
     // Clear interval on unmount
     return () => clearInterval(intervalId);
@@ -62,7 +62,7 @@ const collocate = () => {
         {isError && (
           <Toast
             type={'error'}
-            timeout={20000}
+            timeout={5000}
             message={'Uh-oh! Server error. Please try again later.'}
           />
         )}
