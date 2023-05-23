@@ -16,21 +16,17 @@ class WidgetService {
   static Future<void> sendData() async {
     CurrentLocation? currentLocation =
         await LocationService.getCurrentLocation();
-    List<AirQualityReading> airQualityReadings =
-        HiveService().getAirQualityReadings();
 
-    AirQualityReading airQualityReading = airQualityReadings.firstWhere(
-        (location) =>
-            location.latitude == currentLocation!.latitude &&
-            location.longitude == currentLocation.longitude,
-        orElse: () => airQualityReadings[0]);
+    Future<AirQualityReading?> airQualityReading =
+        LocationService.getNearestSite(
+            currentLocation!.latitude, currentLocation!.longitude);
 
     if (currentLocation == null) {
       return;
     }
 
-    WidgetData widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading);
+    WidgetData widgetData = WidgetData.initializeFromAirQualityReading(
+        airQualityReading as AirQualityReading);
     widgetData.idMapping().forEach((key, value) async {
       await HomeWidget.saveWidgetData<String>(key, value);
     });

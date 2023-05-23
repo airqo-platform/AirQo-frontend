@@ -23,7 +23,7 @@
     </style>
 
     <style name="circle_pm_scale">
-        <item name="android:textSize">21.45sp</item>
+        <item name="android:textSize">17.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
 
     </style>
@@ -34,7 +34,7 @@
     </style>
 
     <style name="circle_pm_value">
-        <item name="android:textSize">40.45sp</item>
+        <item name="android:textSize">32.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 
@@ -44,7 +44,7 @@
     </style>
 
     <style name="circle_pm_unit">
-        <item name="android:textSize">20.45sp</item>
+        <item name="android:textSize">16.45sp</item>
         <item name="android:textColor">#BF7B7B7B</item>
     </style>
 
