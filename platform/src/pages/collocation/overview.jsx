@@ -145,7 +145,7 @@ const CollocationOverview = () => {
   return (
     <Layout>
       <HeaderNav category={'Collocation'} component={'Overview'} />
-      {collocationStatisticsError && (
+      {(collocationStatisticsError || deviceSummaryError) && (
         <Toast type={'error'} timeout={10000} message={'Server error!'} />
       )}
 
