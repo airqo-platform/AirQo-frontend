@@ -50,7 +50,7 @@ const collocate = () => {
     const intervalId = setInterval(() => {
       // Fetch data every 5 seconds
       refetch();
-    }, 5000);
+    }, 50000);
 
     // Clear interval on unmount
     return () => clearInterval(intervalId);
@@ -63,7 +63,7 @@ const collocate = () => {
           <Toast
             type={'error'}
             timeout={20000}
-            message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
+            message={'Uh-oh! Server error. Please try again later.'}
           />
         )}
         {isLoading ||
