@@ -83,7 +83,6 @@ const MonitorReport = () => {
   useEffect(() => {
     if (!device || !batchId) return;
     setInput({
-      devices: [device],
       batchId,
     });
     setSkipDataCompleteness(false);

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { isEmpty } from 'underscore';
 
-const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
+const Box = ({ title, subtitle, contentLink, isBigTitle, children, contentLinkText }) => {
   const router = useRouter();
 
   return (
@@ -17,7 +17,7 @@ const Box = ({ title, subtitle, contentLink, isBigTitle, children }) => {
               {subtitle}{' '}
               {!isEmpty(contentLink) && (
                 <span className='text-link-blue'>
-                  <Link href={contentLink}>Read more</Link>
+                  <Link href={contentLink}>{contentLinkText || 'Read more'}</Link>
                 </span>
               )}
             </p>

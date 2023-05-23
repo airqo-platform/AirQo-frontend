@@ -47,6 +47,7 @@ const Reports = () => {
   useEffect(() => {
     if (!device || !batchId) return;
     setInput({
+      devices: [device],
       batchId,
     });
     setDeviceStatisticsInput({
@@ -92,6 +93,7 @@ const Reports = () => {
           title='Intra Sensor Correlation'
           subtitle='Detailed comparison of data between two sensors that are located within the same device.'
           contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
+          contentLinkText='View in-depth batch report'
         >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
