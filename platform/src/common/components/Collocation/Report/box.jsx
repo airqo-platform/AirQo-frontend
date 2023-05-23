@@ -1,12 +1,20 @@
 import ContentBox from '@/components/Layout/content_box';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
+import Button from '@/components/Button';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { isEmpty } from 'underscore';
+import { useRouter } from 'next/router';
 
-const Box = ({ title, subtitle, contentLink, isBigTitle, children, contentLinkText }) => {
+const Box = ({
+  title,
+  subtitle,
+  contentLink,
+  isBigTitle,
+  children,
+  contentLinkText,
+  dropdownItems,
+}) => {
   const router = useRouter();
-
   return (
     <ContentBox>
       <div className='flex flex-col w-full'>
@@ -22,8 +30,39 @@ const Box = ({ title, subtitle, contentLink, isBigTitle, children, contentLinkTe
               )}
             </p>
           </div>
-          <div className='w-10 h-10 p-2 flex justify-center items-center border border-grey-200 rounded-lg mr-6'>
-            <MoreHorizIcon />
+          <div className='mr-6'>
+            <div className='dropdown dropdown-end'>
+              <label
+                tabIndex={0}
+                className='border border-grey-200 rounded-lg btn btn-sm btn-square btn-outline hover:bg-transparent m-1'
+              >
+                <MoreHorizIcon />
+              </label>
+              {dropdownItems && (
+                <ul
+                  tabIndex={0}
+                  className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52'
+                >
+                  {dropdownItems.map((item, index) => {
+                    if (item.type === 'path') {
+                      return (
+                        <li>
+                          <a onClick={() => router.push(item.link)}>{item.label}</a>
+                        </li>
+                      );
+                    }
+
+                    if (item.type === 'event') {
+                      return (
+                        <li>
+                          <a onClick={item.event}>{item.label}</a>
+                        </li>
+                      );
+                    }
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
         <hr className='bg-skeleton h-[0.5px] w-full mb-6' />

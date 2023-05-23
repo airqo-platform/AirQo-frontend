@@ -46,12 +46,11 @@ const Reports = () => {
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
   const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
 
-  let graphColors = generateRandomColors(1);
+  let graphColors = generateRandomColors(batchList && batchList.length);
 
   useEffect(() => {
     if (!device || !batchId) return;
     setInput({
-      devices: [device],
       batchId,
     });
     setDeviceStatisticsInput({
@@ -64,11 +63,16 @@ const Reports = () => {
 
   useEffect(() => {
     if (!isEmpty(collocationStatisticsList)) {
+      const batchList = Object.entries(collocationStatisticsList).map(
+        ([deviceName, deviceData]) => ({
+          device_name: deviceName,
+        }),
+      );
+      setBatchList(batchList);
       const transformedStatistics = Object.entries(collocationStatisticsList).map(
         ([deviceName, deviceData]) => ({
           deviceName,
-          s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
-          s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
+          pm2_5_mean: deviceData.pm2_5_mean || 0,
           battery_voltage_mean: deviceData.battery_voltage_mean,
           internal_humidity_mean: deviceData.internal_humidity_mean || 0,
           internal_temperature_max: deviceData.internal_temperature_max || 0,
@@ -92,12 +96,23 @@ const Reports = () => {
           message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
         />
       )}
-      <div className='grid grid-cols-1 md:grid-cols-2'>
+      <div className='grid grid-cols-1'>
         <Box
           title='Intra Sensor Correlation'
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
-          contentLinkText='View in-depth batch report'
+          dropdownItems={[
+            {
+              type: 'path',
+              label: 'View monitor report',
+              link: `/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
+            },
+            {
+              type: 'event',
+              label: 'Change chart type',
+              event: () => {
+                console.log('I am an event');
+              },
+            },
+          ]}
         >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
@@ -124,48 +139,11 @@ const Reports = () => {
                       graphColors={graphColors}
                     />
                     {batchList && graphColors && (
-                      <CustomLegend devices={[{ device_name: device }]} graphColors={graphColors} />
+                      <CustomLegend isDeviceLegend devices={batchList} graphColors={graphColors} />
                     )}
                   </>
                 )}
               </>
-            )}
-          </div>
-        </Box>
-        <Box
-          title='Mean sensor values'
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`}
-        >
-          <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
-            <PollutantDropdown
-              pollutantValue={pmConcentration}
-              handlePollutantChange={togglePmConcentrationChange}
-              options={[
-                { value: '2.5', label: 'pm2_5' },
-                { value: '10', label: 'pm10' },
-              ]}
-            />
-            {collocationStatisticsLoading ? (
-              <div className='mb-6'>
-                <Spinner />
-              </div>
-            ) : !isEmpty(deviceStatistics) ? (
-              <>
-                {collocationStatisticsSuccess && (
-                  <>
-                    <CorrelationBarChart
-                      height={'210'}
-                      pmConcentration={pmConcentration}
-                      data={deviceStatistics}
-                    />
-                  </>
-                )}
-              </>
-            ) : (
-              <div className='text-center text-xs text-grey-300'>
-                Unable to calculate mean sensor values
-              </div>
             )}
           </div>
         </Box>
@@ -175,8 +153,7 @@ const Reports = () => {
           <CustomTable
             headers={[
               'Monitor Name',
-              'Sensor 01',
-              'Sensor 02',
+              'Mean Sensor Reading',
               'Voltage',
               'Internal Humidity',
               'Internal Temperature',
