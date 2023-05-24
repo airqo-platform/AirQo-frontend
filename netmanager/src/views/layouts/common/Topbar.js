@@ -16,14 +16,10 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
-  Button,
   Dialog,
   DialogTitle,
-  DialogActions,
   DialogContent,
   Typography,
-  TextField,
-  InputAdornment,
   Paper
 } from '@material-ui/core';
 import { AppsOutlined, SearchOutlined } from '@material-ui/icons';
@@ -53,6 +49,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import InputBase from '@material-ui/core/InputBase';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
+import moment from 'moment';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -406,6 +403,9 @@ const Topbar = (props) => {
 
   const handleSearchChange = async (e) => {
     setAdminLevels(null);
+    setAirQualityDetails(null);
+    setNoAirQualityMsg('');
+
     const { value } = e.target;
 
     if (value.length > 0) {
@@ -812,7 +812,10 @@ const Topbar = (props) => {
                   <h2>
                     {airQualityDetails.pm2_5.toFixed(2)} µg/m<sup>3</sup>
                   </h2>
-                  <p>Last updated on {formatDateString(airQualityDetails.timestamp)}</p>
+                  <p>
+                    Last updated on{' '}
+                    {moment(airQualityDetails.timestamp).format('MMMM Do YYYY, h:mm:ss a')}
+                  </p>
                 </div>
               )}
 
