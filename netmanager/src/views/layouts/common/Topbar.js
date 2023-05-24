@@ -23,7 +23,8 @@ import {
   DialogContent,
   Typography,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Paper
 } from '@material-ui/core';
 import { AppsOutlined, SearchOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
@@ -46,6 +47,12 @@ import SearchIcon from '@material-ui/icons/Search';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import { Loader } from '@googlemaps/js-api-loader';
 import { adminLevelsApi } from '../../apis/metaData';
+import { geocoordinatesPredictApi } from '../../apis/predict';
+import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import InputBase from '@material-ui/core/InputBase';
+import CloseIcon from '@material-ui/icons/Close';
+import Slide from '@material-ui/core/Slide';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,11 +95,19 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '12px'
   },
   searchFormDialog: {
-    padding: 16
+    padding: theme.spacing(4)
+  },
+  searchDialogTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
+  },
+  searchDialogSubtitle: {
+    marginBottom: theme.spacing(2)
   },
   searchInputField: {
     width: '100%',
-    marginBottom: 16
+    marginBottom: theme.spacing(3)
   },
   location: {
     backgroundColor: 'lightblue',
@@ -109,6 +124,24 @@ const useStyles = makeStyles((theme) => ({
   },
   adminSpacing: {
     paddingLeft: 5
+  },
+  input: {
+    marginLeft: theme.spacing(1),
+    flex: 1
+  },
+  iconButton: {
+    padding: 10
+  },
+  divider: {
+    height: 28,
+    margin: 4
+  },
+  searchRoot: {
+    padding: '0px 4px',
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: theme.spacing(1)
   }
 }));
 
@@ -118,6 +151,10 @@ function withMyHook(Component) {
     return <Component {...props} classes={classes} />;
   };
 }
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const Topbar = (props) => {
   const dispatch = useDispatch();
@@ -179,6 +216,9 @@ const Topbar = (props) => {
   const [locationLongitude, setLocationLongitude] = useState('');
   const [locationId, setLocationId] = useState('');
   const [adminLevels, setAdminLevels] = useState(null);
+  const [airQualityDetails, setAirQualityDetails] = useState(null);
+  const [noAirQualityMsg, setNoAirQualityMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -284,6 +324,8 @@ const Topbar = (props) => {
   const getPlaceGeometry = (placeId) => {
     setLocationId(placeId);
     setPredictionResults([]);
+    setAirQualityDetails(null);
+    setNoAirQualityMsg('');
     const placesService = new window.google.maps.places.PlacesService(
       document.createElement('div')
     );
@@ -297,14 +339,34 @@ const Topbar = (props) => {
     });
   };
 
-  // useEffect(() => {
-  //   if (locationLatitude && locationLongitude) {
-  //     const params = {
+  useEffect(() => {
+    if (locationLatitude && locationLongitude) {
+      const params = {
+        latitude: locationLatitude,
+        longitude: locationLongitude
+      };
+      setLoading(true);
 
-  //     }
-  //     adminLevelsApi()
-  //   }
-  // }, [locationLatitude, locationLongitude]);
+      geocoordinatesPredictApi(params)
+        .then((res) => {
+          if (!isEmpty(res.data)) {
+            setAirQualityDetails(res.data);
+          } else {
+            setNoAirQualityMsg('No air quality data for this location');
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          dispatch(
+            updateMainAlert({
+              message: 'Servor error. Please try again later.',
+              show: true,
+              severity: 'error'
+            })
+          );
+        });
+    }
+  }, [locationLatitude, locationLongitude]);
 
   useEffect(() => {
     if (locationId !== '') {
@@ -316,17 +378,16 @@ const Topbar = (props) => {
           setAdminLevels(res.data.administrative_levels);
         })
         .catch((err) => {
-          console.log(err);
+          dispatch(
+            updateMainAlert({
+              message: 'Servor error. Please try again later.',
+              show: true,
+              severity: 'error'
+            })
+          );
         });
     }
   }, [locationId]);
-
-  /**
-   * call places api to return lat and lng(done)
-   * call metadata api which takes in the place id and returns the admin levels to show to the user (done)
-   * call the air quality search api which takes in the lat and lng and returns the air quality data
-   * Test within Kira airqloud
-   */
 
   const onSearch = () => {
     setOpenSearchDialog(true);
@@ -334,9 +395,11 @@ const Topbar = (props) => {
 
   const hideSearchDialog = () => {
     setOpenSearchDialog(false);
+    setLoading(false);
   };
 
   const handleSearchChange = async (e) => {
+    setAdminLevels(null);
     const { value } = e.target;
 
     if (value.length > 0) {
@@ -658,33 +721,39 @@ const Topbar = (props) => {
       <TransitionAlerts />
 
       <Dialog
+        fullScreen
+        TransitionComponent={Transition}
         open={openSearchDialog}
         onClose={hideSearchDialog}
         aria-labelledby="form-dialog-title"
         className={classes.searchFormDialog}
       >
-        <Typography className={classes.searchFormDialog}>
-          <h5>Find the air quality of any place</h5>
-          <p>Search for any location below</p>
-        </Typography>
-
         <DialogContent>
-          <div style={{ minWidth: 500 }}>
-            <TextField
-              type="search"
-              variant="outlined"
-              className={classes.searchInputField}
-              placeholder="Try Kira Town, Uganda"
-              id="outlined-search"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                )
-              }}
-              onChange={handleSearchChange}
-            />
+          <Typography>
+            <h5 className={classes.searchDialogTitle}>Find the air quality of any place</h5>
+          </Typography>
+          <p className={classes.searchDialogSubtitle}>Search for any location below</p>
+          <div>
+            <Paper component="form" className={classes.searchRoot}>
+              <IconButton className={classes.iconButton} aria-label="menu">
+                <MenuIcon />
+              </IconButton>
+              <InputBase
+                className={classes.input}
+                placeholder="Try Kira Town, Uganda"
+                inputProps={{ 'aria-label': 'try kira town, uganda' }}
+                onChange={handleSearchChange}
+              />
+              <IconButton
+                type="submit"
+                color="primary"
+                className={classes.iconButton}
+                aria-label="search"
+              >
+                <SearchIcon />
+              </IconButton>
+            </Paper>
+
             {predictionResults && searchValue && (
               <ul className={classes.locationList}>
                 {predictionResults.map((location) => (
@@ -706,23 +775,40 @@ const Topbar = (props) => {
               </ul>
             )}
 
-            {adminLevels && (
-              <div style={{ display: 'flex' }}>
-                <span className={classes.adminSpacing}>
-                  {adminLevels.country} {adminLevels.country && '/'}
-                </span>
-                <span className={classes.adminSpacing}>
-                  {adminLevels.administrative_level_1} {adminLevels.administrative_level_1 && '/'}
-                </span>
-                <span className={classes.adminSpacing}>
-                  {adminLevels.locality} {adminLevels.locality && '/'}
-                </span>
-                <span className={classes.adminSpacing}>
-                  {adminLevels.sub_locality} {adminLevels.sub_locality && '/'}
-                </span>
-                <span className={classes.adminSpacing}>{adminLevels.route}</span>
-              </div>
-            )}
+            <div>
+              {adminLevels && (
+                <div style={{ display: 'flex' }}>
+                  <span className={classes.adminSpacing}>
+                    {adminLevels.country} {adminLevels.country && '/'}
+                  </span>
+                  <span className={classes.adminSpacing}>
+                    {adminLevels.administrative_level_1} {adminLevels.administrative_level_1 && '/'}
+                  </span>
+                  <span className={classes.adminSpacing}>
+                    {adminLevels.locality} {adminLevels.locality && '/'}
+                  </span>
+                  <span className={classes.adminSpacing}>
+                    {adminLevels.sub_locality} {adminLevels.sub_locality && '/'}
+                  </span>
+                  <span className={classes.adminSpacing}>{adminLevels.route}</span>
+                </div>
+              )}
+
+              {loading && <LargeCircularLoader loading={loading} height={'30px'} />}
+
+              {airQualityDetails && (
+                <div>
+                  <h2>
+                    {airQualityDetails.pm2_5.toFixed(2)} µg/m<sup>3</sup>
+                  </h2>
+                  <p>Last updated on {formatDateString(airQualityDetails.timestamp)}</p>
+                </div>
+              )}
+
+              {noAirQualityMsg && (
+                <p style={{ color: 'lightgrey', textAlign: 'center' }}>{noAirQualityMsg}</p>
+              )}
+            </div>
           </div>
         </DialogContent>
         <DialogActions>
