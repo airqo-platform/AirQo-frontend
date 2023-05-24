@@ -45,6 +45,7 @@ import { addActiveNetwork } from 'redux/AccessControl/operations';
 import SearchIcon from '@material-ui/icons/Search';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import { Loader } from '@googlemaps/js-api-loader';
+import { adminLevelsApi } from '../../apis/metaData';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -105,6 +106,9 @@ const useStyles = makeStyles((theme) => ({
   },
   locationList: {
     listStyle: 'none'
+  },
+  adminSpacing: {
+    paddingLeft: 5
   }
 }));
 
@@ -173,6 +177,8 @@ const Topbar = (props) => {
   const [predictionResults, setPredictionResults] = useState([]);
   const [locationLatitude, setLocationLatitude] = useState('');
   const [locationLongitude, setLocationLongitude] = useState('');
+  const [locationId, setLocationId] = useState('');
+  const [adminLevels, setAdminLevels] = useState(null);
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -276,6 +282,8 @@ const Topbar = (props) => {
   }, [searchValue]);
 
   const getPlaceGeometry = (placeId) => {
+    setLocationId(placeId);
+    setPredictionResults([]);
     const placesService = new window.google.maps.places.PlacesService(
       document.createElement('div')
     );
@@ -289,14 +297,33 @@ const Topbar = (props) => {
     });
   };
 
+  // useEffect(() => {
+  //   if (locationLatitude && locationLongitude) {
+  //     const params = {
+
+  //     }
+  //     adminLevelsApi()
+  //   }
+  // }, [locationLatitude, locationLongitude]);
+
   useEffect(() => {
-    if (locationLatitude && locationLongitude) {
+    if (locationId !== '') {
+      const params = {
+        place_id: locationId
+      };
+      adminLevelsApi(params)
+        .then((res) => {
+          setAdminLevels(res.data.administrative_levels);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
-  }, [locationLatitude, locationLongitude]);
+  }, [locationId]);
 
   /**
    * call places api to return lat and lng(done)
-   * call metadata api which takes in the place id and returns the admin levels to show to the user
+   * call metadata api which takes in the place id and returns the admin levels to show to the user (done)
    * call the air quality search api which takes in the lat and lng and returns the air quality data
    * Test within Kira airqloud
    */
@@ -677,6 +704,24 @@ const Topbar = (props) => {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {adminLevels && (
+              <div style={{ display: 'flex' }}>
+                <span className={classes.adminSpacing}>
+                  {adminLevels.country} {adminLevels.country && '/'}
+                </span>
+                <span className={classes.adminSpacing}>
+                  {adminLevels.administrative_level_1} {adminLevels.administrative_level_1 && '/'}
+                </span>
+                <span className={classes.adminSpacing}>
+                  {adminLevels.locality} {adminLevels.locality && '/'}
+                </span>
+                <span className={classes.adminSpacing}>
+                  {adminLevels.sub_locality} {adminLevels.sub_locality && '/'}
+                </span>
+                <span className={classes.adminSpacing}>{adminLevels.route}</span>
+              </div>
             )}
           </div>
         </DialogContent>
