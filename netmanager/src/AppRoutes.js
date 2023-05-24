@@ -45,8 +45,6 @@ const AppRoutes = () => {
   return (
     <Router>
       <div className="App">
-        <Route exact path="/" component={Landing} />
-
         <Suspense fallback={<LargeCircularLoader loading={true} />}>
           <Route exact path="/login/:tenant?" component={Login} />
           <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
@@ -60,6 +58,7 @@ const AppRoutes = () => {
             </MainLayout>
           }
         >
+          <Route exact path="/" component={Landing} />
           <PrivateRoute
             exact
             path="/dashboard"
@@ -96,20 +95,23 @@ const AppRoutes = () => {
           <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
           <PrivateRoute exact path="/airqlouds" component={AirQloudRegistry} layout={MainLayout} />
           <PrivateRoute exact path="/airqlouds/:id" component={AirQloudView} layout={MainLayout} />
+
+          <Switch>
+            <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
+            <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
+            <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
+            <PrivateRoute
+              component={PermissionDenied}
+              exact
+              layout={MinimalLayout}
+              path="/permission-denied"
+            />
+            <Route exact layout={MinimalLayout} path="*">
+              <NotFoundView />
+            </Route>
+          </Switch>
         </Suspense>
 
-        <Switch>
-          <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
-          <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
-          <PrivateRoute extact path="/registry" component={Devices} layout={MainLayout} />
-          <PrivateRoute component={NotFoundView} exact layout={MinimalLayout} path="/not-found" />
-          <PrivateRoute
-            component={PermissionDenied}
-            exact
-            layout={MinimalLayout}
-            path="/permission-denied"
-          />
-        </Switch>
         <div
           style={{
             position: 'fixed',
