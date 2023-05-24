@@ -16,17 +16,17 @@ const Dropdown = ({ device }) => {
   const [menu, setMenu] = useState([
     {
       id: 1,
-      name: 'View',
+      name: 'View Reports',
       link: '#',
     },
     {
       id: 2,
-      name: 'Edit',
+      name: 'Edit device',
       link: '#',
     },
     {
       id: 3,
-      name: 'Delete',
+      name: 'Delete batch',
       link: '#',
     },
   ]);
