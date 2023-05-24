@@ -46,7 +46,30 @@ const Reports = () => {
   let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
   const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
 
-  let graphColors = generateRandomColors(batchList && batchList.length);
+  let graphColors = [
+    '#0e3b5d',
+    '#0099ff',
+    '#0874c5',
+    '#06acff',
+    '#461602',
+    '#93380d',
+    '#792e0e',
+    '#b54808',
+    '#022c1c',
+    '#075e3a',
+    '#074d32',
+    '#057747',
+    '#350e44',
+    '#66297f',
+    '#562669',
+    '#7a309b',
+    '#431d05',
+    '#86480d',
+    '#723b11',
+    '#a35b05',
+    '#fdc412',
+    '#ffec89',
+  ];
 
   useEffect(() => {
     if (!device || !batchId) return;
