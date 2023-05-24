@@ -20,7 +20,7 @@
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",
-    "flowbite": "^1.6.3",
+    "flowbite": "^1.6.5",
     "flowbite-react": "^0.3.8",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.40",

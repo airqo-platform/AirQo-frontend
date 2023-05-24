@@ -4,9 +4,11 @@ module.exports = {
   content: [
     './src/pages/**/*.{js,jsx}',
     './src/common/components/**/*.{js,jsx}',
-    './node_modules/react-tailwindcss-datepicker/dist/index.esm.js',
     './node_modules/flowbite-react/**/*.js',
+    './node_modules/react-tailwindcss-datepicker/dist/index.esm.js',
   ],
+
+  plugins: [require('flowbite/plugin'), require('@tailwindcss/typography'), require('daisyui')],
   theme: {
     extend: {
       fontFamily: {
@@ -23,8 +25,8 @@ module.exports = {
         'baby-blue': '#F5F8FF',
         'link-blue': '#2E72D2',
         'form-input': '#F3F4F7',
-        'check-box':'#D1D2D2',
-        'radio-input':'#1C1B1F',
+        'check-box': '#D1D2D2',
+        'radio-input': '#1C1B1F',
         blue: {
           200: '#2DB6F11A',
           300: '#1C7398',
@@ -86,7 +88,6 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui'), require('flowbite/plugin')],
   daisyui: {
     themes: [
       // Platform themes extending default daisy themes (can be further adapted)
