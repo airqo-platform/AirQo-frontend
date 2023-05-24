@@ -142,6 +142,12 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     width: '100%',
     marginBottom: theme.spacing(1)
+  },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500]
   }
 }));
 
@@ -728,6 +734,11 @@ const Topbar = (props) => {
         aria-labelledby="form-dialog-title"
         className={classes.searchFormDialog}
       >
+        <DialogTitle>
+          <IconButton aria-label="close" className={classes.closeButton} onClick={hideSearchDialog}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Typography>
             <h5 className={classes.searchDialogTitle}>Find the air quality of any place</h5>
@@ -811,13 +822,6 @@ const Topbar = (props) => {
             </div>
           </div>
         </DialogContent>
-        <DialogActions>
-          <div>
-            <Button color="primary" variant="outlined" onClick={hideSearchDialog}>
-              Close
-            </Button>
-          </div>
-        </DialogActions>
       </Dialog>
     </AppBar>
   );
