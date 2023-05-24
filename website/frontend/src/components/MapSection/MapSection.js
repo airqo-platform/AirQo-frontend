@@ -22,7 +22,7 @@ const MapSection = () => {
               across African cities
             </p>
           </span>
-          <Link to={NETMANAGER_URL} target='_blank'>
+          <Link to={`${NETMANAGER_URL}/map`} target='_blank'>
             <span id="second-pill">
               <p>View Map {'-->'}</p>
             </span>
