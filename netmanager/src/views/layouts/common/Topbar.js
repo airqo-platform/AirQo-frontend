@@ -329,9 +329,7 @@ const Topbar = (props) => {
     setPredictionResults([]);
     setAirQualityDetails(null);
     setNoAirQualityMsg('');
-    const placesService = new window.google.maps.places.PlacesService(
-      document.createElement('div')
-    );
+    const placesService = new window.google.maps.places.PlacesService();
     placesService.getDetails({ placeId }, (place, status) => {
       if (status != window.google.maps.places.PlacesServiceStatus.OK || !place) {
         alert(status);
