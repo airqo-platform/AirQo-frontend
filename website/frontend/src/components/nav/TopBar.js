@@ -66,7 +66,7 @@ const TopBar = () => {
               <h3 className="title">Solutions</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/african-cities/uganda" style={{ textDecoration: 'none' }}>
+                  <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
                     <h3>For African Cities</h3>
                     <h4>Air quality analytics for city councils</h4>
                   </Link>
