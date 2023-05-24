@@ -1,7 +1,30 @@
 import React from 'react';
+import { ErrorBoundary } from '../../ErrorBoundary';
+import OrgToolbar from './components/toolbar';
+import { makeStyles } from '@material-ui/core';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(3)
+  },
+  content: {
+    marginTop: theme.spacing(2)
+  }
+}));
 
 const Organisation = () => {
-  return <div>I am</div>;
+  const classes = useStyles();
+
+  return (
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <OrgToolbar />
+        <div className={classes.content}>
+          {/* <RolesTable loading={loading} roles={roles} permissions={permissions && permissions} /> */}
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
 };
 
 export default Organisation;
