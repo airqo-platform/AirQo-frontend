@@ -16,8 +16,7 @@ const EventDetails = () => {
 
   const eventData = useSelector((state) => state.eventsData.events);
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
-  const loader = useSelector((state) => state.eventsData.loading);
-  const [loading, setLoading] = useState(loader);
+  const loading = useSelector((state) => state.eventsData.loading);
 
   useEffect(() => {
     if (isEmpty(eventData)) {
