@@ -4,7 +4,6 @@ import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 import engineerImg from  'src/assets/img/highlights/engineer.png'
 import GoogleOrgIcon from  'src/assets/img/highlights/google-org.svg'
 import { Link } from 'react-router-dom';
-import { showExploreDataModal } from 'reduxStore/ExploreData/operations';
 
 const MainSection = () => (
     <div className="highlight-main">
