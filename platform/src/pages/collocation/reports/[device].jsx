@@ -73,6 +73,8 @@ const Reports = () => {
         ([deviceName, deviceData]) => ({
           deviceName,
           pm2_5_mean: deviceData.pm2_5_mean || 0,
+          s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
+          s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
           battery_voltage_mean: deviceData.battery_voltage_mean,
           internal_humidity_mean: deviceData.internal_humidity_mean || 0,
           internal_temperature_max: deviceData.internal_temperature_max || 0,
@@ -154,6 +156,8 @@ const Reports = () => {
             headers={[
               'Monitor Name',
               'Mean Sensor Reading',
+              'Sensor 01',
+              'Sensor 02',
               'Voltage',
               'Internal Humidity',
               'Internal Temperature',

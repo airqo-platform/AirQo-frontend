@@ -60,9 +60,9 @@ const CustomTable = ({
   }
 
   return (
-    <div className='overflow-x-auto'>
+    <div className='overflow-x-scroll md:overflow-x-hidden'>
       <table
-        className='table-fixed border-collapse text-xs text-left w-full my-6'
+        className='table-fixed border-collapse text-xs text-left w-auto md:w-full my-6'
         data-testid={dataTestId}
       >
         <colgroup>
@@ -73,11 +73,12 @@ const CustomTable = ({
         </colgroup>
         <thead>
           <tr className='border-b border-b-slate-300 text-black-900'>
-            <th className='px-4 py-2'></th>
+            <th scope='col' className='px-4 pb-2'></th>
             {headers.map((header, columnIndex) => (
               <th
+                scope='col'
                 key={header}
-                className={`px-4 py-2 font-normal ${
+                className={`px-4 pb-2 font-normal ${
                   sortColumn === columnIndex &&
                   'bg-[#0000000F] flex justify-between items-center cursor-pointer'
                 }`}
