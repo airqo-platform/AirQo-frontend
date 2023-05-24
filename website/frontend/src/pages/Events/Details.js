@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
-import ParticipatingCities from 'assets/img/Events/participation.png';
-import Programme1 from 'assets/img/Events/programme-1.png';
-import Programme2 from 'assets/img/Events/programme-2.png';
 import { useInitScrollTop } from 'utils/customHooks';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,8 +18,6 @@ const EventDetails = () => {
   const eventDetails = eventData.filter((event) => event.unique_title === uniqueTitle) || {};
   const loader = useSelector((state) => state.eventsData.loading);
   const [loading, setLoading] = useState(loader);
-
-
 
   useEffect(() => {
     if (isEmpty(eventData)) {
@@ -185,18 +180,14 @@ const EventDetails = () => {
                         <h4>Access the Event Resources here:</h4>
                         {event.resource.map((res) => (
                           <div key={res.id}>
-                            {res.link ? (
-                              <a href={res.link} target="_blank" rel="noreferrer noopener" download>
+                            {res.link || res.resource ? (
+                              <a href={res.link || res.resource} target="_blank" rel="noreferrer noopener" download>
                                 {res.title}
                               </a>
                             ) : (
-                              <a
-                                href={res.resource}
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                download>
+                              <span className='no-link'>
                                 {res.title}
-                              </a>
+                              </span>
                             )}
                           </div>
                         ))}
