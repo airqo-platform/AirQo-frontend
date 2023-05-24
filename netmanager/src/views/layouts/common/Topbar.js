@@ -16,9 +16,16 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
-  Button
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+  Typography,
+  TextField,
+  InputAdornment
 } from '@material-ui/core';
-import { AppsOutlined } from '@material-ui/icons';
+import { AppsOutlined, SearchOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
 import HelpIcon from '@material-ui/icons/Help';
@@ -35,6 +42,9 @@ import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
 import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
+import SearchIcon from '@material-ui/icons/Search';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
+import { Loader } from '@googlemaps/js-api-loader';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -75,6 +85,26 @@ const useStyles = makeStyles((theme) => ({
     width: ' 100%',
     maxWidth: '240px',
     marginBottom: '12px'
+  },
+  searchFormDialog: {
+    padding: 16
+  },
+  searchInputField: {
+    width: '100%',
+    marginBottom: 16
+  },
+  location: {
+    backgroundColor: 'lightblue',
+    height: 35,
+    width: 35,
+    borderRadius: '100%',
+    marginRight: 10,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  locationList: {
+    listStyle: 'none'
   }
 }));
 
@@ -137,6 +167,12 @@ const Topbar = (props) => {
   const [appsAnchorEl, setAppsAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const openAppsMenu = Boolean(appsAnchorEl);
+
+  const [openSearchDialog, setOpenSearchDialog] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [predictionResults, setPredictionResults] = useState([]);
+  const [locationLatitude, setLocationLatitude] = useState('');
+  const [locationLongitude, setLocationLongitude] = useState('');
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -211,6 +247,75 @@ const Topbar = (props) => {
       dispatch(addActiveNetwork(activeNetwork));
     }
   }, []);
+
+  useEffect(() => {
+    const loader = new Loader({
+      apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY,
+      version: 'weekly', // You can specify a specific version or 'weekly' for the latest version
+      libraries: ['places'] // Add any additional libraries you need
+    });
+
+    loader.load().then(() => {
+      // GOOGLE PLACES API loaded to get place predictions given a search string
+      const autocompleteService = new window.google.maps.places.AutocompleteService();
+      autocompleteService.getPlacePredictions({ input: searchValue }, (predictions, status) => {
+        if (status != window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+          alert(status);
+          return;
+        }
+
+        const results = [];
+
+        predictions.forEach((prediction) => {
+          results.push(prediction);
+        });
+
+        setPredictionResults(results);
+      });
+    });
+  }, [searchValue]);
+
+  const getPlaceGeometry = (placeId) => {
+    const placesService = new window.google.maps.places.PlacesService(
+      document.createElement('div')
+    );
+    placesService.getDetails({ placeId }, (place, status) => {
+      if (status != window.google.maps.places.PlacesServiceStatus.OK || !place) {
+        alert(status);
+        return;
+      }
+      setLocationLatitude(place.geometry.location.lat());
+      setLocationLongitude(place.geometry.location.lng());
+    });
+  };
+
+  useEffect(() => {
+    if (locationLatitude && locationLongitude) {
+    }
+  }, [locationLatitude, locationLongitude]);
+
+  /**
+   * call places api to return lat and lng(done)
+   * call metadata api which takes in the place id and returns the admin levels to show to the user
+   * call the air quality search api which takes in the lat and lng and returns the air quality data
+   * Test within Kira airqloud
+   */
+
+  const onSearch = () => {
+    setOpenSearchDialog(true);
+  };
+
+  const hideSearchDialog = () => {
+    setOpenSearchDialog(false);
+  };
+
+  const handleSearchChange = async (e) => {
+    const { value } = e.target;
+
+    if (value.length > 0) {
+      setSearchValue(value);
+    }
+  };
 
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
@@ -291,6 +396,9 @@ const Topbar = (props) => {
         <div className={classes.flexGrow} />
         {!isEmpty(user) ? (
           <div className={classes.barRightStyles}>
+            <IconButton onClick={onSearch} style={{ color: 'white' }}>
+              <SearchIcon />
+            </IconButton>
             <IconButton
               className={classes.signOutButton}
               color="inherit"
@@ -521,6 +629,65 @@ const Topbar = (props) => {
         )}
       </Toolbar>
       <TransitionAlerts />
+
+      <Dialog
+        open={openSearchDialog}
+        onClose={hideSearchDialog}
+        aria-labelledby="form-dialog-title"
+        className={classes.searchFormDialog}
+      >
+        <Typography className={classes.searchFormDialog}>
+          <h5>Find the air quality of any place</h5>
+          <p>Search for any location below</p>
+        </Typography>
+
+        <DialogContent>
+          <div style={{ minWidth: 500 }}>
+            <TextField
+              type="search"
+              variant="outlined"
+              className={classes.searchInputField}
+              placeholder="Try Kira Town, Uganda"
+              id="outlined-search"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+              onChange={handleSearchChange}
+            />
+            {predictionResults && searchValue && (
+              <ul className={classes.locationList}>
+                {predictionResults.map((location) => (
+                  <li
+                    onClick={() => getPlaceGeometry(location.place_id)}
+                    style={{
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div className={classes.location}>
+                      <LocationOnIcon fontSize="20" color="blue" />
+                    </div>
+                    <div style={{ width: '70%' }}>{location.description}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <div>
+            <Button color="primary" variant="outlined" onClick={hideSearchDialog}>
+              Close
+            </Button>
+          </div>
+        </DialogActions>
+      </Dialog>
     </AppBar>
   );
 };
