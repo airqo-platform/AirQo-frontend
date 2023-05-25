@@ -4,72 +4,108 @@ import Box from '@/components/Collocation/Report/box';
 import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown';
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import { useEffect, useState } from 'react';
-import {
-  useGetCollocationResultsMutation,
-  useGetIntraSensorCorrelationMutation,
-} from '@/lib/store/services/collocation';
 import CorrelationBarChart from '@/components/Collocation/Report/Charts/CorrelationBarChart';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
+import {
+  useGetCollocationResultsQuery,
+  useGetCollocationStatisticsQuery,
+} from '@/lib/store/services/collocation';
+import CustomTable from '@/components/Table';
+import { isEmpty } from 'underscore';
+import ContentBox from '@/components/Layout/content_box';
+import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
+import { generateRandomColors } from '@/core/utils/colors';
 
 const Reports = () => {
   const router = useRouter();
-  const { device, startDate, endDate } = router.query;
+  const { device, batchId } = router.query;
 
-  const [intraSensorCorrelationResults, setIntraSensorCorrelationResults] = useState(null);
-  const [collocationResults, setCollocationResults] = useState(null);
+  const [deviceStatisticsInput, setDeviceStatisticsInput] = useState(null);
+  const [skipCollocationResults, setSkipCollocationResults] = useState(true);
+  const [skipStatistics, setSkipStatistics] = useState(true);
+  const [input, setInput] = useState(null);
+  const [deviceStatistics, setDeviceStatistics] = useState([]);
+  const [pmConcentration, setPmConcentration] = useState('2.5');
+  const [batchList, setBatchList] = useState([]);
 
-  const [
-    getIntraSensorCorrelationData,
-    {
-      isLoading: isIntraSensorCorrelationDataLoading,
-      isSuccess: isIntraSensorCorrelationDataSuccess,
-      isError: isFetchIntraSensorCorrelationDataError,
-    },
-  ] = useGetIntraSensorCorrelationMutation();
-  const [
-    getCollocationResultsData,
-    {
-      isLoading: isCollocationResultsLoading,
-      isSuccess: isCollocationResultsSuccess,
-      isError: isFetchCollocationResultsError,
-    },
-  ] = useGetCollocationResultsMutation();
+  const {
+    data: collocationResultsData,
+    isLoading: isCollocationResultsLoading,
+    isSuccess: isCollocationResultsSuccess,
+    isError: isFetchCollocationResultsError,
+  } = useGetCollocationResultsQuery(input, { skip: skipCollocationResults });
+  const {
+    data: collocationStatistics,
+    isLoading: collocationStatisticsLoading,
+    isSuccess: collocationStatisticsSuccess,
+    isError: collocationStatisticsError,
+  } = useGetCollocationStatisticsQuery(deviceStatisticsInput, { skip: skipStatistics });
+
+  let collocationStatisticsList = collocationStatistics ? collocationStatistics.data : [];
+  const collocationResultsList = collocationResultsData ? collocationResultsData.data : null;
+
+  let graphColors = [
+    '#0e3b5d',
+    '#0099ff',
+    '#0874c5',
+    '#06acff',
+    '#461602',
+    '#93380d',
+    '#792e0e',
+    '#b54808',
+    '#022c1c',
+    '#075e3a',
+    '#074d32',
+    '#057747',
+    '#350e44',
+    '#66297f',
+    '#562669',
+    '#7a309b',
+    '#431d05',
+    '#86480d',
+    '#723b11',
+    '#a35b05',
+    '#fdc412',
+    '#ffec89',
+  ];
 
   useEffect(() => {
-    const fetchIntraSensorCorrelationData = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getIntraSensorCorrelationData({
-        devices: [device],
-        startDate,
-        endDate,
-      });
+    if (!device || !batchId) return;
+    setInput({
+      batchId,
+    });
+    setDeviceStatisticsInput({
+      batchId,
+    });
 
-      if (!response.error) {
-        setIntraSensorCorrelationResults(response.data.data);
-      }
-    };
-    fetchIntraSensorCorrelationData();
-  }, [getIntraSensorCorrelationData, device, startDate, endDate]);
+    setSkipCollocationResults(false);
+    setSkipStatistics(false);
+  }, [device, batchId]);
 
   useEffect(() => {
-    const fetchCollocationResults = async () => {
-      if (!device || !startDate || !endDate) return;
-      const response = await getCollocationResultsData({
-        devices: device,
-        startDate,
-        endDate,
-      });
-
-      if (!response.error) {
-        setCollocationResults(response.data.data);
-      }
-    };
-    fetchCollocationResults();
-  }, [getCollocationResultsData, device, startDate, endDate]);
-
-  const [pmConcentration, setPmConcentration] = useState('10');
+    if (!isEmpty(collocationStatisticsList)) {
+      const batchList = Object.entries(collocationStatisticsList).map(
+        ([deviceName, deviceData]) => ({
+          device_name: deviceName,
+        }),
+      );
+      setBatchList(batchList);
+      const transformedStatistics = Object.entries(collocationStatisticsList).map(
+        ([deviceName, deviceData]) => ({
+          deviceName,
+          pm2_5_mean: deviceData.pm2_5_mean || 0,
+          s1_pm2_5_mean: deviceData.s1_pm2_5_mean || 0,
+          s2_pm2_5_mean: deviceData.s2_pm2_5_mean || 0,
+          battery_voltage_mean: deviceData.battery_voltage_mean,
+          internal_humidity_mean: deviceData.internal_humidity_mean || 0,
+          internal_temperature_max: deviceData.internal_temperature_max || 0,
+        }),
+      );
+      setDeviceStatistics(transformedStatistics);
+    }
+  }, [collocationStatisticsList]);
 
   const togglePmConcentrationChange = (newValue) => {
     setPmConcentration(newValue);
@@ -77,19 +113,31 @@ const Reports = () => {
 
   return (
     <Layout>
-      <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Reports'} />
-      {(isFetchCollocationResultsError || isFetchIntraSensorCorrelationDataError) && (
+      <NavigationBreadCrumb navTitle={'Reports'} />
+      {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
           type={'error'}
           timeout={20000}
-          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
+          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience"
         />
       )}
-      <div className='grid grid-cols-1 md:grid-cols-2'>
+      <div className='grid grid-cols-1'>
         <Box
           title='Intra Sensor Correlation'
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
+          dropdownItems={[
+            {
+              type: 'path',
+              label: 'View monitor report',
+              link: `/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
+            },
+            {
+              type: 'event',
+              label: 'Change chart type',
+              event: () => {
+                console.log('I am an event');
+              },
+            },
+          ]}
         >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
@@ -106,50 +154,44 @@ const Reports = () => {
               </div>
             ) : (
               <>
-                {collocationResults && (
-                  <CorrelationChart
-                    data={collocationResults}
-                    pmConcentration={pmConcentration}
-                    height={'210'}
-                    isInterSensorCorrelation
-                  />
-                )}
-              </>
-            )}
-          </div>
-        </Box>
-        <Box
-          title='Intra Sensor Correlation'
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
-          contentLink={`/collocation/reports/monitor_report/${device}?device=${device}&startDate=${startDate}&endDate=${endDate}`}
-        >
-          <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
-            <PollutantDropdown
-              pollutantValue={pmConcentration}
-              handlePollutantChange={togglePmConcentrationChange}
-              options={[
-                { value: '2.5', label: 'pm2_5' },
-                { value: '10', label: 'pm10' },
-              ]}
-            />
-            {isIntraSensorCorrelationDataLoading ? (
-              <div className='mb-6'>
-                <Spinner />
-              </div>
-            ) : (
-              <>
-                {intraSensorCorrelationResults && (
-                  <CorrelationBarChart
-                    height={'210'}
-                    pmConcentration={pmConcentration}
-                    data={intraSensorCorrelationResults}
-                  />
+                {isCollocationResultsSuccess && (
+                  <>
+                    <CorrelationChart
+                      data={collocationResultsList}
+                      pmConcentration={pmConcentration}
+                      height={'210'}
+                      isInterSensorCorrelation
+                      graphColors={graphColors}
+                    />
+                    {batchList && graphColors && (
+                      <CustomLegend isDeviceLegend devices={batchList} graphColors={graphColors} />
+                    )}
+                  </>
                 )}
               </>
             )}
           </div>
         </Box>
       </div>
+      <ContentBox>
+        {(collocationStatisticsSuccess || collocationStatisticsLoading) && (
+          <CustomTable
+            headers={[
+              'Monitor Name',
+              'Mean Sensor Reading',
+              'Sensor 01',
+              'Sensor 02',
+              'Voltage',
+              'Internal Humidity',
+              'Internal Temperature',
+            ]}
+            sortableColumns={['Sensor 01']}
+            data={deviceStatistics}
+            isLoading={collocationStatisticsLoading}
+            type='device statistics'
+          />
+        )}
+      </ContentBox>
     </Layout>
   );
 };
