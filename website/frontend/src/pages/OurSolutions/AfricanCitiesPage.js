@@ -1,24 +1,9 @@
 import React, { useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import Page from '../Page';
-import Uganda from 'icons/africanCities/countries/uganda.svg';
-import Kenya from 'icons/africanCities/countries/kenya.svg';
-import Nigeria from 'icons/africanCities/countries/nigeria.svg';
-import Ghana from 'icons/africanCities/countries/ghana.svg';
-import Burundi from 'icons/africanCities/countries/burundi.svg';
-import Senegal from 'icons/africanCities/countries/senegal.svg';
-import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import { useInitScrollTop } from 'utils/customHooks';
 import BackgroundShape from 'icons/africanCities/background-shape.svg';
 import ArrowRight from 'icons/research/arrow-right.svg';
-import NEMACollabImg1 from 'assets/img/community/AirQo_Web_IMG05.jpg';
-import NEMACollabImg2 from 'assets/img/community/AirQo_Web_IMG03.jpg';
-import NEMACollabImg3 from 'assets/img/community/AirQo_Web_IMG04.jpg';
-import KCCACollabImg1 from 'assets/img/community/AirQo_Web_IMG09.jpg';
-import KCCACollabImg2 from 'assets/img/community/AirQo_Web_IMG08.jpg';
-import KCCACollabImg3 from 'assets/img/community/AirQo_Web_IMG07.jpg';
-import UnepKenyaImg1 from 'assets/img/AfricanCities/UnepKenya.jpg';
-import UnepKenyaImg2 from 'assets/img/AfricanCities/UnepKenya-2.jpg';
 import SEO from 'utils/seo';
 
 const CityHeroSection = () => {
@@ -194,8 +179,8 @@ export const ContentUganda = () => {
           <div>
             <p>Collaboration with NEMA</p>
             <p>
-              National Environment Management Authority (NEMA) is the lead government agency mandated to coordinate, supervise, and regulate
-              environmental management in Uganda.
+              National Environment Management Authority (NEMA) is the lead government agency
+              mandated to coordinate, supervise, and regulate environmental management in Uganda.
             </p>
             <span className="number-list">
               <span>1</span>
@@ -284,7 +269,8 @@ const PublicationsSection = () => {
               href="https://www.sciencedirect.com/science/article/pii/S2352340922007065?via%3Dihub"
               target="_blank"
               download
-              rel="noopener noreferrer">
+              rel="noopener noreferrer"
+            >
               <span>
                 Read More <ArrowRight />
               </span>
@@ -297,25 +283,25 @@ const PublicationsSection = () => {
 };
 
 const AfricanCitiesPage = () => {
-    useInitScrollTop();
-    return (
-      <Page>
-        <div className="AfricanCitiesPage">
-          <SEO
-            title="Our Solutions"
-            siteTitle="For African Cities"
-            description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
-          />
-          <CityHeroSection />
-          <CityBanner />
-          <div className="cities-divider" />
-          <AfricanCitiesApproach />
-          <CityTabs />
-          <Outlet />
-          <PublicationsSection />
-        </div>
-      </Page>
-    );
-}
+  useInitScrollTop();
+  return (
+    <Page>
+      <div className="AfricanCitiesPage">
+        <SEO
+          title="Our Solutions"
+          siteTitle="For African Cities"
+          description="Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities."
+        />
+        <CityHeroSection />
+        <CityBanner />
+        <div className="cities-divider" />
+        <AfricanCitiesApproach />
+        <CityTabs />
+        <Outlet />
+        <PublicationsSection />
+      </div>
+    </Page>
+  );
+};
 
 export default AfricanCitiesPage;
