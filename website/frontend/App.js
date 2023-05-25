@@ -19,12 +19,13 @@ const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
 const CareerDetailPage = React.lazy(() => import('src/pages/CareerDetailPage'));
 const PublicationsPage = React.lazy(() => import('src/pages/Publications/Publications'));
 const EventsPage = React.lazy(() => import('src/pages/Events'));
-const EventsDetailsPage = React.lazy(()=>import('src/pages/Events/Details'));
+const EventsDetailsPage = React.lazy(() => import('src/pages/Events/Details'));
 const MonitorPage = React.lazy(() => import('src/pages/OurProducts/MonitorPage'));
 const AnalyticsPage = React.lazy(() => import('src/pages/OurProducts/AnalyticsPage'));
-const MobileAppPage = React.lazy(()=> import('src/pages/OurProducts/MobileAppPage'));
+const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
+import { ContentUganda, ContentKenya } from 'src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
@@ -40,7 +41,10 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/solutions/research" element={<ResearchPage />} />
             <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}/>
+            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
+              <Route path="uganda" element={<ContentUganda />} />
+              <Route path="kenya" element={<ContentKenya />} />
+            </Route>
             <Route path="/careers" element={<CareerPage />} />
             <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
             <Route path="/about-us" element={<AboutUsPage />} />

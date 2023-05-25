@@ -80,14 +80,10 @@ class Config {
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
-  static int get locationChangeRadiusInMetres => 100;
-
   static String get playStoreUrl =>
       'https://play.google.com/store/apps/details?id=com.airqo.app';
 
   static int get searchRadius => 4;
-
-  static int get surroundingsSitesMaxRadiusInKilometres => 20;
 
   static int get shareLinkMaxLength => 56;
 
@@ -117,7 +113,7 @@ class Config {
       locationSettings = AppleSettings(
         accuracy: LocationAccuracy.high,
         activityType: ActivityType.fitness,
-        distanceFilter: Config.locationChangeRadiusInMetres,
+        distanceFilter: 100,
         showBackgroundLocationIndicator: false,
       );
     } else {
