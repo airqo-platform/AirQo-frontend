@@ -461,10 +461,16 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     Container(
                       height: 16,
                       width: 16,
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: appColors.appColorBlue.withOpacity(0.24),
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
+                        ),
+                        border: const Border.fromBorderSide(
+                          BorderSide(
+                            color: Colors.transparent,
+                          ),
                         ),
                       ),
                       child: const Icon(

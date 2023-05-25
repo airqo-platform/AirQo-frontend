@@ -13,7 +13,6 @@ export 'profile.dart';
 export 'search_history.dart';
 export 'search_result.dart';
 export 'widget_data.dart';
-export 'insight.dart';
 export 'health_tip.dart';
 export 'phone_auth_model.dart';
-export 'current_location.dart';
+export 'insight.dart';
