@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,6 +17,33 @@ import 'hive_service.dart';
 import 'rest_api.dart';
 
 class LocationService {
+  static Future<void> locationRequestDialog(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
+    await Permission.location.request().then((status) {
+      switch (status) {
+        case PermissionStatus.granted:
+        case PermissionStatus.limited:
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(location: true)));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+        case PermissionStatus.restricted:
+        case PermissionStatus.denied:
+        case PermissionStatus.permanentlyDenied:
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(location: false)));
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
+          break;
+      }
+    });
+  }
+
   static Future<bool> locationGranted() async {
     final permissionStatus = await Permission.location.status;
 
@@ -29,28 +60,50 @@ class LocationService {
     return true;
   }
 
-  static Future<void> requestLocation() async {
-    await Geolocator.requestPermission().then((value) async {
-      switch (value) {
-        case LocationPermission.deniedForever:
-        case LocationPermission.denied:
-          await Geolocator.openAppSettings();
-          break;
-        case LocationPermission.unableToDetermine:
-          break;
-        case LocationPermission.whileInUse:
-        case LocationPermission.always:
-          bool isLocationOn = await Geolocator.isLocationServiceEnabled();
-          if (!isLocationOn) {
-            await Geolocator.openLocationSettings();
-          }
-          break;
-      }
-    });
-  }
+  static Future<void> requestLocation(
+    BuildContext context,
+    bool allow,
+  ) async {
+    Profile profile = context.read<ProfileBloc>().state;
+    late String enableLocationMessage;
+    late String disableLocationMessage;
 
-  static Future<void> denyLocation() async {
-    await Geolocator.openAppSettings();
+    if (Platform.isAndroid) {
+      enableLocationMessage =
+          'To turn on location, go to\nApp Info > Permissions > Location > Allow only while using the app';
+      disableLocationMessage =
+          'To turn off location, go to\nApp Info > Permissions > Location > Deny';
+    } else {
+      enableLocationMessage =
+          'To turn on location, go to\nSettings > AirQo > Location > Always';
+      disableLocationMessage =
+          'To turn off location, go to\nSettings > AirQo > Location > Never';
+    }
+
+    if (allow) {
+      await Permission.location.status.then((status) async {
+        switch (status) {
+          case PermissionStatus.permanentlyDenied:
+            await openPhoneSettings(context, enableLocationMessage);
+            break;
+          case PermissionStatus.denied:
+          case PermissionStatus.restricted:
+          case PermissionStatus.limited:
+            await locationRequestDialog(context);
+            break;
+          case PermissionStatus.granted:
+            context
+                .read<ProfileBloc>()
+                .add(UpdateProfile(profile.copyWith(location: true)));
+            context
+                .read<NearbyLocationBloc>()
+                .add(const SearchLocationAirQuality());
+            break;
+        }
+      });
+    } else {
+      await openPhoneSettings(context, disableLocationMessage);
+    }
   }
 
   static Future<Map<String, String?>> getAddress({
@@ -96,14 +149,12 @@ class LocationService {
     return address;
   }
 
-  static Future<CurrentLocation?> getCurrentLocation() async {
+  static Future<Position?> getCurrentPosition() async {
     try {
-      Position position = await Geolocator.getCurrentPosition(
+      return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
       ).timeout(const Duration(seconds: 60));
-
-      return CurrentLocation.fromPosition(position);
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
@@ -120,40 +171,57 @@ class LocationService {
     return null;
   }
 
+  static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
+    Position? position,
+  }) async {
+    position ??= await getCurrentPosition();
+
+    if (position == null) {
+      return [];
+    }
+
+    List<AirQualityReading> airQualityReadings = await getNearestSites(
+      position.latitude,
+      position.longitude,
+    );
+    airQualityReadings.sortByDistanceToReferenceSite();
+
+    Map<String, String?> address = await getAddress(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+
+    if (airQualityReadings.isNotEmpty) {
+      airQualityReadings.first = airQualityReadings.first.copyWith(
+        name: address["name"].isValidLocationName()
+            ? address["name"]
+            : airQualityReadings.first.name,
+        location: address["location"].isValidLocationName()
+            ? address["location"]
+            : airQualityReadings.first.location,
+      );
+    }
+
+    return airQualityReadings;
+  }
+
   static Future<AirQualityReading?> getNearestSite(
     double latitude,
     double longitude,
   ) async {
-    List<AirQualityReading> nearestSites =
-        HiveService().getAirQualityReadings();
-
-    nearestSites = nearestSites.map((element) {
-      final double distanceInMeters = metersToKmDouble(
-        Geolocator.distanceBetween(
-          element.latitude,
-          element.longitude,
-          latitude,
-          longitude,
-        ),
-      );
-
-      return element.copyWith(distanceToReferenceSite: distanceInMeters);
-    }).toList();
-
-    nearestSites = nearestSites
-        .where((element) =>
-            element.distanceToReferenceSite < Config.searchRadius.toDouble())
-        .toList();
-
+    List<AirQualityReading> nearestSites = await getNearestSites(
+      latitude,
+      longitude,
+    );
     nearestSites.sortByDistanceToReferenceSite();
 
     return nearestSites.isEmpty ? null : nearestSites.first;
   }
 
-  static Future<List<AirQualityReading>> getSurroundingSites({
-    required double latitude,
-    required double longitude,
-  }) async {
+  static Future<List<AirQualityReading>> getNearestSites(
+    double latitude,
+    double longitude,
+  ) async {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
@@ -170,14 +238,10 @@ class LocationService {
       return element.copyWith(distanceToReferenceSite: distanceInMeters);
     }).toList();
 
-    airQualityReadings = airQualityReadings
+    return airQualityReadings
         .where((element) =>
             element.distanceToReferenceSite < Config.searchRadius.toDouble())
         .toList();
-
-    airQualityReadings.sortByDistanceToReferenceSite();
-
-    return airQualityReadings;
   }
 
   static Future<AirQualityReading?> getSearchAirQuality(

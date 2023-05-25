@@ -41,15 +41,17 @@ const ImpactNumbers = () => {
   ];
   return (
     <div className="impact-numbers">
-      {numbers.map((number, key) => (
-        <div key={key} className="impact-card">
-          <div>{number.icon}</div>
-          <div>
-            <p className='numbers'>{number.numbers}</p>
-            <p className='category'>{number.name}</p>
+      <div className="impact-numbers-wrapper">
+        {numbers.map((number, key) => (
+          <div key={key} className="impact-card">
+            <div>{number.icon}</div>
+            <div>
+              <p className="numbers">{number.numbers}</p>
+              <p className="category">{number.name}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
