@@ -1,6 +1,5 @@
 import React from 'react';
 import { AccessTimeOutlined, CalendarMonth } from '@mui/icons-material';
-import BannerImg from 'assets/img/Events/banner.jpg';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 

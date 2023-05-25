@@ -2,12 +2,16 @@
 @import "lib/variables";
 
 .impact-numbers{
-    padding:60px 20px 0 40px;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-evenly;
-    align-items: center;
-    background-color: #fff;
+    display: grid;
+    grid-template-columns: $gridColumn;
+    margin: 60px 0 20px 0;
+    &-wrapper{
+        grid-column: 2 / 3;
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-evenly;
+        align-items: center;
+    }
     .impact-card{
         display: flex;
         flex-direction: column;

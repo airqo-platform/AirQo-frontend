@@ -378,13 +378,15 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const site = useSiteDetailsData();
+  const site = useSiteDetailsData(params.id);
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
+    if (isEmpty(site)) {
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+      }
     }
   }, []);
 

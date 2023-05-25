@@ -6,7 +6,7 @@ import { isEmpty } from 'underscore';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadSitesData, loadSitesSummary, clearSiteDetails } from 'redux/SiteRegistry/operations';
+import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from '../../containers/ConfirmDialog';
@@ -138,7 +138,6 @@ const SitesTable = () => {
           ]}
           onRowClick={(event, data) => {
             event.preventDefault();
-            clearSiteDetails();
             history.push(`/sites/${data._id}`);
           }}
           data={sites}

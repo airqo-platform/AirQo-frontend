@@ -77,7 +77,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
   ) async {
     Kya kya = event.kya.copyWith();
 
-    if (kya.isPendingCompletion() || kya.isComplete()) return;
+    if (kya.isPartiallyComplete() || kya.isComplete()) return;
     int index = event.visibleCardIndex;
 
     if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
