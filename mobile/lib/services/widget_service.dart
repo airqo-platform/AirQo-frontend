@@ -11,13 +11,12 @@ import '../models/widget_data.dart';
 
 class WidgetService {
   static Future<void> sendData() async {
-    final currentLocation = await LocationService.getCurrentLocation();
+    final currentLocation = await LocationService.getCurrentPosition();
     var airQualityReading = currentLocation != null
         ? await LocationService.getNearestSite(
                 currentLocation.latitude, currentLocation.longitude) ??
-            (await LocationService.getSurroundingSites(
-                    latitude: currentLocation.latitude,
-                    longitude: currentLocation.longitude))
+            (await LocationService.getNearestSites(
+                    currentLocation.latitude, currentLocation.longitude))
                 .firstOrNull
         : (BlocProvider.of<FavouritePlaceBloc>(context as BuildContext)
                 .state
