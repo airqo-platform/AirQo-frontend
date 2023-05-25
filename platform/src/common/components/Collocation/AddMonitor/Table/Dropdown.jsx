@@ -7,12 +7,12 @@ import Menu from '@/icons/Actions/menuIcon.svg';
 import { initFlowbite } from 'flowbite';
 
 const Dropdown = ({ device }) => {
-  // initialize flowbite js
+  // initializing flowbite js
   useEffect(() => {
     initFlowbite();
   }, []);
 
-  // dropdown menu
+  // dropdown menu list
   const [menu, setMenu] = useState([
     {
       id: 1,
