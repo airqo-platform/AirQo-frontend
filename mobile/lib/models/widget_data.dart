@@ -37,10 +37,10 @@ class WidgetData {
   // final String forecastTime3;
 
   factory WidgetData.initializeFromAirQualityReading(
-    AirQualityReading airQualityReading,
+    AirQualityReading? airQualityReading,
   ) {
     return WidgetData(
-      location: airQualityReading.name,
+      location: airQualityReading!.name,
       circularLocation: airQualityReading.name,
       airQuality: Pollutant.pm2_5.airQuality(airQualityReading.pm2_5),
       date: DateFormat('dd/MM, h:mm a').format(DateTime.now().toLocal()),
