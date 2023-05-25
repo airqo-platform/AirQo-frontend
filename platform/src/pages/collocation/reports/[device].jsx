@@ -118,7 +118,7 @@ const Reports = () => {
         <Toast
           type={'error'}
           timeout={20000}
-          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience."
+          message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience"
         />
       )}
       <div className='grid grid-cols-1'>
