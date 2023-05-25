@@ -12,33 +12,24 @@ import '../models/widget_data.dart';
 class WidgetService {
   static Future<void> sendData() async {
     final currentLocation = await LocationService.getCurrentPosition();
+    final favouritePlaces =
+        BlocProvider.of<FavouritePlaceBloc>(context as BuildContext).state;
+    final firstFavouritePlace =
+        favouritePlaces.isNotEmpty ? favouritePlaces.first : null;
     var airQualityReading = currentLocation != null
         ? await LocationService.getNearestSite(
                 currentLocation.latitude, currentLocation.longitude) ??
             (await LocationService.getNearestSites(
                     currentLocation.latitude, currentLocation.longitude))
                 .firstOrNull
-        : (BlocProvider.of<FavouritePlaceBloc>(context as BuildContext)
-                .state
-                .isNotEmpty
+        : (favouritePlaces.isNotEmpty
             ? await LocationService.getNearestSite(
-                    BlocProvider.of<FavouritePlaceBloc>(
-                      context as BuildContext,
-                    ).state.first.latitude,
-                    BlocProvider.of<FavouritePlaceBloc>(context as BuildContext)
-                        .state
-                        .first
-                        .longitude) ??
-                (await LocationService.getSurroundingSites(
-                        latitude: BlocProvider.of<FavouritePlaceBloc>(
-                          context as BuildContext,
-                        ).state.first.latitude,
-                        longitude: BlocProvider.of<FavouritePlaceBloc>(
-                                context as BuildContext)
-                            .state
-                            .first
-                            .longitude))
-                    .firstOrNull
+                    firstFavouritePlace!.latitude,
+                    firstFavouritePlace.longitude) ??
+                ((await LocationService.getNearestSites(
+                        firstFavouritePlace.latitude,
+                        firstFavouritePlace.longitude))
+                    .firstOrNull)
             : null);
 
     final airQualityReadings = HiveService().getNearbyAirQualityReadings();
