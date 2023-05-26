@@ -20,7 +20,8 @@ import {
   DialogTitle,
   DialogContent,
   Typography,
-  Paper
+  Paper,
+  Snackbar
 } from '@material-ui/core';
 import { AppsOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
@@ -37,17 +38,20 @@ import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
 import { isEmpty } from 'underscore';
-import { getUserDetails } from 'redux/Join/actions';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
 import SearchIcon from '@material-ui/icons/Search';
 import { adminLevelsApi } from '../../apis/metaData';
 import { geocoordinatesPredictApi } from '../../apis/predict';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
-import { updateMainAlert } from 'redux/MainAlert/operations';
 import CloseIcon from '@material-ui/icons/Close';
+import InfoIcon from '@material-ui/icons/Info';
 import Slide from '@material-ui/core/Slide';
 import moment from 'moment';
 import AQSearch from '../../components/AirqualitySearch';
+import { AirQuality } from '../../components/AirqualitySearch/aq_data';
+import { Alert } from '@material-ui/lab';
+import { clearLatAndLng } from 'redux/GooglePlaces/operations';
+import 'assets/css/aq_search.css';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -198,11 +202,17 @@ const Topbar = (props) => {
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
   const [locationLatitude, setLocationLatitude] = useState('');
   const [locationLongitude, setLocationLongitude] = useState('');
-  const [locationId, setLocationId] = useState('');
   const [adminLevels, setAdminLevels] = useState(null);
   const [airQualityDetails, setAirQualityDetails] = useState(null);
   const [noAirQualityMsg, setNoAirQualityMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const handleErrorToastClose = () => {
+    setAlertMessage('');
+    setShowAlert(false);
+  };
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -304,13 +314,9 @@ const Topbar = (props) => {
           setLoading(false);
         })
         .catch((err) => {
-          dispatch(
-            updateMainAlert({
-              message: 'Servor error. Please try again later.',
-              show: true,
-              severity: 'error'
-            })
-          );
+          setAlertMessage('Server error. Please try again later.');
+          setShowAlert(true);
+          setLoading(false);
         });
     }
   }, [locationLatitude, locationLongitude]);
@@ -325,13 +331,9 @@ const Topbar = (props) => {
           setAdminLevels(res.data.administrative_levels);
         })
         .catch((err) => {
-          dispatch(
-            updateMainAlert({
-              message: 'Servor error. Please try again later.',
-              show: true,
-              severity: 'error'
-            })
-          );
+          setAlertMessage('Server error. Please try again later.');
+          setShowAlert(true);
+          setLoading(false);
         });
     }
   }, [geometry]);
@@ -343,6 +345,71 @@ const Topbar = (props) => {
   const hideSearchDialog = () => {
     setOpenSearchDialog(false);
     setLoading(false);
+    setAirQualityDetails(null);
+    setNoAirQualityMsg('');
+    setAdminLevels(null);
+    dispatch(clearLatAndLng());
+  };
+
+  const renderAirQualityDetails = (aq_reading) => {
+    for (const condition in AirQuality) {
+      const { minimumValue, maximumValue, description, svgEmoji, color } = AirQuality[condition];
+      if (aq_reading >= minimumValue && aq_reading <= maximumValue) {
+        return (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: color,
+                borderRadius: '8px',
+                padding: '10px',
+                flexWrap: 'wrap'
+              }}
+            >
+              <div>
+                <h4
+                  style={{
+                    textTransform: 'capitalize',
+                    margin: 0,
+                    padding: 0,
+                    paddingBottom: '5px'
+                  }}
+                >
+                  {condition}
+                </h4>
+                <h2 style={{ margin: 0, padding: 0 }}>
+                  {airQualityDetails.pm2_5.toFixed(2)}{' '}
+                  <span style={{ fontSize: '18px' }}>
+                    µg/m<sup>3</sup>
+                  </span>
+                </h2>
+              </div>
+              <img src={svgEmoji} className="emojiImg" />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                marginTop: '12px'
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <InfoIcon color="#145DFF" />
+                <p style={{ marginLeft: '10px' }}>{description}</p>
+              </span>
+              <p>
+                Last updated on{' '}
+                {moment(airQualityDetails.timestamp).format('MMMM Do YYYY, h:mm:ss a')}
+              </p>
+            </div>
+          </div>
+        );
+      }
+    }
   };
 
   return (
@@ -672,6 +739,18 @@ const Topbar = (props) => {
           </IconButton>
         </DialogTitle>
         <DialogContent>
+          {/* Error toast */}
+          <Snackbar
+            open={showAlert}
+            autoHideDuration={6000}
+            onClose={handleErrorToastClose}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert onClose={handleErrorToastClose} severity="error">
+              {alertMessage}
+            </Alert>
+          </Snackbar>
+
           <Typography>
             <h5 className={classes.searchDialogTitle}>Find the air quality of any place</h5>
           </Typography>
@@ -700,20 +779,7 @@ const Topbar = (props) => {
 
               {loading && <LargeCircularLoader loading={loading} height={'30px'} />}
 
-              {airQualityDetails && (
-                <div>
-                  <h2>
-                    {airQualityDetails.pm2_5.toFixed(2)}{' '}
-                    <span style={{ fontSize: '18px' }}>
-                      µg/m<sup>3</sup>
-                    </span>
-                  </h2>
-                  <p>
-                    Last updated on{' '}
-                    {moment(airQualityDetails.timestamp).format('MMMM Do YYYY, h:mm:ss a')}
-                  </p>
-                </div>
-              )}
+              {airQualityDetails && renderAirQualityDetails(airQualityDetails.pm2_5)}
 
               {noAirQualityMsg && (
                 <p style={{ color: 'lightgrey', textAlign: 'center', marginTop: '40px' }}>
