@@ -139,13 +139,7 @@ const allUserManagementPages = [
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-    collapse: true,
-    nested: true,
-    nestItems: [
-      { title: 'Assigned Users', href: '/admin/users/assigned-users' },
-      { title: 'Available Users', href: '/admin/users/available-users' }
-    ]
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
     title: 'Candidates',

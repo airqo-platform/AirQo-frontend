@@ -30,7 +30,6 @@ const ResetPassword = lazy(() => import('./views/pages/ResetPassword'));
 const Login = lazy(() => import('./views/pages/SignUp/Login'));
 const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
-const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUserList'));
 const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
@@ -66,18 +65,7 @@ const AppRoutes = () => {
             component={AnalyticsDashboard}
             layout={MainLayout}
           />
-          <PrivateRoute
-            exact
-            path="/admin/users/assigned-users"
-            component={UserList}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/admin/users/available-users"
-            component={AvailableUserList}
-            layout={MainLayout}
-          />
+          <PrivateRoute exact path="/admin/users" component={UserList} layout={MainLayout} />
           <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
           <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
           <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
