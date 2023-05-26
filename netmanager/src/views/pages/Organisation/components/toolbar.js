@@ -9,6 +9,10 @@ import {
 } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import { createNetworkApi } from '../../../apis/accessControl';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,40 +59,41 @@ const useStyles = makeStyles((theme) => ({
 
 const CATEGORIES = [
   {
-    label: 'Research',
-    value: 'research'
+    value: 'business',
+    label: 'Business'
   },
   {
-    label: 'Environment',
-    value: 'environment'
+    value: 'research',
+    label: 'Research'
   },
   {
-    label: 'Health',
-    value: 'health'
+    value: 'policy',
+    label: 'Policy'
   },
   {
-    label: 'Agriculture',
-    value: 'agriculture'
+    value: 'awareness',
+    label: 'Awareness'
   },
   {
-    label: 'Policy and Governance',
-    value: 'policy and governance'
+    value: 'school',
+    label: 'School'
   },
   {
-    label: 'Technology',
-    value: 'technology'
+    value: 'others',
+    label: 'Others'
   }
 ];
 
 const OrgToolbar = (props) => {
+  const dispatch = useDispatch();
   const classes = useStyles();
   const { className, ...rest } = props;
   const initialState = {
-    orgName: '',
     orgEmail: '',
     orgContact: '',
     website: '',
-    description: ''
+    description: '',
+    category: CATEGORIES[0].value
   };
   const [form, setState] = useState(initialState);
   const [open, setOpen] = useState(false);
@@ -120,15 +125,53 @@ const OrgToolbar = (props) => {
   const onSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    setOpen(false);
-
+    console.log(form);
+    const body = {
+      net_email: form.orgEmail,
+      net_phoneNumber: form.orgContact,
+      net_website: form.website,
+      net_description: form.description,
+      net_category: form.category
+    };
     // register organisation
+    createNetworkApi(body)
+      .then((res) => {
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            message:
+              "You've successfully registered a new organisation. You can now add users to your organisation and manage your own air quality network!",
+            show: true,
+            severity: 'success'
+          })
+        );
 
-    // update active network
+        // update active network
+        localStorage.setItem(
+          'activeNetwork',
+          JSON.stringify({
+            _id: res.created_network._id,
+            net_name: res.created_network.net_name
+          })
+        );
 
-    // refresh the page without reloading
-
-    // go to add new users page
+        // refresh the page without reloading
+        window.location.reload(false);
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            message: error.response && error.response.data && error.response.data.message,
+            show: true,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
+          })
+        );
+        handleClose();
+      });
+    setOpen(false);
   };
 
   useEffect(() => {
@@ -149,20 +192,6 @@ const OrgToolbar = (props) => {
               <div className={classes.modelWidth}>
                 <TextField
                   margin="dense"
-                  id="orgName"
-                  name="org_name"
-                  type="text"
-                  label="Organisation name"
-                  onChange={onChange}
-                  variant="outlined"
-                  value={form.orgName}
-                  fullWidth
-                  style={{ marginBottom: '30px' }}
-                  required
-                />
-
-                <TextField
-                  margin="dense"
                   id="orgEmail"
                   name="org_email"
                   type="email"
@@ -171,7 +200,7 @@ const OrgToolbar = (props) => {
                   variant="outlined"
                   value={form.orgEmail}
                   fullWidth
-                  style={{ marginBottom: '30px' }}
+                  style={{ marginBottom: '12px' }}
                   required
                 />
 
@@ -180,7 +209,7 @@ const OrgToolbar = (props) => {
                   select
                   fullWidth
                   label="Category"
-                  style={{ marginTop: '15px', marginBottom: '30px' }}
+                  style={{ marginTop: '15px', marginBottom: '12px' }}
                   onChange={onChange}
                   SelectProps={{
                     native: true,
@@ -210,7 +239,7 @@ const OrgToolbar = (props) => {
                   variant="outlined"
                   value={form.orgContact}
                   fullWidth
-                  style={{ marginBottom: '30px' }}
+                  style={{ marginBottom: '12px' }}
                   required
                 />
 
@@ -224,7 +253,7 @@ const OrgToolbar = (props) => {
                   value={form.website}
                   variant="outlined"
                   fullWidth
-                  style={{ marginBottom: '30px' }}
+                  style={{ marginBottom: '12px' }}
                   required
                 />
 
@@ -238,7 +267,7 @@ const OrgToolbar = (props) => {
                   value={form.description}
                   variant="outlined"
                   fullWidth
-                  style={{ marginBottom: '30px' }}
+                  style={{ marginBottom: '12px' }}
                   required
                 />
               </div>
