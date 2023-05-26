@@ -58,7 +58,7 @@ const TopBar = () => {
             <NavTab text="Products" onClick={() => handleClick('Products')} />
             <div
               className="dropdown"
-              id={width < 1024 ? (openItem === 'Products' ? 'products-dropdown' : '') : ''}>
+              id={width < 1024 ? (openItem === 'Products' ? 'solutions-dropdown' : '') : ''}>
               <h3 className="title">Products</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -114,7 +114,7 @@ const TopBar = () => {
             <NavTab text="About" onClick={() => handleClick('About')} />
             <div
               className="dropdown"
-              id={width < 1024 ? (openItem === 'About' ? 'about-dropdown' : '') : ''}>
+              id={width < 1024 ? (openItem === 'About' ? 'solutions-dropdown' : '') : ''}>
               <h3 className="title">About AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
