@@ -97,7 +97,7 @@ class LocationHistory extends Equatable {
   }
 
   @override
-  List<Object?> get props => [placeId];
+  List<Object?> get props => [name, location];
 }
 
 @JsonSerializable(explicitToJson: true)
