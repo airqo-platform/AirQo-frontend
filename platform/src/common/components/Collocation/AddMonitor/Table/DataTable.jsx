@@ -41,6 +41,25 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
     }
   };
 
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+      link: '#',
+    },
+    {
+      id: 2,
+      name: 'Edit device',
+      link: '#',
+    },
+    {
+      id: 3,
+      name: 'Delete batch',
+      link: '#',
+    },
+  ]);
+
   return (
     <table
       className='border-collapse text-xs text-left w-full mb-6'
@@ -95,7 +114,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
                 <td scope='row' className='w-[120px] px-4 py-3'>
-                  <Dropdown device={device.id} />
+                  <Dropdown menu={menu} device={device.id} />
                 </td>
               </tr>
             );

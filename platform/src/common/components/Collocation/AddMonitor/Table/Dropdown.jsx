@@ -6,30 +6,11 @@ import Menu from '@/icons/Actions/menuIcon.svg';
 // flowbite
 import { initFlowbite } from 'flowbite';
 
-const Dropdown = ({ device }) => {
+const Dropdown = ({ device, menu }) => {
   // initializing flowbite js
   useEffect(() => {
     initFlowbite();
   }, []);
-
-  // dropdown menu list
-  const [menu, setMenu] = useState([
-    {
-      id: 1,
-      name: 'View Reports',
-      link: '#',
-    },
-    {
-      id: 2,
-      name: 'Edit device',
-      link: '#',
-    },
-    {
-      id: 3,
-      name: 'Delete batch',
-      link: '#',
-    },
-  ]);
 
   return (
     <div className='Menu_dropdown'>
