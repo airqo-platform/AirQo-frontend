@@ -5,7 +5,7 @@ export const findAllMatchingDevices = (devices) => {
   const datePairs = new Map();
 
   for (const device of devices) {
-    const key = `${device.start_date}_${device.end_date}`;
+    const key = device.batch_id;
 
     if (!datePairs.has(key)) {
       datePairs.set(key, []);

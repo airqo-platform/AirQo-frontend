@@ -4,8 +4,9 @@ import SortByAlphaIcon from '@/icons/Actions/sort_by_alpha.svg';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import SearchBar from '../../../SearchBar';
 import Button from '../../../../Button';
-import DataTable from './DataTable';
+import CustomTable from '../../../../Table';
 import Box from '@/components/Collocation/Report/box';
+import { isEmpty } from 'underscore';
 
 const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +14,7 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
 
   useEffect(() => {
     const filterList =
-      dataCompletenessResults &&
+      !isEmpty(dataCompletenessResults) &&
       dataCompletenessResults.filter((row) =>
         Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
       );
@@ -60,8 +61,8 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) =>
       order === 'asc'
-        ? a.device_name.localeCompare(b.device_name)
-        : b.device_name.localeCompare(a.device_name),
+        ? a.deviceName.localeCompare(b.deviceName)
+        : b.deviceName.localeCompare(a.deviceName),
     );
     return sortedData;
   };
@@ -72,7 +73,6 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
         isBigTitle
         title='Data Completeness'
         subtitle='Detailed comparison of data between two sensors that are located within the same device. By comparing data from sensors to create a more accurate and reliable reading.'
-        contentLink='#'
       >
         <>
           <div className='flex items-center flex-wrap md:flex-nowrap w-full px-6'>
@@ -143,10 +143,20 @@ const DataCompletenessTable = ({ dataCompletenessResults, isLoading }) => {
             </span>
           </div>
           <div className='overflow-x-scroll md:overflow-x-hidden pt-3'>
-            <DataTable
-              filteredData={filteredData}
-              dataCompletenessResults={dataCompletenessResults}
+            <CustomTable
+              data={filteredData}
+              headers={[
+                'Montor name',
+                'Expected records',
+                'Completeness (%)',
+                'Missing (%)',
+                'Actual records',
+                'Started',
+                'Ended',
+              ]}
+              sortableColumns={[]}
               isLoading={isLoading}
+              type='data completeness'
             />
           </div>
         </>
