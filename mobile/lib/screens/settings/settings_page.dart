@@ -86,11 +86,10 @@ class _SettingsPageState extends State<SettingsPage>
                           trailing: CupertinoSwitch(
                             activeColor: CustomColors.appColorBlue,
                             onChanged: (bool value) async {
-                              if (value) {
-                                await LocationService.requestLocation();
-                              } else {
-                                await LocationService.denyLocation();
-                              }
+                              await LocationService.requestLocation(
+                                context,
+                                value,
+                              );
                             },
                             value: state.location,
                           ),

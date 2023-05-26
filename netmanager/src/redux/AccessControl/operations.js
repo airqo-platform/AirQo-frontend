@@ -1,5 +1,4 @@
 import {
-  getAvailableNetworkUsersListApi,
   getNetworkUsersListApi,
   getRolesApi,
   getRolesSummaryApi
@@ -7,8 +6,6 @@ import {
 import {
   LOAD_ALL_USER_ROLES_FAILURE,
   LOAD_ALL_USER_ROLES_SUCCESS,
-  LOAD_AVAILABLE_USERS_FAILURE,
-  LOAD_AVAILABLE_USERS_SUCCESS,
   LOAD_CURRENT_NETWORK_SUCCESS,
   LOAD_CURRENT_USER_NETWORKS_SUCCESS,
   LOAD_CURRENT_USER_ROLE_SUCCESS,
@@ -87,22 +84,6 @@ export const fetchNetworkUsers = (networkId) => async (dispatch) => {
     .catch((err) => {
       dispatch({
         type: LOAD_NETWORK_USERS_FAILURE,
-        payload: err
-      });
-    });
-};
-
-export const fetchAvailableNetworkUsers = (networkId) => async (dispatch) => {
-  return await getAvailableNetworkUsersListApi(networkId)
-    .then((resData) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_SUCCESS,
-        payload: resData.available_users
-      });
-    })
-    .catch((err) => {
-      dispatch({
-        type: LOAD_AVAILABLE_USERS_FAILURE,
         payload: err
       });
     });
