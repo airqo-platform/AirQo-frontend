@@ -136,16 +136,15 @@ const allMainPages = [
 
 const allUserManagementPages = [
   {
+    title: 'Organisation',
+    href: '/organisation',
+    icon: <BusinessIcon />
+  },
+  {
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
-  },
-  {
-    title: 'Candidates',
-    href: '/candidates',
-    icon: <SupervisedUserCircleIcon />,
-    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
     title: 'Roles',
@@ -154,14 +153,15 @@ const allUserManagementPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
   },
   {
+    title: 'Candidates',
+    href: '/candidates',
+    icon: <SupervisedUserCircleIcon />,
+    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
+  },
+  {
     title: 'Account',
     href: '/account',
     icon: <AccountBoxIcon />
-  },
-  {
-    title: 'Organisation',
-    href: '/organisation',
-    icon: <BusinessIcon />
   },
   {
     title: 'Settings',

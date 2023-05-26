@@ -19,9 +19,6 @@ const Organisation = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <OrgToolbar />
-        <div className={classes.content}>
-          {/* <RolesTable loading={loading} roles={roles} permissions={permissions && permissions} /> */}
-        </div>
       </div>
     </ErrorBoundary>
   );

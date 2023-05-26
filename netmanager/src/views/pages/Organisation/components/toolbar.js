@@ -1,14 +1,13 @@
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+  Card,
+  CardActions,
+  CardContent,
   TextField,
+  Typography,
   makeStyles
 } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { createNetworkApi } from '../../../apis/accessControl';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { updateMainAlert } from 'redux/MainAlert/operations';
@@ -53,7 +52,20 @@ const useStyles = makeStyles((theme) => ({
     width: 200
   },
   modelWidth: {
-    minWidth: 450
+    width: '100%',
+    maxWidth: 650,
+    margin: '0 auto',
+    padding: '18px 0'
+  },
+  formTitle: {
+    fontWeight: 600,
+    fontSize: '22px',
+    marginBottom: '5px'
+  },
+  formSubtitle: {
+    color: 'grey',
+    width: '70%',
+    margin: '3px auto'
   }
 }));
 
@@ -103,15 +115,6 @@ const OrgToolbar = (props) => {
     setState({ ...initialState });
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setState(initialState);
-  };
-
   const onChange = (e) => {
     e.preventDefault();
     const { id, value } = e.target;
@@ -125,7 +128,6 @@ const OrgToolbar = (props) => {
   const onSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log(form);
     const body = {
       net_email: form.orgEmail,
       net_phoneNumber: form.orgContact,
@@ -156,7 +158,9 @@ const OrgToolbar = (props) => {
         );
 
         // refresh the page without reloading
-        window.location.reload(false);
+        setTimeout(() => {
+          window.location.reload(false);
+        }, 5000);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -169,9 +173,7 @@ const OrgToolbar = (props) => {
             extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
-        handleClose();
       });
-    setOpen(false);
   };
 
   useEffect(() => {
@@ -179,119 +181,111 @@ const OrgToolbar = (props) => {
   }, []);
 
   return (
-    <div className={clsx(classes.root, className)}>
-      <div className={classes.row}>
-        <span className={classes.spacer} />
+    <Card aria-labelledby="form-dialog-title" className={classes.modelWidth}>
+      <Typography id="form-dialog-title" className={classes.formTitle}>
+        Register new organisation
+      </Typography>
+      <p className={classes.formSubtitle}>
+        Get access to customised tools to help you manage your own air quality network
+      </p>
+      <CardContent>
         <div>
-          <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
-            Add organisation
-          </Button>
-          <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Lets get started</DialogTitle>
-            <DialogContent>
-              <div className={classes.modelWidth}>
-                <TextField
-                  margin="dense"
-                  id="orgEmail"
-                  name="org_email"
-                  type="email"
-                  label="Organisation email"
-                  onChange={onChange}
-                  variant="outlined"
-                  value={form.orgEmail}
-                  fullWidth
-                  style={{ marginBottom: '12px' }}
-                  required
-                />
+          <TextField
+            margin="dense"
+            id="orgEmail"
+            name="org_email"
+            type="email"
+            label="Organisation email"
+            onChange={onChange}
+            variant="outlined"
+            value={form.orgEmail}
+            fullWidth
+            style={{ marginBottom: '12px' }}
+            required
+          />
 
-                <TextField
-                  id="category"
-                  select
-                  fullWidth
-                  label="Category"
-                  style={{ marginTop: '15px', marginBottom: '12px' }}
-                  onChange={onChange}
-                  SelectProps={{
-                    native: true,
-                    style: { width: '100%', height: '50px' },
-                    MenuProps: {
-                      className: classes.menu
-                    }
-                  }}
-                  variant="outlined"
-                  isMulti
-                >
-                  {CATEGORIES &&
-                    CATEGORIES.map((option, index) => (
-                      <option key={index} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                </TextField>
+          <TextField
+            id="category"
+            select
+            fullWidth
+            label="Category"
+            style={{ marginTop: '15px', marginBottom: '12px' }}
+            onChange={onChange}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' },
+              MenuProps: {
+                className: classes.menu
+              }
+            }}
+            variant="outlined"
+            isMulti
+          >
+            {CATEGORIES &&
+              CATEGORIES.map((option, index) => (
+                <option key={index} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+          </TextField>
 
-                <TextField
-                  margin="dense"
-                  id="orgContact"
-                  name="org_contact"
-                  type="text"
-                  label="Organisation contact"
-                  onChange={onChange}
-                  variant="outlined"
-                  value={form.orgContact}
-                  fullWidth
-                  style={{ marginBottom: '12px' }}
-                  required
-                />
+          <TextField
+            margin="dense"
+            id="orgContact"
+            name="org_contact"
+            type="text"
+            label="Organisation contact"
+            onChange={onChange}
+            variant="outlined"
+            value={form.orgContact}
+            fullWidth
+            style={{ marginBottom: '12px' }}
+            required
+          />
 
-                <TextField
-                  margin="dense"
-                  id="website"
-                  label="Website"
-                  name="website"
-                  type="text"
-                  onChange={onChange}
-                  value={form.website}
-                  variant="outlined"
-                  fullWidth
-                  style={{ marginBottom: '12px' }}
-                  required
-                />
+          <TextField
+            margin="dense"
+            id="website"
+            label="Website"
+            name="website"
+            type="text"
+            onChange={onChange}
+            value={form.website}
+            variant="outlined"
+            fullWidth
+            style={{ marginBottom: '12px' }}
+            required
+          />
 
-                <TextField
-                  margin="dense"
-                  id="description"
-                  label="Tell us something about your organisation"
-                  name="description"
-                  type="text"
-                  onChange={onChange}
-                  value={form.description}
-                  variant="outlined"
-                  fullWidth
-                  style={{ marginBottom: '12px' }}
-                  required
-                />
-              </div>
-            </DialogContent>
-
-            <DialogActions>
-              <div>
-                <Button onClick={handleClose} color="primary" variant="outlined">
-                  Cancel
-                </Button>
-                <Button
-                  style={{ margin: '0 15px' }}
-                  onClick={onSubmit}
-                  color="primary"
-                  variant="contained"
-                >
-                  Submit
-                </Button>
-              </div>
-            </DialogActions>
-          </Dialog>
+          <TextField
+            margin="dense"
+            id="description"
+            label="Tell us something about your organisation"
+            name="description"
+            type="text"
+            onChange={onChange}
+            value={form.description}
+            variant="outlined"
+            fullWidth
+            style={{ marginBottom: '12px' }}
+            required
+          />
         </div>
-      </div>
-    </div>
+      </CardContent>
+
+      <CardActions>
+        <div style={{ width: '100%' }}>
+          <Button
+            style={{ margin: '0 15px', width: '250px' }}
+            onClick={onSubmit}
+            color="primary"
+            variant="contained"
+          >
+            Submit
+          </Button>
+        </div>
+      </CardActions>
+    </Card>
   );
 };
 
