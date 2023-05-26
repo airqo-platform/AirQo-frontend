@@ -22,7 +22,7 @@ import {
   Typography,
   Paper
 } from '@material-ui/core';
-import { AppsOutlined, SearchOutlined } from '@material-ui/icons';
+import { AppsOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
 import HelpIcon from '@material-ui/icons/Help';
@@ -40,16 +40,14 @@ import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
 import SearchIcon from '@material-ui/icons/Search';
-import LocationOnIcon from '@material-ui/icons/LocationOn';
-import { Loader } from '@googlemaps/js-api-loader';
 import { adminLevelsApi } from '../../apis/metaData';
 import { geocoordinatesPredictApi } from '../../apis/predict';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import InputBase from '@material-ui/core/InputBase';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import moment from 'moment';
+import AQSearch from '../../components/AirqualitySearch';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -101,23 +99,6 @@ const useStyles = makeStyles((theme) => ({
   },
   searchDialogSubtitle: {
     marginBottom: theme.spacing(2)
-  },
-  searchInputField: {
-    width: '100%',
-    marginBottom: theme.spacing(3)
-  },
-  location: {
-    backgroundColor: 'lightblue',
-    height: 35,
-    width: 35,
-    borderRadius: '100%',
-    marginRight: 10,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  locationList: {
-    listStyle: 'none'
   },
   adminSpacing: {
     paddingLeft: 5
@@ -212,9 +193,9 @@ const Topbar = (props) => {
   const open = Boolean(anchorEl);
   const openAppsMenu = Boolean(appsAnchorEl);
 
+  const geometry = useSelector((state) => state.googlePlaces.geometry);
+
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
-  const [predictionResults, setPredictionResults] = useState([]);
   const [locationLatitude, setLocationLatitude] = useState('');
   const [locationLongitude, setLocationLongitude] = useState('');
   const [locationId, setLocationId] = useState('');
@@ -298,50 +279,14 @@ const Topbar = (props) => {
   }, []);
 
   useEffect(() => {
-    const loader = new Loader({
-      apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY,
-      version: 'weekly', // You can specify a specific version or 'weekly' for the latest version
-      libraries: ['places'] // Add any additional libraries you need
-    });
-
-    loader.load().then(() => {
-      // GOOGLE PLACES API loaded to get place predictions given a search string
-      const autocompleteService = new window.google.maps.places.AutocompleteService();
-      autocompleteService.getPlacePredictions({ input: searchValue }, (predictions, status) => {
-        if (status != window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
-          alert(status);
-          return;
-        }
-
-        const results = [];
-
-        predictions.forEach((prediction) => {
-          results.push(prediction);
-        });
-
-        setPredictionResults(results);
-      });
-    });
-  }, [searchValue]);
-
-  const getPlaceGeometry = (placeId) => {
-    setLocationId(placeId);
-    setPredictionResults([]);
-    setAirQualityDetails(null);
-    setNoAirQualityMsg('');
-    const placesService = new window.google.maps.places.PlacesService();
-    placesService.getDetails({ placeId }, (place, status) => {
-      if (status != window.google.maps.places.PlacesServiceStatus.OK || !place) {
-        alert(status);
-        return;
-      }
-      setLocationLatitude(place.geometry.location.lat());
-      setLocationLongitude(place.geometry.location.lng());
-    });
-  };
+    if (!isEmpty(geometry)) {
+      setLocationLatitude(geometry.lat);
+      setLocationLongitude(geometry.lng);
+    }
+  }, [geometry]);
 
   useEffect(() => {
-    if (locationLatitude && locationLongitude) {
+    if (locationLatitude !== '' && locationLongitude !== '') {
       const params = {
         latitude: locationLatitude,
         longitude: locationLongitude
@@ -353,6 +298,7 @@ const Topbar = (props) => {
           if (!isEmpty(res.data)) {
             setAirQualityDetails(res.data);
           } else {
+            setAirQualityDetails(null);
             setNoAirQualityMsg('No air quality data for this location');
           }
           setLoading(false);
@@ -370,9 +316,9 @@ const Topbar = (props) => {
   }, [locationLatitude, locationLongitude]);
 
   useEffect(() => {
-    if (locationId !== '') {
+    if (!isEmpty(geometry)) {
       const params = {
-        place_id: locationId
+        place_id: geometry.place_id
       };
       adminLevelsApi(params)
         .then((res) => {
@@ -388,7 +334,7 @@ const Topbar = (props) => {
           );
         });
     }
-  }, [locationId]);
+  }, [geometry]);
 
   const onSearch = () => {
     setOpenSearchDialog(true);
@@ -397,18 +343,6 @@ const Topbar = (props) => {
   const hideSearchDialog = () => {
     setOpenSearchDialog(false);
     setLoading(false);
-  };
-
-  const handleSearchChange = async (e) => {
-    setAdminLevels(null);
-    setAirQualityDetails(null);
-    setNoAirQualityMsg('');
-
-    const { value } = e.target;
-
-    if (value.length > 0) {
-      setSearchValue(value);
-    }
   };
 
   return (
@@ -743,50 +677,11 @@ const Topbar = (props) => {
           </Typography>
           <p className={classes.searchDialogSubtitle}>Search for any location below</p>
           <div>
-            <Paper component="form" className={classes.searchRoot}>
-              <IconButton className={classes.iconButton} aria-label="menu">
-                <MenuIcon />
-              </IconButton>
-              <InputBase
-                className={classes.input}
-                placeholder="Try Kira Town, Uganda"
-                inputProps={{ 'aria-label': 'try kira town, uganda' }}
-                onChange={handleSearchChange}
-              />
-              <IconButton
-                type="submit"
-                color="primary"
-                className={classes.iconButton}
-                aria-label="search"
-              >
-                <SearchIcon />
-              </IconButton>
-            </Paper>
-
-            {predictionResults && searchValue && (
-              <ul className={classes.locationList}>
-                {predictionResults.map((location) => (
-                  <li
-                    onClick={() => getPlaceGeometry(location.place_id)}
-                    style={{
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <div className={classes.location}>
-                      <LocationOnIcon fontSize="20" color="blue" />
-                    </div>
-                    <div style={{ width: '70%' }}>{location.description}</div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AQSearch />
 
             <div>
               {adminLevels && (
-                <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', marginTop: '10px', marginBottom: '10px' }}>
                   <span className={classes.adminSpacing}>
                     {adminLevels.country} {adminLevels.country && '/'}
                   </span>
@@ -808,7 +703,10 @@ const Topbar = (props) => {
               {airQualityDetails && (
                 <div>
                   <h2>
-                    {airQualityDetails.pm2_5.toFixed(2)} µg/m<sup>3</sup>
+                    {airQualityDetails.pm2_5.toFixed(2)}{' '}
+                    <span style={{ fontSize: '18px' }}>
+                      µg/m<sup>3</sup>
+                    </span>
                   </h2>
                   <p>
                     Last updated on{' '}
@@ -818,7 +716,9 @@ const Topbar = (props) => {
               )}
 
               {noAirQualityMsg && (
-                <p style={{ color: 'lightgrey', textAlign: 'center' }}>{noAirQualityMsg}</p>
+                <p style={{ color: 'lightgrey', textAlign: 'center', marginTop: '40px' }}>
+                  {noAirQualityMsg}
+                </p>
               )}
             </div>
           </div>

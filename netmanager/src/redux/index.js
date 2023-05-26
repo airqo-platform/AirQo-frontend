@@ -14,6 +14,7 @@ import urlsReducer from './Urls/reducers';
 import siteRegistryReducer from './SiteRegistry/reducers';
 import airQloudReducer from './AirQloud/reducers';
 import accessControlReducer from './AccessControl/reducers';
+import googlePlacesReducer from './GooglePlaces/reducer';
 
 export default combineReducers({
   auth: authReducer,
@@ -30,5 +31,6 @@ export default combineReducers({
   urls: urlsReducer,
   siteRegistry: siteRegistryReducer,
   airqloudRegistry: airQloudReducer,
-  accessControl: accessControlReducer
+  accessControl: accessControlReducer,
+  googlePlaces: googlePlacesReducer
 });
