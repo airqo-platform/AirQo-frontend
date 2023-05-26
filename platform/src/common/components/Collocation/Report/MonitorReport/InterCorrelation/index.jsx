@@ -74,14 +74,6 @@ const InterCorrelationChart = ({
 
     getActiveSelectedDeviceReport();
   }, [device, startDate, endDate]);
-  const [
-    getCollocationResultsData,
-    {
-      isError: isFetchCollocationResultsError,
-      isSuccess: isFetchCollocationResultsSuccess,
-      isLoading: isFetchCollocationResultsLoading,
-    },
-  ] = useGetCollocationResultsMutation();
 
   const handleSelect = async (newDevice, newStartDate, newEndDate) => {
     let startDate = moment(newStartDate).format('YYYY-MM-DD');
@@ -94,21 +86,21 @@ const InterCorrelationChart = ({
       endDate,
     });
 
-    if (!response.error) {
-      const updatedQuery = {
-        ...router.query,
-        device: newDevice,
-        startDate,
-        endDate,
-      };
+    // if (!response.error) {
+    //   const updatedQuery = {
+    //     ...router.query,
+    //     device: newDevice,
+    //     startDate,
+    //     endDate,
+    //   };
 
-      router.replace({
-        pathname: `/collocation/reports/monitor_report/${newDevice}`,
-        query: updatedQuery,
-      });
+    //   router.replace({
+    //     pathname: `/collocation/reports/monitor_report/${newDevice}`,
+    //     query: updatedQuery,
+    //   });
 
-      dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
-    }
+    //   dispatch(addActiveSelectedDeviceCollocationReportData(response.data.data));
+    // }
     setIsOpen(false);
   };
 

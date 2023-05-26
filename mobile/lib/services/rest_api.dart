@@ -166,8 +166,6 @@ class AirqoApiClient {
               'pm2_5': forecast['pm2_5'],
               'time': forecast['time'],
               'siteId': siteId,
-              'health_tips': forecast["health_tips"] ?? [],
-              'message': forecast["message"] ?? '',
             }),
           );
         } catch (exception, stackTrace) {

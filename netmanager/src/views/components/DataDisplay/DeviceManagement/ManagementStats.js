@@ -103,7 +103,7 @@ function ManagementStat() {
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
-            moment(new Date()).subtract(7, 'days').toISOString()
+            moment(new Date()).subtract(28, 'days').toISOString()
           ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
