@@ -7,10 +7,12 @@ import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import SearchBar from './SearchBar';
 import Button from '../../../Button';
 import DataTable from './DataTable';
+import moment from 'moment';
 
 const Table = ({ collocationDevices, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
+  const [ sortOption, setSortOption] = useState('')
 
   useEffect(() => {
     const filterList = collocationDevices.filter((row) =>
@@ -40,28 +42,33 @@ const Table = ({ collocationDevices, isLoading }) => {
         sortedData = sortByDeviceName(filteredData, 'desc');
         break;
       default:
-        setFilteredData(sortedData);
+        sortedData = filteredData;
+        break
     }
 
+    setSortOption(sortOption)
     setFilteredData(sortedData);
   };
 
   const sortByDate = (data, order) => {
-    const sortedData = [...data].sort((a, b) =>
-      order === 'asc'
-        ? new Date(a.start_date) - new Date(b.start_date)
-        : new Date(b.start_date) - new Date(a.start_date),
-    );
-
+    const sortedData = [...data].sort((a, b) => {
+      const dateA = moment(a.time);
+      const dateB = moment(b.time);
+  
+      return order === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  
     return sortedData;
   };
 
   const sortByDeviceName = (data, order) => {
-    const sortedData = [...data].sort((a, b) =>
-      order === 'asc'
-        ? a.device_id.localeCompare(b.device_id)
-        : b.device_id.localeCompare(a.device_id),
-    );
+    const sortedData = [...data].sort((a, b) => {
+      const nameA = a.device || '';
+      const nameB = b.device || '';
+  
+      return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+  
     return sortedData;
   };
 
@@ -147,28 +154,36 @@ const Table = ({ collocationDevices, isLoading }) => {
                 <li
                   role='button'
                   onClick={() => handleSort('newest')}
-                  className='text-sm text-grey leading-5'
+                  className={`text-sm text-grey leading-[21px] ${
+                    sortOption === 'newest' ? 'font-semibold' : ''
+                  }`}
                 >
                   <a>Newest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('oldest')}
-                  className='text-sm text-grey leading-5'
+                  className={`text-sm text-grey leading-[21px] ${
+                    sortOption === 'oldest' ? 'font-semibold' : ''
+                  }`}
                 >
                   <a>Oldest date first</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('ascending')}
-                  className='text-sm text-grey leading-5'
+                  className={`text-sm text-grey leading-[21px] ${
+                    sortOption === 'ascending' ? 'font-semibold' : ''
+                  }`}
                 >
                   <a>Name A {'-->'} Z</a>
                 </li>
                 <li
                   role='button'
                   onClick={() => handleSort('descending')}
-                  className='text-sm text-grey leading-5'
+                  className={`text-sm text-grey leading-[21px] ${
+                    sortOption === 'descending' ? 'font-semibold' : ''
+                  }`}
                 >
                   <a>Name Z {'-->'} A</a>
                 </li>
@@ -192,6 +207,7 @@ const Table = ({ collocationDevices, isLoading }) => {
         <DataTable
           filteredData={filteredData.length > 0 && filteredData}
           collocationDevices={collocationDevices}
+          sortOption={sortOption}
           isLoading={isLoading}
         />
       </div>
