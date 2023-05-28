@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addDevices,
@@ -6,6 +6,9 @@ import {
   addDevice,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import moment from 'moment';
+
+// dropdown
+import Dropdown from './Dropdown';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
@@ -38,11 +41,29 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
     }
   };
 
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+      link: '#',
+    },
+    {
+      id: 2,
+      name: 'Edit device',
+      link: '#',
+    },
+    {
+      id: 3,
+      name: 'Delete batch',
+      link: '#',
+    },
+  ]);
+
   return (
     <table
       className='border-collapse text-xs text-left w-full mb-6'
-      data-testid='collocation-device-selection-table'
-    >
+      data-testid='collocation-device-selection-table'>
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
@@ -63,6 +84,9 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
           </th>
           <th scope='col' className='font-normal w-[209px] px-4 pb-3 opacity-40'>
             Comments
+          </th>
+          <th scope='col' className='font-normal w-[120px] px-4 pb-3 opacity-40'>
+            Action
           </th>
         </tr>
       </thead>
@@ -89,6 +113,9 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                   {' '}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
+                <td scope='row' className='w-[100px] px-4 py-3'>
+                  <Dropdown menu={menu} device={device.id} />
+                </td>
               </tr>
             );
           })}
