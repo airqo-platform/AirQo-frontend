@@ -85,6 +85,9 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
           <th scope='col' className='font-normal w-[209px] px-4 pb-3 opacity-40'>
             Comments
           </th>
+          <th scope='col' className='font-normal w-[120px] px-4 pb-3 opacity-40'>
+            Action
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -110,7 +113,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                   {' '}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
-                <td scope='row' className='w-[209px] px-4 py-3'>
+                <td scope='row' className='w-[120px] px-4 py-3'>
                   {/* dropdown menu */}
                   <Dropdown menu={menu} device={device.id} />
                 </td>
