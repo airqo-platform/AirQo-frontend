@@ -52,8 +52,8 @@ const Table = ({ collocationDevices, isLoading }) => {
 
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
-      const dateA = moment(a.time);
-      const dateB = moment(b.time);
+      const dateA = moment(a.start_date);
+      const dateB = moment(b.start_date);
   
       return order === 'asc' ? dateA - dateB : dateB - dateA;
     });
@@ -63,8 +63,8 @@ const Table = ({ collocationDevices, isLoading }) => {
 
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
-      const nameA = a.device || '';
-      const nameB = b.device || '';
+      const nameA = a.device_name || '';
+      const nameB = b.device_name || '';
   
       return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     });
@@ -138,19 +138,23 @@ const Table = ({ collocationDevices, isLoading }) => {
             </div>
             <div className='dropdown ml-2'>
               <Button
+                tabIndex={0}
                 className={
-                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'
+                  'h-9 w-auto bg-grey-250 rounded-md text-black-900 font-medium text-sm mb-1'
                 }
               >
-                <span className='mr-1'>
+                <div className='mr-1'>
                   <SortByAlphaIcon />
-                </span>
-                <span>{'Sort by'}</span>
-                <span className='ml-1'>
+                </div>
+                Sort by
+                <div className='ml-1'>
                   <ArrowDropDownIcon />
-                </span>
+                </div>
               </Button>
-              <ul className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44'>
+              <ul
+                tabIndex={0}
+                className='p-2 shadow dropdown-content menu bg-base-100 rounded-box w-44'
+              >
                 <li
                   role='button'
                   onClick={() => handleSort('newest')}
