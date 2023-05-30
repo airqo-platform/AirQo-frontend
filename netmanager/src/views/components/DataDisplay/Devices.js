@@ -208,13 +208,6 @@ const CATEGORIES = [
   { value: 'bam', name: 'BAM' }
 ];
 
-const NETWORKS = [
-  { value: 'airqo', name: 'AirQo' },
-  { value: 'kcca', name: 'KCCA' },
-  { value: 'usembassy', name: 'US EMBASSY' },
-  { value: 'mukwano', name: 'MUKWANO' }
-];
-
 const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
 
 const CreateDevice = ({ open, setOpen }) => {

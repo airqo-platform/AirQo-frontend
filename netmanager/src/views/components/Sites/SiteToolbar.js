@@ -45,13 +45,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const NETWORKS = [
-  { value: 'airqo', name: 'AirQo' },
-  { value: 'kcca', name: 'KCCA' },
-  { value: 'usembassy', name: 'US EMBASSY' },
-  { value: 'mukwano', name: 'MUKWANO' }
-];
-
 const SiteToolbar = (props) => {
   const { className, ...rest } = props;
 
