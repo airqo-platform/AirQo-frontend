@@ -215,13 +215,15 @@ const NETWORKS = [
   { value: 'mukwano', name: 'MUKWANO' }
 ];
 
+const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+
 const CreateDevice = ({ open, setOpen }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: NETWORKS[0].value
+    network: selectedNetwork
   };
 
   const initialErrors = {
@@ -234,7 +236,6 @@ const CreateDevice = ({ open, setOpen }) => {
   const [errors, setErrors] = useState(initialErrors);
 
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
@@ -242,7 +243,7 @@ const CreateDevice = ({ open, setOpen }) => {
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: NETWORKS[0].value });
+    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
     setErrors({ long_name: '', category: '', network: '' });
   };
 
@@ -265,7 +266,7 @@ const CreateDevice = ({ open, setOpen }) => {
         setNewDevice({
           long_name: '',
           category: CATEGORIES[0].value,
-          network: NETWORKS[0].value
+          network: selectedNetwork
         });
         setErrors({ long_name: '', category: '', network: '' });
 
@@ -278,13 +279,13 @@ const CreateDevice = ({ open, setOpen }) => {
           .then((res) => res.data)
           .then((resData) => {
             handleRegisterClose();
-            if (!isEmpty(activeNetwork)) {
-              dispatch(loadDevicesData(activeNetwork.net_name));
+            if (!isEmpty(selectedNetwork)) {
+              dispatch(loadDevicesData(selectedNetwork));
             }
             dispatch(
               updateMainAlert({
                 message: `${resData.message}. ${
-                  newDevice.network !== activeNetwork.net_name
+                  newDevice.network !== selectedNetwork
                     ? `Switch to the ${newDevice.network} organisation to see the new device.`
                     : ''
                 }`,
@@ -314,8 +315,7 @@ const CreateDevice = ({ open, setOpen }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -348,8 +348,7 @@ const CreateDevice = ({ open, setOpen }) => {
             variant="outlined"
             error={!!errors.category}
             helperText={errors.category}
-            required
-          >
+            required>
             {CATEGORIES.map((option, index) => (
               <option key={index} value={option.value}>
                 {option.name}
@@ -357,27 +356,14 @@ const CreateDevice = ({ open, setOpen }) => {
             ))}
           </TextField>
           <TextField
-            select
             fullWidth
+            margin="dense"
             label="Network"
-            style={{ margin: '10px 0' }}
-            defaultValue={newDevice.network}
-            onChange={handleDeviceDataChange('network')}
-            SelectProps={{
-              native: true,
-              style: { width: '100%', height: '50px' }
-            }}
+            value={newDevice.network}
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            required
-          >
-            {NETWORKS.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
@@ -391,8 +377,7 @@ const CreateDevice = ({ open, setOpen }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -408,7 +393,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: NETWORKS[0].value
+    network: selectedNetwork
   };
 
   const initialErrors = {
@@ -420,7 +405,6 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
   const [errors, setErrors] = useState(initialErrors);
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
@@ -428,7 +412,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
 
   const handleRegisterClose = () => {
     setOpen(false);
-    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: NETWORKS[0].value });
+    setNewDevice({ long_name: '', category: CATEGORIES[0].value, network: selectedNetwork });
     setErrors({ long_name: '', category: '', network: '' });
   };
 
@@ -451,7 +435,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
         setNewDevice({
           long_name: '',
           category: CATEGORIES[0].value,
-          network: NETWORKS[0].value
+          network: selectedNetwork
         });
         setErrors({ long_name: '', category: '', network: '' });
 
@@ -465,7 +449,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             dispatch(
               updateMainAlert({
                 message: `${resData.message}. ${
-                  newDevice.network !== activeNetwork.net_name
+                  newDevice.network !== selectedNetwork
                     ? `Switch to the ${newDevice.network} organisation to see the new device.`
                     : ''
                 }`,
@@ -538,27 +522,14 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             ))}
           </TextField>
           <TextField
-            select
             fullWidth
+            margin="dense"
             label="Network"
-            style={{ margin: '10px 0' }}
-            defaultValue={newDevice.network}
-            onChange={handleDeviceDataChange('network')}
-            SelectProps={{
-              native: true,
-              style: { width: '100%', height: '50px' }
-            }}
+            value={newDevice.network}
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            required
-          >
-            {NETWORKS.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </TextField>
+            disabled></TextField>
         </form>
       </DialogContent>
 
