@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 
 // menu icon
-import Menu from '@/icons/Actions/menuIcon.svg';
+import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 
 // flowbite
 import { initFlowbite } from 'flowbite';
 
-const Dropdown = ({ device, menu }) => {
+const Dropdown = ({ onItemClick, menu }) => {
   // initializing flowbite js
   useEffect(() => {
     initFlowbite();
@@ -17,9 +17,9 @@ const Dropdown = ({ device, menu }) => {
       <button
         id='dropdownMenuIconHorizontalButton'
         data-dropdown-toggle='dropdownDotsHorizontal'
-        className='inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600'
+        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300'
         type='button'>
-        <Menu className='w-5 h-5' />
+        <MoreHorizIcon />
       </button>
       {/* Dropdown menu */}
       <div
@@ -29,12 +29,12 @@ const Dropdown = ({ device, menu }) => {
           className='py-2 text-sm text-gray-700 dark:text-gray-200'
           aria-labelledby='dropdownMenuIconHorizontalButton'>
           {menu.map((item) => (
-            <li key={item.id}>
-              <a
-                href={(item.link, { device })}
-                className='flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600'>
+            <li key={item.id} className='p-2'>
+              <span
+                onClick={() => onItemClick(item.id)}
+                className='flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md'>
                 {item.name}
-              </a>
+              </span>
             </li>
           ))}
         </ul>

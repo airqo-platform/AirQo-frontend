@@ -12,6 +12,9 @@ import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import { isEmpty } from 'underscore';
 
+// Dropdown menu
+import Dropdown from '../../../Dropdowns/Dropdown';
+
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
@@ -90,13 +93,40 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+      link: '#',
+    },
+    {
+      id: 2,
+      name: 'Delete batch',
+      link: '#',
+    },
+  ]);
+
+  // for handling links for dropdown menu items
+  const handleItemClick = (id, device, index) => {
+    switch (id) {
+      case 1:
+        openMonitorReport(device.device_name, device.batch_id, index);
+        break;
+      case 2:
+        alert('Delete batch');
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div>
       {isError && <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
-      >
+        data-testid='collocation-device-status-summary'>
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -138,8 +168,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     className={`border-b border-b-slate-300 ${
                       clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
                     }`}
-                    key={index}
-                  >
+                    key={index}>
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -164,20 +193,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       <span
                         className={`${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
-                      >
+                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}>
                         {device.status.toLowerCase()}
                       </span>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
-                      <span
-                        onClick={() =>
-                          openMonitorReport(device.device_name, device.batch_id, index)
-                        }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
-                      >
-                        <MoreHorizIcon />
-                      </span>
+                      <Dropdown
+                        menu={menu}
+                        onItemClick={(id) => handleItemClick(id, device, index)}
+                      />
                     </td>
                   </tr>
                 );
