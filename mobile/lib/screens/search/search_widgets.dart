@@ -480,6 +480,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
         context.read<SearchBloc>().add(const NoSearchInternetConnection());
+
         return;
       }
 
@@ -493,6 +494,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
               .read<SearchBloc>()
               .add(GetSearchRecommendations(searchResult));
           Navigator.pop(context);
+
           return;
         }
 
@@ -506,6 +508,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
               HiveService().updateSearchHistory(airQualityReading),
               navigateToInsights(context, airQualityReading),
             ]);
+
             return;
           }
 
@@ -520,6 +523,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
                   .read<SearchBloc>()
                   .add(GetSearchRecommendations(placeDetails));
               Navigator.pop(context);
+
               return;
             }
 
@@ -534,6 +538,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
               HiveService().updateSearchHistory(estimateAirQualityReading),
               navigateToInsights(context, estimateAirQualityReading),
             ]);
+
             return;
           });
         });

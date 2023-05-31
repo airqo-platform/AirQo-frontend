@@ -72,7 +72,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   }
 
   factory AirQualityReading.fromAirQualityEstimate(
-      AirQualityEstimate estimate) {
+    AirQualityEstimate estimate,
+  ) {
     return AirQualityReading(
       distanceToReferenceSite: 0.0,
       dateTime: estimate.time,

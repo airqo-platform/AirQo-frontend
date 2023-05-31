@@ -76,8 +76,10 @@ class InsightsPage extends StatelessWidget {
                         width: 40,
                       ),
                     ),
-                    Text('More Insights',
-                        style: CustomTextStyle.headline8(context)),
+                    Text(
+                      'More Insights',
+                      style: CustomTextStyle.headline8(context),
+                    ),
                     FutureBuilder<Uri>(
                       future: ShareService.createShareLink(
                         airQualityReading: airQualityReading,
@@ -85,7 +87,9 @@ class InsightsPage extends StatelessWidget {
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
                           showSnackBar(
-                              context, 'Could not create a share link.');
+                            context,
+                            'Could not create a share link.',
+                          );
                         }
                         if (snapshot.hasData) {
                           return InkWell(
@@ -102,7 +106,8 @@ class InsightsPage extends StatelessWidget {
                             child: SvgPicture.asset(
                               'assets/icon/share_icon.svg',
                               theme: SvgTheme(
-                                  currentColor: CustomColors.greyColor),
+                                currentColor: CustomColors.greyColor,
+                              ),
                               colorFilter: ColorFilter.mode(
                                 CustomColors.greyColor,
                                 BlendMode.srcIn,
@@ -116,7 +121,9 @@ class InsightsPage extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             showSnackBar(
-                                context, 'Creating share link. Hold on tight');
+                              context,
+                              'Creating share link. Hold on tight',
+                            );
                           },
                           child: const Center(
                             child: LoadingIcon(radius: 20),

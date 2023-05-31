@@ -17,14 +17,6 @@ class AirQualityEstimate {
   factory AirQualityEstimate.fromJson(Map<String, dynamic> json) =>
       _$AirQualityEstimateFromJson(json);
 
-  AirQualityEstimate copyWith({String? siteId}) {
-    return AirQualityEstimate(
-      pm2_5: pm2_5,
-      time: time,
-      healthTips: healthTips,
-    );
-  }
-
   @JsonKey(
     fromJson: dateTimeFromUtcString,
     toJson: dateTimeToUtcString,
