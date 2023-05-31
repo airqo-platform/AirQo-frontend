@@ -53,70 +53,100 @@ class InsightsPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: CustomColors.appBodyColor,
         centerTitle: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            InkWell(
-              onTap: () async {
-                await popNavigation(context);
-              },
-              child: SvgPicture.asset(
-                'assets/icon/close.svg',
-                height: 40,
-                width: 40,
-              ),
-            ),
-            Text('More Insights', style: CustomTextStyle.headline8(context)),
-            FutureBuilder<Uri>(
-              future: ShareService.createShareLink(
-                airQualityReading: airQualityReading,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
-                }
-                if (snapshot.hasData) {
-                  return InkWell(
-                    onTap: () async {
-                      Uri? link = snapshot.data;
-                      if (link != null) {
-                        await ShareService.shareLink(
-                          link,
-                          context,
-                          airQualityReading: airQualityReading,
-                        );
-                      }
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      theme: SvgTheme(currentColor: CustomColors.greyColor),
-                      colorFilter: ColorFilter.mode(
-                        CustomColors.greyColor,
-                        BlendMode.srcIn,
+        title: BlocBuilder<InsightsBloc, InsightsState>(
+          buildWhen: (previous, current) {
+            return previous.status != current.status;
+          },
+          builder: (context, state) {
+            switch (state.status) {
+              case InsightsStateStatus.loading:
+              case InsightsStateStatus.noData:
+                return Container();
+              case InsightsStateStatus.ready:
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        await popNavigation(context);
+                      },
+                      child: SvgPicture.asset(
+                        'assets/icon/close.svg',
+                        height: 40,
+                        width: 40,
                       ),
-                      height: 26,
-                      width: 26,
                     ),
-                  );
-                }
+                    Text('More Insights',
+                        style: CustomTextStyle.headline8(context)),
+                    FutureBuilder<Uri>(
+                      future: ShareService.createShareLink(
+                        airQualityReading: airQualityReading,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          showSnackBar(
+                              context, 'Could not create a share link.');
+                        }
+                        if (snapshot.hasData) {
+                          return InkWell(
+                            onTap: () async {
+                              Uri? link = snapshot.data;
+                              if (link != null) {
+                                await ShareService.shareLink(
+                                  link,
+                                  context,
+                                  airQualityReading: airQualityReading,
+                                );
+                              }
+                            },
+                            child: SvgPicture.asset(
+                              'assets/icon/share_icon.svg',
+                              theme: SvgTheme(
+                                  currentColor: CustomColors.greyColor),
+                              colorFilter: ColorFilter.mode(
+                                CustomColors.greyColor,
+                                BlendMode.srcIn,
+                              ),
+                              height: 26,
+                              width: 26,
+                            ),
+                          );
+                        }
 
-                return GestureDetector(
-                  onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
-                  },
-                  child: const Center(
-                    child: LoadingIcon(radius: 20),
-                  ),
+                        return GestureDetector(
+                          onTap: () {
+                            showSnackBar(
+                                context, 'Creating share link. Hold on tight');
+                          },
+                          child: const Center(
+                            child: LoadingIcon(radius: 20),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
-              },
-            ),
-          ],
+            }
+          },
         ),
       ),
       body: AppSafeArea(
         child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
+              switch (state.status) {
+                case InsightsStateStatus.loading:
+                  return const InsightsLoadingWidget();
+                case InsightsStateStatus.noData:
+                  return NoAirQualityDataWidget(callBack: () {
+                    context
+                        .read<InsightsBloc>()
+                        .add(InitializeInsightsPage(airQualityReading));
+                  });
+                case InsightsStateStatus.ready:
+                  break;
+              }
+
               Insight? selectedInsight = state.selectedInsight;
 
               if (selectedInsight == null) {
@@ -126,8 +156,12 @@ class InsightsPage extends StatelessWidget {
                       .add(InitializeInsightsPage(airQualityReading));
                 });
               }
+
               AirQualityReading selectedAirQualityReading =
-                  airQualityReading.copyWith(pm2_5: selectedInsight.pm2_5);
+                  airQualityReading.copyWith(
+                pm2_5: selectedInsight.pm2_5,
+                name: airQualityReading.name,
+              );
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,

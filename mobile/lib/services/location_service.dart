@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -10,7 +11,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'hive_service.dart';
-import 'rest_api.dart';
 
 class LocationService {
   static Future<bool> locationGranted() async {
@@ -150,6 +150,48 @@ class LocationService {
     return nearestSites.isEmpty ? null : nearestSites.first;
   }
 
+  static Future<AirQualityReading?> getAirQuality(
+    double latitude,
+    double longitude,
+  ) async {
+    List<AirQualityReading> nearestSites =
+        HiveService().getAirQualityReadings();
+
+    nearestSites = nearestSites.map((element) {
+      final double distanceInMeters = metersToKmDouble(
+        Geolocator.distanceBetween(
+          element.latitude,
+          element.longitude,
+          latitude,
+          longitude,
+        ),
+      );
+
+      return element.copyWith(distanceToReferenceSite: distanceInMeters);
+    }).toList();
+
+    nearestSites = nearestSites
+        .where((element) =>
+            element.distanceToReferenceSite < Config.searchRadius.toDouble())
+        .toList();
+
+    nearestSites.sortByDistanceToReferenceSite();
+
+    AirQualityReading? airQualityReading =
+        nearestSites.isEmpty ? null : nearestSites.first;
+
+    if (airQualityReading != null) {
+      AirQualityEstimate? airQualityEstimate = await AirqoApiClient()
+          .getEstimatedAirQuality(latitude: latitude, longitude: longitude);
+      if (airQualityEstimate != null) {
+        airQualityReading =
+            AirQualityReading.fromAirQualityEstimate(airQualityEstimate);
+      }
+    }
+
+    return airQualityReading;
+  }
+
   static Future<List<AirQualityReading>> getSurroundingSites({
     required double latitude,
     required double longitude,
@@ -178,33 +220,5 @@ class LocationService {
     airQualityReadings.sortByDistanceToReferenceSite();
 
     return airQualityReadings;
-  }
-
-  static Future<AirQualityReading?> getSearchAirQuality(
-    SearchResult result,
-  ) async {
-    final SearchResult? searchResult =
-        await SearchApiClient().getPlaceDetails(result);
-
-    if (searchResult == null) {
-      return null;
-    }
-
-    AirQualityReading? airQualityReading = await LocationService.getNearestSite(
-      searchResult.latitude,
-      searchResult.longitude,
-    );
-
-    if (airQualityReading != null) {
-      airQualityReading = airQualityReading.copyWith(
-        name: searchResult.name,
-        location: searchResult.location,
-        latitude: searchResult.latitude,
-        longitude: searchResult.longitude,
-      );
-      await HiveService().updateSearchHistory(airQualityReading);
-    }
-
-    return airQualityReading;
   }
 }
