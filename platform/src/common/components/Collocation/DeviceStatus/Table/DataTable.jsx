@@ -98,12 +98,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     {
       id: 1,
       name: 'View Reports',
-      link: '#',
     },
     {
       id: 2,
       name: 'Delete batch',
-      link: '#',
     },
   ]);
 
