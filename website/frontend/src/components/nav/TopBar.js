@@ -11,7 +11,9 @@ import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations
 const TopBar = () => {
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+
   const toggleMenu = () => {
+    setOpenItem(null);
     document.getElementById('menu').classList.toggle('toggle_menu_btn');
     document.getElementById('close-menu').classList.toggle('toggle_close_menu_btn');
     document.getElementById('nav-center').classList.toggle('toggle_nav_center');
@@ -19,6 +21,7 @@ const TopBar = () => {
   };
 
   const toggleCloseMenu = () => {
+    setOpenItem(null);
     document.getElementById('close-menu').classList.remove('toggle_close_menu_btn');
     document.getElementById('menu').classList.remove('toggle_menu_btn');
     document.getElementById('nav-center').classList.remove('toggle_nav_center');
@@ -28,11 +31,6 @@ const TopBar = () => {
   // tracking the current open item
   const [openItem, setOpenItem] = useState(null);
 
-  // Handling click event
-  const handleClick = (item) => {
-    setOpenItem(openItem === item ? null : item);
-  };
-
   // Handling window resize
   const [width, setWidth] = useState(window.innerWidth);
 
@@ -41,6 +39,15 @@ const TopBar = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Handling click event
+  const handleClick = (item) => {
+    if (width < 1024) {
+      setOpenItem(openItem === item ? null : item);
+    } else {
+      return;
+    }
+  };
 
   return (
     <div className="TopBar">
@@ -53,9 +60,7 @@ const TopBar = () => {
         <div className="nav-center" id="nav-center">
           <div className="nav-dropdown-item">
             <NavTab text="Products" onClick={() => handleClick('Products')} />
-            <div
-              className="dropdown"
-              id={width < 1024 ? (openItem === 'Products' ? 'solutions-dropdown' : '') : ''}>
+            <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
               <h3 className="title">Products</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -81,9 +86,7 @@ const TopBar = () => {
           </div>
           <div className="nav-dropdown-item">
             <NavTab text="Solutions" onClick={() => handleClick('Solutions')} />
-            <div
-              className="dropdown"
-              id={width < 1024 ? (openItem === 'Solutions' ? 'solutions-dropdown' : '') : ''}>
+            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
               <h3 className="title">Solutions</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -109,9 +112,7 @@ const TopBar = () => {
           </div>
           <div className="nav-dropdown-item single-links">
             <NavTab text="About" onClick={() => handleClick('About')} />
-            <div
-              className="dropdown"
-              id={width < 1024 ? (openItem === 'About' ? 'solutions-dropdown' : '') : ''}>
+            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
               <h3 className="title">About AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
