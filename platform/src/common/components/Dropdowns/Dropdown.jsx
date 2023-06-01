@@ -29,7 +29,7 @@ const Dropdown = ({ onItemClick, menu }) => {
           className='py-2 text-sm text-gray-700 dark:text-gray-200'
           aria-labelledby='dropdownMenuIconHorizontalButton'>
           {menu.map((item) => (
-            <li key={item.id} className='p-2'>
+            <li key={item.id} className='px-2'>
               <span
                 onClick={() => onItemClick(item.id)}
                 className='flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md'>
