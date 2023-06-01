@@ -75,6 +75,7 @@ const Table = ({ collocationDevices }) => {
 
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
+      const dateA = parseISO(a.time);
       const dateB = parseISO(b.time);
   
       return order === 'asc' ? compareAsc(dateA, dateB) : compareDesc(dateA, dateB);
