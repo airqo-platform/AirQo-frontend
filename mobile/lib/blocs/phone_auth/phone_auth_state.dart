@@ -49,6 +49,8 @@ class PhoneAuthState extends Equatable {
   final bool loading;
   final PhoneAuthModel? phoneAuthModel;
 
+  String get fullPhoneNumber => "$countryCode $phoneNumber";
+
   @override
   List<Object?> get props => [
         phoneNumber,
