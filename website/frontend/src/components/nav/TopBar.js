@@ -6,7 +6,6 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const TopBar = () => {
   const dispatch = useDispatch();

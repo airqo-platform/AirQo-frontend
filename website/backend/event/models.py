@@ -148,4 +148,4 @@ class Resource(BaseModel):
         ordering = ['order']
 
     def __str__(self):
-        return f"Resource - {self.id}"
+        return f"Resource - {self.title}"
