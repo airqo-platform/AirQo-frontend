@@ -173,7 +173,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
         switch (state.status) {
           case PhoneAuthStatus.initial:
           case PhoneAuthStatus.verificationCodeSent:
-            if (state.phoneNumber.isValidPhoneNumber()) {
+            if (state.fullPhoneNumber.isValidPhoneNumber()) {
               formColor = CustomColors.appColorValid;
               textColor = CustomColors.appColorValid;
               suffixIconColor = CustomColors.appColorValid;

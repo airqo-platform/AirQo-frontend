@@ -48,8 +48,8 @@ extension FavouritePlaceListExt on List<FavouritePlace> {
                 .compareTo(y.airQualityReading?.pm2_5 ?? 0) ??
             0;
       }
-      if (x.airQualityReading == null) return 1;
-      return -1;
+
+      return x.airQualityReading == null ? 1 : -1;
     });
   }
 }

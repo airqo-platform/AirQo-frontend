@@ -14,7 +14,7 @@ flutter pub add firebase_storage package_info_plus webview_flutter hive hive_flu
 flutter pub add firebase_in_app_messaging permission_handler workmanager flutter_cache_manager
 flutter pub add path flutter_bloc equatable appinio_swiper firebase_dynamic_links
 flutter pub add showcaseview url_launcher hydrated_bloc
-cd ios
+cd ios || exit 1
 pod repo update
 pod install
 exit 0
