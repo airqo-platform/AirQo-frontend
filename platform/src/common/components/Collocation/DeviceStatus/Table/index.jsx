@@ -12,14 +12,14 @@ import moment from 'moment';
 const Table = ({ collocationDevices, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
-  const [ sortOption, setSortOption] = useState('')
+  const [sortOption, setSortOption] = useState('');
 
   useEffect(() => {
     const filterList = collocationDevices.filter((row) =>
-      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
+      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredData(filterList);
-  }, [searchTerm, collocationDevices]);
+  }, [searchTerm, sortOption, collocationDevices]);
 
   const handleSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
@@ -43,10 +43,10 @@ const Table = ({ collocationDevices, isLoading }) => {
         break;
       default:
         sortedData = filteredData;
-        break
+        break;
     }
 
-    setSortOption(sortOption)
+    setSortOption(sortOption);
     setFilteredData(sortedData);
   };
 
@@ -61,14 +61,15 @@ const Table = ({ collocationDevices, isLoading }) => {
     return sortedData;
   };
 
+
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
       const nameA = a.device_name || '';
       const nameB = b.device_name || '';
-  
+
       return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     });
-  
+
     return sortedData;
   };
 

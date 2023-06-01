@@ -6,7 +6,7 @@ import SearchBar from './SearchBar';
 import Pagination from './Pagination';
 import Button from '../../../Button';
 import DataTable from './DataTable';
-import moment from 'moment';
+import { compareAsc, compareDesc, parseISO } from 'date-fns';
 
 const Table = ({ collocationDevices }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,10 +75,9 @@ const Table = ({ collocationDevices }) => {
 
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
-      const dateA = moment(a.time);
-      const dateB = moment(b.time);
+      const dateB = parseISO(b.time);
   
-      return order === 'asc' ? dateA - dateB : dateB - dateA;
+      return order === 'asc' ? compareAsc(dateA, dateB) : compareDesc(dateA, dateB);
     });
   
     return sortedData;
