@@ -53,7 +53,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
     },
   ]);
 
-  // for handling links for dropdown menu items
+  // for handling endpoints for dropdown menu items
   const handleItemClick = (id, device) => {
     switch (id) {
       case 1:

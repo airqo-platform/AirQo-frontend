@@ -198,6 +198,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <Dropdown
                         menu={menu}
+                        length={index === collocationDevices.length - 1 ? 'last' : ''}
                         onItemClick={(id) => handleItemClick(id, device, index)}
                       />
                     </td>
