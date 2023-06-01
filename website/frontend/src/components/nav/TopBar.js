@@ -31,7 +31,7 @@ const TopBar = () => {
   // tracking the current open item
   const [openItem, setOpenItem] = useState(null);
 
-  // Handling window resize
+  // for handling window resize
   const [width, setWidth] = useState(window.innerWidth);
 
   useEffect(() => {

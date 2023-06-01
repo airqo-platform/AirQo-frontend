@@ -42,7 +42,6 @@ const NavTab = ({ text, hideArrow, colored, filled, style, path, onClick, extern
       );
     }
   } else {
-    // arrow icon
     return (
       <div
         className={classNames('NavTab', { colored, filled })}
