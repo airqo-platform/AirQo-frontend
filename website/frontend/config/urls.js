@@ -54,3 +54,6 @@ export const PUBLICATIONS_URL = `${WEBSITE_BASE_URL}/publications/`
 
 // Events url
 export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`
+
+// African Cities url
+export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;

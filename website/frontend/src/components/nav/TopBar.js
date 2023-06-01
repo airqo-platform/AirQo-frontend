@@ -6,7 +6,6 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -66,7 +65,7 @@ const TopBar = () => {
               <h3 className="title">Solutions</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/african-cities/uganda" style={{ textDecoration: 'none' }}>
+                  <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
                     <h3>For African Cities</h3>
                     <h4>Air quality analytics for city councils</h4>
                   </Link>
