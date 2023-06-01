@@ -4,13 +4,13 @@ import React, { useEffect } from 'react';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 
 // flowbite
-import { initFlowbite } from 'flowbite';
+// import { initFlowbite } from 'flowbite';
 
 const Dropdown = ({ onItemClick, menu }) => {
   // initializing flowbite js
-  useEffect(() => {
-    initFlowbite();
-  }, []);
+  // useEffect(() => {
+  //   initFlowbite();
+  // }, []);
 
   return (
     <div className='Menu_dropdown'>
