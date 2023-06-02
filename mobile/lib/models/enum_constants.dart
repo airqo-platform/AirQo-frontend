@@ -487,7 +487,11 @@ enum Pollutant {
     return airQuality(value).toString();
   }
 
-  Color textColor({required double value, bool graph = false}) {
+  Color textColor({required double? value, bool graph = false}) {
+    if (value == null) {
+      return CustomColors.greyColor;
+    }
+
     switch (airQuality(value)) {
       case AirQuality.good:
         return CustomColors.aqiGreenTextColor;

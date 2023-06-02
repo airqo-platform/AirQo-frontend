@@ -6,8 +6,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import { Button, Grid, Paper, TextField } from '@material-ui/core';
 
-import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
+import { loadSiteDetails } from 'redux/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import { humanReadableDate } from 'utils/dateTime';
@@ -37,6 +37,7 @@ const SiteForm = ({ site }) => {
   const [loading, setLoading] = useState(false);
   const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const handleSiteInfoChange = (event) => {
     const id = event.target.id;
@@ -47,10 +48,8 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-
-    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (!isEmpty(activeNetwork)) {
-      dispatch(loadSitesData(activeNetwork.net_name));
+      dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
     }
   };
 
@@ -73,9 +72,8 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
         if (!isEmpty(activeNetwork)) {
-          dispatch(loadSitesData(activeNetwork.net_name));
+          dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
         }
       })
       .catch((err) => {
@@ -380,22 +378,15 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const sites = useSitesData();
+  const site = useSiteDetailsData();
   const dispatch = useDispatch();
-  const [site, setSite] = useState(sites[params.id] || {});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(sites)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesData(activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
     }
   }, []);
-
-  useEffect(() => {
-    setSite(sites[params.id] || {});
-  }, [sites]);
 
   return (
     <div

@@ -331,7 +331,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
           AutoSizeText(
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(fontSize: 20),
@@ -401,8 +401,8 @@ class HeartIcon extends StatelessWidget {
   }
 }
 
-class AnalyticsCardFooter extends StatefulWidget {
-  const AnalyticsCardFooter(
+class AirQualityActions extends StatefulWidget {
+  const AirQualityActions(
     this.airQualityReading, {
     super.key,
     this.radius = 16,
@@ -412,10 +412,10 @@ class AnalyticsCardFooter extends StatefulWidget {
   final double radius;
 
   @override
-  State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
+  State<AirQualityActions> createState() => _AirQualityActionsState();
 }
 
-class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
+class _AirQualityActionsState extends State<AirQualityActions> {
   bool _showHeartAnimation = false;
 
   late ButtonStyle _leftButtonStyle;
@@ -548,16 +548,22 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 
   void _updateFavPlace(BuildContext context) {
     setState(() => _showHeartAnimation = true);
+    FavouritePlace favouritePlace =
+        FavouritePlace.fromAirQualityReading(widget.airQualityReading);
+    List<FavouritePlace> favouritePlaces =
+        List.of(context.read<FavouritePlaceBloc>().state);
+
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }
+    }).then((_) {
+      if (!favouritePlaces.contains(favouritePlace) && mounted) {
+        showFavouritePlaceSnackBar(context, widget.airQualityReading);
+      }
     });
-
     context.read<FavouritePlaceBloc>().add(
-          UpdateFavouritePlace(
-            FavouritePlace.fromAirQualityReading(widget.airQualityReading),
-          ),
+          UpdateFavouritePlace(favouritePlace),
         );
   }
 }

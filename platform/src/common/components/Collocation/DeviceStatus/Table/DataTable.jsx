@@ -8,14 +8,17 @@ import Skeleton from './Skeleton';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
-import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
 import Toast from '@/components/Toast';
+import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { isEmpty } from 'underscore';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
   running: 'bg-turquoise-200',
   scheduled: 'bg-yellow-200',
+  overdue: 'bg-red-200',
+  re_run_required: 'bg-red-200',
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
@@ -23,19 +26,23 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
 
   const [collocationInput, setCollocationInput] = useState({
-    devices: '',
-    startDate: '',
-    endDate: '',
+    devices: null,
+    batchId: '',
   });
+  const [skip, setSkip] = useState(true);
+  const [clickedRowIndex, setClickedRowIndex] = useState(null);
+
+  const {
+    isLoading: isCheckingForDataAvailability,
+    isError,
+    isSuccess,
+    data: collocationBatchResults,
+  } = useGetCollocationResultsQuery(collocationInput, { skip: skip });
+  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
-  const [getCollocationResultsData, { isLoading: isCheckingForDataAvailability, isError }] =
-    useGetCollocationResultsMutation();
-
-  const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   useEffect(() => {
     if (selectedCollocateDevices.length > 0) {
@@ -62,26 +69,26 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   };
 
-  const openMonitorReport = async (deviceName, startDate, endDate, index) => {
+  const openMonitorReport = async (deviceName, batchId, index) => {
     setCollocationInput({
       devices: deviceName,
-      startDate,
-      endDate,
+      batchId: batchId,
     });
     setClickedRowIndex(index);
-    const response = await getCollocationResultsData({ devices: deviceName, startDate, endDate });
+    setSkip(false);
+  };
 
-    if (!response.error) {
+  useEffect(() => {
+    if (isSuccess && !isEmpty(collocationBatchResultsData)) {
       router.push({
-        pathname: `/collocation/reports/${deviceName}`,
+        pathname: `/collocation/reports/${collocationInput.devices}`,
         query: {
-          device: deviceName,
-          startDate: startDate,
-          endDate: endDate,
+          device: collocationInput.devices,
+          batchId: collocationInput.batchId,
         },
       });
     }
-  };
+  }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
   return (
     <div>
@@ -156,21 +163,16 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
                         className={`${
-                          STATUS_COLOR_CODES[device.status]
+                          STATUS_COLOR_CODES[device.status.toLowerCase()]
                         } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
                       >
-                        {device.status}
+                        {device.status.toLowerCase()}
                       </span>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <span
                         onClick={() =>
-                          openMonitorReport(
-                            device.device_name,
-                            moment(device.start_date).format('YYYY-MM-DD'),
-                            moment(device.end_date).format('YYYY-MM-DD'),
-                            index,
-                          )
+                          openMonitorReport(device.device_name, device.batch_id, index)
                         }
                         className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
                       >
