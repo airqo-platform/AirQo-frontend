@@ -21,9 +21,40 @@ const STATUS_COLOR_CODES = {
   re_run_required: 'bg-red-200',
 };
 
+const ErrorModal = ({ errorMessage, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-gray-800 opacity-75"></div>
+      <div className="bg-white w-1/2 p-6 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Error Details</h2>
+        <p className="mb-4">{errorMessage}</p>
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+
+  const openErrorModal = () => {
+    setErrorModalOpen(true);
+  };
+
+  const closeErrorModal = () => {
+    setErrorModalOpen(false);
+  };
 
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
@@ -92,7 +123,17 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
 
   return (
     <div>
-      {isError && <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />}
+      {isError && (
+        <button
+          onClick={openErrorModal}
+          className="text-red-500 underline hover:text-red-700"
+        >
+          Error Occurred. Click for details.
+        </button>
+      )}
+      {errorModalOpen && (
+        <ErrorModal errorMessage="Uh-oh! Not enough data to generate a report" onClose={closeErrorModal} />
+      )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
         data-testid='collocation-device-status-summary'
@@ -137,8 +178,12 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                   <tr
                     className={`border-b border-b-slate-300 ${
                       clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
-                    }`}
+                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
                     key={index}
+                    onMouseEnter={() => setHoveredRowIndex(index)}
+                    onMouseLeave={() => setHoveredRowIndex(null)}
+                    onFocus={() => setFocusedRowIndex(index)}
+                    onBlur={() => setFocusedRowIndex(null)}
                   >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
