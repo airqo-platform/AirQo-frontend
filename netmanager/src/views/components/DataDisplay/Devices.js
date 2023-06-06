@@ -26,9 +26,9 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 
 // css
 import 'assets/css/device-registry.css';
-import { capitalize } from '../../../utils/string';
 import { softCreateDeviceApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
+import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -662,6 +662,7 @@ const DevicesTable = (props) => {
           isLoading={isEmpty(devices)}
           onRowClick={(event, rowData) => {
             event.preventDefault();
+            dispatch(updateDeviceDetails(rowData));
             return history.push(`/device/${rowData.name}/overview`);
           }}
           options={{
