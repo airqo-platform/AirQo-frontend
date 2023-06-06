@@ -20,7 +20,6 @@ import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
-// import AirQloudDropDown from "../../containers/AirQloudDropDown";
 import SelectorModal from "../../containers/selectorModal";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
@@ -35,8 +34,6 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     padding: "20px",
     minHeight: "200px",
-    // aspectRatio: "650 / 400",
-    // height: "50vh",
   },
   differenceIcon: {
     color: theme.palette.text.secondary,
@@ -49,6 +46,18 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-end",
   },
   chartSaveButton: {},
+  modalPaper: {
+    margin: 0,
+    width: "35%",
+    maxWidth: 400,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    [theme.breakpoints.down("sm")]: {
+      width: "100%",
+      margin: theme.spacing(2),
+    },
+  },
 }));
 
 const Dashboard = () => {
@@ -139,7 +148,7 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-      <Grid container>
+      <Grid container spacing={4}>
           <Grid item xs={12} sm={12} md={6} xl={6} style={{ display: 'flex' }}>
             <SelectorModal />
           </Grid>
