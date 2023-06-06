@@ -25,6 +25,14 @@ const useStyles = makeStyles((theme) => ({
   dropdownIcon: {
     color: theme.palette.text.secondary,
   },
+  reloadIcon: {
+    color: theme.palette.text.secondary,
+    fontSize: '3.5rem',
+    borderRadius: '4px',
+    marginRight: theme.spacing(2.5),
+    padding: theme.spacing(0.5),
+    backgroundColor: 'white',
+  },
   modalSiteItem: {
     display: 'flex',
     alignItems: 'center',
@@ -151,9 +159,9 @@ const SelectorModal = () => {
         </DialogActions>
       </Dialog>
 
-      <Tooltip title="Refresh AirQloud">
-        <div className="dd-reload" onClick={handleAirQloudRefresh(currentAirqQloud)}>
-          <ReloadIcon />
+      <Tooltip title="Refresh AirQloud" className={`dd-reload ${classes.dropdown}`} >
+        <div onClick={handleAirQloudRefresh(currentAirqQloud)}>
+          <ReloadIcon className={classes.reloadIcon} />
         </div>
       </Tooltip>
     </>
