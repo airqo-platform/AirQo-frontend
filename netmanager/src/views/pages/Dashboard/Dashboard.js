@@ -20,7 +20,8 @@ import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
-import AirQloudDropDown from "../../containers/AirQloudDropDown";
+// import AirQloudDropDown from "../../containers/AirQloudDropDown";
+import SelectorModal from "../../containers/selectorModal";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
 import D3CustomisableChart from "../../components/d3/CustomisableChart";
@@ -111,7 +112,9 @@ const Dashboard = () => {
       return "0" + n;
     }
     return n;
-  }
+  };
+
+  
 
   let todaysDate = new Date();
   const dateValue = appendLeadingZeroes(
@@ -136,9 +139,9 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <Grid container>
-          <Grid xs={12} sm={12} md={6} xl={6} style={{ display: "flex" }}>
-            <AirQloudDropDown />
+      <Grid container>
+          <Grid item xs={12} sm={12} md={6} xl={6} style={{ display: 'flex' }}>
+            <SelectorModal />
           </Grid>
         </Grid>
         <Grid container spacing={4}>
