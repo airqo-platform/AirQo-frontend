@@ -90,18 +90,24 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   // This function is to delete batch
   const deleteBatch = async () => {
     const { device, batchId } = collocationInput;
-    // use query params to delete batch
-    const { data } = await axios.delete(
-      `/api/collocation/batch?device=${device}&batchId=${batchId}`,
-    );
-    if (data.success) {
-      setVisible(false);
-      setCollocationInput({
-        devices: null,
-        batchId: '',
-      });
-      setSkip(true);
-    }
+
+    console.log('device', device + ',' + 'batchId', batchId);
+
+    // calling delete batch api
+    // this is just my assumption, as i try to understand how the api works for the project
+    // const { data } = await axios.delete(`/api/collocation/batch`, {
+    //   device: device,
+    //   batchId: batchId,
+    // });
+
+    // if (data.success) {
+    //   setVisible(false);
+    //   setCollocationInput({
+    //     devices: null,
+    //     batchId: '',
+    //   });
+    //   setSkip(true);
+    // }
   };
 
   useEffect(() => {
