@@ -25,7 +25,6 @@ const AnalyticsPage = React.lazy(() => import('src/pages/OurProducts/AnalyticsPa
 const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import { ContentUganda, ContentKenya } from 'src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
@@ -41,10 +40,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/solutions/research" element={<ResearchPage />} />
             <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
-              <Route path="uganda" element={<ContentUganda />} />
-              <Route path="kenya" element={<ContentKenya />} />
-            </Route>
+            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}/>
             <Route path="/careers" element={<CareerPage />} />
             <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
             <Route path="/about-us" element={<AboutUsPage />} />

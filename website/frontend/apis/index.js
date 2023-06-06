@@ -12,7 +12,8 @@ import {
   PARTNERS_URL,
   BOARD_MEMBERS_URL,
   PUBLICATIONS_URL,
-  EVENTS_URL
+  EVENTS_URL,
+  CITIES_URL
 } from '../config/urls';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
@@ -64,4 +65,8 @@ export const getAllPublicationsApi = async () =>
 // Events endpoint
 export const getAllEventsApi = async () =>
   await axios.get(EVENTS_URL).then((response) => response.data);
+
+// African Cities endpoint
+export const getAllCitiesApi = async () =>
+  await axios.get(CITIES_URL).then((response) => response.data);
 
