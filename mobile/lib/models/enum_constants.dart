@@ -57,6 +57,33 @@ enum FeedbackStep {
   formStep;
 }
 
+enum AuthException {
+  unknown(
+    message: 'Error occurred.',
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid Phone number',
+  ),
+  invalidEmailAddress(
+    message: 'Invalid Email address',
+  ),
+  emailTaken(
+    message: 'Email Taken',
+  );
+
+  const AuthException({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 // TODO remove this enum
 enum FirebaseAuthError {
   noInternetConnection(

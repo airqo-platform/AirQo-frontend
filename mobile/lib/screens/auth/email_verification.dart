@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../on_boarding/on_boarding_widgets.dart';
 import 'auth_widgets.dart';
 
 class EmailVerificationWidget extends StatefulWidget {
@@ -22,122 +23,129 @@ class EmailVerificationWidget extends StatefulWidget {
 class EmailVerificationWidgetState extends State<EmailVerificationWidget> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      builder: (context, state) {
-        if (state.codeCountDown >= 5) {
-          _startCodeSentCountDown();
-        }
+    return Scaffold(
+      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
+      body: AppSafeArea(
+        backgroundColor: Colors.white,
+        horizontalPadding: 24,
+        child: BlocBuilder<EmailAuthBloc, EmailAuthState>(
+          builder: (context, state) {
+            if (state.codeCountDown >= 5) {
+              _startCodeSentCountDown();
+            }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            /// initial Status
-            Visibility(
-              visible: state.status != EmailAuthStatus.invalidAuthCode,
-              child: const AuthTitle("Verify your account"),
-            ),
-
-            Visibility(
-              visible: state.status != EmailAuthStatus.invalidAuthCode,
-              child: AuthSubTitle(
-                'Enter the 6 digits code sent to ${state.emailAuthModel.emailAddress}',
-              ),
-            ),
-
-            /// invalid code Status
-            Visibility(
-              visible: state.status == EmailAuthStatus.invalidAuthCode,
-              child: const AuthTitle(
-                "Oops, Something’s wrong with your code",
-              ),
-            ),
-
-            Visibility(
-              visible: state.status == EmailAuthStatus.invalidAuthCode,
-              child: const AuthSubTitle(
-                'Sure you read it correctly? Pro Tip: Copy & Paste',
-              ),
-            ),
-
-            Visibility(
-              visible: state.status == EmailAuthStatus.invalidAuthCode,
-              child: const AuthSubTitle(
-                'Invalid Auth code',
-              ),
-            ),
-
-            /// OPT field
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: EditOptField(
-                callbackFn: (String value) {
-                  context
-                      .read<EmailAuthBloc>()
-                      .add(UpdateEmailInputCode(int.parse(value)));
-                },
-              ),
-            ),
-
-            /// Resend OPT
-            Visibility(
-              visible: state.codeCountDown > 0,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Text(
-                  'The code should arrive with in ${state.codeCountDown} sec',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.5),
-                      ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                /// initial Status
+                Visibility(
+                  visible: state.status != EmailAuthStatus.invalidAuthCode,
+                  child: const AuthTitle("Verify your account"),
                 ),
-              ),
-            ),
 
-            Visibility(
-              visible: state.codeCountDown <= 0,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: InkWell(
-                  onTap: () {
-                    context
-                        .read<AuthCodeBloc>()
-                        .add(ResendEmailAuthCode(context: context));
-                  },
-                  child: Text(
-                    'Resend code',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: CustomColors.appColorBlue,
-                        ),
+                Visibility(
+                  visible: state.status != EmailAuthStatus.invalidAuthCode,
+                  child: AuthSubTitle(
+                    'Enter the 6 digits code sent to ${state.emailAuthModel.emailAddress}',
                   ),
                 ),
-              ),
-            ),
 
-            const AuthOrSeparator(),
+                /// invalid code Status
+                Visibility(
+                  visible: state.status == EmailAuthStatus.invalidAuthCode,
+                  child: const AuthTitle(
+                    "Oops, Something’s wrong with your code",
+                  ),
+                ),
 
-            const ChangeAuthCredentials(),
+                Visibility(
+                  visible: state.status == EmailAuthStatus.invalidAuthCode,
+                  child: const AuthSubTitle(
+                    'Sure you read it correctly? Pro Tip: Copy & Paste',
+                  ),
+                ),
 
-            const Spacer(),
+                Visibility(
+                  visible: state.status == EmailAuthStatus.invalidAuthCode,
+                  child: const AuthSubTitle(
+                    'Invalid Auth code',
+                  ),
+                ),
 
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: NextButton(
-                buttonColor:
+                /// OPT field
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: EditOptField(
+                    callbackFn: (String value) {
+                      context
+                          .read<EmailAuthBloc>()
+                          .add(UpdateEmailInputCode(int.parse(value)));
+                    },
+                  ),
+                ),
+
+                /// Resend OPT
+                Visibility(
+                  visible: state.codeCountDown > 0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Text(
+                      'The code should arrive with in ${state.codeCountDown} sec',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Visibility(
+                  visible: state.codeCountDown <= 0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: InkWell(
+                      onTap: () {
+                        context
+                            .read<AuthCodeBloc>()
+                            .add(ResendEmailAuthCode(context: context));
+                      },
+                      child: Text(
+                        'Resend code',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: CustomColors.appColorBlue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const AuthOrSeparator(),
+
+                const ChangeAuthCredentials(),
+
+                const Spacer(),
+
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: NextButton(
+                    buttonColor:
                     state.emailAuthModel.inputToken.toString().length >= 6
                         ? CustomColors.appColorBlue
                         : CustomColors.appColorDisabled,
-                callBack: () {
-                  if (state.emailAuthModel.inputToken.toString().length >= 6) {
-                    _logInUser();
-                  }
-                },
-              ),
-            ),
-          ],
-        );
-      },
+                    callBack: () {
+                      if (state.emailAuthModel.inputToken.toString().length >= 6) {
+                        _logInUser();
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 

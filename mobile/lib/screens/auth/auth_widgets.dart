@@ -15,6 +15,24 @@ import 'package:flutter_svg/svg.dart';
 import '../home_page.dart';
 import 'email_auth_widget.dart';
 
+Future<void> navigateToAuthPage(BuildContext context, Widget screen) async {
+  await Navigator.pushAndRemoveUntil(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return screen;
+      },
+      transitionsBuilder:
+          (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
+          child: child,
+        );
+      },
+    ),
+        (r) => false,
+  );
+}
 class AuthOrSeparator extends StatelessWidget {
   const AuthOrSeparator({super.key});
 

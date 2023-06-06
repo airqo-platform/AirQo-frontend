@@ -17,6 +17,8 @@ class AirQoUrls {
   static String get emailVerification =>
       '${Config.airqoApi}/v1/users/emailLogin';
 
+  static String get signUp => '${Config.airqoApi}/v2/users/signup';
+
   static String get feedback => '${Config.airqoApi}/v1/users/feedback';
 
   static String get mobileCarrier =>

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -52,18 +53,19 @@ class AirqoApiClient {
 
   AirqoApiClient._internal(this.client);
 
+  final String serviceHeader = "service";
   final Map<String, String> getHeaders = HashMap()
     ..putIfAbsent(
-      'Authorization',
+      HttpHeaders.authorizationHeader,
       () => 'JWT ${Config.airqoApiToken}',
     );
 
   final Map<String, String> postHeaders = HashMap()
     ..putIfAbsent(
-      'Authorization',
+      HttpHeaders.authorizationHeader,
       () => 'JWT ${Config.airqoApiToken}',
     )
-    ..putIfAbsent('Content-Type', () => 'application/json');
+    ..putIfAbsent(HttpHeaders.contentTypeHeader, () => 'application/json');
 
   Future<AppStoreVersion?> getAppVersion({
     String bundleId = "",
@@ -187,10 +189,38 @@ class AirqoApiClient {
     return forecasts.removeInvalidData();
   }
 
+  Future<void> signUpWithEmail(String emailAddress) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers[serviceHeader] = ApiService.auth.serviceName;
+
+      final response = await http.post(
+        Uri.https(Config.airqoApiDomain,"/api/v2/users/signup", {"TOKEN": Config.airqoApiV2Token}),
+            headers: headers,
+            body: jsonEncode({'email': emailAddress}),
+          );
+
+      switch(response.statusCode){
+            case 200:
+              break;
+            case 400:
+              throw authExceptionFromErrorCode(json.decode(response.body)["error-code"] as String);
+            default:
+              throw Exception("Service unavailable");
+          }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+      throw Exception("Service unavailable");
+    }
+  }
+
   Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
-      headers["service"] = ApiService.auth.serviceName;
+      headers[serviceHeader] = ApiService.auth.serviceName;
 
       final response = await client.post(
         Uri.parse(

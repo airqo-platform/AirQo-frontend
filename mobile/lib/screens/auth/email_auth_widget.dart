@@ -97,11 +97,64 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                   ),
 
                   /// Email Input field
-                  const Padding(
-                    padding: EdgeInsets.only(top: 32.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 32.0),
                     child: SizedBox(
                       height: 48,
-                      child: EmailInputField(),
+                      child: TextFormField(
+                        onTap: () {
+                          context
+                              .read<EmailAuthBloc>()
+                              .add(UpdateEmailAddress(state.emailAddress));
+                        },
+                        onSaved: (value) {
+                          context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
+                        },
+                        style:
+                        Theme.of(context).textTheme.bodyLarge?.copyWith(color: CustomColors.appColorBlue),
+                        enableSuggestions: true,
+                        cursorWidth: 1,
+                        autofocus: false,
+                        cursorColor: CustomColors.appColorBlue,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+                          iconColor: CustomColors.appColorBlue,
+                          fillColor: CustomColors.appColorValid.withOpacity(0.05),
+                          filled: true,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          suffixIconColor: CustomColors.appColorBlue,
+                          hintText: 'Enter your email',
+                          hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.32),
+                          ),
+                          prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.32),
+                          ),
+                          suffixIcon: GestureDetector(
+                            onTap: () {
+                              _emailInputController.text = '';
+                              FocusScope.of(context).requestFocus(FocusNode());
+                              context.read<EmailAuthBloc>().add(const ClearEmailAddress());
+                            },
+                            child: suffixIcon,
+                          ),
+                          errorStyle: const TextStyle(
+                            fontSize: 0,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
@@ -157,7 +210,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     );
   }
 
-  Future<AuthStepResult> _confirmEmailAddress() async {
+  Future<bool> _confirmEmailAddress() async {
     final confirmation = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
@@ -168,102 +221,31 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
         );
       },
     );
-    if (confirmation == ConfirmationAction.ok) {
-      return AuthStepResult.success;
-    }
-    return AuthStepResult.fail;
-  }
 
-  Future<AuthStepResult> _emailAddressExistsChecks() async {
-    EmailAuthState state = context.read<EmailAuthBloc>().state;
-    AuthProcedure authProcedure = state.authProcedure;
-    AuthStepResult result = AuthStepResult.success;
-    await hasNetworkConnection().then((hasConnection) async {
-      if (!hasConnection) {
-        context.read<EmailAuthBloc>().add(const UpdateEmailAuthErrorMessage(
-              'Check your internet connection',
-            ));
-
-        return AuthStepResult.fail;
-      } else {
-        loadingScreen(context);
-
-        await AirqoApiClient()
-            .checkIfUserExists(
-          emailAddress: state.emailAddress,
-        )
-            .then((exists) async {
-          Navigator.pop(context);
-
-          if (exists == null) {
-            result = AuthStepResult.error;
-          } else {
-            if (exists && authProcedure == AuthProcedure.signup) {
-              context.read<EmailAuthBloc>().add(const UpdateEmailAuthStatus(
-                  EmailAuthStatus.emailAddressTaken));
-              result = AuthStepResult.fail;
-            }
-            if (!exists && authProcedure == AuthProcedure.login) {
-              context.read<EmailAuthBloc>().add(const UpdateEmailAuthStatus(
-                  EmailAuthStatus.emailAddressDoesNotExist));
-              result = AuthStepResult.fail;
-            }
-          }
-        });
-      }
-    });
-
-    return result;
+    return confirmation == ConfirmationAction.ok;
   }
 
   Future<void> _sendAuthToken() async {
-    AuthStepResult stepResult = await _confirmEmailAddress();
+    bool confirmation = await _confirmEmailAddress();
 
-    if (!mounted) return;
-    switch (stepResult) {
-      case AuthStepResult.success:
-        break;
-      case AuthStepResult.fail:
-        return;
-      case AuthStepResult.error:
-        await showDialog<ConfirmationAction>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return const AuthFailureDialog();
-          },
-        );
-        return;
-    }
-
-    stepResult = await _emailAddressExistsChecks();
-    if (!mounted) return;
-    switch (stepResult) {
-      case AuthStepResult.success:
-        break;
-      case AuthStepResult.fail:
-        return;
-      case AuthStepResult.error:
-        await showDialog<ConfirmationAction>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return const AuthFailureDialog();
-          },
-        );
-        return;
+    if(!confirmation){
+      return;
     }
 
     if (!mounted) return;
-
-    EmailAuthState state = context.read<EmailAuthBloc>().state;
 
     loadingScreen(context);
 
-    await AirqoApiClient()
-        .sendEmailVerificationCode(state.emailAddress)
-        .then((emailAuthModel) async {
-      if (emailAuthModel == null) {
+    EmailAuthState state = context.read<EmailAuthBloc>().state;
+    
+    await AirqoApiClient().signUpWithEmail(state.emailAddress).then((_) async {
+      Navigator.pop(context);
+      await navigateToAuthPage(context, const EmailVerificationWidget());
+    }).onError((error, stackTrace) async {
+      Navigator.pop(context);
+      if (error is AuthException) {
+        context.read<EmailAuthBloc>().add(ShowEmailAuthException(error),);
+      } else {
         await showDialog<ConfirmationAction>(
           context: context,
           barrierDismissible: false,
@@ -271,11 +253,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             return const AuthFailureDialog();
           },
         );
-      } else {
-        context.read<EmailAuthBloc>().add(UpdateEmailAuthModel(emailAuthModel));
-        context
-            .read<EmailAuthBloc>()
-            .add(const UpdateEmailAuthStatus(EmailAuthStatus.authCodeSent));
       }
     });
   }

@@ -11,6 +11,20 @@ extension DoubleExtension on double {
     return this >= start && this <= end;
   }
 }
+AuthException authExceptionFromErrorCode(String errorCode){
+  switch(errorCode){
+    case "email-taken":
+      return AuthException.emailTaken;
+    case "phone-number-taken":
+      return AuthException.phoneNumberTaken;
+    case "invalid-email":
+      return AuthException.invalidEmailAddress;
+    case "invalid-phone-number":
+      return AuthException.invalidPhoneNumber;
+    default:
+      throw Exception("Unknown auth error code");
+  }
+}
 
 extension CurrentLocationExt on CurrentLocation {
   bool hasChangedCurrentLocation(CurrentLocation newLocation) {

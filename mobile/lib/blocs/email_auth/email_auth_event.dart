@@ -36,6 +36,13 @@ class UpdateEmailAuthStatus extends EmailAuthEvent {
   List<Object> get props => [status];
 }
 
+class ShowEmailAuthException extends EmailAuthEvent {
+  const ShowEmailAuthException(this.exception);
+  final AuthException exception;
+  @override
+  List<Object> get props => [exception];
+}
+
 class UpdateEmailAuthErrorMessage extends EmailAuthEvent {
   const UpdateEmailAuthErrorMessage(this.errorMessage);
 
