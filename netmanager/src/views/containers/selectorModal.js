@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import ReloadIcon from '@material-ui/icons/Replay';
-import { Tooltip, Modal, Backdrop, Fade, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import { Tooltip, Modal, Backdrop, Fade, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, InputAdornment } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch } from 'react-redux';
 import { setCurrentAirQloudData } from 'redux/AirQloud/operations';
@@ -17,6 +18,12 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
     maxHeight: 400,
     overflowY: 'auto',
+  },
+  dropdown: {
+    cursor: 'pointer',
+  },
+  dropdownIcon: {
+    color: theme.palette.text.secondary,
   },
   modalSiteItem: {
     display: 'flex',
@@ -65,31 +72,27 @@ const SelectorModal = () => {
     if (data && data.refreshed_airqloud) setCurrentAirQloudData(data.refreshed_airqloud);
   };
 
-  
-
   useEffect(() => {
     const checkIfClickedOutside = (e) => {
-        
-        if (
-          openModal &&
-          ref.current &&
-          !ref.current.contains(e.target) &&
-          !e.target.classList.contains('MuiDialog-container') &&
-          !e.target.classList.contains('MuiDialogContent-root') &&
-          !e.target.classList.contains(classes.modalSelector)
-        ) {
-          setOpenModal(false);
-        }
-      };
+      if (
+        openModal &&
+        ref.current &&
+        !ref.current.contains(e.target) &&
+        !e.target.classList.contains('MuiDialog-container') &&
+        !e.target.classList.contains('MuiDialogContent-root') &&
+        !e.target.classList.contains(classes.modalSelector)
+      ) {
+        setOpenModal(false);
+      }
+    };
 
-  document.addEventListener('mousedown', checkIfClickedOutside);
+    document.addEventListener('mousedown', checkIfClickedOutside);
 
-  return () => {
-    // Cleanup the event listener
-    document.removeEventListener('mousedown', checkIfClickedOutside);
-  };
-}, [openModal]);
-
+    return () => {
+      // Cleanup the event listener
+      document.removeEventListener('mousedown', checkIfClickedOutside);
+    };
+  }, [openModal]);
 
   useEffect(() => {
     if (isEmpty(airqlouds)) {
@@ -99,9 +102,23 @@ const SelectorModal = () => {
 
   return (
     <>
-      <Button className="dropdown-button" onClick={handleOpenModal} ref={ref}>
-        {currentAirqQloud.long_name}
-      </Button>
+      <TextField
+      variant="outlined"
+      className={`${classes.dropdown} dropdown`}
+      onClick={handleOpenModal}
+      value={currentAirqQloud.long_name}
+      InputProps={{
+        readOnly: true,
+        className: classes.dropdown,
+        endAdornment: (
+          <InputAdornment position="end">
+            <Button className="dropdown-icon" onClick={handleOpenModal}>
+              <ArrowDropDownIcon className={classes.dropdownIcon} />
+            </Button>
+          </InputAdornment>
+        ),
+      }}
+    />
 
       <Dialog open={openModal} onClose={handleCloseModal} aria-labelledby="selector-modal-title">
         <DialogTitle id="selector-modal-title">
