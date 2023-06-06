@@ -15,6 +15,9 @@ import { isEmpty } from 'underscore';
 // Dropdown menu
 import Dropdown from '../../../Dropdowns/Dropdown';
 
+// Modal notification
+import Modal from '../../../Modal/Modal';
+
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
@@ -27,6 +30,9 @@ const STATUS_COLOR_CODES = {
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+
+  // state to handle modal visibility
+  const [visible, setVisible] = useState(false);
 
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
@@ -81,6 +87,23 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     setSkip(false);
   };
 
+  // This function is to delete batch
+  const deleteBatch = async () => {
+    const { device, batchId } = collocationInput;
+    // use query params to delete batch
+    const { data } = await axios.delete(
+      `/api/collocation/batch?device=${device}&batchId=${batchId}`,
+    );
+    if (data.success) {
+      setVisible(false);
+      setCollocationInput({
+        devices: null,
+        batchId: '',
+      });
+      setSkip(true);
+    }
+  };
+
   useEffect(() => {
     if (isSuccess && !isEmpty(collocationBatchResultsData)) {
       router.push({
@@ -105,14 +128,18 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     },
   ]);
 
-  // for handling links for dropdown menu items
   const handleItemClick = (id, device, index) => {
+    const { device_name, batch_id } = device;
     switch (id) {
       case 1:
-        openMonitorReport(device.device_name, device.batch_id, index);
+        openMonitorReport(device_name, batch_id, index);
         break;
       case 2:
-        alert('Delete batch');
+        setVisible(true);
+        setCollocationInput({
+          device: device_name,
+          batchId: batch_id,
+        });
         break;
       default:
         break;
@@ -215,6 +242,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tbody>
         )}
       </table>
+
+      {/* modal */}
+      <Modal
+        display={visible}
+        action={deleteBatch}
+        closeModal={() => setVisible(false)}
+        description='Are you sure you want to delete this batch?'
+        confirmButton='Delete'
+      />
     </div>
   );
 };
