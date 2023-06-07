@@ -217,6 +217,7 @@ const SiteToolbar = (props) => {
               margin="dense"
               label="Network"
               value={siteData.network}
+              defaultChecked={siteData.network}
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
