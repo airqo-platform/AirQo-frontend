@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addDevices,
@@ -6,9 +6,6 @@ import {
   addDevice,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import moment from 'moment';
-
-// Dropdown menu
-import Dropdown from '../../../Dropdowns/Dropdown';
 
 const DataTable = ({ paginatedData, collocationDevices }) => {
   const dispatch = useDispatch();
@@ -38,32 +35,6 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
       dispatch(addDevices([device.device]));
     } else {
       dispatch(removeDevices([device.device]));
-    }
-  };
-
-  // dropdown menu list
-  const [menu, setMenu] = useState([
-    {
-      id: 1,
-      name: 'View Monitor Report',
-    },
-    {
-      id: 2,
-      name: 'Delete Monitor',
-    },
-  ]);
-
-  // for handling endpoints for dropdown menu items
-  const handleItemClick = (id, device) => {
-    switch (id) {
-      case 1:
-        alert('View Monitor Report');
-        break;
-      case 2:
-        alert('Delete batch');
-        break;
-      default:
-        break;
     }
   };
 
@@ -117,9 +88,6 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
                   {' '}
                 </td>
                 <td scope='row' className='w-[145px] px-4 py-3'></td>
-                <td scope='row' className='w-[75px] px-4 py-3'>
-                  <Dropdown menu={menu} onItemClick={(id) => handleItemClick(id, device)} />
-                </td>
               </tr>
             );
           })}
