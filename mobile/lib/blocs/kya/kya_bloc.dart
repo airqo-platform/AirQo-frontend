@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
@@ -14,90 +13,80 @@ class KyaProgressCubit extends Cubit<double> {
   void updateProgress(double value) => emit(value);
 }
 
-class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
+class KyaBloc extends HydratedBloc<KyaEvent, List<KyaLesson>> {
   KyaBloc() : super([]) {
-    on<UpdateKyaProgress>(_onUpdateKyaProgress);
-    on<CompleteKya>(_onCompleteKya);
-    on<PartiallyCompleteKya>(_onPartiallyCompleteKya);
-    on<ClearKya>(_onClearKya);
-    on<SyncKya>(_onSyncKya);
+    on<UpdateKyaLessonStatus>(_onUpdateKyaLessonStatus);
+    on<UpdateKyaTaskStatus>(_onUpdateKyaTaskStatus);
+    on<SyncKyaLessons>(_onSyncKyaLessons);
+    on<ClearKyaLessons>(_onClearKyaLessons);
   }
 
-  Future<void> _onSyncKya(
-    SyncKya _,
-    Emitter<List<Kya>> emit,
+  void _onUpdateKyaTaskStatus(
+    UpdateKyaTaskStatus event,
+    Emitter<List<KyaLesson>> emit,
+  ) {
+    List<KyaLesson> kyaLessons = List.of(state);
+    KyaLesson kyaLesson =
+        kyaLessons.firstWhere((lesson) => lesson.id == event.kyaLesson.id);
+    KyaTask kyaTask =
+        kyaLesson.tasks.firstWhere((task) => task.id == event.kyaTask.id);
+    kyaTask = kyaTask.copyWith(status: event.status);
+
+    kyaLesson.tasks.remove(kyaTask);
+    kyaLesson.tasks.add(kyaTask);
+
+    kyaLessons.remove(kyaLesson);
+    kyaLessons.add(kyaLesson);
+
+    emit(kyaLessons);
+  }
+
+  Future<void> _onUpdateKyaLessonStatus(
+    UpdateKyaLessonStatus event,
+    Emitter<List<KyaLesson>> emit,
   ) async {
-    final cloudKya = await CloudStore.getKya();
-    Set<Kya> kya = state.toSet();
-    kya.addAll(cloudKya.toSet());
+    List<KyaLesson> kyaLessons = List.of(state);
+    KyaLesson kyaLesson =
+        kyaLessons.firstWhere((lesson) => lesson.id == event.kyaLesson.id);
+    kyaLesson = kyaLesson.copyWith(status: event.status);
+    kyaLessons.remove(kyaLesson);
+    kyaLessons.add(kyaLesson);
 
-    emit(kya.toList());
-
-    await CloudStore.updateKya(state);
+    emit(kyaLessons);
+    await CloudStore.updateKyaLessons(state);
   }
 
-  void _onClearKya(ClearKya _, Emitter<List<Kya>> emit) {
-    emit(state.map((e) => e.copyWith(progress: 0)).toList());
-  }
-
-  Future<void> _onPartiallyCompleteKya(
-    PartiallyCompleteKya event,
-    Emitter<List<Kya>> emit,
+  Future<void> _onSyncKyaLessons(
+    SyncKyaLessons _,
+    Emitter<List<KyaLesson>> emit,
   ) async {
-    Kya kya = event.kya.copyWith(progress: 1);
-    Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await CloudStore.updateKya([kya]);
+    final cloudKya = await CloudStore.getKyaLessons();
+    List<KyaLesson> kyaLessons = List.of(state);
+    kyaLessons.addAll(cloudKya);
+    kyaLessons = kyaLessons.toSet().toList();
+    emit(kyaLessons);
+    await CloudStore.updateKyaLessons(kyaLessons);
   }
 
-  Future<void> _onCompleteKya(
-    CompleteKya event,
-    Emitter<List<Kya>> emit,
-  ) async {
-    Kya kya = event.kya.copyWith(progress: -1);
-    Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await hasNetworkConnection().then((hasConnection) {
-      if (hasConnection) {
-        Future.wait([
-          CloudAnalytics.logEvent(CloudAnalyticsEvent.completeOneKYA),
-          CloudStore.updateKya([kya]),
-        ]);
-      }
-    });
-  }
-
-  Future<void> _onUpdateKyaProgress(
-    UpdateKyaProgress event,
-    Emitter<List<Kya>> emit,
-  ) async {
-    Kya kya = event.kya.copyWith();
-
-    if (kya.isPendingCompletion() || kya.isComplete()) return;
-    int index = event.visibleCardIndex;
-
-    if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
-
-    Set<Kya> kyaSet = {
-      kya.copyWith(progress: kya.getProgress(event.visibleCardIndex)),
-    };
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await CloudStore.updateKya([kya]);
+  void _onClearKyaLessons(ClearKyaLessons _, Emitter<List<KyaLesson>> emit) {
+    List<KyaLesson> kyaLessons = List.of(state)
+        .map((lesson) => lesson
+          ..copyWith(status: KyaLessonStatus.todo)
+          ..tasks
+              .map((task) => task.copyWith(status: KyaTaskStatus.todo))
+              .toList())
+        .toSet()
+        .toList();
+    emit(kyaLessons);
   }
 
   @override
-  List<Kya>? fromJson(Map<String, dynamic> json) {
-    return KyaList.fromJson(json).data;
+  List<KyaLesson>? fromJson(Map<String, dynamic> json) {
+    return KyaLessonsList.fromJson(json).lessons;
   }
 
   @override
-  Map<String, dynamic>? toJson(List<Kya> state) {
-    return KyaList(data: state).toJson();
+  Map<String, dynamic>? toJson(List<KyaLesson> state) {
+    return KyaLessonsList(lessons: state).toJson();
   }
 }

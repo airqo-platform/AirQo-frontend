@@ -2,7 +2,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -13,19 +12,19 @@ import 'package:flutter_svg/svg.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
-class KyaLessonsPage extends StatefulWidget {
-  const KyaLessonsPage(
-    this.kya, {
+class KyaTasksPage extends StatefulWidget {
+  const KyaTasksPage(
+    this.kyaLesson, {
     super.key,
   });
 
-  final Kya kya;
+  final KyaLesson kyaLesson;
 
   @override
-  State<KyaLessonsPage> createState() => _KyaLessonsPageState();
+  State<KyaTasksPage> createState() => _KyaTasksPageState();
 }
 
-class _KyaLessonsPageState extends State<KyaLessonsPage> {
+class _KyaTasksPageState extends State<KyaTasksPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
   int currentCard = 0;
 
@@ -59,7 +58,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             FutureBuilder<Uri>(
-              future: ShareService.createShareLink(kya: widget.kya),
+              future: ShareService.createShareLink(kya: widget.kyaLesson),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   showSnackBar(context, 'Could not create a share link.');
@@ -72,7 +71,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         await ShareService.shareLink(
                           link,
                           context,
-                          kya: widget.kya,
+                          kya: widget.kyaLesson,
                         );
                         // disabling copying to clipboard
                         // if (link.toString().length >
@@ -145,8 +144,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   height: 50,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child:
-                        KyaProgressBar(state + 1 / widget.kya.lessons.length),
+                    child: KyaProgressBar(
+                        state + 1 / widget.kyaLesson.tasks.length),
                   ),
                 );
               },
@@ -156,9 +155,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               height: 400,
               child: AppinioSwiper(
                 padding: EdgeInsets.zero,
-                cardsCount: widget.kya.lessons.length,
+                cardsCount: widget.kyaLesson.tasks.length,
                 cardsBuilder: (BuildContext context, int index) {
-                  return KyaLessonCard(widget.kya.lessons[index], widget.kya);
+                  return KyaLessonCard(
+                      widget.kyaLesson.tasks[index], widget.kyaLesson);
                 },
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
@@ -167,17 +167,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 duration: const Duration(milliseconds: 300),
                 unswipe: _onUnSwipe,
                 onEnd: () async {
-                  List<Kya> kyaList = context.read<KyaBloc>().state;
-                  Kya kya = kyaList.firstWhere(
-                    (element) => element.id == widget.kya.id,
-                    orElse: () => widget.kya,
+                  List<KyaLesson> kyaList = context.read<KyaBloc>().state;
+                  KyaLesson kya = kyaList.firstWhere(
+                    (element) => element.id == widget.kyaLesson.id,
+                    orElse: () => widget.kyaLesson,
                   );
-                  if (kya.isInProgress()) {
+                  if (kya.status == KyaLessonStatus.inProgress) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return KyaFinalPage(widget.kya);
+                          return KyaFinalPage(widget.kyaLesson);
                         },
                       ),
                     );
@@ -229,20 +229,28 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   initState() {
     super.initState();
     context.read<KyaProgressCubit>().updateProgress(0);
+    if (widget.kyaLesson.status == KyaLessonStatus.todo) {
+      context.read<KyaBloc>().add(UpdateKyaLessonStatus(widget.kyaLesson,
+          status: KyaLessonStatus.inProgress));
+    }
   }
 
   void _onSwipe(int card, AppinioSwiperDirection _) {
     setState(() => currentCard = card);
     context
         .read<KyaProgressCubit>()
-        .updateProgress(card / widget.kya.lessons.length);
+        .updateProgress(card / widget.kyaLesson.tasks.length);
+    KyaTask kyaTask = widget.kyaLesson.tasks[card];
+    context.read<KyaBloc>().add(UpdateKyaTaskStatus(kyaTask,
+        status: KyaTaskStatus.complete, kyaLesson: widget.kyaLesson));
   }
 
   void _onUnSwipe(bool unSwiped) {
     if (unSwiped) {
       setState(() => currentCard = currentCard - 1);
       double currentProgress = context.read<KyaProgressCubit>().state;
-      double nextProgress = currentProgress - (1 / widget.kya.lessons.length);
+      double nextProgress =
+          currentProgress - (1 / widget.kyaLesson.tasks.length);
       context
           .read<KyaProgressCubit>()
           .updateProgress(nextProgress < 0 ? 0 : nextProgress);

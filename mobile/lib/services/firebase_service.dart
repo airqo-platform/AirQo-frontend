@@ -101,25 +101,23 @@ class CloudAnalytics {
 }
 
 class CloudStore {
-  static Future<bool> updateKya(List<Kya> kyaList) async {
-    final batch = FirebaseFirestore.instance.batch();
-
+  static Future<bool> updateKyaLessons(List<KyaLesson> kyaLessons) async {
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return false;
     }
 
+    final batch = FirebaseFirestore.instance.batch();
     try {
-      for (final kya in kyaList) {
-        KyaProgress progress = KyaProgress.fromKya(kya);
+      for (final lesson in kyaLessons) {
         final document = FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
             .doc(userId)
             .collection(userId)
-            .doc(progress.id);
+            .doc(lesson.id);
         batch.set(
           document,
-          progress.toJson(),
+          KyaUserLesson.fromKyaLesson(lesson).toJson(),
         );
       }
       batch.commit();
@@ -135,18 +133,14 @@ class CloudStore {
     return true;
   }
 
-  static Future<List<Kya>> getKya() async {
-    List<Kya> kya = <Kya>[];
+  static Future<List<KyaLesson>> getKyaLessons() async {
+    List<KyaLesson> kyaLessons = <KyaLesson>[];
     final kyaCollection =
         await FirebaseFirestore.instance.collection(Config.kyaCollection).get();
 
     for (final doc in kyaCollection.docs) {
       try {
-        final kyaData = doc.data();
-        if (kyaData.isEmpty) {
-          continue;
-        }
-        kya.add(Kya.fromJson(kyaData));
+        kyaLessons.add(KyaLesson.fromJson(doc.data()));
       } catch (exception, stackTrace) {
         logException(exception, stackTrace);
       }
@@ -154,10 +148,10 @@ class CloudStore {
 
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
-      return kya;
+      return kyaLessons;
     }
 
-    List<KyaProgress> userProgress = <KyaProgress>[];
+    List<KyaUserLesson> kyaUserLessons = <KyaUserLesson>[];
     final kyaProgressCollection = await FirebaseFirestore.instance
         .collection(Config.usersKyaCollection)
         .doc(userId)
@@ -166,22 +160,23 @@ class CloudStore {
 
     for (final doc in kyaProgressCollection.docs) {
       try {
-        userProgress.add(KyaProgress.fromJson(doc.data()));
+        kyaUserLessons.add(KyaUserLesson.fromJson(doc.data()));
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
       }
     }
 
-    kya = kya.map((element) {
-      KyaProgress kyaProgress =
-          userProgress.firstWhere((x) => x.id == element.id, orElse: () {
-        return KyaProgress(id: element.id, progress: 0);
+    kyaLessons = kyaLessons.map((kyaLesson) {
+      KyaUserLesson kyaUserLesson =
+          kyaUserLessons.firstWhere((x) => x.id == kyaLesson.id, orElse: () {
+        return KyaUserLesson(
+            id: kyaLesson.id, status: KyaLessonStatus.todo, tasks: const []);
       });
 
-      return element.copyWith(progress: kyaProgress.progress);
+      return kyaLesson.copyFromKyaUserLesson(kyaUserLesson);
     }).toList();
 
-    return kya;
+    return kyaLessons;
   }
 
   static Future<List<AppNotification>> getNotifications() async {

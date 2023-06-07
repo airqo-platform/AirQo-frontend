@@ -11,7 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'kya_title_page.dart';
+import 'kya_lesson_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
@@ -47,7 +47,7 @@ class CircularKyaButton extends StatelessWidget {
 
 class KyaMessageChip extends StatelessWidget {
   const KyaMessageChip(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.isPendingCompletion()) {
+    if (kya.status == KyaLessonStatus.pendingTransfer) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -119,7 +119,7 @@ class KyaMessageChip extends StatelessWidget {
 
 class KyaCardWidget extends StatelessWidget {
   const KyaCardWidget(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -141,14 +141,17 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.isPendingCompletion()) {
-          context.read<KyaBloc>().add(CompleteKya(kya));
+        if (kya.status == KyaLessonStatus.pendingTransfer) {
+          context.read<KyaBloc>().add(UpdateKyaLessonStatus(
+                kya,
+                status: KyaLessonStatus.complete,
+              ));
         } else {
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) {
-                return KyaTitlePage(kya);
+                return KyaLessonPage(kya);
               },
             ),
           );
@@ -176,7 +179,7 @@ class KyaCardWidget extends StatelessWidget {
                 const Spacer(),
                 KyaMessageChip(kya),
                 Visibility(
-                  visible: kya.isInProgress(),
+                  visible: kya.status == KyaLessonStatus.inProgress,
                   child: KyaProgressBar(
                     kya.progress,
                     height: 6,
@@ -241,8 +244,8 @@ class KyaProgressBar extends StatelessWidget {
 
 class KyaLessonCard extends StatelessWidget {
   const KyaLessonCard(this.kyaLesson, this.kya, {super.key});
-  final KyaLesson kyaLesson;
-  final Kya kya;
+  final KyaTask kyaLesson;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import 'analytics/analytics_view.dart';
-import 'kya/know_your_air_view.dart';
+import 'kya/kya_view.dart';
 
 class ForYouPage extends StatefulWidget {
   const ForYouPage({

@@ -6,7 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'kya_title_page.dart';
+import 'kya_lesson_page.dart';
 import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatelessWidget {
@@ -14,25 +14,25 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KyaBloc, List<Kya>>(
+    return BlocBuilder<KyaBloc, List<KyaLesson>>(
       builder: (context, state) {
         if (state.isEmpty) {
           return NoKyaWidget(
             callBack: () {
-              context.read<KyaBloc>().add(const SyncKya());
+              context.read<KyaBloc>().add(const SyncKyaLessons());
             },
           );
         }
-        final completeKya = state.filterComplete();
-        if (completeKya.isEmpty) {
-          final inCompleteKya = state.filterInProgressKya();
+        final completeLessons = state.filterCompleteLessons();
+        if (completeLessons.isEmpty) {
+          final kyaLesson = state.filterHomePageCardsLessons().firstOrNull;
 
           return NoCompleteKyaWidget(
             callBack: () async {
-              if (inCompleteKya.isEmpty) {
+              if (kyaLesson == null) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
               } else {
-                await _startKyaLessons(context, inCompleteKya.first);
+                await _startKyaLessons(context, kyaLesson);
               }
             },
           );
@@ -48,11 +48,11 @@ class KnowYourAirView extends StatelessWidget {
                   ),
                 ),
                 child: KyaCardWidget(
-                  completeKya[index],
+                  completeLessons[index],
                 ),
               );
             },
-            childCount: completeKya.length,
+            childCount: completeLessons.length,
           ),
           onRefresh: () {
             _refresh(context);
@@ -65,15 +65,15 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const SyncKyaLessons());
   }
 
-  Future<void> _startKyaLessons(BuildContext context, Kya kya) async {
+  Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) {
-          return KyaTitlePage(kya);
+          return KyaLessonPage(kya);
         },
       ),
     );

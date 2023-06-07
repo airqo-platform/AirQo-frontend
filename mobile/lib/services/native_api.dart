@@ -23,7 +23,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
 import '../screens/insights/insights_page.dart';
-import '../screens/kya/kya_title_page.dart';
+import '../screens/kya/kya_lesson_page.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
 
@@ -67,7 +67,7 @@ class RateService {
 class ShareService {
   // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri> createShareLink({
-    Kya? kya,
+    KyaLesson? kya,
     AirQualityReading? airQualityReading,
   }) async {
     if (airQualityReading != null && kya != null) {
@@ -106,7 +106,7 @@ class ShareService {
     }
 
     if (kya != null) {
-      params = '${kya.shareLinkParams()}&page=kya';
+      params = '${kya.shareLinkParams}&page=kya';
       title = kya.title;
       description = 'Breathe Clean';
       shareImage = Uri.parse(kya.imageUrl);
@@ -198,7 +198,7 @@ class ShareService {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return KyaTitlePage(Kya.fromDynamicLink(linkData));
+            return KyaLessonPage(KyaLesson.fromDynamicLink(linkData));
           }),
           (r) => false,
         );
@@ -217,7 +217,7 @@ class ShareService {
   static Future<void> shareLink(
     Uri link,
     BuildContext context, {
-    Kya? kya,
+    KyaLesson? kya,
     AirQualityReading? airQualityReading,
   }) async {
     if (airQualityReading != null && kya != null) {
@@ -399,7 +399,7 @@ class CacheService {
     );
   }
 
-  static void cacheKyaImages(Kya _) {
+  static void cacheKyaImages(KyaLesson _) {
     // TODO : implement caching
     // await Future.wait([
     //   cache_manager.DefaultCacheManager()

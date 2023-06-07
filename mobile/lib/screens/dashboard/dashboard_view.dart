@@ -148,10 +148,10 @@ class _DashboardViewState extends State<DashboardView>
                     const SizedBox(
                       width: 16,
                     ),
-                    BlocBuilder<KyaBloc, List<Kya>>(
+                    BlocBuilder<KyaBloc, List<KyaLesson>>(
                       builder: (context, state) {
                         final kyaWidgets = completeKyaWidgets(
-                          state.filterComplete().take(3).toList(),
+                          state.filterCompleteLessons().take(3).toList(),
                         );
 
                         return Expanded(
@@ -301,18 +301,12 @@ class _DashboardViewState extends State<DashboardView>
                       );
                     },
                   ),
-                  BlocBuilder<KyaBloc, List<Kya>>(
+                  BlocBuilder<KyaBloc, List<KyaLesson>>(
                     builder: (context, state) {
-                      List<Kya> kya = state
-                        ..filterPendingCompletion()
-                        ..sortByProgress();
-                      if (kya.isEmpty) {
-                        kya = state.filterInProgressKya();
-                      }
-                      if (kya.isEmpty) {
-                        kya = state.filterToDo();
-                      }
-                      if (kya.isEmpty) {
+                      KyaLesson? kyaLesson =
+                          state.filterHomePageCardsLessons().firstOrNull;
+
+                      if (kyaLesson == null) {
                         _kyaExists = false;
 
                         return const SizedBox();
@@ -326,7 +320,7 @@ class _DashboardViewState extends State<DashboardView>
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
-                            kya.first,
+                            kyaLesson,
                           ),
                         ),
                       );

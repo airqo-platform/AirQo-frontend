@@ -9,12 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:app/constants/constants.dart' as config;
-import 'kya_lessons_page.dart';
+import 'kya_tasks_page.dart';
 import 'kya_widgets.dart';
 
-class KyaTitlePage extends StatelessWidget {
-  const KyaTitlePage(this.kya, {super.key});
-  final Kya kya;
+class KyaLessonPage extends StatelessWidget {
+  const KyaLessonPage(this.kya, {super.key});
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -27,23 +27,25 @@ class KyaTitlePage extends StatelessWidget {
 
     return MediaQuery(
       data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
-      child: BlocBuilder<KyaBloc, List<Kya>>(
+      child: BlocBuilder<KyaBloc, List<KyaLesson>>(
         builder: (context, state) {
-          Kya cachedKya = state.firstWhere(
+          KyaLesson kyaLesson = state.firstWhere(
             (element) => element.id == kya.id,
             orElse: () => kya,
           );
 
-          if (!cachedKya.isEmpty()) return PageScaffold(cachedKya);
+          if (kyaLesson.tasks.isNotEmpty) {
+            return KyaLessonPageScaffold(kyaLesson);
+          }
 
-          return FutureBuilder<Kya?>(
+          return FutureBuilder<KyaLesson?>(
             future: AppService.getKya(kya),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 if (snapshot.error.runtimeType == NetworkConnectionException) {
                   return NoInternetConnectionWidget(
                     callBack: () =>
-                        context.read<KyaBloc>().add(const SyncKya()),
+                        context.read<KyaBloc>().add(const SyncKyaLessons()),
                   );
                 }
 
@@ -51,12 +53,12 @@ class KyaTitlePage extends StatelessWidget {
               }
 
               if (snapshot.hasData) {
-                final Kya? kya = snapshot.data;
+                final KyaLesson? kya = snapshot.data;
                 if (kya == null) {
                   return const KyaNotFoundWidget();
                 }
 
-                return PageScaffold(kya);
+                return KyaLessonPageScaffold(kya);
               }
 
               return const KyaLoadingWidget();
@@ -68,17 +70,12 @@ class KyaTitlePage extends StatelessWidget {
   }
 }
 
-class PageScaffold extends StatelessWidget {
-  const PageScaffold(this.kya, {super.key});
-  final Kya kya;
+class KyaLessonPageScaffold extends StatelessWidget {
+  const KyaLessonPageScaffold(this.kya, {super.key});
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
-    final String buttonText =
-        kya.progress > 0 && kya.progress < kya.lessons.length
-            ? 'Resume'
-            : 'Begin';
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const KnowYourAirAppBar(),
@@ -120,14 +117,14 @@ class PageScaffold extends StatelessWidget {
                 bottom: 32,
               ),
               child: NextButton(
-                text: buttonText,
+                text: kya.getKyaLessonPageTitle(),
                 buttonColor: CustomColors.appColorBlue,
                 callBack: () {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return KyaLessonsPage(kya);
+                        return KyaTasksPage(kya);
                       },
                     ),
                   );

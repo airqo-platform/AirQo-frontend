@@ -63,74 +63,68 @@ extension ForecastListExt on List<Forecast> {
       where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
-extension KyaExt on Kya {
-  String getKyaMessage() {
-    if (isInProgress()) {
-      return 'Continue';
-    } else if (isPendingCompletion()) {
-      return 'Complete! Move to For You';
-    } else {
-      return 'Start learning';
+extension KyaLessonExt on KyaLesson {
+  List<KyaTask> completeTasks() {
+    return tasks.where((task) {
+      return task.status == KyaTaskStatus.complete;
+    }).toList();
+  }
+
+  String getKyaLessonPageTitle() {
+    switch (status) {
+      case KyaLessonStatus.todo:
+        return "Begin";
+      case KyaLessonStatus.inProgress:
+        return "Resume";
+      case KyaLessonStatus.pendingTransfer:
+      case KyaLessonStatus.complete:
+        return "Restart";
     }
   }
 
-  bool isPendingCompletion() {
-    return progress == 1;
-  }
-
-  bool isComplete() {
-    return progress == -1;
-  }
-
-  bool isEmpty() {
-    return lessons.isEmpty;
-  }
-
-  bool isInProgress() {
-    return progress > 0 && progress < 1;
-  }
-
-  bool todo() {
-    return progress == 0;
-  }
-
-  double getProgress(int visibleCardIndex) {
-    return (visibleCardIndex + 1) / lessons.length;
+  String getKyaMessage() {
+    switch (status) {
+      case KyaLessonStatus.todo:
+        return 'Start learning';
+      case KyaLessonStatus.inProgress:
+        return 'Continue';
+      case KyaLessonStatus.pendingTransfer:
+      case KyaLessonStatus.complete:
+        return 'Complete! Move to For You';
+    }
   }
 }
 
-extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) {
-      if (x.progress == -1) return -1;
-
-      if (y.progress == -1) return 1;
-
-      return -(x.progress.compareTo(y.progress));
-    });
-  }
-
-  List<Kya> filterInProgressKya() {
+extension KyaListExt on List<KyaLesson> {
+  List<KyaLesson> filterLessonsInProgress() {
     return where((element) {
-      return element.isInProgress();
+      return element.status == KyaLessonStatus.inProgress;
     }).toList();
   }
 
-  List<Kya> filterToDo() {
+  List<KyaLesson> filterLessonsInToDo() {
     return where((element) {
-      return element.todo();
+      return element.status == KyaLessonStatus.todo;
     }).toList();
   }
 
-  List<Kya> filterPendingCompletion() {
+  List<KyaLesson> filterHomePageCardsLessons() {
+    List<KyaLesson> kyaLessons = filterLessonsPendingTransfer();
+    kyaLessons.addAll(filterLessonsInProgress());
+    kyaLessons.addAll(filterLessonsInToDo());
+
+    return kyaLessons;
+  }
+
+  List<KyaLesson> filterLessonsPendingTransfer() {
     return where((element) {
-      return element.isPendingCompletion();
+      return element.status == KyaLessonStatus.pendingTransfer;
     }).toList();
   }
 
-  List<Kya> filterComplete() {
+  List<KyaLesson> filterCompleteLessons() {
     return where((element) {
-      return element.isComplete();
+      return element.status == KyaLessonStatus.complete;
     }).toList();
   }
 }

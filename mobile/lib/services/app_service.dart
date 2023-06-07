@@ -24,7 +24,7 @@ class AppService {
 
   static Future<void> postSignInActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const SyncKyaLessons());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -35,23 +35,23 @@ class AppService {
 
   static Future<void> postSignOutActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const ClearProfile());
-    context.read<KyaBloc>().add(const ClearKya());
+    context.read<KyaBloc>().add(const ClearKyaLessons());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
     await CloudAnalytics.logSignOutEvents();
   }
 
-  static Future<Kya?> getKya(Kya kya) async {
-    if (!kya.isEmpty()) return kya;
+  static Future<KyaLesson?> getKya(KyaLesson kya) async {
+    if (kya.tasks.isNotEmpty) return kya;
 
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {
       throw NetworkConnectionException('No internet Connection');
     }
     try {
-      List<Kya> kyaList = await CloudStore.getKya();
-      List<Kya> cloudKya =
+      List<KyaLesson> kyaList = await CloudStore.getKyaLessons();
+      List<KyaLesson> cloudKya =
           kyaList.where((element) => element.id == kya.id).toList();
 
       return cloudKya.isEmpty ? null : cloudKya.first;

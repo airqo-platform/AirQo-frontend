@@ -3,6 +3,7 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -37,6 +38,24 @@ enum CloudAnalyticsEvent {
   String snakeCase() {
     return '${kReleaseMode ? 'prod_' : 'stage_'}$snakeCaseValue';
   }
+}
+
+enum KyaLessonStatus {
+  @JsonValue("TODO")
+  todo,
+  @JsonValue("IN_PROGRESS")
+  inProgress,
+  @JsonValue("PENDING_TRANSFER")
+  pendingTransfer,
+  @JsonValue("COMPLETE")
+  complete;
+}
+
+enum KyaTaskStatus {
+  @JsonValue("TODO")
+  todo,
+  @JsonValue("COMPLETE")
+  complete,
 }
 
 enum AppPermission {

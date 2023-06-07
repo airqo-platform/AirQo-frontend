@@ -3,74 +3,45 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('kyaExtension', () {
-    List<Kya> kyas = [];
+  group('Kya Extension', () {
+    List<KyaLesson> kyaLessons = [];
 
     setUp(() => {
-          kyas = List.generate(
+          kyaLessons = List.generate(
             4,
-            (index) => Kya(
-              progress: index == 0
-                  ? 1
-                  : index == 1
-                      ? 0.5
-                      : index == 2
-                          ? -1
-                          : 0,
+            (index) => KyaLesson(
               completionMessage: 'Lesson ${index + 1} Completed',
               id: (index + 1).toString(),
               imageUrl: '',
-              lessons: const [],
-              secondaryImageUrl: '',
+              status: KyaLessonStatus.todo,
+              tasks: const [],
               shareLink: '',
               title: '',
             ),
           ),
         });
 
-    group('sortByProgress', () {
-      test('Should sort Kyas in descending order by progress', () {
-        Kya kya = kyas[0];
-
-        List<Kya> testKyas = [
-          kya.copyWith(progress: 0),
-          kya.copyWith(progress: 0.6),
-          kya.copyWith(progress: -1),
-          kya.copyWith(progress: 0.4),
-          kya.copyWith(progress: -1)
-        ];
-
-        testKyas.sortByProgress();
-
-        expect(
-            testKyas,
-            containsAllInOrder([
-              kya.copyWith(progress: -1),
-              kya.copyWith(progress: -1),
-              kya.copyWith(progress: 0.6),
-              kya.copyWith(progress: 0.4),
-              kya.copyWith(progress: 0),
-            ]));
-      });
-    });
-
     group('Filter Complete', () {
       test('returns empty list when all Kyas are not yet completed', () {
-        kyas = [kyas[0], kyas[1], kyas[3]];
+        kyaLessons = [kyaLessons[0], kyaLessons[1], kyaLessons[3]];
 
-        final filteredKyas = kyas.filterComplete();
+        final filteredKyas = kyaLessons.filterCompleteLessons();
         expect(filteredKyas.isEmpty, true);
       });
       test('Should return only completed Lessons', () {
-        if (kyas.length == 1 && kyas.contains(kyas[2])) {
+        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[2])) {
           fail('Kyas already does not contain uncompleted lessons');
         }
 
-        Set<Kya> unCompletedKyasSet = {kyas[1], kyas[0], kyas[3]};
+        Set<KyaLesson> unCompletedKyasSet = {
+          kyaLessons[1],
+          kyaLessons[0],
+          kyaLessons[3]
+        };
 
-        final completedKyas = kyas.filterComplete();
+        final completedKyas = kyaLessons.filterCompleteLessons();
         expect(completedKyas.length, 1);
-        expect(completedKyas.contains(kyas[2]), isTrue);
+        expect(completedKyas.contains(kyaLessons[2]), isTrue);
         expect(completedKyas.toSet().intersection(unCompletedKyasSet).isEmpty,
             isTrue);
       });
@@ -78,31 +49,33 @@ void main() {
 
     group('Filter ToDo', () {
       test('Should return only elements that are to do', () {
-        if (kyas.length == 1 && kyas.contains(kyas[3])) {
+        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[3])) {
           fail('Kyas already does not contain ToDo lessons');
         }
 
-        Set<Kya> toDoKyasSet = {kyas[3]};
-        Set<Kya> startedKyasSet = kyas.toSet().difference(toDoKyasSet);
+        Set<KyaLesson> toDoKyasSet = {kyaLessons[3]};
+        Set<KyaLesson> startedKyasSet =
+            kyaLessons.toSet().difference(toDoKyasSet);
 
-        final toDoKyas = kyas.filterToDo();
+        final toDoKyas = kyaLessons.filterLessonsInToDo();
         expect(toDoKyas.length, 1);
-        expect(toDoKyas.contains(kyas[3]), isTrue);
+        expect(toDoKyas.contains(kyaLessons[3]), isTrue);
         expect(toDoKyas.toSet().intersection(startedKyasSet).isEmpty, isTrue);
       });
     });
 
     group('Filter Pending Completion', () {
       test('Should return only elements that are pending completion', () {
-        if (kyas.length == 1 && kyas.contains(kyas[0])) {
+        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[0])) {
           fail('Kyas already does not contain pending completion lessons');
         }
-        Set<Kya> pendingCompletionKyasSet = {kyas[0]};
-        Set<Kya> othersSet = kyas.toSet().difference(pendingCompletionKyasSet);
+        Set<KyaLesson> pendingCompletionKyasSet = {kyaLessons[0]};
+        Set<KyaLesson> othersSet =
+            kyaLessons.toSet().difference(pendingCompletionKyasSet);
 
-        final pendingCompletionKyas = kyas.filterPendingCompletion();
+        final pendingCompletionKyas = kyaLessons.filterLessonsPendingTransfer();
         expect(pendingCompletionKyas.length, 1);
-        expect(pendingCompletionKyas.contains(kyas[0]), isTrue);
+        expect(pendingCompletionKyas.contains(kyaLessons[0]), isTrue);
         expect(pendingCompletionKyas.toSet().intersection(othersSet).isEmpty,
             isTrue);
       });
@@ -110,15 +83,16 @@ void main() {
 
     group('Filter In Progress', () {
       test('Should return only elements that are In Progress', () {
-        if (kyas.length == 1 && kyas.contains(kyas[1])) {
+        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[1])) {
           fail('Kyas already does not contain In Progress lessons');
         }
-        Set<Kya> inProgressKyasSet = {kyas[1]};
-        Set<Kya> othersSet = kyas.toSet().difference(inProgressKyasSet);
+        Set<KyaLesson> inProgressKyasSet = {kyaLessons[1]};
+        Set<KyaLesson> othersSet =
+            kyaLessons.toSet().difference(inProgressKyasSet);
 
-        final inProgressKyas = kyas.filterInProgressKya();
+        final inProgressKyas = kyaLessons.filterLessonsInProgress();
         expect(inProgressKyas.length, 1);
-        expect(inProgressKyas.contains(kyas[1]), isTrue);
+        expect(inProgressKyas.contains(kyaLessons[1]), isTrue);
         expect(inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
       });
     });
