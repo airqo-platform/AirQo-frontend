@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers } from '@reduxjs/toolkit';
 import authReducer from './Join/reducers/authReducer';
 import errorReducer from './Join/reducers/errorReducer';
 import userReducer from './Join/reducers/userReducer';
@@ -14,6 +14,8 @@ import urlsReducer from './Urls/reducers';
 import siteRegistryReducer from './SiteRegistry/reducers';
 import airQloudReducer from './AirQloud/reducers';
 import accessControlReducer from './AccessControl/reducers';
+import deviceOverviewReducer from './DeviceOverview/OverviewSlice'
+import googlePlacesReducer from './GooglePlaces/reducer';
 
 export default combineReducers({
   auth: authReducer,
@@ -30,5 +32,7 @@ export default combineReducers({
   urls: urlsReducer,
   siteRegistry: siteRegistryReducer,
   airqloudRegistry: airQloudReducer,
-  accessControl: accessControlReducer
+  accessControl: accessControlReducer,
+  deviceOverviewData: deviceOverviewReducer,
+  googlePlaces: googlePlacesReducer
 });

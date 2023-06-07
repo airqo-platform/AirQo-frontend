@@ -1,50 +1,40 @@
-import React, { useEffect } from "react";
-import PropTypes from "prop-types";
-import { useHistory } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { makeStyles } from "@material-ui/core/styles";
-import {
-  TableContainer,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@material-ui/core";
+import React, { useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
+import { TableContainer, Table, TableBody, TableCell, TableRow } from '@material-ui/core';
 
-import "chartjs-plugin-annotation";
-import { isEmpty } from "underscore";
+import 'chartjs-plugin-annotation';
+import { isEmpty } from 'underscore';
 import {
   loadDeviceMaintenanceLogs,
-  loadDeviceComponentsData,
-} from "redux/DeviceRegistry/operations";
-import {
-  useDeviceLogsData,
-  useDeviceComponentsData,
-} from "redux/DeviceRegistry/selectors";
-import { ChartContainer } from "views/charts";
-import DeviceDetails from "./DeviceDetails";
-import DeviceLocation from "./DeviceLocation";
-import DeviceQRCode from "./DeviceQRCode";
-import DeviceOverviewCharts from "./DeviceOverviewChart";
+  loadDeviceComponentsData
+} from 'redux/DeviceRegistry/operations';
+import { useDeviceLogsData, useDeviceComponentsData } from 'redux/DeviceRegistry/selectors';
+import { ChartContainer } from 'views/charts';
+import DeviceDetails from './DeviceDetails';
+import DeviceLocation from './DeviceLocation';
+import DeviceQRCode from './DeviceQRCode';
+import DeviceOverviewCharts from './DeviceOverviewChart';
 
 // styles
-import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+import styles from 'assets/jss/material-dashboard-react/views/dashboardStyle.js';
 
 const useStyles = makeStyles(styles);
 
 function jsonArrayToString(myJsonArray) {
   let myArray = [];
   for (let i = 0; i < myJsonArray.length; i++) {
-    let myString =
-      myJsonArray[i].quantityKind + "(" + myJsonArray[i].measurementUnit + ")";
+    let myString = myJsonArray[i].quantityKind + '(' + myJsonArray[i].measurementUnit + ')';
     myArray.push(myString);
   }
-  return myArray.join(", ");
+  return myArray.join(', ');
 }
 
 function appendLeadingZeroes(n) {
   if (n <= 9) {
-    return "0" + n;
+    return '0' + n;
   }
   return n;
 }
@@ -52,9 +42,9 @@ function appendLeadingZeroes(n) {
 let formatDate = (date) => {
   let time =
     appendLeadingZeroes(date.getDate()) +
-    "-" +
+    '-' +
     appendLeadingZeroes(date.getMonth() + 1) +
-    "-" +
+    '-' +
     date.getFullYear();
 
   return time;
@@ -72,24 +62,17 @@ const DeviceMaintenanceLogs = ({ deviceName }) => {
   }, []);
 
   return (
-    <ChartContainer title={"maintenance history"} blue>
+    <ChartContainer title={'maintenance history'} blue>
       {deviceMaintenanceLogs.length > 0 && (
         <TableContainer className={classes.table}>
-          <Table
-            stickyHeader
-            aria-label="sticky table"
-            alignItems="left"
-            alignContent="left"
-          >
+          <Table stickyHeader aria-label="sticky table" alignItems="left" alignContent="left">
             <TableBody>
               {deviceMaintenanceLogs.map((log, index) => (
                 <TableRow key={index}>
                   <TableCell>{formatDate(new Date(log.date))}</TableCell>
                   {log.tags && log.tags.length > 0 ? (
                     <TableCell>
-                      {typeof log.tags === "string"
-                        ? log.tags
-                        : log.tags && log.tags.join(", ")}
+                      {typeof log.tags === 'string' ? log.tags : log.tags && log.tags.join(', ')}
                     </TableCell>
                   ) : (
                     <TableCell>{log.description}</TableCell>
@@ -106,7 +89,7 @@ const DeviceMaintenanceLogs = ({ deviceName }) => {
 };
 
 DeviceMaintenanceLogs.protoTypes = {
-  deviceName: PropTypes.string.isRequired,
+  deviceName: PropTypes.string.isRequired
 };
 
 const DeviceComponents = ({ deviceName }) => {
@@ -126,7 +109,7 @@ const DeviceComponents = ({ deviceName }) => {
   }, []);
 
   return (
-    <ChartContainer title={"device components"} blue centerItems>
+    <ChartContainer title={'device components'} blue centerItems>
       {deviceComponents.length > 0 && (
         <TableContainer className={classes.table}>
           <Table
@@ -134,16 +117,13 @@ const DeviceComponents = ({ deviceName }) => {
             aria-label="sticky table"
             alignItems="left"
             alignContent="left"
-            style={{ cursor: "pointer" }}
-            onClick={() => goTo("components")}
-          >
-            <TableBody style={{ alignContent: "left", alignItems: "left" }}>
+            style={{ cursor: 'pointer' }}
+            onClick={() => goTo('components')}>
+            <TableBody style={{ alignContent: 'left', alignItems: 'left' }}>
               {deviceComponents.map((component, index) => (
-                <TableRow key={index} style={{ align: "left" }}>
+                <TableRow key={index} style={{ align: 'left' }}>
                   <TableCell>{component.description}</TableCell>
-                  <TableCell>
-                    {jsonArrayToString(component.measurement)}
-                  </TableCell>
+                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -156,32 +136,33 @@ const DeviceComponents = ({ deviceName }) => {
 };
 
 DeviceComponents.protoTypes = {
-  deviceName: PropTypes.string.isRequired,
+  deviceName: PropTypes.string.isRequired
 };
 
-export default function DeviceOverview({ deviceData }) {
+const DeviceOverview = ({ deviceData }) => {
   return (
     <div
       style={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: "space-around",
-      }}
-    >
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-around'
+      }}>
       <DeviceDetails deviceData={deviceData} />
 
-      <DeviceQRCode deviceData={deviceData} />
-
-      <DeviceLocation deviceData={deviceData} />
+      {deviceData.latitude ? <DeviceLocation deviceData={deviceData} /> : <span />}
 
       <DeviceOverviewCharts deviceName={deviceData.name} />
 
       <DeviceMaintenanceLogs deviceName={deviceData.name} />
+
+      <DeviceQRCode deviceData={deviceData} />
     </div>
   );
-}
+};
+
+export default DeviceOverview;
 
 DeviceOverview.propTypes = {
-  deviceData: PropTypes.object.isRequired,
+  deviceData: PropTypes.object.isRequired
 };
