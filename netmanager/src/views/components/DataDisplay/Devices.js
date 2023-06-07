@@ -131,8 +131,7 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}
-            >
+              }}>
               {data.site && data.site.description}
             </Link>
           )
@@ -162,8 +161,7 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}
-            >
+              }}>
               {deviceStatus}
             </span>
           }
@@ -208,9 +206,8 @@ const CATEGORIES = [
   { value: 'bam', name: 'BAM' }
 ];
 
-const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
-
 const CreateDevice = ({ open, setOpen }) => {
+  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -381,6 +378,7 @@ const CreateDevice = ({ open, setOpen }) => {
 };
 
 const SoftCreateDevice = ({ open, setOpen, network }) => {
+  const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -472,8 +470,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-    >
+      aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -506,8 +503,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.category}
             helperText={errors.category}
-            required
-          >
+            required>
             {CATEGORIES.map((option, index) => (
               <option key={index} value={option.value}>
                 {option.name}
@@ -536,8 +532,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}
-          >
+            style={{ margin: '0 15px' }}>
             Register
           </Button>
         </Grid>
@@ -630,15 +625,13 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}
-        >
+          }}>
           <Button
             variant="contained"
             color="primary"
             type="submit"
             align="right"
-            onClick={() => setRegisterOpen(true)}
-          >
+            onClick={() => setRegisterOpen(true)}>
             {' '}
             Add Device
           </Button>
@@ -647,8 +640,7 @@ const DevicesTable = (props) => {
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}
-          >
+            onClick={() => setSoftRegisterOpen(true)}>
             Soft Add Device
           </Button>
         </div>
