@@ -42,6 +42,11 @@ const useStyles = makeStyles((theme) => ({
     color: '#3344FF',
     marginRight: theme.spacing(1),
     fontWeight: 'bold'
+  },
+  // for cursor not allowed
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
   }
 }));
 
@@ -215,7 +220,13 @@ const SiteToolbar = (props) => {
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
-              disabled></TextField>
+              InputProps={{
+                classes: {
+                  disabled: useStyles().disabled
+                }
+              }}
+              disabled
+            />
           </form>
         </DialogContent>
 
