@@ -3,98 +3,174 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Kya Extension', () {
-    List<KyaLesson> kyaLessons = [];
+  group('KYA Lesson tests', () {
+    test('Should return complete tasks', () {
+      KyaLesson lesson = KyaLesson(
+        title: "",
+        imageUrl: "",
+        id: "",
+        status: KyaLessonStatus.inProgress,
+        completionMessage: "",
+        shareLink: "",
+        tasks: KyaTaskStatus.values
+            .map(
+              (status) => KyaTask(
+                id: status.name,
+                status: status,
+                title: '',
+                imageUrl: '',
+                body: '',
+              ),
+            )
+            .toList(),
+      );
+      List<KyaTask> completeTasks = lesson.completeTasks();
+      expect(completeTasks, isNotEmpty);
+      expect(
+        completeTasks.map((task) => task.status).toList(),
+        everyElement(equals(KyaTaskStatus.complete)),
+      );
+    });
+    test('Should return title used on the lesson page', () {
+      KyaLesson lesson = KyaLesson(
+        title: "",
+        imageUrl: "",
+        id: "",
+        status: KyaLessonStatus.todo,
+        completionMessage: "",
+        shareLink: "",
+        tasks: KyaTaskStatus.values
+            .map(
+              (status) => KyaTask(
+                id: status.name,
+                status: status,
+                title: '',
+                imageUrl: '',
+                body: '',
+              ),
+            )
+            .toList(),
+      );
+      expect(lesson.getKyaLessonPageTitle(), "Begin");
 
-    setUp(() => {
-          kyaLessons = List.generate(
-            4,
-            (index) => KyaLesson(
-              completionMessage: 'Lesson ${index + 1} Completed',
-              id: (index + 1).toString(),
-              imageUrl: '',
-              status: KyaLessonStatus.todo,
+      lesson = lesson.copyWith(status: KyaLessonStatus.inProgress);
+      expect(lesson.getKyaLessonPageTitle(), "Resume");
+
+      lesson = lesson.copyWith(status: KyaLessonStatus.pendingTransfer);
+      expect(lesson.getKyaLessonPageTitle(), "Restart");
+
+      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
+      expect(lesson.getKyaLessonPageTitle(), "Restart");
+    });
+    test('Should return a message used on the lesson card', () {
+      KyaLesson lesson = KyaLesson(
+        title: "",
+        imageUrl: "",
+        id: "",
+        status: KyaLessonStatus.todo,
+        completionMessage: "",
+        shareLink: "",
+        tasks: KyaTaskStatus.values
+            .map(
+              (status) => KyaTask(
+                id: status.name,
+                status: status,
+                title: '',
+                imageUrl: '',
+                body: '',
+              ),
+            )
+            .toList(),
+      );
+      expect(lesson.getKyaLessonCardMessage(), "Start learning");
+
+      lesson = lesson.copyWith(status: KyaLessonStatus.inProgress);
+      expect(lesson.getKyaLessonCardMessage(), "Continue");
+
+      lesson = lesson.copyWith(status: KyaLessonStatus.pendingTransfer);
+      expect(lesson.getKyaLessonCardMessage(), "Complete! Move to For You");
+
+      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
+      expect(lesson.getKyaLessonCardMessage(), "Complete! Move to For You");
+    });
+  });
+
+  group('KYA Lesson list tests', () {
+    List<KyaLesson> lessons = [];
+
+    setUp(() {
+      lessons = KyaLessonStatus.values
+          .map(
+            (status) => KyaLesson(
+              title: "",
+              imageUrl: "",
+              id: status.name,
               tasks: const [],
-              shareLink: '',
-              title: '',
+              status: status,
+              completionMessage: "",
+              shareLink: "",
             ),
-          ),
-        });
-
-    group('Filter Complete', () {
-      test('returns empty list when all Kyas are not yet completed', () {
-        kyaLessons = [kyaLessons[0], kyaLessons[1], kyaLessons[3]];
-
-        final filteredKyas = kyaLessons.filterCompleteLessons();
-        expect(filteredKyas.isEmpty, true);
-      });
-      test('Should return only completed Lessons', () {
-        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[2])) {
-          fail('Kyas already does not contain uncompleted lessons');
-        }
-
-        Set<KyaLesson> unCompletedKyasSet = {
-          kyaLessons[1],
-          kyaLessons[0],
-          kyaLessons[3]
-        };
-
-        final completedKyas = kyaLessons.filterCompleteLessons();
-        expect(completedKyas.length, 1);
-        expect(completedKyas.contains(kyaLessons[2]), isTrue);
-        expect(completedKyas.toSet().intersection(unCompletedKyasSet).isEmpty,
-            isTrue);
-      });
+          )
+          .toList();
     });
 
-    group('Filter ToDo', () {
-      test('Should return only elements that are to do', () {
-        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[3])) {
-          fail('Kyas already does not contain ToDo lessons');
-        }
-
-        Set<KyaLesson> toDoKyasSet = {kyaLessons[3]};
-        Set<KyaLesson> startedKyasSet =
-            kyaLessons.toSet().difference(toDoKyasSet);
-
-        final toDoKyas = kyaLessons.filterLessonsInToDo();
-        expect(toDoKyas.length, 1);
-        expect(toDoKyas.contains(kyaLessons[3]), isTrue);
-        expect(toDoKyas.toSet().intersection(startedKyasSet).isEmpty, isTrue);
-      });
+    test('Should return lessons in to do', () {
+      List<KyaLesson> toDoLessons = lessons.filterLessonsInToDo();
+      expect(toDoLessons, isNotEmpty);
+      expect(
+        toDoLessons.map((lesson) => lesson.status).toList(),
+        everyElement(
+          equals(KyaLessonStatus.todo),
+        ),
+      );
     });
 
-    group('Filter Pending Completion', () {
-      test('Should return only elements that are pending completion', () {
-        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[0])) {
-          fail('Kyas already does not contain pending completion lessons');
-        }
-        Set<KyaLesson> pendingCompletionKyasSet = {kyaLessons[0]};
-        Set<KyaLesson> othersSet =
-            kyaLessons.toSet().difference(pendingCompletionKyasSet);
-
-        final pendingCompletionKyas = kyaLessons.filterLessonsPendingTransfer();
-        expect(pendingCompletionKyas.length, 1);
-        expect(pendingCompletionKyas.contains(kyaLessons[0]), isTrue);
-        expect(pendingCompletionKyas.toSet().intersection(othersSet).isEmpty,
-            isTrue);
-      });
+    test('Should return lessons in progress', () {
+      List<KyaLesson> lessonsInProgress = lessons.filterLessonsInProgress();
+      expect(lessonsInProgress, isNotEmpty);
+      expect(
+        lessonsInProgress.map((lesson) => lesson.status).toList(),
+        everyElement(
+          equals(KyaLessonStatus.inProgress),
+        ),
+      );
     });
 
-    group('Filter In Progress', () {
-      test('Should return only elements that are In Progress', () {
-        if (kyaLessons.length == 1 && kyaLessons.contains(kyaLessons[1])) {
-          fail('Kyas already does not contain In Progress lessons');
-        }
-        Set<KyaLesson> inProgressKyasSet = {kyaLessons[1]};
-        Set<KyaLesson> othersSet =
-            kyaLessons.toSet().difference(inProgressKyasSet);
+    test('Should return lessons pending transfer', () {
+      List<KyaLesson> lessonsPendingTransfer =
+          lessons.filterLessonsPendingTransfer();
+      expect(lessonsPendingTransfer, isNotEmpty);
+      expect(
+        lessonsPendingTransfer.map((lesson) => lesson.status).toList(),
+        everyElement(
+          equals(KyaLessonStatus.pendingTransfer),
+        ),
+      );
+    });
 
-        final inProgressKyas = kyaLessons.filterLessonsInProgress();
-        expect(inProgressKyas.length, 1);
-        expect(inProgressKyas.contains(kyaLessons[1]), isTrue);
-        expect(inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
-      });
+    test('Should return complete lessons', () {
+      List<KyaLesson> completeLessons = lessons.filterCompleteLessons();
+      expect(completeLessons, isNotEmpty);
+      expect(
+        completeLessons.map((lesson) => lesson.status).toList(),
+        everyElement(
+          equals(KyaLessonStatus.complete),
+        ),
+      );
+    });
+
+    test('Should return lessons used on home page cards', () {
+      List<KyaLesson> homepageLessons = lessons.filterHomePageCardsLessons();
+      expect(
+        homepageLessons.map((lesson) => lesson.status).toList(),
+        orderedEquals(
+          [
+            KyaLessonStatus.pendingTransfer,
+            KyaLessonStatus.inProgress,
+            KyaLessonStatus.todo,
+          ],
+        ),
+      );
     });
   });
 }

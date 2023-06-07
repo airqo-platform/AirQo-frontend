@@ -82,7 +82,7 @@ extension KyaLessonExt on KyaLesson {
     }
   }
 
-  String getKyaMessage() {
+  String getKyaLessonCardMessage() {
     switch (status) {
       case KyaLessonStatus.todo:
         return 'Start learning';
