@@ -100,6 +100,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       batchId: batchId,
       devices: device,
     };
+
     try {
       const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
       if (response.status === 200) {
