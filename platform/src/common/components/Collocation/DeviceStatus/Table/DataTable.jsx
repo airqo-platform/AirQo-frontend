@@ -18,6 +18,12 @@ import Dropdown from '../../../Dropdowns/Dropdown';
 // Modal notification
 import Modal from '../../../Modal/Modal';
 
+// axios
+import axios from 'axios';
+
+// urls endpoint
+import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
+
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
@@ -90,24 +96,27 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   // This function is to delete batch
   const deleteBatch = async () => {
     const { device, batchId } = collocationInput;
+    const data = {
+      batchId: batchId,
+      devices: device,
+    };
+    try {
+      const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
+      if (response.status === 200) {
+        setVisible(false);
+        setSkip(true);
+        dispatch(removeDevices([device]));
+      }
+    } catch (error) {
+      console.log('delete batch', error);
+    }
 
-    console.log('device', device + ',' + 'batchId', batchId);
+    setCollocationInput({
+      devices: null,
+      batchId: '',
+    });
 
-    // calling delete batch api
-    // this is just my assumption, as i try to understand how the api works for the project
-    // const { data } = await axios.delete(`/api/collocation/batch`, {
-    //   device: device,
-    //   batchId: batchId,
-    // });
-
-    // if (data.success) {
-    //   setVisible(false);
-    //   setCollocationInput({
-    //     devices: null,
-    //     batchId: '',
-    //   });
-    //   setSkip(true);
-    // }
+    router.reload();
   };
 
   useEffect(() => {
