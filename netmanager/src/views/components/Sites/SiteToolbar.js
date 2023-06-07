@@ -45,13 +45,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const NETWORKS = [
-  { value: 'airqo', name: 'AirQo' },
-  { value: 'kcca', name: 'KCCA' },
-  { value: 'usembassy', name: 'US EMBASSY' },
-  { value: 'mukwano', name: 'MUKWANO' }
-];
-
 const SiteToolbar = (props) => {
   const { className, ...rest } = props;
 
@@ -59,11 +52,13 @@ const SiteToolbar = (props) => {
 
   const dispatch = useDispatch();
 
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+
   const initSiteData = {
     latitude: '',
     longitude: '',
     name: '',
-    network: NETWORKS[0].value
+    network: activeNetwork
   };
 
   const initErrorData = {
@@ -78,7 +73,6 @@ const SiteToolbar = (props) => {
   const [errors, setErrors] = useState(initErrorData);
 
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleSiteClose = () => {
     setOpen(false);
@@ -160,8 +154,7 @@ const SiteToolbar = (props) => {
             color="primary"
             type="submit"
             align="centre"
-            onClick={() => setOpen(!open)}
-          >
+            onClick={() => setOpen(!open)}>
             {' '}
             Add Site
           </Button>
@@ -171,8 +164,7 @@ const SiteToolbar = (props) => {
         open={open}
         onClose={handleSiteClose}
         aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description"
-      >
+        aria-describedby="form-dialog-description">
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Add a site
         </DialogTitle>
@@ -216,27 +208,14 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              select
               fullWidth
               margin="dense"
               label="Network"
-              defaultValue={siteData.network}
-              onChange={handleSiteDataChange('network')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              value={siteData.network}
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
-              required
-            >
-              {NETWORKS.map((option, index) => (
-                <option key={index} value={option.value}>
-                  {option.name}
-                </option>
-              ))}
-            </TextField>
+              disabled></TextField>
           </form>
         </DialogContent>
 
@@ -250,8 +229,7 @@ const SiteToolbar = (props) => {
               color="primary"
               type="submit"
               onClick={handleSiteSubmit}
-              style={{ margin: '0 15px' }}
-            >
+              style={{ margin: '0 15px' }}>
               Create Site
             </Button>
           </Grid>
