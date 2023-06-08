@@ -50,7 +50,7 @@ const MonitorPage = () => {
                   on a 2G GSM network configuration for IoT sim cards.
                   <br />
                   <a
-                    href={`${MaintenanceManual}?#view=FitH`}
+                    href={MaintenanceManual}
                     target="_blank"
                     download={'BinosMaintenanceManual.pdf'}
                     rel="noreferrer noopener">
