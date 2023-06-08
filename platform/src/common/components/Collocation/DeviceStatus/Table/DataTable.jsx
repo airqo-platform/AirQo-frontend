@@ -12,6 +12,18 @@ import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import { isEmpty } from 'underscore';
 
+// Dropdown menu
+import Dropdown from '../../../Dropdowns/Dropdown';
+
+// Modal notification
+import Modal from '../../../Modal/Modal';
+
+// axios
+import axios from 'axios';
+
+// urls endpoint
+import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
+
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
@@ -23,16 +35,15 @@ const STATUS_COLOR_CODES = {
 
 const ErrorModal = ({ errorMessage, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-gray-800 opacity-75"></div>
-      <div className="bg-white w-1/2 p-6 rounded-lg">
-        <h2 className="text-xl font-bold mb-4">Error Details</h2>
-        <p className="mb-4">{errorMessage}</p>
-        <div className="flex justify-end">
+    <div className='fixed inset-0 z-50 flex items-center justify-center'>
+      <div className='fixed inset-0 bg-gray-800 opacity-75'></div>
+      <div className='bg-white w-1/2 p-6 rounded-lg'>
+        <h2 className='text-xl font-bold mb-4'>Error Details</h2>
+        <p className='mb-4'>{errorMessage}</p>
+        <div className='flex justify-end'>
           <button
             onClick={onClose}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-          >
+            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'>
             Close
           </button>
         </div>
@@ -55,6 +66,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const closeErrorModal = () => {
     setErrorModalOpen(false);
   };
+
+  // state to handle modal visibility
+  const [visible, setVisible] = useState(false);
 
   const [collocationInput, setCollocationInput] = useState({
     devices: null,
@@ -109,6 +123,33 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     setSkip(false);
   };
 
+  // This function is to delete batch
+  const deleteBatch = async () => {
+    const { device, batchId } = collocationInput;
+    const data = {
+      batchId: batchId,
+      devices: device,
+    };
+
+    try {
+      const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
+      if (response.status === 200) {
+        setVisible(false);
+        setSkip(true);
+        dispatch(removeDevices([device]));
+      }
+    } catch (error) {
+      console.log('delete batch', error);
+    }
+
+    setCollocationInput({
+      devices: null,
+      batchId: '',
+    });
+
+    router.reload();
+  };
+
   useEffect(() => {
     if (isSuccess && !isEmpty(collocationBatchResultsData)) {
       router.push({
@@ -121,23 +162,52 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+    },
+    {
+      id: 2,
+      name: 'Delete batch',
+    },
+  ]);
+
+  const handleItemClick = (id, device, index) => {
+    const { device_name, batch_id } = device;
+    switch (id) {
+      case 1:
+        openMonitorReport(device_name, batch_id, index);
+        break;
+      case 2:
+        setVisible(true);
+        setCollocationInput({
+          device: device_name,
+          batchId: batch_id,
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div>
       {isError && (
-        <button
-          onClick={openErrorModal}
-          className="text-red-500 underline hover:text-red-700"
-        >
+        <button onClick={openErrorModal} className='text-red-500 underline hover:text-red-700'>
           Error Occurred. Click for details.
         </button>
       )}
       {errorModalOpen && (
-        <ErrorModal errorMessage="Uh-oh! Not enough data to generate a report" onClose={closeErrorModal} />
+        <ErrorModal
+          errorMessage='Uh-oh! Not enough data to generate a report'
+          onClose={closeErrorModal}
+        />
       )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
-      >
+        data-testid='collocation-device-status-summary'>
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -178,13 +248,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                   <tr
                     className={`border-b border-b-slate-300 ${
                       clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
-                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
+                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${
+                      focusedRowIndex === index ? 'bg-gray-200' : ''
+                    }`}
                     key={index}
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}
-                  >
+                    onBlur={() => setFocusedRowIndex(null)}>
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -209,20 +280,16 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       <span
                         className={`${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
-                      >
+                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}>
                         {device.status.toLowerCase()}
                       </span>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
-                      <span
-                        onClick={() =>
-                          openMonitorReport(device.device_name, device.batch_id, index)
-                        }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
-                      >
-                        <MoreHorizIcon />
-                      </span>
+                      <Dropdown
+                        menu={menu}
+                        length={index === collocationDevices.length - 1 ? 'last' : ''}
+                        onItemClick={(id) => handleItemClick(id, device, index)}
+                      />
                     </td>
                   </tr>
                 );
@@ -237,6 +304,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tbody>
         )}
       </table>
+
+      {/* modal */}
+      <Modal
+        display={visible}
+        action={deleteBatch}
+        closeModal={() => setVisible(false)}
+        description='Are you sure you want to delete this batch?'
+        confirmButton='Delete'
+      />
     </div>
   );
 };
