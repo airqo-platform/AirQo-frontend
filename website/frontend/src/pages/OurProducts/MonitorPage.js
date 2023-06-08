@@ -50,7 +50,7 @@ const MonitorPage = () => {
                   on a 2G GSM network configuration for IoT sim cards.
                   <br />
                   <a
-                    href={MaintenanceManual}
+                    href={`${MaintenanceManual}?#view=FitH`}
                     target="_blank"
                     download={'BinosMaintenanceManual.pdf'}
                     rel="noreferrer noopener">
@@ -126,7 +126,7 @@ const MonitorPage = () => {
                   download={'BinosMonitorUserGuideV0.04.pdf'}
                   rel="noreferrer noopener">
                   <button className="download-button">
-                    User Guide <FileDownloadOutlined />
+                    Installation Guide <FileDownloadOutlined />
                   </button>
                 </a>
               </div>
