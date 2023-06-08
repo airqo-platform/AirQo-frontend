@@ -28,6 +28,7 @@ import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
 import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
+import { ExploreApp } from './src/pages/ExploreData';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -40,7 +41,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/solutions/research" element={<ResearchPage />} />
             <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}/>
+            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
             <Route path="/careers" element={<CareerPage />} />
             <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
             <Route path="/about-us" element={<AboutUsPage />} />
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/contact/form" element={<ContactForm />} />
             <Route path="/contact/sent" element={<Feedback />} />
             <Route path="/explore-data" element={<ExploreData />} />
+            <Route path="/explore-data/download-apps" element={<ExploreApp />} />
             <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/events" element={<EventsPage />} />
