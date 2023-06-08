@@ -10,39 +10,25 @@ import { refreshAirQloud } from 'redux/AirQloud/operations';
 import { fetchDashboardAirQloudsData } from '../../redux/AirQloud/operations';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { useDashboardAirqloudsData } from '../../redux/AirQloud/selectors';
+import 'assets/css/modal.css';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   modalSelector: {
     padding: theme.spacing(2),
     backgroundColor: theme.palette.background.paper,
-    maxHeight: 400,
     overflowY: 'auto',
   },
   dropdown: {
     cursor: 'pointer',
+    '& .MuiInputBase-input': {
+      color: '#0560c9',
+      fontSize: '1rem',
+      fontWeight: 'bold',
+    },
   },
   dropdownIcon: {
     color: theme.palette.text.secondary,
-  },
-  reloadIcon: {
-    color: theme.palette.text.secondary,
-    fontSize: '3.5rem',
-    borderRadius: '4px',
-    marginRight: theme.spacing(2.5),
-    padding: theme.spacing(0.5),
-    backgroundColor: 'white',
-  },
-  modalSiteItem: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: theme.spacing(1, 2),
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
   },
 }));
 
@@ -128,31 +114,34 @@ const SelectorModal = () => {
       }}
     />
 
-      <Dialog open={openModal} onClose={handleCloseModal} aria-labelledby="selector-modal-title">
-        <DialogTitle id="selector-modal-title">
-          {currentAirqQloud.long_name} AirQloud
+      <Dialog className="dialog-container" open={openModal} onClose={handleCloseModal} aria-labelledby="selector-modal-title" maxWidth="lg">
+        <DialogTitle  className="selector-modal-title">
+        <div className="dialog-title">
+          <span id="long">{currentAirqQloud.long_name} AirQloud{'   '}</span>
           <span>{currentAirqQloud.sites && currentAirqQloud.sites.length} sites</span>
+        </div>
         </DialogTitle>
+        <hr/>
         <DialogContent>
-          <div className={classes.modalSelector}>
-            <ul>
+          <div className="dialog-content">
+            <ul >
               {airqlouds.map(
                 (airqloud, key) =>
                   currentAirqQloud._id !== airqloud._id && (
                     <li
                       key={key}
-                      className={classes.modalSiteItem}
+                      className="modal-site-item"
                       onClick={handleAirQloudChange(airqloud)}
                     >
-                      <span>{airqloud.long_name}</span>
-                      <span>{airqloud.sites.length} sites</span>
+                      <span id="long_name">{airqloud.long_name}</span>{'  '}
+                      <span id="sites">{airqloud.sites.length} sites</span>
                     </li>
                   )
               )}
             </ul>
           </div>
         </DialogContent>
-        <DialogActions>
+        <DialogActions className="dialog-actions">
           <Button onClick={handleCloseModal} color="primary">
             Close
           </Button>
