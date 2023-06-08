@@ -8,6 +8,8 @@ import Section1OverlapImage from '../../assets/img/OurProducts/Analytics/section
 import Section2Image from '../../assets/img/OurProducts/Analytics/section-2.png';
 import Section3Image from '../../assets/img/OurProducts/Analytics/analytics-dashboard.png';
 import NavTab from '../../components/nav/NavTab';
+import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
+import { FileDownloadOutlined } from '@mui/icons-material';
 
 const AnalyticsPage = () => {
   useInitScrollTop();
@@ -35,7 +37,7 @@ const AnalyticsPage = () => {
               </p>
             </div>
             <div className="overlap-section">
-              <div className="lapping-left card larger-top" style={{ backgroundColor: '#ebfff5' }}>
+              <div className="lapping-left card" style={{ backgroundColor: '#ebfff5' }}>
                 <h5>Timely access to data</h5>
                 <p>
                   The air quality analytics dashboard is an intuitive software dashboard that allows
@@ -46,6 +48,16 @@ const AnalyticsPage = () => {
                   We want to see citizens and decision-makers in Africa Cities have timely access to
                   air quality trends, patterns and insights to inform data-driven decisions to
                   tackle air pollution.
+                  <br />
+                  <a
+                    href={`${UserManual}?#view=FitH`}
+                    target="_blank"
+                    download="AirQo_Analytics_Platform_User_Manual.pdf"
+                    rel="noreferrer noopener">
+                    <button className="download-button">
+                      User Guide <FileDownloadOutlined />
+                    </button>
+                  </a>
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
@@ -68,6 +80,7 @@ const AnalyticsPage = () => {
                   <br />
                   You can generate, compare and download air quality data in various African Cities
                   and develop evidence-informed actions for air pollution.
+                  <br/>
                 </p>
               </div>
               <div className="lapping-right image" id="section-2">
