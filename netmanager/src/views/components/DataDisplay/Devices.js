@@ -625,11 +625,9 @@ const DevicesTable = (props) => {
       setTimeout(() => {
         setLoading(false);
       }, 1500);
-    }
-
-    return () => {
+    } else {
       setLoading(false);
-    };
+    }
   }, [devices]);
 
   return (
