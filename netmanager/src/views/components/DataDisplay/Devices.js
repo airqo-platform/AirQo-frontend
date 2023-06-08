@@ -558,6 +558,9 @@ const DevicesTable = (props) => {
 
   const deviceColumns = createDeviceColumns(history, setDelDevice);
 
+  // setting the loading state
+  const [loading, setLoading] = useState(true);
+
   const handleDeleteDevice = async () => {
     if (delDevice.name) {
       deleteDeviceApi(delDevice.name)
@@ -616,6 +619,19 @@ const DevicesTable = (props) => {
     setDeviceList(Object.values(devices));
   }, [devices]);
 
+  // for handling the loading state
+  useEffect(() => {
+    if (isEmpty(devices)) {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1500);
+    }
+
+    return () => {
+      setLoading(false);
+    };
+  }, [devices]);
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
@@ -651,7 +667,7 @@ const DevicesTable = (props) => {
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
           data={deviceList}
-          isLoading={isEmpty(devices)}
+          isLoading={loading}
           onRowClick={(event, rowData) => {
             event.preventDefault();
             dispatch(updateDeviceDetails(rowData));
