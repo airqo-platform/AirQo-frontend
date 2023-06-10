@@ -106,7 +106,7 @@ const AirQloudDropDown = () => {
                   <span key={key}>{site.name}</span>
                 ))}
             </div>
-            {hoveredAirqloud && <span>{hoveredAirqloud.sites.length} sites</span>}
+            
           </div>
         </div>
       </ul>
