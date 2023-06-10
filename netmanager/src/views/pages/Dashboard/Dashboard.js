@@ -46,18 +46,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-end",
   },
   chartSaveButton: {},
-  modalPaper: {
-    margin: 0,
-    width: "35%",
-    maxWidth: 400,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    [theme.breakpoints.down("sm")]: {
-      width: "100%",
-      margin: theme.spacing(2),
-    },
-  },
+  
 }));
 
 const Dashboard = () => {
@@ -150,7 +139,7 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className={classes.root}>
       <Grid container spacing={4}>
-          <Grid item xs={12} sm={12} md={6} xl={6} style={{ display: 'flex' }}>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
           </Grid>
         </Grid>
