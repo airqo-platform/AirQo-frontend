@@ -43,6 +43,11 @@ class ApexChart extends Component {
   }
 
   updateChartData() {
+    // Check if series array is empty
+    if (this.state.series.length === 0) {
+      // it will return nothing
+      return;
+    }
     const newData = Math.random() * 100;
     const series = this.state.series.slice();
     const lastDataPoint =
@@ -63,7 +68,7 @@ class ApexChart extends Component {
       x: new Date().getTime(),
       y: newData
     });
-    
+
     this.setState({ series });
   }
 
