@@ -20,7 +20,7 @@ import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
-import SelectorModal from "../../containers/selectorModal";
+import AirQloudDropDown from "../../containers/AirQloudDropDown";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
 import D3CustomisableChart from "../../components/d3/CustomisableChart";
@@ -68,6 +68,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const recentEventsData = useEventsMapData();
+  
 
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
     Good: 0,
@@ -150,7 +151,7 @@ const Dashboard = () => {
       <div className={classes.root}>
       <Grid container spacing={4}>
           <Grid item xs={12} sm={12} md={6} xl={6} style={{ display: 'flex' }}>
-            <SelectorModal />
+            <AirQloudDropDown />
           </Grid>
         </Grid>
         <Grid container spacing={4}>

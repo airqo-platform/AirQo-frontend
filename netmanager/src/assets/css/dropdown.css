@@ -1,42 +1,11 @@
-/*a {*/
-/*  text-decoration: none;*/
-/*  color: #000000;*/
-/*}*/
-
-/*a:hover {*/
-/*  color: #222222*/
-/*}*/
-
-/* Dropdown */
-
 .dropdown {
   display: inline-block;
   position: relative;
   width: 100%;
   max-width: 300px;
+  max-height: 600px;
   margin-bottom: 20px;
-  /*border: 1px solid darkgreen;*/
-}
-
-.dd-reload {
-  position: absolute;
-  top: 0;
-  left: 101%;
-  height: 50px;
-  width: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  /*border: 1px solid red;*/
-}
-
-.dd-reload:hover {
-  cursor: pointer;
-}
-
-.dd-reload:hover > svg {
-  font-size: 2rem;
+  /* border: 1px solid darkgreen; */
 }
 
 .dd-button {
@@ -49,7 +18,8 @@
   white-space: nowrap;
   width: 100%;
   height: 50px;
-  color: #000000;
+  color: #2970f5;
+  font-size: 1.5rem;
 }
 
 .dd-button:after {
@@ -69,61 +39,133 @@
   background-color: #eeeeee;
 }
 
-
-.dd-input {
-  display: none;
-}
-
 .dd-menu {
   position: absolute;
   top: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 0;
-  margin: 2px 0 0 0;
+  margin: 2px 0 0 0; 
   box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
   background-color: #ffffff;
   list-style-type: none;
-  width: 100%;
-  z-index: 2000;
-}
-
-.dd-input + .dd-menu {
-  display: none;
-}
-
-.dd-input:checked + .dd-menu {
-  display: block;
+  width: 200%;
+  z-index: 2000; 
+  max-height: 500%; /* Limit the maximum height of the dropdown */
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 .dd-menu li {
-  padding: 10px 20px;
+  padding: 10px;
   cursor: pointer;
   white-space: nowrap;
   color: #151515;
+  margin-right: 0;
 }
 
-.dd-menu li span {
-  color: green;
-  font-size: 0.6rem;
-}
-
-.dd-menu li:hover {
-  background-color: #f6f6f6;
-  color: #646262
-}
-
-.dd-menu li a {
-  display: block;
-  margin: -10px -20px;
+#head {
+  display: flex;
+  position: static;
+  align-items: center;
+  padding: 5px;
+  justify-content: space-between;
   padding: 10px 20px;
+  
 }
 
-.dd-menu li.divider{
+
+#span {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  justify-content: space-between;
+  color: #069be5;
+  
+}
+
+#span:hover{
+  background-color: #cccccc;
+  height: min-content; 
+}
+
+
+.dd-menu li.divider {
   padding: 0;
   border-bottom: 1px solid #cccccc;
 }
 
 .dd-menu .selected {
   color: #069be5;
+  font-size: 1rem;
+  font-weight: bold;
+  
+}
+
+.columns-container {
+  display: flex;
+  max-height: 800px;
+  max-width: 200%;
+}
+
+/* .column {
+  display: flex;
+  padding: 5px;
+  justify-content: space-between;
+} */
+
+
+.site-names {
+  margin-top: 10px;
+  padding: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #151515;
+  margin-right: 50px;
+}
+
+.sites {
+  font-size: 1rem;
+  font-weight: bold;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-left: 100px; 
+}
+.site-names span {
+  display: flex;
+  margin-bottom: 5px;
+  color:lime;
+  padding: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-right: 50px;
+}
+
+.long_name {
+  font-size: 1rem;
+  font-weight: bold;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: start;
+  
+}
+
+.dd-reload {
+  position: absolute;
+  top: 0;
+  left: 101%;
+  height: 50px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.dd-reload:hover {
+  cursor: pointer;
+}
+
+.dd-reload:hover > svg {
+  font-size: 2rem;
 }
