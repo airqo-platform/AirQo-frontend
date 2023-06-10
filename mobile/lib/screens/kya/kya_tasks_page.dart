@@ -57,60 +57,24 @@ class _KyaTasksPageState extends State<KyaTasksPage> {
                 width: 40,
               ),
             ),
-            FutureBuilder<Uri>(
-              future: ShareService.createShareLink(kya: widget.kyaLesson),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
-                }
-                if (snapshot.hasData) {
-                  return InkWell(
-                    onTap: () async {
-                      Uri? link = snapshot.data;
-                      if (link != null) {
-                        await ShareService.shareLink(
-                          link,
-                          context,
-                          kya: widget.kyaLesson,
-                        );
-                        // disabling copying to clipboard
-                        // if (link.toString().length >
-                        //     Config.shareLinkMaxLength) {
-                        //   await Clipboard.setData(
-                        //     ClipboardData(text: link.toString()),
-                        //   ).then((_) {
-                        //     showSnackBar(context, 'Copied to your clipboard !');
-                        //   });
-                        // } else {
-                        //   await ShareService.shareLink(
-                        //     link,
-                        //     kya: widget.kya,
-                        //   );
-                        // }
-                      }
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      colorFilter: ColorFilter.mode(
-                        CustomColors.greyColor,
-                        BlendMode.srcIn,
-                      ),
-                      height: 26,
-                      width: 26,
-                    ),
-                  );
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
-                  },
-                  child: const Center(
-                    child: LoadingIcon(radius: 20),
-                  ),
+            Visibility(visible: widget.kyaLesson.shareLink.isNotEmpty, child: InkWell(
+              onTap: () async {
+                await ShareService.shareLink(
+                  Uri.parse(widget.kyaLesson.shareLink),
+                  context,
+                  kya: widget.kyaLesson,
                 );
               },
-            ),
+              child: SvgPicture.asset(
+                'assets/icon/share_icon.svg',
+                colorFilter: ColorFilter.mode(
+                  CustomColors.greyColor,
+                  BlendMode.srcIn,
+                ),
+                height: 26,
+                width: 26,
+              ),
+            ),),
           ],
         ),
       ),

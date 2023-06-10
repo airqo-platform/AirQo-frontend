@@ -24,21 +24,20 @@ class KyaLesson extends Equatable {
 
   final String title;
 
-  @JsonKey(defaultValue: 'You just finished your first Know Your Air Lesson')
+  @JsonKey(name: 'completion_message',)
   final String completionMessage;
 
+  @JsonKey(name: 'image_url')
   final String imageUrl;
 
   final String id;
 
-  @JsonKey(defaultValue: [])
   final List<KyaTask> tasks;
 
   @JsonKey(defaultValue: KyaLessonStatus.todo)
   final KyaLessonStatus status;
 
-  // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
-  @JsonKey(defaultValue: '')
+  @JsonKey(name: 'share_link')
   final String shareLink;
 
   double get progress => completeTasks().length / tasks.length;
@@ -68,25 +67,6 @@ class KyaLesson extends Equatable {
       tasks: tasks,
       status: status ?? this.status,
       shareLink: shareLink ?? this.shareLink,
-    );
-  }
-
-  KyaLesson copyFromKyaUserLesson(KyaUserLesson kyaUserLesson) {
-    List<KyaTask> tasks = List.of(this.tasks).map((task) {
-      KyaUserTask kyaUserLessonTask = kyaUserLesson.tasks.firstWhere(
-          (element) => element.id == task.id,
-          orElse: () => KyaUserTask(id: task.id, status: KyaTaskStatus.todo));
-      return task.copyWith(status: kyaUserLessonTask.status);
-    }).toList();
-
-    return KyaLesson(
-      title: title,
-      completionMessage: completionMessage,
-      imageUrl: imageUrl,
-      id: id,
-      tasks: tasks,
-      status: kyaUserLesson.status,
-      shareLink: shareLink,
     );
   }
 
@@ -129,6 +109,7 @@ class KyaTask extends Equatable {
 
   final String title;
 
+  @JsonKey(name: 'image_url')
   final String imageUrl;
 
   final String body;
@@ -153,80 +134,13 @@ class KyaTask extends Equatable {
 }
 
 @JsonSerializable(explicitToJson: true)
-class KyaLessonsList {
-  factory KyaLessonsList.fromJson(Map<String, dynamic> json) =>
-      _$KyaLessonsListFromJson(json);
+class KyaLessons {
+  factory KyaLessons.fromJson(Map<String, dynamic> json) =>
+      _$KyaLessonsFromJson(json);
 
-  KyaLessonsList({required this.lessons});
+  KyaLessons({required this.lessons});
 
   List<KyaLesson> lessons;
 
-  Map<String, dynamic> toJson() => _$KyaLessonsListToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class KyaUserLesson extends Equatable {
-  factory KyaUserLesson.fromJson(Map<String, dynamic> json) =>
-      _$KyaUserLessonFromJson(json);
-
-  factory KyaUserLesson.fromKyaLesson(KyaLesson lesson) => KyaUserLesson(
-        id: lesson.id,
-        status: lesson.status,
-        tasks:
-            lesson.tasks.map((task) => KyaUserTask.fromKyaTask(task)).toList(),
-      );
-
-  const KyaUserLesson({
-    required this.id,
-    required this.tasks,
-    required this.status,
-  });
-
-  final String id;
-
-  final List<KyaUserTask> tasks;
-
-  @JsonKey(defaultValue: KyaLessonStatus.todo)
-  final KyaLessonStatus status;
-
-  Map<String, dynamic> toJson() => _$KyaUserLessonToJson(this);
-
-  @override
-  List<Object?> get props => [id];
-}
-
-@JsonSerializable(explicitToJson: true)
-class KyaUserTask extends Equatable {
-  const KyaUserTask({
-    required this.status,
-    required this.id,
-  });
-
-  KyaUserTask copyWith({KyaTaskStatus? status}) {
-    return KyaUserTask(
-      status: status ?? this.status,
-      id: id,
-    );
-  }
-
-  factory KyaUserTask.fromJson(Map<String, dynamic> json) =>
-      _$KyaUserTaskFromJson(json);
-
-  factory KyaUserTask.fromKyaTask(KyaTask task) => KyaUserTask(
-        id: task.id,
-        status: task.status,
-      );
-
-  @JsonKey(defaultValue: "")
-  final String id;
-
-  @JsonKey(defaultValue: KyaTaskStatus.todo)
-  final KyaTaskStatus status;
-
-  Map<String, dynamic> toJson() => _$KyaUserTaskToJson(this);
-
-  @override
-  List<Object?> get props => [
-        id,
-      ];
+  Map<String, dynamic> toJson() => _$KyaLessonsToJson(this);
 }

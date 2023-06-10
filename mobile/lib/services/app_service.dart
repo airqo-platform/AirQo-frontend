@@ -23,8 +23,9 @@ class AppService {
   static final AppService _instance = AppService._internal();
 
   static Future<void> postSignInActions(BuildContext context) async {
-    context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKyaLessons());
+    final profileBloc = context.read<ProfileBloc>();
+    profileBloc.add(const SyncProfile());
+    context.read<KyaBloc>().add(LoadKyaLessons(profileBloc.state.userId));
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -35,31 +36,11 @@ class AppService {
 
   static Future<void> postSignOutActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const ClearProfile());
-    context.read<KyaBloc>().add(const ClearKyaLessons());
+    context.read<KyaBloc>().add(const ResetKyaLessons());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
     await CloudAnalytics.logSignOutEvents();
-  }
-
-  static Future<KyaLesson?> getKya(KyaLesson kya) async {
-    if (kya.tasks.isNotEmpty) return kya;
-
-    final bool isConnected = await hasNetworkConnection();
-    if (!isConnected) {
-      throw NetworkConnectionException('No internet Connection');
-    }
-    try {
-      List<KyaLesson> kyaList = await CloudStore.getKyaLessons();
-      List<KyaLesson> cloudKya =
-          kyaList.where((element) => element.id == kya.id).toList();
-
-      return cloudKya.isEmpty ? null : cloudKya.first;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-
-      return null;
-    }
   }
 
   Future<bool> refreshAirQualityReadings() async {

@@ -45,10 +45,10 @@ enum KyaLessonStatus {
   todo,
   @JsonValue("IN_PROGRESS")
   inProgress,
-  @JsonValue("PENDING_TRANSFER")
-  pendingTransfer,
   @JsonValue("COMPLETE")
-  complete;
+  complete,
+  @JsonValue("TRANSFERRED")
+  transferred;
 }
 
 enum KyaTaskStatus {

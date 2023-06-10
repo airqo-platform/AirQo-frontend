@@ -76,8 +76,8 @@ extension KyaLessonExt on KyaLesson {
         return "Begin";
       case KyaLessonStatus.inProgress:
         return "Resume";
-      case KyaLessonStatus.pendingTransfer:
       case KyaLessonStatus.complete:
+      case KyaLessonStatus.transferred:
         return "Restart";
     }
   }
@@ -88,8 +88,8 @@ extension KyaLessonExt on KyaLesson {
         return 'Start learning';
       case KyaLessonStatus.inProgress:
         return 'Continue';
-      case KyaLessonStatus.pendingTransfer:
       case KyaLessonStatus.complete:
+      case KyaLessonStatus.transferred:
         return 'Complete! Move to For You';
     }
   }
@@ -109,22 +109,22 @@ extension KyaListExt on List<KyaLesson> {
   }
 
   List<KyaLesson> filterHomePageCardsLessons() {
-    List<KyaLesson> kyaLessons = filterLessonsPendingTransfer();
+    List<KyaLesson> kyaLessons = filterCompleteLessons();
     kyaLessons.addAll(filterLessonsInProgress());
     kyaLessons.addAll(filterLessonsInToDo());
 
     return kyaLessons;
   }
 
-  List<KyaLesson> filterLessonsPendingTransfer() {
-    return where((element) {
-      return element.status == KyaLessonStatus.pendingTransfer;
-    }).toList();
-  }
-
   List<KyaLesson> filterCompleteLessons() {
     return where((element) {
       return element.status == KyaLessonStatus.complete;
+    }).toList();
+  }
+
+  List<KyaLesson> filterTransferredLessons() {
+    return where((element) {
+      return element.status == KyaLessonStatus.transferred;
     }).toList();
   }
 }

@@ -64,7 +64,7 @@ class SplashScreenState extends State<SplashScreen> {
         ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKyaLessons());
+    context.read<KyaBloc>().add(const LoadKyaLessons());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());

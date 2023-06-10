@@ -60,7 +60,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.status == KyaLessonStatus.pendingTransfer) {
+    if (kya.status == KyaLessonStatus.complete) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -141,10 +141,10 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.status == KyaLessonStatus.pendingTransfer) {
+        if (kya.status == KyaLessonStatus.complete) {
           context.read<KyaBloc>().add(UpdateKyaLessonStatus(
                 kya,
-                status: KyaLessonStatus.complete,
+                status: KyaLessonStatus.transferred,
               ));
         } else {
           await Navigator.push(

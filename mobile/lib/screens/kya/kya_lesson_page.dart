@@ -38,14 +38,15 @@ class KyaLessonPage extends StatelessWidget {
             return KyaLessonPageScaffold(kyaLesson);
           }
 
-          return FutureBuilder<KyaLesson?>(
-            future: AppService.getKya(kya),
+          return FutureBuilder<List<KyaLesson>?>(
+            future: AirqoApiClient().getKyaLessons(""),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 if (snapshot.error.runtimeType == NetworkConnectionException) {
                   return NoInternetConnectionWidget(
-                    callBack: () =>
-                        context.read<KyaBloc>().add(const SyncKyaLessons()),
+                    callBack: () {
+
+                    },
                   );
                 }
 
@@ -53,8 +54,8 @@ class KyaLessonPage extends StatelessWidget {
               }
 
               if (snapshot.hasData) {
-                final KyaLesson? kya = snapshot.data;
-                if (kya == null) {
+                final KyaLesson? lesson = snapshot.data?.firstWhere((element) => element.id == kya.id, orElse: () => kya);
+                if (lesson == null || lesson.tasks.isEmpty) {
                   return const KyaNotFoundWidget();
                 }
 

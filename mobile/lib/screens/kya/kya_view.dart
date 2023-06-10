@@ -19,12 +19,12 @@ class KnowYourAirView extends StatelessWidget {
         if (state.isEmpty) {
           return NoKyaWidget(
             callBack: () {
-              context.read<KyaBloc>().add(const SyncKyaLessons());
+              context.read<KyaBloc>().add(const LoadKyaLessons());
             },
           );
         }
-        final completeLessons = state.filterCompleteLessons();
-        if (completeLessons.isEmpty) {
+        final transferredLessons = state.filterTransferredLessons();
+        if (transferredLessons.isEmpty) {
           final kyaLesson = state.filterHomePageCardsLessons().firstOrNull;
 
           return NoCompleteKyaWidget(
@@ -65,7 +65,7 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const SyncKyaLessons());
+    context.read<KyaBloc>().add(const LoadKyaLessons());
   }
 
   Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {

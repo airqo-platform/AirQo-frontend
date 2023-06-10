@@ -151,7 +151,7 @@ class _DashboardViewState extends State<DashboardView>
                     BlocBuilder<KyaBloc, List<KyaLesson>>(
                       builder: (context, state) {
                         final kyaWidgets = completeKyaWidgets(
-                          state.filterCompleteLessons().take(3).toList(),
+                          state.filterTransferredLessons().take(3).toList(),
                         );
 
                         return Expanded(

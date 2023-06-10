@@ -25,32 +25,15 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
 }
 
 class AirqoApiClient {
-  static final Map<String, AirqoApiClient> _instances =
-      <String, AirqoApiClient>{};
-  final http.Client client;
+  final String authority = "api.airqo.net";
+  final Map<String, String> authQueryParameter = HashMap()
+    ..putIfAbsent('TOKEN', () => Config.airqoApiV2Token);
 
-  factory AirqoApiClient({http.Client? client}) {
-    if (client == null) {
-      final key = http.Client().hashCode.toString();
-      final instance = AirqoApiClient._internal(http.Client());
-      _instances[key] = instance;
-
-      return instance;
-    }
-
-    final key = client.hashCode.toString();
-
-    if (_instances.containsKey(key)) {
-      return _instances[key]!;
-    } else {
-      final instance = AirqoApiClient._internal(client);
-      _instances[key] = instance;
-
-      return instance;
-    }
+  factory AirqoApiClient() {
+    return _instance;
   }
-
-  AirqoApiClient._internal(this.client);
+  AirqoApiClient._internal();
+  static final AirqoApiClient _instance = AirqoApiClient._internal();
 
   final Map<String, String> getHeaders = HashMap()
     ..putIfAbsent(
@@ -95,7 +78,7 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.metaData.serviceName;
 
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: json.encode({'phone_number': phoneNumber}),
@@ -128,7 +111,7 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse(
           "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
         ),
@@ -187,12 +170,31 @@ class AirqoApiClient {
     return forecasts.removeInvalidData();
   }
 
+  Future<List<KyaLesson>> getKyaLessons(String userId) async {
+    final lessons = <KyaLesson>[];
+
+    final response = await http.get(Uri.https(authority, "/api/v2/kya/lessons", {"userId": userId}..addAll(authQueryParameter)));
+
+    for (final lesson in response.body as List<Map<String, dynamic>>) {
+      try {
+        lessons.add(KyaLesson.fromJson(lesson));
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
+    }
+
+    return lessons;
+  }
+
   Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse(
           "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
         ),
@@ -220,7 +222,7 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse(
           "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
         ),
@@ -295,7 +297,7 @@ class AirqoApiClient {
         },
       );
 
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: body,
@@ -329,7 +331,7 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(getHeaders);
       headers["service"] = apiService.serviceName;
 
-      final response = await client
+      final response = await http
           .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {

@@ -71,7 +71,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
     if (widget.kya.status == KyaLessonStatus.inProgress) {
       context.read<KyaBloc>().add(UpdateKyaLessonStatus(
             widget.kya,
-            status: KyaLessonStatus.pendingTransfer,
+            status: KyaLessonStatus.complete,
           ));
     }
     _initialize();

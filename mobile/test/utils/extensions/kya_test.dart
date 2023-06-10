@@ -56,10 +56,10 @@ void main() {
       lesson = lesson.copyWith(status: KyaLessonStatus.inProgress);
       expect(lesson.getKyaLessonPageTitle(), "Resume");
 
-      lesson = lesson.copyWith(status: KyaLessonStatus.pendingTransfer);
+      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
       expect(lesson.getKyaLessonPageTitle(), "Restart");
 
-      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
+      lesson = lesson.copyWith(status: KyaLessonStatus.transferred);
       expect(lesson.getKyaLessonPageTitle(), "Restart");
     });
     test('Should return a message used on the lesson card', () {
@@ -87,10 +87,10 @@ void main() {
       lesson = lesson.copyWith(status: KyaLessonStatus.inProgress);
       expect(lesson.getKyaLessonCardMessage(), "Continue");
 
-      lesson = lesson.copyWith(status: KyaLessonStatus.pendingTransfer);
+      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
       expect(lesson.getKyaLessonCardMessage(), "Complete! Move to For You");
 
-      lesson = lesson.copyWith(status: KyaLessonStatus.complete);
+      lesson = lesson.copyWith(status: KyaLessonStatus.transferred);
       expect(lesson.getKyaLessonCardMessage(), "Complete! Move to For You");
     });
   });
@@ -136,25 +136,25 @@ void main() {
       );
     });
 
-    test('Should return lessons pending transfer', () {
-      List<KyaLesson> lessonsPendingTransfer =
-          lessons.filterLessonsPendingTransfer();
-      expect(lessonsPendingTransfer, isNotEmpty);
-      expect(
-        lessonsPendingTransfer.map((lesson) => lesson.status).toList(),
-        everyElement(
-          equals(KyaLessonStatus.pendingTransfer),
-        ),
-      );
-    });
-
     test('Should return complete lessons', () {
-      List<KyaLesson> completeLessons = lessons.filterCompleteLessons();
+      List<KyaLesson> completeLessons =
+          lessons.filterCompleteLessons();
       expect(completeLessons, isNotEmpty);
       expect(
         completeLessons.map((lesson) => lesson.status).toList(),
         everyElement(
           equals(KyaLessonStatus.complete),
+        ),
+      );
+    });
+
+    test('Should return transferred lessons', () {
+      List<KyaLesson> transferredLessons = lessons.filterTransferredLessons();
+      expect(transferredLessons, isNotEmpty);
+      expect(
+        transferredLessons.map((lesson) => lesson.status).toList(),
+        everyElement(
+          equals(KyaLessonStatus.transferred),
         ),
       );
     });
@@ -165,7 +165,7 @@ void main() {
         homepageLessons.map((lesson) => lesson.status).toList(),
         orderedEquals(
           [
-            KyaLessonStatus.pendingTransfer,
+            KyaLessonStatus.complete,
             KyaLessonStatus.inProgress,
             KyaLessonStatus.todo,
           ],

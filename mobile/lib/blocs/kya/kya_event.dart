@@ -4,14 +4,16 @@ abstract class KyaEvent extends Equatable {
   const KyaEvent();
 }
 
-class SyncKyaLessons extends KyaEvent {
-  const SyncKyaLessons();
+class LoadKyaLessons extends KyaEvent {
+  const LoadKyaLessons(this.userId);
+  final String userId;
+
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [userId];
 }
 
-class ClearKyaLessons extends KyaEvent {
-  const ClearKyaLessons();
+class ResetKyaLessons extends KyaEvent {
+  const ResetKyaLessons();
   @override
   List<Object?> get props => [];
 }
