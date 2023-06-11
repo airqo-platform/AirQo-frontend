@@ -58,45 +58,60 @@ const AppRoutes = () => {
             </MainLayout>
           }
         >
-          <Route exact path="/" component={Landing} />
-          <PrivateRoute
-            exact
-            path="/dashboard"
-            component={AnalyticsDashboard}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/admin/users/assigned-users"
-            component={UserList}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/admin/users/available-users"
-            component={AvailableUserList}
-            layout={MainLayout}
-          />
-          <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
-          <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
-          <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
-
-          <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
-          <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
-          <Route exact path="/map">
-            <MainLayout>
-              <OverlayMap />
-            </MainLayout>
-          </Route>
-          <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
-          <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-          <PrivateRoute exact path="/manager/stats" component={ManagerStats} layout={MainLayout} />
-          <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
-          <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
-          <PrivateRoute exact path="/airqlouds" component={AirQloudRegistry} layout={MainLayout} />
-          <PrivateRoute exact path="/airqlouds/:id" component={AirQloudView} layout={MainLayout} />
-
           <Switch>
+            <Route exact path="/" component={Landing} />
+            <PrivateRoute
+              exact
+              path="/dashboard"
+              component={AnalyticsDashboard}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/assigned-users"
+              component={UserList}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/available-users"
+              component={AvailableUserList}
+              layout={MainLayout}
+            />
+            <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+            <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
+            <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
+
+            <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
+            <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
+            <Route exact path="/map">
+              <MainLayout>
+                <OverlayMap />
+              </MainLayout>
+            </Route>
+            <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
+            <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/manager/stats"
+              component={ManagerStats}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/airqlouds"
+              component={AirQloudRegistry}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/airqlouds/:id"
+              component={AirQloudView}
+              layout={MainLayout}
+            />
+
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
             <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
