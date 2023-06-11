@@ -58,12 +58,12 @@
 
 .long_name {
   color: #0560c9;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: bold;
 }
 
 .site-count{
   color: #008000;
-  font-size: 0.75rem;
+  font-size: 1rem;
   /* font-weight: bold; */
 }
