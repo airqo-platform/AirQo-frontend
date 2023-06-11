@@ -6,7 +6,7 @@ import { isEmpty } from 'underscore';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import { Parser } from 'json2csv';
-import { loadSitesData, loadSitesSummary, clearSiteDetails } from 'redux/SiteRegistry/operations';
+import { loadSitesData, loadSitesSummary } from 'redux/SiteRegistry/operations';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import ConfirmDialog from '../../containers/ConfirmDialog';
@@ -15,6 +15,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 
 // css
 import 'assets/css/location-registry.css';
+import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;

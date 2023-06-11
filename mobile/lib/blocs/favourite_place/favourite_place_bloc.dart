@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
@@ -32,6 +33,16 @@ class FavouritePlaceBloc
     }).toSet();
   }
 
+  void _onEmitFavouritePlaces(
+    Set<FavouritePlace> favouritePlaces,
+    Emitter<List<FavouritePlace>> emit,
+  ) {
+    favouritePlaces = _updateAirQuality(favouritePlaces);
+    List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
+    favouritePlacesList.sortByAirQuality();
+    emit(favouritePlacesList);
+  }
+
   Future<void> _onUpdateFavouritePlace(
     UpdateFavouritePlace event,
     Emitter<List<FavouritePlace>> emit,
@@ -44,9 +55,7 @@ class FavouritePlaceBloc
       favouritePlaces.add(event.favouritePlace);
     }
 
-    favouritePlaces = _updateAirQuality(favouritePlaces);
-
-    emit(favouritePlaces.toList());
+    _onEmitFavouritePlaces(favouritePlaces, emit);
 
     await CloudStore.updateFavouritePlaces(state);
     if (favouritePlaces.length >= 5) {
@@ -60,7 +69,7 @@ class FavouritePlaceBloc
     ClearFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) {
-    emit([]);
+    _onEmitFavouritePlaces({}, emit);
   }
 
   Future<void> _onSyncFavouritePlaces(
@@ -73,7 +82,7 @@ class FavouritePlaceBloc
     Set<FavouritePlace> favouritePlaces = state.toSet();
     favouritePlaces.addAll(cloudFavoritePlaces);
 
-    emit(favouritePlaces.toList());
+    _onEmitFavouritePlaces(favouritePlaces, emit);
 
     Set<FavouritePlace> updatedFavouritePlaces = {};
 
@@ -93,7 +102,7 @@ class FavouritePlaceBloc
 
     updatedFavouritePlaces = _updateAirQuality(updatedFavouritePlaces);
 
-    emit(updatedFavouritePlaces.toList());
+    _onEmitFavouritePlaces(favouritePlaces, emit);
     await CloudStore.updateFavouritePlaces(updatedFavouritePlaces.toList());
   }
 

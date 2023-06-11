@@ -126,7 +126,7 @@ const MonitorPage = () => {
                   download={'BinosMonitorUserGuideV0.04.pdf'}
                   rel="noreferrer noopener">
                   <button className="download-button">
-                    User Guide <FileDownloadOutlined />
+                    Installation Guide <FileDownloadOutlined />
                   </button>
                 </a>
               </div>

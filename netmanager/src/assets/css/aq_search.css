@@ -1,0 +1,23 @@
+.emojiImg {
+  height: auto;
+  object-fit: 'contain';
+}
+
+@media only screen and (max-width: 600px) {
+  .emojiImg {
+    width: 100px;
+    margin-top: 20px;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 1200px) {
+  .emojiImg {
+    width: 200px;
+  }
+}
+
+@media only screen and (min-width: 1201px) {
+  .emojiImg {
+    width: 300px;
+  }
+}

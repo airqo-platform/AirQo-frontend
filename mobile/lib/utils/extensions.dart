@@ -40,6 +40,20 @@ extension InsightListExt on List<Insight> {
   }
 }
 
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  void sortByAirQuality() {
+    sort((x, y) {
+      if (x.airQualityReading != null && y.airQualityReading != null) {
+        return x.airQualityReading?.pm2_5
+                .compareTo(y.airQualityReading?.pm2_5 ?? 0) ??
+            0;
+      }
+
+      return x.airQualityReading == null ? 1 : -1;
+    });
+  }
+}
+
 extension ForecastListExt on List<Forecast> {
   void sortByDateTime() {
     sort((x, y) => x.time.compareTo(y.time));

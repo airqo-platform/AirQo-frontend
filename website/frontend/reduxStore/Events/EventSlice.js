@@ -1,10 +1,17 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { getAllEventsApi } from '../../apis';
+import { isEmpty } from 'underscore';
 
-export const getAllEvents = createAsyncThunk('/getEvents', async () => {
-  const response = await getAllEventsApi()
-  return response;
-});
+export const getAllEvents = () => async (dispatch) => {
+  dispatch(isLoading(true));
+  await getAllEventsApi()
+    .then((res) => {
+      if (isEmpty(res || [])) return;
+      dispatch(getEventsReducer(res));
+    })
+    .catch((err) => dispatch(getEventsFailure(err.message)));
+  dispatch(isLoading(false));
+};
 
 export const eventSlice = createSlice({
   name: 'getEvents',
@@ -14,26 +21,27 @@ export const eventSlice = createSlice({
     errorMessage: ''
   },
   reducers: {
+    getEventsReducer: (state, action) => {
+      state.events = action.payload;
+    },
+    getEventsFailure: (state, action) => {
+      state.errorMessage = action.payload;
+    },
     isLoading: (state, action) => {
       state.loading = action.payload;
     }
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(getAllEvents.fulfilled, (state, action) => {
-        state.events = action.payload;
-        state.loading = false;
-      })
-      .addCase(getAllEvents.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getAllEvents.rejected, (state, action) => {
-        state.errorMessage = action.error.message;
-        state.loading = false;
-      });
+  extraReducers: {
+    [getAllEvents.pending]: (state, action) => {
+      state.loading = action.payload;
+    },
+    [getAllEvents.fulfilled]: (state, action) => {
+      state.events = action.payload;
+      state.loading = action.payload;
+    }
   }
 });
 
-export const { isLoading } = eventSlice.actions;
+export const { getEventsReducer, getEventsFailure, isLoading } = eventSlice.actions;
 
 export default eventSlice.reducer;

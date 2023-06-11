@@ -79,8 +79,8 @@ export default function NetworkDropdown({ userNetworks }) {
     dispatch(loadDevicesData(network.net_name));
     dispatch(loadSitesData(network.net_name));
     dispatch(fetchNetworkUsers(network._id));
-    dispatch(loadUserRoles(network._id));
     dispatch(fetchAvailableNetworkUsers(network._id));
+    dispatch(loadUserRoles(network._id));
     handleClose();
     window.location.reload();
   };
