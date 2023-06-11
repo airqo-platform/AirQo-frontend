@@ -50,7 +50,7 @@
 
 .site {
   display: flex;
-  align-items: center;
+  align-items: left;
   cursor: pointer;
   padding: 5px;
   justify-content: space-between;
