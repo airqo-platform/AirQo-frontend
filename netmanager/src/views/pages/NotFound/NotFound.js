@@ -42,7 +42,7 @@ const NotFound = () => {
       <Grid container justify="center" spacing={4}>
         <Grid item lg={6} xs={12}>
           <div className={classes.content}>
-            <img alt="Under development" className={classes.image} src="/images/Oops.svg" />
+            <img alt="Page not found" className={classes.image} src="/images/Oops.svg" />
 
             <Typography variant="h2">
               <span className={classes.subText}>Oops!</span> We can't seem to find the page you're
