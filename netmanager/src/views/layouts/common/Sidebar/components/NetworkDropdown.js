@@ -3,7 +3,12 @@ import { withStyles } from '@material-ui/core/styles';
 import ListItemText from '@material-ui/core/ListItemText';
 import { Button, Menu, MenuItem } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
-import { addActiveNetwork, fetchNetworkUsers, loadUserRoles } from 'redux/AccessControl/operations';
+import {
+  addActiveNetwork,
+  fetchNetworkUsers,
+  loadUserRoles,
+  fetchAvailableNetworkUsers
+} from 'redux/AccessControl/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { ArrowDropDown } from '@material-ui/icons';
@@ -57,6 +62,7 @@ export default function NetworkDropdown({ userNetworks }) {
       dispatch(loadSitesData(userNetworks[0].net_name));
       dispatch(fetchNetworkUsers(userNetworks[0]._id));
       dispatch(loadUserRoles(userNetworks[0]._id));
+      dispatch(fetchAvailableNetworkUsers(userNetworks[0]._id));
     }
   }, []);
 
@@ -74,6 +80,7 @@ export default function NetworkDropdown({ userNetworks }) {
     dispatch(loadDevicesData(network.net_name));
     dispatch(loadSitesData(network.net_name));
     dispatch(fetchNetworkUsers(network._id));
+    dispatch(fetchAvailableNetworkUsers(network._id));
     dispatch(loadUserRoles(network._id));
     handleClose();
     window.location.reload();

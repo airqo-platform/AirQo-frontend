@@ -65,6 +65,12 @@ export const assignUserNetworkApi = async (networkID, userID) => {
     .then((response) => response.data);
 };
 
+export const getAvailableNetworkUsersListApi = async (networkID) => {
+  return await axios
+    .get(`${GET_NETWORKS_URI}/${networkID}/available-users`)
+    .then((response) => response.data);
+};
+
 export const getNetworkPermissionsApi = async (networkID) => {
   return await axios.get(GET_PERMISSIONS_URI).then((response) => response.data);
 };

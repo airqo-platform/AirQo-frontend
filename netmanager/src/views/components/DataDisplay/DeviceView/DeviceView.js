@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Route, Switch, Redirect, useParams, useRouteMatch } from 'react-router-dom';
 import 'chartjs-plugin-annotation';
 import { isEmpty } from 'underscore';
@@ -13,32 +13,31 @@ import DeviceEdit from './DeviceEdit';
 import DeviceLogs from './DeviceLogs';
 import DevicePhotos from './DevicePhotos';
 import DeviceOverview from './DeviceOverview/DeviceOverview';
-import { useDevicesData } from 'redux/DeviceRegistry/selectors';
-import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useInitScrollTop } from 'utils/customHooks';
 import { withPermission } from '../../../containers/PageAccess';
+import { getOrgDevices, updateDeviceDetails } from '../../../../redux/DeviceOverview/OverviewSlice';
 
-function DeviceView() {
+const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+
+const DeviceView = () => {
+  useInitScrollTop();
   const dispatch = useDispatch();
   const match = useRouteMatch();
   const params = useParams();
-  const devices = useDevicesData();
-  const [deviceData, setDeviceData] = useState(devices[params.deviceName] || {});
+  const devices = useSelector((state) => state.deviceOverviewData.devices);
+  let deviceData = {};
 
-  useInitScrollTop();
+  const selectedDevice = devices.filter((device) => device.name === params.deviceName);
+  selectedDevice.forEach((device) => {
+    deviceData = { ...device };
+  });
 
   useEffect(() => {
     if (isEmpty(devices)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-      }
+      dispatch(getOrgDevices(activeNetwork.net_name));
+      dispatch(updateDeviceDetails(deviceData));
     }
   }, []);
-
-  useEffect(() => {
-    setDeviceData(devices[params.deviceName] || {});
-  }, [devices]);
 
   return (
     <div
@@ -47,8 +46,7 @@ function DeviceView() {
         alignItems: 'center',
         justifyContent: 'center',
         flexWrap: 'wrap'
-      }}
-    >
+      }}>
       <DeviceToolBar deviceName={deviceData.name} />
       <DeviceToolBarContainer>
         <Switch>
@@ -79,6 +77,6 @@ function DeviceView() {
       </DeviceToolBarContainer>
     </div>
   );
-}
+};
 
 export default withPermission(DeviceView, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

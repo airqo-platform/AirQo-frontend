@@ -15,6 +15,9 @@ import { useSiteBackUrl } from 'redux/Urls/selectors';
 import { updateSiteApi } from 'views/apis/deviceRegistry';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 
+// styles
+import { makeStyles } from '@material-ui/core/styles';
+
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
@@ -28,6 +31,14 @@ const gridItemStyle = {
 const Cell = ({ fieldValue }) => {
   return <div>{fieldValue || 'N/A'}</div>;
 };
+
+// this is style for the cursor to show disabled
+const useStyles = makeStyles({
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
+  }
+});
 
 const SiteForm = ({ site }) => {
   const history = useHistory();
@@ -97,8 +108,7 @@ const SiteForm = ({ site }) => {
         minHeight: '400px',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}
-    >
+      }}>
       <div
         style={{
           display: 'flex',
@@ -106,15 +116,13 @@ const SiteForm = ({ site }) => {
           fontSize: '1.2rem',
           fontWeight: 'bold',
           margin: '20px 0'
-        }}
-      >
+        }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '5px'
-          }}
-        >
+          }}>
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.push(goBackUrl)}
@@ -134,6 +142,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.name}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -173,6 +187,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.latitude}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -185,6 +205,12 @@ const SiteForm = ({ site }) => {
             error={!!errors.longitude}
             helperText={errors.longitude}
             fullWidth
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -352,8 +378,7 @@ const SiteForm = ({ site }) => {
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: '10px 0' }}
-        >
+          style={{ margin: '10px 0' }}>
           <Button variant="contained" onClick={handleCancel}>
             Cancel
           </Button>
@@ -363,8 +388,7 @@ const SiteForm = ({ site }) => {
             color="primary"
             disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-          >
+            style={{ marginLeft: '10px' }}>
             Save Changes
           </Button>
         </Grid>
@@ -378,15 +402,13 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const site = useSiteDetailsData(params.id);
+  const site = useSiteDetailsData();
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(site)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
     }
   }, []);
 
@@ -395,8 +417,7 @@ const SiteView = (props) => {
       style={{
         width: '96%',
         margin: ' 20px auto'
-      }}
-    >
+      }}>
       <SiteForm site={site} key={`${site._id}`} />
 
       <div>
@@ -405,8 +426,7 @@ const SiteView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <CustomMaterialTable
             title="Site Devices details"
             userPreferencePaginationKey={'siteDevices'}
