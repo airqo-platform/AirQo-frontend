@@ -17,6 +17,7 @@ import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
+import BusinessIcon from '@material-ui/icons/Business';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
@@ -135,6 +136,11 @@ const allMainPages = [
 
 const allUserManagementPages = [
   {
+    title: 'Organisation',
+    href: '/organisation',
+    icon: <BusinessIcon />
+  },
+  {
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
@@ -147,16 +153,16 @@ const allUserManagementPages = [
     ]
   },
   {
-    title: 'Candidates',
-    href: '/candidates',
-    icon: <SupervisedUserCircleIcon />,
-    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
-  },
-  {
     title: 'Roles',
     href: '/roles',
     icon: <SupervisorAccountIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
+  },
+  {
+    title: 'Candidates',
+    href: '/candidates',
+    icon: <SupervisedUserCircleIcon />,
+    permission: 'APPROVE_AND_DECLINE_NETWORK_CANDIDATES'
   },
   {
     title: 'Account',

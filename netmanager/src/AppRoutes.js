@@ -7,13 +7,13 @@ import { useInternetConnectivityCheck, useJiraHelpDesk } from 'utils/customHooks
 import Overview from './views/components/Dashboard/Overview';
 import Devices from './views/components/DataDisplay/Devices';
 import { Download as DownloadView } from './views/pages/Download';
-import Landing from './views/layouts/Landing';
 import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 import PermissionDenied from './views/pages/PermissionDenied';
 
 // lazy imports
+const Landing = lazy(() => import('./views/layouts/Landing'));
 const Account = lazy(() => import('./views/pages/Account'));
 const AnalyticsDashboard = lazy(() => import('./views/pages/Dashboard'));
 const DeviceView = lazy(() => import('./views/components/DataDisplay/DeviceView'));
@@ -38,6 +38,7 @@ const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'))
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
 const AirQloudRegistry = lazy(() => import('./views/components/AirQlouds/AirQloudRegistry'));
 const AirQloudView = lazy(() => import('./views/components/AirQlouds/AirQloudView'));
+const Organisation = lazy(() => import('./views/pages/Organisation'));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -45,9 +46,8 @@ const AppRoutes = () => {
   return (
     <Router>
       <div className="App">
-        <Route exact path="/" component={Landing} />
-
         <Suspense fallback={<LargeCircularLoader loading={true} />}>
+          <Route exact path="/" component={Landing} />
           <Route exact path="/login/:tenant?" component={Login} />
           <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
           <Route exact path="/reset" component={ResetPassword} />
@@ -81,6 +81,7 @@ const AppRoutes = () => {
           <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
           <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
           <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
+          <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
 
           <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
           <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
