@@ -1,72 +1,64 @@
 part of 'phone_auth_bloc.dart';
 
-class PhoneAuthState extends Equatable {
-  const PhoneAuthState._({
-    this.phoneNumber = '',
-    this.countryCode = '',
-    this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
-  });
+enum PhoneAuthStatus {
+  initial,
+  error,
+  invalidPhoneNumber,
+  phoneNumberDoesNotExist,
+  phoneNumberTaken,
+  verificationCodeSent,
+  success;
+}
 
+class PhoneAuthState extends Equatable {
   const PhoneAuthState({
     this.phoneNumber = '',
-    this.countryCode = '',
+    this.countryCode = '+256',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
+    this.errorMessage = '',
+    this.status = PhoneAuthStatus.initial,
+    this.phoneAuthModel,
+    this.loading = false,
   });
-
-  const PhoneAuthState.initial({
-    String? phoneNumber,
-    String? countryCode,
-    required AuthProcedure authProcedure,
-  }) : this._(
-          blocStatus: BlocStatus.initial,
-          countryCode: countryCode ?? '+256',
-          phoneNumber: phoneNumber ?? '',
-          authProcedure: authProcedure,
-        );
-
-  const PhoneAuthState.verificationRequest()
-      : this._(blocStatus: BlocStatus.processing);
-
-  const PhoneAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
-
-  const PhoneAuthState.error(AuthenticationError error)
-      : this._(error: error, blocStatus: BlocStatus.error);
-
-  const PhoneAuthState.verificationSuccessful()
-      : this._(blocStatus: BlocStatus.success);
 
   PhoneAuthState copyWith({
     String? phoneNumber,
     String? countryCode,
+    String? errorMessage,
     AuthProcedure? authProcedure,
-    AuthenticationError? error,
-    BlocStatus? blocStatus,
+    PhoneAuthStatus? status,
+    PhoneAuthModel? phoneAuthModel,
+    bool? loading,
   }) {
     return PhoneAuthState(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       countryCode: countryCode ?? this.countryCode,
       authProcedure: authProcedure ?? this.authProcedure,
-      error: error ?? this.error,
-      blocStatus: blocStatus ?? this.blocStatus,
+      errorMessage: errorMessage ?? '',
+      status: status ?? this.status,
+      phoneAuthModel: phoneAuthModel ?? this.phoneAuthModel,
+      loading: loading ?? false,
     );
   }
 
   final String phoneNumber;
   final String countryCode;
+  final String errorMessage;
   final AuthProcedure authProcedure;
-  final AuthenticationError error;
-  final BlocStatus blocStatus;
+  final PhoneAuthStatus status;
+  final bool loading;
+  final PhoneAuthModel? phoneAuthModel;
+
+  String get fullPhoneNumber => "$countryCode $phoneNumber";
 
   @override
   List<Object?> get props => [
         phoneNumber,
         countryCode,
-        error,
+        errorMessage,
         authProcedure,
-        blocStatus,
+        status,
+        phoneAuthModel,
+        loading,
       ];
 }

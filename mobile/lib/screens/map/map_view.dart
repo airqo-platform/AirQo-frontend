@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -26,7 +27,7 @@ class MapView extends StatelessWidget {
       builder: (context, state) {
         switch (state.mapStatus) {
           case MapStatus.error:
-            if (state.blocError == AuthenticationError.noInternetConnection) {
+            if (state.blocError == FirebaseAuthError.noInternetConnection) {
               return NoInternetConnectionWidget(callBack: () {
                 _reloadMap(context);
               });
@@ -85,10 +86,9 @@ class _MapLandscapeState extends State<MapLandscape> {
   final Completer<GoogleMapController> _mapController =
       Completer<GoogleMapController>();
   Map<String, Marker> _markers = {};
-  final double zoom = 6;
   final _defaultCameraPosition = const CameraPosition(
-    target: LatLng(1.6183002, 32.504365),
-    zoom: 6,
+    target: LatLng(-0.323128, 18.218491),
+    zoom: 3,
   );
 
   @override
@@ -113,7 +113,7 @@ class _MapLandscapeState extends State<MapLandscape> {
 
   Future<void> _loadTheme() async {
     final GoogleMapController controller = await _mapController.future;
-    await controller.setMapStyle(
+    controller.setMapStyle(
       jsonEncode(googleMapsTheme),
     );
   }
@@ -167,7 +167,7 @@ class _MapLandscapeState extends State<MapLandscape> {
     final GoogleMapController controller = await _mapController.future;
 
     if (airQualityReadings.isEmpty) {
-      await controller.animateCamera(
+      controller.animateCamera(
         CameraUpdate.newCameraPosition(_defaultCameraPosition),
       );
 
@@ -269,82 +269,93 @@ class _MapDragSheetState extends State<MapDragSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      controller: controller,
-      initialChildSize: 0.3,
-      minChildSize: 0.18,
-      maxChildSize: maximumCardSize,
-      builder: (BuildContext context, ScrollController scrollController) {
-        return MapCardWidget(
-          widget: SingleChildScrollView(
-            controller: scrollController,
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: <Widget>[
-                const SizedBox(height: 8),
-                const DraggingHandle(),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: SearchWidget(),
-                ),
-                BlocBuilder<MapBloc, MapState>(
-                  builder: (context, state) {
-                    switch (state.mapStatus) {
-                      case MapStatus.initial:
-                      case MapStatus.error:
-                      case MapStatus.noAirQuality:
-                        // Already captured by parent widget
-                        break;
-                      case MapStatus.loading:
-                        return Container();
-                      case MapStatus.showingCountries:
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: AllCountries(),
-                        );
-                      case MapStatus.showingRegions:
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: CountryRegions(),
-                        );
-                      case MapStatus.showingFeaturedSite:
-                        final AirQualityReading? airQualityReading =
-                            state.featuredSiteReading;
-                        if (airQualityReading == null) {
-                          return NoAirQualityDataWidget(
-                            callBack: () {
-                              final String region =
-                                  context.read<MapBloc>().state.featuredRegion;
-                              context
-                                  .read<MapBloc>()
-                                  .add(ShowRegionSites(region));
-                            },
-                            actionButtonText: 'Back to regions',
-                          );
-                        }
-                        resizeScrollSheet();
-                        return FeaturedSiteReading(airQualityReading);
-                      case MapStatus.showingRegionSites:
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: RegionSites(),
-                        );
-                      case MapStatus.searching:
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: MapSearchWidget(),
-                        );
-                    }
+    final mediaQueryData = MediaQuery.of(context);
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      Config.minimumTextScaleFactor,
+      Config.maximumTextScaleFactor,
+    );
 
-                    return const AllCountries();
-                  },
-                ),
-              ],
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: DraggableScrollableSheet(
+        controller: controller,
+        initialChildSize: 0.3,
+        minChildSize: 0.18,
+        maxChildSize: maximumCardSize,
+        builder: (BuildContext context, ScrollController scrollController) {
+          return MapCardWidget(
+            widget: SingleChildScrollView(
+              controller: scrollController,
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: <Widget>[
+                  const SizedBox(height: 8),
+                  const DraggingHandle(),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: SearchWidget(),
+                  ),
+                  BlocBuilder<MapBloc, MapState>(
+                    builder: (context, state) {
+                      switch (state.mapStatus) {
+                        case MapStatus.initial:
+                        case MapStatus.error:
+                        case MapStatus.noAirQuality:
+                          // Already captured by parent widget
+                          break;
+                        case MapStatus.loading:
+                          return Container();
+                        case MapStatus.showingCountries:
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32),
+                            child: AllCountries(),
+                          );
+                        case MapStatus.showingRegions:
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32),
+                            child: CountryRegions(),
+                          );
+                        case MapStatus.showingFeaturedSite:
+                          final AirQualityReading? airQualityReading =
+                              state.featuredSiteReading;
+                          if (airQualityReading == null) {
+                            return NoAirQualityDataWidget(
+                              callBack: () {
+                                final String region = context
+                                    .read<MapBloc>()
+                                    .state
+                                    .featuredRegion;
+                                context
+                                    .read<MapBloc>()
+                                    .add(ShowRegionSites(region));
+                              },
+                              actionButtonText: 'Back to regions',
+                            );
+                          }
+                          resizeScrollSheet();
+                          return FeaturedSiteReading(airQualityReading);
+                        case MapStatus.showingRegionSites:
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32),
+                            child: RegionSites(),
+                          );
+                        case MapStatus.searching:
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32),
+                            child: MapSearchWidget(),
+                          );
+                      }
+
+                      return const AllCountries();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

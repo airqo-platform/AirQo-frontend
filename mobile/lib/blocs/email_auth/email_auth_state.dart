@@ -1,64 +1,57 @@
 part of 'email_auth_bloc.dart';
 
-class EmailAuthState extends Equatable {
-  const EmailAuthState._({
-    this.emailAddress = '',
-    this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
-  });
+enum EmailAuthStatus {
+  initial,
+  error,
+  invalidEmailAddress,
+  emailAddressDoesNotExist,
+  emailAddressTaken,
+  verificationCodeSent,
+  success;
+}
 
+class EmailAuthState extends Equatable {
   const EmailAuthState({
     this.emailAddress = '',
+    this.errorMessage = '',
     this.authProcedure = AuthProcedure.login,
-    this.error = AuthenticationError.none,
-    this.blocStatus = BlocStatus.initial,
+    this.status = EmailAuthStatus.initial,
+    this.emailAuthModel,
+    this.loading = false,
   });
-
-  const EmailAuthState.initial({
-    String? emailAddress,
-    required AuthProcedure authProcedure,
-  }) : this._(
-          blocStatus: BlocStatus.initial,
-          emailAddress: emailAddress ?? '',
-          authProcedure: authProcedure,
-        );
-
-  const EmailAuthState.verificationRequest()
-      : this._(blocStatus: BlocStatus.processing);
-
-  const EmailAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
-
-  const EmailAuthState.error(AuthenticationError error)
-      : this._(error: error, blocStatus: BlocStatus.error);
-
-  const EmailAuthState.verificationSuccessful()
-      : this._(blocStatus: BlocStatus.success);
 
   EmailAuthState copyWith({
     String? emailAddress,
+    String? errorMessage,
     AuthProcedure? authProcedure,
-    AuthenticationError? error,
-    BlocStatus? blocStatus,
+    EmailAuthStatus? status,
+    EmailAuthModel? emailAuthModel,
+    bool? loading,
   }) {
     return EmailAuthState(
       emailAddress: emailAddress ?? this.emailAddress,
+      errorMessage: errorMessage ?? '',
       authProcedure: authProcedure ?? this.authProcedure,
-      error: error ?? this.error,
-      blocStatus: blocStatus ?? this.blocStatus,
+      status: status ?? this.status,
+      emailAuthModel: emailAuthModel ?? this.emailAuthModel,
+      loading: loading ?? false,
     );
   }
 
   final String emailAddress;
+  final String errorMessage;
   final AuthProcedure authProcedure;
-  final AuthenticationError error;
-  final BlocStatus blocStatus;
+  final EmailAuthStatus status;
+  final bool loading;
+  final EmailAuthModel? emailAuthModel;
 
   @override
   List<Object?> get props => [
         emailAddress,
-        error,
         authProcedure,
-        blocStatus,
+        status,
+        loading,
+        emailAuthModel,
+        errorMessage,
       ];
 }

@@ -29,8 +29,9 @@ import 'chartjs-plugin-annotation';
 import 'assets/scss/device-management.sass';
 import 'assets/css/device-view.css'; // there are some shared styles here too :)
 import { loadUptimeLeaderboardData } from 'redux/DeviceManagement/operations';
+import { withPermission } from '../../../containers/PageAccess';
 
-export default function ManagementStat() {
+function ManagementStat() {
   useInitScrollTop();
   const history = useHistory();
   const location = useLocation();
@@ -102,7 +103,7 @@ export default function ManagementStat() {
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
-            moment(new Date()).subtract(28, 'days').toISOString()
+            moment(new Date()).subtract(7, 'days').toISOString()
           ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
@@ -302,3 +303,5 @@ export default function ManagementStat() {
     </ErrorBoundary>
   );
 }
+
+export default withPermission(ManagementStat, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');

@@ -316,6 +316,109 @@ void showSnackBar(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
+void showFavouritePlaceSnackBar(
+  BuildContext context,
+  AirQualityReading airQualityReading, {
+  int durationInSeconds = 2,
+}) {
+  final snackBar = SnackBar(
+    duration: Duration(seconds: durationInSeconds),
+    elevation: 0,
+    padding: const EdgeInsets.symmetric(
+      vertical: 17,
+      horizontal: 22,
+    ),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(
+        Radius.circular(28.0),
+      ),
+    ),
+    behavior: SnackBarBehavior.floating,
+    content: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 23,
+          width: 23,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Pollutant.pm2_5.color(
+              airQualityReading.pm2_5,
+            ),
+            border: const Border.fromBorderSide(
+              BorderSide(color: Colors.transparent),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Spacer(),
+              SvgPicture.asset(
+                Pollutant.pm2_5.svg,
+                semanticsLabel: 'Pm2.5',
+                height: 3,
+                width: 8,
+                colorFilter: ColorFilter.mode(
+                  Pollutant.pm2_5.textColor(
+                    value: airQualityReading.pm2_5,
+                  ),
+                  BlendMode.srcIn,
+                ),
+              ),
+              Text(
+                airQualityReading.pm2_5.toInt().toString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: CustomTextStyle.airQualityValue(
+                  pollutant: Pollutant.pm2_5,
+                  value: airQualityReading.pm2_5,
+                )?.copyWith(
+                  fontStyle: FontStyle.normal,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  height: 12 / 9,
+                  letterSpacing: 16 * -0.022,
+                ),
+              ),
+              SvgPicture.asset(
+                'assets/icon/unit.svg',
+                semanticsLabel: 'Unit',
+                height: 3,
+                width: 3,
+                colorFilter: ColorFilter.mode(
+                  Pollutant.pm2_5.textColor(
+                    value: airQualityReading.pm2_5,
+                  ),
+                  BlendMode.srcIn,
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+        const SizedBox(
+          width: 12,
+        ),
+        Expanded(
+          child: AutoSizeText(
+            "${airQualityReading.name} has been added to your favorites",
+            maxLines: 1,
+            minFontSize: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    ),
+    backgroundColor: CustomColors.appColorBlack,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
 class SettingsDialog extends StatelessWidget {
   const SettingsDialog(this.message, {super.key});
   final String message;
@@ -428,6 +531,53 @@ class AuthMethodDialog extends StatelessWidget {
           isDestructiveAction: false,
           child: Text(
             'Yes',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SignOutDeletionDialog extends StatelessWidget {
+  const SignOutDeletionDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: const Text(
+        "Re authentication is required",
+        textAlign: TextAlign.center,
+      ),
+      content: const Padding(
+        padding: EdgeInsets.all(10),
+        child: Text(
+          "You are required to sign in again inorder to delete your account. Do you want to proceed?",
+          textAlign: TextAlign.center,
+        ),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.cancel);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: true,
+          child: Text(
+            "Cancel",
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            "Yes",
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),

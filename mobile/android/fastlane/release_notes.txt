@@ -1,1 +1,2 @@
-Bug fixes and performance enhancements
+Performance improvements
+Location bug fixes

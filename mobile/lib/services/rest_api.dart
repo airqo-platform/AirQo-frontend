@@ -7,7 +7,6 @@ import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -26,35 +25,61 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
 }
 
 class AirqoApiClient {
-  factory AirqoApiClient() {
-    return _instance;
-  }
-  AirqoApiClient._internal();
-  static final AirqoApiClient _instance = AirqoApiClient._internal();
+  static final Map<String, AirqoApiClient> _instances =
+      <String, AirqoApiClient>{};
+  final http.Client client;
 
-  final httpClient = SentryHttpClient(
-    client: http.Client(),
-    failedRequestStatusCodes: [
-      SentryStatusCode(500),
-      SentryStatusCode(400),
-      SentryStatusCode(404),
-    ],
-    captureFailedRequests: true,
-    networkTracing: true,
-  );
-  final Map<String, String> headers = HashMap()
+  factory AirqoApiClient({http.Client? client}) {
+    if (client == null) {
+      final key = http.Client().hashCode.toString();
+      final instance = AirqoApiClient._internal(http.Client());
+      _instances[key] = instance;
+
+      return instance;
+    }
+
+    final key = client.hashCode.toString();
+
+    if (_instances.containsKey(key)) {
+      return _instances[key]!;
+    } else {
+      final instance = AirqoApiClient._internal(client);
+      _instances[key] = instance;
+
+      return instance;
+    }
+  }
+
+  AirqoApiClient._internal(this.client);
+
+  final Map<String, String> getHeaders = HashMap()
     ..putIfAbsent(
       'Authorization',
       () => 'JWT ${Config.airqoApiToken}',
     );
 
-  Future<Map<String, double>> getLocation() async {
-    String ipAddress = '';
+  final Map<String, String> postHeaders = HashMap()
+    ..putIfAbsent(
+      'Authorization',
+      () => 'JWT ${Config.airqoApiToken}',
+    )
+    ..putIfAbsent('Content-Type', () => 'application/json');
+
+  Future<AppStoreVersion?> getAppVersion({
+    String bundleId = "",
+    String packageName = "",
+  }) async {
     try {
-      final ipResponse = await httpClient.get(
-        Uri.parse('https://jsonip.com/'),
+      final body = await _performGetRequest(
+        {
+          "bundleId": bundleId,
+          "packageName": packageName,
+        },
+        AirQoUrls.appVersion,
+        apiService: ApiService.view,
       );
-      ipAddress = json.decode(ipResponse.body)['ip'] as String;
+
+      return AppStoreVersion.fromJson(body['data'] as Map<String, dynamic>);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -62,35 +87,18 @@ class AirqoApiClient {
       );
     }
 
-    try {
-      final params = ipAddress.isNotEmpty
-          ? {'ip_address': ipAddress}
-          : <String, dynamic>{};
-      final response = await _performGetRequest(
-        params,
-        AirQoUrls.ipGeoCoordinates,
-      );
-
-      return {
-        'latitude': response['data']['latitude'] as double,
-        'longitude': response['data']['longitude'] as double,
-      };
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return {};
+    return null;
   }
 
   Future<String> getCarrier(String phoneNumber) async {
     try {
-      final response = await httpClient.post(
-        Uri.parse(AirQoUrls.mobileCarrier),
-        body: json.encode({'phone_number': phoneNumber}),
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.metaData.serviceName;
+
+      final response = await client.post(
+        Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
+        body: json.encode({'phone_number': phoneNumber}),
       );
 
       return json.decode(response.body)['data']['carrier'] as String;
@@ -104,65 +112,31 @@ class AirqoApiClient {
     return '';
   }
 
-  Future<bool> checkIfUserExists({
+  Future<bool?> checkIfUserExists({
     String? phoneNumber,
     String? emailAddress,
   }) async {
-    Map<String, String> headers = HashMap()
-      ..putIfAbsent('Content-Type', () => 'application/json');
-    http.Response response;
-
-    if (phoneNumber != null) {
-      final body = {
-        'phoneNumber': phoneNumber,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
-    } else if (emailAddress != null) {
-      final body = {
-        'emailAddress': emailAddress,
-      };
-      response = await httpClient.post(
-        Uri.parse(AirQoUrls.checkUserExists),
-        headers: headers,
-        body: jsonEncode(body),
-      );
-    } else {
-      throw Exception('Failed to perform action. Try again later');
-    }
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to perform action. Try again later');
-    }
-
-    return json.decode(response.body)['status'] as bool;
-  }
-
-  Future<InsightData> fetchInsightsData(String siteId) async {
     try {
-      final now = DateTime.now();
-      final utcNow = now.toUtc();
-      final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
-      final endDateTime = '${DateFormat('yyyy-MM-dd').format(
-        utcNow.getLastDateOfCalendarMonth(),
-      )}T23:59:59Z';
+      Map<String, String> body = HashMap();
 
-      final queryParams = <String, dynamic>{
-        'siteId': siteId,
-        'utcOffset': now.getUtcOffset(),
-        'startDateTime': startDateTime,
-        'endDateTime': endDateTime,
-      };
+      if (phoneNumber != null) {
+        body['phoneNumber'] = phoneNumber;
+      } else if (emailAddress != null) {
+        body['email'] = emailAddress;
+      }
 
-      final body = await _performGetRequest(
-        queryParams,
-        AirQoUrls.insights,
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
+        ),
+        headers: headers,
+        body: jsonEncode(body),
       );
 
-      return InsightData.fromJson(body['data']);
+      return json.decode(response.body)['exists'] as bool;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -170,35 +144,93 @@ class AirqoApiClient {
       );
     }
 
-    return const InsightData(forecast: [], historical: []);
+    return null;
   }
 
-  Future<EmailAuthModel?> requestEmailVerificationCode(
-    String emailAddress,
-    bool reAuthenticate,
-  ) async {
+  Future<List<Forecast>> fetchForecast(String siteId) async {
+    final forecasts = <Forecast>[];
+
     try {
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent(
-          'Content-Type',
-          () => 'application/json',
-        );
-
-      final body = {
-        'email': emailAddress,
-      };
-
-      final uri = reAuthenticate
-          ? AirQoUrls.requestEmailReAuthentication
-          : AirQoUrls.requestEmailVerification;
-
-      final response = await http.post(
-        Uri.parse(uri),
-        headers: headers,
-        body: jsonEncode(body),
+      final body = await _performGetRequest(
+        {
+          "site_id": siteId,
+        },
+        AirQoUrls.forecast,
+        apiService: ApiService.forecast,
       );
 
-      return EmailAuthModel.fromJson(json.decode(response.body));
+      for (final forecast in body['forecasts'] as List<dynamic>) {
+        try {
+          forecasts.add(
+            Forecast.fromJson({
+              'pm2_5': forecast['pm2_5'],
+              'time': forecast['time'],
+              'siteId': siteId,
+              'health_tips': forecast["health_tips"] ?? [],
+              'message': forecast["message"] ?? '',
+            }),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return forecasts.removeInvalidData();
+  }
+
+  Future<EmailAuthModel?> sendEmailVerificationCode(String emailAddress) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
+        ),
+        headers: headers,
+        body: jsonEncode({'email': emailAddress}),
+      );
+
+      return EmailAuthModel.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
+  }
+
+  Future<EmailAuthModel?> sendEmailReAuthenticationCode(
+    String emailAddress,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
+        ),
+        headers: headers,
+        body: jsonEncode({'email': emailAddress}),
+      );
+
+      return EmailAuthModel.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -230,9 +262,10 @@ class AirqoApiClient {
       final body = await _performGetRequest(
         queryParams,
         AirQoUrls.measurements,
+        apiService: ApiService.deviceRegistry,
       );
 
-      for (final measurement in body['measurements']) {
+      for (final measurement in body['measurements'] as List<dynamic>) {
         try {
           airQualityReadings.add(
             AirQualityReading.fromAPI(measurement as Map<String, dynamic>),
@@ -246,11 +279,14 @@ class AirqoApiClient {
       );
     }
 
-    return airQualityReadings;
+    return airQualityReadings.removeInvalidData();
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
       final body = jsonEncode(
         {
           'email': feedback.contactDetails,
@@ -259,11 +295,8 @@ class AirqoApiClient {
         },
       );
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
-
-      final response = await httpClient.post(
-        Uri.parse(AirQoUrls.feedback),
+      final response = await client.post(
+        Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: body,
       );
@@ -281,46 +314,23 @@ class AirqoApiClient {
     return false;
   }
 
-  @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeMessage(Profile userDetails) async {
-    try {
-      if (!userDetails.emailAddress.isValidEmail()) {
-        return;
-      }
-
-      final body = {
-        'firstName':
-            userDetails.firstName.isNull() ? '' : userDetails.firstName,
-        'platform': 'mobile',
-        'email': userDetails.emailAddress,
-      };
-
-      await _performPostRequest(
-        queryParams: <String, dynamic>{},
-        url: AirQoUrls.welcomeMessage,
-        body: jsonEncode(body),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
     String url, {
+    required ApiService apiService,
     Duration? timeout,
   }) async {
     try {
-      url = addQueryParameters(queryParams, url);
+      Map<String, dynamic> params = queryParams;
+      params["TOKEN"] = Config.airqoApiV2Token;
 
-      final response = await httpClient
-          .get(
-            Uri.parse(url),
-            headers: headers,
-          )
+      url = addQueryParameters(params, url);
+
+      Map<String, String> headers = Map.from(getHeaders);
+      headers["service"] = apiService.serviceName;
+
+      final response = await client
+          .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
       if (response.statusCode == 200) {
         // TODO : use advanced decoding
@@ -335,47 +345,35 @@ class AirqoApiClient {
 
     return null;
   }
-
-  Future<bool> _performPostRequest({
-    required Map<String, dynamic> queryParams,
-    required String url,
-    required dynamic body,
-  }) async {
-    try {
-      url = addQueryParameters(
-        queryParams,
-        url,
-      );
-      headers.putIfAbsent(
-        'Content-Type',
-        () => 'application/json',
-      );
-
-      final response = await httpClient.post(
-        Uri.parse(url),
-        headers: headers,
-        body: body,
-      );
-      if (response.statusCode == 200) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
-  }
 }
 
 class SearchApiClient {
-  factory SearchApiClient() {
-    return _instance;
+  static final Map<String, SearchApiClient> _instances =
+      <String, SearchApiClient>{};
+  final http.Client client;
+
+  factory SearchApiClient({http.Client? client}) {
+    if (client == null) {
+      final key = http.Client().hashCode.toString();
+      final instance = SearchApiClient._internal(http.Client());
+      _instances[key] = instance;
+
+      return instance;
+    }
+
+    final key = client.hashCode.toString();
+
+    if (_instances.containsKey(key)) {
+      return _instances[key]!;
+    } else {
+      final instance = SearchApiClient._internal(client);
+      _instances[key] = instance;
+
+      return instance;
+    }
   }
-  SearchApiClient._internal();
-  static final SearchApiClient _instance = SearchApiClient._internal();
+
+  SearchApiClient._internal(this.client);
 
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
@@ -383,16 +381,6 @@ class SearchApiClient {
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
-  final _httpClient = SentryHttpClient(
-    client: http.Client(),
-    failedRequestStatusCodes: [
-      SentryStatusCode(503),
-      SentryStatusCode(400),
-      SentryStatusCode(404),
-    ],
-    captureFailedRequests: true,
-    networkTracing: true,
-  );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
@@ -401,7 +389,7 @@ class SearchApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await _httpClient.get(
+      final response = await client.get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {
@@ -435,9 +423,14 @@ class SearchApiClient {
       );
 
       if (responseBody != null && responseBody['status'] == 'OK') {
-        for (final jsonElement in responseBody['predictions']) {
+        for (final jsonElement
+            in responseBody['predictions'] as List<dynamic>) {
           try {
-            searchResults.add(SearchResult.fromAutoCompleteAPI(jsonElement));
+            searchResults.add(
+              SearchResult.fromAutoCompleteAPI(
+                jsonElement as Map<String, dynamic>,
+              ),
+            );
           } catch (__, _) {}
         }
       }
@@ -470,7 +463,7 @@ class SearchApiClient {
       );
 
       return SearchResult.fromPlacesAPI(
-        responseBody['result'],
+        responseBody['result'] as Map<String, dynamic>,
         searchResult,
       );
     } catch (_, __) {}

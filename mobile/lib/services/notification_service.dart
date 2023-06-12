@@ -15,16 +15,21 @@ import 'native_api.dart';
 
 class NotificationService {
   static Future<void> notificationRequestDialog(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
     await Permission.notification.request().then((status) {
       switch (status) {
         case PermissionStatus.granted:
         case PermissionStatus.limited:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(true));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(notifications: true)));
           break;
         case PermissionStatus.restricted:
         case PermissionStatus.denied:
         case PermissionStatus.permanentlyDenied:
-          context.read<SettingsBloc>().add(const UpdateNotificationPref(false));
+          context
+              .read<ProfileBloc>()
+              .add(UpdateProfile(profile.copyWith(notifications: false)));
           break;
       }
     });
@@ -34,6 +39,7 @@ class NotificationService {
     BuildContext context,
     bool value,
   ) async {
+    Profile profile = context.read<ProfileBloc>().state;
     late String enableNotificationsMessage;
     late String disableNotificationsMessage;
 
@@ -58,20 +64,14 @@ class NotificationService {
             await openPhoneSettings(context, enableNotificationsMessage);
             break;
           case PermissionStatus.denied:
-            if (Platform.isAndroid) {
-              await openPhoneSettings(context, enableNotificationsMessage);
-            } else {
-              await notificationRequestDialog(context);
-            }
-            break;
           case PermissionStatus.restricted:
           case PermissionStatus.limited:
             await notificationRequestDialog(context);
             break;
           case PermissionStatus.granted:
             context
-                .read<SettingsBloc>()
-                .add(const UpdateNotificationPref(true));
+                .read<ProfileBloc>()
+                .add(UpdateProfile(profile.copyWith(notifications: true)));
             break;
         }
       });
@@ -104,13 +104,12 @@ class NotificationService {
       FirebaseMessaging.onMessageOpenedApp.listen(
         (_) {
           CloudAnalytics.logEvent(
-            AnalyticsEvent.notificationOpen,
+            CloudAnalyticsEvent.notificationOpen,
           );
         },
       );
-      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-        final profile = await Profile.getProfile();
-        await profile.update();
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+        // TODO update cloud store
       }).onError(
         (exception) {
           logException(exception, null);
@@ -162,7 +161,7 @@ class NotificationService {
               ),
             ),
             CloudAnalytics.logEvent(
-              AnalyticsEvent.notificationReceive,
+              CloudAnalyticsEvent.notificationReceive,
             ),
           ],
         );

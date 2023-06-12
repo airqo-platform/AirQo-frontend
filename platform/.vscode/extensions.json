@@ -4,10 +4,11 @@
     "dbaeumer.vscode-eslint",
     "bradlc.vscode-tailwindcss",
     "github.vscode-pull-request-github",
-    "firsttris.vscode-jest-runner",
-    "christian-kohler.npm-intellisense",
     "wakatime.vscode-wakatime",
-    "willstakayama.vscode-nextjs-snippets",
-    "dsznajder.es7-react-js-snippets"
+    "dsznajder.es7-react-js-snippets",
+    "vitaliymaz.vscode-svg-previewer",
+    "danielsanmedium.dscodegpt",
+    "streetsidesoftware.code-spell-checker",
+    "visualstudioexptteam.vscodeintellicode"
   ]
 }

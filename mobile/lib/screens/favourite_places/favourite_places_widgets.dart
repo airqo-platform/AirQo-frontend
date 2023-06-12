@@ -1,22 +1,24 @@
-import 'package:app/blocs/account/account_bloc.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
-class EmptyFavouritePlace extends StatelessWidget {
-  const EmptyFavouritePlace(this.airQualityReading, {super.key});
-
-  final AirQualityReading airQualityReading;
+class FavouritePlaceCard extends StatelessWidget {
+  const FavouritePlaceCard(this.favouritePlace, {super.key});
+  final FavouritePlace favouritePlace;
 
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
+    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
 
     return InkWell(
-      onTap: () => _navigateToInsights(context),
+      onTap: () async {
+        await _navigateToInsights(context, airQualityReading);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Container(
@@ -26,7 +28,9 @@ class EmptyFavouritePlace extends StatelessWidget {
               Radius.circular(8.0),
             ),
             border: Border.fromBorderSide(
-              BorderSide(color: Colors.transparent),
+              BorderSide(
+                color: Colors.transparent,
+              ),
             ),
           ),
           child: Column(
@@ -38,7 +42,12 @@ class EmptyFavouritePlace extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 32),
                 child: Row(
                   children: [
-                    const CircularLoadingAnimation(size: 40),
+                    if (airQualityReading != null)
+                      MiniAnalyticsAvatar(airQualityReading: airQualityReading),
+                    Visibility(
+                      visible: airQualityReading == null,
+                      child: const CircularLoadingAnimation(size: 40),
+                    ),
                     const SizedBox(
                       width: 12,
                     ),
@@ -48,13 +57,13 @@ class EmptyFavouritePlace extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            airQualityReading.name,
+                            favouritePlace.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: CustomTextStyle.headline8(context),
                           ),
                           Text(
-                            airQualityReading.location,
+                            favouritePlace.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -65,7 +74,11 @@ class EmptyFavouritePlace extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () async => _updateFavPlace(context),
+                      onTap: () {
+                        context
+                            .read<FavouritePlaceBloc>()
+                            .add(UpdateFavouritePlace(favouritePlace));
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
@@ -126,14 +139,15 @@ class EmptyFavouritePlace extends StatelessWidget {
                           Radius.circular(3.0),
                         ),
                         border: const Border.fromBorderSide(
-                          BorderSide(color: Colors.transparent),
+                          BorderSide(
+                            color: Colors.transparent,
+                          ),
                         ),
                       ),
-                      child: SvgPicture.asset(
-                        'assets/icon/more_arrow.svg',
-                        semanticsLabel: 'more',
-                        height: 6.99,
-                        width: 4,
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        semanticLabel: 'more',
                       ),
                     ),
                   ],
@@ -149,11 +163,15 @@ class EmptyFavouritePlace extends StatelessWidget {
     );
   }
 
-  void _updateFavPlace(BuildContext context) {
-    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
-  }
+  Future<void> _navigateToInsights(
+    BuildContext context,
+    AirQualityReading? airQualityReading,
+  ) async {
+    if (airQualityReading == null) {
+      showSnackBar(context, 'No air quality for this place');
 
-  void _navigateToInsights(BuildContext context) {
-    showSnackBar(context, 'No air quality for this place');
+      return;
+    }
+    await navigateToInsights(context, airQualityReading);
   }
 }

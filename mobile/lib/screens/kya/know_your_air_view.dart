@@ -1,7 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/utils.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,13 +14,20 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KyaBloc, KyaState>(
+    return BlocBuilder<KyaBloc, List<Kya>>(
       builder: (context, state) {
-        final completeKya = state.kya.filterCompleteKya();
-        if (completeKya.isEmpty) {
-          final inCompleteKya = state.kya.filterIncompleteKya();
-
+        if (state.isEmpty) {
           return NoKyaWidget(
+            callBack: () {
+              context.read<KyaBloc>().add(const SyncKya());
+            },
+          );
+        }
+        final completeKya = state.filterComplete();
+        if (completeKya.isEmpty) {
+          final inCompleteKya = state.filterInProgressKya();
+
+          return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteKya.isEmpty) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
@@ -58,7 +65,7 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const LoadKya());
+    context.read<KyaBloc>().add(const SyncKya());
   }
 
   Future<void> _startKyaLessons(BuildContext context, Kya kya) async {

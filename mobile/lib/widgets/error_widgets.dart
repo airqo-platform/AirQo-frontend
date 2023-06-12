@@ -1,9 +1,8 @@
 import 'package:app/themes/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -54,7 +53,7 @@ class KyaNotFoundWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppSafeArea(
-        widget: Padding(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 33),
           child: Center(
             child: Column(
@@ -80,8 +79,10 @@ class KyaNotFoundWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {
+                NextButton(
+                  buttonColor: CustomColors.appColorBlue,
+                  text: 'Return home',
+                  callBack: () {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -92,10 +93,6 @@ class KyaNotFoundWidget extends StatelessWidget {
                       (r) => false,
                     );
                   },
-                  child: NextButton(
-                    buttonColor: CustomColors.appColorBlue,
-                    text: 'Return home',
-                  ),
                 ),
               ],
             ),
@@ -281,8 +278,8 @@ class NoAnalyticsWidget extends StatelessWidget {
   }
 }
 
-class NoKyaWidget extends StatelessWidget {
-  const NoKyaWidget({super.key, required this.callBack});
+class NoCompleteKyaWidget extends StatelessWidget {
+  const NoCompleteKyaWidget({super.key, required this.callBack});
   final Function() callBack;
 
   @override
@@ -316,14 +313,59 @@ class NoKyaWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: InkWell(
-              onTap: () {
-                callBack();
-              },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Start learning',
-              ),
+            child: NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Start learning',
+              callBack: callBack,
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class NoKyaWidget extends StatelessWidget {
+  const NoKyaWidget({super.key, required this.callBack});
+  final Function() callBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 33),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset('assets/icon/no_kya_icon.svg'),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(
+            'No lessons',
+            style: CustomTextStyle.errorTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 23,
+          ),
+          Text(
+            'We’re having issues with our network no worries, we’ll be back up soon.',
+            style: CustomTextStyle.errorSubTitle(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          InkWell(
+            onTap: () {
+              callBack();
+            },
+            child: const ActionButton(
+              icon: Icons.refresh_outlined,
+              text: 'Reload',
             ),
           ),
           const Spacer(),
@@ -395,7 +437,7 @@ class AppErrorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSafeArea(
       horizontalPadding: 33,
-      widget: Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -470,7 +512,7 @@ class AppCrushWidget extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -517,8 +559,8 @@ class AppCrushWidget extends StatelessWidget {
             const Spacer(),
             InkWell(
               onTap: () async {
+                // TODO log to  a backend service
                 PackageInfo packageInfo = await PackageInfo.fromPlatform();
-                String email = "support@airqo.net";
                 String subject = "Mobile App Crush";
                 String body = ""
                     "App Version : ${packageInfo.version}\n"
@@ -549,7 +591,7 @@ class ErrorPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 24,
         verticalPadding: 24,
-        widget: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -595,8 +637,10 @@ class ErrorPage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: () {
+            NextButton(
+              buttonColor: CustomColors.appColorBlue,
+              text: 'Return home',
+              callBack: () {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -607,10 +651,6 @@ class ErrorPage extends StatelessWidget {
                   (r) => false,
                 );
               },
-              child: NextButton(
-                buttonColor: CustomColors.appColorBlue,
-                text: 'Return home',
-              ),
             ),
           ],
         ),

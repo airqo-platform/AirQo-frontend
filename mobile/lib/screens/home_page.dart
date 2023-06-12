@@ -3,20 +3,21 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/screens/settings/update_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'for_you_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard/dashboard_view.dart';
+import 'for_you_page.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,11 +35,13 @@ class _HomePageState extends State<HomePage> {
   late GlobalKey _mapShowcaseKey;
   late GlobalKey _profileShowcaseKey;
   late BuildContext _showcaseContext;
-
+  final AppService _appService = AppService();
   late List<Widget> _widgetOptions;
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
@@ -72,13 +75,17 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         child: ShowCaseWidget(
-          onFinish: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ForYouPage(),
-              ),
-            );
+          onFinish: () async {
+            final prefs = await SharedPreferences.getInstance();
+            if (prefs.getBool(Config.restartTourShowcase) == true) {
+              Future.delayed(
+                Duration.zero,
+                () => _appService.navigateShowcaseToScreen(
+                  context,
+                  const ForYouPage(),
+                ),
+              );
+            }
           },
           builder: Builder(
             builder: (context) {
@@ -93,13 +100,13 @@ class _HomePageState extends State<HomePage> {
                     .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      showArrow: false,
-                      key: _homeShowcaseKey,
-                      description: 'Home',
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _homeShowcaseKey,
+                      description: 'Explore air quality here',
                       child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
-                        svg: 'assets/icon/home_icon.svg',
+                        icon: Icons.home_rounded,
                         label: 'Home',
                         index: 0,
                       ),
@@ -107,12 +114,14 @@ class _HomePageState extends State<HomePage> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                    icon: Showcase(
-                      key: _mapShowcaseKey,
-                      showArrow: false,
-                      description: 'This is the AirQo map',
+                    icon: CustomShowcaseWidget(
+                      customize: ShowcaseOptions.up,
+                      showcaseKey: _mapShowcaseKey,
+                      descriptionWidth: screenSize.width * 0.3,
+                      descriptionHeight: screenSize.height * 0.09,
+                      description: 'See readings from our monitors here',
                       child: BottomNavIcon(
-                        svg: 'assets/icon/location.svg',
+                        icon: Icons.location_on_rounded,
                         selectedIndex: _selectedIndex,
                         label: 'AirQo Map',
                         index: 1,
@@ -123,28 +132,22 @@ class _HomePageState extends State<HomePage> {
                   BottomNavigationBarItem(
                     icon: Stack(
                       children: [
-                        Showcase(
-                          key: _profileShowcaseKey,
-                          showArrow: false,
-                          description: 'Access your Profile details here',
+                        CustomShowcaseWidget(
+                          customize: ShowcaseOptions.up,
+                          showcaseKey: _profileShowcaseKey,
+                          descriptionHeight: screenSize.height * 0.13,
+                          descriptionWidth: screenSize.width * 0.23,
+                          description:
+                              'Change your preferences and settings here',
                           child: BottomNavIcon(
-                            svg: 'assets/icon/profile.svg',
+                            icon: Icons.person_rounded,
                             selectedIndex: _selectedIndex,
                             label: 'Profile',
                             index: 2,
                           ),
                         ),
-                        ValueListenableBuilder<Box>(
-                          valueListenable: Hive.box<AppNotification>(
-                            HiveBox.appNotifications,
-                          ).listenable(),
-                          builder: (context, box, widget) {
-                            final unreadNotifications = box.values
-                                .toList()
-                                .cast<AppNotification>()
-                                .where((element) => !element.read)
-                                .toList();
-
+                        BlocBuilder<NotificationBloc, List<AppNotification>>(
+                          builder: (context, state) {
                             return Positioned(
                               right: 0.0,
                               child: Container(
@@ -152,7 +155,7 @@ class _HomePageState extends State<HomePage> {
                                 width: 4,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: unreadNotifications.isEmpty
+                                  color: state.filterUnRead().isEmpty
                                       ? Colors.transparent
                                       : CustomColors.aqiRed,
                                 ),
@@ -188,12 +191,27 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
+    context.read<KyaBloc>().add(const SyncKya());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<NotificationBloc>().add(const SyncNotifications());
     await checkNetworkConnection(
       context,
       notifyUser: true,
     );
     await _initializeDynamicLinks();
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (context.read<DashboardBloc>().state.checkForUpdates) {
+        await AppService().latestVersion().then((version) async {
+          if (version != null && mounted) {
+            await canLaunchUrl(version.url).then((bool result) async {
+              await openUpdateScreen(context, version);
+            });
+          }
+        });
+      }
+    });
   }
 
   Future<void> _initializeDynamicLinks() async {
@@ -220,6 +238,7 @@ class _HomePageState extends State<HomePage> {
     _widgetOptions = <Widget>[
       ShowCaseWidget(
         onFinish: _startShowcase,
+        enableAutoScroll: true,
         builder: Builder(builder: (context) => const DashboardView()),
       ),
       const MapView(),
@@ -254,16 +273,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
-        context.read<DashboardBloc>().add(const RefreshDashboard());
+        context.read<DashboardBloc>().add(
+              const RefreshDashboard(scrollToTop: true),
+            );
         break;
       case 1:
         context.read<MapBloc>().add(const InitializeMapState());
         break;
+      case 2:
+        context.read<ProfileBloc>().add(const SyncProfile());
+        break;
     }
-
-    setState(() => _selectedIndex = index);
   }
 
   void _startShowcase() {

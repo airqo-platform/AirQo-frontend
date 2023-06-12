@@ -1,8 +1,5 @@
 import Layout from '@/components/Layout';
+import CollocationOverview from './collocation/overview';
 
-const HomePage = () => (
-  <Layout>
-    <div>I am the home page</div>
-  </Layout>
-);
+const HomePage = () => <CollocationOverview />;
 export default HomePage;

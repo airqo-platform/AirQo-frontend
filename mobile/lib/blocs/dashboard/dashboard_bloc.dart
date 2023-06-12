@@ -5,36 +5,30 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
-  DashboardBloc() : super(const DashboardState.initial()) {
+  DashboardBloc() : super(const DashboardState()) {
     on<RefreshDashboard>(_onRefreshDashboard);
-  }
-
-  Future<void> _updateGreetings(Emitter<DashboardState> emit) async {
-    final greetings = await DateTime.now().getGreetings();
-    emit(state.copyWith(greetings: greetings));
+    on<CancelCheckForUpdates>(_onCancelCheckForUpdates);
   }
 
   void _loadAirQualityReadings(Emitter<DashboardState> emit) {
     List<AirQualityReading> airQualityCards = <AirQualityReading>[];
 
     List<AirQualityReading> nearbyAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-            .values
-            .toList()
-            .sortByDistanceToReferenceSite();
+        HiveService().getNearbyAirQualityReadings();
+
+    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
 
     if (nearbyAirQualityReadings.length > 1) {
-      nearbyAirQualityReadings.removeAt(0);
-      airQualityCards.add(nearbyAirQualityReadings.first);
+      airQualityCards.add(nearbyAirQualityReadings[1]);
     }
 
     List<AirQualityReading> airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+        HiveService().getAirQualityReadings();
 
     airQualityReadings.removeWhere((element) => airQualityCards
         .map((e) => e.placeId)
@@ -72,8 +66,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     if (event.reload ?? false) {
-      emit(const DashboardState.initial());
+      emit(const DashboardState());
       _loadAirQualityReadings(emit);
+    }
+
+    if (event.scrollToTop) {
+      emit(state.copyWith(scrollToTop: true));
+      await Future.delayed(const Duration(microseconds: 500), () {
+        emit(state.copyWith(scrollToTop: false));
+      });
     }
 
     final hasConnection = await hasNetworkConnection();
@@ -96,8 +97,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
     await Future.wait([
       AppService().refreshAirQualityReadings(),
-      AppService().updateFavouritePlacesReferenceSites(),
-      _updateGreetings(emit),
     ]).whenComplete(() => _loadAirQualityReadings(emit));
+  }
+
+  void _onCancelCheckForUpdates(
+    CancelCheckForUpdates _,
+    Emitter<DashboardState> emit,
+  ) {
+    return emit(state.copyWith(checkForUpdates: false));
   }
 }

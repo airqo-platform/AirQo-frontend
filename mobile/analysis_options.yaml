@@ -5,6 +5,7 @@ analyzer:
   exclude:
     - lib/firebase_options.dart
     - lib/firebase_options_dev.dart
+    - lib/screens/dashboard/dashboard_view_legacy.dart
     - [build/**]
   language:
     strict-casts: true

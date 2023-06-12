@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/location_service.dart';
@@ -38,7 +39,7 @@ class SearchAvatar extends StatelessWidget {
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(
@@ -133,7 +134,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: airQuality.color(),
+        color: airQuality.color,
         border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
@@ -149,7 +150,7 @@ class SearchAirQualityAvatar extends StatelessWidget {
             minFontSize: 8,
             maxFontSize: 17,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQuality.value,
             )?.copyWith(
@@ -194,7 +195,7 @@ class SearchPageFilterTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  airQuality.string.toTitleCase(),
+                  airQuality.title.toTitleCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -318,7 +319,7 @@ class SearchSection extends StatelessWidget {
         children: [
           Text(
             title,
-            maxLines: 2,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.headline8(context)?.copyWith(
               color: CustomColors.appColorBlack.withOpacity(0.3),
@@ -334,15 +335,8 @@ class SearchSection extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return InsightsPage(data[index]);
-                        },
-                      ),
-                    );
+                  onTap: () async {
+                    await navigateToInsights(context, data[index]);
                   },
                   child: SearchPageAirQualityTile(data[index]),
                 ),
@@ -446,14 +440,10 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 itemBuilder: (_, index) {
                   return InkWell(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await navigateToInsights(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return InsightsPage(state.africanCities[index]);
-                          },
-                        ),
+                        state.africanCities[index],
                       );
                     },
                     child: ExploreAfricanCityCard(state.africanCities[index]),
@@ -512,14 +502,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
       return;
     }
 
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
-      ),
-    );
+    await navigateToInsights(context, airQualityReading);
   }
 
   @override
@@ -696,8 +679,8 @@ class AutoCompleteLoadingWidget extends StatelessWidget {
   }
 }
 
-class SearchBar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchBar({super.key});
+class CustomSearchBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -767,63 +750,74 @@ class SearchBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       context: context,
       builder: (BuildContext context) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 27,
-              ),
-              Row(
-                children: [
-                  Text(
-                    'Filter By Air Quality Range',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline8(context)?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.3),
+        final mediaQueryData = MediaQuery.of(context);
+        final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+          Config.minimumTextScaleFactor,
+          Config.maximumTextScaleFactor,
+        );
+
+        return MediaQuery(
+          data: mediaQueryData.copyWith(
+            textScaleFactor: textScaleFactor as double,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 27,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Filter By Air Quality Range',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline8(context)?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.3),
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  InkWell(
-                    onTap: () {
-                      context
-                          .read<SearchFilterBloc>()
-                          .add(const InitializeSearchFilter());
-                      Navigator.pop(context);
-                    },
-                    child: MaterialIcons.closeSearchFilter(),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                itemBuilder: (_, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: InkWell(
+                    const Spacer(),
+                    InkWell(
                       onTap: () {
-                        context.read<SearchPageCubit>().showFiltering();
-                        context.read<SearchFilterBloc>().add(
-                              FilterByAirQuality(AirQuality.values[index]),
-                            );
+                        context
+                            .read<SearchFilterBloc>()
+                            .add(const InitializeSearchFilter());
                         Navigator.pop(context);
                       },
-                      child: SearchPageFilterTile(AirQuality.values[index]),
+                      child: MaterialIcons.closeSearchFilter(),
                     ),
-                  );
-                },
-                itemCount: AirQuality.values.length,
-              ),
-            ],
+                    const SizedBox(
+                      width: 10,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (_, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: InkWell(
+                        onTap: () {
+                          context.read<SearchPageCubit>().showFiltering();
+                          context.read<SearchFilterBloc>().add(
+                                FilterByAirQuality(AirQuality.values[index]),
+                              );
+                          Navigator.pop(context);
+                        },
+                        child: SearchPageFilterTile(AirQuality.values[index]),
+                      ),
+                    );
+                  },
+                  itemCount: AirQuality.values.length,
+                ),
+              ],
+            ),
           ),
         );
       },

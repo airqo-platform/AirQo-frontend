@@ -17,7 +17,7 @@ class FeedbackPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 16,
         verticalPadding: 20,
-        widget: Column(
+        child: Column(
           children: [
             const FeedbackProgressBar(),
             const SizedBox(
@@ -30,7 +30,7 @@ class FeedbackPage extends StatelessWidget {
                     loadingScreen(context);
                   },
                   listenWhen: (previous, current) {
-                    return current.blocStatus == BlocStatus.processing;
+                    return current.blocStatus == FeedbackStateStatus.processing;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
@@ -38,7 +38,8 @@ class FeedbackPage extends StatelessWidget {
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
-                    return previous.blocStatus == BlocStatus.processing;
+                    return previous.blocStatus ==
+                        FeedbackStateStatus.processing;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
@@ -47,20 +48,20 @@ class FeedbackPage extends StatelessWidget {
                   },
                   listenWhen: (previous, current) {
                     return previous != current &&
-                        current.blocStatus == BlocStatus.error &&
+                        current.blocStatus == FeedbackStateStatus.error &&
                         current.errorMessage.isNotEmpty;
                   },
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
                   listener: (context, _) {
                     showSnackBar(context, 'Thanks for your feedback.');
-                    context
-                        .read<FeedbackBloc>()
-                        .add(const InitializeFeedback());
+                    context.read<FeedbackBloc>().add(
+                          InitializeFeedback(context.read<ProfileBloc>().state),
+                        );
                     Navigator.pop(context);
                   },
                   listenWhen: (previous, current) {
-                    return current.blocStatus == BlocStatus.success;
+                    return current.blocStatus == FeedbackStateStatus.success;
                   },
                 ),
               ],
@@ -92,9 +93,9 @@ class FeedbackPage extends StatelessWidget {
                     return const FeedbackStartButton();
                   case FeedbackStep.channelStep:
                   case FeedbackStep.formStep:
-                    return Row(
+                    return const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
+                      children: [
                         FeedbackBackButton(),
                         FeedbackNextButton(),
                       ],

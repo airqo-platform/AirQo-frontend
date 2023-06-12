@@ -43,9 +43,10 @@ class RegionAvatar extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: SvgPicture.asset(
-          'assets/icon/location.svg',
+        child: Icon(
+          Icons.location_on_rounded,
           color: CustomColors.appColorBlue,
+          size: 27,
         ),
       ),
     );
@@ -104,11 +105,11 @@ class SiteTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.4),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
       leading: MiniAnalyticsAvatar(airQualityReading: airQualityReading),
     );
@@ -146,47 +147,38 @@ class SearchTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
     );
   }
 
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
-
-    SearchResult? place = await SearchApiClient().getPlaceDetails(
+    await SearchApiClient()
+        .getPlaceDetails(
       searchResult,
-    );
-
-    if (place != null) {
-      final nearestSite = await LocationService.getNearestSite(
-        place.latitude,
-        place.longitude,
-      );
-
-      Navigator.pop(context);
-
-      // TODO: Substitute with widget
-      if (nearestSite == null) {
-        showSnackBar(
-          context,
-          'Oops!!.. We don’t have air quality readings for'
-          ' ${searchResult.name}',
-          durationInSeconds: 3,
-        );
-
-        return;
-      }
-
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return InsightsPage(
+    )
+        .then((place) async {
+      if (place != null) {
+        await LocationService.getNearestSite(
+          place.latitude,
+          place.longitude,
+        ).then((nearestSite) async {
+          Navigator.pop(context);
+          if (nearestSite == null) {
+            showSnackBar(
+              context,
+              'Oops!!.. We don’t have air quality readings for'
+              ' ${searchResult.name}',
+              durationInSeconds: 3,
+            );
+          } else {
+            await navigateToInsights(
+              context,
               nearestSite.copyWith(
                 name: searchResult.name,
                 location: searchResult.location,
@@ -195,15 +187,15 @@ class SearchTile extends StatelessWidget {
                 longitude: place.longitude,
               ),
             );
-          },
-        ),
-      );
-    } else {
-      showSnackBar(
-        context,
-        'Try again later',
-      );
-    }
+          }
+        });
+      } else {
+        showSnackBar(
+          context,
+          'Try again later',
+        );
+      }
+    });
   }
 }
 
@@ -225,11 +217,11 @@ class CountryTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
     );
   }
@@ -380,11 +372,11 @@ class RegionTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 10,
+        semanticLabel: 'more',
+        weight: 1000,
       ),
     );
   }
@@ -440,7 +432,7 @@ class MapAnalyticsCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               onPressed: () async {
-                await _goToInsights(context);
+                await navigateToInsights(context, airQualityReading);
               },
               child: Column(
                 children: [
@@ -574,23 +566,12 @@ class MapAnalyticsCard extends StatelessWidget {
           ),
           SizedBox(
             height: 58,
-            child: AnalyticsCardFooter(
+            child: AirQualityActions(
               airQualityReading,
               radius: 0,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _goToInsights(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(airQualityReading);
-        },
       ),
     );
   }
@@ -681,20 +662,6 @@ class SearchResults extends StatelessWidget {
   }
 }
 
-class SearchLoadingWidget extends StatelessWidget {
-  const SearchLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 20),
-      child: Center(
-        child: LoadingWidget(backgroundColor: Colors.transparent),
-      ),
-    );
-  }
-}
-
 class SearchWidget extends StatelessWidget {
   SearchWidget({super.key});
   final TextEditingController _searchController = TextEditingController();
@@ -755,14 +722,14 @@ class SearchWidget extends StatelessWidget {
                   cursorColor: CustomColors.appColorBlack,
                   decoration: InputDecoration(
                     fillColor: Colors.white,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 0,
                         vertical: 7,
                       ),
-                      child: SvgPicture.asset(
-                        'assets/icon/search.svg',
-                        semanticsLabel: 'Search',
+                      child: Icon(
+                        Icons.search_rounded,
+                        semanticLabel: 'Search',
                       ),
                     ),
                     contentPadding: EdgeInsets.zero,

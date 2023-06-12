@@ -1,47 +1,43 @@
 part of 'nearby_location_bloc.dart';
 
 enum NearbyLocationStatus {
-  initial,
-  loaded,
+  searchComplete,
   searching,
-  error,
+  locationDisabled,
 }
 
 class NearbyLocationState extends Equatable {
-  const NearbyLocationState._({
-    this.locationAirQuality,
-    this.blocStatus = NearbyLocationStatus.initial,
-    this.error = NearbyAirQualityError.none,
-  });
-
   const NearbyLocationState({
-    this.locationAirQuality,
-    this.blocStatus = NearbyLocationStatus.initial,
-    this.error = NearbyAirQualityError.none,
+    this.currentLocation,
+    this.surroundingSites = const [],
+    this.blocStatus = NearbyLocationStatus.searching,
+    this.showErrorMessage = true,
   });
 
   NearbyLocationState copyWith({
-    AirQualityReading? locationAirQuality,
+    CurrentLocation? currentLocation,
     NearbyLocationStatus? blocStatus,
-    NearbyAirQualityError? error,
+    List<AirQualityReading>? surroundingSites,
+    bool? showErrorMessage,
   }) {
     return NearbyLocationState(
-      locationAirQuality: locationAirQuality ?? this.locationAirQuality,
+      currentLocation: currentLocation,
+      surroundingSites: surroundingSites ?? this.surroundingSites,
       blocStatus: blocStatus ?? this.blocStatus,
-      error: error ?? this.error,
+      showErrorMessage: showErrorMessage ?? this.showErrorMessage,
     );
   }
 
-  const NearbyLocationState.initial() : this._();
-
-  final AirQualityReading? locationAirQuality;
   final NearbyLocationStatus blocStatus;
-  final NearbyAirQualityError error;
+  final CurrentLocation? currentLocation;
+  final List<AirQualityReading> surroundingSites;
+  final bool showErrorMessage;
 
   @override
   List<Object?> get props => [
-        error,
-        locationAirQuality,
         blocStatus,
+        showErrorMessage,
+        currentLocation,
+        surroundingSites,
       ];
 }

@@ -2,8 +2,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/widgets.dart';
 import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,10 @@ class CircularKyaButton extends StatelessWidget {
       ),
       child: SvgPicture.asset(
         icon,
-        color: Colors.white,
+        colorFilter: const ColorFilter.mode(
+          Colors.white,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }
@@ -57,7 +60,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.isPartiallyComplete()) {
+    if (kya.isPendingCompletion()) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -120,100 +123,92 @@ class KyaCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(112),
-          foregroundColor: CustomColors.appColorBlue,
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-            width: 0,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(16),
-            ),
-          ),
-          backgroundColor: Colors.white,
-          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(112),
+        foregroundColor: CustomColors.appColorBlue,
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+          width: 0,
         ),
-        onPressed: () async {
-          if (kya.isPartiallyComplete()) {
-            context.read<KyaBloc>().add(
-                  UpdateKyaProgress(
-                    visibleCardIndex: kya.lessons.length - 1,
-                    kya: kya,
-                  ),
-                );
-          } else {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return KyaTitlePage(kya);
-                },
-              ),
-            );
-          }
-        },
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.5,
-              height: 104,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: AutoSizeText(
-                      kya.title,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyle.headline10(context),
-                    ),
-                  ),
-                  const Spacer(),
-                  KyaMessageChip(kya),
-                  Visibility(
-                    visible: kya.isInProgress(),
-                    child: KyaProgressBar(
-                      kya.progress,
-                      height: 6,
-                    ),
-                  ),
-                ],
-              ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(16),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+      ),
+      onPressed: () async {
+        if (kya.isPendingCompletion()) {
+          context.read<KyaBloc>().add(CompleteKya(kya));
+        } else {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return KyaTitlePage(kya);
+              },
             ),
-            const Spacer(),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.05,
+          );
+        }
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: 104,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: AutoSizeText(
+                    kya.title,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyle.headline10(context),
+                  ),
+                ),
+                const Spacer(),
+                KyaMessageChip(kya),
+                Visibility(
+                  visible: kya.isInProgress(),
+                  child: KyaProgressBar(
+                    kya.progress,
+                    height: 6,
+                  ),
+                ),
+              ],
             ),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.3,
-              height: 112,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: CachedNetworkImageProvider(
-                    kya.imageUrl,
-                    cacheKey: kya.imageUrlCacheKey(),
-                    cacheManager: CacheManager(
-                      CacheService.cacheConfig(
-                        kya.imageUrlCacheKey(),
-                      ),
+          ),
+          const Spacer(),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.05,
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width * 0.3,
+            height: 112,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: CachedNetworkImageProvider(
+                  kya.imageUrl,
+                  cacheKey: kya.imageUrlCacheKey(),
+                  cacheManager: CacheManager(
+                    CacheService.cacheConfig(
+                      kya.imageUrlCacheKey(),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -273,16 +268,18 @@ class KyaLessonCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 fit: BoxFit.fill,
-                placeholder: (context, url) => const SizedBox(
-                  child: ContainerLoadingAnimation(
-                    height: 180,
-                    radius: 8,
-                  ),
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  height: 180,
+                  radius: 8,
                 ),
                 imageUrl: kyaLesson.imageUrl,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: CustomColors.aqiRed,
+                errorWidget: (context, url, error) => SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icon/no_internet_connection_icon.svg',
+                    ),
+                  ),
                 ),
                 cacheKey: kyaLesson.imageUrlCacheKey(kya),
                 cacheManager: CacheManager(
@@ -312,7 +309,7 @@ class KyaLessonCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               minFontSize: 16,
-              style: Theme.of(context).textTheme.subtitle1?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.5),
                   ),
             ),
@@ -383,10 +380,10 @@ class KyaLoadingWidget extends StatelessWidget {
                           Radius.circular(16.0),
                         ),
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: const [
+                          children: [
                             SizedBox(
                               height: 48,
                             ),

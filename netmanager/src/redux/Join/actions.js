@@ -70,6 +70,7 @@ import {
   DEFAULTS_URI
 } from 'config/urls/authService';
 import { setDefaultAirQloud } from '../AirQloud/operations';
+import { fetchNetworkUsers } from '../AccessControl/operations';
 
 /***************************errors ********************************* */
 
@@ -92,44 +93,6 @@ export const updateOrganization = (orgData) => (dispatch) => {
     type: UPDATE_ORGANIZATION_SUCCESS,
     payload: orgData
   });
-};
-
-/***************************fetching users ********************************* */
-export const fetchUsers = () => {
-  return (dispatch) => {
-    dispatch(fetchUsersRequest());
-    return axios
-      .get(GET_USERS_URI)
-      .then((response) => response.data)
-      .then((responseData) => {
-        dispatch(fetchUsersSuccess(responseData.users, responseData.message));
-      })
-      .catch((err) => {
-        dispatch(fetchUsersFailed(err.response.data));
-      });
-  };
-};
-
-export const fetchUsersRequest = () => {
-  return {
-    type: GET_USERS_REQUEST
-  };
-};
-
-export const fetchUsersSuccess = (users, message) => {
-  return {
-    type: GET_USERS_SUCCESS,
-    users: users,
-    message: message,
-    receiveAt: Date.now
-  };
-};
-
-export const fetchUsersFailed = (error) => {
-  return {
-    type: GET_USERS_FAILED,
-    error
-  };
 };
 
 /*********************** fetching Candidatess ********************************/
@@ -252,7 +215,10 @@ export const editUser = (userToEdit) => (dispatch) => {
           })
         );
         dispatch(editUserSuccess(response.data, response.data.message));
-        dispatch(fetchUsers());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+        if (!isEmpty(activeNetwork)) {
+          dispatch(fetchNetworkUsers(activeNetwork._id));
+        }
       } else {
         dispatch(editUserFailed(response.data.message));
         dispatch(
@@ -417,7 +383,6 @@ export const registrationSuccess = (data) => {
 
 /************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
-  console.log('the login URL ' + LOGIN_USER_URI);
   const tenant = userData.organization;
   axios
     .post(LOGIN_USER_URI, userData, { params: { tenant } })
@@ -463,7 +428,6 @@ export const forgotPassword = (userData) => (dispatch) => {
   axios
     .post(FORGOT_PWD_URI, userData)
     .then((response) => {
-      console.log(response.data);
       if (response.data === 'email not recognized') {
         this.setState({
           showError: true,
@@ -490,7 +454,6 @@ export const verifyToken = async (token) => {
   await axios
     .get(VERIFY_TOKEN_URI, token)
     .then((response) => {
-      console.log(response);
       if (response.data.message === 'password reset link a-ok') {
         this.setState({
           username: response.data.username,
@@ -509,6 +472,12 @@ export const verifyToken = async (token) => {
     .catch((error) => {
       console.log(error.data);
     });
+};
+
+// Get user details
+export const getUserDetails = async (userId) => {
+  const response = await axios.get(`${GET_USERS_URI}/${userId}`);
+  return response.data;
 };
 
 // Set logged in user
@@ -552,6 +521,14 @@ export const clearState = () => (dispatch) => {
 export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
   localStorage.removeItem('jwtToken');
+  // Remove token from local storage
+  localStorage.removeItem('currentUser');
+  // Remove token from local storage
+  localStorage.removeItem('activeNetwork');
+  // Remove token from local storage
+  localStorage.removeItem('userNetworks');
+  // Remove token from local storage
+  localStorage.removeItem('currentUserRole');
   // Remove auth header for future requests
   setAuthToken(false);
   // clear redux state on logout
@@ -648,7 +625,6 @@ export const updateProfile = (userData) => (dispatch) => {
 
 //*********************************** default settings ************************************/
 export const setDefaults = (values, id) => (dispatch) => {
-  console.log('the sent id is: ' + `${values.id}`);
   dispatch(setDefaultsRequest(values));
   return axios
     .put(DEFAULTS_URI + '/' + `${values.id}`, values)
@@ -706,8 +682,6 @@ export const fetchDefaultsRequest = () => {
 };
 
 export const fetchDefaultsSuccess = (defaults, message) => {
-  console.log('these are the defaults we have received: ');
-  console.dir(defaults);
   return {
     type: GET_DEFAULTS_SUCCESS,
     defaults: defaults,

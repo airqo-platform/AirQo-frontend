@@ -34,8 +34,6 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     padding: "20px",
     minHeight: "200px",
-    // aspectRatio: "650 / 400",
-    // height: "50vh",
   },
   differenceIcon: {
     color: theme.palette.text.secondary,
@@ -48,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-end",
   },
   chartSaveButton: {},
+  
 }));
 
 const Dashboard = () => {
@@ -58,6 +57,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const recentEventsData = useEventsMapData();
+  
 
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
     Good: 0,
@@ -111,7 +111,9 @@ const Dashboard = () => {
       return "0" + n;
     }
     return n;
-  }
+  };
+
+  
 
   let todaysDate = new Date();
   const dateValue = appendLeadingZeroes(
@@ -136,8 +138,8 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <Grid container>
-          <Grid xs={12} sm={12} md={6} xl={6} style={{ display: "flex" }}>
+      <Grid container spacing={4}>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
           </Grid>
         </Grid>

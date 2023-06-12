@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/rest_api.dart';
@@ -11,6 +12,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,7 +26,6 @@ import '../screens/insights/insights_page.dart';
 import '../screens/kya/kya_title_page.dart';
 import 'firebase_service.dart';
 import 'hive_service.dart';
-import 'local_storage.dart';
 
 class SystemProperties {
   static Future<void> setDefault() async {
@@ -58,7 +59,7 @@ class RateService {
 
   static Future<void> logAppRating() async {
     await CloudAnalytics.logEvent(
-      AnalyticsEvent.rateApp,
+      CloudAnalyticsEvent.rateApp,
     );
   }
 }
@@ -156,15 +157,10 @@ class ShareService {
             .buildShortLink(dynamicLinkParams);
         Uri shareLink = shortDynamicLink.shortUrl;
         if (airQualityReading != null) {
-          await HiveService.updateAirQualityReading(airQualityReading.copyWith(
+          await HiveService()
+              .updateAirQualityReading(airQualityReading.copyWith(
             shareLink: shareLink.toString(),
           ));
-        }
-
-        if (kya != null) {
-          await HiveService.updateKya(
-            kya.copyWith(shareLink: shareLink.toString()),
-          );
         }
 
         return shareLink;
@@ -183,10 +179,17 @@ class ShareService {
     final destination = linkData.link.queryParameters['page'] ?? '';
     switch (destination.toLowerCase()) {
       case 'insights':
+        AirQualityReading airQualityReading =
+            AirQualityReading.fromDynamicLink(linkData);
+
+        context
+            .read<InsightsBloc>()
+            .add(InitializeInsightsPage(airQualityReading));
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return InsightsPage(AirQualityReading.fromDynamicLink(linkData));
+            return InsightsPage(airQualityReading);
           }),
           (r) => false,
         );
@@ -212,7 +215,8 @@ class ShareService {
   }
 
   static Future<void> shareLink(
-    Uri link, {
+    Uri link,
+    BuildContext context, {
     Kya? kya,
     AirQualityReading? airQualityReading,
   }) async {
@@ -231,24 +235,18 @@ class ShareService {
     await Share.share(
       link.toString(),
       subject: subject,
-    ).then((_) => {updateUserShares()});
+    ).then((_) => {updateUserShares(context)});
   }
 
-  static Future<void> updateUserShares() async {
-    final preferences = await SharedPreferencesHelper.getPreferences();
-    final value = preferences.aqShares + 1;
-    if (CustomAuth.isLoggedIn()) {
-      final profile = await Profile.getProfile();
-      profile.preferences.aqShares = value;
-      await profile.update();
-    } else {
-      await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
-    }
+  static Future<void> updateUserShares(BuildContext context) async {
+    Profile profile = context.read<ProfileBloc>().state;
+    profile = profile.copyWith(
+      aqShares: profile.aqShares + 1,
+    );
+    context.read<ProfileBloc>().add(UpdateProfile(profile));
 
-    if (value >= 5) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.shareAirQualityInformation,
-      );
+    if (profile.aqShares >= 5) {
+      await CloudAnalytics.logAirQualitySharing(profile);
     }
   }
 }
@@ -385,7 +383,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(
+        await HiveService().updateAirQualityReadings(
           data as List<AirQualityReading>,
         );
       },

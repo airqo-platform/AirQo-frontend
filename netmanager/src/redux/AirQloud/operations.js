@@ -5,7 +5,10 @@ import {
   SET_CURRENT_AIRQLOUD_SUCCESS,
   SET_CURRENT_AIRQLOUD_FAILURE,
   LOAD_DASHBOARD_AIRQLOUDS_SUCCESS,
-  LOAD_DASHBOARD_AIRQLOUDS_FAILURE
+  LOAD_DASHBOARD_AIRQLOUDS_FAILURE,
+  LOAD_SELECTED_AIRQLOUD_SUCCESS,
+  LOAD_SELECTED_AIRQLOUD_FAILURE,
+  REMOVE_SELECTED_AIRQLOUD_SUCCESS
 } from './actions';
 import { isEmpty } from 'underscore';
 import {
@@ -134,4 +137,27 @@ export const fetchDashboardAirQloudsData = (options) => async (dispatch) => {
       });
       if (options && options.onerror instanceof Function) options.onerror();
     });
+};
+
+export const getAirqloudDetails = (airQloudID) => async (dispatch) => {
+  return await getAirQloudsApi({ id: airQloudID })
+    .then((resData) => {
+      dispatch({
+        type: LOAD_SELECTED_AIRQLOUD_SUCCESS,
+        payload: resData.airqlouds[0]
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_SELECTED_AIRQLOUD_FAILURE,
+        payload: err
+      });
+    });
+};
+
+export const removeAirQloudData = () => (dispatch) => {
+  dispatch({
+    type: REMOVE_SELECTED_AIRQLOUD_SUCCESS,
+    payload: {}
+  });
 };

@@ -1,9 +1,10 @@
+import 'package:app/constants/constants.dart';
+import 'package:app/screens/settings/settings_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:showcaseview/showcaseview.dart';
-import 'package:app/services/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/constants/constants.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
@@ -30,11 +31,13 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: const AppTopBar('For You'),
       body: AppSafeArea(
         horizontalPadding: 16,
-        widget: Column(
+        child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -48,6 +51,18 @@ class _ForYouPageState extends State<ForYouPage>
                     if (key == _kyaTabShowcaseKey) {
                       _tabController.animateTo(1);
                       setState(() => _analytics = false);
+                    }
+                  },
+                  onFinish: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    if (prefs.getBool(Config.restartTourShowcase) == true) {
+                      Future.delayed(
+                        Duration.zero,
+                        () => _appService.navigateShowcaseToScreen(
+                          context,
+                          const SettingsPage(),
+                        ),
+                      );
                     }
                   },
                   builder: Builder(
@@ -67,19 +82,21 @@ class _ForYouPageState extends State<ForYouPage>
                           );
                         },
                         tabs: <Widget>[
-                          Showcase(
-                            key: _analyticsTabShowcaseKey,
-                            description: 'This is the analytics Tab',
+                          CustomShowcaseWidget(
+                            showcaseKey: _analyticsTabShowcaseKey,
+                            description: "This is the analytics Tab",
                             child: TabButton(
                               text: 'Analytics',
                               index: 0,
                               tabController: _tabController,
                             ),
                           ),
-                          Showcase(
-                            key: _kyaTabShowcaseKey,
+                          CustomShowcaseWidget(
+                            showcaseKey: _kyaTabShowcaseKey,
+                            descriptionHeight: screenSize.height * 0.16,
+                            descriptionWidth: screenSize.width * 0.3,
                             description:
-                                'Do you want to know more about air quality? Know your air in this section',
+                                "Do you want to know more about air quality? Know your air in this section",
                             child: TabButton(
                               text: 'Know your Air',
                               index: 1,
@@ -141,7 +158,7 @@ class _ForYouPageState extends State<ForYouPage>
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(Config.forYouPageShowcase) == null) {
       _startShowcase();
-      _appService.stopShowcase(Config.forYouPageShowcase);
+      await _appService.stopShowcase(Config.forYouPageShowcase);
     }
   }
 }

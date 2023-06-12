@@ -1,12 +1,15 @@
 export 'auth_code/auth_code_bloc.dart';
-export 'account/account_bloc.dart';
 export 'dashboard/dashboard_bloc.dart';
 export 'email_auth/email_auth_bloc.dart';
+export 'favourite_place/favourite_place_bloc.dart';
 export 'feedback/feedback_bloc.dart';
 export 'insights/insights_bloc.dart';
+export 'kya/kya_bloc.dart';
+export 'location_history/location_history_bloc.dart';
 export 'map/map_bloc.dart';
 export 'nearby_location/nearby_location_bloc.dart';
+export 'notification/notification_bloc.dart';
 export 'phone_auth/phone_auth_bloc.dart';
 export 'search/search_bloc.dart';
 export 'settings/settings_bloc.dart';
-export 'kya/kya_bloc.dart';
+export 'profile/profile_bloc.dart';

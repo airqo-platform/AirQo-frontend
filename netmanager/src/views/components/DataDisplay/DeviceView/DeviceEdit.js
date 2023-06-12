@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import TextField from "@material-ui/core/TextField";
-import Paper from "@material-ui/core/Paper";
-import { Button, Grid } from "@material-ui/core";
-import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
-import { isEmpty, isEqual, omit } from "underscore";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateDeviceDetails } from "views/apis/deviceRegistry";
-import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
-import { loadSitesData } from "redux/SiteRegistry/operations";
-import DeviceDeployStatus from "./DeviceDeployStatus";
-import { capitalize } from "utils/string";
-import { getDateString } from "utils/dateTime";
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import TextField from '@material-ui/core/TextField';
+import Paper from '@material-ui/core/Paper';
+import { Button, Grid } from '@material-ui/core';
+import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
+import { isEmpty, isEqual, omit } from 'underscore';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { updateDeviceDetails } from 'views/apis/deviceRegistry';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { useSiteOptionsData } from 'redux/SiteRegistry/selectors';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
+import DeviceDeployStatus from './DeviceDeployStatus';
+import { capitalize } from 'utils/string';
+import { getDateString } from 'utils/dateTime';
 
-import { filterSite } from "utils/sites";
+import { filterSite } from 'utils/sites';
 
 const gridItemStyle = {
-  padding: "5px",
+  padding: '5px'
 };
 
 const EDIT_OMITTED_KEYS = [
-  "owner",
-  "device_manufacturer",
-  "product_name",
-  "site",
-  "powerType",
-  "mountType",
-  "height",
-  "deployment_date",
-  "nextMaintenance",
-  "pictures",
+  'owner',
+  'device_manufacturer',
+  'product_name',
+  'site',
+  'powerType',
+  'mountType',
+  'height',
+  'deployment_date',
+  'nextMaintenance',
+  'pictures'
 ];
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
@@ -47,14 +47,14 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const handleTextFieldChange = (event) => {
     setEditData({
       ...editData,
-      [event.target.id]: event.target.value,
+      [event.target.id]: event.target.value
     });
   };
 
   const handleSelectFieldChange = (id) => (event) => {
     setEditData({
       ...editData,
-      [id]: event.target.value,
+      [id]: event.target.value
     });
   };
 
@@ -67,34 +67,32 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     setEditLoading(true);
 
     if (editData.deployment_date)
-      editData.deployment_date = new Date(
-        editData.deployment_date
-      ).toISOString();
+      editData.deployment_date = new Date(editData.deployment_date).toISOString();
 
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
-        dispatch(loadDevicesData());
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadDevicesData(activeNetwork.net_name));
+        }
         dispatch(
           updateMainAlert({
             message: responseData.message,
             show: true,
-            severity: "success",
+            severity: 'success'
           })
         );
       })
       .catch((err) => {
-        const newErrors =
-          (err.response && err.response.data && err.response.data.errors) || {};
+        const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
         setErrors(newErrors);
         dispatch(
           updateMainAlert({
             message:
-              (err.response &&
-                err.response.data &&
-                err.response.data.message) ||
+              (err.response && err.response.data && err.response.data.message) ||
               (err.response && err.response.message),
             show: true,
-            severity: "error",
+            severity: 'error'
           })
         );
       });
@@ -112,10 +110,10 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     <div>
       <Paper
         style={{
-          margin: "0 auto",
-          minHeight: "200px",
-          padding: "20px 20px",
-          maxWidth: "1500px",
+          margin: '0 auto',
+          minHeight: '200px',
+          padding: '20px 20px',
+          maxWidth: '1500px'
         }}
       >
         <Grid container spacing={1}>
@@ -130,6 +128,20 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               onChange={handleTextFieldChange}
               error={!!errors.long_name}
               helperText={errors.long_name}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="device_number"
+              label="Device Number"
+              variant="outlined"
+              defaultValue={deviceData.device_number}
+              onChange={handleTextFieldChange}
+              error={!!errors.device_number}
+              helperText={errors.device_number}
               fullWidth
             />
           </Grid>
@@ -195,12 +207,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               select
               fullWidth
               label="Data Access"
-              style={{ margin: "10px 0" }}
+              style={{ margin: '10px 0' }}
               defaultValue={deviceData.visibility}
-              onChange={handleSelectFieldChange("visibility")}
+              onChange={handleSelectFieldChange('visibility')}
               SelectProps={{
                 native: true,
-                style: { width: "100%", height: "50px" },
+                style: { width: '100%', height: '50px' }
               }}
               error={!!errors.visibility}
               helperText={errors.visibility}
@@ -215,12 +227,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               select
               fullWidth
               label="Internet Service Provider"
-              style={{ margin: "10px 0" }}
+              style={{ margin: '10px 0' }}
               defaultValue={deviceData.ISP}
-              onChange={handleSelectFieldChange("ISP")}
+              onChange={handleSelectFieldChange('ISP')}
               SelectProps={{
                 native: true,
-                style: { width: "100%", height: "50px" },
+                style: { width: '100%', height: '50px' }
               }}
               variant="outlined"
               error={!!errors.ISP}
@@ -237,12 +249,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               select
               fullWidth
               label="Primary Device In Location"
-              style={{ margin: "10px 0" }}
+              style={{ margin: '10px 0' }}
               defaultValue={deviceData.isPrimaryInLocation}
-              onChange={handleSelectFieldChange("isPrimaryInLocation")}
+              onChange={handleSelectFieldChange('isPrimaryInLocation')}
               SelectProps={{
                 native: true,
-                style: { width: "100%", height: "50px" },
+                style: { width: '100%', height: '50px' }
               }}
               variant="outlined"
               error={!!errors.isPrimaryInLocation}
@@ -253,6 +265,77 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value={false}>No</option>
             </TextField>
           </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              style={{ margin: '10px 0' }}
+              label="Generation Version"
+              variant="outlined"
+              type="number"
+              value={deviceData.generation_version}
+              onChange={handleTextFieldChange}
+              error={!!errors.generation_version}
+              helperText={errors.generation_version}
+              fullWidth
+              required
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Network"
+              style={{ margin: '10px 0' }}
+              defaultValue={deviceData.network}
+              onChange={handleSelectFieldChange('network')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.network}
+              helperText={errors.network}
+              required
+            >
+              <option value={'airqo'}>AirQo</option>
+              <option value={'kcca'}>KCCA</option>
+              <option value={'usembassy'}>US EMBASSY</option>
+            </TextField>
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              style={{ margin: '10px 0' }}
+              label="Generation Count"
+              variant="outlined"
+              type="number"
+              value={deviceData.generation_count}
+              error={!!errors.generation_count}
+              helperText={errors.generation_count}
+              onChange={handleTextFieldChange}
+              fullWidth
+              required
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Category"
+              style={{ margin: '10px 0' }}
+              defaultValue={deviceData.category}
+              onChange={handleSelectFieldChange('category')}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '50px' }
+              }}
+              variant="outlined"
+              error={!!errors.category}
+              helperText={errors.category}
+              required
+            >
+              <option value={'lowcost'}>Lowcost</option>
+              <option value={'bam'}>BAM</option>
+            </TextField>
+          </Grid>
 
           <Grid
             container
@@ -260,7 +343,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             alignContent="flex-end"
             justify="flex-end"
             xs={12}
-            style={{ margin: "10px 0" }}
+            style={{ margin: '10px 0' }}
           >
             <Button variant="contained" onClick={handleCancel}>
               Cancel
@@ -271,7 +354,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               color="primary"
               disabled={weightedBool(editLoading, isEmpty(editData))}
               onClick={handleEditSubmit}
-              style={{ marginLeft: "10px" }}
+              style={{ marginLeft: '10px' }}
             >
               Save Changes
             </Button>
@@ -287,10 +370,15 @@ export default function DeviceEdit({ deviceData }) {
   const siteOptions = useSiteOptionsData();
 
   useEffect(() => {
-    if (isEmpty(siteOptions)) dispatch(loadSitesData());
+    if (isEmpty(siteOptions)) {
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+    }
   }, []);
   return (
-    <div style={{ marginTop: "20px" }}>
+    <div style={{ marginTop: '20px' }}>
       <EditDeviceForm deviceData={deviceData} siteOptions={siteOptions} />
       <DeviceDeployStatus deviceData={deviceData} siteOptions={siteOptions} />
     </div>

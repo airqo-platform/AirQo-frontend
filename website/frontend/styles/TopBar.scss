@@ -1,7 +1,8 @@
-@import "lib/colors";
-@import "lib/variables";
+@import 'lib/colors';
+@import 'lib/variables';
 
-h3, h4 {
+h3,
+h4 {
   margin: 0;
   padding: 0;
 }
@@ -13,7 +14,7 @@ h3, h4 {
   height: auto;
   background: $aq-white-0;
   box-shadow: 0 0 1px 1.2px #8a8a8a1a;
-  padding:16px 0;
+  padding: 16px 0;
   box-sizing: border-box;
   background-color: $aq-white-0;
   z-index: 1000;
@@ -24,14 +25,15 @@ h3, h4 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    .logo{
-      svg{
-        height:48px;
+
+    .logo {
+      svg {
+        height: 48px;
       }
     }
-    
-    .nav-center, .nav-right {
+
+    .nav-center,
+    .nav-right {
       display: flex;
     }
 
@@ -44,7 +46,7 @@ h3, h4 {
           display: none;
           margin-top: 0px;
           position: absolute;
-          left:36px;
+          left: 40px;
           width: 590px;
           height: 274px;
           border-radius: 8px;
@@ -67,7 +69,7 @@ h3, h4 {
             display: flex;
             flex-wrap: wrap;
             margin-left: 16px;
-            
+
             .dropdown-list-item {
               margin-bottom: 22px;
               margin-right: 20px;
@@ -94,7 +96,8 @@ h3, h4 {
               background-color: $aq-blue-5;
               border-radius: 8px;
 
-              h3, h4 {
+              h3,
+              h4 {
                 color: $aq-blue-4;
               }
             }
@@ -102,19 +105,42 @@ h3, h4 {
         }
       }
 
-      .nav-dropdown-item:hover .dropdown {
+      // id used to target the dropdowns in the nav
+      #solutions-dropdown {
         display: block;
+      }
+
+      // hover only on desktop view
+      @media (min-width: 1025px) {
+        .nav-dropdown-item:hover .dropdown {
+          display: block;
+        }
+      }
+
+      .nav-dropdown-item.single-links {
+        .dropdown {
+          left: 40px;
+          width: 430px;
+          height: 274px;
+        }
+        .dropdown-list {
+          .dropdown-list-item {
+            width: 180px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+          }
+        }
       }
     }
   }
 
-  .menu-btn, .close-menu-btn {
+  .menu-btn,
+  .close-menu-btn {
     display: none;
   }
-
 }
 
-@media(max-width: 1024px) {
+@media (max-width: 1024px) {
   .TopBar {
     position: sticky;
     top: -1px;
@@ -142,22 +168,25 @@ h3, h4 {
       align-items: flex-start;
       background-color: $aq-white-0;
       transition: all 0.5s ease;
-      
+
       .logo {
         position: absolute;
         top: -68px;
         left: 16px;
-        svg{
+        svg {
           height: 48;
         }
       }
 
-      #nav-center.nav-center, #nav-right.nav-right {
+      #nav-center.nav-center,
+      #nav-right.nav-right {
         display: none;
       }
 
-      #nav-center.toggle_nav_center, #nav-right.toggle_nav_right {
+      #nav-center.toggle_nav_center,
+      #nav-right.toggle_nav_right {
         display: block;
+        width: 100%;
       }
 
       .nav-center {
@@ -179,6 +208,10 @@ h3, h4 {
 
             .dropdown-list {
               margin-left: 0;
+              width: 100%;
+              .dropdown-list-item {
+                margin-right: 0;
+              }
             }
           }
         }
@@ -186,7 +219,11 @@ h3, h4 {
         .nav-dropdown-item .dropdown {
           display: none;
         }
-        
+        .nav-dropdown-item.nav-dropdown-item.single-links .dropdown {
+          height: 100%;
+          width: 90%;
+          margin-bottom: 20px;
+        }
       }
     }
 
@@ -213,7 +250,7 @@ h3, h4 {
   }
 }
 
-@media(max-width: $mainBreakPoint){
+@media (max-width: $mainBreakPoint) {
   .TopBar {
     width: 100%;
 
@@ -224,14 +261,14 @@ h3, h4 {
         margin: 0 auto;
         transition: all 0.5s ease;
         width: 100%;
-        .nav-dropdown-item{
-          .dropdown{
-            .dropdown-list{
+        .nav-dropdown-item {
+          .dropdown {
+            .dropdown-list {
               flex-direction: column;
               flex-wrap: nowrap;
               margin-left: 0;
-              .dropdown-list-item{
-                padding: 8px 0;
+              .dropdown-list-item {
+                padding: 8px 5px;
               }
             }
           }

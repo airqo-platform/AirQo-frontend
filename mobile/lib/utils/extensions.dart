@@ -3,8 +3,7 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
@@ -13,80 +12,69 @@ extension DoubleExtension on double {
   }
 }
 
-extension IntExt on int {
-  String toStringLength({int length = 1}) {
-    return toString().length == length ? '0$this' : '$this';
+extension CurrentLocationExt on CurrentLocation {
+  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
+    final double distance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      newLocation.latitude,
+      newLocation.longitude,
+    );
+
+    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 
-extension ChartDataExt on ChartData {
-  String chartDomainFn() {
-    switch (frequency) {
-      case Frequency.daily:
-        return DateFormat('EEE').format(dateTime);
-      case Frequency.hourly:
-        final hour = dateTime.hour;
-
-        return hour.toString().length == 1 ? '0$hour' : '$hour';
+extension SetExt<T> on Set<T> {
+  void addOrUpdate(T updatedItem) {
+    if (contains(updatedItem)) {
+      remove(updatedItem);
     }
+    add(updatedItem);
+  }
+}
+
+extension InsightListExt on List<Insight> {
+  void sortByDateTime() {
+    sort((x, y) => x.dateTime.compareTo(y.dateTime));
+  }
+}
+
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  void sortByAirQuality() {
+    sort((x, y) {
+      if (x.airQualityReading != null && y.airQualityReading != null) {
+        return x.airQualityReading?.pm2_5
+                .compareTo(y.airQualityReading?.pm2_5 ?? 0) ??
+            0;
+      }
+
+      return x.airQualityReading == null ? 1 : -1;
+    });
+  }
+}
+
+extension ForecastListExt on List<Forecast> {
+  void sortByDateTime() {
+    sort((x, y) => x.time.compareTo(y.time));
   }
 
-  double chartValue(Pollutant pollutant) {
-    return pollutant == Pollutant.pm2_5
-        ? double.parse(pm2_5.toStringAsFixed(2))
-        : double.parse(pm10.toStringAsFixed(2));
-  }
-
-  String lastUpdated(Frequency frequency) {
-    String lastUpdated = '';
-
-    if (dateTime.isToday()) {
-      lastUpdated = 'Updated Today';
-
-      return available ? lastUpdated : '$lastUpdated - Not Available';
-    }
-
-    switch (frequency) {
-      case Frequency.daily:
-        lastUpdated = 'Updated ${DateFormat('EEEE, d MMM').format(dateTime)}';
-        break;
-      case Frequency.hourly:
-        lastUpdated = 'Updated ${DateFormat('hh:mm a').format(dateTime)}';
-        break;
-    }
-
-    return available ? lastUpdated : '$lastUpdated - Not Available';
-  }
-
-  Color chartAvatarContainerColor(Pollutant pollutant) {
-    return available
-        ? pollutant.color(chartValue(pollutant))
-        : CustomColors.greyColor;
-  }
-
-  String chartAvatarValue(Pollutant pollutant) {
-    return available ? chartValue(pollutant).toStringAsFixed(0) : '--';
-  }
-
-  Color chartAvatarValueColor(Pollutant pollutant) {
-    return available
-        ? pollutant.textColor(value: chartValue(pollutant))
-        : CustomColors.darkGreyColor;
-  }
+  List<Forecast> removeInvalidData() =>
+      where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
 extension KyaExt on Kya {
   String getKyaMessage() {
     if (isInProgress()) {
       return 'Continue';
-    } else if (isPartiallyComplete()) {
+    } else if (isPendingCompletion()) {
       return 'Complete! Move to For You';
     } else {
       return 'Start learning';
     }
   }
 
-  bool isPartiallyComplete() {
+  bool isPendingCompletion() {
     return progress == 1;
   }
 
@@ -94,8 +82,16 @@ extension KyaExt on Kya {
     return progress == -1;
   }
 
+  bool isEmpty() {
+    return lessons.isEmpty;
+  }
+
   bool isInProgress() {
     return progress > 0 && progress < 1;
+  }
+
+  bool todo() {
+    return progress == 0;
   }
 
   double getProgress(int visibleCardIndex) {
@@ -105,60 +101,65 @@ extension KyaExt on Kya {
 
 extension KyaListExt on List<Kya> {
   void sortByProgress() {
-    sort((x, y) => -(x.progress.compareTo(y.progress)));
+    sort((x, y) {
+      if (x.progress == -1) return -1;
+
+      if (y.progress == -1) return 1;
+
+      return -(x.progress.compareTo(y.progress));
+    });
   }
 
-  List<Kya> filterIncompleteKya() {
+  List<Kya> filterInProgressKya() {
     return where((element) {
-      return !element.isComplete();
+      return element.isInProgress();
     }).toList();
   }
 
-  List<Kya> filterCompleteKya() {
+  List<Kya> filterToDo() {
+    return where((element) {
+      return element.todo();
+    }).toList();
+  }
+
+  List<Kya> filterPendingCompletion() {
+    return where((element) {
+      return element.isPendingCompletion();
+    }).toList();
+  }
+
+  List<Kya> filterComplete() {
     return where((element) {
       return element.isComplete();
     }).toList();
   }
+}
 
-  List<Kya> removeDuplicates() {
-    List<Kya> cleanedKya = [];
-    for (final kya in this) {
-      final duplicates = where((e) => e.id == kya.id).toList();
-      duplicates.sortByProgress();
-      if (!cleanedKya.contains(duplicates.first)) {
-        cleanedKya.add(duplicates.first);
-      }
-    }
-
-    return cleanedKya;
+extension AppNotificationListExt on List<AppNotification> {
+  List<AppNotification> filterUnRead() {
+    return where((element) => !element.read).toList();
   }
 }
 
-extension AnalyticsListExt on List<Analytics> {
-  List<Analytics> sortByDateTime() {
-    List<Analytics> data = List.of(this);
-    data.sort(
+extension LocationHistoryExt on List<LocationHistory> {
+  void sortByDateTime() {
+    sort(
       (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
+        return -(x.dateTime.compareTo(y.dateTime));
       },
     );
-
-    return data;
   }
 }
 
 extension SearchHistoryListExt on List<SearchHistory> {
-  List<SearchHistory> sortByDateTime({bool latestFirst = true}) {
-    List<SearchHistory> data = List.of(this);
-    data.sort((a, b) {
+  void sortByDateTime({bool latestFirst = true}) {
+    sort((a, b) {
       if (latestFirst) {
         return -(a.dateTime.compareTo(b.dateTime));
       }
 
       return a.dateTime.compareTo(b.dateTime);
     });
-
-    return data;
   }
 
   Future<List<AirQualityReading>> attachedAirQualityReadings() async {
@@ -214,6 +215,77 @@ extension AirQualityReadingExt on AirQualityReading {
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
   }
+
+  String insightsMessage() {
+    String message = '';
+    String verb = dateTime.isAPastDate() ? " was" : " is";
+    String dateAdverb = dateTime.isYesterday() ? " yesterday" : "";
+
+    switch (airQuality) {
+      case AirQuality.good:
+        message =
+            'The air quality$dateAdverb in $name$verb quite ${airQuality.title}.';
+        break;
+      case AirQuality.moderate:
+        message =
+            'The air quality$dateAdverb in $name$verb at a ${airQuality.title} level.';
+        break;
+      case AirQuality.ufsgs:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title}.';
+        break;
+      case AirQuality.unhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} for everyone';
+        break;
+      case AirQuality.veryUnhealthy:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} reaching levels of high alert.';
+        break;
+      case AirQuality.hazardous:
+        message =
+            'The air quality$dateAdverb in $name$verb ${airQuality.title} and can cause a health emergency.';
+        break;
+    }
+
+    return message;
+  }
+}
+
+extension InsightExt on Insight {
+  String shortDate() {
+    if (dateTime.isYesterday()) {
+      return 'Yesterday';
+    } else if (dateTime.isWithInPreviousWeek()) {
+      return 'Last Week';
+    } else if (dateTime.isWithInNextWeek()) {
+      return 'Next Week';
+    } else if (dateTime.isToday()) {
+      return 'Today';
+    } else if (dateTime.isTomorrow()) {
+      return 'Tomorrow';
+    } else if (dateTime.isWithInCurrentWeek()) {
+      return 'This week';
+    }
+
+    return '';
+  }
+
+  String healthTipsTitle() {
+    if (dateTime.isToday()) {
+      return 'Today’s health tips';
+    }
+
+    if (dateTime.isTomorrow()) {
+      return 'Tomorrow’s health tips';
+    }
+
+    if (dateTime.isAFutureDate()) {
+      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+    }
+
+    return '';
+  }
 }
 
 extension SearchResultExt on SearchResult {
@@ -229,28 +301,14 @@ extension SearchResultExt on SearchResult {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> sortByAirQuality({bool sortCountries = false}) {
-    List<AirQualityReading> data = List.of(this);
-    data.sort((a, b) {
+  void sortByAirQuality({bool sortCountries = false}) {
+    sort((a, b) {
       if (sortCountries && a.country.compareTo(b.country) != 0) {
         return a.country.compareTo(b.country);
       }
 
       return a.pm2_5.compareTo(b.pm2_5);
     });
-
-    return data;
-  }
-
-  List<AirQualityReading> filterNearestLocations() {
-    List<AirQualityReading> airQualityReadings = List.of(this);
-    airQualityReadings = airQualityReadings
-        .where(
-          (element) => element.distanceToReferenceSite <= Config.searchRadius,
-        )
-        .toList();
-
-    return airQualityReadings.sortByDistanceToReferenceSite();
   }
 
   List<AirQualityReading> shuffleByCountry() {
@@ -275,19 +333,68 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     return shuffledData;
   }
 
-  List<AirQualityReading> sortByDistanceToReferenceSite() {
-    List<AirQualityReading> data = List.of(this);
-    data.sort(
+  void sortByDistanceToReferenceSite() {
+    sort(
       (x, y) {
         return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
       },
     );
-
-    return data;
   }
+
+  List<AirQualityReading> removeInvalidData() =>
+      where((element) => element.dateTime.isAfterOrEqualToYesterday()).toList();
 }
 
 extension ProfileExt on Profile {
+  String displayName() {
+    if (firstName != '') {
+      return firstName.trim();
+    } else if (lastName != '') {
+      return lastName.trim();
+    } else {
+      return 'Hello';
+    }
+  }
+
+  String fullName() {
+    return '$firstName $lastName'.trim();
+  }
+
+  TitleOptions getTitle() {
+    if (title == TitleOptions.ms.value) {
+      return TitleOptions.ms;
+    } else if (title == TitleOptions.mr.value) {
+      return TitleOptions.mr;
+    } else {
+      return TitleOptions.undefined;
+    }
+  }
+
+  Gender gender() {
+    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
+      return Gender.male;
+    } else if (title
+        .toLowerCase()
+        .contains(TitleOptions.ms.value.toLowerCase())) {
+      return Gender.female;
+    } else {
+      return Gender.undefined;
+    }
+  }
+
+  String initials() {
+    var initials = '';
+    if (firstName.isNotEmpty) {
+      initials = firstName[0].toUpperCase();
+    }
+
+    if (lastName.isNotEmpty) {
+      initials = '$initials${lastName[0].toUpperCase()}';
+    }
+
+    return initials.isEmpty ? 'A' : initials;
+  }
+
   String greetings() {
     final hour = DateTime.now().hour;
 
@@ -308,12 +415,14 @@ extension ProfileExt on Profile {
 }
 
 extension DateTimeExt on DateTime {
-  String shareString() {
-    return DateFormat('EEE, d MMM yyyy hh:mm a').format(this);
+  bool isSameDay(DateTime dateTime) {
+    return day == dateTime.day;
   }
 
   String analyticsCardString() {
-    String dateString = DateFormat('hh:mm a').format(this);
+    const String timeFormat = 'hh:mm a';
+    const String dateTimeFormat = 'd MMM, $timeFormat';
+    String dateString = DateFormat(timeFormat).format(this);
     if (isYesterday()) {
       return 'Updated yesterday at $dateString';
     } else if (isToday()) {
@@ -321,7 +430,7 @@ extension DateTimeExt on DateTime {
     } else if (isTomorrow()) {
       return 'Tomorrow, $dateString';
     } else {
-      return DateFormat('d MMM, hh:mm a').format(this);
+      return DateFormat(dateTimeFormat).format(this);
     }
   }
 
@@ -332,33 +441,21 @@ extension DateTimeExt on DateTime {
 
   DateTime getDateOfFirstDayOfWeek() {
     DateTime firstDate = this;
-    while (firstDate.weekday != 1) {
-      firstDate = firstDate.subtract(const Duration(days: 1));
-    }
+    firstDate = firstDate.subtract(Duration(days: firstDate.weekday - 1));
 
     return firstDate.getDateOfFirstHourOfDay();
   }
 
-  Future<String> getGreetings() async {
-    final profile = await Profile.getProfile();
-
-    if (00 <= hour && hour < 12) {
-      return 'Good morning ${profile.firstName}'.trim();
-    }
-
-    if (12 <= hour && hour < 16) {
-      return 'Good afternoon ${profile.firstName}'.trim();
-    }
-
-    if (16 <= hour && hour <= 23) {
-      return 'Good evening ${profile.firstName}'.trim();
-    }
-
-    return 'Hello ${profile.firstName}'.trim();
+  DateTime getDateOfFirstHourOfDay() {
+    return DateTime.utc(year, month, day);
   }
 
-  DateTime getDateOfFirstHourOfDay() {
-    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
+  bool isAfterOrEqualToYesterday() {
+    return isYesterday() || compareTo(yesterday()) == 1;
+  }
+
+  bool isAfterOrEqualToToday() {
+    return isToday() || compareTo(DateTime.now()) == 1;
   }
 
   bool isAfterOrEqualTo(DateTime dateTime) {
@@ -381,125 +478,29 @@ extension DateTimeExt on DateTime {
     return lastDate.getDateOfFirstHourOfDay();
   }
 
-  DateTime getDateOfLastHourOfDay() {
-    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z');
-  }
-
-  String getDay({DateTime? datetime}) {
-    final referenceDay = datetime != null ? datetime.day : day;
-
-    return formatToString(referenceDay);
-  }
-
-  DateTime getFirstDateOfCalendarMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
-
-    while (firstDate.weekday != 1) {
-      firstDate = firstDate.subtract(const Duration(days: 1));
-    }
-
-    return firstDate;
-  }
-
-  String toApiString() {
-    return '$year-${formatToString(month)}-'
-        '${formatToString(day)}T'
-        '${formatToString(hour)}:${formatToString(minute)}:'
-        '${formatToString(second)}Z';
-  }
-
-  String formatToString(int value) {
-    if (value.toString().length > 1) {
-      return value.toString();
-    }
-
-    return '0$value';
-  }
-
-  DateTime getFirstDateOfMonth() {
-    return DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
-  }
-
-  DateTime getLastDateOfCalendarMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth()}'
-        '-${getDay(datetime: getLastDateOfMonth())}T00:00:00Z');
-
-    while (lastDate.weekday != 7) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-
-    return lastDate;
-  }
-
-  DateTime getLastDateOfMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth()}-26T00:00:00Z');
-    final referenceMonth = month;
-
-    while (lastDate.month == referenceMonth) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-    lastDate = lastDate.subtract(const Duration(days: 1));
-
-    return lastDate;
-  }
-
-  String getLongDate() {
-    return '${getDayPostfix()} ${getMonthString()}';
-  }
-
-  String getMonth({DateTime? datetime}) {
-    final referenceMonth = datetime != null ? datetime.month : month;
-
-    return formatToString(referenceMonth);
-  }
-
-  String getDayPostfix() {
-    if (day.toString().endsWith('1') && day != 11) {
-      return '${day}st';
-    } else if (day.toString().endsWith('2') && day != 12) {
-      return '${day}nd';
-    } else if (day.toString().endsWith('3') && day != 13) {
-      return '${day}rd';
-    } else {
-      return '${day}th';
-    }
-  }
-
   String getMonthString({bool abbreviate = false}) {
-    switch (month) {
-      case 1:
-        return abbreviate ? 'Jan' : 'January';
-      case 2:
-        return abbreviate ? 'Feb' : 'February';
-      case 3:
-        return abbreviate ? 'Mar' : 'March';
-      case 4:
-        return abbreviate ? 'Apr' : 'April';
-      case 5:
-        return 'May';
-      case 6:
-        return abbreviate ? 'Jun' : 'June';
-      case 7:
-        return abbreviate ? 'Jul' : 'July';
-      case 8:
-        return abbreviate ? 'Aug' : 'August';
-      case 9:
-        return abbreviate ? 'Sept' : 'September';
-      case 10:
-        return abbreviate ? 'Oct' : 'October';
-      case 11:
-        return abbreviate ? 'Nov' : 'November';
-      case 12:
-        return abbreviate ? 'Dec' : 'December';
-      default:
-        throw UnimplementedError(
-          '$month does’nt have a month string implementation',
-        );
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    if (month < 1 || month > 12) {
+      throw UnimplementedError(
+        '$month does not have a month string implementation',
+      );
     }
-  }
+    final monthString = months[month - 1];
 
-  String getShortDate() {
-    return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
+    return abbreviate ? monthString.substring(0, 3) : monthString;
   }
 
   int getUtcOffset() {
@@ -507,51 +508,68 @@ extension DateTimeExt on DateTime {
   }
 
   String getWeekday() {
-    switch (weekday) {
-      case 1:
-        return 'monday';
-      case 2:
-        return 'tuesday';
-      case 3:
-        return 'wednesday';
-      case 4:
-        return 'thursday';
-      case 5:
-        return 'friday';
-      case 6:
-        return 'saturday';
-      case 7:
-        return 'sunday';
-      default:
-        throw UnimplementedError(
-          '$weekday does’nt have a weekday string implementation',
-        );
+    final weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    if (weekday < 1 || weekday > 7) {
+      throw UnimplementedError(
+        '$weekday does not have a weekday string implementation',
+      );
     }
+
+    return weekdays[weekday - 1];
   }
 
-  bool isInWeek(String referenceWeek) {
+  bool isWithInCurrentWeek() {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     final now = formatter.parse(formatter.format(DateTime.now()));
-    DateTime firstDay;
-    DateTime lastDay;
-    switch (referenceWeek.toLowerCase()) {
-      case 'last':
-        firstDay =
-            now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay =
-            now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      case 'next':
-        firstDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-        lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
-        break;
-      default:
-        firstDay = now.getDateOfFirstDayOfWeek();
-        lastDay = now.getDateOfLastDayOfWeek();
-        break;
-    }
+    DateTime firstDay = now.getDateOfFirstDayOfWeek();
+    DateTime lastDay = now.getDateOfLastDayOfWeek();
+    final date = formatter.parse(formatter.format(this));
 
-    return isAfterOrEqualTo(firstDay) && isBeforeOrEqualTo(lastDay);
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInPreviousWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
+  }
+
+  bool isWithInNextWeek() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final now = formatter.parse(formatter.format(DateTime.now()));
+    DateTime firstDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek(),
+      ),
+    );
+    DateTime lastDay = formatter.parse(
+      formatter.format(
+        now.add(const Duration(days: 7)).getDateOfLastDayOfWeek(),
+      ),
+    );
+    final date = formatter.parse(formatter.format(this));
+
+    return date.isAfterOrEqualTo(firstDay) && date.isBeforeOrEqualTo(lastDay);
   }
 
   bool isToday() {
@@ -559,6 +577,28 @@ extension DateTimeExt on DateTime {
     final todayDate = formatter.parse(formatter.format(DateTime.now()));
 
     return formatter.parse(formatter.format(this)).compareTo(todayDate) == 0;
+  }
+
+  bool isAPastDate() {
+    if (isYesterday()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) < 0;
+  }
+
+  bool isAFutureDate() {
+    if (isTomorrow()) {
+      return true;
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    final futureDate = formatter.parse(formatter.format(DateTime.now()));
+
+    return formatter.parse(formatter.format(this)).compareTo(futureDate) > 0;
   }
 
   bool isTomorrow() {
@@ -577,28 +617,19 @@ extension DateTimeExt on DateTime {
   }
 
   String notificationDisplayDate() {
-    if (day == DateTime.now().day) {
-      var hours = hour.toString();
-      if (hours.length <= 1) {
-        hours = '0$hour';
-      }
+    final now = DateTime.now();
 
-      var minutes = minute.toString();
-      if (minutes.length <= 1) {
-        minutes = '0$minutes';
-      }
-
-      return '$hours:$minutes';
-    } else {
-      return '$day ${getMonthString(abbreviate: true)}';
-    }
+    return (day == now.day)
+        ? DateFormat('HH:mm')
+            .format(DateTime(now.year, now.month, now.day, hour, minute))
+        : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
   }
 
   DateTime tomorrow() {
     return DateTime.now().add(const Duration(days: 1));
   }
 
-  static DateTime yesterday() {
+  DateTime yesterday() {
     return DateTime.now().subtract(const Duration(days: 1));
   }
 }
@@ -609,27 +640,56 @@ extension FileExt on File {
   }
 }
 
-extension StringExt on String {
-  bool inStatement(String statement) {
-    final terms = toLowerCase().split(' ');
-    final words = statement.toLowerCase().split(' ');
-    for (final word in words) {
-      for (final term in terms) {
-        if (term == word.trim()) {
-          return true;
-        }
-      }
+extension AppStoreVersionExt on AppStoreVersion {
+  int compareVersion(String checkVersion) {
+    List<int> versionSections =
+        version.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (versionSections.length != 3) {
+      throw Exception('Invalid version $this');
     }
 
-    return false;
+    List<int> candidateSections =
+        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
+
+    if (candidateSections.length != 3) {
+      throw Exception('Invalid version $checkVersion');
+    }
+
+    // checking first code
+    if (versionSections.first > candidateSections.first) return 1;
+
+    if (versionSections.first < candidateSections.first) return -1;
+
+    // checking second code
+    if (versionSections[1] > candidateSections[1]) return 1;
+
+    if (versionSections[1] < candidateSections[1]) return -1;
+
+    // checking last code
+    if (versionSections.last > candidateSections.last) return 1;
+
+    if (versionSections.last < candidateSections.last) return -1;
+
+    return 0;
   }
+}
 
-  bool isValidName() {
-    if (trim().isNull()) {
-      return false;
+extension StringExt on String {
+  List<String> getFirstAndLastNames() {
+    List<String> names = split(" ");
+    if (names.isEmpty) {
+      return ["", ""];
     }
 
-    return true;
+    if (names.length >= 2) {
+      String firstName = names.first;
+      String lastName = names.sublist(1).join(" ");
+
+      return [firstName, lastName];
+    }
+
+    return [names.first, ""];
   }
 
   bool equalsIgnoreCase(String value) {
@@ -640,71 +700,57 @@ extension StringExt on String {
     return false;
   }
 
-  bool isNull() {
-    if (isEmpty ||
-        length == 0 ||
-        this == '' ||
-        toLowerCase() == 'null' ||
-        toLowerCase().contains('null')) {
-      return true;
-    }
-
-    return false;
-  }
-
   bool isValidPhoneNumber() {
-    if (isNull()) {
+    if (isEmpty) {
       return false;
     }
 
-    return trim().replaceAll(" ", "").length >= 7 &&
-        trim().replaceAll(" ", "").length <= 15;
-  }
+    String trimmed = trim().replaceAll(RegExp(r'\s+'), "");
 
-  String inValidPhoneNumberMessage() {
-    if (isNull()) {
-      return 'A phone number cannot be empty';
-    }
-
-    if (trim().replaceAll(" ", "").length < 7) {
-      return 'Looks like you missed a digit.';
-    }
-
-    if (trim().replaceAll(" ", "").length > 15) {
-      return 'Entered many digits.';
-    }
-
-    return AuthenticationError.invalidPhoneNumber.message;
+    return trimmed.startsWith('+') &&
+        trimmed.length >= 7 &&
+        trimmed.length <= 15 &&
+        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
+        !trimmed.contains(RegExp(r'[^\d+]'));
   }
 
   bool isValidEmail() {
-    if (isNull()) {
+    if (isEmpty) return false;
+    List<String> parts = split('@');
+    if (parts.length != 2) return false;
+    String localPart = parts.first;
+    String domainPart = parts[1];
+    if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
+      return false;
+    }
+    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
       return false;
     }
 
-    return RegExp(
-      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
-    ).hasMatch(this);
+    return domainPart.split('.').last.length >= 2;
   }
 
   bool isValidUri() {
-    return Uri.parse(this).host == '' ? false : true;
+    try {
+      Uri uri = Uri.parse(this);
+
+      return uri.hasScheme && uri.hasAuthority;
+    } catch (e) {
+      return false;
+    }
   }
 
   String toCapitalized() {
-    try {
-      if (trim().toLowerCase() == 'ii' || trim().toLowerCase() == 'iv') {
-        return toUpperCase();
-      }
-
-      return isNotEmpty
-          ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
-          : '';
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return this;
+    if (isEmpty) {
+      return '';
     }
+
+    String trimmed = trim();
+    if (trimmed.toLowerCase() == 'ii' || trimmed.toLowerCase() == 'iv') {
+      return toUpperCase();
+    }
+
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 
   String toTitleCase() =>
@@ -712,5 +758,14 @@ extension StringExt on String {
 
   String trimEllipsis() {
     return replaceAll('', '\u{200B}');
+  }
+}
+
+extension NullStringExt on String? {
+  bool isValidLocationName() {
+    String? value = this;
+    if (value == null) return false;
+
+    return value.isNotEmpty;
   }
 }

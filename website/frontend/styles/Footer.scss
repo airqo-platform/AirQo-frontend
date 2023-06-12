@@ -273,6 +273,7 @@
   .content {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-evenly;
     margin-top: 64px;
 
     .content-tabs {
@@ -401,22 +402,23 @@
       height: 539px;
 
       .logo {
-        width: 44%;
+        width: 30%;
         min-height: 315px;
       }
 
       .content {
         justify-content: flex-end;
-        width: 56%;
+        width: 70%;
         margin-top: unset;
 
         .middle-tab {
-          margin: 0 80px;
+          margin: 0 30px;
         }
 
         .content-tabs {
           display: unset;
           width: unset;
+          margin: 0 30px;
           >span {
             width: unset;
           }
