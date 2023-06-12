@@ -2,7 +2,7 @@
   /* display: flex; */
   /* align-items: center; */
   position: relative;
-  max-width: 85%;
+  max-width: 90%;
   font-weight: #175df5;
 
 }
@@ -21,7 +21,7 @@
 .dd-reload {
   position: absolute;
   top: 3px;
-  right: -60px;
+  right: -50px;
   height: 50px;
   width: 50px;
   display: flex;
