@@ -203,6 +203,30 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
   );
 };
 
+const MapStyleSelectorPlaceholder = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleHover = (isHovered) => {
+    setIsHovered(isHovered);
+  };
+
+  return (
+    <div className="map-style-placeholder" onClick={handleClick} onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)}>
+      <h4>
+        <MapIcon className={isHovered ? 'map-icon-hovered' : ''}/>
+        {isHovered && <span className="map-style-header">Change Map Mode</span>}
+      </h4>
+      {isOpen && <MapStyleSelector />}
+    </div>
+  );
+};
+
+
 const MapStyleSelector = () => {
   const styleSet = [
     {
@@ -240,14 +264,11 @@ const MapStyleSelector = () => {
   return (
     <>
       <div className="map-style">
-        <h4>
-          <MapIcon />
-          <span>Change Map Mode</span>
-        </h4>
         <div className="map-style-cards">
           {styleSet.map((style) => {
             return (
               <div
+                key={style.name}
                 onClick={() => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
@@ -334,7 +355,7 @@ const CustomMapControl = ({
         onChange={onPollutantChange}
         showHeatMap={showHeatmap}
       />
-      <MapStyleSelector />
+      <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
 };
