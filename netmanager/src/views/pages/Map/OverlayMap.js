@@ -206,17 +206,32 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
 const MapStyleSelectorPlaceholder = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleClick = () => {
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleHover = (isHovered) => {
     setIsHovered(isHovered);
   };
 
   return (
-    <div className="map-style-placeholder" onClick={handleClick} onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)}>
+    <div ref={dropdownRef} className="map-style-placeholder" onClick={handleClick} onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)}>
       <h4>
         <MapIcon className={isHovered ? 'map-icon-hovered' : ''}/>
         {isHovered && <span className="map-style-header">Change Map Mode</span>}
