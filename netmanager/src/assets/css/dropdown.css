@@ -21,9 +21,9 @@
 .dd-reload {
   position: absolute;
   top: 3px;
-  right: -50px;
-  height: 50px;
-  width: 50px;
+  right: -55px;
+  height: 40px;
+  width: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
