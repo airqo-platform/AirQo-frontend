@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReloadIcon from '@material-ui/icons/Replay';
-import { Tooltip } from '@material-ui/core';
+import { Box, Tooltip, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { useAirQloudsData } from 'utils/customHooks/AirQloudsHooks';
@@ -15,20 +15,28 @@ import { isEmpty } from 'underscore';
 import { fetchDashboardAirQloudsData } from '../../redux/AirQloud/operations';
 
 const customStyles = {
-  control: (provided) => ({
-    ...provided,
-    
+  control: (baseStyles, state) => ({
+    ...baseStyles,
+    textTransform: 'uppercase',
+    borderColor: '#eee'
   }),
   singleValue: (provided) => ({
     ...provided,
     color: '#0560c9',
     fontWeight: 'bold', // Increase the font weight
     textAlign: 'center',
-    justifyContent: 'center',
-  }),
+    justifyContent: 'center'
+  })
 };
 
+const useStyles = makeStyles((theme) => ({
+  dropdownButton: {
+    height: '70px'
+  }
+}));
+
 const AirQloudDropDown = () => {
+  const classes = useStyles();
   const currentAirqQloud = useCurrentAirQloudData();
   const dispatch = useDispatch();
   const airqlouds = Object.values(useDashboardAirqloudsData());
@@ -57,7 +65,7 @@ const AirQloudDropDown = () => {
         <span className="long_name">{airqloud.long_name}</span>
         <span className="site-count">({airqloud.sites.length} sites)</span>
       </div>
-    ),
+    )
   }));
 
   const [hoveredOption, setHoveredOption] = useState(null);
@@ -90,6 +98,8 @@ const AirQloudDropDown = () => {
           filterOption={filterOptions}
           onFocus={handleOptionMouseLeave}
           styles={customStyles}
+          className="basic-single"
+          classNamePrefix="select"
         />
 
         <Tooltip title="Refresh AirQloud">

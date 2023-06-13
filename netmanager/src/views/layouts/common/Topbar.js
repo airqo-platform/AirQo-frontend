@@ -73,44 +73,6 @@ const useStyles = makeStyles((theme) => ({
     width: ' 100%',
     maxWidth: '240px',
     marginBottom: '12px'
-  },
-  searchFormDialog: {
-    padding: theme.spacing(4)
-  },
-  searchDialogTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textTransform: 'capitalize'
-  },
-  searchDialogSubtitle: {
-    marginBottom: theme.spacing(2)
-  },
-  adminSpacing: {
-    paddingLeft: 5
-  },
-  input: {
-    marginLeft: theme.spacing(1),
-    flex: 1
-  },
-  iconButton: {
-    padding: 10
-  },
-  divider: {
-    height: 28,
-    margin: 4
-  },
-  searchRoot: {
-    padding: '0px 4px',
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: theme.spacing(1)
-  },
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500]
   }
 }));
 

@@ -28,10 +28,11 @@ import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   paperRoot: {
-    padding: '2px 4px',
+    padding: '8px 4px',
     display: 'flex',
     alignItems: 'center',
-    width: '100%'
+    width: '100%',
+    borderColor: '#eee'
   },
   input: {
     marginLeft: theme.spacing(1),
@@ -40,6 +41,33 @@ const useStyles = makeStyles((theme) => ({
   },
   iconButton: {
     padding: 10
+  },
+  searchFormDialog: {
+    padding: theme.spacing(4)
+  },
+  searchDialogTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
+  },
+  searchDialogSubtitle: {
+    marginBottom: theme.spacing(2)
+  },
+  adminSpacing: {
+    paddingLeft: 5
+  },
+  searchRoot: {
+    padding: '0px 4px',
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: theme.spacing(1)
+  },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500]
   }
 }));
 
