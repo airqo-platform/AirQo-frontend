@@ -46,71 +46,80 @@ const AppRoutes = () => {
   return (
     <Router>
       <div className="App">
-        <Suspense fallback={<LargeCircularLoader loading={true} />}>
-          <Route exact path="/" component={Landing} />
-          <Route exact path="/login/:tenant?" component={Login} />
-          <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
-          <Route exact path="/reset" component={ResetPassword} />
-          <Route exact path="/request-access/:tenant?" component={Register} />
-        </Suspense>
-        <Suspense
-          fallback={
-            <MainLayout>
-              <LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />
-            </MainLayout>
-          }
-        >
-          <PrivateRoute
-            exact
-            path="/dashboard"
-            component={AnalyticsDashboard}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/admin/users/assigned-users"
-            component={UserList}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/admin/users/available-users"
-            component={AvailableUserList}
-            layout={MainLayout}
-          />
-          <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
-          <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
-          <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
-          <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+        <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
+          <Switch>
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/login/:tenant?" component={Login} />
+            <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
+            <PrivateRoute
+              exact
+              path="/dashboard"
+              component={AnalyticsDashboard}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/assigned-users"
+              component={UserList}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/admin/users/available-users"
+              component={AvailableUserList}
+              layout={MainLayout}
+            />
+            <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
+            <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
+            <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
+            <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
 
-          <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
-          <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
-          <Route exact path="/map">
-            <MainLayout>
-              <OverlayMap />
-            </MainLayout>
-          </Route>
-          <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
-          <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-          <PrivateRoute exact path="/manager/stats" component={ManagerStats} layout={MainLayout} />
-          <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
-          <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
-          <PrivateRoute exact path="/airqlouds" component={AirQloudRegistry} layout={MainLayout} />
-          <PrivateRoute exact path="/airqlouds/:id" component={AirQloudView} layout={MainLayout} />
+            <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
+            <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />
+            <Route exact path="/map">
+              <MainLayout>
+                <OverlayMap />
+              </MainLayout>
+            </Route>
+            <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
+            <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/manager/stats"
+              component={ManagerStats}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/airqlouds"
+              component={AirQloudRegistry}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/airqlouds/:id"
+              component={AirQloudView}
+              layout={MainLayout}
+            />
+            <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
+            <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
+            <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
+            <PrivateRoute
+              component={PermissionDenied}
+              exact
+              layout={MinimalLayout}
+              path="/permission-denied"
+            />
+            <Route exact layout={MinimalLayout} path="*">
+              <NotFoundView />
+            </Route>
+          </Switch>
         </Suspense>
 
-        <Switch>
-          <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
-          <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
-          <PrivateRoute extact path="/registry" component={Devices} layout={MainLayout} />
-          <PrivateRoute component={NotFoundView} exact layout={MinimalLayout} path="/not-found" />
-          <PrivateRoute
-            component={PermissionDenied}
-            exact
-            layout={MinimalLayout}
-            path="/permission-denied"
-          />
-        </Switch>
         <div
           style={{
             position: 'fixed',
