@@ -13,7 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../home_page.dart';
-import 'email_auth_widget.dart';
+import '../email_authentication/email_auth_screen.dart';
 
 class AuthOrSeparator extends StatelessWidget {
   const AuthOrSeparator({super.key});
@@ -320,177 +320,180 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
 }
 
 class ChangeAuthCredentials extends StatelessWidget {
-  const ChangeAuthCredentials({super.key});
+  const ChangeAuthCredentials(this.authMethod, {super.key});
+  final AuthMethod authMethod;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthCodeBloc, AuthCodeState>(
-      builder: (context, state) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 16.0),
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-            child: Text(
-              state.authMethod.editEntryText,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: CustomColors.appColorBlue,
-                  ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class EmailInputField extends StatefulWidget {
-  const EmailInputField({Key? key}) : super(key: key);
-
-  @override
-  State<EmailInputField> createState() => _EmailInputFieldState();
-}
-
-class _EmailInputFieldState extends State<EmailInputField> {
-  late TextEditingController _emailInputController;
-
-  @override
-  void dispose() {
-    _emailInputController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _emailInputController = TextEditingController();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return true;
-      },
-      builder: (context, state) {
-        Color formColor;
-        Color fillColor;
-        Color textColor;
-        Color suffixIconColor;
-        Widget suffixIcon;
-
-        switch (state.status) {
-          case EmailAuthStatus.initial:
-          case EmailAuthStatus.verificationCodeSent:
-            if (state.emailAddress.isValidEmail()) {
-              formColor = CustomColors.appColorValid;
-              textColor = CustomColors.appColorValid;
-              suffixIconColor = CustomColors.appColorValid;
-              fillColor = CustomColors.appColorValid.withOpacity(0.05);
-              suffixIcon = const Padding(
-                padding: EdgeInsets.all(14),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                ),
-              );
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: InkWell(
+        onTap: () {
+          switch (authMethod) {
+            case AuthMethod.email:
+              context.read<EmailAuthBloc>().add(InitializeEmailAuth(
+                    authProcedure:
+                        context.read<EmailAuthBloc>().state.authProcedure,
+                  ));
               break;
-            }
-
-            formColor = CustomColors.appColorBlue;
-            textColor = CustomColors.appColorBlack;
-            suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
-            fillColor = Colors.transparent;
-            suffixIcon = TextInputCloseButton(
-              color: suffixIconColor,
-            );
-
-            break;
-          case EmailAuthStatus.error:
-          case EmailAuthStatus.emailAddressDoesNotExist:
-          case EmailAuthStatus.emailAddressTaken:
-          case EmailAuthStatus.invalidEmailAddress:
-            formColor = CustomColors.appColorInvalid;
-            textColor = CustomColors.appColorInvalid;
-            suffixIconColor = CustomColors.appColorInvalid;
-            fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
-            suffixIcon = TextInputCloseButton(
-              color: suffixIconColor,
-            );
-            break;
-          case EmailAuthStatus.success:
-            formColor = CustomColors.appColorValid;
-            textColor = CustomColors.appColorValid;
-            suffixIconColor = CustomColors.appColorValid;
-            fillColor = CustomColors.appColorValid.withOpacity(0.05);
-            suffixIcon = const Padding(
-              padding: EdgeInsets.all(14),
-              child: Icon(
-                Icons.check_circle_rounded,
+            case AuthMethod.phone:
+              break;
+          }
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        },
+        child: Text(
+          authMethod.editEntryText,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: CustomColors.appColorBlue,
               ),
-            );
-            break;
-        }
-
-        InputBorder inputBorder = OutlineInputBorder(
-          borderSide: BorderSide(color: formColor, width: 1.0),
-          borderRadius: BorderRadius.circular(8.0),
-        );
-
-        return TextFormField(
-          controller: _emailInputController,
-          onTap: () {
-            context
-                .read<EmailAuthBloc>()
-                .add(UpdateEmailAddress(state.emailAddress));
-          },
-          onChanged: (value) {
-            context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
-          },
-          onEditingComplete: () {
-            FocusScope.of(context).requestFocus(FocusNode());
-          },
-          style:
-              Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
-          enableSuggestions: true,
-          cursorWidth: 1,
-          autofocus: false,
-          cursorColor: formColor,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-            iconColor: formColor,
-            fillColor: fillColor,
-            filled: true,
-            focusedBorder: inputBorder,
-            enabledBorder: inputBorder,
-            border: inputBorder,
-            suffixIconColor: formColor,
-            hintText: 'Enter your email',
-            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            suffixIcon: GestureDetector(
-              onTap: () {
-                _emailInputController.text = '';
-                FocusScope.of(context).requestFocus(FocusNode());
-                context.read<EmailAuthBloc>().add(const ClearEmailAddress());
-              },
-              child: suffixIcon,
-            ),
-            errorStyle: const TextStyle(
-              fontSize: 0,
-            ),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
+
+// class EmailInputField extends StatefulWidget {
+//   const EmailInputField({Key? key}) : super(key: key);
+//
+//   @override
+//   State<EmailInputField> createState() => _EmailInputFieldState();
+// }
+//
+// class _EmailInputFieldState extends State<EmailInputField> {
+//   late TextEditingController _emailInputController;
+//
+//   @override
+//   void dispose() {
+//     _emailInputController.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _emailInputController = TextEditingController();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+//       buildWhen: (previous, current) {
+//         return true;
+//       },
+//       builder: (context, state) {
+//         Color formColor;
+//         Color fillColor;
+//         Color textColor;
+//         Color suffixIconColor;
+//         Widget suffixIcon;
+//
+//         switch (state.status) {
+//           case EmailAuthStatus.initial:
+//             // if (state.emailAddress.isValidEmail()) {
+//             //   formColor = CustomColors.appColorValid;
+//             //   textColor = CustomColors.appColorValid;
+//             //   suffixIconColor = CustomColors.appColorValid;
+//             //   fillColor = CustomColors.appColorValid.withOpacity(0.05);
+//             //   suffixIcon = const Padding(
+//             //     padding: EdgeInsets.all(14),
+//             //     child: Icon(
+//             //       Icons.check_circle_rounded,
+//             //     ),
+//             //   );
+//             //   break;
+//             // }
+//
+//             formColor = CustomColors.appColorBlue;
+//             textColor = CustomColors.appColorBlack;
+//             suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
+//             fillColor = Colors.transparent;
+//             suffixIcon = TextInputCloseButton(
+//               color: suffixIconColor,
+//             );
+//
+//             break;
+//           case EmailAuthStatus.error:
+//             formColor = CustomColors.appColorInvalid;
+//             textColor = CustomColors.appColorInvalid;
+//             suffixIconColor = CustomColors.appColorInvalid;
+//             fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
+//             suffixIcon = TextInputCloseButton(
+//               color: suffixIconColor,
+//             );
+//             break;
+//           case EmailAuthStatus.success:
+//             formColor = CustomColors.appColorValid;
+//             textColor = CustomColors.appColorValid;
+//             suffixIconColor = CustomColors.appColorValid;
+//             fillColor = CustomColors.appColorValid.withOpacity(0.05);
+//             suffixIcon = const Padding(
+//               padding: EdgeInsets.all(14),
+//               child: Icon(
+//                 Icons.check_circle_rounded,
+//               ),
+//             );
+//             break;
+//         }
+//
+//         InputBorder inputBorder = OutlineInputBorder(
+//           borderSide: BorderSide(color: formColor, width: 1.0),
+//           borderRadius: BorderRadius.circular(8.0),
+//         );
+//
+//         return TextFormField(
+//           controller: _emailInputController,
+//           onTap: () {
+//             // context
+//             //     .read<EmailAuthBloc>()
+//             //     .add(UpdateEmailAddress(state.emailAddress));
+//           },
+//           onChanged: (value) {
+//             // context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
+//           },
+//           onEditingComplete: () {
+//             FocusScope.of(context).requestFocus(FocusNode());
+//           },
+//           style:
+//               Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
+//           enableSuggestions: true,
+//           cursorWidth: 1,
+//           autofocus: false,
+//           cursorColor: formColor,
+//           keyboardType: TextInputType.emailAddress,
+//           decoration: InputDecoration(
+//             contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+//             iconColor: formColor,
+//             fillColor: fillColor,
+//             filled: true,
+//             focusedBorder: inputBorder,
+//             enabledBorder: inputBorder,
+//             border: inputBorder,
+//             suffixIconColor: formColor,
+//             hintText: 'Enter your email',
+//             hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+//                   color: CustomColors.appColorBlack.withOpacity(0.32),
+//                 ),
+//             prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+//                   color: CustomColors.appColorBlack.withOpacity(0.32),
+//                 ),
+//             suffixIcon: GestureDetector(
+//               onTap: () {
+//                 _emailInputController.text = '';
+//                 FocusScope.of(context).requestFocus(FocusNode());
+//                 // context.read<EmailAuthBloc>().add(const ClearEmailAddress());
+//               },
+//               child: suffixIcon,
+//             ),
+//             errorStyle: const TextStyle(
+//               fontSize: 0,
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
 
 class AuthErrorMessage extends StatelessWidget {
   const AuthErrorMessage(this.message, {super.key});
@@ -598,8 +601,8 @@ class AuthSignUpButton extends StatelessWidget {
                   switch (authMethod) {
                     case AuthMethod.phone:
                       return authProcedure == AuthProcedure.login
-                          ? const EmailLoginWidget()
-                          : const EmailSignUpWidget();
+                          ? const EmailLoginScreen()
+                          : const EmailSignUpScreen();
                     case AuthMethod.email:
                       return authProcedure == AuthProcedure.login
                           ? const PhoneLoginWidget()
@@ -673,7 +676,7 @@ class SignUpOptions extends StatelessWidget {
                     case AuthMethod.phone:
                       return const PhoneLoginWidget();
                     case AuthMethod.email:
-                      return const EmailLoginWidget();
+                      return const EmailLoginScreen();
                   }
                 },
                 transitionsBuilder:
@@ -742,7 +745,7 @@ class LoginOptions extends StatelessWidget {
                     case AuthMethod.phone:
                       return const PhoneSignUpWidget();
                     case AuthMethod.email:
-                      return const EmailSignUpWidget();
+                      return const EmailSignUpScreen();
                   }
                 },
                 transitionsBuilder:

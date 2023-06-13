@@ -209,7 +209,7 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                   /// auth options
                   Visibility(
                     visible: state.status != AuthCodeStatus.success,
-                    child: const ChangeAuthCredentials(),
+                    child: const ChangeAuthCredentials(AuthMethod.email),
                   ),
 
                   const Spacer(),
@@ -271,6 +271,24 @@ class _AuthVerificationWidgetState extends State<_AuthVerificationWidget> {
                         },
                         listenWhen: (previous, current) {
                           return !current.loading && previous.loading;
+                        },
+                      ),
+                      BlocListener<AuthCodeBloc, AuthCodeState>(
+                        listener: (context, state) async {
+                          FocusScope.of(context).requestFocus(
+                            FocusNode(),
+                          );
+                          await showDialog<void>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext _) {
+                              return const AuthFailureDialog();
+                            },
+                          );
+                        },
+                        listenWhen: (_, current) {
+                          return current.status ==
+                              AuthCodeStatus.failedToSendCode;
                         },
                       ),
                       BlocListener<AuthCodeBloc, AuthCodeState>(

@@ -4,6 +4,7 @@ enum AuthCodeStatus {
   initial,
   invalidCode,
   error,
+  failedToSendCode,
   success;
 }
 

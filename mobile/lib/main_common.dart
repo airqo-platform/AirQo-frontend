@@ -85,9 +85,10 @@ class AirQoApp extends StatelessWidget {
           ),
         ),
         BlocProvider(
-          create: (BuildContext context) => EmailAuthBloc(
-            RepositoryProvider.of<AirqoApiClient>(context),
-          ),
+          create: (BuildContext context) => EmailAuthBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => EmailVerificationBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),

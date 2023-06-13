@@ -461,7 +461,7 @@ class AuthFailureDialog extends StatelessWidget {
           MaterialPageRoute(builder: (context) {
             return const HomePage();
           }),
-              (r) => true,
+          (r) => true,
         );
       });
     });
@@ -527,64 +527,71 @@ class AuthMethodDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoAlertDialog(
-      title: Text(
-        authMethod == AuthMethod.email
-            ? 'Confirm Email Address'
-            : 'Confirm Phone Number',
-        textAlign: TextAlign.center,
-      ),
-      content: Column(
-        children: [
-          const SizedBox(
-            height: 7,
-          ),
-          Text(
-            credentials,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              height: 18 / 16,
-            ),
-          ),
-          const SizedBox(
-            height: 7,
-          ),
-          Text(
-            authMethod == AuthMethod.email
-                ? 'Is the email address above correct?'
-                : 'Is the phone number above correct?',
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-      actions: <Widget>[
-        CupertinoDialogAction(
-          onPressed: () {
-            Navigator.of(context).pop(ConfirmationAction.cancel);
-          },
-          isDefaultAction: true,
-          isDestructiveAction: true,
-          child: Text(
-            'Edit',
-            style: CustomTextStyle.caption4(context)
-                ?.copyWith(color: CustomColors.appColorBlue),
+    Widget title = Text(
+      authMethod == AuthMethod.email
+          ? 'Confirm Email Address'
+          : 'Confirm Phone Number',
+      textAlign: TextAlign.center,
+    );
+
+    Widget content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(
+          height: 7,
+        ),
+        Text(
+          credentials,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            height: 18 / 16,
           ),
         ),
-        CupertinoDialogAction(
-          onPressed: () {
-            Navigator.of(context).pop(ConfirmationAction.ok);
-          },
-          isDefaultAction: true,
-          isDestructiveAction: false,
-          child: Text(
-            'Yes',
-            style: CustomTextStyle.caption4(context)
-                ?.copyWith(color: CustomColors.appColorBlue),
-          ),
+        const SizedBox(
+          height: 7,
+        ),
+        Text(
+          authMethod == AuthMethod.email
+              ? 'Is the email address above correct?'
+              : 'Is the phone number above correct?',
+          textAlign: TextAlign.center,
         ),
       ],
+    );
+
+    List<Widget> actions = [
+      CupertinoDialogAction(
+        onPressed: () {
+          Navigator.of(context).pop(ConfirmationAction.cancel);
+        },
+        isDefaultAction: true,
+        isDestructiveAction: true,
+        child: Text(
+          'Edit',
+          style: CustomTextStyle.caption4(context)
+              ?.copyWith(color: CustomColors.appColorBlue),
+        ),
+      ),
+      CupertinoDialogAction(
+        onPressed: () {
+          Navigator.of(context).pop(ConfirmationAction.ok);
+        },
+        isDefaultAction: true,
+        isDestructiveAction: false,
+        child: Text(
+          'Yes',
+          style: CustomTextStyle.caption4(context)
+              ?.copyWith(color: CustomColors.appColorBlue),
+        ),
+      ),
+    ];
+
+    return CupertinoAlertDialog(
+      title: title,
+      content: content,
+      actions: actions,
     );
   }
 }

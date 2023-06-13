@@ -321,10 +321,14 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
       case AuthProcedure.login:
         if (!mounted) return;
         if (exists == null) {
-          context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                status: PhoneAuthStatus.error,
-                errorMessage: "Failed to send code. Try again later",
-              ));
+          Navigator.pop(context);
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext _) {
+              return const AuthFailureDialog();
+            },
+          );
 
           return;
         }
@@ -342,10 +346,14 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
       case AuthProcedure.signup:
         if (!mounted) return;
         if (exists == null) {
-          context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                status: PhoneAuthStatus.error,
-                errorMessage: "Failed to send code. Try again later",
-              ));
+          Navigator.pop(context);
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext _) {
+              return const AuthFailureDialog();
+            },
+          );
 
           return;
         }

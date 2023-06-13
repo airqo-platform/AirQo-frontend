@@ -111,6 +111,7 @@ class OptField extends StatelessWidget {
                 break;
               case AuthCodeStatus.invalidCode:
               case AuthCodeStatus.error:
+              case AuthCodeStatus.failedToSendCode:
                 textColor = CustomColors.appColorInvalid;
                 fillColor = CustomColors.appColorInvalid.withOpacity(0.05);
                 break;

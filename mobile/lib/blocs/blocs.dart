@@ -13,3 +13,4 @@ export 'phone_auth/phone_auth_bloc.dart';
 export 'search/search_bloc.dart';
 export 'settings/settings_bloc.dart';
 export 'profile/profile_bloc.dart';
+export 'email_verification/email_verification_bloc.dart';
