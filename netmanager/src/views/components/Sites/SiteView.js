@@ -174,6 +174,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.network}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>

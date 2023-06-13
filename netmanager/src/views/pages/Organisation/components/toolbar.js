@@ -12,6 +12,8 @@ import { createNetworkApi } from '../../../apis/accessControl';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { useDispatch } from 'react-redux';
+// dropdown component
+import Select from 'react-select';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,6 +71,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+// dropdown component options
 const CATEGORIES = [
   {
     value: 'business',
@@ -96,6 +99,46 @@ const CATEGORIES = [
   }
 ];
 
+const options =
+  CATEGORIES &&
+  CATEGORIES.map((option) => ({
+    value: option.value,
+    label: option.label
+  }));
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '50px',
+    marginBottom: '12px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
+
 const OrgToolbar = (props) => {
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -111,6 +154,9 @@ const OrgToolbar = (props) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // hook for dropdown component
+  const [selectedOption, setSelectedOption] = React.useState(null);
+
   const clearState = () => {
     setState({ ...initialState });
   };
@@ -123,6 +169,15 @@ const OrgToolbar = (props) => {
       ...form,
       [id]: value
     });
+  };
+
+  // handle dropdown component
+  const onChangeDropdown = (selectedOption, { name }) => {
+    setState({
+      ...form,
+      [name]: selectedOption.value
+    });
+    setSelectedOption(selectedOption);
   };
 
   const onSubmit = (e) => {
@@ -204,30 +259,18 @@ const OrgToolbar = (props) => {
             required
           />
 
-          <TextField
-            id="category"
-            select
-            fullWidth
+          {/* dropdown  */}
+          <Select
             label="Category"
-            style={{ marginTop: '15px', marginBottom: '12px' }}
-            onChange={onChange}
-            SelectProps={{
-              native: true,
-              style: { width: '100%', height: '50px' },
-              MenuProps: {
-                className: classes.menu
-              }
-            }}
-            variant="outlined"
-            isMulti
-          >
-            {CATEGORIES &&
-              CATEGORIES.map((option, index) => (
-                <option key={index} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-          </TextField>
+            options={options}
+            value={selectedOption}
+            onChange={onChangeDropdown}
+            styles={customStyles}
+            isMulti={false}
+            name="category"
+            fullWidth
+            placeholder="Select category"
+          />
 
           <TextField
             margin="dense"
@@ -279,8 +322,7 @@ const OrgToolbar = (props) => {
             style={{ margin: '0 15px', width: '250px' }}
             onClick={onSubmit}
             color="primary"
-            variant="contained"
-          >
+            variant="contained">
             Submit
           </Button>
         </div>
