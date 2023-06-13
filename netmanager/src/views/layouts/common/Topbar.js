@@ -170,7 +170,8 @@ const Topbar = (props) => {
     setAnchorEl(null);
   };
 
-  const [date, setDate] = React.useState(new Date());
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [date, setDate] = React.useState('');
   useEffect(() => {
     var timerID = setInterval(() => tick(), 1000);
 
@@ -201,6 +202,7 @@ const Topbar = (props) => {
       ':' +
       appendLeadingZeroes(newTime.getSeconds());
     setDate(time);
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -262,7 +264,7 @@ const Topbar = (props) => {
 
         <Hidden mdDown>
           <p style={timer_style}>
-            <span>{formatDateString(date.toUTCString)}</span>
+            <span>{isLoading ? 'Loading...' : date}</span>
           </p>
         </Hidden>
 
