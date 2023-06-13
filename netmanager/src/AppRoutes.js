@@ -46,21 +46,13 @@ const AppRoutes = () => {
   return (
     <Router>
       <div className="App">
-        <Suspense fallback={<LargeCircularLoader loading={true} />}>
-          <Route exact path="/" component={Landing} />
-          <Route exact path="/login/:tenant?" component={Login} />
-          <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
-          <Route exact path="/reset" component={ResetPassword} />
-          <Route exact path="/request-access/:tenant?" component={Register} />
-        </Suspense>
-        <Suspense
-          fallback={
-            <MainLayout>
-              <LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />
-            </MainLayout>
-          }
-        >
+        <Suspense fallback={<LargeCircularLoader loading={true} height={'calc(100vh - 114px)'} />}>
           <Switch>
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/login/:tenant?" component={Login} />
+            <Route exact path="/forgot/:tenant?" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
+            <Route exact path="/request-access/:tenant?" component={Register} />
             <PrivateRoute
               exact
               path="/dashboard"
