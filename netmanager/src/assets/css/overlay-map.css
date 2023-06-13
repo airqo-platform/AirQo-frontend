@@ -326,10 +326,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 50px;
-  height: 50px;
+  margin: 5px;
+  width: 44px;
+  height: 44px;
   background-color: white;
   border-radius: 50%;
+  transition: all 0.2s ease 0s;
 }
 
 .map-icon {
@@ -339,7 +341,7 @@
 
 .map-icon-hovered {
   color: #0078ff;
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 .map-icon-container {
@@ -354,7 +356,7 @@
 
 .change-map-mode {
   position: absolute;
-  left: -100px;
+  left: -75px;
   top: 50%;
   transform: translateY(-50%);
   visibility: hidden;
