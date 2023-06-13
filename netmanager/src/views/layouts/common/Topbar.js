@@ -473,9 +473,6 @@ const Topbar = (props) => {
         <div className={classes.flexGrow} />
         {!isEmpty(user) ? (
           <div className={classes.barRightStyles}>
-            <IconButton onClick={onSearch} style={{ color: 'white' }}>
-              <SearchIcon />
-            </IconButton>
             <IconButton
               className={classes.signOutButton}
               color="inherit"
