@@ -389,7 +389,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                   status: AuthCodeStatus.success,
                 ));
           },
-          verificationFailed: (FirebaseAuthException exception) {
+          verificationFailed: (FirebaseAuthException exception) async {
             if (!mounted) return;
             final firebaseAuthError = CustomAuth.getFirebaseErrorCodeMessage(
               exception.code,
@@ -413,15 +413,18 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
               case FirebaseAuthError.phoneNumberTaken:
               case FirebaseAuthError.accountTaken:
               case FirebaseAuthError.accountInvalid:
-                context.read<PhoneAuthBloc>().add(const UpdateStatus(
-                      status: PhoneAuthStatus.error,
-                      errorMessage: 'Failed to send code. Try again later',
-                    ));
-                break;
               case FirebaseAuthError.authSessionTimeout:
               case FirebaseAuthError.invalidEmailAddress:
               case FirebaseAuthError.emailTaken:
               case FirebaseAuthError.invalidAuthCode:
+                Navigator.pop(context);
+                await showDialog<void>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext _) {
+                    return const AuthFailureDialog();
+                  },
+                );
                 break;
             }
           },

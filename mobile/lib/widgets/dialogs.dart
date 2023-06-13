@@ -1,11 +1,15 @@
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/pm.dart';
+import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../screens/home_page.dart';
+import 'custom_shimmer.dart';
 
 Future<void> openPhoneSettings(BuildContext context, String message) async {
   final confirmation = await showDialog<ConfirmationAction>(
@@ -417,6 +421,51 @@ void showFavouritePlaceSnackBar(
     backgroundColor: CustomColors.appColorBlack,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+class AuthFailureDialog extends StatelessWidget {
+  const AuthFailureDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: Text(
+        'Authentication is currently unavailable. You will be able to signup/sign in later.',
+        textAlign: TextAlign.center,
+        style: CustomTextStyle.headline8(context),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () async {
+            await _guestSignIn(context);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            'Proceed as Guest',
+            style: CustomTextStyle.button2(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _guestSignIn(BuildContext context) async {
+    loadingScreen(context);
+    await CustomAuth.guestSignIn().then((success) async {
+      await AppService.postSignInActions(context).then((_) async {
+        Navigator.pop(context);
+        await Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }),
+              (r) => true,
+        );
+      });
+    });
+  }
 }
 
 class SettingsDialog extends StatelessWidget {
