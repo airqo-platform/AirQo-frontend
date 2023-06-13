@@ -232,10 +232,10 @@ const MapStyleSelectorPlaceholder = () => {
 
   return (
     <div ref={dropdownRef} className="map-style-placeholder" onClick={handleClick} onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)}>
-      <h4>
-        <MapIcon className={isHovered ? 'map-icon-hovered' : ''}/>
-        {isHovered && <span className="map-style-header">Change Map Mode</span>}
-      </h4>
+      <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
+        {isHovered && <span className="change-map-mode">Change Map Mode</span>}
+        <MapIcon className="map-icon" />
+      </div>
       {isOpen && <MapStyleSelector />}
     </div>
   );
