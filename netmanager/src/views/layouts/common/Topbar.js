@@ -307,6 +307,7 @@ const Topbar = (props) => {
         .then((res) => {
           if (!isEmpty(res.data)) {
             setAirQualityDetails(res.data);
+            setNoAirQualityMsg('');
           } else {
             setAirQualityDetails(null);
             setNoAirQualityMsg('No air quality data for this location');
@@ -317,6 +318,7 @@ const Topbar = (props) => {
           setAlertMessage('Server error. Please try again later.');
           setShowAlert(true);
           setLoading(false);
+          setNoAirQualityMsg('Server error. Please try again later.');
         });
     }
   }, [locationLatitude, locationLongitude]);
@@ -366,7 +368,8 @@ const Topbar = (props) => {
                 borderRadius: '8px',
                 padding: '10px',
                 flexWrap: 'wrap'
-              }}>
+              }}
+            >
               <div>
                 <h4
                   style={{
@@ -374,7 +377,8 @@ const Topbar = (props) => {
                     margin: 0,
                     padding: 0,
                     paddingBottom: '5px'
-                  }}>
+                  }}
+                >
                   {condition}
                 </h4>
                 <h2 style={{ margin: 0, padding: 0 }}>
@@ -393,7 +397,8 @@ const Topbar = (props) => {
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 marginTop: '12px'
-              }}>
+              }}
+            >
               <span style={{ display: 'flex', alignItems: 'flex-start' }}>
                 <InfoIcon color="#145DFF" />
                 <p style={{ marginLeft: '10px' }}>{description}</p>
@@ -454,7 +459,8 @@ const Topbar = (props) => {
             marginLeft: '10px',
             fontSize: 20,
             fontWeight: 'bold'
-          }}>
+          }}
+        >
           {activeNetwork && activeNetwork.net_name}
         </div>
 
@@ -473,7 +479,8 @@ const Topbar = (props) => {
             <IconButton
               className={classes.signOutButton}
               color="inherit"
-              onClick={handleAppsMenuOpen}>
+              onClick={handleAppsMenuOpen}
+            >
               <Tooltip title={'AirQo Apps'}>
                 <AppsOutlined />
               </Tooltip>
@@ -493,7 +500,8 @@ const Topbar = (props) => {
               }}
               getContentAnchorEl={null}
               open={openAppsMenu}
-              onClose={handleAppsMenuClose}>
+              onClose={handleAppsMenuClose}
+            >
               <div style={{ width: '300px', height: '300px' }}>
                 <div style={{ height: '100%', padding: '10px' }}>
                   <a
@@ -509,7 +517,8 @@ const Topbar = (props) => {
                     }}
                     href={CALIBRATE_APP_URL}
                     target="_blank"
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                  >
                     <img
                       alt="airqo.net"
                       style={{ width: '50px', height: 'auto' }}
@@ -525,7 +534,8 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}>
+                onClick={handleOpenMenu}
+              >
                 <MoreVertIcon />
               </IconButton>
               <Menu
@@ -541,7 +551,8 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}>
+                onClose={handleCloseMenu}
+              >
                 <MenuItem onClick={handleDocsClick}>
                   <ListItemIcon>
                     <HelpIcon />
@@ -580,7 +591,8 @@ const Topbar = (props) => {
               <IconButton
                 color="inherit"
                 href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/"
-                target="_blank">
+                target="_blank"
+              >
                 <Badge badgeContent={notifications.length} color="primary" variant="dot">
                   <Tooltip title={'Documentation'}>
                     <HelpIcon />
@@ -598,7 +610,8 @@ const Topbar = (props) => {
               <IconButton
                 className={classes.signOutButton}
                 color="inherit"
-                onClick={handleOpenMenu}>
+                onClick={handleOpenMenu}
+              >
                 <Tooltip title={'Manage account'}>
                   <InputIcon />
                 </Tooltip>
@@ -616,7 +629,8 @@ const Topbar = (props) => {
                   horizontal: 'right'
                 }}
                 open={open}
-                onClose={handleCloseMenu}>
+                onClose={handleCloseMenu}
+              >
                 <MenuItem onClick={handleSettingsClick}>
                   <ListItemIcon>
                     <SettingsIcon />
@@ -646,7 +660,8 @@ const Topbar = (props) => {
               color="inherit"
               aria-controls="create-account-menu"
               aria-haspopup="true"
-              onClick={handleAppsMenuOpen}>
+              onClick={handleAppsMenuOpen}
+            >
               <AppsOutlined />
             </IconButton>
             <Menu
@@ -663,7 +678,8 @@ const Topbar = (props) => {
               }}
               getContentAnchorEl={null}
               open={openAppsMenu}
-              onClose={handleAppsMenuClose}>
+              onClose={handleAppsMenuClose}
+            >
               <div className={classes.menuContentWrapper}>
                 <img alt="airqo.net" style={logo_style} src={AirqoLogo} />
                 <h1 className={classes.menuTitle}>
@@ -679,7 +695,8 @@ const Topbar = (props) => {
                     borderRadius: '3px',
                     marginBottom: '15px'
                   }}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3">
+                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                >
                   Let's start!
                 </Link>
                 <Link to="/login">Already have an account? Log in here</Link>
@@ -696,7 +713,8 @@ const Topbar = (props) => {
         open={openSearchDialog}
         onClose={hideSearchDialog}
         aria-labelledby="form-dialog-title"
-        className={classes.searchFormDialog}>
+        className={classes.searchFormDialog}
+      >
         <DialogTitle>
           <IconButton aria-label="close" className={classes.closeButton} onClick={hideSearchDialog}>
             <CloseIcon />
@@ -708,7 +726,8 @@ const Topbar = (props) => {
             open={showAlert}
             autoHideDuration={6000}
             onClose={handleErrorToastClose}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
             <Alert onClose={handleErrorToastClose} severity="error">
               {alertMessage}
             </Alert>
