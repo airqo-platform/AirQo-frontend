@@ -9,5 +9,3 @@ Jump straight to your desired documentation
 - [Hardware](hardware/)
 - [Mobile App](mobile_app/)
 - [Platform](platform/)
-
--- trigger --
