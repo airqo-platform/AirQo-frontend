@@ -14,6 +14,7 @@ import { assignUserNetworkApi } from '../../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { fetchAvailableNetworkUsers } from 'redux/AccessControl/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import UsersListBreadCrumb from '../Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -76,63 +77,69 @@ const AvailableUsersTable = (props) => {
   };
 
   return (
-    <Card {...rest} className={clsx(classes.root, className)}>
-      <CustomMaterialTable
-        title={'Users'}
-        userPreferencePaginationKey={'users'}
-        data={!isEmpty(users) ? users : []}
-        columns={[
-          {
-            title: 'Full Name',
-            render: (rowData) => {
-              return (
-                <div className={classes.nameContainer}>
-                  <Avatar className={classes.avatar} src={rowData.profilePicture}>
-                    {getInitials(`${rowData.firstName + ' ' + rowData.lastName}`)}
-                  </Avatar>
-                  <Typography variant="body1">
-                    {' '}
-                    {rowData.firstName + ' ' + rowData.lastName}
-                  </Typography>
-                </div>
-              );
+    <>
+      <UsersListBreadCrumb category={'Users'} usersTable={'Available Users'} />
+      <Card {...rest} className={clsx(classes.root, className)}>
+        <CustomMaterialTable
+          title={'Users'}
+          userPreferencePaginationKey={'users'}
+          data={!isEmpty(users) ? users : []}
+          columns={[
+            {
+              title: 'Full Name',
+              render: (rowData) => {
+                return (
+                  <div className={classes.nameContainer}>
+                    <Avatar className={classes.avatar} src={rowData.profilePicture}>
+                      {getInitials(`${rowData.firstName + ' ' + rowData.lastName}`)}
+                    </Avatar>
+                    <Typography variant="body1">
+                      {' '}
+                      {rowData.firstName + ' ' + rowData.lastName}
+                    </Typography>
+                  </div>
+                );
+              }
+            },
+            {
+              title: 'Email',
+              field: 'email'
+            },
+            {
+              title: 'Username',
+              field: 'userName'
+            },
+            {
+              title: 'Joined',
+              field: 'createdAt',
+              render: (candidate) => (
+                <span>{candidate.createdAt ? formatDateString(candidate.createdAt) : '---'}</span>
+              )
+            },
+            {
+              title: 'Action',
+              render: (user) => {
+                return (
+                  <div>
+                    <Button
+                      color="primary"
+                      onClick={() => submitEditUser(user)}
+                      disabled={isLoading}>
+                      Assign User
+                    </Button>
+                  </div>
+                );
+              }
             }
-          },
-          {
-            title: 'Email',
-            field: 'email'
-          },
-          {
-            title: 'Username',
-            field: 'userName'
-          },
-          {
-            title: 'Joined',
-            field: 'createdAt',
-            render: (candidate) => (
-              <span>{candidate.createdAt ? formatDateString(candidate.createdAt) : '---'}</span>
-            )
-          },
-          {
-            title: 'Action',
-            render: (user) => {
-              return (
-                <div>
-                  <Button color="primary" onClick={() => submitEditUser(user)} disabled={isLoading}>
-                    Assign User
-                  </Button>
-                </div>
-              );
-            }
-          }
-        ]}
-        options={{
-          search: true,
-          searchFieldAlignment: 'left',
-          showTitle: false
-        }}
-      />
-    </Card>
+          ]}
+          options={{
+            search: true,
+            searchFieldAlignment: 'left',
+            showTitle: false
+          }}
+        />
+      </Card>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import MobileApp from 'assets/svg/explore/discover-air-quality.svg';
@@ -9,6 +9,39 @@ import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
 import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import DownloadIcon from 'assets/svg/explore/download.svg'
+import AirQo from 'icons/nav/AirQo';
+import AppleBtn from 'assets/svg/apple_app_store.svg';
+import GoogleplayBtn from 'assets/svg/android_play_store.svg';
+import QRcode from 'assets/svg/QR code.svg';
+import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+export const PageWithImageLayout = ({ imgPath, children }) => {
+  const navigate = useNavigate();
+
+  const navigateBack = () => navigate(-1);
+  useInitScrollTop();
+  return (
+    <ExploreDataModal>
+      <div className="ExploreDataWrapper">
+        <div className="left-section">
+          <img src={imgPath || ManDownloadingApp} width="100%" height="100%" />
+        </div>
+        <div className="right-section">
+          <div className="nav-row">
+            <button onClick={navigateBack}>
+              <ArrowBackIcon />
+            </button>
+            <Link to="/">
+              <CloseIcon />
+            </Link>
+          </div>
+          <div className="content">{children}</div>
+        </div>
+      </div>
+    </ExploreDataModal>
+  );
+};
 
 export const ExploreDataModal = ({ children }) => {
   return (
@@ -22,6 +55,40 @@ export const ExploreDataModal = ({ children }) => {
     </div>
   );
 };
+
+export const ExploreApp = () => (
+  <PageWithImageLayout>
+    <div className="ExploreApp">
+      <div className="brand-icon">
+        <AirQo />
+      </div>
+      <h2>Get the AirQo app</h2>
+      <p>Discover the quality of air you are breathing.</p>
+      <div className="wrapper">
+        <QRcode />
+        <hr />
+        <div className="btn-group" style={{}}>
+          <a
+            target="_blank"
+            href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
+            rel="noreferrer">
+            <div style={{ marginBottom: '40px', background: '#000', borderRadius: '8px', padding: '5px' }}>
+              <AppleBtn />
+            </div>
+          </a>
+          <a
+            target="_blank"
+            href="https://play.google.com/store/apps/details?id=com.airqo.app"
+            rel="noreferrer">
+            <div style={{ background: '#000', borderRadius: '8px', padding: '3px' }}>
+              <GoogleplayBtn />
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </PageWithImageLayout>
+);
 
 const ExploreData = () => {
   useInitScrollTop();
@@ -75,14 +142,14 @@ const ExploreData = () => {
             </div>
           </div>
           <button className="user-manual">
-            <DownloadIcon />
+            {/* <DownloadIcon />
             <a
               href={UserManual}
               download="AirQo_Analytics_Platform_User_Manual.pdf"
               target="_blank"
               rel="noopener noreferrer">
               Air Quality Platform User Manual
-            </a>
+            </a> */}
           </button>
         </div>
       </div>

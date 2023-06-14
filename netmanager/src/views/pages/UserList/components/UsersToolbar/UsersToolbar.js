@@ -20,6 +20,42 @@ import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
 import { assignUserNetworkApi, assignUserToRoleApi } from '../../../../apis/accessControl';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+// dropdown component
+import Select from 'react-select';
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '3rem',
+    marginTop: '8px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    position: 'relative',
+    zIndex: 9999
+  })
+};
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -246,6 +282,30 @@ const UsersToolbar = (props) => {
     clearState();
   }, []);
 
+  // role options
+  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+
+  // hook for role select
+  const [selectedOption, setSelectedOption] = useState(
+    props.mappeduserState.userToEdit?.role
+      ? {
+          value: props.mappeduserState.userToEdit.role._id,
+          label: props.mappeduserState.userToEdit.role.role_name
+        }
+      : null
+  );
+
+  // handles role select
+  const handleRoleChange = (selectedOption) => {
+    setSelectedOption(selectedOption);
+    setState({
+      ...form,
+      role: {
+        id: selectedOption.value
+      }
+    });
+  };
+
   return (
     <div className={clsx(classes.root, className)}>
       <div className={classes.row}>
@@ -357,32 +417,20 @@ const UsersToolbar = (props) => {
                   fullWidth
                 />
 
-                <TextField
-                  id="role"
-                  select
-                  fullWidth
+                {/* dropdown */}
+                <Select
+                  name="role"
                   label="role"
                   style={{ marginTop: '15px' }}
-                  onChange={onChange}
-                  SelectProps={{
-                    native: true,
-                    style: { width: '100%', height: '50px' },
-                    MenuProps: {
-                      className: classes.menu
-                    }
-                  }}
-                  helperText={errors.role}
-                  error={!!errors.role}
+                  onChange={handleRoleChange}
+                  value={selectedOption}
+                  options={options}
                   variant="outlined"
-                  isMulti
-                >
-                  {roles &&
-                    roles.map((option) => (
-                      <option key={option._id} value={option._id}>
-                        {option.role_name}
-                      </option>
-                    ))}
-                </TextField>
+                  styles={customStyles}
+                  isMulti={false}
+                  fullWidth
+                  placeholder="Select role"
+                />
               </div>
             </DialogContent>
 
@@ -395,8 +443,7 @@ const UsersToolbar = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={onSubmit}
                   color="primary"
-                  variant="contained"
-                >
+                  variant="contained">
                   Submit
                 </Button>
               </div>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Typography } from '@material-ui/core';
-import { Link } from 'react-router-dom'
+import { Button, Grid, Typography } from '@material-ui/core';
+import { Link } from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4)
   },
@@ -12,10 +12,25 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center'
   },
   image: {
-    marginTop: 50,
+    marginBottom: 50,
     display: 'inline-block',
     maxWidth: '100%',
-    width: 560
+    width: 500
+  },
+  subTitle: {
+    color: 'white'
+  },
+  button: {
+    marginTop: 20,
+    textTransform: 'none',
+    padding: 10
+  },
+  errorCode: {
+    marginTop: 8,
+    color: 'grey'
+  },
+  subText: {
+    color: 'rgb(20, 93, 255)'
   }
 }));
 
@@ -24,29 +39,21 @@ const NotFound = () => {
 
   return (
     <div className={classes.root}>
-      <Grid
-        container
-        justify="center"
-        spacing={4}
-      >
-        <Grid
-          item
-          lg={6}
-          xs={12}
-        >
+      <Grid container justify="center" spacing={4}>
+        <Grid item lg={6} xs={12}>
           <div className={classes.content}>
+            <img alt="Page not found" className={classes.image} src="/images/Oops.svg" />
+
             <Typography variant="h2">
-              404: The page you are looking for isn’t here
+              <span className={classes.subText}>Oops!</span> We can't seem to find the page you're
+              looking for.
             </Typography>
-            <Typography variant="subtitle2">
-              You either tried some shady route or you came here by mistake.
-              Try using the <Link to="/dashboard">navigation</Link>
-            </Typography>
-            <img
-              alt="Under development"
-              className={classes.image}
-              src="/images/undraw_page_not_found_su7k.svg"
-            />
+            <Button variant="contained" color="primary" className={classes.button}>
+              <Link to="/dashboard" className={classes.subTitle}>
+                Back to dashboard
+              </Link>
+            </Button>
+            <p className={classes.errorCode}>Error code: 404 page not found</p>
           </div>
         </Grid>
       </Grid>
