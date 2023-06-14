@@ -191,6 +191,7 @@ const Sidebar = (props) => {
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
 
   useEffect(() => {
+    setLoading(true);
     if (!isEmpty(user)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       getUserDetails(user._id).then((res) => {
@@ -211,6 +212,7 @@ const Sidebar = (props) => {
           .then((res) => {
             dispatch(addCurrentUserRole(res.roles[0]));
             localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
+            setLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -222,13 +224,13 @@ const Sidebar = (props) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            setLoading(false);
           });
       });
     }
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     // check whether user has a role
     if (!isEmpty(user)) {
       if (!isEmpty(currentRole)) {
@@ -249,13 +251,9 @@ const Sidebar = (props) => {
 
           setUserPages(selectedUserPages);
           setAdminPages(selectedAdminPages);
-          setLoading(false);
         }
       }
-    }
-
-    // if user has no role or organisation, show default pages
-    if (isEmpty(user) || isEmpty(currentRole)) {
+    } else {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
         'Network Monitoring',
@@ -271,7 +269,6 @@ const Sidebar = (props) => {
       ]);
       setUserPages(selectedUserPages);
       setAdminPages(selectedAdminPages);
-      setLoading(false);
     }
   }, [user, currentRole]);
 
