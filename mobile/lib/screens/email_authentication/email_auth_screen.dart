@@ -190,7 +190,9 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
       },
     );
 
-    if (confirmation == null || confirmation == ConfirmationAction.cancel || !mounted) {
+    if (confirmation == null ||
+        confirmation == ConfirmationAction.cancel ||
+        !mounted) {
       return;
     }
 

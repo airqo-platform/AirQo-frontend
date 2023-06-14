@@ -466,7 +466,7 @@ class AuthFailureDialog extends StatelessWidget {
             MaterialPageRoute(builder: (context) {
               return const HomePage();
             }),
-                (r) => true,
+            (r) => true,
           );
         });
       });

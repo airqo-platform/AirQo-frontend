@@ -15,8 +15,10 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     SetEmailAuthStatus event,
     Emitter<EmailAuthState> emit,
   ) {
-    return emit(
-        state.copyWith(status: event.status, errorMessage: event.errorMessage));
+    return emit(state.copyWith(
+      status: event.status,
+      errorMessage: event.errorMessage,
+    ));
   }
 
   void _onInitializeEmailAuth(

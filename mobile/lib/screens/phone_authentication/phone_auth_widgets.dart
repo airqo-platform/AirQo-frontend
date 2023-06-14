@@ -7,20 +7,21 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../auth/auth_widgets.dart';
-import '../phone_authentication/phone_auth_screen.dart';
-import 'email_auth_screen.dart';
+import '../email_authentication/email_auth_screen.dart';
+import 'phone_auth_screen.dart';
 
-class EmailAuthErrorMessage extends StatelessWidget {
-  const EmailAuthErrorMessage({super.key});
+class PhoneAuthErrorMessage extends StatelessWidget {
+  const PhoneAuthErrorMessage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -61,12 +62,12 @@ class EmailAuthErrorMessage extends StatelessWidget {
   }
 }
 
-class EmailAuthSwitchButton extends StatelessWidget {
-  const EmailAuthSwitchButton({super.key});
+class PhoneAuthSwitchButton extends StatelessWidget {
+  const PhoneAuthSwitchButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -77,19 +78,19 @@ class EmailAuthSwitchButton extends StatelessWidget {
 
         return AuthSignUpButton(
           authProcedure: state.authProcedure,
-          authMethod: AuthMethod.email,
+          authMethod: AuthMethod.phone,
         );
       },
     );
   }
 }
 
-class EmailAuthButtons extends StatelessWidget {
-  const EmailAuthButtons({super.key});
+class PhoneAuthButtons extends StatelessWidget {
+  const PhoneAuthButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -100,22 +101,22 @@ class EmailAuthButtons extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: context.read<EmailAuthBloc>().state.authProcedure ==
+          child: context.read<PhoneAuthBloc>().state.authProcedure ==
                   AuthProcedure.login
-              ? const LoginOptions(authMethod: AuthMethod.email)
-              : const SignUpOptions(authMethod: AuthMethod.email),
+              ? const LoginOptions(authMethod: AuthMethod.phone)
+              : const SignUpOptions(authMethod: AuthMethod.phone),
         );
       },
     );
   }
 }
 
-class EmailAuthSubTitle extends StatelessWidget {
-  const EmailAuthSubTitle({super.key});
+class PhoneAuthSubTitle extends StatelessWidget {
+  const PhoneAuthSubTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -149,12 +150,12 @@ class EmailAuthSubTitle extends StatelessWidget {
   }
 }
 
-class EmailAuthTitle extends StatelessWidget {
-  const EmailAuthTitle({super.key});
+class PhoneAuthTitle extends StatelessWidget {
+  const PhoneAuthTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -162,10 +163,10 @@ class EmailAuthTitle extends StatelessWidget {
         String message;
         switch (state.status) {
           case AuthenticationStatus.initial:
-            message = AuthMethod.email.optionsText(state.authProcedure);
+            message = AuthMethod.phone.optionsText(state.authProcedure);
             break;
           case AuthenticationStatus.error:
-            message = 'Oops, Something’s wrong with your email';
+            message = 'Oops, Something’s wrong with your number';
             break;
           case AuthenticationStatus.success:
             message = 'Success';
@@ -187,12 +188,12 @@ class EmailAuthTitle extends StatelessWidget {
   }
 }
 
-class EmailVerificationTitle extends StatelessWidget {
-  const EmailVerificationTitle({super.key});
+class PhoneVerificationTitle extends StatelessWidget {
+  const PhoneVerificationTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailVerificationBloc, EmailVerificationState>(
+    return BlocBuilder<PhoneVerificationBloc, PhoneVerificationState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -210,7 +211,7 @@ class EmailVerificationTitle extends StatelessWidget {
           case AuthenticationStatus.success:
             title = state.authProcedure == AuthProcedure.login
                 ? "Login successful"
-                : "Your email has been verified";
+                : "Your phone number has been verified";
             break;
         }
 
@@ -229,12 +230,12 @@ class EmailVerificationTitle extends StatelessWidget {
   }
 }
 
-class EmailVerificationSubTitle extends StatelessWidget {
-  const EmailVerificationSubTitle({super.key});
+class PhoneVerificationSubTitle extends StatelessWidget {
+  const PhoneVerificationSubTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailVerificationBloc, EmailVerificationState>(
+    return BlocBuilder<PhoneVerificationBloc, PhoneVerificationState>(
       buildWhen: (previous, current) {
         return previous.status != current.status;
       },
@@ -243,7 +244,7 @@ class EmailVerificationSubTitle extends StatelessWidget {
         switch (state.status) {
           case AuthenticationStatus.initial:
             subtitle =
-                "Enter the 6 digits code sent to\n${state.emailAuthModel.emailAddress}";
+                "Enter the 6 digits code sent to\n${state.phoneAuthModel.phoneNumber}";
             break;
           case AuthenticationStatus.error:
             subtitle = 'Sure you read it correctly? Pro Tip: Copy & Paste';
@@ -270,19 +271,19 @@ class EmailVerificationSubTitle extends StatelessWidget {
   }
 }
 
-class EmailVerificationCodeCountDown extends StatefulWidget {
-  const EmailVerificationCodeCountDown({super.key});
+class PhoneVerificationCodeCountDown extends StatefulWidget {
+  const PhoneVerificationCodeCountDown({super.key});
 
   @override
-  State<EmailVerificationCodeCountDown> createState() =>
-      _EmailVerificationCodeCountDownState();
+  State<PhoneVerificationCodeCountDown> createState() =>
+      _PhoneVerificationCodeCountDownState();
 }
 
-class _EmailVerificationCodeCountDownState
-    extends State<EmailVerificationCodeCountDown> {
+class _PhoneVerificationCodeCountDownState
+    extends State<PhoneVerificationCodeCountDown> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EmailVerificationBloc, EmailVerificationState>(
+    return BlocBuilder<PhoneVerificationBloc, PhoneVerificationState>(
       builder: (context, state) {
         if (state.status == AuthenticationStatus.success) {
           return const SizedBox.shrink();
@@ -321,24 +322,39 @@ class _EmailVerificationCodeCountDownState
   }
 
   Future<void> _resendAuthCode() async {
-    final hasConnection = await hasNetworkConnection();
-    if (!mounted) return;
+    context.read<PhoneVerificationBloc>().add(const SetPhoneVerificationStatus(
+          AuthenticationStatus.initial,
+        ));
 
-    if (!hasConnection) {
-      showSnackBar(context, 'Check your internet connection');
+    final hasConnection = await hasNetworkConnection();
+
+    if (!mounted) {
       return;
     }
+
+    if (!hasConnection) {
+      showSnackBar(context, "No Internet connection");
+      return;
+    }
+    final phoneAuthModel =
+        context.read<PhoneVerificationBloc>().state.phoneAuthModel;
+
     loadingScreen(context);
 
-    try {
-      EmailAuthModel emailAuthModel =
-          context.read<EmailVerificationBloc>().state.emailAuthModel;
-
-      await AirqoApiClient()
-          .sendEmailVerificationCode(emailAuthModel.emailAddress)
-          .then((emailAuthModel) async {
-        Navigator.pop(context);
-        if (emailAuthModel == null) {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneAuthModel.phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        try {
+          final bool success = await CustomAuth.firebaseSignIn(credential);
+          if (!mounted) return;
+          Navigator.pop(context);
+          if (success) {
+            context.read<PhoneVerificationBloc>().add(
+                const SetPhoneVerificationStatus(AuthenticationStatus.success));
+            await AppService.postSignInActions(context);
+          }
+        } catch (exception, stackTrace) {
+          Navigator.pop(context);
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
@@ -346,26 +362,43 @@ class _EmailVerificationCodeCountDownState
               return const AuthFailureDialog();
             },
           );
-        } else {
-          context.read<EmailVerificationBloc>().add(InitializeEmailVerification(
-                emailAuthModel: emailAuthModel,
-                authProcedure:
-                    context.read<EmailVerificationBloc>().state.authProcedure,
-              ));
-          _startCodeSentCountDown();
+          await logException(exception, stackTrace);
         }
-      });
-    } catch (exception, stackTrace) {
-      Navigator.pop(context);
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext _) {
-          return const AuthFailureDialog();
-        },
-      );
-      await logException(exception, stackTrace);
-    }
+      },
+      verificationFailed: (FirebaseAuthException exception) async {
+        Navigator.pop(context);
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext _) {
+            return const AuthFailureDialog();
+          },
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        PhoneAuthModel phoneAuthModel =
+            context.read<PhoneVerificationBloc>().state.phoneAuthModel;
+        phoneAuthModel = phoneAuthModel.copyWith(
+          verificationId: verificationId,
+          resendToken: resendToken,
+        );
+        context.read<PhoneVerificationBloc>().add(InitializePhoneVerification(
+              phoneAuthModel: phoneAuthModel,
+              authProcedure:
+                  context.read<PhoneVerificationBloc>().state.authProcedure,
+            ));
+        _startCodeSentCountDown();
+      },
+      codeAutoRetrievalTimeout: (String _) {
+        Navigator.pop(context);
+      },
+      timeout: const Duration(seconds: 5),
+      forceResendingToken: context
+          .read<PhoneVerificationBloc>()
+          .state
+          .phoneAuthModel
+          .resendToken,
+    );
   }
 
   @override
@@ -380,10 +413,10 @@ class _EmailVerificationCodeCountDownState
       (Timer timer) {
         if (mounted) {
           final newCount =
-              context.read<EmailVerificationBloc>().state.codeCountDown - 1;
+              context.read<PhoneVerificationBloc>().state.codeCountDown - 1;
           context
-              .read<EmailVerificationBloc>()
-              .add(UpdateEmailVerificationCountDown(newCount));
+              .read<PhoneVerificationBloc>()
+              .add(UpdatePhoneVerificationCountDown(newCount));
           if (newCount == 0) {
             setState(() => timer.cancel());
           }

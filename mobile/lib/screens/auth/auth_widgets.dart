@@ -1,19 +1,17 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../home_page.dart';
 import '../email_authentication/email_auth_screen.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 
 class AuthOrSeparator extends StatelessWidget {
   const AuthOrSeparator({super.key});
@@ -138,186 +136,186 @@ class AuthSuccessWidget extends StatelessWidget {
   }
 }
 
-class PhoneInputField extends StatefulWidget {
-  const PhoneInputField({super.key});
-
-  @override
-  State<PhoneInputField> createState() => _PhoneInputFieldState();
-}
-
-class _PhoneInputFieldState extends State<PhoneInputField> {
-  late TextEditingController _phoneInputController;
-
-  @override
-  void dispose() {
-    _phoneInputController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _phoneInputController = TextEditingController();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      builder: (context, state) {
-        Color formColor;
-        Color fillColor;
-        Color textColor;
-        Color suffixIconColor;
-        Widget suffixIcon;
-
-        switch (state.status) {
-          case PhoneAuthStatus.initial:
-          case PhoneAuthStatus.verificationCodeSent:
-            if (state.fullPhoneNumber.isValidPhoneNumber()) {
-              formColor = CustomColors.appColorValid;
-              textColor = CustomColors.appColorValid;
-              suffixIconColor = CustomColors.appColorValid;
-              fillColor = CustomColors.appColorValid.withOpacity(0.05);
-              suffixIcon = const Padding(
-                padding: EdgeInsets.all(14),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                ),
-              );
-              break;
-            }
-
-            formColor = CustomColors.appColorBlue;
-            textColor = CustomColors.appColorBlack;
-            suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
-            fillColor = Colors.transparent;
-            suffixIcon = TextInputCloseButton(
-              color: suffixIconColor,
-            );
-
-            break;
-          case PhoneAuthStatus.error:
-          case PhoneAuthStatus.phoneNumberDoesNotExist:
-          case PhoneAuthStatus.phoneNumberTaken:
-          case PhoneAuthStatus.invalidPhoneNumber:
-            formColor = CustomColors.appColorInvalid;
-            textColor = CustomColors.appColorInvalid;
-            suffixIconColor = CustomColors.appColorInvalid;
-            fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
-            suffixIcon = TextInputCloseButton(
-              color: suffixIconColor,
-            );
-            break;
-          case PhoneAuthStatus.success:
-            formColor = CustomColors.appColorValid;
-            textColor = CustomColors.appColorValid;
-            suffixIconColor = CustomColors.appColorValid;
-            fillColor = CustomColors.appColorValid.withOpacity(0.05);
-            suffixIcon = const Padding(
-              padding: EdgeInsets.all(14),
-              child: Icon(
-                Icons.check_circle_rounded,
-              ),
-            );
-            break;
-        }
-
-        InputBorder inputBorder = OutlineInputBorder(
-          borderSide: BorderSide(color: formColor, width: 1.0),
-          borderRadius: BorderRadius.circular(8.0),
-        );
-
-        return Row(
-          children: [
-            SizedBox(
-              width: 64,
-              child: CountryCodePickerField(
-                valueChange: (code) {
-                  context.read<PhoneAuthBloc>().add(UpdateCountryCode(
-                        code ?? state.countryCode,
-                      ));
-                },
-                placeholder: state.countryCode,
-              ),
-            ),
-            const SizedBox(
-              width: 16,
-            ),
-            Expanded(
-              child: TextFormField(
-                controller: _phoneInputController,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'\d'),
-                  ),
-                  PhoneNumberInputFormatter(),
-                ],
-                onEditingComplete: () {
-                  FocusScope.of(context).requestFocus(
-                    FocusNode(),
-                  );
-                },
-                onChanged: (value) {
-                  context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
-                },
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(color: textColor),
-                enableSuggestions: false,
-                cursorWidth: 1,
-                autofocus: false,
-                cursorColor: formColor,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-                  iconColor: formColor,
-                  fillColor: fillColor,
-                  filled: true,
-                  focusedBorder: inputBorder,
-                  enabledBorder: inputBorder,
-                  border: inputBorder,
-                  suffixIconColor: formColor,
-                  hintText: '700 000 000',
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
-                    child: Text(
-                      '${state.countryCode} ',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: textColor,
-                          ),
-                    ),
-                  ),
-                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.32),
-                      ),
-                  prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.32),
-                      ),
-                  suffixIcon: GestureDetector(
-                    onTap: () {
-                      _phoneInputController.text = '';
-                      FocusScope.of(context).requestFocus(
-                        FocusNode(),
-                      );
-                      context
-                          .read<PhoneAuthBloc>()
-                          .add(const ClearPhoneNumberEvent());
-                    },
-                    child: suffixIcon,
-                  ),
-                  errorStyle: const TextStyle(
-                    fontSize: 0,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
+// class PhoneInputField extends StatefulWidget {
+//   const PhoneInputField({super.key});
+//
+//   @override
+//   State<PhoneInputField> createState() => _PhoneInputFieldState();
+// }
+//
+// class _PhoneInputFieldState extends State<PhoneInputField> {
+//   late TextEditingController _phoneInputController;
+//
+//   @override
+//   void dispose() {
+//     _phoneInputController.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _phoneInputController = TextEditingController();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
+//       builder: (context, state) {
+//         Color formColor;
+//         Color fillColor;
+//         Color textColor;
+//         Color suffixIconColor;
+//         Widget suffixIcon;
+//
+//         switch (state.status) {
+//           case PhoneAuthStatus.initial:
+//           case PhoneAuthStatus.verificationCodeSent:
+//             if (state.fullPhoneNumber.isValidPhoneNumber()) {
+//               formColor = CustomColors.appColorValid;
+//               textColor = CustomColors.appColorValid;
+//               suffixIconColor = CustomColors.appColorValid;
+//               fillColor = CustomColors.appColorValid.withOpacity(0.05);
+//               suffixIcon = const Padding(
+//                 padding: EdgeInsets.all(14),
+//                 child: Icon(
+//                   Icons.check_circle_rounded,
+//                 ),
+//               );
+//               break;
+//             }
+//
+//             formColor = CustomColors.appColorBlue;
+//             textColor = CustomColors.appColorBlack;
+//             suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
+//             fillColor = Colors.transparent;
+//             suffixIcon = TextInputCloseButton(
+//               color: suffixIconColor,
+//             );
+//
+//             break;
+//           case PhoneAuthStatus.error:
+//           case PhoneAuthStatus.phoneNumberDoesNotExist:
+//           case PhoneAuthStatus.phoneNumberTaken:
+//           case PhoneAuthStatus.invalidPhoneNumber:
+//             formColor = CustomColors.appColorInvalid;
+//             textColor = CustomColors.appColorInvalid;
+//             suffixIconColor = CustomColors.appColorInvalid;
+//             fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
+//             suffixIcon = TextInputCloseButton(
+//               color: suffixIconColor,
+//             );
+//             break;
+//           case PhoneAuthStatus.success:
+//             formColor = CustomColors.appColorValid;
+//             textColor = CustomColors.appColorValid;
+//             suffixIconColor = CustomColors.appColorValid;
+//             fillColor = CustomColors.appColorValid.withOpacity(0.05);
+//             suffixIcon = const Padding(
+//               padding: EdgeInsets.all(14),
+//               child: Icon(
+//                 Icons.check_circle_rounded,
+//               ),
+//             );
+//             break;
+//         }
+//
+//         InputBorder inputBorder = OutlineInputBorder(
+//           borderSide: BorderSide(color: formColor, width: 1.0),
+//           borderRadius: BorderRadius.circular(8.0),
+//         );
+//
+//         return Row(
+//           children: [
+//             SizedBox(
+//               width: 64,
+//               child: CountryCodePickerField(
+//                 valueChange: (code) {
+//                   context.read<PhoneAuthBloc>().add(UpdateCountryCode(
+//                         code ?? state.countryCode,
+//                       ));
+//                 },
+//                 placeholder: state.countryCode,
+//               ),
+//             ),
+//             const SizedBox(
+//               width: 16,
+//             ),
+//             Expanded(
+//               child: TextFormField(
+//                 controller: _phoneInputController,
+//                 inputFormatters: [
+//                   FilteringTextInputFormatter.allow(
+//                     RegExp(r'\d'),
+//                   ),
+//                   PhoneNumberInputFormatter(),
+//                 ],
+//                 onEditingComplete: () {
+//                   FocusScope.of(context).requestFocus(
+//                     FocusNode(),
+//                   );
+//                 },
+//                 onChanged: (value) {
+//                   context.read<PhoneAuthBloc>().add(UpdatePhoneNumber(value));
+//                 },
+//                 style: Theme.of(context)
+//                     .textTheme
+//                     .bodyLarge
+//                     ?.copyWith(color: textColor),
+//                 enableSuggestions: false,
+//                 cursorWidth: 1,
+//                 autofocus: false,
+//                 cursorColor: formColor,
+//                 keyboardType: TextInputType.number,
+//                 decoration: InputDecoration(
+//                   contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+//                   iconColor: formColor,
+//                   fillColor: fillColor,
+//                   filled: true,
+//                   focusedBorder: inputBorder,
+//                   enabledBorder: inputBorder,
+//                   border: inputBorder,
+//                   suffixIconColor: formColor,
+//                   hintText: '700 000 000',
+//                   prefixIcon: Padding(
+//                     padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
+//                     child: Text(
+//                       '${state.countryCode} ',
+//                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+//                             color: textColor,
+//                           ),
+//                     ),
+//                   ),
+//                   hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+//                         color: CustomColors.appColorBlack.withOpacity(0.32),
+//                       ),
+//                   prefixStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+//                         color: CustomColors.appColorBlack.withOpacity(0.32),
+//                       ),
+//                   suffixIcon: GestureDetector(
+//                     onTap: () {
+//                       _phoneInputController.text = '';
+//                       FocusScope.of(context).requestFocus(
+//                         FocusNode(),
+//                       );
+//                       context
+//                           .read<PhoneAuthBloc>()
+//                           .add(const ClearPhoneNumberEvent());
+//                     },
+//                     child: suffixIcon,
+//                   ),
+//                   errorStyle: const TextStyle(
+//                     fontSize: 0,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+// }
 
 class ChangeAuthCredentials extends StatelessWidget {
   const ChangeAuthCredentials(this.authMethod, {super.key});
@@ -337,6 +335,9 @@ class ChangeAuthCredentials extends StatelessWidget {
                   ));
               break;
             case AuthMethod.phone:
+              context.read<PhoneAuthBloc>().add(InitializePhoneAuth(
+                    context.read<PhoneAuthBloc>().state.authProcedure,
+                  ));
               break;
           }
           Navigator.of(context).popUntil((route) => route.isFirst);
@@ -495,86 +496,6 @@ class ChangeAuthCredentials extends StatelessWidget {
 //   }
 // }
 
-class AuthErrorMessage extends StatelessWidget {
-  const AuthErrorMessage(this.message, {super.key});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
-      child: SizedBox(
-        width: 230,
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icon/error_info_icon.svg',
-            ),
-            const SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: Text(
-                message,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: CustomColors.appColorInvalid,
-                      fontSize: 14,
-                    ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AuthSubTitle extends StatelessWidget {
-  const AuthSubTitle(this.message, {super.key});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-      child: AutoSizeText(
-        message,
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: CustomColors.appColorBlack.withOpacity(0.6),
-            ),
-      ),
-    );
-  }
-}
-
-class AuthTitle extends StatelessWidget {
-  const AuthTitle(this.message, {super.key});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
-      child: AutoSizeText(
-        message,
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: CustomTextStyle.headline7(context),
-      ),
-    );
-  }
-}
-
 class AuthSignUpButton extends StatelessWidget {
   const AuthSignUpButton({
     super.key,
@@ -605,8 +526,8 @@ class AuthSignUpButton extends StatelessWidget {
                           : const EmailSignUpScreen();
                     case AuthMethod.email:
                       return authProcedure == AuthProcedure.login
-                          ? const PhoneLoginWidget()
-                          : const PhoneSignUpWidget();
+                          ? const PhoneLoginScreen()
+                          : const PhoneSignUpScreen();
                   }
                 },
                 transitionsBuilder:
@@ -651,142 +572,6 @@ class AuthSignUpButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class SignUpOptions extends StatelessWidget {
-  const SignUpOptions({super.key, required this.authMethod});
-
-  final AuthMethod authMethod;
-
-  @override
-  Widget build(BuildContext context) {
-    final tween = Tween<double>(begin: 0, end: 1);
-
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  switch (authMethod) {
-                    case AuthMethod.phone:
-                      return const PhoneLoginWidget();
-                    case AuthMethod.email:
-                      return const EmailLoginScreen();
-                  }
-                },
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation.drive(tween),
-                    child: child,
-                  );
-                },
-              ),
-              (r) => false,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Already have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.6),
-                    ),
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Text(
-                'Log in',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        const ProceedAsGuest(),
-      ],
-    );
-  }
-}
-
-class LoginOptions extends StatelessWidget {
-  const LoginOptions({super.key, required this.authMethod});
-
-  final AuthMethod authMethod;
-
-  @override
-  Widget build(BuildContext context) {
-    final tween = Tween<double>(begin: 0, end: 1);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  switch (authMethod) {
-                    case AuthMethod.phone:
-                      return const PhoneSignUpWidget();
-                    case AuthMethod.email:
-                      return const EmailSignUpScreen();
-                  }
-                },
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation.drive(tween),
-                    child: child,
-                  );
-                },
-              ),
-              (r) => false,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Don’t have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.6),
-                    ),
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Text(
-                'Sign up',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        const ProceedAsGuest(),
-      ],
     );
   }
 }

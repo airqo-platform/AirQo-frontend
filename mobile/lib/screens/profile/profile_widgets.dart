@@ -16,10 +16,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../feedback/feedback_page.dart';
 import '../for_you_page.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
 
@@ -163,7 +163,7 @@ class SignUpButton extends StatelessWidget {
           await Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) {
-              return const PhoneSignUpWidget();
+              return const PhoneSignUpScreen();
             }),
             (r) => false,
           );
