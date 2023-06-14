@@ -22,6 +22,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
 
     if (profile.isAnonymous) {
       emit(profile);
+
       return;
     }
     profile = profile.copyWith(

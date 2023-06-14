@@ -182,6 +182,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
 
     if (authCredential == null) {
       showSnackBar(context, "Failed to delete account. Try again later");
+
       return;
     }
 
@@ -189,6 +190,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
       await CustomAuth.reAuthenticate(authCredential).then((success) async {
         if (!success) {
           showSnackBar(context, "Failed to re authenticate. Try again later");
+
           return;
         }
         await CustomAuth.deleteAccount().then((success) async {

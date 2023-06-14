@@ -314,6 +314,7 @@ class _PhoneVerificationCodeCountDownState
 
     if (!hasConnection) {
       showSnackBar(context, "No Internet connection");
+
       return;
     }
     final phoneAuthModel =
@@ -329,8 +330,11 @@ class _PhoneVerificationCodeCountDownState
           if (!mounted) return;
           Navigator.pop(context);
           if (success) {
-            context.read<PhoneVerificationBloc>().add(
-                const SetPhoneVerificationStatus(AuthenticationStatus.success));
+            context
+                .read<PhoneVerificationBloc>()
+                .add(const SetPhoneVerificationStatus(
+                  AuthenticationStatus.success,
+                ));
             await AppService.postSignInActions(context);
           }
         } catch (exception, stackTrace) {

@@ -112,8 +112,10 @@ class _PhoneAuthVerificationWidgetState
                           state.status,
                           optField: true,
                         ),
-                        decoration: optInputDecoration(state.status,
-                            codeSent: state.codeCountDown <= 0),
+                        decoration: optInputDecoration(
+                          state.status,
+                          codeSent: state.codeCountDown <= 0,
+                        ),
                       ),
                     ),
                   ),
@@ -205,8 +207,11 @@ class _PhoneAuthVerificationWidgetState
       Navigator.pop(context);
 
       if (success) {
-        context.read<PhoneVerificationBloc>().add(
-            const SetPhoneVerificationStatus(AuthenticationStatus.success));
+        context
+            .read<PhoneVerificationBloc>()
+            .add(const SetPhoneVerificationStatus(
+              AuthenticationStatus.success,
+            ));
         await AppService.postSignInActions(context);
       } else {
         await showDialog<void>(

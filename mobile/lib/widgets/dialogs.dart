@@ -455,6 +455,7 @@ class AuthFailureDialog extends StatelessWidget {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
         showSnackBar(context, "No internet connection");
+
         return;
       }
       loadingScreen(context);

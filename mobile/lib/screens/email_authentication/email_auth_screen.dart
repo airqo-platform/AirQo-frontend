@@ -79,6 +79,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                           if (value == null || !value.isValidEmail()) {
                             return 'Please enter a valid email';
                           }
+
                           return null;
                         },
                         onChanged: (value) {
@@ -93,11 +94,14 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                         autofocus: false,
                         enabled: state.status != AuthenticationStatus.success,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: inputDecoration(state.status,
-                            hintText: 'me@company.com', suffixIconCallback: () {
-                          _formKey.currentState?.reset();
-                          FocusScope.of(context).requestFocus(FocusNode());
-                        }),
+                        decoration: inputDecoration(
+                          state.status,
+                          hintText: 'me@company.com',
+                          suffixIconCallback: () {
+                            _formKey.currentState?.reset();
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          },
+                        ),
                       );
                     },
                   ),
@@ -162,6 +166,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Check your internet connection',
           ));
+
       return;
     }
 
@@ -201,6 +206,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
           return const AuthFailureDialog();
         },
       );
+
       return;
     }
 
@@ -212,6 +218,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Email not found. Did you sign up?',
           ));
+
       return;
     }
 
@@ -221,6 +228,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Email already registered. Please log in',
           ));
+
       return;
     }
 
@@ -240,6 +248,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
           return const AuthFailureDialog();
         },
       );
+
       return;
     }
 

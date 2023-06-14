@@ -305,6 +305,7 @@ class _EmailVerificationCodeCountDownState
 
     if (!hasConnection) {
       showSnackBar(context, 'Check your internet connection');
+
       return;
     }
     loadingScreen(context);

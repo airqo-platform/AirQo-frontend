@@ -345,7 +345,10 @@ class DeleteAccountButton extends StatelessWidget {
                 Navigator.pop(context);
                 if (emailAuthModel == null) {
                   showSnackBar(
-                      context, "Can't delete account now. Try again later");
+                    context,
+                    "Can't delete account now. Try again later",
+                  );
+
                   return;
                 }
                 await openDeleteAccountScreen(
@@ -357,7 +360,8 @@ class DeleteAccountButton extends StatelessWidget {
               loadingScreen(context);
               await FirebaseAuth.instance.verifyPhoneNumber(
                 phoneNumber: profile.phoneNumber,
-                verificationCompleted: (PhoneAuthCredential _) {},
+                verificationCompleted: (PhoneAuthCredential
+                    _) {}, // ignore: no-empty-block not used
                 verificationFailed: (FirebaseAuthException exception) async {
                   Navigator.pop(context);
                   final firebaseAuthError =
@@ -368,8 +372,9 @@ class DeleteAccountButton extends StatelessWidget {
                   if (firebaseAuthError ==
                       FirebaseAuthError.invalidPhoneNumber) {
                     context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
-                        AuthenticationStatus.error,
-                        errorMessage: "Invalid Phone number"));
+                          AuthenticationStatus.error,
+                          errorMessage: "Invalid Phone number",
+                        ));
                   } else {
                     await showDialog<void>(
                       context: context,
@@ -382,14 +387,16 @@ class DeleteAccountButton extends StatelessWidget {
                 },
                 codeSent: (String verificationId, int? resendToken) async {
                   PhoneAuthModel phoneAuthModel = PhoneAuthModel(
-                      profile.phoneNumber,
-                      verificationId: verificationId);
+                    profile.phoneNumber,
+                    verificationId: verificationId,
+                  );
                   await openDeleteAccountScreen(
                     context,
                     phoneAuthModel: phoneAuthModel,
                   );
                 },
-                codeAutoRetrievalTimeout: (String _) {},
+                codeAutoRetrievalTimeout:
+                    (String _) {}, // ignore: no-empty-block not used
                 timeout: const Duration(seconds: 15),
               );
             }

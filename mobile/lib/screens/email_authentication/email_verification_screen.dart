@@ -95,9 +95,11 @@ class _EmailAuthVerificationWidgetState
                             }
 
                             if (error != null) {
-                              context.read<EmailVerificationBloc>().add(
-                                  const SetEmailVerificationStatus(
-                                      AuthenticationStatus.error));
+                              context
+                                  .read<EmailVerificationBloc>()
+                                  .add(const SetEmailVerificationStatus(
+                                    AuthenticationStatus.error,
+                                  ));
                             }
 
                             return error;
@@ -215,8 +217,11 @@ class _EmailAuthVerificationWidgetState
       Navigator.pop(context);
 
       if (authenticationSuccessful) {
-        context.read<EmailVerificationBloc>().add(
-            const SetEmailVerificationStatus(AuthenticationStatus.success));
+        context
+            .read<EmailVerificationBloc>()
+            .add(const SetEmailVerificationStatus(
+              AuthenticationStatus.success,
+            ));
         await AppService.postSignInActions(context);
       } else {
         await showDialog<void>(

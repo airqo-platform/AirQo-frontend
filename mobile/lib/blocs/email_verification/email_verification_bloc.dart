@@ -40,7 +40,9 @@ class EmailVerificationBloc
     InitializeEmailVerification event,
     Emitter<EmailVerificationState> emit,
   ) {
-    return emit(
-        EmailVerificationState(event.emailAuthModel, event.authProcedure));
+    return emit(EmailVerificationState(
+      event.emailAuthModel,
+      event.authProcedure,
+    ));
   }
 }

@@ -358,184 +358,195 @@ ThemeData customTheme() {
   /// CustomTextStyle.headline10(context)
 
   return base.copyWith(
-      primaryColor: Colors.white,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      textTheme: TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 80.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 88.0 / 80.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        displayMedium: TextStyle(
-          fontSize: 64.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 72.0 / 64.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        displaySmall: TextStyle(
-          fontSize: 56.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 64.0 / 56.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 48.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 56.0 / 48.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 40.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 48.0 / 40.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 32.0,
-          fontWeight: FontWeight.w700,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 40.0 / 32.0,
-          letterSpacing: 16 * -0.01,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 24.0 / 16.0,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 18.0 / 14.0,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12.0,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 16.0 / 12.0,
-        ),
-        labelSmall: TextStyle(
-          fontSize: 8.0,
-          fontWeight: FontWeight.w500,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 12.0 / 8.0,
-          letterSpacing: 16 * -0.24,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.normal,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 24.0 / 16.0,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 18.0 / 14.0,
-        ),
-      ).apply(
-        fontFamily: GoogleFonts.inter().fontFamily,
-        bodyColor: CustomColors.appColorBlack,
-        displayColor: CustomColors.appColorBlack,
-      ),
-      primaryTextTheme: ThemeData.light().textTheme.apply(
-            fontFamily: GoogleFonts.inter().fontFamily,
-            bodyColor: CustomColors.appColorBlack,
-            displayColor: CustomColors.appColorBlack,
-          ),
-      iconTheme: IconThemeData(
+    primaryColor: Colors.white,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    textTheme: TextTheme(
+      displayLarge: TextStyle(
+        fontSize: 80.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
         color: CustomColors.appColorBlack,
+        height: 88.0 / 80.0,
+        letterSpacing: 16 * -0.01,
       ),
-      appBarTheme: const AppBarTheme(
-        elevation: 0.0,
+      displayMedium: TextStyle(
+        fontSize: 64.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 72.0 / 64.0,
+        letterSpacing: 16 * -0.01,
       ),
-      extensions: <ThemeExtension<dynamic>>[
-        AppColors(
-          appBodyColor: const Color(0xffF2F1F6),
-          appColorBlack: const Color(0xff121723),
-          appColorBlue: const Color(0xff145DFF),
-          appColorDisabled: const Color(0xff145DFF).withOpacity(0.5),
-          appLoadingColor: const Color(0xffEBEAEF),
-          appPicColor: const Color(0xffFF79C1),
-          greyColor: const Color(0xffD1D3D9),
-          snackBarBgColor: const Color(0xff121723).withOpacity(0.8),
-          toolTipGreyColor: Colors.white.withOpacity(0.32),
-          inactiveColor: const Color(0xff121723).withOpacity(0.4),
-          pollutantToggleBgColor: const Color(0xffF5F8FF),
-          darkGreyColor: const Color(0xffADAFB6),
+      displaySmall: TextStyle(
+        fontSize: 56.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 64.0 / 56.0,
+        letterSpacing: 16 * -0.01,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 48.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 56.0 / 48.0,
+        letterSpacing: 16 * -0.01,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 40.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 48.0 / 40.0,
+        letterSpacing: 16 * -0.01,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 32.0,
+        fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 40.0 / 32.0,
+        letterSpacing: 16 * -0.01,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16.0,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 24.0 / 16.0,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14.0,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 18.0 / 14.0,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12.0,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 16.0 / 12.0,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 8.0,
+        fontWeight: FontWeight.w500,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 12.0 / 8.0,
+        letterSpacing: 16 * -0.24,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 24.0 / 16.0,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 14.0,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 18.0 / 14.0,
+      ),
+    ).apply(
+      fontFamily: GoogleFonts.inter().fontFamily,
+      bodyColor: CustomColors.appColorBlack,
+      displayColor: CustomColors.appColorBlack,
+    ),
+    primaryTextTheme: ThemeData.light().textTheme.apply(
+          fontFamily: GoogleFonts.inter().fontFamily,
+          bodyColor: CustomColors.appColorBlack,
+          displayColor: CustomColors.appColorBlack,
         ),
-        const AqiColors(
-          aqiGreen: Color(0xff3AFF38),
-          aqiGreenTextColor: Color(0xff03B600),
-          aqiYellow: Color(0xffFFFF35),
-          aqiYellowTextColor: Color(0xffA8A800),
-          aqiOrange: Color(0xffFE9E35),
-          aqiOrangeTextColor: Color(0xffB86000),
-          aqiRed: Color(0xffFF4034),
-          aqiRedTextColor: Color(0xffB80B00),
-          aqiPurple: Color(0xFFDD38FF),
-          aqiPurpleTextColor: Color(0xff8E00AC),
-          aqiMaroon: Color(0xffA51F3F),
-          aqiMaroonTextColor: Color(0xffDBA5B2),
+    iconTheme: IconThemeData(
+      color: CustomColors.appColorBlack,
+    ),
+    appBarTheme: const AppBarTheme(
+      elevation: 0.0,
+    ),
+    extensions: <ThemeExtension<dynamic>>[
+      AppColors(
+        appBodyColor: const Color(0xffF2F1F6),
+        appColorBlack: const Color(0xff121723),
+        appColorBlue: const Color(0xff145DFF),
+        appColorDisabled: const Color(0xff145DFF).withOpacity(0.5),
+        appLoadingColor: const Color(0xffEBEAEF),
+        appPicColor: const Color(0xffFF79C1),
+        greyColor: const Color(0xffD1D3D9),
+        snackBarBgColor: const Color(0xff121723).withOpacity(0.8),
+        toolTipGreyColor: Colors.white.withOpacity(0.32),
+        inactiveColor: const Color(0xff121723).withOpacity(0.4),
+        pollutantToggleBgColor: const Color(0xffF5F8FF),
+        darkGreyColor: const Color(0xffADAFB6),
+      ),
+      const AqiColors(
+        aqiGreen: Color(0xff3AFF38),
+        aqiGreenTextColor: Color(0xff03B600),
+        aqiYellow: Color(0xffFFFF35),
+        aqiYellowTextColor: Color(0xffA8A800),
+        aqiOrange: Color(0xffFE9E35),
+        aqiOrangeTextColor: Color(0xffB86000),
+        aqiRed: Color(0xffFF4034),
+        aqiRedTextColor: Color(0xffB80B00),
+        aqiPurple: Color(0xFFDD38FF),
+        aqiPurpleTextColor: Color(0xff8E00AC),
+        aqiMaroon: Color(0xffA51F3F),
+        aqiMaroonTextColor: Color(0xffDBA5B2),
+      ),
+    ],
+    inputDecorationTheme: ThemeData.light().inputDecorationTheme.copyWith(
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+          filled: true,
+          hintStyle: ThemeData.light().textTheme.bodyLarge?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.32),
+              ),
+          prefixStyle: ThemeData.light().textTheme.bodyLarge?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.32),
+              ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: CustomColors.greyColor.withOpacity(0.7),
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: CustomColors.greyColor.withOpacity(0.7),
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: CustomColors.greyColor.withOpacity(0.7),
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: CustomColors.appColorInvalid,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: CustomColors.appColorInvalid,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          errorStyle: const TextStyle(
+            fontSize: 0,
+          ),
         ),
-      ],
-      inputDecorationTheme: ThemeData.light().inputDecorationTheme.copyWith(
-            contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-            filled: true,
-            hintStyle: ThemeData.light().textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            prefixStyle: ThemeData.light().textTheme.bodyLarge?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: CustomColors.greyColor.withOpacity(0.7), width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: CustomColors.greyColor.withOpacity(0.7), width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: CustomColors.greyColor.withOpacity(0.7), width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorInvalid, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: CustomColors.appColorInvalid, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            errorStyle: const TextStyle(
-              fontSize: 0,
-            ),
-          ));
+  );
 }
 
 class CustomTextStyle {
@@ -836,8 +847,10 @@ InputDecoration optInputDecoration(
   );
 }
 
-TextStyle? inputTextStyle(AuthenticationStatus authStatus,
-    {bool optField = false}) {
+TextStyle? inputTextStyle(
+  AuthenticationStatus authStatus, {
+  bool optField = false,
+}) {
   TextStyle? textStyle = customTheme().textTheme.bodyLarge;
   if (optField) {
     textStyle = textStyle?.copyWith(

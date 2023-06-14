@@ -82,10 +82,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                             width: 64,
                             child: CountryCodePickerField(
                               valueChange: (code) {
-                                setState(() =>
-                                    phoneNumber[0] = code ?? phoneNumber[0]);
+                                setState(() => phoneNumber.first =
+                                    code ?? phoneNumber.first);
                               },
-                              placeholder: phoneNumber[0],
+                              placeholder: phoneNumber.first,
                               status: state.status,
                             ),
                           ),
@@ -102,8 +102,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                         AuthenticationStatus.error,
                                         errorMessage: "Invalid Phone number",
                                       ));
+
                                   return '';
                                 }
+
                                 return null;
                               },
                               onChanged: (value) {
@@ -124,14 +126,16 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                               enabled:
                                   state.status != AuthenticationStatus.success,
                               keyboardType: TextInputType.number,
-                              decoration: inputDecoration(state.status,
-                                  hintText: '700 000 000',
-                                  prefixText: phoneNumber[0],
-                                  suffixIconCallback: () {
-                                _formKey.currentState?.reset();
-                                FocusScope.of(context)
-                                    .requestFocus(FocusNode());
-                              }),
+                              decoration: inputDecoration(
+                                state.status,
+                                hintText: '700 000 000',
+                                prefixText: phoneNumber.first,
+                                suffixIconCallback: () {
+                                  _formKey.currentState?.reset();
+                                  FocusScope.of(context)
+                                      .requestFocus(FocusNode());
+                                },
+                              ),
                             ),
                           ),
                         ],
@@ -263,6 +267,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Check your internet connection',
           ));
+
       return;
     }
 
@@ -303,6 +308,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
           return const AuthFailureDialog();
         },
       );
+
       return;
     }
 
@@ -314,6 +320,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Phone number not found. Did you sign up?',
           ));
+
       return;
     }
 
@@ -323,6 +330,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
             AuthenticationStatus.error,
             errorMessage: 'Phone number already registered. Please log in',
           ));
+
       return;
     }
 
@@ -345,8 +353,9 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
 
         if (firebaseAuthError == FirebaseAuthError.invalidPhoneNumber) {
           context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
-              AuthenticationStatus.error,
-              errorMessage: "Invalid Phone number"));
+                AuthenticationStatus.error,
+                errorMessage: "Invalid Phone number",
+              ));
         } else {
           await showDialog<void>(
             context: context,
@@ -355,9 +364,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
               return const AuthFailureDialog();
             },
           );
+          await logException(exception, null);
         }
       },
-      codeSent: (String verificationId, int? resendToken) async {
+      codeSent: (String verificationId, int? resendToken) {
         setState(() => phoneAuthModel = phoneAuthModel.copyWith(
               verificationId: verificationId,
               phoneNumber: fullPhoneNumber,
