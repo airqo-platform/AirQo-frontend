@@ -27,6 +27,7 @@ on:
 env:
   REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
+  DEPLOY_BRANCH: staging
 
 jobs:
   image-tag:
@@ -100,7 +101,8 @@ jobs:
             valueFile: "k8s/netmanager/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update netmanger production image tag to ${{ needs.image-tag.outputs.build_id }}"
             createPR: false
 
@@ -250,7 +252,8 @@ jobs:
             valueFile: "k8s/calibrate/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -308,7 +311,8 @@ jobs:
             valueFile: "k8s/platform/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -355,5 +359,6 @@ jobs:
             valueFile: "k8s/docs/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
