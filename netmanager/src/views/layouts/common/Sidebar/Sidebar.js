@@ -199,8 +199,12 @@ const Sidebar = (props) => {
         localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
         if (isEmpty(activeNetwork)) {
-          localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
-          dispatch(addActiveNetwork(res.users[0].networks[0]));
+          res.users[0].networks.map((network) => {
+            if (network.net_name === 'airqo') {
+              localStorage.setItem('activeNetwork', JSON.stringify(network));
+              dispatch(addActiveNetwork(network));
+            }
+          });
         }
 
         getRoleDetailsApi(res.users[0].role._id)
