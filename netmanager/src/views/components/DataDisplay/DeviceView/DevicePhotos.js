@@ -46,7 +46,7 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
   );
 };
 
-const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
+const Img = ({ src, uploadOptions, setDelState, setPreviewState, fetchImages }) => {
   const { upload, deviceName, deviceId } = uploadOptions || {
     upload: false,
     deviceName: '',
@@ -119,9 +119,8 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
       );
       closeLoader();
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 1300);
+      // calling the fetch image function
+      fetchImages();
     } catch (err) {
       handleError(err);
     }
@@ -170,59 +169,42 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
 export default function DevicePhotos({ deviceData }) {
   const dispatch = useDispatch();
   const [images, setImages] = useState([]);
-  const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
     open: false,
     url: null,
     id: null
   });
-  const [photoPreview, setPhotoPreview] = useState({
-    open: false,
-    url: null
-  });
   const maxNumber = 69;
 
+  // loading device photos from the server
   const loadDevicePhotos = async () => {
-    await getDevicePhotos(deviceData._id)
-      .then((responseData) => {
-        const photosList = responseData.photos;
-        setImages(photosList);
-      })
-      .catch((err) => {
-        dispatch(
-          updateMainAlert({
-            message: 'Unable to load images',
-            show: true,
-            severity: 'error'
-          })
-        );
-      });
-  };
-
-  useEffect(() => {
-    if (!isEmpty(deviceData)) {
-      if (isEmpty(images)) {
-        loadDevicePhotos();
-      }
+    try {
+      const responseData = await getDevicePhotos(deviceData._id);
+      setImages(responseData.photos);
+    } catch (err) {
+      dispatch(
+        updateMainAlert({
+          message: 'Unable to load images',
+          show: true,
+          severity: 'error'
+        })
+      );
     }
-  }, [images, deviceData]);
-
-  const onChange = async (imageFiles) => {
-    const uploadImages = [];
-    imageFiles.map((imageFile) => uploadImages.push(imageFile.data_url));
-    setImages([...images, ...newImages]);
-    setNewImages([]);
-    setNewImages(uploadImages);
   };
 
   // this will handle the deletion of the image
   const handlePictureDeletion = async () => {
-    await setPhotoDelState({ ...photoDelState, open: false });
+    setPhotoDelState({ ...photoDelState, open: false });
+
     if (photoDelState.url) {
       try {
         const responseData = await deleteDevicePhotos(photoDelState.id, [photoDelState.url]);
-        setImages((responseData.updatedDevice && responseData.updatedDevice.pictures) || []);
-        setNewImages([]);
+
+        // updating the images state by removing the deleted image from the array
+        setImages((prevImages) => prevImages.filter((img) => img !== photoDelState.url));
+
+        loadDevicePhotos();
+
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -231,15 +213,15 @@ export default function DevicePhotos({ deviceData }) {
           })
         );
       } catch (err) {
-        const errors = err.response.data.message;
         dispatch(
           updateMainAlert({
-            message: errors,
+            message: err.response.data.message,
             show: true,
             severity: 'error'
           })
         );
       }
+
       setPhotoDelState({
         open: false,
         url: null,
@@ -248,51 +230,40 @@ export default function DevicePhotos({ deviceData }) {
     }
   };
 
-  // this will render the images
-  function renderImages(images, isNew) {
-    // creating a Set object to store unique image URLs to avoid the same image being rendered twice on the screen
-    const imageSet = new Set();
-
-    // looping over the images array and adding the URLs to the Set object
-    for (let image of images) {
-      if (isNew) {
-        imageSet.add(image);
-      } else {
-        imageSet.add({ url: image.image_url, _id: image._id });
-      }
+  useEffect(() => {
+    if (!isEmpty(deviceData)) {
+      loadDevicePhotos();
     }
+  }, [deviceData]);
 
+  // handling image upload from the user
+  const onChange = async (imageFiles) => {
+    const uploadImages = imageFiles.map((imageFile) => imageFile.data_url);
+    setImages([...images, ...uploadImages]);
+  };
+
+  // rendering the images in a gallery
+  function renderImages(images) {
+    const imageSet = new Set(images);
     return (
       imageSet.size > 0 && (
         <div style={galleryContainerStyles}>
-          {isNew && <div style={{ width: '100%', color: 'blue' }}>New Image(s)</div>}
-          {!isNew && imageSet.size > 0 && (
-            <div style={{ width: '100%', color: 'blue' }}>Old Image(s)</div>
-          )}
           {[...imageSet].map((src, index) => (
             <Img
-              src={src.url || src}
-              uploadOptions={
-                isNew
-                  ? {
-                      upload: true,
-                      deviceName: deviceData.name,
-                      deviceId: deviceData._id
-                    }
-                  : null
+              fetchImages={loadDevicePhotos}
+              src={src.image_url || src}
+              uploadOptions={{
+                upload: !src.image_url,
+                deviceName: deviceData.name,
+                deviceId: deviceData._id
+              }}
+              setDelState={() =>
+                setPhotoDelState({
+                  open: true,
+                  url: src.image_url,
+                  id: src._id
+                })
               }
-              setDelState={
-                isNew
-                  ? setPhotoDelState
-                  : () => {
-                      setPhotoDelState({
-                        open: true,
-                        url: src.url,
-                        id: src._id
-                      });
-                    }
-              }
-              setPreviewState={setPhotoPreview}
               key={index}
             />
           ))}
@@ -322,8 +293,13 @@ export default function DevicePhotos({ deviceData }) {
           </div>
         )}
       </ImageUploading>
-      {renderImages(newImages, true)}
-      {renderImages(images, false)}
+      <h4 style={{ textAlign: 'center', fontWeight: 'bold' }}>
+        {deviceData && deviceData?.name
+          ? deviceData?.name?.charAt(0).toUpperCase() + deviceData?.name?.slice(1) + ' ' + 'Uploads'
+          : ' '}
+      </h4>
+      {/* rendering the images */}
+      {images.length > 0 ? renderImages(images) : <p>No available uploads</p>}
       <ConfirmDialog
         open={photoDelState.open}
         title={'Delete photo?'}
@@ -337,11 +313,6 @@ export default function DevicePhotos({ deviceData }) {
         }
         confirm={handlePictureDeletion}
         error
-      />
-      <ImagePreview
-        open={photoPreview.open}
-        src={photoPreview.url}
-        close={() => setPhotoPreview({ open: false, url: null })}
       />
     </div>
   );
