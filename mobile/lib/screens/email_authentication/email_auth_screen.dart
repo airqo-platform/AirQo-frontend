@@ -161,7 +161,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _sendAuthCode() async {
-    FocusScope.of(context).requestFocus(FocusNode());
     context.read<EmailAuthBloc>().add(const SetEmailAuthStatus(
           AuthenticationStatus.initial,
         ));
@@ -191,11 +190,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
       },
     );
 
-    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
-      return;
-    }
-
-    if (!mounted) {
+    if (confirmation == null || confirmation == ConfirmationAction.cancel || !mounted) {
       return;
     }
 

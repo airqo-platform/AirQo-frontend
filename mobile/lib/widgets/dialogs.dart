@@ -452,17 +452,23 @@ class AuthFailureDialog extends StatelessWidget {
   }
 
   Future<void> _guestSignIn(BuildContext context) async {
-    loadingScreen(context);
-    await CustomAuth.guestSignIn().then((success) async {
-      await AppService.postSignInActions(context).then((_) async {
-        Navigator.pop(context);
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }),
-          (r) => true,
-        );
+    await hasNetworkConnection().then((hasConnection) async {
+      if (!hasConnection) {
+        showSnackBar(context, "No internet connection");
+        return;
+      }
+      loadingScreen(context);
+      await CustomAuth.guestSignIn().then((success) async {
+        await AppService.postSignInActions(context).then((_) async {
+          Navigator.pop(context);
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) {
+              return const HomePage();
+            }),
+                (r) => true,
+          );
+        });
       });
     });
   }
