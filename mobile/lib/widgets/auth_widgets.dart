@@ -93,15 +93,18 @@ class ProceedAsGuest extends StatelessWidget {
 
       await CustomAuth.guestSignIn().then((success) async {
         if (success) {
-          await AppService.postSignInActions(context).then((_) async {
-            Navigator.pop(context);
-            await Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }),
-              (r) => true,
-            );
+          await AppService.postSignOutActions(context, log: false)
+              .then((_) async {
+            await AppService.postSignInActions(context).then((_) async {
+              Navigator.pop(context);
+              await Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) {
+                  return const HomePage();
+                }),
+                (r) => true,
+              );
+            });
           });
         } else {
           Navigator.pop(context);

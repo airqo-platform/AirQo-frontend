@@ -1,4 +1,5 @@
 import 'package:app/models/enum_constants.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -691,22 +692,49 @@ class CustomTextStyle {
   }
 }
 
-InputDecorationTheme inputDecorationTheme(AuthenticationStatus authStatus) {
+InputDecoration inputDecoration(
+  AuthenticationStatus authStatus, {
+  required String hintText,
+  required Function() suffixIconCallback,
+  String? prefixText,
+}) {
   Color formColor;
   Color fillColor;
+  Color textColor;
+  Color suffixIconColor;
+  Widget suffixIcon;
 
   switch (authStatus) {
     case AuthenticationStatus.initial:
       formColor = CustomColors.appColorBlue;
+      textColor = CustomColors.appColorBlack;
+      suffixIconColor = CustomColors.greyColor.withOpacity(0.7);
       fillColor = Colors.transparent;
+      suffixIcon = TextInputCloseButton(
+        color: suffixIconColor,
+      );
+
       break;
     case AuthenticationStatus.error:
       formColor = CustomColors.appColorInvalid;
+      textColor = CustomColors.appColorInvalid;
+      suffixIconColor = CustomColors.appColorInvalid;
       fillColor = CustomColors.appColorInvalid.withOpacity(0.1);
+      suffixIcon = TextInputCloseButton(
+        color: suffixIconColor,
+      );
       break;
     case AuthenticationStatus.success:
       formColor = CustomColors.appColorValid;
+      textColor = CustomColors.appColorValid;
+      suffixIconColor = CustomColors.appColorValid;
       fillColor = CustomColors.appColorValid.withOpacity(0.05);
+      suffixIcon = const Padding(
+        padding: EdgeInsets.all(14),
+        child: Icon(
+          Icons.check_circle_rounded,
+        ),
+      );
       break;
   }
 
@@ -715,23 +743,116 @@ InputDecorationTheme inputDecorationTheme(AuthenticationStatus authStatus) {
     borderRadius: BorderRadius.circular(8.0),
   );
 
-  return customTheme().inputDecorationTheme.copyWith(
-        contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-        iconColor: formColor,
-        fillColor: fillColor,
-        filled: true,
-        focusedBorder: inputBorder,
-        enabledBorder: inputBorder,
-        border: inputBorder,
-        suffixIconColor: formColor,
-        hintStyle: customTheme().textTheme.bodyLarge?.copyWith(
-              color: CustomColors.appColorBlack.withOpacity(0.32),
+  return InputDecoration(
+    contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+    iconColor: formColor,
+    fillColor: fillColor,
+    filled: true,
+    focusedBorder: inputBorder,
+    enabledBorder: inputBorder,
+    border: inputBorder,
+    suffixIconColor: formColor,
+    hintText: hintText,
+    prefixIcon: prefixText == null
+        ? null
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
+            child: Text(
+              '$prefixText ',
+              style: customTheme().textTheme.bodyLarge?.copyWith(
+                    color: textColor,
+                  ),
             ),
-        prefixStyle: customTheme().textTheme.bodyLarge?.copyWith(
-              color: CustomColors.appColorBlack.withOpacity(0.32),
-            ),
-        errorStyle: const TextStyle(
-          fontSize: 0,
+          ),
+    hintStyle: customTheme().textTheme.bodyLarge?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.32),
         ),
-      );
+    prefixStyle: customTheme().textTheme.bodyLarge?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.32),
+        ),
+    suffixIcon: GestureDetector(
+      onTap: () {
+        if (authStatus != AuthenticationStatus.success) {
+          suffixIconCallback();
+        }
+      },
+      child: suffixIcon,
+    ),
+    errorStyle: const TextStyle(
+      fontSize: 0,
+    ),
+  );
+}
+
+InputDecoration optInputDecoration(
+  AuthenticationStatus authStatus, {
+  required bool codeSent,
+}) {
+  Color fillColor;
+  Color textColor;
+
+  switch (authStatus) {
+    case AuthenticationStatus.initial:
+      if (!codeSent) {
+        fillColor = const Color(0xff8D8D8D).withOpacity(0.1);
+        textColor = Colors.transparent;
+        break;
+      }
+      fillColor = Colors.transparent;
+      textColor = CustomColors.appColorBlue;
+      break;
+    case AuthenticationStatus.error:
+      textColor = CustomColors.appColorInvalid;
+      fillColor = CustomColors.appColorInvalid.withOpacity(0.05);
+      break;
+    case AuthenticationStatus.success:
+      textColor = CustomColors.appColorValid;
+      fillColor = textColor.withOpacity(0.05);
+      break;
+  }
+
+  InputBorder inputBorder = OutlineInputBorder(
+    borderSide: BorderSide(color: textColor, width: 1.0),
+    borderRadius: BorderRadius.circular(8.0),
+  );
+
+  return InputDecoration(
+    contentPadding: const EdgeInsets.symmetric(
+      vertical: 10,
+      horizontal: 0,
+    ),
+    iconColor: textColor,
+    fillColor: fillColor,
+    filled: true,
+    focusedBorder: inputBorder,
+    enabledBorder: inputBorder,
+    disabledBorder: inputBorder,
+    errorBorder: inputBorder,
+    border: inputBorder,
+    counter: const Offstage(),
+    errorStyle: const TextStyle(
+      fontSize: 0,
+    ),
+  );
+}
+
+TextStyle? inputTextStyle(AuthenticationStatus authStatus,
+    {bool optField = false}) {
+  TextStyle? textStyle = customTheme().textTheme.bodyLarge;
+  if (optField) {
+    textStyle = textStyle?.copyWith(
+      fontSize: 32,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 16 * 0.41,
+      height: 40 / 32,
+    );
+  }
+  switch (authStatus) {
+    case AuthenticationStatus.initial:
+      return textStyle?.copyWith(color: CustomColors.appColorBlack);
+    case AuthenticationStatus.error:
+      return textStyle?.copyWith(color: CustomColors.appColorInvalid);
+    case AuthenticationStatus.success:
+      return textStyle?.copyWith(color: CustomColors.appColorValid);
+  }
 }

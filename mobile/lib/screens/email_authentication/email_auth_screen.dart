@@ -63,18 +63,8 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const EmailAuthTitle(),
-
               const EmailAuthSubTitle(),
-
               const SizedBox(height: 32),
-              // const Padding(
-              //   padding: EdgeInsets.only(top: 32.0),
-              //   child: SizedBox(
-              //     height: 48,
-              //     child: EmailInputField(),
-              //   ),
-              // ),
-
               Form(
                 key: _formKey,
                 child: SizedBox(
@@ -85,7 +75,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                     },
                     builder: (context, state) {
                       return TextFormField(
-                        initialValue: emailAddress,
                         validator: (value) {
                           if (value == null || !value.isValidEmail()) {
                             return 'Please enter a valid email';
@@ -98,27 +87,25 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                         onSaved: (value) {
                           setState(() => emailAddress = value!);
                         },
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: CustomColors.appColorBlack),
+                        style: inputTextStyle(state.status),
                         enableSuggestions: true,
                         cursorWidth: 1,
                         autofocus: false,
                         enabled: state.status != AuthenticationStatus.success,
                         keyboardType: TextInputType.emailAddress,
+                        decoration: inputDecoration(state.status,
+                            hintText: 'me@company.com', suffixIconCallback: () {
+                          _formKey.currentState?.reset();
+                          FocusScope.of(context).requestFocus(FocusNode());
+                        }),
                       );
                     },
                   ),
                 ),
               ),
-
               const EmailAuthErrorMessage(),
-
               const EmailAuthSwitchButton(),
-
               const Spacer(),
-
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: NextButton(
@@ -148,7 +135,6 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                   },
                 ),
               ),
-
               Visibility(
                 visible: !_keyboardVisible,
                 child: const EmailAuthButtons(),

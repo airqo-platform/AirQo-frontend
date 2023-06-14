@@ -113,23 +113,13 @@ class _EmailAuthVerificationWidgetState
                           maxLength: 6,
                           cursorWidth: 1,
                           keyboardType: TextInputType.number,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 16 * 0.41,
-                                    height: 40 / 32,
-                                  ),
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 10,
-                              horizontal: 0,
-                            ),
-                            filled: true,
-                            counter: Offstage(),
-                            errorStyle: TextStyle(
-                              fontSize: 0,
-                            ),
+                          style: inputTextStyle(
+                            state.status,
+                            optField: true,
+                          ),
+                          decoration: optInputDecoration(
+                            state.status,
+                            codeSent: state.codeCountDown <= 0,
                           ),
                         ),
                       ),

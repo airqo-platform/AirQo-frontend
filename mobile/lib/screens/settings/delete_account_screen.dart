@@ -1,6 +1,7 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -126,8 +127,8 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
               text: "Confirm",
               showIcon: false,
               buttonColor: _inputCode.length >= 6
-                  ? CustomColors.appColorRed
-                  : CustomColors.appColorRed.withOpacity(0.5),
+                  ? CustomColors.appColorInvalid
+                  : CustomColors.appColorInvalid.withOpacity(0.5),
               callBack: () async {
                 FormState? formState = _formKey.currentState;
                 if (formState == null) {
@@ -151,7 +152,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
                   MaterialPageRoute(builder: (context) {
                     return const HomePage();
                   }),
-                      (r) => false,
+                  (r) => false,
                 );
               },
             ),
@@ -184,29 +185,56 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
       return;
     }
 
-    await CustomAuth.reAuthenticate(authCredential).then((success) async {
-      if (!success) {
-        showSnackBar(context, "Failed to re authenticate. Try again later");
-        return;
-      }
-      await CustomAuth.deleteAccount().then((success) async {
+    try {
+      await CustomAuth.reAuthenticate(authCredential).then((success) async {
         if (!success) {
-          showSnackBar(context, "Failed to delete account. Try again later");
-        } else {
-          await AppService.postSignOutActions(context).then((_) async {
-            await Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }),
-              (r) => false,
-            );
-          });
+          showSnackBar(context, "Failed to re authenticate. Try again later");
+          return;
         }
+        await CustomAuth.deleteAccount().then((success) async {
+          if (!success) {
+            showSnackBar(context, "Failed to delete account. Try again later");
+          } else {
+            await AppService.postSignOutActions(context).then((_) async {
+              await Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) {
+                  return const HomePage();
+                }),
+                (r) => false,
+              );
+            });
+          }
+        });
       });
-    }, onError: (error) {
+    } on FirebaseAuthException catch (exception, _) {
       Navigator.pop(context);
-      showSnackBar(context, error.toString());
-    });
+      final firebaseAuthError =
+          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+
+      if (firebaseAuthError == FirebaseAuthError.invalidAuthCode) {
+        showSnackBar(context, "Invalid code");
+      } else if (firebaseAuthError == FirebaseAuthError.authSessionTimeout) {
+        showSnackBar(context, "Code expired. try again later");
+      } else {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext _) {
+            return const AuthFailureDialog();
+          },
+        );
+      }
+    } catch (exception, stackTrace) {
+      Navigator.pop(context);
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext _) {
+          return const AuthFailureDialog();
+        },
+      );
+      await logException(exception, stackTrace);
+    }
   }
 }

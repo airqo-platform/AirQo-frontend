@@ -21,9 +21,6 @@ class EmailAuthErrorMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.errorMessage.isEmpty) {
           return const SizedBox.shrink();
@@ -67,9 +64,6 @@ class EmailAuthSwitchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.status == AuthenticationStatus.success) {
           return const SizedBox.shrink();
@@ -90,9 +84,6 @@ class EmailAuthButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.status == AuthenticationStatus.success) {
           return const SizedBox.shrink();
@@ -116,9 +107,6 @@ class EmailAuthSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String message;
         switch (state.status) {
@@ -155,9 +143,6 @@ class EmailAuthTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailAuthBloc, EmailAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String message;
         switch (state.status) {
@@ -193,9 +178,6 @@ class EmailVerificationTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailVerificationBloc, EmailVerificationState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String title;
         switch (state.status) {
@@ -235,9 +217,6 @@ class EmailVerificationSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EmailVerificationBloc, EmailVerificationState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String subtitle;
         switch (state.status) {

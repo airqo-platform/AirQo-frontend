@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
@@ -22,9 +23,6 @@ class PhoneAuthErrorMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.errorMessage.isEmpty) {
           return const SizedBox.shrink();
@@ -68,9 +66,6 @@ class PhoneAuthSwitchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.status == AuthenticationStatus.success) {
           return const SizedBox.shrink();
@@ -91,9 +86,6 @@ class PhoneAuthButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         if (state.status == AuthenticationStatus.success) {
           return const SizedBox.shrink();
@@ -117,9 +109,6 @@ class PhoneAuthSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String message;
         switch (state.status) {
@@ -156,9 +145,6 @@ class PhoneAuthTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String message;
         switch (state.status) {
@@ -194,9 +180,6 @@ class PhoneVerificationTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneVerificationBloc, PhoneVerificationState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String title;
         switch (state.status) {
@@ -236,9 +219,6 @@ class PhoneVerificationSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhoneVerificationBloc, PhoneVerificationState>(
-      buildWhen: (previous, current) {
-        return previous.status != current.status;
-      },
       builder: (context, state) {
         String subtitle;
         switch (state.status) {
@@ -388,6 +368,9 @@ class _PhoneVerificationCodeCountDownState
                   context.read<PhoneVerificationBloc>().state.authProcedure,
             ));
         _startCodeSentCountDown();
+        if (!Platform.isAndroid) {
+          Navigator.pop(context);
+        }
       },
       codeAutoRetrievalTimeout: (String _) {
         Navigator.pop(context);

@@ -348,8 +348,10 @@ class DeleteAccountButton extends StatelessWidget {
                       context, "Can't delete account now. Try again later");
                   return;
                 }
-                await openDeleteAccountScreen(context,
-                    emailAuthModel: emailAuthModel);
+                await openDeleteAccountScreen(
+                  context,
+                  emailAuthModel: emailAuthModel,
+                );
               });
             } else {
               loadingScreen(context);
@@ -382,8 +384,10 @@ class DeleteAccountButton extends StatelessWidget {
                   PhoneAuthModel phoneAuthModel = PhoneAuthModel(
                       profile.phoneNumber,
                       verificationId: verificationId);
-                  await openDeleteAccountScreen(context,
-                      phoneAuthModel: phoneAuthModel);
+                  await openDeleteAccountScreen(
+                    context,
+                    phoneAuthModel: phoneAuthModel,
+                  );
                 },
                 codeAutoRetrievalTimeout: (String _) {},
                 timeout: const Duration(seconds: 15),

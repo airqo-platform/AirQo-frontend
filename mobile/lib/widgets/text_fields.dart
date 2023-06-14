@@ -1,3 +1,4 @@
+import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
@@ -40,16 +41,31 @@ class CountryCodePickerField extends StatelessWidget {
     super.key,
     required this.placeholder,
     required this.valueChange,
+    required this.status,
   });
   final String placeholder;
+  final AuthenticationStatus status;
   final Function(String?) valueChange;
 
   @override
   Widget build(BuildContext context) {
+    Color backgroundColor;
+    switch (status) {
+      case AuthenticationStatus.initial:
+        backgroundColor = const Color(0xff8D8D8D).withOpacity(0.1);
+        break;
+      case AuthenticationStatus.error:
+        backgroundColor = CustomColors.appColorInvalid.withOpacity(0.1);
+        break;
+      case AuthenticationStatus.success:
+        backgroundColor = CustomColors.appColorValid.withOpacity(0.05);
+        break;
+    }
+
     return Container(
       constraints: const BoxConstraints(minWidth: double.infinity),
       decoration: BoxDecoration(
-        color: const Color(0xff8D8D8D).withOpacity(0.1),
+        color: backgroundColor,
         borderRadius: const BorderRadius.all(
           Radius.circular(10.0),
         ),
@@ -69,7 +85,7 @@ class CountryCodePickerField extends StatelessWidget {
         ), //show down icon on dropdown
         initialSelection: placeholder,
         onChanged: (CountryCode? code) {
-          if (code != null) {
+          if (code != null && status != AuthenticationStatus.success) {
             valueChange(code.dialCode);
           }
         },

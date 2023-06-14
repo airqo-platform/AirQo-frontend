@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
@@ -85,6 +86,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                     phoneNumber[0] = code ?? phoneNumber[0]);
                               },
                               placeholder: phoneNumber[0],
+                              status: state.status,
                             ),
                           ),
                           const SizedBox(
@@ -92,7 +94,6 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                           ),
                           Expanded(
                             child: TextFormField(
-                              initialValue: phoneNumber[1],
                               validator: (_) {
                                 if (!phoneNumber.join().isValidPhoneNumber()) {
                                   context
@@ -117,15 +118,20 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                 ),
                                 PhoneNumberInputFormatter(),
                               ],
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(color: CustomColors.appColorBlack),
+                              style: inputTextStyle(state.status),
                               cursorWidth: 1,
                               autofocus: false,
                               enabled:
                                   state.status != AuthenticationStatus.success,
                               keyboardType: TextInputType.number,
+                              decoration: inputDecoration(state.status,
+                                  hintText: '700 000 000',
+                                  prefixText: phoneNumber[0],
+                                  suffixIconCallback: () {
+                                _formKey.currentState?.reset();
+                                FocusScope.of(context)
+                                    .requestFocus(FocusNode());
+                              }),
                             ),
                           ),
                         ],
@@ -323,11 +329,13 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: fullPhoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) {
-        setState(() => phoneAuthModel = phoneAuthModel.copyWith(
-              phoneAuthCredential: credential,
-              phoneNumber: fullPhoneNumber,
-            ));
-        _authenticate();
+        if (Platform.isAndroid) {
+          setState(() => phoneAuthModel = phoneAuthModel.copyWith(
+                phoneAuthCredential: credential,
+                phoneNumber: fullPhoneNumber,
+              ));
+          _authenticate();
+        }
       },
       verificationFailed: (FirebaseAuthException exception) async {
         Navigator.pop(context);
@@ -349,22 +357,31 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
           );
         }
       },
-      codeSent: (String verificationId, int? resendToken) {
+      codeSent: (String verificationId, int? resendToken) async {
         setState(() => phoneAuthModel = phoneAuthModel.copyWith(
               verificationId: verificationId,
               phoneNumber: fullPhoneNumber,
               resendToken: resendToken,
             ));
+
+        if (!Platform.isAndroid) {
+          Navigator.pop(context);
+          context
+              .read<PhoneAuthBloc>()
+              .add(const SetPhoneAuthStatus(AuthenticationStatus.success));
+        }
       },
       codeAutoRetrievalTimeout: (String verificationId) {
-        Navigator.pop(context);
-        setState(() => phoneAuthModel = phoneAuthModel.copyWith(
-              verificationId: verificationId,
-              phoneNumber: fullPhoneNumber,
-            ));
-        context
-            .read<PhoneAuthBloc>()
-            .add(const SetPhoneAuthStatus(AuthenticationStatus.success));
+        if (Platform.isAndroid) {
+          Navigator.pop(context);
+          setState(() => phoneAuthModel = phoneAuthModel.copyWith(
+                verificationId: verificationId,
+                phoneNumber: fullPhoneNumber,
+              ));
+          context
+              .read<PhoneAuthBloc>()
+              .add(const SetPhoneAuthStatus(AuthenticationStatus.success));
+        }
       },
       timeout: const Duration(seconds: 15),
     );
