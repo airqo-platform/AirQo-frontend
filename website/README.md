@@ -14,6 +14,7 @@
 -   [Running the stack](#running-the-stack)
     -   [Create the .envrc and .env files](#create-the-envrc-and-env-files)
     -   [Docker](#docker-1)
+    - [Running the website frontend](#run-the-website-frontend)
     -   [Running the website application](#run-the-website-app)
 -   [Database Management](#database-management)
 -   [Development Invoke Commands](#development-invoke-commands)
@@ -55,7 +56,7 @@ Install homebrew
 
 #### Direnv
 
-Install direnv on your local machine, and set it up so it works
+Install `direnv` on your local machine, and set it up so it works
 in your shell. These are the instructions for the (default) bash shell. If
 you're using a different shell, you probably know where to configure it for
 yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
@@ -74,7 +75,7 @@ For ZSH, add below to `~/.zshrc`
 
 #### PostgreSQL
 
-The easiest way to install postgres on MacOS is through the [native app](https://postgresapp.com/downloads.html).
+The easiest way to install postgres on `MacOS` is through the [native app](https://postgresapp.com/downloads.html).
 
 Use version 13.x
 
@@ -109,8 +110,9 @@ Stop the postgresql service using
 
 #### Pip
 
-Install pip on your local machine in order to setup a virtual environment. [Setup](https://pip.pypa.io/en/stable/installation/)
-Then install pipenv to create the virtual environment shell.
+Install `pip` on your local machine in order to setup a virtual environment. [Setup](https://pip.pypa.io/en/stable/installation/)
+
+Then install `pipenv` to create the virtual environment shell.
 
     pip install --user pipenv
 
@@ -141,7 +143,7 @@ To use the apt repository, follow these steps:
 
 #### Set up PostgreSQL
 
-After installed, run PostgreSQL to generate the initial data using
+After installed, run `PostgreSQL` to generate the initial data using
 
     sudo service postgresql start
 
@@ -174,11 +176,11 @@ There are too many issues with line terminators and other environment inconsiste
 
 We will have to configure the environment manually, `direnv` cant help us here.
 
-First install postgresql on windows [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
+First install `postgresql` on `Windows` [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
 
 #### Create Python Virtual Environment
 
-In your Windows command shell prompt type in
+In your `Windows` command shell prompt type in
 
     pip install virtualenv
 
@@ -197,7 +199,7 @@ for more details.
 
 ### Create the `.envrc` and `.env` files
 
-**Note:** You will only need a .env file if you intend on running this website application on Linux or with docker
+**Note:** You will only need a .env file if you intend on running this website application on Linux or with Docker
 
 In the `.envrc` file add the following code
 
@@ -208,7 +210,7 @@ In the `.envrc` file add the following code
 In summary, this ensures a python virtual environment is created each time you cd into this directory.
 The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
-Populate the `.env` file in the root of the folder with the values of the key given in [.env.sample](./.env.sample) file as a template.
+Populate the `.env` file in the root of the folder with the values of the keys given in [.env.sample](./.env.sample) file as a template.
 
 Here is the [documentation link](https://staging-docs.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
 
@@ -216,11 +218,11 @@ Here is the [documentation link](https://staging-docs.airqo.net/#/../api/users?i
 
 ### OSX, Linux, and Windows
 
-**For OSX**, you need to allow `direnv` to load the new changes, so run the command below
+**For OSX**, you need to allow `direnv` to load the new changes, so run the command below:
 
     direnv allow .
 
-**For Linux**, activate your virtual environment
+**For Linux**, activate your virtual environment with:
 
     pipenv shell
 
@@ -234,9 +236,17 @@ Node requirements
 
     npm install
 
+### Run the website frontend
+
+To run the website `frontend` on its own, run the command:
+
+    npm run standalone
+
+The `frontend` will run on http://localhost:8081
+
 ### Run the website app
 
-For Linux activate a virtual environment. Once properly setup, run the following in two separate terminals:
+For `Linux` activate a virtual environment. Once properly setup, run the following commands in two separate terminals:
 
     # Terminal 1 (shell)
     python manage.py collectstatic
@@ -251,16 +261,18 @@ At this point you should be able to navigate to the local instance at http://loc
 
 ## Database Management
 
-Create a superuser to access the content management portal. In your virtual environment:
+Create a `superuser` to access the content management portal in your development environment. In your virtual environment:
 
     python manage.py createsuperuser
 
-Follow the prompts and take note of your inputs.
+Follow the prompts and take note of your `username` and `password` values.
 
-To make changes [run the website app](#run-the-website-app) and route to http://localhost:8000/admin/. <br>
-Sign in and choose the table you'd like to make edits to. Your changes can be viewed on the frontend http://localhost:8000/
+To make `table` entries [run the website app](#run-the-website-app) and route to http://localhost:8000/admin/ <br>
+Sign in with your credentials and choose the `table` you'd like to make edits to. Your changes can be viewed on the frontend http://localhost:8000/
 
-To view the API route to http://localhost:8000/api
+To view the `API` route to http://localhost:8000/api/
+
+    Alternatively, you can use the deployment environment database URI to make table entries.
 
 ## Development Invoke Commands
 

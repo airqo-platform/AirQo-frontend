@@ -47,10 +47,10 @@ const collocate = () => {
     deviceStatusSummary.filter((device) => device.status === status);
 
   useEffect(() => {
+    // Fetch data every 2 minutes
     const intervalId = setInterval(() => {
-      // Fetch data every 5 seconds
       refetch();
-    }, 5000);
+    }, 200000);
 
     // Clear interval on unmount
     return () => clearInterval(intervalId);
@@ -62,36 +62,35 @@ const collocate = () => {
         {isError && (
           <Toast
             type={'error'}
-            timeout={20000}
-            message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
+            timeout={5000}
+            message={'Uh-oh! Server error. Please try again later.'}
           />
         )}
-        {deviceStatusSummary && (
-          <div className='flex'>
-            <Button
-              className={
-                'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-              }
-            >
-              <div className='mr-[10px]'>
-                <UploadIcon />
-              </div>
-              Import data
-            </Button>
-            <div className='mr-[14px]'></div>
-            <Button
-              className={
-                'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
-              }
-              path='/collocation/add_monitor'
-            >
-              <div className='mr-[10px]'>
-                <BoxedAddIcon />
-              </div>
-              Test monitor
-            </Button>
-          </div>
-        )}
+        {isLoading ||
+          (isSuccess && (
+            <div className='flex'>
+              <Button
+                className={
+                  'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
+                }>
+                <div className='mr-[10px]'>
+                  <UploadIcon />
+                </div>
+                Import data
+              </Button>
+              <div className='mr-[14px]'></div>
+              <Button
+                className={
+                  'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                }
+                path='/collocation/add_monitor'>
+                <div className='mr-[10px]'>
+                  <BoxedAddIcon />
+                </div>
+                Test monitor
+              </Button>
+            </div>
+          ))}
       </HeaderNav>
       <ContentBox>
         {isLoading || isSuccess ? (
@@ -101,20 +100,32 @@ const collocate = () => {
                 <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
               </Tab>
               <Tab label='Passed'>
-                <Table collocationDevices={filterDevicesByStatus('passed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('PASSED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Failed'>
-                <Table collocationDevices={filterDevicesByStatus('failed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('FAILED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Running'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('running')}
+                  collocationDevices={filterDevicesByStatus('RUNNING')}
                   isLoading={isLoading}
                 />
               </Tab>
               <Tab label='Scheduled'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('scheduled')}
+                  collocationDevices={filterDevicesByStatus('SCHEDULED')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Overdue'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('OVERDUE')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Re-run required'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
                   isLoading={isLoading}
                 />
               </Tab>

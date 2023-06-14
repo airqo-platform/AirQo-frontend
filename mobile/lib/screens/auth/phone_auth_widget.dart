@@ -142,11 +142,11 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: NextButton(
-                      buttonColor: state.phoneNumber.isValidPhoneNumber()
+                      buttonColor: state.fullPhoneNumber.isValidPhoneNumber()
                           ? CustomColors.appColorBlue
                           : CustomColors.appColorDisabled,
                       callBack: () async {
-                        if (state.phoneNumber.isValidPhoneNumber()) {
+                        if (state.fullPhoneNumber.isValidPhoneNumber()) {
                           await _validatePhoneNumber();
                         }
                       },
@@ -257,15 +257,15 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
 
   Future<void> _validatePhoneNumber() async {
     FocusScope.of(context).requestFocus(FocusNode());
-    String phoneNumber =
-        "${context.read<PhoneAuthBloc>().state.countryCode} ${context.read<PhoneAuthBloc>().state.phoneNumber}";
+    String fullPhoneNumber =
+        context.read<PhoneAuthBloc>().state.fullPhoneNumber;
 
     final confirmation = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AuthMethodDialog(
-          credentials: phoneNumber,
+          credentials: fullPhoneNumber,
           authMethod: AuthMethod.phone,
         );
       },
@@ -277,12 +277,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
 
     if (!mounted) return;
 
-    phoneNumber =
-        "${context.read<PhoneAuthBloc>().state.countryCode} ${context.read<PhoneAuthBloc>().state.phoneNumber}"
-            .replaceAll(" ", "");
+    fullPhoneNumber = fullPhoneNumber.replaceAll(" ", "");
 
     context.read<PhoneAuthBloc>().add(const UpdateStatus(loading: true));
-    if (phoneNumber.isEmpty) {
+    if (fullPhoneNumber.isEmpty) {
       context.read<PhoneAuthBloc>().add(const UpdateStatus(
             status: PhoneAuthStatus.invalidPhoneNumber,
             errorMessage: 'Phone number can\'t be blank',
@@ -291,7 +289,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
       return;
     }
 
-    if (!phoneNumber.isValidPhoneNumber()) {
+    if (!fullPhoneNumber.isValidPhoneNumber()) {
       context.read<PhoneAuthBloc>().add(const UpdateStatus(
             status: PhoneAuthStatus.invalidPhoneNumber,
             errorMessage: 'Invalid Phone number',
@@ -316,7 +314,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
     AuthProcedure authProcedure =
         context.read<PhoneAuthBloc>().state.authProcedure;
     final bool? exists = await AirqoApiClient().checkIfUserExists(
-      phoneNumber: phoneNumber,
+      phoneNumber: fullPhoneNumber,
     );
 
     switch (authProcedure) {
@@ -377,7 +375,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
       case AuthProcedure.login:
       case AuthProcedure.signup:
         await FirebaseAuth.instance.verifyPhoneNumber(
-          phoneNumber: phoneNumber,
+          phoneNumber: fullPhoneNumber,
           verificationCompleted: (PhoneAuthCredential credential) {
             PhoneAuthModel phoneAuthModel = PhoneAuthModel(
               phoneAuthCredential: credential,

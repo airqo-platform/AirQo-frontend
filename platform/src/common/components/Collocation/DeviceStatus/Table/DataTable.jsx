@@ -8,34 +8,86 @@ import Skeleton from './Skeleton';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
-import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
 import Toast from '@/components/Toast';
+import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { isEmpty } from 'underscore';
+
+// Dropdown menu
+import Dropdown from '../../../Dropdowns/Dropdown';
+
+// Modal notification
+import Modal from '../../../Modal/Modal';
+
+// axios
+import axios from 'axios';
+
+// urls endpoint
+import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
   running: 'bg-turquoise-200',
   scheduled: 'bg-yellow-200',
+  overdue: 'bg-red-200',
+  re_run_required: 'bg-red-200',
+};
+
+const ErrorModal = ({ errorMessage, onClose }) => {
+  return (
+    <div className='fixed inset-0 z-50 flex items-center justify-center'>
+      <div className='fixed inset-0 bg-gray-800 opacity-75'></div>
+      <div className='bg-white w-1/2 p-6 rounded-lg'>
+        <h2 className='text-xl font-bold mb-4'>Error Details</h2>
+        <p className='mb-4'>{errorMessage}</p>
+        <div className='flex justify-end'>
+          <button
+            onClick={onClose}
+            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+
+  const openErrorModal = () => {
+    setErrorModalOpen(true);
+  };
+
+  const closeErrorModal = () => {
+    setErrorModalOpen(false);
+  };
+
+  // state to handle modal visibility
+  const [visible, setVisible] = useState(false);
 
   const [collocationInput, setCollocationInput] = useState({
-    devices: '',
-    startDate: '',
-    endDate: '',
+    devices: null,
+    batchId: '',
   });
+  const [skip, setSkip] = useState(true);
+  const [clickedRowIndex, setClickedRowIndex] = useState(null);
+
+  const {
+    isLoading: isCheckingForDataAvailability,
+    isError,
+    isSuccess,
+    data: collocationBatchResults,
+  } = useGetCollocationResultsQuery(collocationInput, { skip: skip });
+  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
-  const [getCollocationResultsData, { isLoading: isCheckingForDataAvailability, isError }] =
-    useGetCollocationResultsMutation();
-
-  const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   useEffect(() => {
     if (selectedCollocateDevices.length > 0) {
@@ -62,34 +114,100 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   };
 
-  const openMonitorReport = async (deviceName, startDate, endDate, index) => {
+  const openMonitorReport = async (deviceName, batchId, index) => {
     setCollocationInput({
       devices: deviceName,
-      startDate,
-      endDate,
+      batchId: batchId,
     });
     setClickedRowIndex(index);
-    const response = await getCollocationResultsData({ devices: deviceName, startDate, endDate });
+    setSkip(false);
+  };
 
-    if (!response.error) {
+  // This function is to delete batch
+  const deleteBatch = async () => {
+    const { device, batchId } = collocationInput;
+    const data = {
+      batchId: batchId,
+      devices: device,
+    };
+
+    try {
+      const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
+      if (response.status === 200) {
+        setVisible(false);
+        setSkip(true);
+        dispatch(removeDevices([device]));
+      }
+    } catch (error) {
+      console.log('delete batch', error);
+    }
+
+    setCollocationInput({
+      devices: null,
+      batchId: '',
+    });
+
+    router.reload();
+  };
+
+  useEffect(() => {
+    if (isSuccess && !isEmpty(collocationBatchResultsData)) {
       router.push({
-        pathname: `/collocation/reports/${deviceName}`,
+        pathname: `/collocation/reports/${collocationInput.devices}`,
         query: {
-          device: deviceName,
-          startDate: startDate,
-          endDate: endDate,
+          device: collocationInput.devices,
+          batchId: collocationInput.batchId,
         },
       });
+    }
+  }, [isSuccess, collocationBatchResultsData, collocationInput]);
+
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+    },
+    {
+      id: 2,
+      name: 'Delete batch',
+    },
+  ]);
+
+  const handleItemClick = (id, device, index) => {
+    const { device_name, batch_id } = device;
+    switch (id) {
+      case 1:
+        openMonitorReport(device_name, batch_id, index);
+        break;
+      case 2:
+        setVisible(true);
+        setCollocationInput({
+          device: device_name,
+          batchId: batch_id,
+        });
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <div>
-      {isError && <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />}
+      {isError && (
+        <button onClick={openErrorModal} className='text-red-500 underline hover:text-red-700'>
+          Error Occurred. Click for details.
+        </button>
+      )}
+      {errorModalOpen && (
+        <ErrorModal
+          errorMessage='Uh-oh! Not enough data to generate a report'
+          onClose={closeErrorModal}
+        />
+      )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'
-      >
+        data-testid='collocation-device-status-summary'>
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -130,9 +248,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                   <tr
                     className={`border-b border-b-slate-300 ${
                       clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
+                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${
+                      focusedRowIndex === index ? 'bg-gray-200' : ''
                     }`}
                     key={index}
-                  >
+                    onMouseEnter={() => setHoveredRowIndex(index)}
+                    onMouseLeave={() => setHoveredRowIndex(null)}
+                    onFocus={() => setFocusedRowIndex(index)}
+                    onBlur={() => setFocusedRowIndex(null)}>
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -156,26 +279,17 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
                         className={`${
-                          STATUS_COLOR_CODES[device.status]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
-                      >
-                        {device.status}
+                          STATUS_COLOR_CODES[device.status.toLowerCase()]
+                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}>
+                        {device.status.toLowerCase()}
                       </span>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
-                      <span
-                        onClick={() =>
-                          openMonitorReport(
-                            device.device_name,
-                            moment(device.start_date).format('YYYY-MM-DD'),
-                            moment(device.end_date).format('YYYY-MM-DD'),
-                            index,
-                          )
-                        }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
-                      >
-                        <MoreHorizIcon />
-                      </span>
+                      <Dropdown
+                        menu={menu}
+                        length={index === collocationDevices.length - 1 ? 'last' : ''}
+                        onItemClick={(id) => handleItemClick(id, device, index)}
+                      />
                     </td>
                   </tr>
                 );
@@ -190,6 +304,15 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tbody>
         )}
       </table>
+
+      {/* modal */}
+      <Modal
+        display={visible}
+        action={deleteBatch}
+        closeModal={() => setVisible(false)}
+        description='Are you sure you want to delete this batch?'
+        confirmButton='Delete'
+      />
     </div>
   );
 };
