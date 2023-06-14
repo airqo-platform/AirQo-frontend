@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Event, Program, Session, PartnerLogo, Inquiry
+from .models import Event, Program, Session, PartnerLogo, Inquiry, Resource
 
 class InquirySerializer(serializers.ModelSerializer):
     class Meta:
@@ -37,6 +37,11 @@ class PartnerLogoSerializer(serializers.ModelSerializer):
         fields = ('id','name','partner_logo')
         model = PartnerLogo
 
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id','title','link','resource')
+        model = Resource
+
 class EventSerializer(serializers.ModelSerializer):
     inquiry = InquirySerializer(read_only=True, many=True)
     program = ProgramSerializer(read_only=True, many=True)
@@ -45,6 +50,7 @@ class EventSerializer(serializers.ModelSerializer):
     background_image = serializers.SerializerMethodField()
     html = serializers.SerializerMethodField()
     plain = serializers.SerializerMethodField()
+    resource = ResourceSerializer(read_only=True, many=True)
 
     def get_html(self, instance):
         return str(instance.event_details.html)

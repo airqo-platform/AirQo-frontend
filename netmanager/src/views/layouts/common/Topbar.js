@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Link, Link as RouterLink, useHistory } from 'react-router-dom';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
 import {
   AppBar,
@@ -15,8 +15,7 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
-  Tooltip,
-  Button
+  Tooltip
 } from '@material-ui/core';
 import { AppsOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
@@ -33,6 +32,7 @@ import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
 import { isEmpty } from 'underscore';
+import { addActiveNetwork } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -84,6 +84,9 @@ function withMyHook(Component) {
 }
 
 const Topbar = (props) => {
+  const dispatch = useDispatch();
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+
   const divProps = Object.assign({}, props);
   delete divProps.layout;
   const { className, toggleSidebar, ...rest } = props;
@@ -167,7 +170,8 @@ const Topbar = (props) => {
     setAnchorEl(null);
   };
 
-  const [date, setDate] = React.useState(new Date());
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [date, setDate] = React.useState('');
   useEffect(() => {
     var timerID = setInterval(() => tick(), 1000);
 
@@ -198,7 +202,15 @@ const Topbar = (props) => {
       ':' +
       appendLeadingZeroes(newTime.getSeconds());
     setDate(time);
+    setIsLoading(false);
   }
+
+  useEffect(() => {
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      dispatch(addActiveNetwork(activeNetwork));
+    }
+  }, []);
 
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
@@ -206,9 +218,10 @@ const Topbar = (props) => {
         <Hidden lgUp>
           <MenuIcon onClick={toggleSidebar} />
         </Hidden>
+
         <Hidden mdDown>
           <div style={logoContainerStyle}>
-            {orgData.name !== 'airqo' && (
+            {activeNetwork.net_name !== 'airqo' ? (
               <>
                 <RouterLink to="/">
                   <img
@@ -224,33 +237,14 @@ const Topbar = (props) => {
                     src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
                   />
                 </RouterLink>
+              </>
+            ) : (
+              <>
                 <RouterLink to="/">
                   <img
                     alt={orgData.name}
                     style={logo_style}
-                    src={
-                      'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/' +
-                      orgData.name +
-                      '_logo.png'
-                    }
-                  />
-                </RouterLink>
-              </>
-            )}
-            {orgData.name === 'airqo' && (
-              <>
-                <RouterLink to="/">
-                  <img
-                    alt="mak.ac.ug"
-                    style={logo_style}
-                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-                  />
-                </RouterLink>
-                <RouterLink to="/">
-                  <img
-                    alt="airqo.net"
-                    style={logo_style}
-                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                    src={`https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/${activeNetwork.net_name}_logo.png`}
                   />
                 </RouterLink>
               </>
@@ -265,12 +259,12 @@ const Topbar = (props) => {
             fontWeight: 'bold'
           }}
         >
-          {orgData.name}
+          {activeNetwork && activeNetwork.net_name}
         </div>
 
         <Hidden mdDown>
           <p style={timer_style}>
-            <span>{formatDateString(date.toUTCString)}</span>
+            <span>{isLoading ? 'Loading...' : date}</span>
           </p>
         </Hidden>
 

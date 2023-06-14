@@ -1,18 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { DEVICES } from '@/core/urls/deviceRegistry';
 import { HYDRATE } from 'next-redux-wrapper';
-import { NEXT_PUBLIC_AUTHORISATION } from '../../envConstants';
+import { NEXT_PUBLIC_API_TOKEN } from '../../envConstants';
 
 export const deviceRegistryApi = createApi({
   reducerPath: 'deviceRegistryApi',
   baseQuery: fetchBaseQuery({
     baseUrl: DEVICES,
-    prepareHeaders: (headers) => {
-      const token = `JWT ${NEXT_PUBLIC_AUTHORISATION}`;
-      headers.set('Authorization', token);
-
-      return headers;
-    },
   }),
   extractRehydrationInfo(action, { reducerPath }) {
     if (action.type === HYDRATE) {
@@ -24,7 +18,7 @@ export const deviceRegistryApi = createApi({
       query: () => '',
     }),
     getCollocationDevices: builder.query({
-      query: () => '?tenant=airqo&active=no&network=airqo',
+      query: () => `/events/running?token=${NEXT_PUBLIC_API_TOKEN}&tenant=airqo`,
     }),
   }),
 });

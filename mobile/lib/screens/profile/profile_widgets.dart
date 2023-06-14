@@ -457,7 +457,13 @@ class CardSection extends StatelessWidget {
           ),
           child: Center(
             child: icon != null
-                ? SvgPicture.asset(icon!, color: iconColor)
+                ? SvgPicture.asset(
+                    icon!,
+                    colorFilter: ColorFilter.mode(
+                      iconColor ?? Colors.transparent,
+                      BlendMode.srcIn,
+                    ),
+                  )
                 : Icon(
                     materialIcon,
                     color: iconColor,
@@ -499,11 +505,11 @@ class ProfileSection extends StatelessWidget {
             color: CustomColors.appBodyColor,
             height: 0,
           ),
-          const CardSection(
+          CardSection(
             text: 'Favorites',
             icon: 'assets/icon/heart.svg',
-            iconColor: null,
-            nextPage: FavouritePlacesPage(),
+            iconColor: CustomColors.appColorRed,
+            nextPage: const FavouritePlacesPage(),
           ),
           Divider(
             color: CustomColors.appBodyColor,
@@ -919,8 +925,8 @@ class GuestProfileView extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            Row(
-              children: const [
+            const Row(
+              children: [
                 ProfilePicPlaceHolder(
                   'A',
                 ),
@@ -937,10 +943,10 @@ class GuestProfileView extends StatelessWidget {
           ],
         ),
       ),
-      body: AppSafeArea(
+      body: const AppSafeArea(
         horizontalPadding: 16.0,
         child: Column(
-          children: const <Widget>[
+          children: <Widget>[
             SizedBox(
               height: 24,
             ),

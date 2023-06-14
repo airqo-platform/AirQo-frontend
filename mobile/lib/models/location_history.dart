@@ -1,7 +1,6 @@
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'air_quality_reading.dart';
@@ -35,6 +34,7 @@ class LocationHistory extends Equatable {
     required this.dateTime,
     required this.longitude,
     required this.latitude,
+    this.airQualityReading,
   });
 
   final String placeId;
@@ -51,6 +51,30 @@ class LocationHistory extends Equatable {
 
   final DateTime dateTime;
 
+  @JsonKey(
+    includeToJson: false,
+    includeFromJson: false,
+    includeIfNull: true,
+    disallowNullValue: false,
+  )
+  final AirQualityReading? airQualityReading;
+
+  LocationHistory copyWith({
+    AirQualityReading? airQualityReading,
+    String? site,
+  }) {
+    return LocationHistory(
+      name: name,
+      location: location,
+      placeId: placeId,
+      latitude: latitude,
+      longitude: longitude,
+      airQualityReading: airQualityReading ?? this.airQualityReading,
+      site: site ?? this.site,
+      dateTime: dateTime,
+    );
+  }
+
   Map<String, dynamic> toJson() => _$LocationHistoryToJson(this);
 
   static LocationHistory? parseAnalytics(Map<String, dynamic> jsonBody) {
@@ -64,8 +88,8 @@ class LocationHistory extends Equatable {
   }
 
   static List<LocationHistory> fromAirQualityReadings() {
-    return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-        .values
+    return HiveService()
+        .getAirQualityReadings()
         .map((airQualityReading) => LocationHistory.fromAirQualityReading(
               airQualityReading,
             ))
@@ -73,7 +97,7 @@ class LocationHistory extends Equatable {
   }
 
   @override
-  List<Object?> get props => [placeId];
+  List<Object?> get props => [name, location];
 }
 
 @JsonSerializable(explicitToJson: true)

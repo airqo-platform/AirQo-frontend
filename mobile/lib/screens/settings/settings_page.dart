@@ -39,6 +39,8 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
@@ -84,10 +86,11 @@ class _SettingsPageState extends State<SettingsPage>
                           trailing: CupertinoSwitch(
                             activeColor: CustomColors.appColorBlue,
                             onChanged: (bool value) async {
-                              await LocationService.requestLocation(
-                                context,
-                                value,
-                              );
+                              if (value) {
+                                await LocationService.requestLocation();
+                              } else {
+                                await LocationService.denyLocation();
+                              }
                             },
                             value: state.location,
                           ),
@@ -140,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage>
                       divider,
                       CustomShowcaseWidget(
                         showcaseKey: _appTourShowcaseKey,
-                        descriptionHeight: 120,
+                        descriptionHeight: screenSize.height * 0.1,
                         description:
                             "You can always restart the App Tour from here anytime.",
                         child: Card(
@@ -255,21 +258,26 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  void _startShowcase() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ShowCaseWidget.of(_showcaseContext).startShowCase(
-        [
-          _appTourShowcaseKey,
-        ],
-      );
-    });
+  Future<void> _startShowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(Config.restartTourShowcase) != true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(_showcaseContext).startShowCase(
+          [
+            _appTourShowcaseKey,
+          ],
+        );
+      });
+    }
   }
 
   Future<void> _showcaseToggle() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(Config.settingsPageShowcase) == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
-      _appService.stopShowcase(Config.settingsPageShowcase);
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) async => await _startShowcase());
+      await _appService.stopShowcase(Config.settingsPageShowcase);
     }
   }
 }

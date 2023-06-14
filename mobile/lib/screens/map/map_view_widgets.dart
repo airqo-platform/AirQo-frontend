@@ -158,47 +158,44 @@ class SearchTile extends StatelessWidget {
 
   Future<void> _showPlaceDetails(BuildContext context) async {
     loadingScreen(context);
-
-    SearchResult? place = await SearchApiClient().getPlaceDetails(
+    await SearchApiClient()
+        .getPlaceDetails(
       searchResult,
-    );
-
-    if (place != null) {
-      final nearestSite = await LocationService.getNearestSite(
-        place.latitude,
-        place.longitude,
-      );
-
-      Navigator.pop(context);
-
-      // TODO: Substitute with widget
-      if (nearestSite == null) {
+    )
+        .then((place) async {
+      if (place != null) {
+        await LocationService.getNearestSite(
+          place.latitude,
+          place.longitude,
+        ).then((nearestSite) async {
+          Navigator.pop(context);
+          if (nearestSite == null) {
+            showSnackBar(
+              context,
+              'Oops!!.. We don’t have air quality readings for'
+              ' ${searchResult.name}',
+              durationInSeconds: 3,
+            );
+          } else {
+            await navigateToInsights(
+              context,
+              nearestSite.copyWith(
+                name: searchResult.name,
+                location: searchResult.location,
+                placeId: searchResult.id,
+                latitude: place.latitude,
+                longitude: place.longitude,
+              ),
+            );
+          }
+        });
+      } else {
         showSnackBar(
           context,
-          'Oops!!.. We don’t have air quality readings for'
-          ' ${searchResult.name}',
-          durationInSeconds: 3,
+          'Try again later',
         );
-
-        return;
       }
-
-      await navigateToInsights(
-        context,
-        nearestSite.copyWith(
-          name: searchResult.name,
-          location: searchResult.location,
-          placeId: searchResult.id,
-          latitude: place.latitude,
-          longitude: place.longitude,
-        ),
-      );
-    } else {
-      showSnackBar(
-        context,
-        'Try again later',
-      );
-    }
+    });
   }
 }
 
@@ -569,7 +566,7 @@ class MapAnalyticsCard extends StatelessWidget {
           ),
           SizedBox(
             height: 58,
-            child: AnalyticsCardFooter(
+            child: AirQualityActions(
               airQualityReading,
               radius: 0,
             ),
@@ -660,20 +657,6 @@ class SearchResults extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class SearchLoadingWidget extends StatelessWidget {
-  const SearchLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 20),
-      child: Center(
-        child: LoadingWidget(backgroundColor: Colors.transparent),
       ),
     );
   }

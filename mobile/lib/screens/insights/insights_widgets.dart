@@ -6,10 +6,12 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 
-class InsightContainer extends StatelessWidget {
-  const InsightContainer(this.insight, {super.key});
+class InsightAirQualityWidget extends StatelessWidget {
+  const InsightAirQualityWidget(this.insight, {super.key, required this.name});
   final Insight insight;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -19,15 +21,15 @@ class InsightContainer extends StatelessWidget {
         vertical: 11,
       ),
       decoration: BoxDecoration(
-        color: insight.isAvailable
-            ? insight.airQuality.color.withOpacity(0.2)
-            : CustomColors.greyColor.withOpacity(0.2),
+        color: insight.isEmpty
+            ? CustomColors.greyColor.withOpacity(0.2)
+            : insight.airQuality?.color.withOpacity(0.2),
         borderRadius: const BorderRadius.all(
           Radius.circular(16.0),
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -36,40 +38,71 @@ class InsightContainer extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AutoSizeText(
-                  insight.name,
-                  maxLines: 2,
+                  name,
+                  maxLines: 1,
+                  minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyle.headline8(context),
+                  style: CustomTextStyle.headline8(context)?.copyWith(
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
                 const SizedBox(
                   height: 7,
                 ),
-                Visibility(
-                  visible: insight.isAvailable,
-                  child: AutoSizeText(
-                    insight.airQuality.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline8(context),
+                AutoSizeText(
+                  insight.isEmpty
+                      ? 'No air quality data available'
+                      : '${insight.airQuality?.title}',
+                  maxLines: 1,
+                  minFontSize: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline8(context)?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                Visibility(
-                  visible: !insight.isAvailable,
-                  child: AutoSizeText(
-                    'No air quality data available',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline8(context),
-                  ),
+                const SizedBox(
+                  height: 7,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${insight.pm2_5 == null ? '--' : insight.pm2_5?.toInt()}",
+                      style: CustomTextStyle.airQualityValue(
+                        pollutant: Pollutant.pm2_5,
+                        value: insight.pm2_5,
+                      )?.copyWith(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        height: 37 / 30,
+                        letterSpacing: 16 * -0.022,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 7,
+                    ),
+                    SvgPicture.asset(
+                      'assets/icon/unit.svg',
+                      semanticsLabel: 'Unit',
+                      height: 15.14,
+                      width: 32.45,
+                      colorFilter: ColorFilter.mode(
+                        Pollutant.pm2_5.textColor(
+                          value: insight.pm2_5,
+                        ),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           SvgIcons.airQualityEmoji(
             insight.airQuality,
-            height: 38,
-            width: 48,
-            isEmpty: !insight.isAvailable,
+            height: 50,
+            width: 80,
           ),
         ],
       ),
@@ -77,73 +110,12 @@ class InsightContainer extends StatelessWidget {
   }
 }
 
-class InsightsDayReading extends StatelessWidget {
-  const InsightsDayReading(
-    this.insight, {
-    super.key,
-    required this.isActive,
-  });
+class InsightAirQualityMessageWidget extends StatelessWidget {
+  InsightAirQualityMessageWidget(this.insight, {super.key});
   final Insight insight;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    Color color = insight.isAvailable
-        ? CustomColors.appColorBlack
-        : CustomColors.greyColor;
-
-    return InkWell(
-      onTap: () => context.read<InsightsBloc>().add(SwitchInsight(insight)),
-      child: SizedBox(
-        height: 73,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color:
-                    isActive ? CustomColors.appColorBlue : Colors.transparent,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(25.0),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  insight.dateTime.getWeekday().characters.first.toUpperCase(),
-                  style: TextStyle(
-                    color: isActive ? Colors.white : color,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 7,
-            ),
-            Text(
-              '${insight.dateTime.day}',
-              style: TextStyle(
-                color: color,
-              ),
-            ),
-            const Spacer(),
-            SvgIcons.airQualityEmoji(
-              insight.airQuality,
-              isEmpty: !insight.isAvailable,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class InsightsCalendar extends StatelessWidget {
-  InsightsCalendar({super.key});
-
   final ScrollController _scrollController = ScrollController();
 
-  @override
-  Widget build(BuildContext context) {
+  List<Widget> aqiDialogWidgets() {
     List<Widget> aqiDialogWidgets = [];
     aqiDialogWidgets.add(
       Padding(
@@ -202,6 +174,187 @@ class InsightsCalendar extends StatelessWidget {
       ),
     );
 
+    return aqiDialogWidgets;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      height: 64,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: AutoSizeText(
+              insight.isFutureData
+                  ? insight.forecastMessage
+                  : insight.airQualityMessage,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: CustomTextStyle.bodyText4(context)?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.3),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: insight.isNotEmpty,
+            child: PopupMenuButton<bool>(
+              padding: EdgeInsets.zero,
+              tooltip: 'AQI info',
+              position: PopupMenuPosition.over,
+              color: Colors.white,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(8.0),
+                ),
+              ),
+              child: InkWell(
+                child: SizedBox(
+                  height: 60,
+                  child: SvgIcons.information(),
+                ),
+              ),
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  enabled: false,
+                  padding: const EdgeInsets.only(bottom: 16),
+                  value: true,
+                  child: SizedBox(
+                    width: 280.0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: Text(
+                                'Know Your Air',
+                                style: CustomTextStyle.headline10(
+                                  context,
+                                )?.copyWith(
+                                  color: CustomColors.appColorBlue,
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.pop(context),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                child: SvgIcons.close(size: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Divider(
+                          height: 1,
+                          color: CustomColors.appColorBlack.withOpacity(0.2),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 0,
+                          ),
+                          height: 150,
+                          child: RawScrollbar(
+                            thumbColor:
+                                CustomColors.appColorBlue.withOpacity(0.1),
+                            radius: const Radius.circular(4),
+                            controller: _scrollController,
+                            thickness: 4,
+                            thumbVisibility: true,
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              controller: _scrollController,
+                              children: aqiDialogWidgets(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class InsightsDayReading extends StatelessWidget {
+  const InsightsDayReading(
+    this.insight, {
+    super.key,
+    required this.isActive,
+  });
+  final Insight insight;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    Color color = insight.isNotEmpty
+        ? CustomColors.appColorBlack
+        : CustomColors.greyColor;
+
+    return InkWell(
+      onTap: () => context.read<InsightsBloc>().add(SwitchInsight(insight)),
+      child: SizedBox(
+        height: 73,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color:
+                    isActive ? CustomColors.appColorBlue : Colors.transparent,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(25.0),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  insight.dateTime.getWeekday().characters.first.toUpperCase(),
+                  style: TextStyle(
+                    color: isActive ? Colors.white : color,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 7,
+            ),
+            Text(
+              '${insight.dateTime.day}',
+              style: TextStyle(
+                color: color,
+              ),
+            ),
+            const Spacer(),
+            SvgIcons.airQualityEmoji(insight.airQuality),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InsightsCalendar extends StatelessWidget {
+  const InsightsCalendar(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
         Insight? selectedInsight = state.selectedInsight;
@@ -211,172 +364,73 @@ class InsightsCalendar extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(
-                Radius.circular(16.0),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: state.insights
-                        .map(
-                          (e) => InsightsDayReading(
-                            e,
-                            isActive: e == selectedInsight,
-                          ),
-                        )
-                        .toList(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
                 ),
-                const SizedBox(
-                  height: 21,
-                ),
-                InsightContainer(selectedInsight),
-                const SizedBox(
-                  height: 21,
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  height: 64,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Visibility(
-                        visible: !selectedInsight.isAvailable,
-                        child: Expanded(
-                          child: AutoSizeText(
-                            'We’re having issues with our network no worries, we’ll be back up soon.',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyle.bodyText4(context)?.copyWith(
-                              color:
-                                  CustomColors.appColorBlack.withOpacity(0.3),
-                            ),
-                          ),
-                        ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
                       ),
-                      Visibility(
-                        visible: selectedInsight.isAvailable,
-                        child: Expanded(
-                          child: AutoSizeText(
-                            selectedInsight.airQualityMessage,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyle.bodyText4(context)?.copyWith(
-                              color:
-                                  CustomColors.appColorBlack.withOpacity(0.3),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: selectedInsight.isAvailable,
-                        child: PopupMenuButton<bool>(
-                          padding: EdgeInsets.zero,
-                          tooltip: 'AQI info',
-                          position: PopupMenuPosition.over,
-                          color: Colors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(8.0),
-                            ),
-                          ),
-                          child: InkWell(
-                            child: SizedBox(
-                              height: 60,
-                              child: SvgIcons.information(),
-                            ),
-                          ),
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem(
-                              enabled: false,
-                              padding: const EdgeInsets.only(bottom: 16),
-                              value: true,
-                              child: SizedBox(
-                                width: 280.0,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 16),
-                                          child: Text(
-                                            'Know Your Air',
-                                            style: CustomTextStyle.headline10(
-                                              context,
-                                            )?.copyWith(
-                                              color: CustomColors.appColorBlue,
-                                            ),
-                                          ),
-                                        ),
-                                        InkWell(
-                                          onTap: () => Navigator.pop(context),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 10,
-                                            ),
-                                            child: SvgIcons.close(size: 20),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                    Divider(
-                                      height: 1,
-                                      color: CustomColors.appColorBlack
-                                          .withOpacity(0.2),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 26,
-                                        vertical: 0,
-                                      ),
-                                      height: 150,
-                                      child: RawScrollbar(
-                                        thumbColor: CustomColors.appColorBlue
-                                            .withOpacity(0.1),
-                                        radius: const Radius.circular(4),
-                                        controller: _scrollController,
-                                        thickness: 4,
-                                        thumbVisibility: true,
-                                        child: ListView(
-                                          padding: EdgeInsets.zero,
-                                          controller: _scrollController,
-                                          children: aqiDialogWidgets,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: state.insights
+                            .map(
+                              (e) => InsightsDayReading(
+                                e,
+                                isActive: e == selectedInsight,
                               ),
-                            ),
-                          ],
-                        ),
+                            )
+                            .toList(),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityWidget(
+                        selectedInsight,
+                        name: state.name,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 21,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: InsightAirQualityMessageWidget(selectedInsight),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Divider(
+                color: Color(0xffC4C4C4),
+                height: 1.0,
+              ),
+              SizedBox(
+                height: 57,
+                child: AirQualityActions(airQualityReading),
+              ),
+            ],
           ),
         );
       },
@@ -390,13 +444,6 @@ class ForecastContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (insight.forecastMessage.isEmpty) {
-      return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: Container(),
-      );
-    }
-
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: Column(
@@ -462,13 +509,13 @@ class HealthTipsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (insight.healthTips.isEmpty) {
       return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 500),
         child: Container(),
       );
     }
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 500),
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
@@ -491,6 +538,7 @@ class HealthTipsWidget extends StatelessWidget {
             height: 128,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
+              controller: ScrollController(),
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(

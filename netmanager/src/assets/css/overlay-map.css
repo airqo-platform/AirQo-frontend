@@ -27,12 +27,13 @@
   justify-content: center;
   font-size: 1.1rem;
   background: blue;
-  width: 23px;
-  height: 23px;
+  width: 12px;
+  height: 12px;
   cursor: pointer;
   color: #f3f3f3;
   font-weight: 600;
   border-radius: 50% 50% 50% 0;
+  border: 1px solid black;
 }
 
 .marker-grey {
@@ -42,33 +43,33 @@
 
 .marker-good {
   background: #44e527;
-  box-shadow: 0 0 2px 2px #7eca71;
+  /* box-shadow: 0 0 2px 2px #7eca71; */
 }
 
 .marker-moderate {
   background: #f8fe39;
   color: #4b4747;
-  box-shadow: 0 0 2px 2px #e9ec7d;
+  /* box-shadow: 0 0 2px 2px #e9ec7d; */
 }
 
 .marker-uhfsg {
   background: #ee8327;
-  box-shadow: 0 0 2px 2px #f3a662;
+  /* box-shadow: 0 0 2px 2px #f3a662; */
 }
 
 .marker-unhealthy {
   background: #fe0023;
-  box-shadow: 0 0 2px 2px #ec3f56;
+  /* box-shadow: 0 0 2px 2px #ec3f56; */
 }
 
 .marker-v-unhealthy {
   background: #8639c0;
-  box-shadow: 0 0 2px 2px #8639c0;
+  /* box-shadow: 0 0 2px 2px #8639c0; */
 }
 
 .marker-hazardous {
   background: #81202e;
-  box-shadow: 0 0 2px 2px #81202e;
+  /* box-shadow: 0 0 2px 2px #81202e; */
 }
 
 .marker-unknown {
@@ -76,8 +77,8 @@
 }
 
 .map-popup {
-  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-    "Lucida Sans", Arial, sans-serif;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
+    sans-serif;
 }
 
 .map-popup .mapboxgl-popup-content {
@@ -119,7 +120,7 @@
   color: #4b4747;
 }
 
-.popup-aqi span sub{
+.popup-aqi span sub {
   font-size: 11px;
 }
 
@@ -159,8 +160,8 @@
 }
 
 .popup-table {
-  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-    "Lucida Sans", Arial, sans-serif;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
+    sans-serif;
   background-color: #d7dee2;
 }
 
@@ -267,9 +268,9 @@
 }
 
 /* MAP STYLE */
-.map-style{
-  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-      "Lucida Sans", Arial, sans-serif;
+.map-style {
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial,
+    sans-serif;
   width: auto;
   background-color: rgb(252, 241, 241);
   margin: 0;
@@ -278,15 +279,13 @@
   padding: 0 0 6px 3px;
   border-radius: 4px;
 }
-.map-style h4{
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 6px 4px;
-  color: #0078ff;
+
+
+.map-icon-container:hover .change-map-mode {
+  visibility: visible;
+  opacity: 1;
 }
-.map-style h4 span{
+.map-style h4 span {
   font-size: 14px;
   line-height: 15px;
   text-align: left;
@@ -294,31 +293,73 @@
   font-weight: 600;
   text-transform: uppercase;
 }
-.map-style .map-style-cards{
+.map-style .map-style-cards {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.map-style .map-style-cards div{
+.map-style .map-style-cards div {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  height:40px;
+  height: 40px;
   text-transform: capitalize;
   font-size: 14px;
   margin: 0 4px;
-  padding:4px 8px;
+  padding: 4px 8px;
   font-weight: 500;
   width: 130px;
   box-shadow: 0 1px 1px 0px #ccc;
   text-align: left;
 }
-.map-style .map-style-cards div svg{
+.map-style .map-style-cards div svg {
   height: 16px;
 }
-.map-style .map-style-cards div:hover{
+.map-style .map-style-cards div:hover {
   height: 44px;
   font-size: 15px;
   color: #0078ff;
   background-color: rgb(248, 239, 239);
+}
+
+.map-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 5px;
+  width: 44px;
+  height: 44px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.2s ease 0s;
+}
+
+.map-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.map-icon-hovered {
+  color: #0078ff;
+  transform: scale(1.1);
+}
+
+.map-icon-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 50%;
+  padding: 2px; 
+}
+
+
+.change-map-mode {
+  position: absolute;
+  left: -75px;
+  top: 50%;
+  transform: translateY(-50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.2s ease;
 }

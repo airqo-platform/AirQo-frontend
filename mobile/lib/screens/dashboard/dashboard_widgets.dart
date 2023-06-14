@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -48,8 +47,45 @@ class DashboardLoadingWidget extends StatelessWidget {
   }
 }
 
+class SearchingAirQuality extends StatelessWidget {
+  const SearchingAirQuality({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(13.0),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: CustomColors.appColorBlue,
+          ),
+        ),
+      ),
+      child: Text(
+        "Searching for air quality near you, hold on tight.",
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: CustomColors.appColorBlue,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
+
 class NoLocationAirQualityMessage extends StatelessWidget {
-  const NoLocationAirQualityMessage({super.key});
+  const NoLocationAirQualityMessage(
+    this.message, {
+    super.key,
+    this.dismiss = true,
+  });
+  final String message;
+  final bool dismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +115,7 @@ class NoLocationAirQualityMessage extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'We’re unable to get your location’s air quality. Explore locations below as we expand our network.',
+              message,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -88,18 +124,21 @@ class NoLocationAirQualityMessage extends StatelessWidget {
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              context
-                  .read<NearbyLocationBloc>()
-                  .add(const DismissErrorMessage());
-            },
-            child: SizedBox(
-              width: 30,
-              child: SvgPicture.asset(
-                'assets/icon/close.svg',
-                height: 20,
-                width: 20,
+          Visibility(
+            visible: dismiss,
+            child: InkWell(
+              onTap: () {
+                context
+                    .read<NearbyLocationBloc>()
+                    .add(const DismissErrorMessage());
+              },
+              child: SizedBox(
+                width: 30,
+                child: SvgPicture.asset(
+                  'assets/icon/close.svg',
+                  height: 20,
+                  width: 20,
+                ),
               ),
             ),
           ),
@@ -110,19 +149,13 @@ class NoLocationAirQualityMessage extends StatelessWidget {
 }
 
 class DashboardLocationButton extends StatelessWidget {
-  const DashboardLocationButton(this.status, {super.key});
-  final NearbyLocationStatus status;
+  const DashboardLocationButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    String message = 'Turn on location to get air quality near you';
-    if (status == NearbyLocationStatus.locationDenied) {
-      message = 'Enable location to get air quality near you';
-    }
-
     return OutlinedButton(
       onPressed: () async {
-        await LocationService.requestLocation(context, true);
+        await LocationService.requestLocation();
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
@@ -137,12 +170,12 @@ class DashboardLocationButton extends StatelessWidget {
           horizontal: 14,
         ),
       ),
-      child: Text(
-        message,
+      child: const Text(
+        "Turn on location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -238,48 +271,45 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
+    if (airQualityReading == null) {
+      return Positioned(
+        right: rightPadding,
+        child: const CircularLoadingAnimation(
+          size: 32,
+        ),
+      );
+    }
+
     return Positioned(
       right: rightPadding,
-      child: ValueListenableBuilder<Box<AirQualityReading>>(
-        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-            .listenable(keys: [favouritePlace.referenceSite]),
-        builder: (context, box, widget) {
-          final airQualityReading = box.get(favouritePlace.referenceSite);
-          if (airQualityReading == null) {
-            return const CircularLoadingAnimation(
-              size: 32,
-            );
-          }
-
-          return Container(
-            height: 32.0,
-            width: 32.0,
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-              border: Border.fromBorderSide(
-                BorderSide(
-                  color: CustomColors.appBodyColor,
-                  width: 2,
-                ),
-              ),
-              color: Pollutant.pm2_5.color(
-                airQualityReading.pm2_5,
-              ),
-              shape: BoxShape.circle,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
             ),
-            child: Center(
-              child: Text(
-                '${airQualityReading.pm2_5}',
-                style: TextStyle(
-                  fontSize: 7,
-                  color: Pollutant.pm2_5.textColor(
-                    value: airQualityReading.pm2_5,
-                  ),
-                ),
+          ),
+          color: Pollutant.pm2_5.color(
+            airQualityReading.pm2_5,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            '${airQualityReading.pm2_5}',
+            style: TextStyle(
+              fontSize: 7,
+              color: Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

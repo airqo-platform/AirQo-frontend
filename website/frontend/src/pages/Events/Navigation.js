@@ -16,7 +16,7 @@ const EventsNavigation = ({ navTabs }) => {
     <>
       <div className="nav">
         {navTabs.map((tab) => (
-          <span>
+          <span key={tab}>
             <button
               className={selectedTab === tab ? 'selected' : 'unselected'}
               onClick={() => {

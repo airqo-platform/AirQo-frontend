@@ -190,6 +190,8 @@ class AqiColors extends ThemeExtension<AqiColors> {
 class CustomColors {
   static Color get appBodyColor => const Color(0xffF2F1F6);
 
+  static Color get appColorRed => const Color(0xffFF0000);
+
   static Color get appColorBlack => const Color(0xff121723);
 
   static Color get appColorBlue => const Color(0xff145DFF);

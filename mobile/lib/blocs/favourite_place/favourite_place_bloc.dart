@@ -16,32 +16,52 @@ class FavouritePlaceBloc
     on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
   }
 
+  Set<FavouritePlace> _updateAirQuality(Set<FavouritePlace> data) {
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+
+    return Set.of(data).map((place) {
+      try {
+        AirQualityReading airQualityReading = airQualityReadings.firstWhere(
+          (element) => element.referenceSite == place.referenceSite,
+        );
+
+        return place.copyWith(airQualityReading: airQualityReading);
+      } catch (e) {
+        return place;
+      }
+    }).toSet();
+  }
+
+  void _onEmitFavouritePlaces(
+    Set<FavouritePlace> favouritePlaces,
+    Emitter<List<FavouritePlace>> emit,
+  ) {
+    favouritePlaces = _updateAirQuality(favouritePlaces);
+    List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
+    favouritePlacesList.sortByAirQuality();
+    emit(favouritePlacesList);
+  }
+
   Future<void> _onUpdateFavouritePlace(
     UpdateFavouritePlace event,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    List<FavouritePlace> favouritePlaces = List.of(state);
-    if (favouritePlaces
-        .map((e) => e.placeId)
-        .toList()
-        .contains(event.airQualityReading.placeId)) {
-      favouritePlaces
-          .removeWhere((e) => e.placeId == event.airQualityReading.placeId);
+    Set<FavouritePlace> favouritePlaces = List.of(state).toSet();
+
+    if (favouritePlaces.contains(event.favouritePlace)) {
+      favouritePlaces.remove(event.favouritePlace);
     } else {
-      favouritePlaces
-          .add(FavouritePlace.fromAirQualityReading(event.airQualityReading));
+      favouritePlaces.add(event.favouritePlace);
     }
 
-    emit(favouritePlaces.toSet().toList());
+    _onEmitFavouritePlaces(favouritePlaces, emit);
 
-    final hasConnection = await hasNetworkConnection();
-    if (hasConnection) {
-      await CloudStore.updateFavouritePlaces(state);
-      if (favouritePlaces.length >= 5) {
-        await CloudAnalytics.logEvent(
-          CloudAnalyticsEvent.savesFiveFavorites,
-        );
-      }
+    await CloudStore.updateFavouritePlaces(state);
+    if (favouritePlaces.length >= 5) {
+      await CloudAnalytics.logEvent(
+        CloudAnalyticsEvent.savesFiveFavorites,
+      );
     }
   }
 
@@ -49,23 +69,24 @@ class FavouritePlaceBloc
     ClearFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) {
-    emit([]);
+    _onEmitFavouritePlaces({}, emit);
   }
 
   Future<void> _onSyncFavouritePlaces(
     SyncFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    List<FavouritePlace> favoritePlaces = await CloudStore.getFavouritePlaces();
+    List<FavouritePlace> cloudFavoritePlaces =
+        await CloudStore.getFavouritePlaces();
 
-    Set<FavouritePlace> favouritePlacesSet = state.toSet();
-    favouritePlacesSet.addAll(favoritePlaces.toSet());
+    Set<FavouritePlace> favouritePlaces = state.toSet();
+    favouritePlaces.addAll(cloudFavoritePlaces);
 
-    emit(favouritePlacesSet.toList());
+    _onEmitFavouritePlaces(favouritePlaces, emit);
 
     Set<FavouritePlace> updatedFavouritePlaces = {};
 
-    for (final favPlace in favouritePlacesSet) {
+    for (final favPlace in favouritePlaces) {
       final nearestSite = await LocationService.getNearestSite(
         favPlace.latitude,
         favPlace.longitude,
@@ -79,13 +100,19 @@ class FavouritePlaceBloc
       }
     }
 
-    emit(updatedFavouritePlaces.toList());
+    updatedFavouritePlaces = _updateAirQuality(updatedFavouritePlaces);
+
+    _onEmitFavouritePlaces(favouritePlaces, emit);
     await CloudStore.updateFavouritePlaces(updatedFavouritePlaces.toList());
   }
 
   @override
   List<FavouritePlace>? fromJson(Map<String, dynamic> json) {
-    return FavouritePlaceList.fromJson(json).data;
+    List<FavouritePlace> favouritePlaces =
+        FavouritePlaceList.fromJson(json).data;
+    favouritePlaces = _updateAirQuality(favouritePlaces.toSet()).toList();
+
+    return favouritePlaces;
   }
 
   @override

@@ -9,8 +9,10 @@ import Section4Image from '../../assets/img/OurProducts/Monitor/activate.png';
 import UserGuide from '../../assets/docs/AirQoMonitorUserGuideV04.pdf';
 import MaintenanceManual from '../../assets/docs/Binos-Maintenance-Manual.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
+import { useInitScrollTop } from 'utils/customHooks';
 
 const MonitorPage = () => {
+  useInitScrollTop();
   return (
     <Page>
       <div className="product-page monitor">
@@ -124,7 +126,7 @@ const MonitorPage = () => {
                   download={'BinosMonitorUserGuideV0.04.pdf'}
                   rel="noreferrer noopener">
                   <button className="download-button">
-                    User Guide <FileDownloadOutlined />
+                    Installation Guide <FileDownloadOutlined />
                   </button>
                 </a>
               </div>

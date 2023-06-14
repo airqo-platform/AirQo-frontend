@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -40,7 +41,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
-  bool _kyaExists = true, _nearbyLocationExists = true;
+  bool _kyaExists = true, _nearbyLocationExists = false;
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -51,9 +52,12 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
   final ScrollController _scrollController = ScrollController();
+  final HiveService _hiveService = HiveService();
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50.0),
@@ -118,7 +122,7 @@ class _DashboardViewState extends State<DashboardView>
                         return Expanded(
                           child: CustomShowcaseWidget(
                             showcaseKey: _favoritesShowcaseKey,
-                            descriptionHeight: 120,
+                            descriptionHeight: screenSize.height * 0.12,
                             description:
                                 "Find the latest air quality from your favorite locations",
                             child: DashboardTopCard(
@@ -153,8 +157,8 @@ class _DashboardViewState extends State<DashboardView>
                         return Expanded(
                           child: CustomShowcaseWidget(
                             showcaseKey: _forYouShowcaseKey,
-                            descriptionWidth: 100,
-                            descriptionHeight: 130,
+                            descriptionWidth: screenSize.width * 0.3,
+                            descriptionHeight: screenSize.height * 0.17,
                             description:
                                 "Find amazing content specifically designed for you here.",
                             child: DashboardTopCard(
@@ -219,60 +223,94 @@ class _DashboardViewState extends State<DashboardView>
                 children: [
                   BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
                     builder: (context, state) {
+                      CurrentLocation? currentLocation = state.currentLocation;
                       switch (state.blocStatus) {
                         case NearbyLocationStatus.searchComplete:
                           break;
                         case NearbyLocationStatus.searching:
-                          if (state.locationAirQuality != null) {
-                            return Container();
+                          if (currentLocation == null) {
+                            return const SearchingAirQuality();
                           }
                           break;
-                        case NearbyLocationStatus.locationDenied:
                         case NearbyLocationStatus.locationDisabled:
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: DashboardLocationButton(state.blocStatus),
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: DashboardLocationButton(),
                           );
                       }
 
-                      final AirQualityReading? nearbyAirQuality =
-                          state.locationAirQuality;
-                      if (nearbyAirQuality == null) {
-                        _nearbyLocationExists = false;
-
+                      if (currentLocation == null) {
                         return state.showErrorMessage
                             ? const Padding(
                                 padding: EdgeInsets.only(top: 16),
-                                child: NoLocationAirQualityMessage(),
+                                child: NoLocationAirQualityMessage(
+                                  "We’re unable to get your current location. Explore locations below in the meantime.",
+                                ),
                               )
                             : Container();
                       }
-                      context.read<LocationHistoryBloc>().add(
-                            AddLocationHistory(nearbyAirQuality),
-                          );
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: CustomShowcaseWidget(
-                          showcaseKey: _nearestLocationShowcaseKey,
-                          description:
-                              "This card shows the air quality of your nearest location",
-                          child: AnalyticsCard(
-                            nearbyAirQuality,
-                            false,
-                          ),
-                        ),
+                      return ValueListenableBuilder<Box<AirQualityReading>>(
+                        valueListenable: Hive.box<AirQualityReading>(
+                          _hiveService.airQualityReadingsBox,
+                        ).listenable(),
+                        builder: (context, box, widget) {
+                          List<AirQualityReading> airQualityReadings = box
+                              .values
+                              .where((element) =>
+                                  element.referenceSite ==
+                                  currentLocation.referenceSite)
+                              .toList();
+
+                          if (airQualityReadings.isEmpty) {
+                            _nearbyLocationExists = false;
+
+                            return state.showErrorMessage
+                                ? const Padding(
+                                    padding: EdgeInsets.only(top: 16),
+                                    child: NoLocationAirQualityMessage(
+                                      "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                    ),
+                                  )
+                                : Container();
+                          }
+
+                          AirQualityReading airQualityReading =
+                              airQualityReadings.first.copyWith(
+                            name: currentLocation.name,
+                            location: currentLocation.location,
+                          );
+                          context
+                              .read<LocationHistoryBloc>()
+                              .add(AddLocationHistory(airQualityReading));
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: CustomShowcaseWidget(
+                              showcaseKey: _nearestLocationShowcaseKey,
+                              descriptionHeight: screenSize.height * 0.17,
+                              description:
+                                  "This card shows the air quality of your nearest location",
+                              child: AnalyticsCard(
+                                airQualityReading,
+                                false,
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
                   BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
-                      List<Kya> kya = state.filterPartiallyComplete();
+                      List<Kya> kya = state
+                        ..filterPendingCompletion()
+                        ..sortByProgress();
                       if (kya.isEmpty) {
                         kya = state.filterInProgressKya();
                       }
                       if (kya.isEmpty) {
-                        kya = state.filterHasNoProgress();
+                        kya = state.filterToDo();
                       }
                       if (kya.isEmpty) {
                         _kyaExists = false;
@@ -284,11 +322,11 @@ class _DashboardViewState extends State<DashboardView>
                         padding: const EdgeInsets.only(top: 16),
                         child: CustomShowcaseWidget(
                           showcaseKey: _kyaShowcaseKey,
-                          descriptionHeight: 100,
+                          descriptionHeight: screenSize.height * 0.14,
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
-                            kya.sortByProgress().first,
+                            kya.first,
                           ),
                         ),
                       );
@@ -327,32 +365,47 @@ class _DashboardViewState extends State<DashboardView>
                           return const DashboardLoadingWidget();
                       }
 
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: state.airQualityReadings.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return (index == 0)
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: CustomShowcaseWidget(
-                                    showcaseKey: _analyticsShowcaseKey,
-                                    descriptionHeight: 120,
-                                    description:
-                                        "Find the air quality of different locations across Africa here.",
-                                    child: AnalyticsCard(
-                                      state.airQualityReadings[index],
-                                      false,
-                                    ),
-                                  ),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: AnalyticsCard(
-                                    state.airQualityReadings[index],
-                                    false,
-                                  ),
-                                );
+                      return BlocBuilder<NearbyLocationBloc,
+                          NearbyLocationState>(
+                        builder: (context, surroundingSitesState) {
+                          List<AirQualityReading> surroundingSites = List.of(
+                            surroundingSitesState.surroundingSites,
+                          );
+                          surroundingSites = surroundingSites.take(5).toList();
+                          surroundingSites.shuffle();
+                          surroundingSites.addAll(state.airQualityReadings);
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: surroundingSites.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return (index == 0)
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: CustomShowcaseWidget(
+                                        showcaseKey: _analyticsShowcaseKey,
+                                        descriptionHeight:
+                                            screenSize.height * 0.17,
+                                        customize: ShowcaseOptions.up,
+                                        showLine: false,
+                                        description:
+                                            "Find the air quality of different locations across Africa here.",
+                                        child: AnalyticsCard(
+                                          surroundingSites[index],
+                                          false,
+                                        ),
+                                      ),
+                                    )
+                                  : Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: AnalyticsCard(
+                                        surroundingSites[index],
+                                        false,
+                                      ),
+                                    );
+                            },
+                          );
                         },
                       );
                     },
@@ -434,9 +487,15 @@ class _DashboardViewState extends State<DashboardView>
       locationSettings: Config.locationSettings(),
     ).listen(
       (Position? position) {
-        context
-            .read<NearbyLocationBloc>()
-            .add(SearchLocationAirQuality(position: position));
+        if (position != null) {
+          if (mounted) {
+            context.read<NearbyLocationBloc>().add(
+                  SearchLocationAirQuality(
+                    newLocation: CurrentLocation.fromPosition(position),
+                  ),
+                );
+          }
+        }
       },
       onError: (error) {
         debugPrint('error listening to location updates : $error');
@@ -447,19 +506,28 @@ class _DashboardViewState extends State<DashboardView>
   void _refresh({bool refreshMap = true}) {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
-    context.read<NearbyLocationBloc>().add(const UpdateLocationAirQuality());
     if (refreshMap) {
       context.read<MapBloc>().add(const InitializeMapState());
     }
+
+    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
   }
 
-  void _startShowcase() {
-    List<GlobalKey> globalKeys = [
-      _skipShowcaseKey,
+  Future<void> _startShowcase() async {
+    List<GlobalKey> globalKeys = [];
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(Config.restartTourShowcase) != true) {
+      globalKeys.add(_skipShowcaseKey);
+    }
+
+    globalKeys.addAll([
       _favoritesShowcaseKey,
       _forYouShowcaseKey,
       _analyticsShowcaseKey,
-    ];
+    ]);
+
     if (_kyaExists) {
       globalKeys.add(_kyaShowcaseKey);
     }
@@ -479,16 +547,9 @@ class _DashboardViewState extends State<DashboardView>
     if (prefs.getBool(Config.homePageShowcase) == null) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _startShowcase();
-            _appService.stopShowcase(Config.homePageShowcase);
-          });
-        }
-      });
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ShowCaseWidget.of(context).next();
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await _startShowcase();
+            await _appService.stopShowcase(Config.homePageShowcase);
           });
         }
       });

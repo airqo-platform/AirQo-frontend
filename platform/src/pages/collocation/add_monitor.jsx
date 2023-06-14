@@ -35,16 +35,16 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
 const AddMonitor = () => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const [isCollocating, setCollocating] = useState(false);
+
   const {
     data: data,
     isLoading,
-    isSuccess,
-    isError,
-    // error,
+    isError: isFetchRunningDevicesError,
   } = useGetCollocationDevicesQuery();
 
   let collocationDevices = data ? data.devices : [];
-  const [collocateDevices, { error }] = useCollocateDevicesMutation();
+  const [collocateDevices, { isError: isCollocateDeviceError }] = useCollocateDevicesMutation();
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
@@ -53,9 +53,6 @@ const AddMonitor = () => {
   const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
   const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
 
-  const [collocateDeviceError, setCollocateDeviceError] = useState(false);
-  const [isCollocating, setCollocating] = useState(false);
-
   const handleCollocation = async () => {
     setCollocating(true);
     if (startDate && endDate && selectedCollocateDevices) {
@@ -63,44 +60,35 @@ const AddMonitor = () => {
         startDate,
         endDate,
         devices: selectedCollocateDevices,
-        expectedRecordsPerDay: 24,
-        completenessThreshold: 0.5,
-        correlationThreshold: 0.4,
-        verbose: true,
       };
 
       const response = await collocateDevices(body);
 
-      if (response.error && response.error.data.errors[0]) {
-        setCollocateDeviceError(true);
-      } else {
+      if (!response.error) {
         router.push('/collocation/collocate_success');
       }
     }
     setCollocating(false);
     dispatch(removeDevices(selectedCollocateDevices));
-    setTimeout(() => {
-      setCollocateDeviceError(false);
-    }, 5000);
   };
 
   return (
     <Layout>
+      {(isFetchRunningDevicesError || isCollocateDeviceError) && (
+        <Toast
+          type={'error'}
+          message={
+            'Uh-oh! Unable to collocate devices. Please check your connection or try again later.'
+          }
+          dataTestId={'collocation-error-toast'}
+        />
+      )}
       {/* SKELETON LOADER */}
       {isLoading ? (
         <SkeletonFrame />
       ) : (
         <>
-          {isError && (
-            <Toast
-              type={'error'}
-              message="Uh-oh! Devices are temporarily unavailable, but we're working to fix that"
-            />
-          )}
-          {collocateDeviceError && (
-            <Toast type={'error'} message={'Uh-oh! Devices have no data for that time period.'} />
-          )}
-          <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
+          <NavigationBreadCrumb navTitle={'Add monitor'}>
             <div className='flex'>
               {/* {isCollocating && (
                 <Button className={'mr-1'}>
@@ -111,12 +99,13 @@ const AddMonitor = () => {
                 </Button>
               )} */}
               <Button
-                className={`rounded-none text-white bg-blue border border-blue font-medium ${
+                className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
                   selectedCollocateDevices.length > 0 && endDate && startDate && !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}
                 onClick={handleCollocation}
+                dataTestId={'collocation-schedule-button'}
               >
                 Start collocation
               </Button>

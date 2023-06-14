@@ -1,127 +1,138 @@
-import React from 'react';
-import HeaderNav from '@/components/Collocation/header';
+import React, { useEffect } from 'react';
+import HeaderNav from '@/components/Layout/header';
 import Layout from '@/components/Layout';
-import Collocate from '@/icons/Collocation/collocate.svg';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
 import ContentBox from '@/components/Layout/content_box';
 import { useDispatch } from 'react-redux';
-import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
+import {
+  useGetDeviceStatusSummaryQuery,
+  getDeviceStatusSummary,
+  getRunningQueriesThunk,
+} from '@/lib/store/services/collocation';
 import Tabs from '@/components/Collocation/DeviceStatus/Tabs';
 import Tab from '@/components/Collocation/DeviceStatus/Tabs/Tab';
 import Table from '@/components/Collocation/DeviceStatus/Table';
 import Toast from '@/components/Toast';
+import { wrapper } from '@/lib/store';
+import { isEmpty } from 'underscore';
+import EmptyState from '@/components/Collocation/Collocate/empty_state';
+
+export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
+  const name = context.params?.name;
+  if (typeof name === 'string') {
+    store.dispatch(getDeviceStatusSummary.initiate(name));
+  }
+
+  await Promise.all(store.dispatch(getRunningQueriesThunk()));
+
+  return {
+    props: {},
+  };
+});
 
 const collocate = () => {
-  const dispatch = useDispatch();
-  const { data: data, isLoading, isSuccess, isError, error } = useGetDeviceStatusSummaryQuery();
+  const {
+    data: data,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+    refetch,
+  } = useGetDeviceStatusSummaryQuery();
   let deviceStatusSummary = data ? data.data : [];
 
   const filterDevicesByStatus = (status) =>
     deviceStatusSummary.filter((device) => device.status === status);
 
+  useEffect(() => {
+    // Fetch data every 2 minutes
+    const intervalId = setInterval(() => {
+      refetch();
+    }, 200000);
+
+    // Clear interval on unmount
+    return () => clearInterval(intervalId);
+  }, [refetch]);
+
   return (
     <Layout>
-      <HeaderNav component={'Collocate'}>
+      <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
-            variant={'error'}
-            message={'Uh-oh! Devices are temporarily unavailable, but we are working to fix that'}
+            type={'error'}
+            timeout={5000}
+            message={'Uh-oh! Server error. Please try again later.'}
           />
         )}
-        {deviceStatusSummary && (
-          <div className='flex'>
-            <Button
-              className={
-                'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-              }
-            >
-              <div className='mr-[10px]'>
-                <UploadIcon />
-              </div>
-              Import data
-            </Button>
-            <div className='mr-[14px]'></div>
-            <Button
-              className={
-                'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
-              }
-              path='/collocation/add_monitor'
-            >
-              <div className='mr-[10px]'>
-                <BoxedAddIcon />
-              </div>
-              Test monitor
-            </Button>
-          </div>
-        )}
+        {isLoading ||
+          (isSuccess && (
+            <div className='flex'>
+              <Button
+                className={
+                  'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
+                }>
+                <div className='mr-[10px]'>
+                  <UploadIcon />
+                </div>
+                Import data
+              </Button>
+              <div className='mr-[14px]'></div>
+              <Button
+                className={
+                  'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
+                }
+                path='/collocation/add_monitor'>
+                <div className='mr-[10px]'>
+                  <BoxedAddIcon />
+                </div>
+                Test monitor
+              </Button>
+            </div>
+          ))}
       </HeaderNav>
       <ContentBox>
-        {deviceStatusSummary.length > 0 ? (
+        {isLoading || isSuccess ? (
           <div className='w-full'>
             <Tabs>
               <Tab label='All'>
                 <Table collocationDevices={deviceStatusSummary} isLoading={isLoading} />
               </Tab>
               <Tab label='Passed'>
-                <Table collocationDevices={filterDevicesByStatus('passed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('PASSED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Failed'>
-                <Table collocationDevices={filterDevicesByStatus('failed')} isLoading={isLoading} />
+                <Table collocationDevices={filterDevicesByStatus('FAILED')} isLoading={isLoading} />
               </Tab>
               <Tab label='Running'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('running')}
+                  collocationDevices={filterDevicesByStatus('RUNNING')}
                   isLoading={isLoading}
                 />
               </Tab>
               <Tab label='Scheduled'>
                 <Table
-                  collocationDevices={filterDevicesByStatus('scheduled')}
+                  collocationDevices={filterDevicesByStatus('SCHEDULED')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Overdue'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('OVERDUE')}
+                  isLoading={isLoading}
+                />
+              </Tab>
+              <Tab label='Re-run required'>
+                <Table
+                  collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
                   isLoading={isLoading}
                 />
               </Tab>
             </Tabs>
           </div>
         ) : (
-          <div className='flex justify-center items-center flex-col mx-auto py-20'>
-            <Collocate />
-            <div className='flex flex-col justify-center text-center mt-10'>
-              <h4 className='text-xl font-normal mb-6'>
-                This is where you will manage your collocated monitors
-              </h4>
-              <div>
-                <p className='text-grey-300 text-sm font-light'>
-                  You can add a monitor to start collocation or import your own data
-                </p>
-              </div>
-              <div className='flex justify-center items-center mt-6'>
-                <Button
-                  className={
-                    'rounded-none text-white bg-blue border border-blue hover:bg-dark-blue hover:border-dark-blue font-medium'
-                  }
-                  path='/collocation/add_monitor'
-                >
-                  <div className='mr-[10px]'>
-                    <BoxedAddIcon />
-                  </div>
-                  Test monitor
-                </Button>
-                <div className='mr-[14px]'></div>
-                <Button
-                  className={
-                    'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
-                  }
-                >
-                  <div className='mr-[10px]'>
-                    <UploadIcon />
-                  </div>
-                  Import data
-                </Button>
-              </div>
-            </div>
-          </div>
+          <EmptyState />
         )}
       </ContentBox>
     </Layout>

@@ -6,8 +6,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
 import { Button, Grid, Paper, TextField } from '@material-ui/core';
 
-import { useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
+import { loadSiteDetails } from 'redux/SiteRegistry/operations';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { useInitScrollTop } from 'utils/customHooks';
 import { humanReadableDate } from 'utils/dateTime';
@@ -15,9 +15,13 @@ import { useSiteBackUrl } from 'redux/Urls/selectors';
 import { updateSiteApi } from 'views/apis/deviceRegistry';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 
+// styles
+import { makeStyles } from '@material-ui/core/styles';
+
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+import { withPermission } from '../../containers/PageAccess';
 
 const gridItemStyle = {
   padding: '5px',
@@ -28,6 +32,14 @@ const Cell = ({ fieldValue }) => {
   return <div>{fieldValue || 'N/A'}</div>;
 };
 
+// this is style for the cursor to show disabled
+const useStyles = makeStyles({
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
+  }
+});
+
 const SiteForm = ({ site }) => {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -36,6 +48,7 @@ const SiteForm = ({ site }) => {
   const [loading, setLoading] = useState(false);
   const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const handleSiteInfoChange = (event) => {
     const id = event.target.id;
@@ -46,7 +59,9 @@ const SiteForm = ({ site }) => {
 
   const handleCancel = () => {
     setSiteInfo({});
-    dispatch(loadSitesData());
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+    }
   };
 
   const weightedBool = (primary, secondary) => {
@@ -68,7 +83,9 @@ const SiteForm = ({ site }) => {
           })
         );
         setSiteInfo({});
-        dispatch(loadSitesData());
+        if (!isEmpty(activeNetwork)) {
+          dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
+        }
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.error) || {};
@@ -91,8 +108,7 @@ const SiteForm = ({ site }) => {
         minHeight: '400px',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}
-    >
+      }}>
       <div
         style={{
           display: 'flex',
@@ -100,15 +116,13 @@ const SiteForm = ({ site }) => {
           fontSize: '1.2rem',
           fontWeight: 'bold',
           margin: '20px 0'
-        }}
-      >
+        }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '5px'
-          }}
-        >
+          }}>
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.push(goBackUrl)}
@@ -128,6 +142,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.name}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -154,6 +174,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.network}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -167,6 +193,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.latitude}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -179,6 +211,12 @@ const SiteForm = ({ site }) => {
             error={!!errors.longitude}
             helperText={errors.longitude}
             fullWidth
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -346,8 +384,7 @@ const SiteForm = ({ site }) => {
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: '10px 0' }}
-        >
+          style={{ margin: '10px 0' }}>
           <Button variant="contained" onClick={handleCancel}>
             Cancel
           </Button>
@@ -357,8 +394,7 @@ const SiteForm = ({ site }) => {
             color="primary"
             disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-          >
+            style={{ marginLeft: '10px' }}>
             Save Changes
           </Button>
         </Grid>
@@ -372,25 +408,22 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const sites = useSitesData();
+  const site = useSiteDetailsData();
   const dispatch = useDispatch();
-  const [site, setSite] = useState(sites[params.id] || {});
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSitesData());
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
+    }
   }, []);
-
-  useEffect(() => {
-    setSite(sites[params.id] || {});
-  }, [sites]);
 
   return (
     <div
       style={{
         width: '96%',
         margin: ' 20px auto'
-      }}
-    >
+      }}>
       <SiteForm site={site} key={`${site._id}`} />
 
       <div>
@@ -399,8 +432,7 @@ const SiteView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}
-        >
+          }}>
           <CustomMaterialTable
             title="Site Devices details"
             userPreferencePaginationKey={'siteDevices'}
@@ -498,4 +530,4 @@ SiteView.propTypes = {
   className: PropTypes.string
 };
 
-export default SiteView;
+export default withPermission(SiteView, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

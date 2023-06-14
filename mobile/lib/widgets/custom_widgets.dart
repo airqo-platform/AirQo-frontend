@@ -65,37 +65,31 @@ class HealthTipContainer extends StatelessWidget {
             width: 12,
           ),
           Expanded(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    healthTip.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyle.headline10(context),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  AutoSizeText(
-                    healthTip.description,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.5),
-                        ),
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AutoSizeText(
+                  healthTip.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.headline10(context),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                AutoSizeText(
+                  healthTip.description,
+                  maxLines: 3,
+                  minFontSize: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
+                      ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(
-            width: 12,
           ),
         ],
       ),
@@ -327,14 +321,17 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           AutoSizeText(
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
-            style: CustomTextStyle.insightsAvatar(
+            style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(fontSize: 20),
@@ -344,8 +341,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color: Pollutant.pm2_5.textColor(
-              value: airQualityReading.pm2_5,
+            colorFilter: ColorFilter.mode(
+              Pollutant.pm2_5.textColor(
+                value: airQualityReading.pm2_5,
+              ),
+              BlendMode.srcIn,
             ),
           ),
           const Spacer(),
@@ -401,8 +401,8 @@ class HeartIcon extends StatelessWidget {
   }
 }
 
-class AnalyticsCardFooter extends StatefulWidget {
-  const AnalyticsCardFooter(
+class AirQualityActions extends StatefulWidget {
+  const AirQualityActions(
     this.airQualityReading, {
     super.key,
     this.radius = 16,
@@ -412,10 +412,10 @@ class AnalyticsCardFooter extends StatefulWidget {
   final double radius;
 
   @override
-  State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
+  State<AirQualityActions> createState() => _AirQualityActionsState();
 }
 
-class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
+class _AirQualityActionsState extends State<AirQualityActions> {
   bool _showHeartAnimation = false;
 
   late ButtonStyle _leftButtonStyle;
@@ -500,7 +500,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                       child: IconTextButton(
                         iconWidget: SvgPicture.asset(
                           'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
+                          colorFilter: ColorFilter.mode(
+                            CustomColors.greyColor,
+                            BlendMode.srcIn,
+                          ),
                           semanticsLabel: 'Share',
                         ),
                         text: 'Share',
@@ -545,15 +548,23 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 
   void _updateFavPlace(BuildContext context) {
     setState(() => _showHeartAnimation = true);
+    FavouritePlace favouritePlace =
+        FavouritePlace.fromAirQualityReading(widget.airQualityReading);
+    List<FavouritePlace> favouritePlaces =
+        List.of(context.read<FavouritePlaceBloc>().state);
+
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }
+    }).then((_) {
+      if (!favouritePlaces.contains(favouritePlace) && mounted) {
+        showFavouritePlaceSnackBar(context, widget.airQualityReading);
+      }
     });
-
-    context
-        .read<FavouritePlaceBloc>()
-        .add(UpdateFavouritePlace(widget.airQualityReading));
+    context.read<FavouritePlaceBloc>().add(
+          UpdateFavouritePlace(favouritePlace),
+        );
   }
 }
 
@@ -572,15 +583,24 @@ class AppSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
-      color: backgroundColor ?? CustomColors.appBodyColor,
-      child: SafeArea(
-        minimum: EdgeInsets.symmetric(
-          vertical: verticalPadding ?? 0,
-          horizontal: horizontalPadding ?? 0,
+    final mediaQueryData = MediaQuery.of(context);
+    final num textScaleFactor = mediaQueryData.textScaleFactor.clamp(
+      Config.minimumTextScaleFactor,
+      Config.maximumTextScaleFactor,
+    );
+
+    return MediaQuery(
+      data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
+        color: backgroundColor ?? CustomColors.appBodyColor,
+        child: SafeArea(
+          minimum: EdgeInsets.symmetric(
+            vertical: verticalPadding ?? 0,
+            horizontal: horizontalPadding ?? 0,
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }
@@ -637,77 +657,80 @@ class CustomShowcaseWidget extends StatelessWidget {
     required this.description,
     required this.child,
     this.customize,
-    this.descriptionWidth = 200,
-    this.descriptionHeight = 20,
+    this.descriptionWidth,
+    this.descriptionHeight,
+    this.showLine = true,
   });
 
   final GlobalKey showcaseKey;
   final Widget child;
   final ShowcaseOptions? customize;
+  final bool showLine;
   final String description;
-  final double descriptionWidth, descriptionHeight;
+  final double? descriptionWidth, descriptionHeight;
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Showcase.withWidget(
       key: showcaseKey,
-      width: 12,
-      height: 45,
-      overlayColor: Colors.black,
-      overlayOpacity: 0.9,
+      width: screenSize.width * 0.5,
+      height: 100,
+      overlayColor: CustomColors.appColorBlack,
+      overlayOpacity: 0.8,
       container: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          customize != ShowcaseOptions.up
-              ? SizedBox(
-                  width: 45,
-                  height: 45,
-                  child: SvgPicture.asset(
-                    'assets/icon/line.svg',
-                    height: 40,
-                    width: 58,
-                  ),
-                )
-              : const SizedBox(),
+          Visibility(
+            visible: customize != ShowcaseOptions.up && showLine,
+            child: SizedBox(
+              width: 45,
+              height: 45,
+              child: SvgPicture.asset(
+                'assets/icon/line.svg',
+                height: 40,
+                width: 58,
+              ),
+            ),
+          ),
           const SizedBox(
             height: 10,
           ),
-          customize == ShowcaseOptions.skip
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 45,
-                      height: 45,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: IconButton(
-                        tooltip: "Skip Showcase",
-                        icon: const Icon(Icons.skip_next),
-                        onPressed: () async {
-                          ShowCaseWidget.of(context).dismiss();
-                          await AppService()
-                              .stopShowcase(Config.restartTourShowcase);
-                        },
-                        color: CustomColors.appColorBlue,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-          Container(
-            constraints: BoxConstraints.expand(
-              width: descriptionWidth,
-              height: descriptionHeight,
+          Visibility(
+            visible: customize == ShowcaseOptions.skip,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: IconButton(
+                    tooltip: "Skip Showcase",
+                    icon: const Icon(Icons.skip_next),
+                    onPressed: () async {
+                      ShowCaseWidget.of(context).dismiss();
+                      await AppService()
+                          .stopShowcase(Config.restartTourShowcase);
+                    },
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
             ),
+          ),
+          SizedBox(
+            width: screenSize.width * 0.5,
             child: Text(
               description,
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -718,17 +741,18 @@ class CustomShowcaseWidget extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          customize == ShowcaseOptions.up
-              ? SizedBox(
-                  width: 45,
-                  height: 45,
-                  child: SvgPicture.asset(
-                    'assets/icon/line.svg',
-                    height: 40,
-                    width: 58,
-                  ),
-                )
-              : const SizedBox(),
+          Visibility(
+            visible: customize == ShowcaseOptions.up && showLine,
+            child: SizedBox(
+              width: 45,
+              height: 45,
+              child: SvgPicture.asset(
+                'assets/icon/line.svg',
+                height: 40,
+                width: 58,
+              ),
+            ),
+          ),
         ],
       ),
       targetShapeBorder: RoundedRectangleBorder(

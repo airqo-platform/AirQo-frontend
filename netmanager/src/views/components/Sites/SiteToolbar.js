@@ -16,6 +16,7 @@ import { createSiteApi } from 'views/apis/deviceRegistry';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -41,6 +42,11 @@ const useStyles = makeStyles((theme) => ({
     color: '#3344FF',
     marginRight: theme.spacing(1),
     fontWeight: 'bold'
+  },
+  // for cursor not allowed
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
   }
 }));
 
@@ -51,11 +57,13 @@ const SiteToolbar = (props) => {
 
   const dispatch = useDispatch();
 
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+
   const initSiteData = {
     latitude: '',
     longitude: '',
     name: '',
-    network: ''
+    network: activeNetwork
   };
 
   const initErrorData = {
@@ -68,6 +76,8 @@ const SiteToolbar = (props) => {
   const [open, setOpen] = useState(false);
   const [siteData, setSiteData] = useState(initSiteData);
   const [errors, setErrors] = useState(initErrorData);
+
+  const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
 
   const handleSiteClose = () => {
     setOpen(false);
@@ -87,30 +97,56 @@ const SiteToolbar = (props) => {
 
   const handleSiteSubmit = (e) => {
     setOpen(false);
-    createSiteApi(siteData)
-      .then((resData) => {
-        dispatch(loadSitesData());
-        handleSiteClose();
+    if (!isEmpty(userNetworks)) {
+      const userNetworksNames = userNetworks.map((network) => network.net_name);
+
+      if (!userNetworksNames.includes(siteData.network)) {
         dispatch(
           updateMainAlert({
-            message: resData.message,
+            message: `You are not a member of the ${siteData.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
             show: true,
-            severity: 'success'
+            severity: 'error'
           })
         );
-      })
-      .catch((error) => {
-        const errors = error.response && error.response.data && error.response.data.errors;
-        setErrors(errors || initErrorData);
-        dispatch(
-          updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
-            show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
+
+        // clear the form
+        setSiteData(initSiteData);
+        setErrors(initErrorData);
+        return;
+      } else {
+        createSiteApi(siteData)
+          .then((resData) => {
+            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+            if (!isEmpty(activeNetwork)) {
+              dispatch(loadSitesData(activeNetwork.net_name));
+            }
+            handleSiteClose();
+            dispatch(
+              updateMainAlert({
+                message: `${resData.message}. ${
+                  siteData.network !== activeNetwork.net_name
+                    ? `Switch to the ${siteData.network} organisation to see the new device.`
+                    : ''
+                }`,
+                show: true,
+                severity: 'success'
+              })
+            );
           })
-        );
-      });
+          .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            setErrors(errors || initErrorData);
+            dispatch(
+              updateMainAlert({
+                message: error.response && error.response.data && error.response.data.message,
+                show: true,
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
+              })
+            );
+          });
+      }
+    }
   };
 
   return (
@@ -123,8 +159,7 @@ const SiteToolbar = (props) => {
             color="primary"
             type="submit"
             align="centre"
-            onClick={() => setOpen(!open)}
-          >
+            onClick={() => setOpen(!open)}>
             {' '}
             Add Site
           </Button>
@@ -134,8 +169,7 @@ const SiteToolbar = (props) => {
         open={open}
         onClose={handleSiteClose}
         aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description"
-      >
+        aria-describedby="form-dialog-description">
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Add a site
         </DialogTitle>
@@ -179,25 +213,21 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              select
               fullWidth
               margin="dense"
               label="Network"
-              defaultValue={siteData.network}
-              onChange={handleSiteDataChange('network')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              value={siteData.network}
+              defaultChecked={siteData.network}
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
-              required
-            >
-              <option value={'airqo'}>AirQo</option>
-              <option value={'kcca'}>KCCA</option>
-              <option value={'usembassy'}>US EMBASSY</option>
-            </TextField>
+              InputProps={{
+                classes: {
+                  disabled: useStyles().disabled
+                }
+              }}
+              disabled
+            />
           </form>
         </DialogContent>
 
@@ -211,8 +241,7 @@ const SiteToolbar = (props) => {
               color="primary"
               type="submit"
               onClick={handleSiteSubmit}
-              style={{ margin: '0 15px' }}
-            >
+              style={{ margin: '0 15px' }}>
               Create Site
             </Button>
           </Grid>

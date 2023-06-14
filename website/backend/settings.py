@@ -50,6 +50,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://[a-zA-Z0-9_\-]+\.airqo\.africa$",
     r"^https://[a-zA-Z0-9_\-]+\.airqo\.org$",
     r"^https://[a-zA-Z0-9_\-]+\.airqo\.io$",
+    r"^https://airqo.africa$",
+    r"^https://airqo.org$",
     r"^https://airqo.mak.ac.ug$",
     r"^https://staging-dot-airqo-frontend.appspot.com$",
 ]
@@ -91,7 +93,8 @@ INSTALLED_APPS = [
     'backend.partners.apps.PartnersConfig',
     'backend.board.apps.BoardConfig',
     'backend.publications.apps.PublicationsConfig',
-    'backend.event.apps.EventConfig'
+    'backend.event.apps.EventConfig',
+    'backend.africancities.apps.AfricanCitiesConfig'
 ]
 
 MIDDLEWARE = [
@@ -184,6 +187,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "frontend/assets/")]
 
 STATIC_URL = STATIC_HOST + "static/"
+
+MEDIA_HOST = env("REACT_WEB_MEDIA_HOST", default="http://localhost:8000/")
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'backend/assets')
+
+MEDIA_URL = MEDIA_HOST + 'backend/assets/'
 
 if not DEBUG:
     STATIC_URL = STATIC_HOST

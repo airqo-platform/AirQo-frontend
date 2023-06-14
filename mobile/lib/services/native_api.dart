@@ -157,7 +157,8 @@ class ShareService {
             .buildShortLink(dynamicLinkParams);
         Uri shareLink = shortDynamicLink.shortUrl;
         if (airQualityReading != null) {
-          await HiveService.updateAirQualityReading(airQualityReading.copyWith(
+          await HiveService()
+              .updateAirQualityReading(airQualityReading.copyWith(
             shareLink: shareLink.toString(),
           ));
         }
@@ -382,7 +383,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(
+        await HiveService().updateAirQualityReadings(
           data as List<AirQualityReading>,
         );
       },

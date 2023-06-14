@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4040",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "npx pretty-quick",
@@ -16,6 +16,7 @@
     "@svgr/webpack": "^6.4.0",
     "@tailwindcss/typography": "^0.5.9",
     "autoprefixer": "^10.4.12",
+    "axios": "^1.4.0",
     "daisyui": "^2.47.0",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",
@@ -31,8 +32,10 @@
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
     "react-tailwindcss-datepicker": "^1.4.2",
+    "recharts": "^2.5.0",
     "sass": "^1.54.3",
-    "tailwindcss": "^3.1.8"
+    "tailwindcss": "^3.1.8",
+    "underscore": "^1.13.6"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.10.0",
