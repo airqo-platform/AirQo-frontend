@@ -123,7 +123,6 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
         window.location.reload();
       }, 1300);
     } catch (err) {
-      // calling the helper function to handle errors
       handleError(err);
     }
   };
