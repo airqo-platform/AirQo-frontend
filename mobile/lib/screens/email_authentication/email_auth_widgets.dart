@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../auth/auth_widgets.dart';
+import '../../widgets/auth_widgets.dart';
 import '../phone_authentication/phone_auth_screen.dart';
 import 'email_auth_screen.dart';
 
