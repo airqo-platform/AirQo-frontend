@@ -6,6 +6,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
+import 'delete_account_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -282,20 +284,15 @@ class _SettingsPageState extends State<SettingsPage>
   }
 }
 
-class DeleteAccountButton extends StatefulWidget {
+class DeleteAccountButton extends StatelessWidget {
   const DeleteAccountButton({super.key});
 
-  @override
-  State<DeleteAccountButton> createState() => _DeleteAccountButtonState();
-}
-
-class _DeleteAccountButtonState extends State<DeleteAccountButton> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, Profile>(
       builder: (context, state) {
         if (state.isAnonymous || !state.isSignedIn) {
-          return Container();
+          return const SizedBox.shrink();
         }
 
         return Card(
@@ -309,7 +306,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
-            onTap: () => _deleteAccount(),
+            onTap: () => _deleteAccount(context),
             title: Text(
               'Delete your account',
               overflow: TextOverflow.ellipsis,
@@ -323,68 +320,78 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     );
   }
 
-  Future<void> _deleteAccount() async {
-    bool hasConnection = await checkNetworkConnection(
+  Future<void> _deleteAccount(BuildContext context) async {
+    await checkNetworkConnection(
       context,
       notifyUser: true,
-    );
-    if (!hasConnection) {
-      return;
-    }
-    if (!mounted) return;
-
-    ConfirmationAction? confirmation = await showDialog<ConfirmationAction>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const AuthProcedureDialog(
-          authProcedure: AuthProcedure.deleteAccount,
-        );
-      },
-    );
-
-    if (confirmation == null || confirmation == ConfirmationAction.cancel) {
-      return;
-    }
-
-    if (!mounted) return;
-
-    loadingScreen(context);
-
-    bool deletionSuccess = await CustomAuth.deleteAccount();
-
-    if (!mounted) return;
-    Navigator.pop(context);
-
-    if (deletionSuccess) {
-      await AppService.postSignOutActions(context);
-
-      return;
-    }
-
-    ConfirmationAction? signOutConfirmation =
+    ).then((hasConnection) async {
+      if (hasConnection) {
         await showDialog<ConfirmationAction>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const SignOutDeletionDialog();
-      },
-    );
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const AuthProcedureDialog(
+              authProcedure: AuthProcedure.deleteAccount,
+            );
+          },
+        ).then((confirmation) async {
+          if (confirmation == ConfirmationAction.ok) {
+            Profile profile = context.read<ProfileBloc>().state;
+            loadingScreen(context);
+            if (profile.emailAddress.isNotEmpty) {
+              await AirqoApiClient()
+                  .sendEmailReAuthenticationCode(profile.emailAddress)
+                  .then((emailAuthModel) async {
+                Navigator.pop(context);
+                if (emailAuthModel == null) {
+                  showSnackBar(
+                      context, "Can't delete account now. Try again later");
+                  return;
+                }
+                await openDeleteAccountScreen(context,
+                    emailAuthModel: emailAuthModel);
+              });
+            } else {
+              loadingScreen(context);
+              await FirebaseAuth.instance.verifyPhoneNumber(
+                phoneNumber: profile.phoneNumber,
+                verificationCompleted: (PhoneAuthCredential _) {},
+                verificationFailed: (FirebaseAuthException exception) async {
+                  Navigator.pop(context);
+                  final firebaseAuthError =
+                      CustomAuth.getFirebaseErrorCodeMessage(
+                    exception.code,
+                  );
 
-    if (signOutConfirmation == null ||
-        signOutConfirmation == ConfirmationAction.cancel) {
-      return;
-    }
-
-    final success = await CustomAuth.signOut();
-
-    if (!mounted) return;
-
-    if (success) {
-      await AppService.postSignOutActions(context);
-    } else {
-      Navigator.pop(context);
-      showSnackBar(context, Config.signOutFailed);
-    }
+                  if (firebaseAuthError ==
+                      FirebaseAuthError.invalidPhoneNumber) {
+                    context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
+                        AuthenticationStatus.error,
+                        errorMessage: "Invalid Phone number"));
+                  } else {
+                    await showDialog<void>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext _) {
+                        return const AuthFailureDialog();
+                      },
+                    );
+                  }
+                },
+                codeSent: (String verificationId, int? resendToken) async {
+                  PhoneAuthModel phoneAuthModel = PhoneAuthModel(
+                      profile.phoneNumber,
+                      verificationId: verificationId);
+                  await openDeleteAccountScreen(context,
+                      phoneAuthModel: phoneAuthModel);
+                },
+                codeAutoRetrievalTimeout: (String _) {},
+                timeout: const Duration(seconds: 15),
+              );
+            }
+          }
+        });
+      }
+    });
   }
 }
