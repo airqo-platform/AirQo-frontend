@@ -39,8 +39,7 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
         lineHeight: '18px',
         letterSpacing: '-0.04px',
         ...moreStyles
-      }}
-    >
+      }}>
       {message}
       <ClearIcon className={'d-img'} onClick={onClose} />
     </div>
@@ -74,50 +73,59 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
     setUploadError(true);
   };
 
+  // function to handle the errors
+  const handleError = (err) => {
+    const errors = err.response.data.errors.message;
+    dispatch(
+      updateMainAlert({
+        message: errors,
+        show: true,
+        severity: 'error'
+      })
+    );
+    showUploadError();
+  };
+
   const uploadImage = async (src) => {
     const formData = new FormData();
     formData.append('file', src);
     formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_PRESET);
     formData.append('folder', `devices/${deviceName}`);
+    formData.append('cloud_name', process.env.REACT_APP_CLOUD_NAME);
+
     showUploading();
-    return await cloudinaryImageUpload(formData)
-      .then((responseData) => {
-        const img_url = responseData.secure_url;
-        setUrl(img_url);
 
-        const deviceImgData = {
-          device_name: deviceName,
-          device_id: deviceId,
-          image_url: img_url
-        };
+    try {
+      // awaiting for the cloudinary image upload response
+      const { secure_url: img_url } = await cloudinaryImageUpload(formData);
 
-        softCreateDevicePhoto(deviceImgData)
-          .then((responseData) => {
-            dispatch(
-              updateMainAlert({
-                message: responseData.message,
-                show: true,
-                severity: 'success'
-              })
-            );
-            closeLoader();
-          })
-          .catch((err) => {
-            const errors = err.response.data.errors.message;
+      setUrl(img_url);
 
-            dispatch(
-              updateMainAlert({
-                message: errors,
-                show: true,
-                severity: 'error'
-              })
-            );
-            showUploadError();
-          });
-      })
-      .catch(() => {
-        showUploadError();
-      });
+      const deviceImgData = {
+        device_name: deviceName,
+        device_id: deviceId,
+        image_url: img_url
+      };
+
+      // creating image in the database
+      const { message } = await softCreateDevicePhoto(deviceImgData);
+
+      dispatch(
+        updateMainAlert({
+          message,
+          show: true,
+          severity: 'success'
+        })
+      );
+      closeLoader();
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1300);
+    } catch (err) {
+      // calling the helper function to handle errors
+      handleError(err);
+    }
   };
 
   useEffect(() => {
@@ -202,38 +210,37 @@ export default function DevicePhotos({ deviceData }) {
 
   const onChange = async (imageFiles) => {
     const uploadImages = [];
-    await setImages([...images, ...newImages]);
-    await setNewImages([]);
     imageFiles.map((imageFile) => uploadImages.push(imageFile.data_url));
-
+    setImages([...images, ...newImages]);
+    setNewImages([]);
     setNewImages(uploadImages);
   };
 
+  // this will handle the deletion of the image
   const handlePictureDeletion = async () => {
     await setPhotoDelState({ ...photoDelState, open: false });
     if (photoDelState.url) {
-      await deleteDevicePhotos(photoDelState.id, [photoDelState.url])
-        .then((responseData) => {
-          setImages((responseData.updatedDevice && responseData.updatedDevice.pictures) || []);
-          setNewImages([]);
-          dispatch(
-            updateMainAlert({
-              message: responseData.message,
-              show: true,
-              severity: 'success'
-            })
-          );
-        })
-        .catch((err) => {
-          const errors = err.response.data.message;
-          dispatch(
-            updateMainAlert({
-              message: errors,
-              show: true,
-              severity: 'error'
-            })
-          );
-        });
+      try {
+        const responseData = await deleteDevicePhotos(photoDelState.id, [photoDelState.url]);
+        setImages((responseData.updatedDevice && responseData.updatedDevice.pictures) || []);
+        setNewImages([]);
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: 'success'
+          })
+        );
+      } catch (err) {
+        const errors = err.response.data.message;
+        dispatch(
+          updateMainAlert({
+            message: errors,
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
       setPhotoDelState({
         open: false,
         url: null,
@@ -242,6 +249,59 @@ export default function DevicePhotos({ deviceData }) {
     }
   };
 
+  // this will render the images
+  function renderImages(images, isNew) {
+    // creating a Set object to store unique image URLs to avoid the same image being rendered twice on the screen
+    const imageSet = new Set();
+
+    // looping over the images array and adding the URLs to the Set object
+    for (let image of images) {
+      if (isNew) {
+        imageSet.add(image);
+      } else {
+        imageSet.add({ url: image.image_url, _id: image._id });
+      }
+    }
+
+    return (
+      imageSet.size > 0 && (
+        <div style={galleryContainerStyles}>
+          {isNew && <div style={{ width: '100%', color: 'blue' }}>New Image(s)</div>}
+          {!isNew && imageSet.size > 0 && (
+            <div style={{ width: '100%', color: 'blue' }}>Old Image(s)</div>
+          )}
+          {[...imageSet].map((src, index) => (
+            <Img
+              src={src.url || src}
+              uploadOptions={
+                isNew
+                  ? {
+                      upload: true,
+                      deviceName: deviceData.name,
+                      deviceId: deviceData._id
+                    }
+                  : null
+              }
+              setDelState={
+                isNew
+                  ? setPhotoDelState
+                  : () => {
+                      setPhotoDelState({
+                        open: true,
+                        url: src.url,
+                        id: src._id
+                      });
+                    }
+              }
+              setPreviewState={setPhotoPreview}
+              key={index}
+            />
+          ))}
+        </div>
+      )
+    );
+  }
+
   return (
     <div className="App">
       <ImageUploading
@@ -249,59 +309,22 @@ export default function DevicePhotos({ deviceData }) {
         value={[]}
         onChange={onChange}
         maxNumber={maxNumber}
-        dataURLKey="data_url"
-      >
+        dataURLKey="data_url">
         {({ onImageUpload }) => (
           <div
             style={{
               display: 'flex',
               justifyContent: 'flex-end',
               margin: '10px 0'
-            }}
-          >
+            }}>
             <Button variant="contained" color="primary" onClick={onImageUpload}>
               Add Photo(s)
             </Button>
           </div>
         )}
       </ImageUploading>
-      {newImages.length > 0 && (
-        <div style={galleryContainerStyles}>
-          <div style={{ width: '100%', color: 'blue' }}>New Image(s)</div>
-          {newImages.map((src, index) => (
-            <Img
-              src={src}
-              uploadOptions={{
-                upload: true,
-                deviceName: deviceData.name,
-                deviceId: deviceData._id
-              }}
-              setDelState={setPhotoDelState}
-              setPreviewState={setPhotoPreview}
-              key={index}
-            />
-          ))}
-        </div>
-      )}
-      <div style={galleryContainerStyles}>
-        {newImages.length > 0 && images.length > 0 && (
-          <div style={{ width: '100%', color: 'blue' }}>Old Image(s)</div>
-        )}
-        {images.map((src, index) => (
-          <Img
-            src={src.image_url}
-            setDelState={() => {
-              setPhotoDelState({
-                open: true,
-                url: src.image_url,
-                id: src._id
-              });
-            }}
-            setPreviewState={setPhotoPreview}
-            key={index}
-          />
-        ))}
-      </div>
+      {renderImages(newImages, true)}
+      {renderImages(images, false)}
       <ConfirmDialog
         open={photoDelState.open}
         title={'Delete photo?'}
