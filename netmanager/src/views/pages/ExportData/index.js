@@ -166,7 +166,7 @@ function extractSiteIds(options) {
   return siteIds;
 }
 
-const Download = (props) => {
+const ExportData = (props) => {
   useInitScrollTop();
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
@@ -1115,8 +1115,8 @@ const Download = (props) => {
   );
 };
 
-Download.propTypes = {
+ExportData.propTypes = {
   className: PropTypes.string
 };
 
-export default Download;
+export default ExportData;

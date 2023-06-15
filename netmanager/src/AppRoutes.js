@@ -6,7 +6,7 @@ import { useInternetConnectivityCheck, useJiraHelpDesk } from 'utils/customHooks
 // core imports. imported on initial page load
 import Overview from './views/components/Dashboard/Overview';
 import Devices from './views/components/DataDisplay/Devices';
-import { Download as DownloadView } from './views/pages/Download';
+import ExportData from './views/pages/ExportData';
 import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
@@ -106,7 +106,7 @@ const AppRoutes = () => {
               layout={MainLayout}
             />
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
-            <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
+            <PrivateRoute exact path="/export-data" component={ExportData} layout={MainLayout} />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
             <PrivateRoute
               component={PermissionDenied}

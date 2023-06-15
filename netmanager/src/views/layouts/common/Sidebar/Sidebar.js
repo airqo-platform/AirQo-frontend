@@ -93,7 +93,7 @@ const allMainPages = [
 
   {
     title: 'Export',
-    href: '/download',
+    href: '/export-data',
     icon: <CloudDownloadIcon />
   },
   {
