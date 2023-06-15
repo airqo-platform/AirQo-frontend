@@ -42,4 +42,4 @@ export const USER_FEEDBACK_URI = `${BASE_AUTH_SERVICE_URL}/users/feedback`;
 
 export const GET_ACCESS_TOKEN = `${BASE_AUTH_SERVICE_URL}/users/tokens`;
 
-export const GET_DATA_EXPORT_LOGS = `${BASE_AUTH_SERVICE_URL_V2}/users/logs?service=data-export`;
+export const GET_LOGS = `${BASE_AUTH_SERVICE_URL_V2}/users/logs`;
