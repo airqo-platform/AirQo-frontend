@@ -3,8 +3,12 @@ import { getLogsApi } from '../../../apis/authService';
 import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
 import { Typography } from '@material-ui/core';
 import { getFirstNDurations, getElapsedDurationMapper } from '../../../../utils/dateTime';
+import { useDispatch } from 'react-redux';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
 const DataExportLogsTable = () => {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState([]);
 
@@ -21,7 +25,16 @@ const DataExportLogsTable = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.log(error);
+        const errors = (error.response && error.response.data && error.response.data.errors) || {};
+
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: error.response.data.message,
+            severity: 'error',
+            extraContent: createAlertBarExtraContentFromObject(errors || {})
+          })
+        );
         setLoading(false);
       });
   };
