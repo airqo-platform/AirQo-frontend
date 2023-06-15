@@ -249,6 +249,7 @@ const Footer = () => {
             />
             <div className="category-label">Select country</div>
             <div className="countries">
+              {/* The country list displayed here */}
               {countries.map((country) => (
                 <CountryTab
                   className={`tab tab-margin-sm ${active(country.name)}`}
