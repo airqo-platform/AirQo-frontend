@@ -269,6 +269,7 @@ const Sidebar = (props) => {
       ]);
       setUserPages(selectedUserPages);
       setAdminPages(selectedAdminPages);
+      setLoading(false);
     }
   }, [user, currentRole]);
 
