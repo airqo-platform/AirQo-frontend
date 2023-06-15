@@ -51,3 +51,7 @@ export const DASHBOARD_AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqloud
 export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL}/devices/decrypt`;
 
 export const QRCODE = `${BASE_DEVICE_REGISTRY_URL}/devices/qrcode`;
+
+export const SOFT_EDIT_DEVICE_IMAGE = `${BASE_DEVICE_REGISTRY_URL}/devices/photos/soft?tenant=airqo`;
+
+export const GET_DEVICE_IMAGES = `${BASE_DEVICE_REGISTRY_URL}/devices/photos?tenant=airqo`;

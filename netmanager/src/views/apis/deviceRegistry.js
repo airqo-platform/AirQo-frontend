@@ -23,6 +23,7 @@ import {
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
+import { GET_DEVICE_IMAGES, SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
 
 export const getAllDevicesApi = async (networkID) => {
   return await axios
@@ -129,11 +130,11 @@ export const deleteComponentApi = async (deviceName, componentName) => {
     .then((response) => response.data);
 };
 
-export const deleteDevicePhotos = async (deviceName, pictures) => {
+export const deleteDevicePhotos = async (deviceId, urls) => {
   return await axios
     .delete(DELETE_DEVICE_PHOTO, {
-      params: { device: deviceName },
-      data: { photos: pictures }
+      params: { id: deviceId },
+      data: { photos: urls }
     })
     .then((response) => response.data);
 };
@@ -186,4 +187,14 @@ export const QRCodeApi = async (params) => {
 
 export const refreshAirQloudApi = async (params) => {
   return await axios.put(REFRESH_AIRQLOUD, {}, { params }).then((response) => response.data);
+};
+
+export const softCreateDevicePhoto = async (data) => {
+  return await axios.post(SOFT_EDIT_DEVICE_IMAGE, data).then((response) => response.data);
+};
+
+export const getDevicePhotos = async (params) => {
+  return await axios
+    .get(GET_DEVICE_IMAGES, { params: { device_id: params } })
+    .then((response) => response.data);
 };
