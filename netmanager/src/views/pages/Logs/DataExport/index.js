@@ -4,6 +4,7 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { ErrorBoundary } from '../../../ErrorBoundary';
 import { withPermission } from '../../../containers/PageAccess';
 import LogsBreadCrumb from '../BreadCrumb';
+import DataExportLogsTable from './logs_table';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -21,6 +22,7 @@ const DataExportLogs = (props) => {
     <ErrorBoundary>
       <div className={classes.root}>
         <LogsBreadCrumb category="Data Export" />
+        <DataExportLogsTable />
       </div>
     </ErrorBoundary>
   );

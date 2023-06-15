@@ -8,7 +8,8 @@ import {
   REGISTER_USER_URI,
   CHART_DEFAULTS_URI,
   CANDIDATES_URI,
-  USER_FEEDBACK_URI
+  USER_FEEDBACK_URI,
+  GET_DATA_EXPORT_LOGS
 } from 'config/urls/authService';
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
@@ -84,4 +85,9 @@ export const deleteUserChartDefaultsApi = async (chartDefaultID) => {
 
 export const sendUserFeedbackApi = async (feedbackData) => {
   return await axios.post(USER_FEEDBACK_URI, feedbackData).then((response) => response.data);
+};
+
+// Logs
+export const getDataExportLogsApi = async () => {
+  return await axios.get(GET_DATA_EXPORT_LOGS).then((response) => response.data);
 };
