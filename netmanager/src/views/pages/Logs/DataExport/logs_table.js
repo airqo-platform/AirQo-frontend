@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getLogsApi } from '../../../apis/authService';
 import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
 import { Typography } from '@material-ui/core';
-import moment from 'moment';
+import { getFirstNDurations, getElapsedDurationMapper } from '../../../../utils/dateTime';
 
 const DataExportLogsTable = () => {
   const [loading, setLoading] = useState(false);
@@ -40,9 +40,13 @@ const DataExportLogsTable = () => {
         {
           title: 'Timestamp',
           render: (logs) => {
+            const [elapsedDurationSeconds, elapsedDurationMapper] = getElapsedDurationMapper(
+              logs.meta.timestamp
+            );
+
             return (
               <Typography variant="body1">
-                {moment(logs.meta.timestamp, 'YYYYMMDD').fromNow()}
+                Exported data {getFirstNDurations(elapsedDurationMapper, 2)} ago
               </Typography>
             );
           }
