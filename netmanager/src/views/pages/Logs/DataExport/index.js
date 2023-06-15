@@ -1,0 +1,29 @@
+import React from 'react';
+import { makeStyles } from '@material-ui/core';
+import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import { ErrorBoundary } from '../../../ErrorBoundary';
+import { withPermission } from '../../../containers/PageAccess';
+import LogsBreadCrumb from '../BreadCrumb';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(3)
+  },
+  content: {
+    marginTop: theme.spacing(2)
+  }
+}));
+
+const DataExportLogs = (props) => {
+  const classes = useStyles();
+
+  return (
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <LogsBreadCrumb category="Data Export" />
+      </div>
+    </ErrorBoundary>
+  );
+};
+const usrsStateConnector = usersStateConnector(DataExportLogs);
+export default withPermission(usrsStateConnector, 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS');
