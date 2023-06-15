@@ -710,8 +710,8 @@ extension StringExt on String {
     return trimmed.startsWith('+') &&
         trimmed.length >= 7 &&
         trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+        trimmed.contains(RegExp(r'[\d+]')) &&
+        !trimmed.contains(RegExp(r'[a-zA-Z]'));
   }
 
   bool isValidEmail() {
@@ -723,7 +723,9 @@ extension StringExt on String {
     if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
       return false;
     }
-    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
+    if (domainPart.isEmpty ||
+        !domainPart.contains('.') ||
+        domainPart.split('.').any((s) => s.isEmpty)) {
       return false;
     }
 

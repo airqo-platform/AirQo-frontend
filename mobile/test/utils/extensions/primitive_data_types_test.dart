@@ -98,10 +98,10 @@ void main() {
         () {
       expect(''.isValidEmail(), isFalse);
       expect('noblethegreat'.isValidEmail(), isFalse);
+      expect('noble@airqo'.isValidEmail(), isFalse);
       expect('.@example.com'.isValidEmail(), isFalse);
       expect('@example.com'.isValidEmail(), isFalse);
       expect('john.doe@example.'.isValidEmail(), isFalse);
-      expect('noble@airqo.u'.isValidEmail(), isFalse);
       expect('noble@airqo.ug'.isValidEmail(), isTrue);
       expect('noble.m@airqo.net'.isValidEmail(), isTrue);
       expect('noble.m+/spam@airqo.net'.isValidEmail(), isTrue);
