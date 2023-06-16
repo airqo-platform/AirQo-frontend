@@ -23,6 +23,7 @@ import { makeStyles } from '@material-ui/styles';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
 import { generateAirQloudDataSummaryApi } from 'views/apis/analytics';
+import { generateAirQloudUptimeSummaryApi } from '../../apis/deviceMonitoring';
 import Typography from '@material-ui/core/Typography';
 // redux
 import { useSelectedAirqloudData } from 'redux/AirQloud/selectors';
@@ -189,13 +190,36 @@ const AirQloudView = (props) => {
   const [dataSummaryReady, setDataSummaryReady] = useState(false);
   const [airQloudDataSummaryReport, setAirQloudDataSummaryReport] = useState(null);
 
+  const [uptimeStartDate, setUptimeStartDate] = useState(null);
+  const [uptimeEndDate, setUptimeEndDate] = useState(null);
+  const [uptimeSummaryReady, setUptimeSummaryReady] = useState(false);
+  const [airQloudUptimeSummaryReport, setAirQloudUptimeSummaryReport] = useState(null);
+
   const formatDate = (date) => {
     const date_ = new Date(date);
     return date_.toISOString().split('T')[0];
   };
 
+  const disableUptimeReportGenerationBtn = () => {
+    return !(uptimeStartDate && uptimeEndDate) || loading;
+  };
+
   const disableReportGenerationBtn = () => {
     return !(startDate && endDate) || loading;
+  };
+
+  const generateAirQloudUptimeReport = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let data = {
+      startDateTime: roundToStartOfDay(new Date(uptimeStartDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(uptimeEndDate).toISOString()),
+      airqloud: params.id
+    };
+
+    generateAirQloudUptimeReportFunc(data);
   };
 
   const generateAirQloudDataReport = (e) => {
@@ -217,10 +241,10 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        setAirQloudDataSummaryReport(resData);
+        setAirQloudUptimeSummaryReport(resData);
         setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
+        setUptimeStartDate(null);
+        setUptimeEndDate(null);
         setDataSummaryReady(true);
         dispatch(
           updateMainAlert({
@@ -253,6 +277,49 @@ const AirQloudView = (props) => {
         setLoading(false);
         setStartDate(null);
         setEndDate(null);
+      });
+  };
+
+  const generateAirQloudUptimeReportFunc = async (body) => {
+    await generateAirQloudUptimeSummaryApi(body)
+      .then((response) => response.data)
+      .then((resData) => {
+        //TODO: Populate the charts and reports to be displayed.
+        setAirQloudUptimeSummaryReport(resData);
+        setLoading(false);
+        setStartDate(null);
+        setEndDate(null);
+        setUptimeSummaryReady(true);
+        dispatch(
+          updateMainAlert({
+            message: 'AirQloud Uptime Report Generated ',
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        if (err.response.data.status === 'success') {
+          dispatch(
+            updateMainAlert({
+              message: 'Uh-oh! No uptime report generated for the selected time period. no data',
+              show: true,
+              severity: 'success'
+            })
+          );
+        } else {
+          dispatch(
+            updateMainAlert({
+              message: err.response.data.message,
+              show: true,
+              severity: 'error'
+            })
+          );
+        }
+
+        setLoading(false);
+        setUptimeStartDate(null);
+        setUptimeEndDate(null);
       });
   };
 
@@ -613,6 +680,283 @@ const AirQloudView = (props) => {
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
               <p>Reports will appear here</p>
+            </Paper>
+          )}
+        </div>
+
+        <div
+          style={{
+            margin: '50px auto',
+            // minHeight: "400px",
+            maxWidth: '1500px'
+          }}
+        >
+          <div className={classes.rootxx}>
+            <Grid container spacing={4}>
+              <Grid item xs={12}>
+                <Card
+                  {...rest}
+                  className={clsx(classes.root, className)}
+                  style={{ overflow: 'visible' }}
+                >
+                  <Typography className={classes.cardTitle}>
+                    Generate AirQloud Uptime Report
+                  </Typography>
+                  <p>
+                    Select the time period of your interest to view the uptime report for this
+                    airqloud
+                  </p>
+                  <form onSubmit={generateAirQloudUptimeReport}>
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item md={12} xs={12}>
+                          <h4 style={{ textTransform: 'capitalize' }}></h4>
+                        </Grid>
+                        <Grid item md={6} xs={12}>
+                          <TextField
+                            label="Start Date"
+                            className="reactSelect"
+                            fullWidth
+                            variant="outlined"
+                            value={uptimeStartDate}
+                            InputLabelProps={{ shrink: true }}
+                            type="date"
+                            onChange={(event) => setUptimeStartDate(event.target.value)}
+                          />
+                        </Grid>
+
+                        <Grid item md={6} xs={12}>
+                          <TextField
+                            label="End Date"
+                            className="reactSelect"
+                            fullWidth
+                            variant="outlined"
+                            value={uptimeEndDate}
+                            InputLabelProps={{ shrink: true }}
+                            type="date"
+                            onChange={(event) => setUptimeEndDate(event.target.value)}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+
+                    <Divider />
+                    <CardActions>
+                      <span style={{ position: 'relative' }}>
+                        <Button
+                          color="primary"
+                          variant="outlined"
+                          type="submit"
+                          disabled={disableUptimeReportGenerationBtn()}
+                        >
+                          {' '}
+                          Generate Uptime Report for the AirQloud
+                        </Button>
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </span>
+                    </CardActions>
+                  </form>
+                </Card>
+              </Grid>
+            </Grid>
+          </div>
+        </div>
+
+        <div
+          style={{
+            margin: '50px auto',
+            maxWidth: '1500px'
+          }}
+        >
+          {uptimeSummaryReady ? (
+            <div className={classes.rootxx}>
+              <Grid container spacing={4}>
+                <Grid item xs={12}>
+                  <Card
+                    {...rest}
+                    className={clsx(classes.root, className)}
+                    style={{ overflow: 'visible' }}
+                  >
+                    <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
+                      {`Uptime Statistics For ${
+                        airQloudUptimeSummaryReport.airqloud_name
+                      } From ${formatDate(
+                        airQloudUptimeSummaryReport.start_date_time,
+                        'YYYY-MM-DD'
+                      )} to ${formatDate(airQloudUptimeSummaryReport.end_date_time, 'YYYY-MM-DD')}`}
+                    </Typography>
+
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item md={12} xs={12} container spacing={3}>
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Uptime (%)
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudUptimeSummaryReport.uptime.toFixed(2)}
+                            </Typography>
+                          </Grid>
+
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Downtime (%)
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudUptimeSummaryReport.downtime.toFixed(2)}
+                            </Typography>
+                          </Grid>
+
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Data Points
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudUptimeSummaryReport.data_points}
+                            </Typography>
+                          </Grid>
+
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            >
+                              Hourly Threshold
+                            </Typography>
+                            <Typography variant="h3">
+                              {airQloudUptimeSummaryReport.hourly_threshold}
+                            </Typography>
+                          </Grid>
+
+                          <Grid item lg={2} sm={6} xl={2} xs={12}>
+                            <Typography
+                              className={classes.title}
+                              color="textSecondary"
+                              gutterBottom
+                              variant="body2"
+                            ></Typography>
+                            <Typography variant="h3"></Typography>
+                          </Grid>
+                        </Grid>
+
+                        <Grid item md={12} xs={12}>
+                          <CustomMaterialTable
+                            title="AirQloud Sites Uptime Summarry "
+                            userPreferencePaginationKey={'siteDevices'}
+                            columns={[
+                              {
+                                title: 'Site Name',
+                                field: 'site_name'
+                              },
+                              {
+                                title: 'Hourly Data Point(Records Count)',
+                                field: 'data_points'
+                              },
+
+                              {
+                                title: 'Uptime (%)',
+                                field: 'uptime'
+                              },
+                              {
+                                title: 'Downtown (%)',
+                                field: 'downtime'
+                              }
+                            ]}
+                            data={airQloudUptimeSummaryReport.sites || []}
+                            options={{
+                              search: true,
+                              exportButton: true,
+                              searchFieldAlignment: 'right',
+                              showTitle: true,
+                              searchFieldStyle: {
+                                fontFamily: 'Open Sans'
+                              },
+                              headerStyle: {
+                                fontFamily: 'Open Sans',
+                                fontSize: 14,
+                                fontWeight: 600
+                              }
+                            }}
+                          />
+                        </Grid>
+
+                        <Grid item md={12} xs={12}>
+                          <CustomMaterialTable
+                            title="AirQloud Devices Uptime Summary "
+                            userPreferencePaginationKey={'airqloudDevices'}
+                            columns={[
+                              {
+                                title: 'Device',
+                                field: 'device'
+                              },
+                              {
+                                title: 'Hourly Data Point(Records Count)',
+                                field: 'data_points'
+                              },
+
+                              {
+                                title: 'Uptime (%)',
+                                field: 'uptime'
+                              },
+                              {
+                                title: 'Downtown (%)',
+                                field: 'downtime'
+                              }
+                            ]}
+                            data={airQloudUptimeSummaryReport.devices || []}
+                            options={{
+                              search: true,
+                              exportButton: true,
+                              searchFieldAlignment: 'right',
+                              showTitle: true,
+                              searchFieldStyle: {
+                                fontFamily: 'Open Sans'
+                              },
+                              headerStyle: {
+                                fontFamily: 'Open Sans',
+                                fontSize: 14,
+                                fontWeight: 600
+                              }
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </div>
+          ) : (
+            <Paper style={{ textAlign: 'center', padding: '50px' }}>
+              <p>AirQloud Uptime Report will appear here</p>
             </Paper>
           )}
         </div>
