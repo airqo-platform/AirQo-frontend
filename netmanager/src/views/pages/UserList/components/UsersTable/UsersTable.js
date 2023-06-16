@@ -195,18 +195,15 @@ const UsersTable = (props) => {
   };
 
   const deleteUser = async () => {
-    setProgress(50);
+    setProgress(10);
     try {
+      setProgress(50);
       await props.mappedConfirmDeleteUser(userDelState.user);
       setUserDelState({ open: false, user: {} });
       setProgress(100);
-      setTimeout(() => {
-        // reseting the loading bar
-        setProgress(0);
-      }, 1000);
     } catch (error) {
       console.error(error);
-      setProgress(0);
+      setProgress(-10);
     }
   };
 
@@ -240,7 +237,7 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        <LoadingBar color="#f11946" progress={progress} />
+        <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
