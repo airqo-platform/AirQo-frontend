@@ -131,7 +131,8 @@ const createDeviceColumns = (history, setDelState) => [
               className={'underline-hover'}
               onClick={(event) => {
                 event.stopPropagation();
-              }}>
+              }}
+            >
               {data.site && data.site.description}
             </Link>
           )
@@ -161,7 +162,8 @@ const createDeviceColumns = (history, setDelState) => [
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           }
@@ -305,7 +307,8 @@ const CreateDevice = ({ open, setOpen }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Add a device
       </DialogTitle>
@@ -338,7 +341,8 @@ const CreateDevice = ({ open, setOpen }) => {
             variant="outlined"
             error={!!errors.category}
             helperText={errors.category}
-            required>
+            required
+          >
             {CATEGORIES.map((option, index) => (
               <option key={index} value={option.value}>
                 {option.name}
@@ -353,7 +357,8 @@ const CreateDevice = ({ open, setOpen }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
         </form>
       </DialogContent>
 
@@ -367,7 +372,8 @@ const CreateDevice = ({ open, setOpen }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -470,7 +476,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       open={open}
       onClose={handleRegisterClose}
       aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
+      aria-describedby="form-dialog-description"
+    >
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
         Soft add a device
       </DialogTitle>
@@ -503,7 +510,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.category}
             helperText={errors.category}
-            required>
+            required
+          >
             {CATEGORIES.map((option, index) => (
               <option key={index} value={option.value}>
                 {option.name}
@@ -518,7 +526,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             variant="outlined"
             error={!!errors.network}
             helperText={errors.network}
-            disabled></TextField>
+            disabled
+          ></TextField>
         </form>
       </DialogContent>
 
@@ -532,7 +541,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             color="primary"
             type="submit"
             onClick={handleRegisterSubmit}
-            style={{ margin: '0 15px' }}>
+            style={{ margin: '0 15px' }}
+          >
             Register
           </Button>
         </Grid>
@@ -639,23 +649,28 @@ const DevicesTable = (props) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
+          {activeNetwork.net_name === 'airqo' && (
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              align="right"
+              onClick={() => setRegisterOpen(true)}
+            >
+              {' '}
+              Add Device
+            </Button>
+          )}
           <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            align="right"
-            onClick={() => setRegisterOpen(true)}>
-            {' '}
-            Add Device
-          </Button>
-          <Button
-            variant="outlined"
+            variant={activeNetwork.net_name === 'airqo' ? 'outlined' : 'contained'}
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
-            onClick={() => setSoftRegisterOpen(true)}>
-            Soft Add Device
+            onClick={() => setSoftRegisterOpen(true)}
+          >
+            {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
         <br />
