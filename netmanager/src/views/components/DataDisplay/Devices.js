@@ -664,7 +664,7 @@ const DevicesTable = (props) => {
           title="Device Registry"
           userPreferencePaginationKey={'devices'}
           columns={deviceColumns}
-          data={deviceList}
+          data={deviceList.map((x) => Object.assign({}, x))}
           isLoading={loading}
           onRowClick={(event, rowData) => {
             event.preventDefault();
