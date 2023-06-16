@@ -7,6 +7,7 @@ import {
   GET_NETWORK_UPTIME,
   GET_DEVICE_UPTIME_LEADERBOARD,
   DEVICES_UPTIME,
+  GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI,
 } from "config/urls/deviceMonitoring";
 
 export const onlineOfflineMaintenanceStatusApi = async () => {
@@ -54,5 +55,10 @@ export const getAllDevicesUptimeApi = async (params) => {
 export const getUptimeLeaderboardApi = async (params) => {
   return await axios
     .get(GET_DEVICE_UPTIME_LEADERBOARD, { params })
+    .then((response) => response.data);
+};
+
+export const generateAirQloudUptimeSummaryApi = async (data) => {
+  return await axios.post(GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI, data)
     .then((response) => response.data);
 };
