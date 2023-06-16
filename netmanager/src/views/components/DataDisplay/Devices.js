@@ -30,6 +30,44 @@ import { softCreateDeviceApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
 import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
 
+// dropdown component
+import Select from 'react-select';
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '45px',
+    marginTop: '8px',
+    marginBottom: '8px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    position: 'relative',
+    zIndex: 9999
+  })
+};
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(3)
@@ -206,6 +244,9 @@ const CATEGORIES = [
   { value: 'bam', name: 'BAM' }
 ];
 
+// dropdown options
+const options = CATEGORIES.map((option) => ({ value: option.value, label: option.name }));
+
 const CreateDevice = ({ open, setOpen }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
@@ -229,6 +270,11 @@ const CreateDevice = ({ open, setOpen }) => {
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
+  };
+
+  // dropdown change handler
+  const handleChange = (selectedOption) => {
+    setNewDevice({ ...newDevice, category: selectedOption.value });
   };
 
   const handleRegisterClose = () => {
@@ -324,27 +370,20 @@ const CreateDevice = ({ open, setOpen }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
-          <TextField
-            select
+          {/* dropdown */}
+          <Select
             fullWidth
             label="Category"
-            style={{ margin: '10px 0' }}
-            defaultValue={newDevice.category}
-            onChange={handleDeviceDataChange('category')}
-            SelectProps={{
-              native: true,
-              style: { width: '100%', height: '50px' }
-            }}
+            styles={customStyles}
+            defaultValue={options.find((option) => option.value === newDevice.category)}
+            onChange={handleChange}
+            isSearchable
+            options={options}
             variant="outlined"
             error={!!errors.category}
             helperText={errors.category}
-            required>
-            {CATEGORIES.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </TextField>
+            required
+          />
           <TextField
             fullWidth
             margin="dense"
