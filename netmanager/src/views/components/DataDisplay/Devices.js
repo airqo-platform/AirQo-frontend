@@ -374,6 +374,7 @@ const CreateDevice = ({ open, setOpen }) => {
           <Select
             fullWidth
             label="Category"
+            name="category"
             styles={customStyles}
             defaultValue={options.find((option) => option.value === newDevice.category)}
             onChange={handleChange}
@@ -384,6 +385,7 @@ const CreateDevice = ({ open, setOpen }) => {
             helperText={errors.category}
             required
           />
+
           <TextField
             fullWidth
             margin="dense"
@@ -679,22 +681,24 @@ const DevicesTable = (props) => {
             alignItems: 'center',
             justifyContent: 'flex-end'
           }}>
+          {activeNetwork.net_name === 'airqo' && (
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              align="right"
+              onClick={() => setRegisterOpen(true)}>
+              {' '}
+              Add Device
+            </Button>
+          )}
           <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            align="right"
-            onClick={() => setRegisterOpen(true)}>
-            {' '}
-            Add Device
-          </Button>
-          <Button
-            variant="outlined"
+            variant={activeNetwork.net_name === 'airqo' ? 'outlined' : 'contained'}
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
             onClick={() => setSoftRegisterOpen(true)}>
-            Soft Add Device
+            {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
         <br />
