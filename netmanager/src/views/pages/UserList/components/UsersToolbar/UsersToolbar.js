@@ -20,8 +20,27 @@ import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
 import { assignUserNetworkApi, assignUserToRoleApi } from '../../../../apis/accessControl';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
-// dropdown component
+// included for dropdown
+import countries from 'i18n-iso-countries';
+import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
+
+countries.registerLocale(enLocale);
+
+const countryObj = countries.getNames('en', { select: 'official' });
+
+const countryArr = Object.entries(countryObj).map(([key, value]) => {
+  return {
+    label: value,
+    value: key
+  };
+});
+
+// countries
+const countryOptions = countryArr.map(({ label, value }) => ({
+  label: label,
+  value: value
+}));
 
 // dropdown component styles
 const customStyles = {
@@ -29,6 +48,7 @@ const customStyles = {
     ...base,
     height: '3rem',
     marginTop: '8px',
+    marginBottom: '8px',
     borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
     '&:hover': {
       borderColor: state.isFocused ? 'black' : 'black'
@@ -52,7 +72,6 @@ const customStyles = {
   }),
   menu: (provided, state) => ({
     ...provided,
-    position: 'relative',
     zIndex: 9999
   })
 };
@@ -156,7 +175,7 @@ const UsersToolbar = (props) => {
   const handleClickOpen = () => {
     setOpen(true);
   };
-  //
+
   const handleClose = () => {
     setOpen(false);
     setErrors(initialStateErrors);
@@ -181,9 +200,6 @@ const UsersToolbar = (props) => {
       case 'userName':
         errors.userName = value.length === 0 ? 'userName is required' : '';
         break;
-      case 'country':
-        errors.country = value.length === 0 ? 'country is required' : '';
-        break;
       case 'jobTitle':
         errors.jobTitle = value.length === 0 ? 'jobTitle is required' : '';
         break;
@@ -197,30 +213,15 @@ const UsersToolbar = (props) => {
         break;
     }
 
-    if (id === 'role') {
-      setState({
-        ...form,
-        role: {
-          id: value
-        }
-      });
-    } else if (id === 'country') {
-      setState({
-        ...form,
-        country: capitalize(value)
-      });
-    } else {
-      setState(
-        {
-          ...form,
-          [id]: value
-        },
-        () => {
-          console.log(errors);
-        }
-      );
-    }
+    setState({
+      ...form,
+      [id]: value
+    });
   };
+
+  useEffect(() => {
+    console.log(form.errors);
+  }, [form.errors]);
 
   const onSubmit = (e) => {
     setLoading(true);
@@ -285,24 +286,15 @@ const UsersToolbar = (props) => {
   // role options
   const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
 
-  // hook for role select
-  const [selectedOption, setSelectedOption] = useState(
-    props.mappeduserState.userToEdit?.role
-      ? {
-          value: props.mappeduserState.userToEdit.role._id,
-          label: props.mappeduserState.userToEdit.role.role_name
-        }
-      : null
-  );
-
-  // handles role select
-  const handleRoleChange = (selectedOption) => {
-    setSelectedOption(selectedOption);
+  // handle dropdown change
+  const handleDropdownChange = (selectedOption, { name }) => {
+    const { label, value } = selectedOption;
+    let errors = form.errors;
+    errors[name] = value.length === 0 ? 'This field is required' : '';
     setState({
       ...form,
-      role: {
-        id: selectedOption.value
-      }
+      errors,
+      [name]: name === 'role' ? { id: value } : label
     });
   };
 
@@ -360,18 +352,17 @@ const UsersToolbar = (props) => {
                   fullWidth
                 />
 
-                <TextField
-                  margin="dense"
-                  id="country"
+                {/* dropdown */}
+                <Select
+                  value={countryOptions.find((option) => option.value === form.country)}
+                  onChange={handleDropdownChange}
+                  options={countryOptions}
+                  isSearchable
                   label="country"
+                  placeholder="Select country"
                   name="country"
-                  type="text"
-                  helperText={errors.country}
                   error={!!errors.country}
-                  onChange={onChange}
-                  value={form.country}
-                  variant="outlined"
-                  fullWidth
+                  styles={customStyles}
                 />
 
                 <TextField
@@ -422,10 +413,9 @@ const UsersToolbar = (props) => {
                   name="role"
                   label="role"
                   style={{ marginTop: '15px' }}
-                  onChange={handleRoleChange}
-                  value={selectedOption}
+                  onChange={handleDropdownChange}
+                  value={options.find((option) => option.value === form.role)}
                   options={options}
-                  variant="outlined"
                   styles={customStyles}
                   isMulti={false}
                   fullWidth
