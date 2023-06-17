@@ -34,9 +34,6 @@ import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
 
-// loading bar
-import LoadingBar from 'react-top-loading-bar';
-
 const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
@@ -119,8 +116,6 @@ const UsersTable = (props) => {
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const users = useSelector((state) => state.accessControl.networkUsers);
-  // loading bar
-  const [progress, setProgress] = useState(0);
 
   //the methods:
 
@@ -194,18 +189,9 @@ const UsersTable = (props) => {
     setUserDelState({ open: false, user: {} });
   };
 
-  const deleteUser = async () => {
-    setProgress(10);
-    try {
-      setProgress(50);
-      await props.mappedConfirmDeleteUser(userDelState.user);
-      setUserDelState({ open: false, user: {} });
-      dispatch(fetchNetworkUsers(activeNetwork._id));
-      setProgress(100);
-    } catch (error) {
-      console.error(error);
-      setProgress(-10);
-    }
+  const deleteUser = () => {
+    props.mappedConfirmDeleteUser(userDelState.user);
+    setUserDelState({ open: false, user: {} });
   };
 
   useEffect(() => {
@@ -214,7 +200,7 @@ const UsersTable = (props) => {
       dispatch(fetchNetworkUsers(activeNetwork._id));
     }
     setLoading(false);
-  }, [activeNetwork]);
+  }, []);
 
   // If roles is null or undefined will return empty array
   const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
@@ -238,7 +224,6 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        <LoadingBar color="#f11946" progress={progress} onLoaderFinished={() => setProgress(0)} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
