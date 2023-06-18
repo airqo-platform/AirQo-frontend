@@ -33,8 +33,6 @@ import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
-// Horizontal loader
-import HorizontalLoader from '../HorizontalLoader/HorizontalLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -118,7 +116,6 @@ const UsersTable = (props) => {
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const users = useSelector((state) => state.accessControl.networkUsers);
-  const [progress, setProgress] = useState(0);
 
   //the methods:
 
@@ -192,23 +189,9 @@ const UsersTable = (props) => {
     setUserDelState({ open: false, user: {} });
   };
 
-  // delete user function
-  const deleteUser = async () => {
-    setLoading(true);
-    setProgress(50);
-    try {
-      await props.mappedConfirmDeleteUser(userDelState.user);
-      hideDeleteDialog();
-      setProgress(100);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setProgress(0);
-      }, 1500);
-      dispatch(fetchNetworkUsers(activeNetwork._id));
-    }
+  const deleteUser = () => {
+    props.mappedConfirmDeleteUser(userDelState.user);
+    setUserDelState({ open: false, user: {} });
   };
 
   useEffect(() => {
@@ -241,8 +224,6 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
-        {/* custome Horizontal loader indicator */}
-        <HorizontalLoader loading={isLoading} color="#FF0000" progress={progress} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
