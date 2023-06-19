@@ -49,15 +49,15 @@ export default function NetworkDropdown({ userNetworks }) {
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
     if (activeNetwork) {
       setSelectedNetwork(activeNetwork);
-    } else if (userNetworks.length > 0) {
+    } else {
       setSelectedNetwork(userNetworks[0]);
       localStorage.setItem('activeNetwork', JSON.stringify(userNetworks[0]));
       dispatch(addActiveNetwork(userNetworks[0]));
-      dispatch(loadDevicesData(userNetworks[0]?.net_name));
-      dispatch(loadSitesData(userNetworks[0]?.net_name));
-      dispatch(fetchNetworkUsers(userNetworks[0]?._id));
-      dispatch(loadUserRoles(userNetworks[0]?._id));
-      dispatch(fetchAvailableNetworkUsers(userNetworks[0]?._id));
+      dispatch(loadDevicesData(userNetworks[0].net_name));
+      dispatch(loadSitesData(userNetworks[0].net_name));
+      dispatch(fetchNetworkUsers(userNetworks[0]._id));
+      dispatch(loadUserRoles(userNetworks[0]._id));
+      dispatch(fetchAvailableNetworkUsers(userNetworks[0]._id));
     }
   }, []);
 
@@ -86,7 +86,7 @@ export default function NetworkDropdown({ userNetworks }) {
           }
         }}
       >
-        <DialogTitle>Select Network</DialogTitle>
+        <DialogTitle>Select Organisation</DialogTitle>
         <DialogContent dividers>
           <div style={{ 
             maxHeight: '200px', 
