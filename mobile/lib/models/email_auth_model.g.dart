@@ -8,8 +8,8 @@ part of 'email_auth_model.dart';
 
 EmailAuthModel _$EmailAuthModelFromJson(Map<String, dynamic> json) =>
     EmailAuthModel(
-      json['token'] as int,
-      json['email'] as String,
-      json['login_link'] as String? ?? '',
-      json['auth_link'] as String? ?? '',
+      token: json['token'] as int,
+      emailAddress: json['email'] as String,
+      signInLink: json['login_link'] as String? ?? '',
+      reAuthenticationLink: json['auth_link'] as String? ?? '',
     );

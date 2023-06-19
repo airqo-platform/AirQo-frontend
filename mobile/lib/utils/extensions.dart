@@ -710,8 +710,7 @@ extension StringExt on String {
     return trimmed.startsWith('+') &&
         trimmed.length >= 7 &&
         trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+        RegExp(r'^[0-9]+$').hasMatch(trimmed.substring(1));
   }
 
   bool isValidEmail() {
