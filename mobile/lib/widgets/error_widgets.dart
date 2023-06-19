@@ -9,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
-
 class NoSearchResultsWidget extends StatelessWidget {
   const NoSearchResultsWidget({super.key, this.message});
   final String? message;
@@ -560,7 +559,7 @@ class AppCrushWidget extends StatelessWidget {
             const Spacer(),
             InkWell(
               onTap: () async {
-                // T_DO log to  a backend service
+                // TODO log to  a backend service
                 PackageInfo packageInfo = await PackageInfo.fromPlatform();
                 String subject = "Mobile App Crush";
                 String body = ""
