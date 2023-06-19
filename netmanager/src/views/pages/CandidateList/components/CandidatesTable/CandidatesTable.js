@@ -34,6 +34,7 @@ import {
   sendUserFeedbackApi
 } from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -136,12 +137,15 @@ const CandidatesTable = (props) => {
           })
         );
       })
-      .catch((err) => {
+      .catch((error) => {
+        const errors = (error.response && error.response.data && error.response.data.errors) || {};
+
         dispatch(
           updateMainAlert({
             show: true,
-            message: 'candidate already exists',
-            severity: 'error'
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
       });

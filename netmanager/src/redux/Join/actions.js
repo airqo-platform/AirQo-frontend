@@ -525,10 +525,10 @@ export const logoutUser = () => (dispatch) => {
   localStorage.removeItem('currentUser');
   // Remove token from local storage
   localStorage.removeItem('activeNetwork');
-  // Remove auth header for future requests
-  setAuthToken(false);
   // Remove token from local storage
   localStorage.removeItem('userNetworks');
+  // Remove token from local storage
+  localStorage.removeItem('currentUserRole');
   // Remove auth header for future requests
   setAuthToken(false);
   // clear redux state on logout

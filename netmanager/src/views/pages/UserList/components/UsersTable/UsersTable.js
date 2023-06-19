@@ -31,6 +31,10 @@ import { assignUserToRoleApi } from '../../../../apis/accessControl';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
+// dropdown component
+import Dropdown from 'react-select';
+// Horizontal loader
+import HorizontalLoader from '../HorizontalLoader/HorizontalLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -59,6 +63,39 @@ function withMyHook(Component) {
   };
 }
 
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '3rem',
+    marginTop: '3px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
+
 const UsersTable = (props) => {
   //the props
   //need to get the ones from the state
@@ -81,6 +118,7 @@ const UsersTable = (props) => {
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const users = useSelector((state) => state.accessControl.networkUsers);
+  const [progress, setProgress] = useState(0);
 
   //the methods:
 
@@ -154,9 +192,23 @@ const UsersTable = (props) => {
     setUserDelState({ open: false, user: {} });
   };
 
-  const deleteUser = () => {
-    props.mappedConfirmDeleteUser(userDelState.user);
-    setUserDelState({ open: false, user: {} });
+  // delete user function
+  const deleteUser = async () => {
+    setLoading(true);
+    setProgress(50);
+    try {
+      await props.mappedConfirmDeleteUser(userDelState.user);
+      hideDeleteDialog();
+      setProgress(100);
+      dispatch(fetchNetworkUsers(activeNetwork._id));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+      }, 1500);
+    }
   };
 
   useEffect(() => {
@@ -167,10 +219,30 @@ const UsersTable = (props) => {
     setLoading(false);
   }, []);
 
+  // If roles is null or undefined will return empty array
+  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+
+  // checking if userToEdit is undefined or null
+  const [selectedOption, setSelectedOption] = useState(
+    props.mappeduserState.userToEdit?.role
+      ? {
+          value: props.mappeduserState.userToEdit.role._id,
+          label: props.mappeduserState.userToEdit.role.role_name
+        }
+      : null
+  );
+
+  const handleRoleChange = (selectedOption) => {
+    setSelectedOption(selectedOption);
+    setUpdatedUser({ ...updatedUser, role: selectedOption.value });
+  };
+
   return (
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
+        {/* custome Horizontal loader indicator */}
+        <HorizontalLoader loading={isLoading} color="#FF0000" progress={progress} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
@@ -326,68 +398,21 @@ const UsersTable = (props) => {
                   variant="outlined"
                   fullWidth
                 />
-                <TextField
-                  id="role"
-                  select
-                  fullWidth
+
+                {/* dropdown */}
+                <Dropdown
+                  name="role"
                   label="role"
-                  style={{ marginTop: '15px' }}
-                  onChange={handleUpdateUserChange('role')}
-                  SelectProps={{
-                    native: true,
-                    style: { width: '100%', height: '50px' },
-                    MenuProps: {
-                      className: classes.menu
-                    }
-                  }}
-                  variant="outlined">
-                  {roles &&
-                    roles.map((option, index) => {
-                      if (index === 0) {
-                        return (
-                          <>
-                            <option
-                              key={option._id}
-                              value={
-                                (props.mappeduserState.userToEdit.role &&
-                                  option._id === props.mappeduserState.userToEdit.role._id) ||
-                                option._id
-                                  ? props.mappeduserState.userToEdit.role?.role_name
-                                  : option._id
-                              }>
-                              {(props.mappeduserState.userToEdit.role &&
-                                option._id === props.mappeduserState.userToEdit.role._id) ||
-                              option._id
-                                ? props.mappeduserState.userToEdit.role?.role_name
-                                : option.role_name}
-                            </option>
-                            {roles.map((option, index) => {
-                              if (props.mappeduserState.userToEdit.role) {
-                                if (
-                                  index !== 0 &&
-                                  option._id !== props.mappeduserState.userToEdit.role._id
-                                ) {
-                                  return (
-                                    <option key={option._id} value={option._id}>
-                                      {option.role_name}
-                                    </option>
-                                  );
-                                }
-                              } else {
-                                if (index !== 0) {
-                                  return (
-                                    <option key={option._id} value={option._id}>
-                                      {option.role_name}
-                                    </option>
-                                  );
-                                }
-                              }
-                            })}
-                          </>
-                        );
-                      }
-                    })}
-                </TextField>
+                  onChange={handleRoleChange}
+                  value={selectedOption}
+                  options={options}
+                  variant="outlined"
+                  styles={customStyles}
+                  isMulti={false}
+                  fullWidth
+                  placeholder={selectedOption ? selectedOption.label : 'Select role'}
+                />
+
                 <TextField
                   margin="dense"
                   id="jobTitle"

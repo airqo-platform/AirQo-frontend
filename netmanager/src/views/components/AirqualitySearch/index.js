@@ -51,7 +51,7 @@ const AQSearch = () => {
       <MUIPlacesAutocomplete
         onSuggestionSelected={onSuggestionSelected}
         renderTarget={() => <div />}
-        textFieldProps={{ variant: 'outlined', fullWidth: true, type: 'search' }}
+        textFieldProps={{ variant: 'outlined', fullWidth: true, type: 'search', autoFocus: true }}
       />
       <Snackbar
         onClose={onClose}

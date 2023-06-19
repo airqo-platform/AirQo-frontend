@@ -15,7 +15,8 @@ import { ArrowDropDown } from '@material-ui/icons';
 
 const StyledMenu = withStyles({
   paper: {
-    border: '1px solid #d3d4d5'
+    border: '1px solid #d3d4d5',
+    width: '170px'
   }
 })((props) => (
   <Menu
@@ -105,8 +106,12 @@ export default function NetworkDropdown({ userNetworks }) {
       >
         {userNetworks &&
           userNetworks.map((network) => (
-            <StyledMenuItem key={network.net_id} onClick={() => handleSelect(network)}>
-              <ListItemText>{network.net_name}</ListItemText>
+            <StyledMenuItem
+              key={network.net_id}
+              onClick={() => handleSelect(network)}
+              selected={selectedNetwork && selectedNetwork.net_name === network.net_name}
+            >
+              <ListItemText>{network.net_name.toUpperCase()}</ListItemText>
             </StyledMenuItem>
           ))}
       </StyledMenu>

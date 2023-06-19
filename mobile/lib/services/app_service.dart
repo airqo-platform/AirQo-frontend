@@ -33,13 +33,18 @@ class AppService {
     await CloudAnalytics.logSignInEvents(profile);
   }
 
-  static Future<void> postSignOutActions(BuildContext context) async {
+  static Future<void> postSignOutActions(
+    BuildContext context, {
+    bool log = true,
+  }) async {
     context.read<ProfileBloc>().add(const ClearProfile());
     context.read<KyaBloc>().add(const ClearKya());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
     context.read<SearchBloc>().add(const ClearSearchHistory());
-    await CloudAnalytics.logSignOutEvents();
+    if (log) {
+      await CloudAnalytics.logSignOutEvents();
+    }
   }
 
   static Future<Kya?> getKya(Kya kya) async {

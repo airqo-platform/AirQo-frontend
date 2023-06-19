@@ -279,13 +279,11 @@
   padding: 0 0 6px 3px;
   border-radius: 4px;
 }
-.map-style h4 {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 6px 4px;
-  color: #0078ff;
+
+
+.map-icon-container:hover .change-map-mode {
+  visibility: visible;
+  opacity: 1;
 }
 .map-style h4 span {
   font-size: 14px;
@@ -322,4 +320,46 @@
   font-size: 15px;
   color: #0078ff;
   background-color: rgb(248, 239, 239);
+}
+
+.map-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 5px;
+  width: 44px;
+  height: 44px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.2s ease 0s;
+}
+
+.map-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.map-icon-hovered {
+  color: #0078ff;
+  transform: scale(1.1);
+}
+
+.map-icon-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 50%;
+  padding: 2px; 
+}
+
+
+.change-map-mode {
+  position: absolute;
+  left: -75px;
+  top: 50%;
+  transform: translateY(-50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.2s ease;
 }
