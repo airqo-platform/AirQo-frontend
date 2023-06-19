@@ -1,16 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import ListItemText from '@material-ui/core/ListItemText';
+import { Button, Menu, MenuItem, Tooltip } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
-import { ArrowDropDown } from '@material-ui/icons';
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  ListItem,
-  ListItemText,
-  makeStyles
-} from '@material-ui/core';
 import {
   addActiveNetwork,
   fetchNetworkUsers,
@@ -19,31 +11,56 @@ import {
 } from 'redux/AccessControl/operations';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
+import { ArrowDropDown } from '@material-ui/icons';
+import 'assets/css/dropdown.css';
 
-const useStyles = makeStyles((theme) => ({
-  listItem: {
-    '&:hover': {
-      backgroundColor: theme.palette.grey[200],
-    },
-    fontWeight: '1rem',
-    color: '#175df5'
-  },
-  listItemText: {
-    color: '#175df5'
-  },
-  selectedListItem: {
-    backgroundColor: 'green',
-  },
-  activeListItem: {
-    backgroundColor: 'white',
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+    width: '200px',
+    borderRadius: '4px',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
+    maxHeight: '200px', 
+    overflowY: 'auto' 
   }
-}));
+})((props) => (
+  <Menu
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center'
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center'
+    }}
+    {...props}
+  />
+));
+
+const StyledMenuItem = withStyles((theme) => ({
+  root: {
+    '&:focus': {
+      backgroundColor: '#175df5',
+      color: 'black',
+      '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+        color: theme.palette.common.white
+      }
+    },
+    '& .MuiListItemText-primary': {
+      fontWeight: 'bold',
+      color: '#175df5',
+    }
+  }
+}))(MenuItem);
+
+
 
 export default function NetworkDropdown({ userNetworks }) {
   const dispatch = useDispatch();
+  const [anchorEl, setAnchorEl] = useState(null);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const classes = useStyles();
 
   useEffect(() => {
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -61,59 +78,57 @@ export default function NetworkDropdown({ userNetworks }) {
     }
   }, []);
 
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   const handleSelect = (network) => {
     setSelectedNetwork(network);
     localStorage.setItem('activeNetwork', JSON.stringify(network));
-    dispatch(loadDevicesData(network?.net_name));
-    dispatch(loadSitesData(network?.net_name));
-    dispatch(fetchNetworkUsers(network?._id));
-    dispatch(fetchAvailableNetworkUsers(network?._id));
-    setOpenDialog(false);
+    dispatch(loadDevicesData(network.net_name));
+    dispatch(loadSitesData(network.net_name));
+    dispatch(fetchNetworkUsers(network._id));
+    dispatch(fetchAvailableNetworkUsers(network._id));
+    dispatch(loadUserRoles(network._id));
+    handleClose();
     window.location.reload();
   };
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)}>
-        {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
-      </Button>
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        PaperProps={{
-          style: {
-            width: '500px'
-          }
-        }}
+      <Tooltip title="Organizations" placement="bottom">
+        <Button
+          aria-controls="network-menu"
+          aria-haspopup="true"
+          onClick={handleClick}
+          variant="contained"
+          color="primary"
+        >
+          {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
+        </Button>
+      </Tooltip>
+      <StyledMenu
+        id="network-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
       >
-        <DialogTitle>Select Organisation</DialogTitle>
-        <DialogContent dividers>
-          <div style={{ 
-            maxHeight: '200px', 
-            overflowY: 'auto' }}>
-            {userNetworks.map((network) => (
-              <ListItem
-                key={network.net_id}
-                button
-                onClick={() => handleSelect(network)}
-                className={`${classes.listItem} ${
-                  selectedNetwork && selectedNetwork.net_id === network.net_id
-                    ? classes.selectedListItem
-                    : ''
-                } ${selectedNetwork && selectedNetwork.net_id === network.net_id ? classes.activeListItem : ''}`}
-                
-              >
-                <ListItemText primary={network.net_name?.toUpperCase()} />
-              </ListItem>
-            ))}
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="secondary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {userNetworks &&
+          userNetworks.map((network) => (
+            <StyledMenuItem
+              key={network.net_id}
+              onClick={() => handleSelect(network)}
+              selected={selectedNetwork && selectedNetwork.net_name === network.net_name}
+            >
+              <ListItemText>{network.net_name.toUpperCase()}</ListItemText>
+            </StyledMenuItem>
+          ))}
+      </StyledMenu>
     </>
   );
 }
