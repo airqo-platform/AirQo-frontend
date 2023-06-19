@@ -1,32 +1,26 @@
-import React, { useState, useEffect } from "react";
-import {
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-} from "@material-ui/core";
-import Copyable from "views/components/Copy/Copyable";
-import { ChartContainer } from "views/charts";
-import { decryptKeyApi } from "views/apis/deviceRegistry";
-import { isEmpty } from "underscore";
+import React, { useState, useEffect } from 'react';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableRow } from '@material-ui/core';
+import Copyable from 'views/components/Copy/Copyable';
+import { ChartContainer } from 'views/charts';
+import { decryptKeyApi } from 'views/apis/deviceRegistry';
+import { isEmpty } from 'underscore';
+import format from 'date-fns/format';
 
 const DeviceDetails = ({ deviceData }) => {
-  const BLANK_PLACE_HOLDER = "-";
-  const [readKey, setReadKey] = useState("");
-  const [writeKey, setWriteKey] = useState("");
+  const BLANK_PLACE_HOLDER = '-';
+  const [readKey, setReadKey] = useState('');
+  const [writeKey, setWriteKey] = useState('');
 
   const decryptKey = async (key, callback) => {
     return await decryptKeyApi(key).then((res) => {
-      callback(res.decrypted_key || "Could not decrypt key");
+      callback(res.decrypted_key || 'Could not decrypt key');
     });
   };
 
   const deviceStatus = !deviceData.status
     ? deviceData.isActive === true
-      ? "deployed"
-      : "not deployed"
+      ? 'deployed'
+      : 'not deployed'
     : deviceData.status;
 
   useEffect(() => {
@@ -39,7 +33,7 @@ const DeviceDetails = ({ deviceData }) => {
   }, []);
 
   return (
-    <ChartContainer title={"device details"} blue>
+    <ChartContainer title={'device details'} blue>
       <TableContainer component={Paper}>
         <Table stickyHeader aria-label="sticky table">
           <TableBody>
@@ -47,10 +41,21 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <b>Name</b>
               </TableCell>
-              <TableCell>
-                {deviceData.long_name || BLANK_PLACE_HOLDER}
-              </TableCell>
+              <TableCell>{deviceData.long_name || BLANK_PLACE_HOLDER}</TableCell>
             </TableRow>
+            {deviceData.createdAt ? (
+              <TableRow>
+                <TableCell>
+                  <b>Date Created</b>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(deviceData.createdAt), 'dd-MMM-yyyy  kk:mm') ||
+                    BLANK_PLACE_HOLDER}
+                </TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
             <TableRow>
               <TableCell>
                 <b>Deployment status</b>
@@ -58,65 +63,83 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <span
                   style={{
-                    color: deviceStatus === "deployed" ? "green" : "red",
-                    textTransform: "capitalize",
-                  }}
-                >
+                    color: deviceStatus === 'deployed' ? 'green' : 'red',
+                    textTransform: 'capitalize'
+                  }}>
                   {deviceStatus}
                 </span>
               </TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Device Number (Channel ID)</b>
-              </TableCell>
-              <TableCell>
-                {deviceData.device_number || BLANK_PLACE_HOLDER}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Longitude</b>
-              </TableCell>
-              <TableCell>
-                {deviceData.longitude || BLANK_PLACE_HOLDER}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Latitude</b>
-              </TableCell>
-              <TableCell>{deviceData.latitude || BLANK_PLACE_HOLDER}</TableCell>
-            </TableRow>
+            {deviceData.powerType ? (
+              <TableRow>
+                <TableCell>
+                  <b>Power Type</b>
+                </TableCell>
+                <TableCell style={{ textTransform: 'capitalize' }}>
+                  {deviceData.powerType || BLANK_PLACE_HOLDER}
+                </TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
             <TableRow>
               <TableCell>
                 <b>Owner</b>
               </TableCell>
-              <TableCell>{deviceData.owner || BLANK_PLACE_HOLDER}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Manufacturer</b>
-              </TableCell>
-              <TableCell>
-                {deviceData.device_manufacturer || BLANK_PLACE_HOLDER}
+              <TableCell style={{ textTransform: 'capitalize' }}>
+                {`${deviceData.network} Network` || BLANK_PLACE_HOLDER}
               </TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>ISP</b>
-              </TableCell>
-              <TableCell>{deviceData.ISP || BLANK_PLACE_HOLDER}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Phone Number</b>
-              </TableCell>
-              <TableCell>
-                {(deviceData.phoneNumber && `0${deviceData.phoneNumber}`) ||
-                  BLANK_PLACE_HOLDER}
-              </TableCell>
-            </TableRow>
+            {deviceData.device_number ? (
+              <TableRow>
+                <TableCell>
+                  <b>Device Number (Channel ID)</b>
+                </TableCell>
+                <TableCell>{deviceData.device_number || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
+            {deviceData.longitude ? (
+              <TableRow>
+                <TableCell>
+                  <b>Longitude</b>
+                </TableCell>
+                <TableCell>{deviceData.longitude || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
+            {deviceData.latitude ? (
+              <TableRow>
+                <TableCell>
+                  <b>Latitude</b>
+                </TableCell>
+                <TableCell>{deviceData.latitude || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
+            {deviceData.site ? (
+              <TableRow>
+                <TableCell>
+                  <b>Site</b>
+                </TableCell>
+                <TableCell>{deviceData.site.name || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
+            {deviceData.site ? (
+              <TableRow>
+                <TableCell>
+                  <b>Site Location</b>
+                </TableCell>
+                <TableCell>{deviceData.site.location_name || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+            ) : (
+              <span />
+            )}
             <TableRow>
               <TableCell>
                 <b>Read Key</b>

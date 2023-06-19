@@ -51,6 +51,10 @@ export const assignUserToRoleApi = async (roleID, data) => {
     .then((response) => response.data);
 };
 
+export const createNetworkApi = async (data) => {
+  return await axios.post(GET_NETWORKS_URI, data).then((response) => response.data);
+};
+
 export const getNetworksApi = async () => {
   return await axios.get(GET_NETWORKS_URI).then((response) => response.data);
 };
