@@ -200,6 +200,7 @@ const UsersTable = (props) => {
       await props.mappedConfirmDeleteUser(userDelState.user);
       hideDeleteDialog();
       setProgress(100);
+      dispatch(fetchNetworkUsers(activeNetwork._id));
     } catch (error) {
       console.error(error);
     } finally {
@@ -207,7 +208,6 @@ const UsersTable = (props) => {
         setLoading(false);
         setProgress(0);
       }, 1500);
-      dispatch(fetchNetworkUsers(activeNetwork._id));
     }
   };
 
