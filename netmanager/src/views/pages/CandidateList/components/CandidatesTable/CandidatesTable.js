@@ -53,6 +53,18 @@ const useStyles = makeStyles((theme) => ({
   },
   actions: {
     justifyContent: 'flex-end'
+  },
+  collapseContent: {
+    maxHeight: 100,
+    overflow: 'hidden',
+    transition: 'max-height 0.3s ease-out'
+  },
+  expandContent: {
+    maxHeight: 'none'
+  },
+  expandButton: {
+    display: 'flex',
+    justifyContent: 'flex-end'
   }
 }));
 
@@ -62,7 +74,7 @@ const CandidatesTable = (props) => {
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
-
+  const [expandedRows, setExpandedRows] = useState([]);
   const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
 
   const [userFeedbackMessage, setUserFeedbackMessage] = useState('');
@@ -234,6 +246,16 @@ const CandidatesTable = (props) => {
     }
   };
 
+  //Functionality for expand/collapse click
+  const handleExpandClick = (candidateId) => {
+    const isRowExpanded = expandedRows.includes(candidateId);
+    if (isRowExpanded) {
+      setExpandedRows(expandedRows.filter((id) => id !== candidateId));
+    } else {
+      setExpandedRows([...expandedRows, candidateId]);
+    }
+  };
+
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
       <CustomMaterialTable
@@ -268,7 +290,33 @@ const CandidatesTable = (props) => {
           },
           {
             title: 'Description',
-            field: 'description'
+            field: 'description',
+            render: (candidate) => (
+              <>
+                {candidate.description.length >= 100 ? (
+                  <>
+                    <div
+                      className={clsx(classes.collapseContent, {
+                        [classes.expandContent]: expandedRows.includes(candidate._id)
+                      })}
+                    >
+                      {candidate.description}
+                    </div>
+                    <div className={classes.expandButton}>
+                      <Button
+                        size="small"
+                        color="primary"
+                        onClick={() => handleExpandClick(candidate._id)}
+                      >
+                        {expandedRows.includes(candidate._id) ? 'Collapse' : 'Expand'}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div>{candidate.description}</div>
+                )}
+              </>
+            )
           },
           {
             title: 'Organization',
