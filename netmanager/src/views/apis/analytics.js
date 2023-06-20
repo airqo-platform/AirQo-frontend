@@ -46,8 +46,8 @@ export const refreshScheduleExportDataApi = async (requestId) => {
     .then((response) => response.data);
 };
 
-export const getScheduleExportDataApi = async (userId) => {
+export const getScheduleExportDataApi = async (USERID) => {
   return await axios
-    .get(SCHEDULE_EXPORT_DATA, { params: { userId } })
+    .get(SCHEDULE_EXPORT_DATA, { params: { userId: USERID } })
     .then((response) => response.data);
 };
