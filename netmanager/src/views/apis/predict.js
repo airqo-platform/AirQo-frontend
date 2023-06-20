@@ -8,8 +8,14 @@ if (token) {
   axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 }
 
+const API_TOKEN = process.env.REACT_APP_API_TOKEN
+
 export const heatmapPredictApi = async () => {
-  return await axios.get(GET_HEATMAP_DATA).then((response) => response.data);
+  return await axios.get(GET_HEATMAP_DATA, {
+    params:{
+      token: API_TOKEN
+    }
+  }).then((response) => response.data);
 };
 
 export const geocoordinatesPredictApi = async (params) => {
