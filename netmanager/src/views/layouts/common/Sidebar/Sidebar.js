@@ -92,8 +92,13 @@ const allMainPages = [
   },
 
   {
-    title: 'Export',
+    title: 'Export data',
     href: '/export-data',
+    nested: true,
+    nestItems: [
+      { title: 'Export', href: '/export-data/' },
+      { title: 'Downloads', href: '/export-data/downloads' }
+    ],
     icon: <CloudDownloadIcon />
   },
   {

@@ -11,7 +11,8 @@ import {
   Divider,
   CircularProgress,
   Tabs,
-  Tab
+  Tab,
+  Box
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
@@ -34,6 +35,7 @@ import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
 import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
+import { scheduleExportDataApi } from '../../apis/analytics';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -293,6 +295,19 @@ const ExportData = (props) => {
     setRegionOptions(groupSitesByRegion(deviceRegistrySiteOptions));
   }, [deviceRegistrySiteOptions]);
 
+  const clearExportData = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setFileType(null);
+    setSelectedAirqlouds([]);
+    setSelectedDevices([]);
+    setSelectedSites([]);
+    setSelectedRegions([]);
+    setPollutants([]);
+    setOutputFormat(null);
+    setFrequency(null);
+  };
+
   const disableDownloadBtn = (exportType) => {
     if (exportType === 'sites') {
       return (
@@ -385,18 +400,8 @@ const ExportData = (props) => {
           const csvData = Papa.unparse(resData);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
-
+        clearExportData();
         setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
-        setFileType(null);
-        setSelectedAirqlouds([]);
-        setSelectedDevices([]);
-        setSelectedSites([]);
-        setSelectedRegions([]);
-        setPollutants([]);
-        setOutputFormat(null);
-        setFrequency(null);
         dispatch(
           updateMainAlert({
             message: 'Air quality data download successful',
@@ -424,17 +429,8 @@ const ExportData = (props) => {
           );
         }
 
+        clearExportData();
         setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
-        setFileType(null);
-        setSelectedAirqlouds([]);
-        setSelectedDevices([]);
-        setSelectedSites([]);
-        setSelectedRegions([]);
-        setPollutants([]);
-        setOutputFormat(null);
-        setFrequency(null);
       });
   };
 
@@ -508,6 +504,60 @@ const ExportData = (props) => {
     };
 
     downloadDataFunc(data);
+  };
+
+  const scheduleExportData = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+
+    let userId = JSON.parse(localStorage.getItem('currentUser'))._id;
+    let sitesList = [];
+
+    if (!isEmpty(selectedRegions)) {
+      sitesList = extractSiteIds(selectedRegions);
+    }
+
+    if (!isEmpty(selectedSites)) {
+      sitesList = getValues(selectedSites);
+    }
+
+    let body = {
+      sites: sitesList,
+      airqlouds: getValues(selectedAirqlouds),
+      devices: getValues(selectedDevices),
+      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
+      frequency: frequency.value,
+      pollutants: getValues(pollutants),
+      downloadType: 'json',
+      outputFormat: outputFormat.value,
+      userId: userId
+    };
+
+    await scheduleExportDataApi(body)
+      .then((resData) => {
+        clearExportData();
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            message: 'Data export' + resData.data.status,
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message: err.response.data.message,
+            show: true,
+            severity: 'error'
+          })
+        );
+        clearExportData();
+        setLoading(false);
+      });
   };
 
   return (
@@ -657,29 +707,51 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('sites')}
                       >
                         {' '}
                         Download Data
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('sites')}
+                      >
+                        {' '}
+                        Schedule Download
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
@@ -799,29 +871,51 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('devices')}
                       >
                         {' '}
                         Download Data
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('devices')}
+                      >
+                        {' '}
+                        Schedule Download
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
@@ -940,29 +1034,51 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('airqlouds')}
                       >
                         {' '}
                         Download Data
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('airqlouds')}
+                      >
+                        {' '}
+                        Schedule Download
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
@@ -1081,29 +1197,51 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('regions')}
                       >
                         {' '}
                         Download Data
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('regions')}
+                      >
+                        {' '}
+                        Schedule Download
+                        {loading && (
+                          <CircularProgress
+                            size={24}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              marginTop: '-12px',
+                              marginLeft: '-12px'
+                            }}
+                          />
+                        )}
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
