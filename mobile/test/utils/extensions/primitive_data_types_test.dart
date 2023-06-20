@@ -99,7 +99,8 @@ void main() {
       expect(''.isValidEmail(), isFalse);
       expect('noblethegreat'.isValidEmail(), isFalse);
       expect('noble@airqo'.isValidEmail(), isFalse);
-      expect('.@example.com'.isValidEmail(), isFalse);
+      expect('noble@airqo.google.com'.isValidEmail(), isTrue);
+      expect('\$@example.com'.isValidEmail(), isFalse);
       expect('@example.com'.isValidEmail(), isFalse);
       expect('john.doe@example.'.isValidEmail(), isFalse);
       expect('noble@airqo.ug'.isValidEmail(), isTrue);
