@@ -30,6 +30,9 @@ import { softCreateDeviceApi } from '../../apis/deviceRegistry';
 import { withPermission } from '../../containers/PageAccess';
 import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice';
 
+// dropdown component
+import Select from 'react-select';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(3)
@@ -98,6 +101,40 @@ const useStyles = makeStyles((theme) => ({
     }
   }
 }));
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '50px',
+    marginTop: '8px',
+    marginBottom: '8px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
 
 const Cell = ({ fieldValue }) => {
   return <div>{fieldValue || '-'}</div>;
@@ -206,6 +243,12 @@ const CATEGORIES = [
   { value: 'bam', name: 'BAM' }
 ];
 
+// categories options
+const categoriesOptions = CATEGORIES.map((category) => ({
+  value: category.value,
+  label: category.name
+}));
+
 const CreateDevice = ({ open, setOpen }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
@@ -229,6 +272,10 @@ const CreateDevice = ({ open, setOpen }) => {
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
+  };
+
+  const handleDropdownChange = (event, { name }) => {
+    return setNewDevice({ ...newDevice, [name]: event.value });
   };
 
   const handleRegisterClose = () => {
@@ -324,27 +371,24 @@ const CreateDevice = ({ open, setOpen }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
-          <TextField
-            select
+
+          <Select
             fullWidth
             label="Category"
+            name="category"
             style={{ margin: '10px 0' }}
+            options={categoriesOptions}
+            styles={customStyles}
             defaultValue={newDevice.category}
-            onChange={handleDeviceDataChange('category')}
+            placeholder="Select a category"
+            onChange={handleDropdownChange}
             SelectProps={{
               native: true,
-              style: { width: '100%', height: '50px' }
+              style: { width: '100%', height: '40px' }
             }}
-            variant="outlined"
-            error={!!errors.category}
-            helperText={errors.category}
-            required>
-            {CATEGORIES.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </TextField>
+            required
+          />
+
           <TextField
             fullWidth
             margin="dense"
@@ -399,6 +443,10 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
 
   const handleDeviceDataChange = (key) => (event) => {
     return setNewDevice({ ...newDevice, [key]: event.target.value });
+  };
+
+  const handleDropdownChange = (event, { name }) => {
+    return setNewDevice({ ...newDevice, [name]: event.value });
   };
 
   const handleRegisterClose = () => {
@@ -489,27 +537,22 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
-          <TextField
-            select
+          <Select
             fullWidth
             label="Category"
+            name="category"
             style={{ margin: '10px 0' }}
+            options={categoriesOptions}
+            styles={customStyles}
             defaultValue={newDevice.category}
-            onChange={handleDeviceDataChange('category')}
+            placeholder="Select a category"
+            onChange={handleDropdownChange}
             SelectProps={{
               native: true,
-              style: { width: '100%', height: '50px' }
+              style: { width: '100%', height: '40px' }
             }}
-            variant="outlined"
-            error={!!errors.category}
-            helperText={errors.category}
-            required>
-            {CATEGORIES.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </TextField>
+            required
+          />
           <TextField
             fullWidth
             margin="dense"
@@ -640,22 +683,24 @@ const DevicesTable = (props) => {
             alignItems: 'center',
             justifyContent: 'flex-end'
           }}>
+          {activeNetwork.net_name === 'airqo' && (
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              align="right"
+              onClick={() => setRegisterOpen(true)}>
+              {' '}
+              Add Device
+            </Button>
+          )}
           <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            align="right"
-            onClick={() => setRegisterOpen(true)}>
-            {' '}
-            Add Device
-          </Button>
-          <Button
-            variant="outlined"
+            variant={activeNetwork.net_name === 'airqo' ? 'outlined' : 'contained'}
             color="primary"
             type="submit"
             style={{ marginLeft: '20px' }}
             onClick={() => setSoftRegisterOpen(true)}>
-            Soft Add Device
+            {activeNetwork.net_name === 'airqo' ? 'Soft Add Device' : 'Add Device'}
           </Button>
         </div>
         <br />

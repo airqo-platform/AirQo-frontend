@@ -10,8 +10,10 @@ class NextButton extends StatelessWidget {
     required this.buttonColor,
     required this.callBack,
     this.text,
+    this.showIcon = true,
   });
   final String? text;
+  final bool showIcon;
   final Color buttonColor;
   final Function callBack;
 
@@ -49,14 +51,17 @@ class NextButton extends StatelessWidget {
                 letterSpacing: 16 * -0.022,
               ),
             ),
-            const SizedBox(
-              width: 11,
-            ),
-            SvgPicture.asset(
-              'assets/icon/next_arrow.svg',
-              semanticsLabel: 'Share',
-              height: 17.42,
-              width: 10.9,
+            Visibility(
+              visible: showIcon,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 11),
+                child: SvgPicture.asset(
+                  'assets/icon/next_arrow.svg',
+                  semanticsLabel: 'Share',
+                  height: 17.42,
+                  width: 10.9,
+                ),
+              ),
             ),
           ],
         ),

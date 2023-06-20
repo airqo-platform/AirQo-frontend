@@ -39,6 +39,7 @@ const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
 const AirQloudRegistry = lazy(() => import('./views/components/AirQlouds/AirQloudRegistry'));
 const AirQloudView = lazy(() => import('./views/components/AirQlouds/AirQloudView'));
 const Organisation = lazy(() => import('./views/pages/Organisation'));
+const DataExportLogs = lazy(() => import('./views/pages/Logs/DataExport'));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -108,6 +109,12 @@ const AppRoutes = () => {
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
             <PrivateRoute exact path="/export-data" component={ExportData} layout={MainLayout} />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/logs/data-export"
+              component={DataExportLogs}
+              layout={MainLayout}
+            />
             <PrivateRoute
               component={PermissionDenied}
               exact

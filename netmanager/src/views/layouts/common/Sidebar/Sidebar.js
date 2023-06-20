@@ -18,6 +18,7 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
+import DataUsageIcon from '@material-ui/icons/DataUsage';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
@@ -140,6 +141,15 @@ const allMainPages = [
 ];
 
 const allUserManagementPages = [
+  {
+    title: 'Logs',
+    href: '/logs',
+    icon: <DataUsageIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+    collapse: true,
+    nested: true,
+    nestItems: [{ title: 'Data export', href: '/logs/data-export' }]
+  },
   {
     title: 'Organisation',
     href: '/organisation',
@@ -270,7 +280,8 @@ const Sidebar = (props) => {
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
         'Candidates',
-        'Roles'
+        'Roles',
+        'Logs'
       ]);
       setUserPages(selectedUserPages);
       setAdminPages(selectedAdminPages);
