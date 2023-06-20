@@ -58,13 +58,11 @@ const OverviewCardMini = ({ label, icon, value, filterActive, onClick }) => {
             filterActive
               ? { margin: 0, borderRadius: 0 }
               : { margin: 0, background: '#f2f2f2', borderRadius: 0 }
-          }
-        >
+          }>
           <div className={'card-title-wrapper-mini'}>
             <span
               className={'card-title-icon-mini'}
-              style={filterActive ? {} : { background: '#6d94ea' }}
-            >
+              style={filterActive ? {} : { background: '#6d94ea' }}>
               {icon}
             </span>
             <h3 className={'card-title-mini'} style={filterActive ? {} : { color: '#999' }}>
@@ -254,8 +252,7 @@ function ManagementMap() {
             position: 'absolute',
             width: '100%',
             zIndex: 20
-          }}
-        >
+          }}>
           <Hidden mdDown>
             {cardsData.map((data, key) => {
               return (
