@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
@@ -133,7 +133,7 @@ class SplashScreenState extends State<SplashScreen> {
               } else {
                 switch (nextPage) {
                   case OnBoardingPage.signup:
-                    return const PhoneSignUpWidget();
+                    return const PhoneSignUpScreen();
                   case OnBoardingPage.profile:
                     return const ProfileSetupScreen();
                   case OnBoardingPage.notification:
