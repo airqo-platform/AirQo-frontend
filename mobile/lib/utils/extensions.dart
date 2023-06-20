@@ -723,6 +723,7 @@ extension StringExt on String {
     RegExp localRegex = RegExp(r'^\w[\w.!#$%&*+/=?^_{|}~-]*$');
     RegExp domainRegex =
         RegExp(r'^\w(?:[\w-]{0,61}\w)?(?:\.\w(?:[\w-]{0,61}\w)?)+$');
+
     return localRegex.hasMatch(localPart) &&
         domainRegex.hasMatch(domainPart) &&
         domainPart.contains('.');
