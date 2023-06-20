@@ -11,23 +11,26 @@ import { heatmapPredictApi } from "views/apis/predict";
 import { getMonitoringSitesInfoApi } from "views/apis/analytics";
 import { transformDataToGeoJson } from "views/pages/Map/utils";
 import { getEventsApi } from "views/apis/deviceRegistry";
+import { transformDataToGeoJsonType } from "../../views/pages/Map/utils";
 
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const res = responseData.data.map((airqloud) => airqloud.values);
-      let values = [].concat(...res);
-      const heatMapValues = values.map((value) => value);
+      // const res = responseData.data.map((airqloud) => airqloud.values);
+      const res = responseData.data
+      console.log(res)
+      // let values = [].concat(...res);
+      // const heatMapValues = values.map((value) => value);
 
-      const payload = transformDataToGeoJson(
-        heatMapValues || [],
-        {
-          latitude: "latitude",
-          longitude: "longitude",
-        },
-        undefined,
-        (feature) => feature
-      );
+      const payload = transformDataToGeoJsonType(res)
+      //   heatMapValues || [],
+      //   {
+      //     latitude: "latitude",
+      //     longitude: "longitude",
+      //   },
+      //   undefined,
+      //   (feature) => feature
+      // );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload,
