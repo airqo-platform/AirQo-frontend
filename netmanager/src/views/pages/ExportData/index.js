@@ -541,7 +541,7 @@ const ExportData = (props) => {
         setLoading(false);
         dispatch(
           updateMainAlert({
-            message: 'Data export' + resData.data.status,
+            message: 'Data export ' + resData.data.status,
             show: true,
             severity: 'success'
           })
