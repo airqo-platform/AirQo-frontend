@@ -40,6 +40,20 @@ extension InsightListExt on List<Insight> {
   }
 }
 
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  void sortByAirQuality() {
+    sort((x, y) {
+      if (x.airQualityReading != null && y.airQualityReading != null) {
+        return x.airQualityReading?.pm2_5
+                .compareTo(y.airQualityReading?.pm2_5 ?? 0) ??
+            0;
+      }
+
+      return x.airQualityReading == null ? 1 : -1;
+    });
+  }
+}
+
 extension ForecastListExt on List<Forecast> {
   void sortByDateTime() {
     sort((x, y) => x.time.compareTo(y.time));
@@ -696,8 +710,7 @@ extension StringExt on String {
     return trimmed.startsWith('+') &&
         trimmed.length >= 7 &&
         trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+        RegExp(r'^[0-9]+$').hasMatch(trimmed.substring(1));
   }
 
   bool isValidEmail() {

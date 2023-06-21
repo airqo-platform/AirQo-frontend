@@ -31,3 +31,5 @@ Note that the variables with no (dummy)values are not required to get the app up
     npm run prod
 
 Now, the application should be running on `http://localhost:5000`.
+
+When working on this project, all developments must be done on staging for testing purposes.

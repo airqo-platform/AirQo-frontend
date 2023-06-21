@@ -1,53 +1,52 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { makeStyles } from "@material-ui/styles";
-import { Grid } from "@material-ui/core";
-import clsx from "clsx";
-import PropTypes from "prop-types";
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/styles';
+import { Grid } from '@material-ui/core';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
 import {
   AddChart,
   AveragesChart,
   CustomisableChart,
   PollutantCategory,
-  ExceedancesChart,
-} from "./components";
-import "chartjs-plugin-annotation";
-import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
-import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
-import { loadMapEventsData } from "redux/MapData/operations";
-import { useEventsMapData } from "redux/MapData/selectors";
-import { PM_25_CATEGORY } from "utils/categories";
-import { isEmpty } from "underscore";
-import { useInitScrollTop } from "utils/customHooks";
-import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
-import AirQloudDropDown from "../../containers/AirQloudDropDown";
-import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
-import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
-import D3CustomisableChart from "../../components/d3/CustomisableChart";
+  ExceedancesChart
+} from './components';
+import 'chartjs-plugin-annotation';
+import { useUserDefaultGraphsData } from 'redux/Dashboard/selectors';
+import { loadUserDefaultGraphData } from 'redux/Dashboard/operations';
+import { loadMapEventsData } from 'redux/MapData/operations';
+import { useEventsMapData } from 'redux/MapData/selectors';
+import { PM_25_CATEGORY } from 'utils/categories';
+import { isEmpty } from 'underscore';
+import { useInitScrollTop } from 'utils/customHooks';
+import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import AirQloudDropDown from '../../containers/AirQloudDropDown';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
+import D3CustomisableChart from '../../components/d3/CustomisableChart';
+import DashboardSearchBar from '../../components/AirqualitySearch/dashboard_searchbar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(4),
+    padding: theme.spacing(4)
   },
   chartCard: {},
   customChartCard: {
-    width: "100%",
-    padding: "20px",
-    minHeight: "200px",
-    // aspectRatio: "650 / 400",
-    // height: "50vh",
+    width: '100%',
+    padding: '20px',
+    minHeight: '200px'
   },
   differenceIcon: {
-    color: theme.palette.text.secondary,
+    color: theme.palette.text.secondary
   },
   chartContainer: {
     minHeight: 250,
-    position: "relative",
+    position: 'relative'
   },
   actions: {
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end'
   },
-  chartSaveButton: {},
+  chartSaveButton: {}
 }));
 
 const Dashboard = () => {
@@ -65,12 +64,12 @@ const Dashboard = () => {
     UHFSG: 0,
     Unhealthy: 0,
     VeryUnhealthy: 0,
-    Hazardous: 0,
+    Hazardous: 0
   });
 
   useEffect(() => {
     if (isEmpty(recentEventsData.features))
-      dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
+      dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
   }, []);
 
   useEffect(() => {
@@ -80,20 +79,19 @@ const Dashboard = () => {
       UHFSG: [],
       Unhealthy: [],
       VeryUnhealthy: [],
-      Hazardous: [],
+      Hazardous: []
     };
     const airqloudSites = flattenSiteOptions(currentAirQloud.siteOptions);
     const airqloudSitesObj = siteOptionsToObject(currentAirQloud.siteOptions);
     recentEventsData.features &&
       recentEventsData.features.map((feature) => {
         if (airqloudSites.includes(feature.properties.site_id)) {
-          const site_id = feature.properties.site_id || "";
+          const site_id = feature.properties.site_id || '';
           const site = airqloudSitesObj[site_id];
           const pm2_5 =
             feature.properties &&
             feature.properties.pm2_5 &&
-            (feature.properties.pm2_5.calibratedValue ||
-              feature.properties.pm2_5.value);
+            (feature.properties.pm2_5.calibratedValue || feature.properties.pm2_5.value);
 
           Object.keys(PM_25_CATEGORY).map((key) => {
             const valid = PM_25_CATEGORY[key];
@@ -108,7 +106,7 @@ const Dashboard = () => {
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
-      return "0" + n;
+      return '0' + n;
     }
     return n;
   }
@@ -116,9 +114,9 @@ const Dashboard = () => {
   let todaysDate = new Date();
   const dateValue = appendLeadingZeroes(
     todaysDate.getDate() +
-      "/" +
+      '/' +
       appendLeadingZeroes(todaysDate.getMonth() + 1) +
-      "/" +
+      '/' +
       todaysDate.getFullYear()
   );
 
@@ -136,18 +134,17 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <Grid container>
-          <Grid xs={12} sm={12} md={6} xl={6} style={{ display: "flex" }}>
+        <Grid container spacing={5}>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
+          </Grid>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
+            <DashboardSearchBar />
           </Grid>
         </Grid>
         <Grid container spacing={4}>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
-            <PollutantCategory
-              pm25level="Good"
-              sites={pm2_5SiteCount.Good}
-              iconClass="pm25Good"
-            />
+            <PollutantCategory pm25level="Good" sites={pm2_5SiteCount.Good} iconClass="pm25Good" />
           </Grid>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
@@ -223,7 +220,7 @@ const Dashboard = () => {
 Dashboard.propTypes = {
   className: PropTypes.string,
   mappedAuth: PropTypes.object.isRequired,
-  fetchDefaults: PropTypes.func.isRequired,
+  fetchDefaults: PropTypes.func.isRequired
 };
 
 export default Dashboard;

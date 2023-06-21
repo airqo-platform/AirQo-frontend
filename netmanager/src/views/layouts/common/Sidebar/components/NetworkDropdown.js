@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import ListItemText from '@material-ui/core/ListItemText';
-import { Button, Menu, MenuItem } from '@material-ui/core';
+import { Button, Menu, MenuItem, Tooltip } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import {
   addActiveNetwork,
@@ -12,10 +12,16 @@ import {
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { ArrowDropDown } from '@material-ui/icons';
+import 'assets/css/dropdown.css';
 
 const StyledMenu = withStyles({
   paper: {
-    border: '1px solid #d3d4d5'
+    border: '1px solid #d3d4d5',
+    width: '200px',
+    borderRadius: '4px',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
+    maxHeight: '200px', 
+    overflowY: 'auto' 
   }
 })((props) => (
   <Menu
@@ -36,13 +42,20 @@ const StyledMenu = withStyles({
 const StyledMenuItem = withStyles((theme) => ({
   root: {
     '&:focus': {
-      backgroundColor: theme.palette.primary.main,
+      backgroundColor: '#175df5',
+      color: 'black',
       '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
         color: theme.palette.common.white
       }
+    },
+    '& .MuiListItemText-primary': {
+      fontWeight: 'bold',
+      color: '#175df5',
     }
   }
 }))(MenuItem);
+
+
 
 export default function NetworkDropdown({ userNetworks }) {
   const dispatch = useDispatch();
@@ -79,23 +92,25 @@ export default function NetworkDropdown({ userNetworks }) {
     dispatch(loadDevicesData(network.net_name));
     dispatch(loadSitesData(network.net_name));
     dispatch(fetchNetworkUsers(network._id));
-    dispatch(loadUserRoles(network._id));
     dispatch(fetchAvailableNetworkUsers(network._id));
+    dispatch(loadUserRoles(network._id));
     handleClose();
     window.location.reload();
   };
 
   return (
     <>
-      <Button
-        aria-controls="network-menu"
-        aria-haspopup="true"
-        onClick={handleClick}
-        variant="contained"
-        color="primary"
-      >
-        {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
-      </Button>
+      <Tooltip title="Organizations" placement="bottom">
+        <Button
+          aria-controls="network-menu"
+          aria-haspopup="true"
+          onClick={handleClick}
+          variant="contained"
+          color="primary"
+        >
+          {selectedNetwork && selectedNetwork.net_name} <ArrowDropDown />
+        </Button>
+      </Tooltip>
       <StyledMenu
         id="network-menu"
         anchorEl={anchorEl}
@@ -105,8 +120,12 @@ export default function NetworkDropdown({ userNetworks }) {
       >
         {userNetworks &&
           userNetworks.map((network) => (
-            <StyledMenuItem key={network.net_id} onClick={() => handleSelect(network)}>
-              <ListItemText>{network.net_name}</ListItemText>
+            <StyledMenuItem
+              key={network.net_id}
+              onClick={() => handleSelect(network)}
+              selected={selectedNetwork && selectedNetwork.net_name === network.net_name}
+            >
+              <ListItemText>{network.net_name.toUpperCase()}</ListItemText>
             </StyledMenuItem>
           ))}
       </StyledMenu>

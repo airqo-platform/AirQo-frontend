@@ -12,7 +12,9 @@ import {
   Divider,
   Grid,
   Button,
-  TextField
+  TextField,
+  InputLabel,
+  Box
 } from '@material-ui/core';
 import { useOrgData } from 'redux/Join/selectors';
 import { updateAuthenticatedUserApi } from 'views/apis/authService';
@@ -146,94 +148,150 @@ const AccountDetails = (props) => {
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
-            <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="First name"
-                margin="dense"
-                type="text"
-                id="firstName"
-                onChange={handleChange}
-                required
-                value={form.firstName}
-                variant="outlined"
-              />
+            <Grid item md={6} xs={12} justifyItems="start">
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="firstName" fontSize="12px">
+                  First name*
+                </InputLabel>
+                <TextField
+                  fullWidth
+                  id="firstName"
+                  type="text"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  label={!form.firstName && 'First name'}
+                  required
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Last name"
-                margin="dense"
-                type="text"
-                id="lastName"
-                onChange={handleChange}
-                required
-                value={form.lastName}
-                variant="outlined"
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="lastName" fontSize="12px">
+                  Last name*
+                </InputLabel>
+                <TextField
+                  fullWidth
+                  id="lastName"
+                  type="text"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  label={!form.lastName && 'Last name'}
+                  required
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Email Address"
-                margin="dense"
-                type="text"
-                id="email"
-                onChange={handleChange}
-                required
-                value={form.email}
-                variant="outlined"
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="email" fontSize="12px">
+                  Email Address*
+                </InputLabel>
+                <TextField
+                  fullWidth
+                  id="email"
+                  type="text"
+                  value={form.email}
+                  onChange={handleChange}
+                  label={!form.email && 'Email Address'}
+                  required
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                margin="dense"
-                type="text"
-                id="phoneNumber"
-                onChange={handleChange}
-                value={form.phoneNumber}
-                variant="outlined"
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="phoneNumber" fontSize="12px">
+                  Phone Number
+                </InputLabel>
+                <TextField
+                  type="text"
+                  id="phoneNumber"
+                  onChange={handleChange}
+                  value={form.phoneNumber}
+                  fullWidth
+                  label={!form.phoneNumber && 'Phone Number'}
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Website"
-                margin="dense"
-                type="text"
-                id="website"
-                onChange={handleChange}
-                value={form.website}
-                variant="outlined"
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="website" fontSize="12px">
+                  Website
+                </InputLabel>
+                <TextField
+                  type="text"
+                  id="website"
+                  onChange={handleChange}
+                  value={form.website}
+                  fullWidth
+                  label={!form.website && 'Website'}
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                margin="dense"
-                type="text"
-                id="description"
-                onChange={handleChange}
-                value={form.description}
-                variant="outlined"
-                multiline
-                rows={3}
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="description" fontSize="12px">
+                  Description
+                </InputLabel>
+                <TextField
+                  type="text"
+                  id="description"
+                  onChange={handleChange}
+                  value={form.description}
+                  fullWidth
+                  label={!form.description && 'Description'}
+                  variant="outlined"
+                  multiline
+                  rows={4}
+                />
+              </Box>
             </Grid>
             <Grid item md={6} xs={12}>
-              <TextField
-                fullWidth
-                label="Job title"
-                margin="dense"
-                type="text"
-                id="jobTitle"
-                onChange={handleChange}
-                value={form.jobTitle}
-                variant="outlined"
-              />
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="flex-start"
+                alignItems="flex-start">
+                <InputLabel htmlFor="jobTitle" fontSize="12px">
+                  Job title
+                </InputLabel>
+                <TextField
+                  type="text"
+                  id="jobTitle"
+                  onChange={handleChange}
+                  value={form.jobTitle}
+                  fullWidth
+                  label={!form.jobTitle && 'Job title'}
+                  variant="outlined"
+                />
+              </Box>
             </Grid>
           </Grid>
         </CardContent>
@@ -248,8 +306,7 @@ const AccountDetails = (props) => {
             color="primary"
             variant="contained"
             onClick={onSubmit}
-            disabled={isEqual(initialState, form)}
-          >
+            disabled={isEqual(initialState, form)}>
             Save details
           </Button>
           <CircularLoader loading={loading} />

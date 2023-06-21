@@ -1,4 +1,3 @@
-export 'auth_code/auth_code_bloc.dart';
 export 'dashboard/dashboard_bloc.dart';
 export 'email_auth/email_auth_bloc.dart';
 export 'favourite_place/favourite_place_bloc.dart';
@@ -13,3 +12,5 @@ export 'phone_auth/phone_auth_bloc.dart';
 export 'search/search_bloc.dart';
 export 'settings/settings_bloc.dart';
 export 'profile/profile_bloc.dart';
+export 'email_verification/email_verification_bloc.dart';
+export 'phone_verification/phone_verification_bloc.dart';

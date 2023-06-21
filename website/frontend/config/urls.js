@@ -27,18 +27,18 @@ const BASE_AUTH_SERVICE_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BA
 
 export const EXPLORE_DATA_URL = `${BASE_AUTH_SERVICE_URL}/users/candidates/register?tenant=airqo`;
 
-// Careers urls
+// careers urls
 export const CAREERS_URL = `${WEBSITE_BASE_URL}/career/`;
 
 export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 
-// Team urls
+// members urls
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
-// Netmanager url
+// netmanager url
 export const NETMANAGER_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace("/api/v1/", ""));
 
-// Highlights urls
+// highlights urls
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
 
 export const TAGS_URL = `${WEBSITE_BASE_URL}/tags/`;

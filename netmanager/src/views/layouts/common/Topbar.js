@@ -15,8 +15,7 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
-  Tooltip,
-  Button
+  Tooltip
 } from '@material-ui/core';
 import { AppsOutlined } from '@material-ui/icons';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
@@ -33,7 +32,6 @@ import { CALIBRATE_APP_URL } from 'config/urls/externalUrls';
 import { formatDateString } from 'utils/dateTime.js';
 import AirqoLogo from 'assets/img/icons/airqo_colored_logo.png';
 import { isEmpty } from 'underscore';
-import { getUserDetails } from 'redux/Join/actions';
 import { addActiveNetwork } from 'redux/AccessControl/operations';
 
 const useStyles = makeStyles((theme) => ({
@@ -172,7 +170,8 @@ const Topbar = (props) => {
     setAnchorEl(null);
   };
 
-  const [date, setDate] = React.useState(new Date());
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [date, setDate] = React.useState('');
   useEffect(() => {
     var timerID = setInterval(() => tick(), 1000);
 
@@ -203,6 +202,7 @@ const Topbar = (props) => {
       ':' +
       appendLeadingZeroes(newTime.getSeconds());
     setDate(time);
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -218,9 +218,10 @@ const Topbar = (props) => {
         <Hidden lgUp>
           <MenuIcon onClick={toggleSidebar} />
         </Hidden>
+
         <Hidden mdDown>
           <div style={logoContainerStyle}>
-            {activeNetwork.net_name !== 'airqo' && (
+            {activeNetwork.net_name !== 'airqo' ? (
               <>
                 <RouterLink to="/">
                   <img
@@ -236,35 +237,14 @@ const Topbar = (props) => {
                     src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
                   />
                 </RouterLink>
-                {activeNetwork.net_name && (
-                  <RouterLink to="/">
-                    <img
-                      alt={orgData.name}
-                      style={logo_style}
-                      src={
-                        'https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/' +
-                        activeNetwork.net_name +
-                        '_logo.png'
-                      }
-                    />
-                  </RouterLink>
-                )}
               </>
-            )}
-            {activeNetwork.net_name === 'airqo' && (
+            ) : (
               <>
                 <RouterLink to="/">
                   <img
-                    alt="mak.ac.ug"
+                    alt={orgData.name}
                     style={logo_style}
-                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-                  />
-                </RouterLink>
-                <RouterLink to="/">
-                  <img
-                    alt="airqo.net"
-                    style={logo_style}
-                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                    src={`https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/${activeNetwork.net_name}_logo.png`}
                   />
                 </RouterLink>
               </>
@@ -284,7 +264,7 @@ const Topbar = (props) => {
 
         <Hidden mdDown>
           <p style={timer_style}>
-            <span>{formatDateString(date.toUTCString)}</span>
+            <span>{isLoading ? 'Loading...' : date}</span>
           </p>
         </Hidden>
 

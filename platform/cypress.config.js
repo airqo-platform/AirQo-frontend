@@ -14,4 +14,7 @@ module.exports = defineConfig({
     },
   },
   projectId: 'ap5jjk',
+  env: {
+    url_token: process.env.NEXT_PUBLIC_API_TOKEN,
+  },
 });

@@ -4,6 +4,8 @@ const BASE_AUTH_SERVICE_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_AUTH_SERVICE_URL || process.env.REACT_APP_BASE_URL
 );
 
+const BASE_AUTH_SERVICE_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+
 export const VERIFY_TOKEN_URI = `${BASE_AUTH_SERVICE_URL}/users/reset/you`;
 
 export const UPDATE_PWD_URI = `${BASE_AUTH_SERVICE_URL}/users/updatePasswordViaEmail`;
@@ -39,3 +41,5 @@ export const DELETE_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
 export const USER_FEEDBACK_URI = `${BASE_AUTH_SERVICE_URL}/users/feedback`;
 
 export const GET_ACCESS_TOKEN = `${BASE_AUTH_SERVICE_URL}/users/tokens`;
+
+export const GET_LOGS = `${BASE_AUTH_SERVICE_URL_V2}/users/logs`;
