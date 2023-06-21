@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+@import url(https://fonts.googleapis.com/css?family=Open + Sans);
 
 .map-filter-search {
   width: 100%;
@@ -15,18 +15,18 @@
   /*height: 20px;*/
   /*border-radius: 5px 0 0 5px;*/
   outline: none;
-    margin: 0 !important;
-    /*border: 1px solid red !important;*/
-    height: 31px !important;
-    /*line-height: 20px;*/
-    padding: 2px !important;
-  color: #9DBFAF;
+  margin: 0 !important;
+  /*border: 1px solid red !important;*/
+  height: 31px !important;
+  /*line-height: 20px;*/
+  padding: 2px !important;
+  color: #9dbfaf;
 }
 
-.map-filter-searchTerm:focus{
+.map-filter-searchTerm:focus {
   /*color: #00B4CC;*/
   color: #2f67e2;
-    border-bottom: 1px solid #2f67e2 !important;
+  border-bottom: 1px solid #2f67e2 !important;
 }
 
 .map-filter-searchButton {
@@ -44,35 +44,34 @@
   box-shadow: 0px 0px 3px 4px #eee;
 }
 
-.map-filter-searchButton:hover{
+.map-filter-searchButton:hover {
   box-shadow: 0px 0px 2px 4px #ddd;
   border: 1.5px solid #aaa;
-  width:44px;
+  width: 44px;
   height: 38px;
 }
 
-.map-filter-searchButton:focus{
+.map-filter-searchButton:focus {
   border: 1.8px solid #aaa;
   background-color: #f4f4f4;
-  transition: .1s ease;
+  transition: 0.1s ease;
 }
-
 
 /*Resize the wrap to see the search bar change!*/
 .map-filter-container {
-    width: 30%;
-    max-width: 350px;
-    position: absolute;
-    bottom: 70px;
-    left: 10px;
-    font-family: 'Open Sans', sans-serif;
-    z-index: 20;
+  width: 30%;
+  max-width: 350px;
+  position: absolute;
+  bottom: 119px;
+  left: 10px;
+  font-family: 'Open Sans', sans-serif;
+  z-index: 20;
 }
-.map-filter-wrapper{
-    font-family: 'Open Sans', sans-serif;
-    background-color: transparent;
-    /*background-color: #ffffff;*/
-    border-radius: 5px;
+.map-filter-wrapper {
+  font-family: 'Open Sans', sans-serif;
+  background-color: transparent;
+  /*background-color: #ffffff;*/
+  border-radius: 5px;
 }
 
 .dropup {
@@ -84,6 +83,10 @@
   display: none;
 }
 
+.dropup ul {
+  width: auto;
+}
+
 .du-menu {
   position: absolute;
   bottom: 100%;
@@ -91,10 +94,9 @@
   border-radius: 4px;
   padding: 0;
   margin: 2px 0 0 0;
-  box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
   list-style-type: none;
-  width: 100%;
   z-index: 2000;
 }
 
@@ -120,7 +122,7 @@
 
 .du-menu li:hover {
   background-color: #f6f6f6;
-  color: #646262
+  color: #646262;
 }
 
 .du-menu li a {
@@ -129,15 +131,21 @@
   padding: 10px 20px;
 }
 
-.du-menu li.divider{
+.du-menu li.divider {
   padding: 0;
   border-bottom: 1px solid #cccccc;
 }
 
-.du-menu li.disabled{
+.du-menu li.disabled {
   cursor: not-allowed;
   background-color: #f6f6f6;
-  color: #646262
+  color: #646262;
+}
+
+@media (max-width: 768px) {
+  .du-menu li.disabled {
+    font-size: 0.8rem;
+  }
 }
 
 .du-menu .selected {
