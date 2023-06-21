@@ -6,10 +6,10 @@
 
     <RelativeLayout
         android:id="@+id/circular_index_color"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:background="@drawable/green_circle">
 
 
@@ -19,9 +19,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_centerInParent="true"
-            android:fontFamily="@font/roboto_mono_medium"
-            android:paddingTop="5dp"
-            android:paddingBottom="10dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="8dp"
             android:text="@string/pm_scale"
             android:textAppearance="@style/circle_pm_scale" />
 
@@ -30,7 +29,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:fontFamily="@font/roboto_mono_medium"
             android:gravity="center"
             android:text="@string/pm_value"
             android:textAppearance="@style/circle_pm_value"
@@ -43,9 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerInParent="true"
-            android:fontFamily="@font/roboto_mono_medium"
-            android:paddingTop="10dp"
-            android:paddingBottom="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="17dp"
             android:text="@string/pmUnit"
             android:textAppearance="@style/circle_pm_unit" />
 
@@ -57,9 +54,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_index_color"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="25dp"
-        android:fontFamily="@font/roboto_medium"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="17dp"
         android:text="@string/location"
         android:textAppearance="@style/circle_location"
         android:textFontWeight="500"
@@ -70,8 +66,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_index_color"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="-70dp"
+        android:layout_marginTop="21dp"
+        android:layout_marginEnd="-30dp"
         android:layout_toStartOf="@+id/circular_location"
         android:contentDescription="@string/location_icon"
         android:src="@drawable/location_icon" />
@@ -81,8 +77,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/circular_location"
-        android:layout_marginStart="60dp"
-        android:fontFamily="@font/roboto_medium"
+        android:layout_marginStart="29dp"
         android:text="@string/date_circle"
         android:textAppearance="@style/circle_location" />
 
@@ -91,8 +86,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/circular_location"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="1dp"
         android:layout_toEndOf="@+id/circular_date"
         android:contentDescription="@string/refresh_icon"
         android:src="@drawable/refresh_circle" />
