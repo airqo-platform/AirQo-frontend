@@ -6,7 +6,6 @@ import { useInternetConnectivityCheck, useJiraHelpDesk } from 'utils/customHooks
 // core imports. imported on initial page load
 import Overview from './views/components/Dashboard/Overview';
 import Devices from './views/components/DataDisplay/Devices';
-import { Download as DownloadView } from './views/pages/Download';
 import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
 import { NotFound as NotFoundView } from './views/pages/NotFound';
 import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
@@ -40,6 +39,8 @@ const AirQloudRegistry = lazy(() => import('./views/components/AirQlouds/AirQlou
 const AirQloudView = lazy(() => import('./views/components/AirQlouds/AirQloudView'));
 const Organisation = lazy(() => import('./views/pages/Organisation'));
 const DataExportLogs = lazy(() => import('./views/pages/Logs/DataExport'));
+const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
+const ExportData = lazy(() => import('./views/pages/ExportData'));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -107,7 +108,18 @@ const AppRoutes = () => {
               layout={MainLayout}
             />
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
-            <PrivateRoute exact path="/download" component={DownloadView} layout={MainLayout} />
+            <PrivateRoute
+              exact
+              path="/export-data/options"
+              component={ExportData}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/export-data/scheduled"
+              component={ExportDownloads}
+              layout={MainLayout}
+            />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
             <PrivateRoute
               exact
