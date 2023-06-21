@@ -13,7 +13,9 @@ import {
   Tabs,
   Tab,
   Box,
-  Typography
+  Typography,
+  Snackbar,
+  IconButton
 } from '@material-ui/core';
 import InfoIcon from '@material-ui/icons/Info';
 import Select from 'react-select';
@@ -38,6 +40,7 @@ import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
 import { scheduleExportDataApi } from '../../apis/analytics';
 import ExportDataBreadCrumb from './components/BreadCrumb';
+import CloseIcon from '@material-ui/icons/Close';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -304,6 +307,22 @@ const ExportData = (props) => {
     setRegionOptions(groupSitesByRegion(deviceRegistrySiteOptions));
   }, [deviceRegistrySiteOptions]);
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const handleClickSnackbar = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenSnackbar(false);
+    setSnackbarMessage('');
+  };
+
   const clearExportData = () => {
     setStartDate(null);
     setEndDate(null);
@@ -469,6 +488,16 @@ const ExportData = (props) => {
       return;
     }
 
+    const Difference_In_Time = new Date(endDate).getTime() - new Date(startDate).getTime();
+    const Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+    if (Difference_In_Days > 28) {
+      setSnackbarMessage(
+        'For time periods greater than a month, please use scheduling to avoid timeouts!'
+      );
+      handleClickSnackbar();
+    }
+
     let body = {
       sites: sitesList,
       airqlouds: getValues(selectedAirqlouds),
@@ -479,7 +508,7 @@ const ExportData = (props) => {
       pollutants: getValues(pollutants),
       downloadType: 'json',
       outputFormat: outputFormat.value,
-      metaData: {
+      meta_data: {
         sites: extractLabels(selectedSites),
         airqlouds: extractLabels(selectedAirqlouds),
         devices: extractLabels(selectedDevices),
@@ -530,7 +559,7 @@ const ExportData = (props) => {
       downloadType: 'json',
       outputFormat: outputFormat.value,
       userId: userId,
-      metaData: {
+      meta_data: {
         sites: extractLabels(selectedSites),
         airqlouds: extractLabels(selectedAirqlouds),
         devices: extractLabels(selectedDevices),
@@ -1162,6 +1191,29 @@ const ExportData = (props) => {
             </Card>
           </Grid>
         </Grid>
+
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center'
+          }}
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          message={snackbarMessage}
+          action={
+            <React.Fragment>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={handleClickSnackbar}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
       </div>
     </ErrorBoundary>
   );

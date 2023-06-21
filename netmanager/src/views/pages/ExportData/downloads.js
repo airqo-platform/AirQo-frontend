@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'capitalize'
   },
   noDataLink: {
-    color: 'grey',
+    color: 'purple',
     fontWeight: 'bold',
     textTransform: 'capitalize'
   },
@@ -127,11 +127,11 @@ const ExportDownloads = () => {
                   <Typography
                     variant="body1"
                     className={
-                      downloads.status === 'failed'
+                      downloads.status.toLowerCase() === 'failed'
                         ? classes.failedLink
-                        : downloads.status === 'ready'
+                        : downloads.status.toLowerCase() === 'ready'
                         ? classes.successLink
-                        : downloads.status === 'no data'
+                        : downloads.status.toLowerCase() === 'no data'
                         ? classes.noDataLink
                         : classes.waitingLink
                     }
@@ -181,10 +181,10 @@ const ExportDownloads = () => {
               render: (downloads) => {
                 return (
                   <Typography variant="body1" className={classes.longStrings}>
-                    <MetadataList metadata={downloads.metaData} arrayName="sites" />
-                    <MetadataList metadata={downloads.metaData} arrayName="devices" />
-                    <MetadataList metadata={downloads.metaData} arrayName="airqlouds" />
-                    <MetadataList metadata={downloads.metaData} arrayName="regions" />
+                    <MetadataList metadata={downloads.meta_data} arrayName="sites" />
+                    <MetadataList metadata={downloads.meta_data} arrayName="devices" />
+                    <MetadataList metadata={downloads.meta_data} arrayName="airqlouds" />
+                    <MetadataList metadata={downloads.meta_data} arrayName="regions" />
                   </Typography>
                 );
               }
