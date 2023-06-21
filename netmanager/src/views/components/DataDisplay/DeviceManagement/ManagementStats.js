@@ -203,7 +203,11 @@ function ManagementStat() {
           }}
         >
           <ApexChart
-            options={timeSeriesChartOptions({})}
+            options={timeSeriesChartOptions({
+              stroke: {
+                width: 1,
+              },
+            })}
             title={'Network uptime'}
             series={series}
             lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}
