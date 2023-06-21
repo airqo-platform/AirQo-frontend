@@ -189,7 +189,6 @@ const SiteToolbar = (props) => {
               helperText={errors.name}
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Latitude"
               variant="outlined"
@@ -201,7 +200,6 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Longitude"
               variant="outlined"

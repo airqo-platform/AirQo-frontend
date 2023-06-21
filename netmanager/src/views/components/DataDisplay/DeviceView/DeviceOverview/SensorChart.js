@@ -26,7 +26,11 @@ const DeviceSensorChart = ({ deviceUptimeData }) => {
   return (
     <ApexChart
       title={"sensor correlation"}
-      options={timeSeriesChartOptions()}
+      options={timeSeriesChartOptions({
+        stroke: {
+          width: 1, 
+        },
+      })}
       series={sensorCorrelationSeries}
       type="area"
       green
