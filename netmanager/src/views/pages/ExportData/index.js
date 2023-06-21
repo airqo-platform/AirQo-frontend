@@ -12,9 +12,10 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Box
+  Box,
+  Typography
 } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
+import InfoIcon from '@material-ui/icons/Info';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
@@ -36,6 +37,7 @@ import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
 import { scheduleExportDataApi } from '../../apis/analytics';
+import ExportDataBreadCrumb from './components/BreadCrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -148,7 +150,7 @@ const createAirqloudOptions = (airqlouds) => {
   airqlouds.map((airqloud) =>
     options.push({
       value: airqloud._id,
-      label: `${airqloud.long_name} | ${airqloud.sites.length} sites`
+      label: `${airqloud.long_name}`
     })
   );
   return options;
@@ -166,6 +168,13 @@ function extractSiteIds(options) {
   }, []);
 
   return siteIds;
+}
+
+function extractLabels(options) {
+  const labels = options.reduce((labels, obj) => {
+    return labels.concat(obj.label);
+  }, []);
+  return labels;
 }
 
 const ExportData = (props) => {
@@ -446,7 +455,10 @@ const ExportData = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      metaData: {
+        sites: extractLabels(selectedSites)
+      }
     };
 
     downloadDataFunc(data);
@@ -464,7 +476,10 @@ const ExportData = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      metaData: {
+        devices: extractLabels(selectedDevices)
+      }
     };
 
     downloadDataFunc(body);
@@ -482,7 +497,10 @@ const ExportData = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      metaData: {
+        airqlouds: extractLabels(selectedAirqlouds)
+      }
     };
 
     downloadDataFunc(body);
@@ -500,7 +518,10 @@ const ExportData = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      metaData: {
+        regions: extractLabels(selectedRegions)
+      }
     };
 
     downloadDataFunc(data);
@@ -532,7 +553,13 @@ const ExportData = (props) => {
       pollutants: getValues(pollutants),
       downloadType: 'json',
       outputFormat: outputFormat.value,
-      userId: userId
+      userId: userId,
+      metaData: {
+        sites: extractLabels(selectedSites),
+        airqlouds: extractLabels(selectedAirqlouds),
+        devices: extractLabels(selectedDevices),
+        regions: extractLabels(selectedRegions)
+      }
     };
 
     await scheduleExportDataApi(body)
@@ -563,6 +590,18 @@ const ExportData = (props) => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
+        <ExportDataBreadCrumb title="Export Options" paddingBottom={'5px'} />
+        <Box
+          textAlign={'start'}
+          paddingBottom={'12px'}
+          color={'grey.700'}
+          fontSize={'14px'}
+          fontWeight={300}
+        >
+          Customize the data you want to download. We recommend scheduling your downloads for bulky
+          data/time periods greater than a month to avoid timeouts.
+        </Box>
+
         <Grid container spacing={4}>
           <Grid item xs={12}>
             <Card
@@ -570,11 +609,6 @@ const ExportData = (props) => {
               className={clsx(classes.root, className)}
               style={{ overflow: 'visible' }}
             >
-              <CardHeader
-                subheader="Customize the data you want to download."
-                title="Data Download"
-              />
-
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}

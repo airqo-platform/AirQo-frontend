@@ -75,7 +75,7 @@ const ExportDownloads = () => {
 
   return (
     <div className={classes.root}>
-      <ExportDataBreadCrumb title="Downloads" />
+      <ExportDataBreadCrumb title="Scheduled" />
       <Card>
         <CustomMaterialTable
           title={'data export downloads'}

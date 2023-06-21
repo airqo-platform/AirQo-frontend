@@ -1,7 +1,7 @@
 import { Box } from '@material-ui/core';
 import React from 'react';
 
-const ExportDataBreadCrumb = ({ title }) => {
+const ExportDataBreadCrumb = ({ title, paddingBottom }) => {
   return (
     <Box
       display={'flex'}
@@ -10,9 +10,10 @@ const ExportDataBreadCrumb = ({ title }) => {
       fontSize={'24px'}
       fontWeight={600}
       fontFamily={'sans-serif'}
-      paddingBottom={'30px'}
+      paddingBottom={paddingBottom || '30px'}
+      width={'100%'}
     >
-      <Box fontWeight={'300'}>Export data</Box>
+      <Box fontWeight={'300'}>Export</Box>
       <Box paddingLeft={'10px'} paddingRight={'10px'} fontWeight={'300'}>
         {'>'}
       </Box>

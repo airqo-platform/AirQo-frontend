@@ -108,10 +108,15 @@ const AppRoutes = () => {
               layout={MainLayout}
             />
             <PrivateRoute exact path="/overview" component={Overview} layout={MainLayout} />
-            <PrivateRoute exact path="/export-data" component={ExportData} layout={MainLayout} />
             <PrivateRoute
               exact
-              path="/export-data/downloads"
+              path="/export-data/options"
+              component={ExportData}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/export-data/scheduled"
               component={ExportDownloads}
               layout={MainLayout}
             />
