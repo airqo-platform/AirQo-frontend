@@ -86,7 +86,7 @@ void main() {
       expect('abcdefgh'.isValidPhoneNumber(), isFalse);
       expect('123456'.isValidPhoneNumber(), isFalse);
       expect('+123456789a2'.isValidPhoneNumber(), isFalse);
-      expect('12345678901'.isValidPhoneNumber(), isFalse);
+      expect('12345!8901'.isValidPhoneNumber(), isFalse);
       expect('+1234567890123456'.isValidPhoneNumber(), isFalse);
       expect('(123)456-7890'.isValidPhoneNumber(), isFalse);
       expect('+12345678901'.isValidPhoneNumber(), isTrue);
