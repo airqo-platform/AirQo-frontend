@@ -29,12 +29,36 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: 'bold',
     textTransform: 'capitalize'
   },
+  noDataLink: {
+    color: 'grey',
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
+  },
   waitingLink: {
     color: 'orange',
     fontWeight: 'bold',
     textTransform: 'capitalize'
   }
 }));
+
+const MetadataList = ({ metadata, arrayName }) => {
+  if (!metadata || !metadata[arrayName] || metadata[arrayName].length === 0) {
+    return null;
+  }
+
+  const items = metadata[arrayName];
+
+  return (
+    <>
+      {items.map((item, index) => (
+        <span key={index}>
+          {item}
+          {index !== items.length - 1 ? ', ' : ''}
+        </span>
+      ))}
+    </>
+  );
+};
 
 const ExportDownloads = () => {
   const classes = useStyles();
@@ -107,6 +131,8 @@ const ExportDownloads = () => {
                         ? classes.failedLink
                         : downloads.status === 'ready'
                         ? classes.successLink
+                        : downloads.status === 'no data'
+                        ? classes.noDataLink
                         : classes.waitingLink
                     }
                   >
@@ -155,17 +181,10 @@ const ExportDownloads = () => {
               render: (downloads) => {
                 return (
                   <Typography variant="body1" className={classes.longStrings}>
-                    {downloads.sites && downloads.sites.length > 0
-                      ? downloads.sites.map((site, index) => <span key={index}>{site}, </span>)
-                      : downloads.devices && downloads.devices.length > 0
-                      ? downloads.devices.map((device, index) => (
-                          <span key={index}>{device}, </span>
-                        ))
-                      : downloads.airqlouds && downloads.airqlouds.length > 0
-                      ? downloads.airqlouds.map((airqloud, index) => (
-                          <span key={index}>{airqloud}, </span>
-                        ))
-                      : null}
+                    <MetadataList metadata={downloads.metaData} arrayName="sites" />
+                    <MetadataList metadata={downloads.metaData} arrayName="devices" />
+                    <MetadataList metadata={downloads.metaData} arrayName="airqlouds" />
+                    <MetadataList metadata={downloads.metaData} arrayName="regions" />
                   </Typography>
                 );
               }
