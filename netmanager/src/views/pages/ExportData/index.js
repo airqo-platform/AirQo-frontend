@@ -17,14 +17,12 @@ import {
   Snackbar,
   IconButton
 } from '@material-ui/core';
-import InfoIcon from '@material-ui/icons/Info';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import TextField from '@material-ui/core/TextField';
 import { isEmpty } from 'underscore';
 import Papa from 'papaparse';
-import moment from 'moment';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
 import { downloadDataApi } from 'views/apis/analytics';
