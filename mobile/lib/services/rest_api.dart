@@ -8,6 +8,7 @@ import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http_retry/http_retry.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
@@ -329,9 +330,15 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(getHeaders);
       headers["service"] = apiService.serviceName;
 
-      final response = await client
+      final retryClient = RetryClient(http.Client(),
+    retries: 3,
+    when: (response) => response.statusCode >= 500,
+  );
+
+      final response = await retryClient
           .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
+
       if (response.statusCode == 200) {
         // TODO : use advanced decoding
         return json.decode(response.body);
@@ -382,14 +389,23 @@ class SearchApiClient {
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
 
+
+  
+
+final retryClient = RetryClient(http.Client(),
+    retries: 3,
+    when: (response) => response.statusCode >= 500,
+  );
+
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
     required String url,
+    
   }) async {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await client.get(
+      final response = await retryClient.get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {

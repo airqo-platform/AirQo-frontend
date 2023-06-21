@@ -20,7 +20,45 @@ Future<void> main() async {
         if (forecasts.isNotEmpty) {
           break;
         }
-        forecasts = await AirqoApiClient().fetchForecast(siteId);
+        forecasts = await AirqoApiClient().(String siteId) async {
+          final forecasts = <Forecast>[];
+        
+          try {
+            final body = await _performGetRequest(
+              {
+                "site_id": siteId,
+              },
+              AirQoUrls.forecast,
+              apiService: ApiService.forecast,
+            );
+        
+            for (final forecast in body['forecasts'] as List<dynamic>) {
+              try {
+                forecasts.add(
+                  Forecast.fromJson({
+                    'pm2_5': forecast['pm2_5'],
+                    'time': forecast['time'],
+                    'siteId': siteId,
+                    'health_tips': forecast["health_tips"] ?? [],
+                    'message': forecast["message"] ?? '',
+                  }),
+                );
+              } catch (exception, stackTrace) {
+                await logException(
+                  exception,
+                  stackTrace,
+                );
+              }
+            }
+          } catch (exception, stackTrace) {
+            await logException(
+              exception,
+              stackTrace,
+            );
+          }
+        
+          return forecasts.removeInvalidData();
+        }(siteId);
       }
 
       Forecast forecast = forecasts.reduce((value, element) {
@@ -42,7 +80,45 @@ Future<void> main() async {
         if (forecasts.isNotEmpty) {
           break;
         }
-        forecasts = await AirqoApiClient().fetchForecast(siteId);
+        forecasts = await AirqoApiClient().(String siteId) async {
+          final forecasts = <Forecast>[];
+        
+          try {
+            final body = await _performGetRequest(
+              {
+                "site_id": siteId,
+              },
+              AirQoUrls.forecast,
+              apiService: ApiService.forecast,
+            );
+        
+            for (final forecast in body['forecasts'] as List<dynamic>) {
+              try {
+                forecasts.add(
+                  Forecast.fromJson({
+                    'pm2_5': forecast['pm2_5'],
+                    'time': forecast['time'],
+                    'siteId': siteId,
+                    'health_tips': forecast["health_tips"] ?? [],
+                    'message': forecast["message"] ?? '',
+                  }),
+                );
+              } catch (exception, stackTrace) {
+                await logException(
+                  exception,
+                  stackTrace,
+                );
+              }
+            }
+          } catch (exception, stackTrace) {
+            await logException(
+              exception,
+              stackTrace,
+            );
+          }
+        
+          return forecasts.removeInvalidData();
+        }(siteId);
       }
 
       List<Forecast> forecastsWithoutHealthTips =
