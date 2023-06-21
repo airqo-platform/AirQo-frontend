@@ -17,7 +17,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
 
   const todaysDate = new Date().getTime();
   const minDate =  new Date();
-  minDate.setDate(minDate.getDate()-2.5);
+  minDate.setDate(minDate.getDate()-1);
 
   const ChartOptions = {
     chart: {
@@ -30,6 +30,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
     },
     stroke: {
       curve: 'stepline',
+      width: 1,
       breaks: {
         style: 'null'
       }
@@ -46,7 +47,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
       }
     },
     yaxis:{
-      min:0,
+      min:2.5,
       max:4.5,
       decimalsInFloat:2,
       tickAmount:5
