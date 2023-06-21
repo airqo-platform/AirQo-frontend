@@ -443,33 +443,35 @@ const ExportData = (props) => {
       });
   };
 
-  const exportDataBySite = (e) => {
-    e.preventDefault();
-
+  const submitExportData = (e) => {
     setLoading(true);
 
-    let data = {
-      sites: getValues(selectedSites),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value,
-      metaData: {
-        sites: extractLabels(selectedSites)
-      }
-    };
+    let sitesList = [];
 
-    downloadDataFunc(data);
-  };
+    if (!isEmpty(selectedRegions)) {
+      sitesList = extractSiteIds(selectedRegions);
+    }
 
-  const exportDataByDevice = (e) => {
-    e.preventDefault();
+    if (!isEmpty(selectedSites)) {
+      sitesList = getValues(selectedSites);
+    }
 
-    setLoading(true);
+    if (startDate > endDate) {
+      dispatch(
+        updateMainAlert({
+          message: 'Start date cannot be newer than the end date',
+          show: true,
+          severity: 'error'
+        })
+      );
+
+      setLoading(false);
+      return;
+    }
 
     let body = {
+      sites: sitesList,
+      airqlouds: getValues(selectedAirqlouds),
       devices: getValues(selectedDevices),
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
@@ -478,53 +480,14 @@ const ExportData = (props) => {
       downloadType: 'json',
       outputFormat: outputFormat.value,
       metaData: {
-        devices: extractLabels(selectedDevices)
-      }
-    };
-
-    downloadDataFunc(body);
-  };
-
-  const exportDataByAirqloud = (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    let body = {
-      airqlouds: getValues(selectedAirqlouds),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value,
-      metaData: {
-        airqlouds: extractLabels(selectedAirqlouds)
-      }
-    };
-
-    downloadDataFunc(body);
-  };
-
-  const exportDataByRegion = (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    let data = {
-      sites: extractSiteIds(selectedRegions),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value,
-      metaData: {
+        sites: extractLabels(selectedSites),
+        airqlouds: extractLabels(selectedAirqlouds),
+        devices: extractLabels(selectedDevices),
         regions: extractLabels(selectedRegions)
       }
     };
 
-    downloadDataFunc(data);
+    downloadDataFunc(body);
   };
 
   const scheduleExportData = async (e) => {
@@ -541,6 +504,19 @@ const ExportData = (props) => {
 
     if (!isEmpty(selectedSites)) {
       sitesList = getValues(selectedSites);
+    }
+
+    if (startDate > endDate) {
+      dispatch(
+        updateMainAlert({
+          message: 'Start date cannot be newer than the end date',
+          show: true,
+          severity: 'error'
+        })
+      );
+
+      setLoading(false);
+      return;
     }
 
     let body = {
@@ -628,7 +604,7 @@ const ExportData = (props) => {
               </Tabs>
 
               <TabPanel value={value} index={0}>
-                <form onSubmit={exportDataBySite}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -751,18 +727,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Download Data
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                       <Button
                         color="primary"
@@ -772,18 +736,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Schedule Download
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                     </Box>
                   </CardActions>
@@ -791,7 +743,7 @@ const ExportData = (props) => {
               </TabPanel>
 
               <TabPanel value={value} index={1}>
-                <form onSubmit={exportDataByDevice}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -915,18 +867,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Download Data
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                       <Button
                         color="primary"
@@ -936,18 +876,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Schedule Download
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                     </Box>
                   </CardActions>
@@ -955,7 +883,7 @@ const ExportData = (props) => {
               </TabPanel>
 
               <TabPanel value={value} index={2}>
-                <form onSubmit={exportDataByAirqloud}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -1078,18 +1006,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Download Data
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                       <Button
                         color="primary"
@@ -1099,18 +1015,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Schedule Download
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                     </Box>
                   </CardActions>
@@ -1118,7 +1022,7 @@ const ExportData = (props) => {
               </TabPanel>
 
               <TabPanel value={value} index={3}>
-                <form onSubmit={exportDataByRegion}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -1241,18 +1145,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Download Data
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                       <Button
                         color="primary"
@@ -1262,18 +1154,6 @@ const ExportData = (props) => {
                       >
                         {' '}
                         Schedule Download
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Button>
                     </Box>
                   </CardActions>
