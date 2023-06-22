@@ -54,11 +54,13 @@ const useStyles = makeStyles((theme) => ({
   actions: {
     justifyContent: 'flex-end'
   },
+  //When content is collapsed
   collapseContent: {
-    maxHeight: 15,
+    maxHeight: 100,
     overflow: 'hidden',
     transition: 'max-height 0.3s ease-out'
   },
+  //When content is expanded
   expandContent: {
     maxHeight: 'none'
   },
@@ -293,7 +295,7 @@ const CandidatesTable = (props) => {
             field: 'description',
             render: (candidate) => (
               <>
-                {candidate.description.length >= 15 ? (
+                {candidate.description.length >= 100 ? (
                   <>
                     <div
                       className={clsx(classes.collapseContent, {
