@@ -37,7 +37,7 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   // hook to handle see more/less button
-  const [numEventsToShow, setNumEventsToShow] = useState(9);
+  const [numEventsToShow, setNumEventsToShow] = useState(3);
 
   useEffect(() => {
     if (isEmpty(eventsApiData)) {
