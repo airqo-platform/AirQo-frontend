@@ -190,24 +190,24 @@ class KyaCardWidget extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.05,
           ),
           Container(
-            width: MediaQuery.of(context).size.width * 0.3,
-            height: 112,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  kya.imageUrl,
-                  cacheKey: kya.imageUrlCacheKey(),
-                  cacheManager: CacheManager(
-                    CacheService.cacheConfig(
-                      kya.imageUrlCacheKey(),
+                width: MediaQuery.of(context).size.width * 0.3,
+                height: 112,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: CachedNetworkImageProvider(
+                      kya.imageUrl,
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
+                    child: Center(
+                      child: kya.imageUrl != null
+                          ? null
+                          : const CircularProgressIndicator(),
+                    ),
+)
+
         ],
       ),
     );
