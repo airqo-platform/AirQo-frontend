@@ -436,26 +436,29 @@
     margin-top: 60px;
   }
 
-  .see-more,
-  .see-less {
+  .see-more-container {
+    grid-column: 2 / 3;
     margin-top: 40px;
-    display: flex;
-    justify-content: center;
-    background: none;
-    button {
-      border: none;
-      outline: none;
-      padding: 16px 32px;
-      height: 48px;
+    text-align: center;
+    .see-more,
+    .see-less {
+      display: flex;
+      justify-content: center;
       background: none;
-      color: $aq-blue-0;
-      &:hover {
-        cursor: pointer;
-      }
-    }
-    &.see-less {
       button {
-        color: red;
+        border: none;
+        outline: none;
+        padding: 16px 32px;
+        background: none;
+        color: $aq-blue-0;
+        &:hover {
+          cursor: pointer;
+        }
+      }
+      &.see-less {
+        button {
+          color: red;
+        }
       }
     }
   }
