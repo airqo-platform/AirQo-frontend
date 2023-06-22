@@ -37,11 +37,11 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   // hook to handle see more/less button
-  const [numEventsToShow, setNumEventsToShow] = useState(3);
+  const [numEventsToShow, setNumEventsToShow] = useState(9);
 
   // for handling see less button
   const handleSeeLess = () => {
-    setNumEventsToShow(3);
+    setNumEventsToShow(9);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -113,28 +113,26 @@ const EventsPage = () => {
                           link={event.unique_title}
                         />
                       ))}
-                  {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
-                    <div className="no-events">
-                      <span>There are currently no events</span>
+                </div>
+                {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
+                  <div className="no-events">
+                    <span>There are currently no events</span>
+                  </div>
+                ) : null}
+                <div className="see-more-container">
+                  {(upcomingEvents.length > numEventsToShow &&
+                    selectedNavTab === 'upcoming events') ||
+                  (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
+                    <div className="see-more">
+                      <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
                     </div>
                   ) : null}
-                  <div className="see-more-container">
-                    {(upcomingEvents.length > numEventsToShow &&
-                      selectedNavTab === 'upcoming events') ||
-                    (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
-                      <div className="see-more">
-                        <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>
-                          More
-                        </button>
-                      </div>
-                    ) : null}
 
-                    {numEventsToShow > 9 && (
-                      <div className="see-less">
-                        <button onClick={() => handleSeeLess()}>Less</button>
-                      </div>
-                    )}
-                  </div>
+                  {numEventsToShow > 9 && (
+                    <div className="see-less">
+                      <button onClick={() => handleSeeLess()}>Less</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
