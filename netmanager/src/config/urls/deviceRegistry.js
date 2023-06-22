@@ -4,6 +4,8 @@ const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_DEVICE_REGISTRY_URL || process.env.REACT_APP_BASE_URL
 );
 
+const BASE_DEVICE_REGISTRY_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+
 export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities`;
 
 export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
@@ -38,7 +40,7 @@ export const DELETE_DEVICE_PHOTO = `${BASE_DEVICE_REGISTRY_URL}/devices/photos`;
 
 export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/recall`;
 
-export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events?tenant=airqo`;
+export const EVENTS = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/events?tenant=airqo`;
 
 export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 
