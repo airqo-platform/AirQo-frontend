@@ -272,6 +272,7 @@ const CandidatesTable = (props) => {
           },
           {
             title: 'Status',
+            field: 'status',
             render: (candidate) => {
               const statusColor = {
                 pending: 'orange',
