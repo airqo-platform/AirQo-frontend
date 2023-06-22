@@ -69,7 +69,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (isEmpty(recentEventsData.features))
-      dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
+      dispatch(
+        loadMapEventsData({ recent: 'yes', external: 'no', metadata: 'site_id', active: 'yes' })
+      );
   }, []);
 
   useEffect(() => {
