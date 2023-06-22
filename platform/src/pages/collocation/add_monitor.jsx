@@ -60,10 +60,6 @@ const AddMonitor = () => {
         startDate,
         endDate,
         devices: selectedCollocateDevices,
-        expectedRecordsPerDay: 24,
-        completenessThreshold: 0.5,
-        correlationThreshold: 0.4,
-        verbose: true,
       };
 
       const response = await collocateDevices(body);
@@ -92,7 +88,7 @@ const AddMonitor = () => {
         <SkeletonFrame />
       ) : (
         <>
-          <NavigationBreadCrumb backLink={'/collocation/collocate'} navTitle={'Add monitor'}>
+          <NavigationBreadCrumb navTitle={'Add monitor'}>
             <div className='flex'>
               {/* {isCollocating && (
                 <Button className={'mr-1'}>

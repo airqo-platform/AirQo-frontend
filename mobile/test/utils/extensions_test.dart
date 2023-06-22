@@ -66,29 +66,4 @@ void main() {
       expect(appStoreVersion.compareVersion(userAppVersion), 0);
     });
   });
-  group('set', () {
-    test('should add or update a set', () {
-      Set<TestModel> testData = {};
-      TestModel updatedData =
-          TestModel(testDateTime: DateTime.now(), testInt: 2);
-
-      testData.add(TestModel(testDateTime: DateTime.now(), testInt: 1));
-      testData.addOrUpdate(updatedData);
-
-      expect(testData.length, 1);
-      expect(testData.first, updatedData);
-      expect(testData.first.testInt, updatedData.testInt);
-      expect(testData.first.testDateTime, updatedData.testDateTime);
-
-      TestModel secondItem = TestModel(
-          testDateTime: DateTime.now().add(const Duration(days: 1)),
-          testInt: 3);
-      testData.add(secondItem);
-
-      expect(testData.length, 2);
-      expect(testData.last, secondItem);
-      expect(testData.last.testInt, secondItem.testInt);
-      expect(testData.last.testDateTime, secondItem.testDateTime);
-    });
-  });
 }

@@ -103,7 +103,7 @@ function ManagementStat() {
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
-            moment(new Date()).subtract(28, 'days').toISOString()
+            moment(new Date()).subtract(7, 'days').toISOString()
           ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
@@ -203,7 +203,11 @@ function ManagementStat() {
           }}
         >
           <ApexChart
-            options={timeSeriesChartOptions({})}
+            options={timeSeriesChartOptions({
+              stroke: {
+                width: 1,
+              },
+            })}
             title={'Network uptime'}
             series={series}
             lastUpdated={networkUptimeData.length > 0 && networkUptimeData[0].created_at}

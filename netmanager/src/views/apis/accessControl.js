@@ -51,6 +51,10 @@ export const assignUserToRoleApi = async (roleID, data) => {
     .then((response) => response.data);
 };
 
+export const createNetworkApi = async (data) => {
+  return await axios.post(GET_NETWORKS_URI, data).then((response) => response.data);
+};
+
 export const getNetworksApi = async () => {
   return await axios.get(GET_NETWORKS_URI).then((response) => response.data);
 };
@@ -58,6 +62,12 @@ export const getNetworksApi = async () => {
 export const assignUserNetworkApi = async (networkID, userID) => {
   return await axios
     .put(`${GET_NETWORKS_URI}/${networkID}/assign-user/${userID}`)
+    .then((response) => response.data);
+};
+
+export const getAvailableNetworkUsersListApi = async (networkID) => {
+  return await axios
+    .get(`${GET_NETWORKS_URI}/${networkID}/available-users`)
     .then((response) => response.data);
 };
 

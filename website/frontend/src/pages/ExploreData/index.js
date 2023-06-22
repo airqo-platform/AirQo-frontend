@@ -1,36 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import AirQo from 'icons/nav/AirQo';
-import AppleBtn from 'assets/svg/apple-btn.svg';
-import GoogleplayBtn from 'assets/svg/google-play-btn.svg';
-import QRcode from 'assets/svg/QR code.svg';
 import MobileApp from 'assets/svg/explore/discover-air-quality.svg';
 import AirqualityPlatform from 'assets/svg/explore/air-quality-platform.svg';
-import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
-import ManExploring from 'assets/img/explore/get-started-explore.png';
-import RegistrationCompleteSvg from 'assets/svg/explore/registration_complete_svg.svg';
-import { useDispatch } from 'react-redux';
-import { Checkbox, FormControl, FormControlLabel, CircularProgress, Modal } from '@mui/material';
-import { useExploreData } from 'reduxStore/ExploreData/selectors';
-import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreData/operations';
-import { isEmpty, isEqual } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
 import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
 import DownloadIcon from 'assets/svg/explore/download.svg'
-
-const CATEGORY_TYPE = {
-  researcher: 'researcher',
-  environmentalEnthusiasts: 'environmental enthusiasts',
-  business: 'business',
-  governmentEnthusiasts: 'government enthusiasts'
-};
-
-const compareCategory = (value, target) => isEqual(value.toLowerCase(), target.toLowerCase());
+import AirQo from 'icons/nav/AirQo';
+import AppleBtn from 'assets/svg/apple_app_store.svg';
+import GoogleplayBtn from 'assets/svg/android_play_store.svg';
+import QRcode from 'assets/svg/QR code.svg';
+import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 export const PageWithImageLayout = ({ imgPath, children }) => {
   const navigate = useNavigate();
@@ -59,525 +43,6 @@ export const PageWithImageLayout = ({ imgPath, children }) => {
   );
 };
 
-export const ExploreFormTemplate = ({ children, onSubmit }) => (
-  <form className="create-account-form" onSubmit={onSubmit}>
-    {children}
-  </form>
-);
-
-export const ExploreTemplateFormFieldOption = ({
-  formOptionClassName,
-  fieldId,
-  label,
-  inputType,
-  children,
-  fieldClassName,
-  onChange
-}) => (
-  <div className={`form-option ${formOptionClassName}`}>
-    {label && <label htmlFor={fieldId}>{label}*</label>}
-    <input
-      type={inputType}
-      id={fieldId}
-      required
-      className={fieldClassName || 'form-control'}
-      onChange={onChange}
-    />{' '}
-    {children}
-  </div>
-);
-
-export const ExploreApp = () => (
-  <PageWithImageLayout>
-    <div className="ExploreApp">
-      <div className="brand-icon">
-        <AirQo />
-      </div>
-      <h2>Get the AirQo app</h2>
-      <p>Discover the quality of air you are breathing.</p>
-      <div className="wrapper">
-        <QRcode />
-        <hr />
-        <div className="btn-group">
-          <a
-            target="_blank"
-            href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
-            rel="noreferrer">
-            <AppleBtn style={{ marginBottom: '40px' }} />
-          </a>
-          <a
-            target="_blank"
-            href="https://play.google.com/store/apps/details?id=com.airqo.app"
-            rel="noreferrer">
-            <GoogleplayBtn />
-          </a>
-        </div>
-      </div>
-    </div>
-  </PageWithImageLayout>
-);
-
-export const ExploreGetStarted = () => (
-  <PageWithImageLayout imgPath={ManExploring}>
-    <div className="ExploreGetStarted">
-      <div className="brand-icon">
-        <AirQo />
-      </div>
-      <h2>Clean air for all African cities</h2>
-      <p>Get access to an interactive air quality analytics platform.</p>
-      <Link to="/explore-data/get-started/user">
-        <button className="nav-button">Create Account</button>
-      </Link>
-      <small>
-        Already have an account?
-        <span>
-          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-            Log in
-          </a>
-        </span>
-      </small>
-    </div>
-  </PageWithImageLayout>
-);
-
-export const ExploreUserCategory = () => {
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const [state, _] = useState(exploreData.userType);
-  const navigate = useNavigate();
-
-  const handleCategoryChange = (key, secondaryKey) => (e) => {
-    // eslint-disable-next-line max-len
-    dispatch(
-      updateExploreData({ userType: { ...state, [key]: e.target.checked, [secondaryKey]: false } })
-    );
-    e.target.checked && navigate(`/explore-data/get-started/user/${e.target.name}`);
-  };
-
-  useEffect(() => {
-    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
-  }, [exploreData]);
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreGetStartedForm">
-        <h2>What best describes you?</h2>
-        <p>We will help you get started based on your response</p>
-        <FormControl className="radio-field">
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={state.individual}
-                onChange={handleCategoryChange('individual', 'organization')}
-                name="individual"
-              />
-            }
-            label="Individual"
-          />
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={state.organization}
-                onChange={handleCategoryChange('organization', 'individual')}
-                name="organisation"
-              />
-            }
-            label="Organisation"
-          />
-        </FormControl>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-
-export const ExploreUserProfessionType = () => {
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const handleCategoryChange = (e) => {
-    if (e.target.checked) {
-      dispatch(updateExploreData({ category: e.target.name }));
-      navigate('/explore-data/get-started/user/register');
-    }
-  };
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreGetStartedForm">
-        <h2>What best describes you?</h2>
-        <p>We will help you get started based on your response</p>
-        <FormControl className="radio-field">
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={compareCategory(exploreData.category, CATEGORY_TYPE.researcher)}
-                onChange={handleCategoryChange}
-                name="researcher"
-              />
-            }
-            label="Researcher"
-          />
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={compareCategory(
-                  exploreData.category,
-                  CATEGORY_TYPE.environmentalEnthusiasts
-                )}
-                onChange={handleCategoryChange}
-                name="environmental enthusiasts"
-              />
-            }
-            label="Environmental enthusiast"
-          />
-        </FormControl>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-
-export const ExploreOrganisationType = () => {
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const handleCategoryChange = (e) => {
-    if (e.target.checked) {
-      dispatch(updateExploreData({ category: e.target.name }));
-      if (compareCategory(e.target.name, CATEGORY_TYPE.business)) {
-        navigate('/explore-data/get-started/user/register/business');
-      } else if (compareCategory(e.target.name, CATEGORY_TYPE.governmentEnthusiasts)) {
-        navigate('/explore-data/get-started/user/register/organisation');
-      }
-    }
-  };
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreGetStartedForm">
-        <h2>What best describes you?</h2>
-        <p>We will help you get started based on your response</p>
-        <FormControl className="radio-field">
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={compareCategory(exploreData.category, CATEGORY_TYPE.business)}
-                onChange={handleCategoryChange}
-                name="business"
-              />
-            }
-            label="Business Owner"
-          />
-          <FormControlLabel
-            className="radio-field-option"
-            control={
-              <Checkbox
-                checked={compareCategory(exploreData.category, CATEGORY_TYPE.governmentEnthusiasts)}
-                onChange={handleCategoryChange}
-                name="government enthusiasts"
-              />
-            }
-            label="Government or Policy Officer"
-          />
-        </FormControl>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-
-export const ExploreUserRegistry = () => {
-  const navigate = useNavigate();
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (id) => (e) =>
-    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
-
-  const registerOrganisation = async (e) => {
-    e.preventDefault();
-
-    if (exploreDataLocal.category === CATEGORY_TYPE.business) {
-      navigate('/explore-data/get-started/user/register/business');
-    } else if (exploreDataLocal.category === CATEGORY_TYPE.governmentEnthusiasts) {
-      navigate('/explore-data/get-started/user/register/organisation');
-    } else {
-      setLoading(true);
-      await dispatch(
-        postExploreDataRequest({
-          ...exploreDataLocal,
-          long_organization: exploreDataLocal.category,
-          jobTitle: exploreDataLocal.category,
-          website: 'airqo.net',
-          description: 'Request Access to Data'
-        })
-      );
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isEmpty(exploreDataLocal.category)) {
-      navigate('/explore-data/get-started/user');
-    }
-    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
-  }, [exploreData]);
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreFormWrapper">
-        <h2>Create your AirQo account</h2>
-        <ExploreFormTemplate onSubmit={registerOrganisation}>
-          <ExploreTemplateFormFieldOption
-            label="First name"
-            inputType="text"
-            fieldId="firstName"
-            onChange={handleChange('firstName')}
-          />
-          <ExploreTemplateFormFieldOption
-            label="Last name"
-            inputType="text"
-            fieldId="lastName"
-            onChange={handleChange('lastName')}
-          />
-          {exploreDataLocal.category === CATEGORY_TYPE.researcher && (
-            <ExploreTemplateFormFieldOption
-              label="Email address"
-              inputType="email"
-              fieldId="email"
-              onChange={handleChange('email')}
-            />
-          )}
-          {exploreDataLocal.category === CATEGORY_TYPE.environmentalEnthusiasts && (
-            <ExploreTemplateFormFieldOption
-              label="Email address"
-              inputType="email"
-              fieldId="emailAddress"
-              onChange={handleChange('email')}
-            />
-          )}
-          <ExploreTemplateFormFieldOption
-            inputType="checkbox"
-            fieldId="tos"
-            radioOption
-            fieldClassName="tos"
-            formOptionClassName="tos">
-            I agree to the <Link to="/legal">Terms of Service</Link> and{' '}
-            <Link to="/legal">Privacy Policy</Link>
-          </ExploreTemplateFormFieldOption>
-          <button className="nav-button" type="submit" onSubmit={registerOrganisation}>
-            {loading ? <CircularProgress /> : 'Create Account'}
-          </button>
-          <small>
-            Already have an account?
-            <span>
-              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                Log in
-              </a>
-            </span>
-          </small>
-        </ExploreFormTemplate>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-
-export const ExploreBusinessRegistry = () => {
-  const navigate = useNavigate();
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (id) => (e) =>
-    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    await dispatch(
-      postExploreDataRequest({
-        ...exploreDataLocal,
-        firstName: exploreDataLocal.firstName,
-        lastName: exploreData.lastName,
-        long_organization: exploreDataLocal.business,
-        jobTitle: exploreDataLocal.position,
-        website: 'airqo.net',
-        description: 'Request Access to Data'
-      })
-    );
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (isEmpty(exploreDataLocal.category)) {
-      navigate('/explore-data/get-started/user');
-    }
-    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
-  }, [exploreData]);
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreFormWrapper">
-        <h2>Details about your business</h2>
-        <ExploreFormTemplate onSubmit={handleSubmit}>
-          <ExploreTemplateFormFieldOption
-            label="Business name"
-            inputType="text"
-            fieldId="businessName"
-            onChange={handleChange('business')}
-          />
-          <ExploreTemplateFormFieldOption
-            label="Your position"
-            inputType="text"
-            fieldId="position"
-            onChange={handleChange('position')}
-          />
-          <ExploreTemplateFormFieldOption
-            label="Email address"
-            inputType="email"
-            fieldId="emailAddress"
-            onChange={handleChange('email')}
-          />
-          <ExploreTemplateFormFieldOption
-            inputType="checkbox"
-            fieldId="tos"
-            radioOption
-            fieldClassName="tos"
-            formOptionClassName="tos">
-            I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
-            <Link to="/terms">Privacy Policy</Link>
-          </ExploreTemplateFormFieldOption>
-          <button type="submit" className="nav-button">
-            {loading ? <CircularProgress /> : 'Create Account'}
-          </button>
-          <small>
-            Already have an account?
-            <span>
-              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                Log in
-              </a>
-            </span>
-          </small>
-        </ExploreFormTemplate>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-
-export const ExploreOrganisationRegistry = () => {
-  const navigate = useNavigate();
-  const exploreData = useExploreData();
-  const dispatch = useDispatch();
-  const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (id) => (e) =>
-    setExploreDataLocal({ ...exploreDataLocal, [id]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    await dispatch(
-      postExploreDataRequest({
-        ...exploreDataLocal,
-        firstName: exploreDataLocal.firstName,
-        lastName: exploreDataLocal.lastName,
-        long_organization: exploreDataLocal.business,
-        jobTitle: exploreDataLocal.position,
-        website: 'airqo.net',
-        description: 'Request Access to Data'
-      })
-    );
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (isEmpty(exploreDataLocal.category)) {
-      navigate('/explore-data/get-started/user');
-    }
-    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
-  }, [exploreData]);
-
-  return (
-    <PageWithImageLayout imgPath={ManExploring}>
-      <div className="ExploreFormWrapper">
-        <h2>Details about your Organisation</h2>
-        <ExploreFormTemplate onSubmit={handleSubmit}>
-          <ExploreTemplateFormFieldOption
-            label="Organisation name"
-            inputType="text"
-            fieldId="orgName"
-            onChange={handleChange('business')}
-          />
-          <ExploreTemplateFormFieldOption
-            label="Your position"
-            inputType="text"
-            fieldId="position"
-            onChange={handleChange('position')}
-          />
-          <ExploreTemplateFormFieldOption
-            label="Email address"
-            inputType="email"
-            fieldId="emailAddress"
-            onChange={handleChange('email')}
-          />
-          <ExploreTemplateFormFieldOption
-            inputType="checkbox"
-            fieldId="tos"
-            radioOption
-            fieldClassName="tos"
-            formOptionClassName="tos">
-            I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
-            <Link to="/terms">Privacy Policy</Link>
-          </ExploreTemplateFormFieldOption>
-          <button className="nav-button" type="submit">
-            {loading ? <CircularProgress /> : 'Create Account'}
-          </button>
-          <small>
-            Already have an account?
-            <span>
-              <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
-                Log in
-              </a>
-            </span>
-          </small>
-        </ExploreFormTemplate>
-      </div>
-    </PageWithImageLayout>
-  );
-};
-export const ExploreRegistryConfirmation = () => (
-  <ExploreDataModal>
-    <div className="ConfirmExploreDataMail">
-      <RegistrationCompleteSvg className="registration_svg" />
-      <div className="content">
-        <h2>Check your email for more details.</h2>
-        <p>
-          Access real-time and historic air quality information across Africa through our
-          easy-to-use air quality analytics dashboard
-        </p>
-      </div>
-      <Link to="/">
-        <button className="nav-button">Back home</button>
-      </Link>
-    </div>
-  </ExploreDataModal>
-);
-
 export const ExploreDataModal = ({ children }) => {
   return (
     <div className="ExploreDataModal">
@@ -590,6 +55,40 @@ export const ExploreDataModal = ({ children }) => {
     </div>
   );
 };
+
+export const ExploreApp = () => (
+  <PageWithImageLayout>
+    <div className="ExploreApp">
+      <div className="brand-icon">
+        <AirQo />
+      </div>
+      <h2>Get the AirQo app</h2>
+      <p>Discover the quality of air you are breathing.</p>
+      <div className="wrapper">
+        <QRcode />
+        <hr />
+        <div className="btn-group" style={{}}>
+          <a
+            target="_blank"
+            href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
+            rel="noreferrer">
+            <div style={{ marginBottom: '40px', background: '#000', borderRadius: '8px', padding: '5px' }}>
+              <AppleBtn />
+            </div>
+          </a>
+          <a
+            target="_blank"
+            href="https://play.google.com/store/apps/details?id=com.airqo.app"
+            rel="noreferrer">
+            <div style={{ background: '#000', borderRadius: '8px', padding: '3px' }}>
+              <GoogleplayBtn />
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </PageWithImageLayout>
+);
 
 const ExploreData = () => {
   useInitScrollTop();
@@ -643,14 +142,14 @@ const ExploreData = () => {
             </div>
           </div>
           <button className="user-manual">
-            <DownloadIcon />
+            {/* <DownloadIcon />
             <a
               href={UserManual}
               download="AirQo_Analytics_Platform_User_Manual.pdf"
               target="_blank"
               rel="noopener noreferrer">
               Air Quality Platform User Manual
-            </a>
+            </a> */}
           </button>
         </div>
       </div>

@@ -383,7 +383,6 @@ export const registrationSuccess = (data) => {
 
 /************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
-  console.log('the login URL ' + LOGIN_USER_URI);
   const tenant = userData.organization;
   axios
     .post(LOGIN_USER_URI, userData, { params: { tenant } })
@@ -429,7 +428,6 @@ export const forgotPassword = (userData) => (dispatch) => {
   axios
     .post(FORGOT_PWD_URI, userData)
     .then((response) => {
-      console.log(response.data);
       if (response.data === 'email not recognized') {
         this.setState({
           showError: true,
@@ -456,7 +454,6 @@ export const verifyToken = async (token) => {
   await axios
     .get(VERIFY_TOKEN_URI, token)
     .then((response) => {
-      console.log(response);
       if (response.data.message === 'password reset link a-ok') {
         this.setState({
           username: response.data.username,
@@ -528,10 +525,10 @@ export const logoutUser = () => (dispatch) => {
   localStorage.removeItem('currentUser');
   // Remove token from local storage
   localStorage.removeItem('activeNetwork');
-  // Remove auth header for future requests
-  setAuthToken(false);
   // Remove token from local storage
   localStorage.removeItem('userNetworks');
+  // Remove token from local storage
+  localStorage.removeItem('currentUserRole');
   // Remove auth header for future requests
   setAuthToken(false);
   // clear redux state on logout
@@ -628,7 +625,6 @@ export const updateProfile = (userData) => (dispatch) => {
 
 //*********************************** default settings ************************************/
 export const setDefaults = (values, id) => (dispatch) => {
-  console.log('the sent id is: ' + `${values.id}`);
   dispatch(setDefaultsRequest(values));
   return axios
     .put(DEFAULTS_URI + '/' + `${values.id}`, values)
@@ -686,8 +682,6 @@ export const fetchDefaultsRequest = () => {
 };
 
 export const fetchDefaultsSuccess = (defaults, message) => {
-  console.log('these are the defaults we have received: ');
-  console.dir(defaults);
   return {
     type: GET_DEFAULTS_SUCCESS,
     defaults: defaults,

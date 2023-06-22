@@ -27,6 +27,7 @@ on:
 env:
   REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
+  DEPLOY_BRANCH: staging
 
 jobs:
   image-tag:
@@ -93,14 +94,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/netmanager/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update netmanger production image tag to ${{ needs.image-tag.outputs.build_id }}"
             createPR: false
 
@@ -243,14 +245,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/calibrate/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -301,14 +304,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/platform/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -348,12 +352,13 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/docs/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
