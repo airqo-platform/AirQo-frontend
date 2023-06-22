@@ -37,7 +37,7 @@ const EventsPage = () => {
   const loading = useSelector((state) => state.eventsData.loading);
 
   // hook to handle see more/less button
-  const [showMore, setShowMore] = useState(false);
+  const [numEventsToShow, setNumEventsToShow] = useState(9);
 
   useEffect(() => {
     if (isEmpty(eventsApiData)) {
@@ -81,7 +81,7 @@ const EventsPage = () => {
                 <div className="event-cards">
                   {selectedNavTab === 'upcoming events' &&
                     upcomingEvents
-                      .slice(0, showMore ? upcomingEvents.length : 3)
+                      .slice(0, numEventsToShow)
                       .map((event) => (
                         <EventCard
                           key={event.id}
@@ -95,7 +95,7 @@ const EventsPage = () => {
                       ))}
                   {selectedNavTab === 'past events' &&
                     pastEvents
-                      .slice(0, showMore ? pastEvents.length : 3)
+                      .slice(0, numEventsToShow)
                       .map((event) => (
                         <EventCard
                           key={event.id}
@@ -115,14 +115,18 @@ const EventsPage = () => {
                   </div>
                 ) : null}
               </div>
-              {(upcomingEvents.length > 3 && selectedNavTab === 'upcoming events') ||
-              (pastEvents.length > 3 && selectedNavTab === 'past events') ? (
+              {(upcomingEvents.length > numEventsToShow && selectedNavTab === 'upcoming events') ||
+              (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
                 <div className="see-more">
-                  <button onClick={() => setShowMore(!showMore)}>
-                    {showMore ? 'See Less' : 'See More'}
-                  </button>
+                  <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
                 </div>
               ) : null}
+
+              {numEventsToShow > 9 && (
+                <div className="see-less">
+                  <button onClick={() => setNumEventsToShow(9)}>Less</button>
+                </div>
+              )}
             </div>
           </div>
         </Page>
