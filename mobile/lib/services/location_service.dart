@@ -18,6 +18,7 @@ class LocationService {
 
     switch (permissionStatus) {
       case PermissionStatus.permanentlyDenied:
+      case PermissionStatus.provisional:
       case PermissionStatus.denied:
       case PermissionStatus.restricted:
         return false;
