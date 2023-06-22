@@ -11,16 +11,18 @@ import {
   Divider,
   CircularProgress,
   Tabs,
-  Tab
+  Tab,
+  Box,
+  Typography,
+  Snackbar,
+  IconButton
 } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import TextField from '@material-ui/core/TextField';
 import { isEmpty } from 'underscore';
 import Papa from 'papaparse';
-import moment from 'moment';
 import { useDashboardSitesData } from 'redux/Dashboard/selectors';
 import { loadSites } from 'redux/Dashboard/operations';
 import { downloadDataApi } from 'views/apis/analytics';
@@ -34,6 +36,9 @@ import { useDashboardAirqloudsData } from 'redux/AirQloud/selectors';
 import { fetchDashboardAirQloudsData } from 'redux/AirQloud/operations';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { useSitesData } from 'redux/SiteRegistry/selectors';
+import { scheduleExportDataApi } from '../../apis/analytics';
+import ExportDataBreadCrumb from './components/BreadCrumb';
+import CloseIcon from '@material-ui/icons/Close';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -146,7 +151,7 @@ const createAirqloudOptions = (airqlouds) => {
   airqlouds.map((airqloud) =>
     options.push({
       value: airqloud._id,
-      label: `${airqloud.long_name} | ${airqloud.sites.length} sites`
+      label: `${airqloud.long_name}`
     })
   );
   return options;
@@ -166,7 +171,14 @@ function extractSiteIds(options) {
   return siteIds;
 }
 
-const Download = (props) => {
+function extractLabels(options) {
+  const labels = options.reduce((labels, obj) => {
+    return labels.concat(obj.label);
+  }, []);
+  return labels;
+}
+
+const ExportData = (props) => {
   useInitScrollTop();
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
@@ -293,6 +305,35 @@ const Download = (props) => {
     setRegionOptions(groupSitesByRegion(deviceRegistrySiteOptions));
   }, [deviceRegistrySiteOptions]);
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const handleClickSnackbar = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenSnackbar(false);
+    setSnackbarMessage('');
+  };
+
+  const clearExportData = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setFileType(null);
+    setSelectedAirqlouds([]);
+    setSelectedDevices([]);
+    setSelectedSites([]);
+    setSelectedRegions([]);
+    setPollutants([]);
+    setOutputFormat(null);
+    setFrequency(null);
+  };
+
   const disableDownloadBtn = (exportType) => {
     if (exportType === 'sites') {
       return (
@@ -385,18 +426,8 @@ const Download = (props) => {
           const csvData = Papa.unparse(resData);
           exportData(csvData, filename, 'text/csv;charset=utf-8;');
         }
-
+        clearExportData();
         setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
-        setFileType(null);
-        setSelectedAirqlouds([]);
-        setSelectedDevices([]);
-        setSelectedSites([]);
-        setSelectedRegions([]);
-        setPollutants([]);
-        setOutputFormat(null);
-        setFrequency(null);
         dispatch(
           updateMainAlert({
             message: 'Air quality data download successful',
@@ -424,95 +455,156 @@ const Download = (props) => {
           );
         }
 
+        clearExportData();
         setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
-        setFileType(null);
-        setSelectedAirqlouds([]);
-        setSelectedDevices([]);
-        setSelectedSites([]);
-        setSelectedRegions([]);
-        setPollutants([]);
-        setOutputFormat(null);
-        setFrequency(null);
       });
   };
 
-  const exportDataBySite = (e) => {
-    e.preventDefault();
-
+  const submitExportData = (e) => {
     setLoading(true);
 
-    let data = {
-      sites: getValues(selectedSites),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value
-    };
+    let sitesList = [];
 
-    downloadDataFunc(data);
-  };
+    if (!isEmpty(selectedRegions)) {
+      sitesList = extractSiteIds(selectedRegions);
+    }
 
-  const exportDataByDevice = (e) => {
-    e.preventDefault();
+    if (!isEmpty(selectedSites)) {
+      sitesList = getValues(selectedSites);
+    }
 
-    setLoading(true);
+    if (startDate > endDate) {
+      dispatch(
+        updateMainAlert({
+          message: 'Start date cannot be newer than the end date',
+          show: true,
+          severity: 'error'
+        })
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    const Difference_In_Time = new Date(endDate).getTime() - new Date(startDate).getTime();
+    const Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+    if (Difference_In_Days > 28) {
+      setSnackbarMessage(
+        'For time periods greater than a month, please use scheduling to avoid timeouts!'
+      );
+      handleClickSnackbar();
+    }
 
     let body = {
+      sites: sitesList,
+      airqlouds: getValues(selectedAirqlouds),
       devices: getValues(selectedDevices),
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      meta_data: {
+        sites: extractLabels(selectedSites),
+        airqlouds: extractLabels(selectedAirqlouds),
+        devices: extractLabels(selectedDevices),
+        regions: extractLabels(selectedRegions)
+      }
     };
 
     downloadDataFunc(body);
   };
 
-  const exportDataByAirqloud = (e) => {
+  const scheduleExportData = async (e) => {
     e.preventDefault();
 
     setLoading(true);
+
+    let userId = JSON.parse(localStorage.getItem('currentUser'))._id;
+    let sitesList = [];
+
+    if (!isEmpty(selectedRegions)) {
+      sitesList = extractSiteIds(selectedRegions);
+    }
+
+    if (!isEmpty(selectedSites)) {
+      sitesList = getValues(selectedSites);
+    }
+
+    if (startDate > endDate) {
+      dispatch(
+        updateMainAlert({
+          message: 'Start date cannot be newer than the end date',
+          show: true,
+          severity: 'error'
+        })
+      );
+
+      setLoading(false);
+      return;
+    }
 
     let body = {
+      sites: sitesList,
       airqlouds: getValues(selectedAirqlouds),
+      devices: getValues(selectedDevices),
       startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
       endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       downloadType: 'json',
-      outputFormat: outputFormat.value
+      outputFormat: outputFormat.value,
+      userId: userId,
+      meta_data: {
+        sites: extractLabels(selectedSites),
+        airqlouds: extractLabels(selectedAirqlouds),
+        devices: extractLabels(selectedDevices),
+        regions: extractLabels(selectedRegions)
+      }
     };
 
-    downloadDataFunc(body);
-  };
-
-  const exportDataByRegion = (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    let data = {
-      sites: extractSiteIds(selectedRegions),
-      startDateTime: roundToStartOfDay(new Date(startDate).toISOString()),
-      endDateTime: roundToEndOfDay(new Date(endDate).toISOString()),
-      frequency: frequency.value,
-      pollutants: getValues(pollutants),
-      downloadType: 'json',
-      outputFormat: outputFormat.value
-    };
-
-    downloadDataFunc(data);
+    await scheduleExportDataApi(body)
+      .then((resData) => {
+        clearExportData();
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            message: 'Data export ' + resData.data.status,
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message: err.response.data.message,
+            show: true,
+            severity: 'error'
+          })
+        );
+        clearExportData();
+        setLoading(false);
+      });
   };
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
+        <ExportDataBreadCrumb title="Export Options" paddingBottom={'5px'} />
+        <Box
+          textAlign={'start'}
+          paddingBottom={'12px'}
+          color={'grey.700'}
+          fontSize={'14px'}
+          fontWeight={300}
+        >
+          Customize the data you want to download. We recommend scheduling your downloads for bulky
+          data/time periods greater than a month to avoid timeouts.
+        </Box>
+
         <Grid container spacing={4}>
           <Grid item xs={12}>
             <Card
@@ -520,11 +612,6 @@ const Download = (props) => {
               className={clsx(classes.root, className)}
               style={{ overflow: 'visible' }}
             >
-              <CardHeader
-                subheader="Customize the data you want to download."
-                title="Data Download"
-              />
-
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -544,7 +631,7 @@ const Download = (props) => {
               </Tabs>
 
               <TabPanel value={value} index={0}>
-                <form onSubmit={exportDataBySite}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -657,35 +744,33 @@ const Download = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('sites')}
                       >
                         {' '}
                         Download Data
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('sites')}
+                      >
+                        {' '}
+                        Schedule Download
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
 
               <TabPanel value={value} index={1}>
-                <form onSubmit={exportDataByDevice}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -799,35 +884,33 @@ const Download = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('devices')}
                       >
                         {' '}
                         Download Data
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('devices')}
+                      >
+                        {' '}
+                        Schedule Download
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
 
               <TabPanel value={value} index={2}>
-                <form onSubmit={exportDataByAirqloud}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -940,35 +1023,33 @@ const Download = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('airqlouds')}
                       >
                         {' '}
                         Download Data
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('airqlouds')}
+                      >
+                        {' '}
+                        Schedule Download
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
 
               <TabPanel value={value} index={3}>
-                <form onSubmit={exportDataByRegion}>
+                <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
                       <Grid item md={6} xs={12}>
@@ -1081,42 +1162,63 @@ const Download = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <span style={{ position: 'relative' }}>
+                    <Box display="flex" justifyContent="center" width="100%">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
+                        style={{ marginRight: '15px' }}
                         disabled={disableDownloadBtn('regions')}
                       >
                         {' '}
                         Download Data
                       </Button>
-                      {loading && (
-                        <CircularProgress
-                          size={24}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            marginTop: '-12px',
-                            marginLeft: '-12px'
-                          }}
-                        />
-                      )}
-                    </span>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('regions')}
+                      >
+                        {' '}
+                        Schedule Download
+                      </Button>
+                    </Box>
                   </CardActions>
                 </form>
               </TabPanel>
             </Card>
           </Grid>
         </Grid>
+
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center'
+          }}
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          message={snackbarMessage}
+          action={
+            <React.Fragment>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={handleClickSnackbar}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
       </div>
     </ErrorBoundary>
   );
 };
 
-Download.propTypes = {
+ExportData.propTypes = {
   className: PropTypes.string
 };
 
-export default Download;
+export default ExportData;

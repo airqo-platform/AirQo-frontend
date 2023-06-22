@@ -1,31 +1,29 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
-import { Cancel } from "@material-ui/icons";
-import {
-  updateFilteredDevicesData,
-  updateActiveFilters,
-} from "redux/DeviceManagement/operations";
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Cancel } from '@material-ui/icons';
+import { updateFilteredDevicesData, updateActiveFilters } from 'redux/DeviceManagement/operations';
 import {
   useManagementDevicesData,
   useManagementFilteredDevicesData,
-  useActiveFiltersData,
-} from "redux/DeviceManagement/selectors";
-import { multiFilter } from "utils/filters";
-import { mapObject, omit, isEmpty, isEqual } from "underscore";
+  useActiveFiltersData
+} from 'redux/DeviceManagement/selectors';
+import { multiFilter } from 'utils/filters';
+import { mapObject, omit, isEmpty, isEqual } from 'underscore';
 
 // css styles
-import "assets/css/map-filter.css";
+import 'assets/css/map-filter.css';
 
 const FilterIcon = ({ fill, stroke }) => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg"
-      width="22" height="22" fill="#2f67e2"
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      fill="#2f67e2"
       class="bi bi-funnel-fill"
       viewBox="0 0 16 16">
       <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z" />
-      <path
-      stroke={stroke || "white"}
-      fill={fill || "white"}/>
+      <path stroke={stroke || 'white'} fill={fill || 'white'} />
     </svg>
   );
 };
@@ -55,50 +53,48 @@ const MapFilter = () => {
         omit(
           {
             ...activeFilters,
-            main: { ...mapObject(activeFilters.main, () => false) },
+            main: { ...mapObject(activeFilters.main, () => false) }
           },
-          "isOnline"
+          'isOnline'
         )
       )
     );
     updateFilteredDevices(
       filters.filter((fil) => {
-        return Object.keys(fil.condition)[0] !== "isOnline";
+        return Object.keys(fil.condition)[0] !== 'isOnline';
       })
     );
   };
 
   const defaultFilters = [
     {
-      label: "Online Devices",
+      label: 'Online Devices',
       condition: { isOnline: true },
-      cancel: cancelOnlineFilters,
+      cancel: cancelOnlineFilters
     },
     {
-      label: "Offline Devices",
+      label: 'Offline Devices',
       condition: { isOnline: false },
-      cancel: cancelOnlineFilters,
-    },
+      cancel: cancelOnlineFilters
+    }
   ];
 
   const toggleShow = () => setShow(!show);
 
   const compareFilters = (filter1, filter2) => {
-    return isEqual(omit(filter1, "cancel"), omit(filter2, "cancel"));
+    return isEqual(omit(filter1, 'cancel'), omit(filter2, 'cancel'));
   };
 
   const handleFilterClick = (filter) => () => {
     toggleShow();
     if (isEmpty(filters.filter((fil) => compareFilters(fil, filter)))) {
       setFilters([...filters, filter]);
-      dispatch(
-        updateFilteredDevicesData(multiFilter(allDevices, filter.condition))
-      );
+      dispatch(updateFilteredDevicesData(multiFilter(allDevices, filter.condition)));
       dispatch(
         updateActiveFilters({
           ...activeFilters,
           main: { ...mapObject(activeFilters.main, () => false) },
-          ...filter.condition,
+          ...filter.condition
         })
       );
     }
@@ -120,15 +116,14 @@ const MapFilter = () => {
     const checkIfClickedOutside = (e) => {
       // If the menu is open and the clicked target is not within the menu,
       // then close the menu
-      if (show && ref.current && !ref.current.contains(e.target))
-        setShow(false);
+      if (show && ref.current && !ref.current.contains(e.target)) setShow(false);
     };
 
-    document.addEventListener("mousedown", checkIfClickedOutside);
+    document.addEventListener('mousedown', checkIfClickedOutside);
 
     return () => {
       // Cleanup the event listener
-      document.removeEventListener("mousedown", checkIfClickedOutside);
+      document.removeEventListener('mousedown', checkIfClickedOutside);
     };
   }, [show]);
   return (
@@ -137,10 +132,10 @@ const MapFilter = () => {
         {filters.map((filter, key) => {
           return (
             <div className="map-filter-item" key={key}>
-              <FilterIcon fill="black" stroke="black" /> {filter.label}{" "}
+              <FilterIcon fill="black" stroke="black" /> {filter.label}{' '}
               <Cancel
                 className="grid-align-right"
-                style={{ color: "red" }}
+                style={{ color: 'red' }}
                 onClick={filter.cancel}
               />
             </div>
@@ -148,7 +143,7 @@ const MapFilter = () => {
         })}
       </div>
       <label className="dropup" ref={ref}>
-        <ul className={`du-menu ${(!show && "du-input") || ""}`}>
+        <ul className={`du-menu ${(!show && 'du-input') || ''}`}>
           {defaultFilters.map((filter, key) => (
             <li key={key} onClick={handleFilterClick(filter)}>
               {filter.label}
@@ -165,11 +160,7 @@ const MapFilter = () => {
           {/*  className="map-filter-searchTerm"*/}
           {/*  placeholder="Add a filter"*/}
           {/*/>*/}
-          <button
-            type="submit"
-            className="map-filter-searchButton"
-            onClick={toggleShow}
-          >
+          <button type="submit" className="map-filter-searchButton" onClick={toggleShow}>
             <FilterIcon />
           </button>
         </div>
