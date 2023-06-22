@@ -119,19 +119,20 @@ const EventsPage = () => {
                     <span>There are currently no events</span>
                   </div>
                 ) : null}
-              </div>
-              {(upcomingEvents.length > numEventsToShow && selectedNavTab === 'upcoming events') ||
-              (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
-                <div className="see-more">
-                  <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
-                </div>
-              ) : null}
+                {(upcomingEvents.length > numEventsToShow &&
+                  selectedNavTab === 'upcoming events') ||
+                (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
+                  <div className="see-more">
+                    <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
+                  </div>
+                ) : null}
 
-              {numEventsToShow > 9 && (
-                <div className="see-less">
-                  <button onClick={() => handleSeeLess()}>Less</button>
-                </div>
-              )}
+                {numEventsToShow > 9 && (
+                  <div className="see-less">
+                    <button onClick={() => handleSeeLess()}>Less</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Page>
