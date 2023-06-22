@@ -271,6 +271,29 @@ const CandidatesTable = (props) => {
             field: 'description'
           },
           {
+            title: 'Status',
+            render: (candidate) => {
+              const statusColor = {
+                pending: 'orange',
+                approved: 'green',
+                rejected: 'red'
+              };
+              return (
+                <span
+                  style={{
+                    padding: '5px',
+                    border: `1px solid ${statusColor[candidate.status]}`,
+                    color: `${statusColor[candidate.status]}`,
+                    fontWeight: 'bold',
+                    borderRadius: '5px'
+                  }}
+                >
+                  {candidate.status}
+                </span>
+              );
+            }
+          },
+          {
             title: 'Organization',
             field: 'long_organization'
           },
