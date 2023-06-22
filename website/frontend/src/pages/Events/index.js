@@ -108,7 +108,6 @@ const EventsPage = () => {
                         />
                       ))}
                 </div>
-                {/* this is to show message incase there are no upcoming or past events */}
                 {(upcomingEvents.length === 0 && selectedNavTab === 'upcoming events') ||
                 (pastEvents.length === 0 && selectedNavTab === 'past events') ? (
                   <div className="no-events">
@@ -116,12 +115,11 @@ const EventsPage = () => {
                   </div>
                 ) : null}
               </div>
-              {/* this is to show more or less button */}
               {(upcomingEvents.length > 3 && selectedNavTab === 'upcoming events') ||
               (pastEvents.length > 3 && selectedNavTab === 'past events') ? (
                 <div className="see-more">
                   <button onClick={() => setShowMore(!showMore)}>
-                    {showMore ? 'Less' : 'More'}
+                    {showMore ? 'See Less' : 'See More'}
                   </button>
                 </div>
               ) : null}
