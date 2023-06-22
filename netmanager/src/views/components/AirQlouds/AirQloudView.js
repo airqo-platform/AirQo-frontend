@@ -241,39 +241,44 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        setAirQloudUptimeSummaryReport(resData);
-        setLoading(false);
-        setUptimeStartDate(null);
-        setUptimeEndDate(null);
-        setDataSummaryReady(true);
-        dispatch(
-          updateMainAlert({
-            message: 'AirQloud Data Summary Report Generated ',
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        if (err.response.data.status === 'success') {
+
+        if (resData && resData.length > 0) {
+          setAirQloudDataSummaryReport(resData);
+          setLoading(false);
+          setStartDate(null);
+          setEndDate(null);
+          setDataSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message:
-                'Uh-oh! No data summary report generated for the selected time period. no data',
+              message: 'AirQloud Data Summary Report Generated ',
               show: true,
               severity: 'success'
             })
           );
         } else {
+          setLoading(false);
+          setStartDate(null);
+          setEndDate(null);
           dispatch(
             updateMainAlert({
-              message: err.response.data.message,
+              message:
+                'Uh-oh! No data summary report generated for the selected time period. No data!, select alternative time period.',
               show: true,
               severity: 'error'
             })
           );
         }
-
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message:
+              err.message +
+              'Uh-oh! No data summary report generated for the selected time period. No data',
+            show: true,
+            severity: 'error'
+          })
+        );
         setLoading(false);
         setStartDate(null);
         setEndDate(null);
@@ -285,37 +290,44 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        setAirQloudUptimeSummaryReport(resData);
-        setLoading(false);
-        setStartDate(null);
-        setEndDate(null);
-        setUptimeSummaryReady(true);
-        dispatch(
-          updateMainAlert({
-            message: 'AirQloud Uptime Report Generated ',
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        if (err.response.data.status === 'success') {
+        if (resData && resData.length > 0) {
+          setAirQloudUptimeSummaryReport(resData);
+          setLoading(false);
+          setUptimeEndDate(null);
+          setUptimeEndDate(null);
+          setUptimeSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message: 'Uh-oh! No uptime report generated for the selected time period. no data',
+              message: 'AirQloud Uptime Report Generated ',
               show: true,
               severity: 'success'
             })
           );
         } else {
+          setLoading(false);
+          setUptimeEndDate(null);
+          setUptimeEndDate(null);
           dispatch(
             updateMainAlert({
-              message: err.response.data.message,
+              message:
+                'Uh-oh! No uptime report generated for the selected time period. No data, please select alternative time period',
               show: true,
               severity: 'error'
             })
           );
         }
+      })
+      .catch((err) => {
+        console.log(err);
+        dispatch(
+          updateMainAlert({
+            message:
+              err.message +
+              'Uh-oh! No uptime report generated for the selected time period. no data',
+            show: true,
+            severity: 'error'
+          })
+        );
 
         setLoading(false);
         setUptimeStartDate(null);
