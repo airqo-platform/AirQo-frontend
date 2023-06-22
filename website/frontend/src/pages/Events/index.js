@@ -39,6 +39,12 @@ const EventsPage = () => {
   // hook to handle see more/less button
   const [numEventsToShow, setNumEventsToShow] = useState(9);
 
+  // for handling see less button
+  const handleSeeLess = () => {
+    setNumEventsToShow(9);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     if (isEmpty(eventsApiData)) {
       dispatch(getAllEvents());
@@ -108,8 +114,7 @@ const EventsPage = () => {
                         />
                       ))}
                 </div>
-                {(upcomingEvents.length === 0 && selectedNavTab === 'upcoming events') ||
-                (pastEvents.length === 0 && selectedNavTab === 'past events') ? (
+                {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
                   <div className="no-events">
                     <span>There are currently no events</span>
                   </div>
@@ -124,7 +129,7 @@ const EventsPage = () => {
 
               {numEventsToShow > 9 && (
                 <div className="see-less">
-                  <button onClick={() => setNumEventsToShow(9)}>Less</button>
+                  <button onClick={() => handleSeeLess()}>Less</button>
                 </div>
               )}
             </div>

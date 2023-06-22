@@ -453,6 +453,11 @@
         cursor: pointer;
       }
     }
+    &.see-less {
+      button {
+        color: red;
+      }
+    }
   }
 }
 @media (max-width: 980px) {
