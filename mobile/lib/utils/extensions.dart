@@ -40,6 +40,37 @@ extension InsightListExt on List<Insight> {
   }
 }
 
+extension AddressComponentListExt on List<AddressComponent> {
+  String getName() {
+    AddressComponent addressComponent = firstWhere(
+      (element) => element.types.contains("route"),
+      orElse: () => firstWhere(
+        (element) => element.types.contains("sublocality_level_1"),
+        orElse: () => firstWhere(
+          (element) => element.types.contains("sublocality"),
+          orElse: () => firstWhere(
+            (element) => element.types.contains("locality"),
+          ),
+        ),
+      ),
+    );
+    return addressComponent.shortName;
+  }
+
+  String getLocation() {
+    AddressComponent locationComponent = firstWhere(
+      (element) => element.types.contains("administrative_area_level_2"),
+      orElse: () => firstWhere(
+        (element) => element.types.contains("administrative_area_level_1"),
+      ),
+    );
+    AddressComponent countryComponent = firstWhere(
+      (element) => element.types.contains("country"),
+    );
+    return "${locationComponent.shortName}, ${countryComponent.longName}";
+  }
+}
+
 extension FavouritePlaceListExt on List<FavouritePlace> {
   void sortByAirQuality() {
     sort((x, y) {
