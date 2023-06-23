@@ -42,25 +42,45 @@ class HealthTipContainer extends StatelessWidget {
           Radius.circular(16.0),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
+                child: Row(
+                  children: [
+                    Container(
             constraints: const BoxConstraints(
               maxWidth: 83,
               maxHeight: 112,
               minWidth: 83,
               minHeight: 112,
             ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  healthTip.image,
+            child: CachedNetworkImage(
+              imageUrl: healthTip.image,
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: imageProvider,
+                  ),
+                ),
+              ),
+              placeholder: (context, url) => const ContainerLoadingAnimation(
+                radius: 8,
+                height: 48,
+              ),
+              errorWidget: (context, url, error) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: Colors.grey, 
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.error,
+                    color: Colors.white, 
+                  ),
                 ),
               ),
             ),
           ),
+
           const SizedBox(
             width: 12,
           ),
