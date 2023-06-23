@@ -243,8 +243,7 @@ const ExportData = (props) => {
         hidden={value !== index}
         id={`data-export-tabpanel-${index}`}
         aria-labelledby={`data-export-tab-${index}`}
-        {...other}
-      >
+        {...other}>
         {value === index && <div sx={{ p: 3 }}>{children}</div>}
       </div>
     );
@@ -590,6 +589,52 @@ const ExportData = (props) => {
       });
   };
 
+  // Small tutorial for new users
+  const [showTutorial, setShowTutorial] = useState(
+    localStorage.getItem('hasViewedTutorial') !== 'true'
+  );
+  const [tutorialPosition, setTutorialPosition] = useState({ top: 0, left: 0 });
+  const [arrowDirection, setArrowDirection] = useState('down');
+  const textFieldRef = React.useRef(null);
+
+  useEffect(() => {
+    // to help remove and test the tutorial again
+    // localStorage.removeItem('hasViewedTutorial');
+
+    const handleResize = () => {
+      if (textFieldRef.current) {
+        const rect = textFieldRef.current.getBoundingClientRect();
+        // setting the responsive position of the tutorial box and the arrow when the screen size changes
+        if (window.innerWidth < 996) {
+          setTutorialPosition({
+            top: rect.top - textFieldRef.current.offsetHeight - 110,
+            left: rect.left + textFieldRef.current.offsetWidth / 2 - 100
+          });
+          setArrowDirection('down');
+        } else {
+          setTutorialPosition({
+            top: rect.top - 35,
+            left: rect.left + textFieldRef.current.offsetWidth + 24
+          });
+          setArrowDirection('right');
+        }
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // for closing the  tutorial
+  const handleDismissTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('hasViewedTutorial', 'true');
+  };
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
@@ -599,8 +644,7 @@ const ExportData = (props) => {
           paddingBottom={'12px'}
           color={'grey.700'}
           fontSize={'14px'}
-          fontWeight={300}
-        >
+          fontWeight={300}>
           Customize the data you want to download. We recommend scheduling your downloads for bulky
           data/time periods greater than a month to avoid timeouts.
         </Box>
@@ -610,8 +654,7 @@ const ExportData = (props) => {
             <Card
               {...rest}
               className={clsx(classes.root, className)}
-              style={{ overflow: 'visible' }}
-            >
+              style={{ overflow: 'visible' }}>
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -622,8 +665,7 @@ const ExportData = (props) => {
                 classes={{
                   root: classes.tabs, // Apply custom styles to the root element
                   indicator: classes.indicator // Apply custom styles to the indicator element
-                }}
-              >
+                }}>
                 <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
                 <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
@@ -634,18 +676,110 @@ const ExportData = (props) => {
                 <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
-                      <Grid item md={6} xs={12}>
-                        <TextField
-                          label="Start Date"
-                          className="reactSelect"
-                          fullWidth
-                          variant="outlined"
-                          value={startDate}
-                          InputLabelProps={{ shrink: true }}
-                          type="date"
-                          onChange={(event) => setStartDate(event.target.value)}
-                        />
-                      </Grid>
+                      <>
+                        {showTutorial && (
+                          <>
+                            {/* this is the overlay */}
+                            <div
+                              style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                zIndex: 1
+                              }}
+                            />
+                            {/* this is the tutorial box */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: tutorialPosition.top,
+                                left: tutorialPosition.left,
+                                backgroundColor: '#fff',
+                                padding: '20px',
+                                width: '280px',
+                                zIndex: 2
+                              }}>
+                              {/* the arrows on the box */}
+                              {arrowDirection === 'right' && (
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '-15px',
+                                    width: 0,
+                                    height: 0,
+                                    borderTop: '10px solid transparent',
+                                    borderBottom: '10px solid transparent',
+                                    borderRight: '10px solid #fff'
+                                  }}
+                                />
+                              )}
+                              {arrowDirection === 'down' && (
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-15px',
+                                    left: '50%',
+                                    width: 0,
+                                    height: 0,
+                                    borderLeft: '10px solid transparent',
+                                    borderRight: '10px solid transparent',
+                                    borderTop: '10px solid #fff'
+                                  }}
+                                />
+                              )}
+                              <p
+                                style={{
+                                  fontSize: '16px',
+                                  fontWeight: 500
+                                }}>
+                                Date text Field
+                              </p>
+                              <p>To select a date, click on the calendar icon and choose a date.</p>
+                              <button
+                                onClick={handleDismissTutorial}
+                                style={{
+                                  backgroundColor: '#fff',
+                                  border: 'none',
+                                  color: '#007bff',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: 500,
+                                  padding: '0px',
+                                  textDecoration: 'underline'
+                                }}>
+                                Got it
+                              </button>
+                            </div>
+                          </>
+                        )}
+                        {/* the text field */}
+                        <Grid
+                          item
+                          md={6}
+                          xs={12}
+                          style={{
+                            position: 'relative',
+                            zIndex: showTutorial ? 3 : 1,
+                            borderRadius: showTutorial ? '4px' : '0px',
+                            backgroundColor: showTutorial ? '#fff' : 'transparent'
+                          }}>
+                          <TextField
+                            label="Start Date"
+                            className="reactSelect"
+                            fullWidth
+                            variant="outlined"
+                            value={startDate}
+                            InputLabelProps={{ shrink: true }}
+                            type="date"
+                            onChange={(event) => setStartDate(event.target.value)}
+                            inputRef={textFieldRef}
+                          />
+                        </Grid>
+                      </>
 
                       <Grid item md={6} xs={12}>
                         <TextField
@@ -750,8 +884,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('sites')}
-                      >
+                        disabled={disableDownloadBtn('sites')}>
                         {' '}
                         Download Data
                       </Button>
@@ -759,8 +892,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('sites')}
-                      >
+                        disabled={disableDownloadBtn('sites')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -890,8 +1022,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('devices')}
-                      >
+                        disabled={disableDownloadBtn('devices')}>
                         {' '}
                         Download Data
                       </Button>
@@ -899,8 +1030,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('devices')}
-                      >
+                        disabled={disableDownloadBtn('devices')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1029,8 +1159,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('airqlouds')}
-                      >
+                        disabled={disableDownloadBtn('airqlouds')}>
                         {' '}
                         Download Data
                       </Button>
@@ -1038,8 +1167,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('airqlouds')}
-                      >
+                        disabled={disableDownloadBtn('airqlouds')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1168,8 +1296,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('regions')}
-                      >
+                        disabled={disableDownloadBtn('regions')}>
                         {' '}
                         Download Data
                       </Button>
@@ -1177,8 +1304,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('regions')}
-                      >
+                        disabled={disableDownloadBtn('regions')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1205,8 +1331,7 @@ const ExportData = (props) => {
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={handleClickSnackbar}
-              >
+                onClick={handleClickSnackbar}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </React.Fragment>
