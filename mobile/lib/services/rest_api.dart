@@ -332,7 +332,7 @@ class AirqoApiClient {
 
       final retryClient = RetryClient(http.Client(),
     retries: 3,
-    when: (response) => response.statusCode >= 500,
+    when: (response) => response.statusCode >= 500 && response.statusCode<= 599,
   );
 
       final response = await retryClient
@@ -394,7 +394,7 @@ class SearchApiClient {
 
 final retryClient = RetryClient(http.Client(),
     retries: 3,
-    when: (response) => response.statusCode >= 500,
+    when: (response) => response.statusCode >= 500 && response.statusCode<= 599,
   );
 
   Future<dynamic> _getRequest({

@@ -452,15 +452,15 @@ class CloudMessaging {
 
 class CustomAuth {
   static Future<bool> guestSignIn() async {
-    UserCredential userCredential;
+    //UserCredential userCredential;
     User? user = getUser();
     if (user != null && user.isAnonymous) {
       return true;
     }
+    return true;
+    //userCredential = await FirebaseAuth.instance.signInAnonymously();
 
-    userCredential = await FirebaseAuth.instance.signInAnonymously();
-
-    return userCredential.user != null;
+    //return userCredential.user != null;
   }
 
   static Future<bool> signOut() async {
