@@ -95,18 +95,15 @@ class NearbyLocationBloc
         latitude: newLocation.latitude,
         longitude: newLocation.longitude,
       );
-
-      if (address != null) {
-        newLocation = newLocation.copyWith(
-          name: address.name,
-          location: address.location,
-        );
-      } else {
-        newLocation = newLocation.copyWith(
-          name: nearestSite.name,
-          location: nearestSite.location,
-        );
-      }
+      newLocation = address == null
+          ? newLocation.copyWith(
+              name: nearestSite.name,
+              location: nearestSite.location,
+            )
+          : newLocation.copyWith(
+              name: address.name,
+              location: address.location,
+            );
     }
 
     List<AirQualityReading> surroundingSites = [];

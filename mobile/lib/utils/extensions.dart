@@ -54,6 +54,7 @@ extension AddressComponentListExt on List<AddressComponent> {
         ),
       ),
     );
+
     return addressComponent.shortName;
   }
 
@@ -67,6 +68,7 @@ extension AddressComponentListExt on List<AddressComponent> {
     AddressComponent countryComponent = firstWhere(
       (element) => element.types.contains("country"),
     );
+
     return "${locationComponent.shortName}, ${countryComponent.longName}";
   }
 }

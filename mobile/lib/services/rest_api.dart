@@ -489,7 +489,8 @@ class SearchApiClient {
       );
 
       return Address.fromGeocodingAPI(
-          responseBody['results'][0] as Map<String, dynamic>);
+        responseBody['results'][0] as Map<String, dynamic>,
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,
