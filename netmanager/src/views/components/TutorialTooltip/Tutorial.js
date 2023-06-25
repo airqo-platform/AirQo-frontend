@@ -18,7 +18,7 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
 
   useEffect(() => {
     // to help clear the local storage for testing
-    localStorage.removeItem('hasViewedTutorial');
+    // localStorage.removeItem('hasViewedTutorial');
 
     const handleResize = () => {
       if (fieldRefs[FieldRefIndex].current) {
