@@ -131,14 +131,14 @@ const CustomisableChart = (props) => {
     {
       value: 'Last 90 days',
       label: 'Last 90 days',
-      unitValue: 90,
+      unitValue: 30,
       unit: 'day',
       endDate: null
     },
     {
       value: 'Custom range',
       label: 'Custom range',
-      unitValue: 30,
+      unitValue: 7,
       unit: 'day',
       endDate: null
     }

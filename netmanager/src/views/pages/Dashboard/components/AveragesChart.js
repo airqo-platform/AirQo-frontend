@@ -44,6 +44,10 @@ const AveragesChart = ({ classes }) => {
   const filter = (node) => node.id !== iconButton;
   const endDate = moment(new Date()).toISOString();
   const startDate = moment(endDate).subtract(28, "days").toISOString();
+  const [displayedLocations, setDisplayedLocations] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -212,14 +216,14 @@ const AveragesChart = ({ classes }) => {
   };
 
   const locationsGraphData = {
-    labels: averages.labels,
+    labels: displayedLocations.map(([location]) => location),
     datasets: [
       {
         label: customisedLabel,
-        data: averages.average_values,
-        fill: false, // Don't fill area under the line
-        borderColor: palette.primary.main, // Line color
-        backgroundColor: averages.background_colors, //palette.primary.main,
+        data: displayedLocations.map(([_, value]) => value),
+        fill: false,
+        borderColor: palette.primary.main,
+        backgroundColor: displayedLocations.map(([_, __, color]) => color),
       },
     ],
   };
@@ -340,14 +344,23 @@ const AveragesChart = ({ classes }) => {
           return 0;
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
+        setAllLocations(zippedArr); // Save all locations data
+  
+        if (!modalOpen) {
+          // Only set displayed locations if modal is not open
+          setDisplayedLocations(zippedArr.slice(0, 5)); // Display only 5 locations initially
+        }
+  
         setAverages({ labels, average_values, background_colors });
         setLoading(false);
       })
       .catch((e) => {
         setLoading(false);
-        console.log(e)});
+        console.log(e);
+      });
   };
-
+  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPollutant(tempPollutant);
@@ -366,7 +379,12 @@ const AveragesChart = ({ classes }) => {
 
   useEffect(() => {
     fetchAndSetAverages(pollutant);
-  }, [airqloud]);
+  }, [airqloud, modalOpen]);
+  
+  const handleSeeMoreClick = () => {
+    setDisplayedLocations(allLocations); // Display all locations
+    setModalOpen(true); // Open the modal
+  };
 
   return (
     <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
@@ -415,9 +433,15 @@ const AveragesChart = ({ classes }) => {
               </div>
             ):(
             <Bar data={locationsGraphData} options={options_main} />
+            
             )}
           </div>
+          
         </CardContent>
+        <Button variant="outlined" onClick={handleSeeMoreClick}>
+          See More
+        </Button>
+
       </Card>
       <Dialog
         // classes={{ paper: classes.dialogPaper }}
@@ -460,7 +484,30 @@ const AveragesChart = ({ classes }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="locations-dialog-title"
+      >
+        <DialogTitle id="locations-dialog-title">All Locations</DialogTitle>
+        <DialogContent>
+          {allLocations.map(([location, value, color]) => (
+            <div key={location}>
+              <span>{location}</span>
+              <span>{value}</span>
+              <span>{color}</span>
+            </div>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Grid>
+    
   );
 };
 
