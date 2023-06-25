@@ -40,6 +40,9 @@ import { scheduleExportDataApi } from '../../apis/analytics';
 import ExportDataBreadCrumb from './components/BreadCrumb';
 import CloseIcon from '@material-ui/icons/Close';
 
+// tutorial tooltip
+import Tutorial from 'views/components/TutorialTooltip/Tutorial';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4)
@@ -589,54 +592,39 @@ const ExportData = (props) => {
       });
   };
 
-  // Small tutorial for new users
-  const [showTutorial, setShowTutorial] = useState(
-    localStorage.getItem('hasViewedTutorial') !== 'true'
-  );
-  const [tutorialPosition, setTutorialPosition] = useState({ top: 0, left: 0 });
-  const [arrowDirection, setArrowDirection] = useState('down');
-  const textFieldRef = React.useRef(null);
+  // tooltip
+  const textFieldRef1 = React.useRef(null);
+  const textFieldRef2 = React.useRef(null);
 
-  useEffect(() => {
-    // to help remove and test the tutorial again
-    // localStorage.removeItem('hasViewedTutorial');
+  // this is an array of the title and description for the features to be explained
+  const steps = [
+    {
+      title: 'Date Field',
+      description:
+        "This text field enables you to select a date for your data. You can easily click on the calendar icon and choose a date from the pop-up calendar. It's simple and user-friendly."
+    },
+    {
+      title: 'Export Options',
+      description:
+        "You can download your data using the schedule option. This option is especially useful if your data covers a large time span (more than one month's worth). You can avoid delays and get your data ready for download when they are processed."
+    }
+  ];
 
-    const handleResize = () => {
-      if (textFieldRef.current) {
-        const rect = textFieldRef.current.getBoundingClientRect();
-        // setting the responsive position of the tutorial box and the arrow when the screen size changes
-        if (window.innerWidth < 996) {
-          setTutorialPosition({
-            top: rect.top - textFieldRef.current.offsetHeight - 110,
-            left: rect.left + textFieldRef.current.offsetWidth / 2 - 100
-          });
-          setArrowDirection('down');
-        } else {
-          setTutorialPosition({
-            top: rect.top - 35,
-            left: rect.left + textFieldRef.current.offsetWidth + 24
-          });
-          setArrowDirection('right');
-        }
-      }
-    };
+  // Adding this to track the index of the text field that is currently focused
+  const [FieldRefIndex, setFieldRefIndex] = useState(0);
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  // for closing the  tutorial
-  const handleDismissTutorial = () => {
-    setShowTutorial(false);
-    localStorage.setItem('hasViewedTutorial', 'true');
-  };
+  console.log('FieldRefIndex', FieldRefIndex);
 
   return (
     <ErrorBoundary>
+      {/* using the tutorial component */}
+      <Tutorial
+        fieldRefs={[textFieldRef1, textFieldRef2]}
+        steps={steps}
+        FieldRefIndex={FieldRefIndex}
+        setFieldRefIndex={setFieldRefIndex}
+      />
+
       <div className={classes.root}>
         <ExportDataBreadCrumb title="Export Options" paddingBottom={'5px'} />
         <Box
@@ -654,7 +642,9 @@ const ExportData = (props) => {
             <Card
               {...rest}
               className={clsx(classes.root, className)}
-              style={{ overflow: 'visible' }}>
+              style={{
+                overflow: 'visible'
+              }}>
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -676,111 +666,27 @@ const ExportData = (props) => {
                 <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
-                      <>
-                        {showTutorial && (
-                          <>
-                            {/* this is the overlay */}
-                            <div
-                              style={{
-                                position: 'fixed',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                zIndex: 1
-                              }}
-                            />
-                            {/* this is the tutorial box */}
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: tutorialPosition.top,
-                                left: tutorialPosition.left,
-                                backgroundColor: '#fff',
-                                padding: '20px',
-                                width: '280px',
-                                zIndex: 2
-                              }}>
-                              {/* the arrows on the box */}
-                              {arrowDirection === 'right' && (
-                                <div
-                                  style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '-15px',
-                                    width: 0,
-                                    height: 0,
-                                    borderTop: '10px solid transparent',
-                                    borderBottom: '10px solid transparent',
-                                    borderRight: '10px solid #fff'
-                                  }}
-                                />
-                              )}
-                              {arrowDirection === 'down' && (
-                                <div
-                                  style={{
-                                    position: 'absolute',
-                                    bottom: '-15px',
-                                    left: '50%',
-                                    width: 0,
-                                    height: 0,
-                                    borderLeft: '10px solid transparent',
-                                    borderRight: '10px solid transparent',
-                                    borderTop: '10px solid #fff'
-                                  }}
-                                />
-                              )}
-                              <p
-                                style={{
-                                  fontSize: '16px',
-                                  fontWeight: 500
-                                }}>
-                                Date text Field
-                              </p>
-                              <p>To select a date, click on the calendar icon and choose a date.</p>
-                              <button
-                                onClick={handleDismissTutorial}
-                                style={{
-                                  backgroundColor: '#fff',
-                                  border: 'none',
-                                  color: '#007bff',
-                                  cursor: 'pointer',
-                                  fontSize: '14px',
-                                  fontWeight: 500,
-                                  padding: '0px',
-                                  textDecoration: 'underline'
-                                }}>
-                                Got it
-                              </button>
-                            </div>
-                          </>
-                        )}
-                        {/* the text field */}
-                        <Grid
-                          item
-                          md={6}
-                          xs={12}
-                          style={{
-                            position: 'relative',
-                            zIndex: showTutorial ? 3 : 1,
-                            borderRadius: showTutorial ? '4px' : '0px',
-                            backgroundColor: showTutorial ? '#fff' : 'transparent'
-                          }}>
-                          <TextField
-                            label="Start Date"
-                            className="reactSelect"
-                            fullWidth
-                            variant="outlined"
-                            value={startDate}
-                            InputLabelProps={{ shrink: true }}
-                            type="date"
-                            onChange={(event) => setStartDate(event.target.value)}
-                            inputRef={textFieldRef}
-                          />
-                        </Grid>
-                      </>
-
+                      <Grid
+                        item
+                        md={6}
+                        xs={12}
+                        style={{
+                          backgroundColor: FieldRefIndex === 0 ? '#ffffff' : null,
+                          zIndex: FieldRefIndex === 0 ? 3 : 1,
+                          borderRadius: 4
+                        }}>
+                        <TextField
+                          label="Start Date"
+                          className="reactSelect"
+                          fullWidth
+                          variant="outlined"
+                          value={startDate}
+                          InputLabelProps={{ shrink: true }}
+                          type="date"
+                          onChange={(event) => setStartDate(event.target.value)}
+                          inputRef={textFieldRef1}
+                        />
+                      </Grid>
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="End Date"
@@ -879,23 +785,32 @@ const ExportData = (props) => {
                   <Divider />
                   <CardActions>
                     <Box display="flex" justifyContent="center" width="100%">
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        type="submit"
-                        style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('sites')}>
-                        {' '}
-                        Download Data
-                      </Button>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('sites')}>
-                        {' '}
-                        Schedule Download
-                      </Button>
+                      <div
+                        ref={textFieldRef2}
+                        style={{
+                          backgroundColor: FieldRefIndex === 1 ? '#ffffff' : null,
+                          zIndex: FieldRefIndex === 1 ? 3 : 1,
+                          padding: '4px',
+                          borderRadius: 4
+                        }}>
+                        <Button
+                          color="primary"
+                          variant="outlined"
+                          type="submit"
+                          style={{ marginRight: '15px' }}
+                          disabled={disableDownloadBtn('sites')}>
+                          {' '}
+                          Download Data
+                        </Button>
+                        <Button
+                          color="primary"
+                          variant="outlined"
+                          onClick={scheduleExportData}
+                          disabled={disableDownloadBtn('sites')}>
+                          {' '}
+                          Schedule Download
+                        </Button>
+                      </div>
                     </Box>
                   </CardActions>
                 </form>
