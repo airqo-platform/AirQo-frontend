@@ -63,14 +63,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [errorReport, setErrorReport] = useState([]);
   const [openErrorReport, setOpenErrorReport] = useState(false);
 
-  const openErrorModal = () => {
-    setErrorModalOpen(true);
-  };
-
-  const closeErrorModal = () => {
-    setErrorModalOpen(false);
-  };
-
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
 
@@ -163,10 +155,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           batchId: collocationInput.batchId,
         },
       });
-    }
-
-    if (isSuccess && isEmpty(collocationBatchResultsData)) {
-      setErrorModalOpen(true);
     }
   }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
