@@ -5,23 +5,13 @@ import {
   removeDevices,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
-import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
-import { isEmpty } from 'underscore';
-
-// Dropdown menu
 import Dropdown from '../../../Dropdowns/Dropdown';
-
-// Modal notification
 import Modal from '../../../Modal/Modal';
-
-// axios
 import axios from 'axios';
-
-// urls endpoint
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 
 const STATUS_COLOR_CODES = {
@@ -32,26 +22,6 @@ const STATUS_COLOR_CODES = {
   overdue: 'bg-red-200',
   re_run_required: 'bg-red-200',
   error: 'bg-red-200',
-};
-
-const ErrorModal = ({ errorMessage, onClose }) => {
-  return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center'>
-      <div className='fixed inset-0 bg-gray-800 opacity-75'></div>
-      <div className='bg-white w-1/2 p-6 rounded-lg'>
-        <h2 className='text-xl font-bold mb-4'>Error Details</h2>
-        <p className='mb-4'>{errorMessage}</p>
-        <div className='flex justify-end'>
-          <button
-            onClick={onClose}
-            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
@@ -191,10 +161,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   return (
     <div>
       {isError && (
-        <Modal
-          display={() => setErrorModalOpen(true)}
-          description='Error Occurred. Click for details.'
-          closeModal={() => setErrorModalOpen(false)}
+        <Toast
+          type={'error'}
+          timeout={5000}
+          message={'Uh-oh! Server error. Please try again later.'}
         />
       )}
       <table
