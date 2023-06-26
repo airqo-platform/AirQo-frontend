@@ -381,7 +381,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
   const [showSensors, setShowSensors] = useState(true);
-  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showHeatMap, setShowHeatMap] = useState(true);
   const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: localStorage.pollutant === 'pm2_5',
@@ -634,6 +634,8 @@ const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
+
+  console.log("Heatmap:",heatMapData)
 
   useEffect(() => {
     if (isEmpty(heatMapData.features)) {
