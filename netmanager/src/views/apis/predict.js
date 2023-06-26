@@ -13,7 +13,8 @@ const API_TOKEN = process.env.REACT_APP_API_TOKEN
 export const heatmapPredictApi = async () => {
   return await axios.get(GET_HEATMAP_DATA, {
     params:{
-      token: API_TOKEN
+      token: API_TOKEN,
+      limit: 10000
     }
   }).then((response) => response.data);
 };
