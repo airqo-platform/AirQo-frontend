@@ -240,8 +240,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
                         onClick={() => {
-                          setErrorReport(device.errors);
-                          setOpenErrorReport(true);
+                          if (device.errors.length > 0) {
+                            setErrorReport(device.errors);
+                            setOpenErrorReport(true);
+                          } else {
+                            setErrorReport(['No error report found!']);
+                            setOpenErrorReport(true);
+                          }
                         }}
                         className={`${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
