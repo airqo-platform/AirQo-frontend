@@ -155,7 +155,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   };
 
   useEffect(() => {
-    if (isSuccess && !isEmpty(collocationBatchResultsData)) {
+    if (isSuccess) {
       router.push({
         pathname: `/collocation/reports/${collocationInput.devices}`,
         query: {
@@ -163,6 +163,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           batchId: collocationInput.batchId,
         },
       });
+    }
+
+    if (isSuccess && isEmpty(collocationBatchResultsData)) {
+      setErrorModalOpen(true);
     }
   }, [isSuccess, collocationBatchResultsData, collocationInput]);
 
@@ -199,14 +203,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   return (
     <div>
       {isError && (
-        <button onClick={openErrorModal} className='text-red-500 underline hover:text-red-700'>
-          Error Occurred. Click for details.
-        </button>
-      )}
-      {errorModalOpen && (
-        <ErrorModal
-          errorMessage='Uh-oh! Not enough data to generate a report'
-          onClose={closeErrorModal}
+        <Modal
+          display={() => setErrorModalOpen(true)}
+          description='Error Occurred. Click for details.'
+          closeModal={() => setErrorModalOpen(false)}
         />
       )}
       <table
@@ -252,10 +252,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                 return (
                   <tr
                     className={`border-b border-b-slate-300 ${
-                      clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
-                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${
-                      focusedRowIndex === index ? 'bg-gray-200' : ''
-                    }`}
+                      hoveredRowIndex === index ? 'bg-gray-100' : ''
+                    } ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
                     key={index}
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
