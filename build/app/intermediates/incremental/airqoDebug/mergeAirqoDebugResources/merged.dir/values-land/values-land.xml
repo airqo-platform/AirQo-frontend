@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_action_bar_default_height_material">48dp</dimen>
+    <dimen name="abc_text_size_subtitle_material_toolbar">12dp</dimen>
+    <dimen name="abc_text_size_title_material_toolbar">14dp</dimen>
+    <item format="integer" name="bannerContentWeight" type="dimen">3</item>
+    <item format="integer" name="bannerWeightSum" type="dimen">5</item>
+    <item format="float" name="dialogHeightPct" type="dimen">0.80</item>
+    <item format="float" name="dialogWidthPct" type="dimen">0.85</item>
+</resources>

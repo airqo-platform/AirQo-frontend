@@ -1,0 +1,35 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="io.flutter.plugins.firebase.analytics" >
+4
+5    <uses-sdk
+6        android:minSdkVersion="19"
+6-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+7        android:targetSdkVersion="19" />
+7-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+8
+9    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+9-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:4:3-77
+9-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:4:20-74
+10    <uses-permission android:name="android.permission.INTERNET" />
+10-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:5:3-65
+10-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:5:20-62
+11    <uses-permission android:name="android.permission.WAKE_LOCK" />
+11-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:6:3-66
+11-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:6:20-63
+12
+13    <application>
+13-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:8:3-13:17
+14        <service android:name="com.google.firebase.components.ComponentDiscoveryService" >
+14-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:9:5-12:15
+14-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:9:14-85
+15            <meta-data
+15-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:10:7-11:86
+16                android:name="com.google.firebase.components:io.flutter.plugins.firebase.analytics.FlutterFirebaseAppRegistrar"
+16-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:10:18-129
+17                android:value="com.google.firebase.components.ComponentRegistrar" />
+17-->/home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:11:18-83
+18        </service>
+19    </application>
+20
+21</manifest>

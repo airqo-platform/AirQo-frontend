@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">702081712633-09urv3j80hfqu2dvdfbja64rj36f9sbo.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://airqo-250220.firebaseio.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">702081712633</string>
+    <string name="google_api_key" translatable="false">AIzaSyAnndi5DpiTdNiTPoOBHdG7L4XBHBde_lk</string>
+    <string name="google_app_id" translatable="false">1:702081712633:android:f5cff1cf6238701b993d28</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAnndi5DpiTdNiTPoOBHdG7L4XBHBde_lk</string>
+    <string name="google_storage_bucket" translatable="false">airqo-250220.appspot.com</string>
+    <string name="project_id" translatable="false">airqo-250220</string>
+</resources>

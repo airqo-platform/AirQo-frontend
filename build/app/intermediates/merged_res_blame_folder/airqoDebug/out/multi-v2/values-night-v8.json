@@ -1,0 +1,55 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.airqo.app-mergeAirqoDebugResources-44:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "/home/hello/.gradle/caches/transforms-3/6309407fe59757d9588e2ecec1069e93/transformed/appcompat-1.1.0/res/values-night-v8/values-night-v8.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,125,209,293,389,491,593,687",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "120,204,288,384,486,588,682,771"
+                    },
+                    "to": {
+                        "startLines": "12,13,14,15,16,17,18,19",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "545,615,699,783,879,981,1083,1177",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "610,694,778,874,976,1078,1172,1261"
+                    }
+                },
+                {
+                    "source": "/home/hello/AIRQO/AirQo-frontend/mobile/android/app/src/main/res/values-night/styles.xml",
+                    "from": {
+                        "startLines": "3,15",
+                        "startColumns": "4,4",
+                        "startOffsets": "172,874",
+                        "endLines": "8,17",
+                        "endColumns": "12,12",
+                        "endOffsets": "523,1031"
+                    },
+                    "to": {
+                        "startLines": "4,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "143,383",
+                        "endLines": "8,11",
+                        "endColumns": "12,12",
+                        "endOffsets": "378,540"
+                    }
+                },
+                {
+                    "source": "/home/hello/AIRQO/AirQo-frontend/mobile/android/app/src/main/res/values-night/colors.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,98",
+                        "endColumns": "42,44",
+                        "endOffsets": "93,138"
+                    }
+                }
+            ]
+        }
+    ]
+}

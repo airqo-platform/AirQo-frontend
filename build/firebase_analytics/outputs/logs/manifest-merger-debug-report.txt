@@ -1,0 +1,49 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:1:1-14:12
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:1:1-14:12
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:1:1-14:12
+	package
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:2:3-50
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:1:11-69
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:4:3-77
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:4:20-74
+uses-permission#android.permission.INTERNET
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:5:3-65
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:5:20-62
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:6:3-66
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:6:20-63
+application
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:8:3-13:17
+service#com.google.firebase.components.ComponentDiscoveryService
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:9:5-12:15
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:9:14-85
+meta-data#com.google.firebase.components:io.flutter.plugins.firebase.analytics.FlutterFirebaseAppRegistrar
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:10:7-11:86
+	android:value
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:11:18-83
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml:10:18-129
+uses-sdk
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/firebase_analytics-10.4.1/android/src/main/AndroidManifest.xml

@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.airqo.app",
+  "variantName": "airqoDebug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 20037,
+      "versionName": "2.0.21",
+      "outputFile": "app-airqo-debug.apk"
+    }
+  ],
+  "elementType": "File"
+}

@@ -1,0 +1,86 @@
+{
+  "project_info": {
+    "project_number": "394593516776",
+    "project_id": "airqo-dev",
+    "storage_bucket": "airqo-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394593516776:android:89d626c5cd0c10fa9e1d5d",
+        "android_client_info": {
+          "package_name": "com.airqo.app.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "394593516776-1ppfotf8v2ga3usm3r2d3jlct6jvdnla.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.airqo.app.dev",
+            "certificate_hash": "df0a366fbdcf2cf6f5c7ceff79685c8576fe8383"
+          }
+        },
+        {
+          "client_id": "394593516776-7l5c8on1jk0pe8gi9p07j5dvfv5ktqdv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.airqo.app.dev",
+            "certificate_hash": "d3c546849cd67ee8cf6172651bb7332bbf287bee"
+          }
+        },
+        {
+          "client_id": "394593516776-alh9tnrk36t1hpjfirriatukr73rd6ef.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.airqo.app.dev",
+            "certificate_hash": "59dbff94d513928177ff8b227af0a5e49dba42dc"
+          }
+        },
+        {
+          "client_id": "394593516776-ojudjh48iu1fj8kk70ps4kqmkg50tdc1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.airqo.app.dev",
+            "certificate_hash": "0221eb2cc75428327e4c11b04761e8ec75b0b371"
+          }
+        },
+        {
+          "client_id": "394593516776-tfhb4pnif85jb3dqtak19hnh59i6iuq3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.airqo.app.dev",
+            "certificate_hash": "ae6741d915d9df3e7265d876d5cb48f32e13d0ed"
+          }
+        },
+        {
+          "client_id": "394593516776-7j1g3ifj0mqiqghubob0489nn28u3749.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcra-90bskaBWH8i-B_TR9EDeYQO36r_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "394593516776-7j1g3ifj0mqiqghubob0489nn28u3749.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "394593516776-m6mih60aqeh15lg2uf71eosa264tn3b2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.airqo.net.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

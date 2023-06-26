@@ -1,0 +1,88 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="io.flutter.plugins.firebase.messaging" >
+4
+5    <uses-sdk
+6        android:minSdkVersion="19"
+6-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml
+7        android:targetSdkVersion="19" />
+7-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml
+8
+9    <uses-permission android:name="android.permission.INTERNET" />
+9-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:3:3-64
+9-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:3:20-62
+10    <uses-permission android:name="android.permission.WAKE_LOCK" />
+10-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:4:3-65
+10-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:4:20-63
+11    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+11-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:5:3-76
+11-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:5:20-74
+12    <!-- Permissions options for the `notification` group -->
+13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+13-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:7:3-74
+13-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:7:20-72
+14
+15    <application>
+15-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:8:3-36:17
+16        <service
+16-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:9:5-12:33
+17            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService"
+17-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:10:7-64
+18            android:exported="false"
+18-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:12:7-31
+19            android:permission="android.permission.BIND_JOB_SERVICE" />
+19-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:11:7-63
+20        <service
+20-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:13:5-18:15
+21            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
+21-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:13:14-61
+22            android:exported="false" >
+22-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:14:7-31
+23            <intent-filter>
+23-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:15:7-17:23
+24                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+24-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:16:9-69
+24-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:16:17-67
+25            </intent-filter>
+26        </service>
+27
+28        <receiver
+28-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:19:5-26:16
+29            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver"
+29-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:20:7-55
+30            android:exported="true"
+30-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:21:7-30
+31            android:permission="com.google.android.c2dm.permission.SEND" >
+31-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:22:7-67
+32            <intent-filter>
+32-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:23:7-25:23
+33                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+33-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:24:9-73
+33-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:24:17-70
+34            </intent-filter>
+35        </receiver>
+36
+37        <service android:name="com.google.firebase.components.ComponentDiscoveryService" >
+37-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:27:5-30:15
+37-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:27:14-85
+38            <meta-data
+38-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:28:7-29:86
+39                android:name="com.google.firebase.components:io.flutter.plugins.firebase.messaging.FlutterFirebaseAppRegistrar"
+39-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:28:18-129
+40                android:value="com.google.firebase.components.ComponentRegistrar" />
+40-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:29:18-83
+41        </service>
+42
+43        <provider
+43-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:31:5-35:32
+44            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingInitProvider"
+44-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:32:7-59
+45            android:authorities="${applicationId}.flutterfirebasemessaginginitprovider"
+45-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:33:7-82
+46            android:exported="false"
+46-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:34:7-31
+47            android:initOrder="99" /> <!-- Firebase = 100, using 99 to run after Firebase initialises (highest first) -->
+47-->/home/hello/.pub-cache/hosted/pub.dev/firebase_messaging-14.6.1/android/src/main/AndroidManifest.xml:35:7-29
+48    </application>
+49
+50</manifest>

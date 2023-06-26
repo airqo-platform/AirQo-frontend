@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "689446743564",
+    "firebase_url": "https://airqo-f4d46-default-rtdb.firebaseio.com",
+    "project_id": "airqo-f4d46",
+    "storage_bucket": "airqo-f4d46.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:689446743564:android:bffc09dc54fe518ee6c829",
+        "android_client_info": {
+          "package_name": "com.airqo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "689446743564-uiojvbv5egahkcrejplank3flkr357hj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiDoEWbaRbtgGf3_Je9pd8qxOAUbptvx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "689446743564-uiojvbv5egahkcrejplank3flkr357hj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "689446743564-g67enlt3m2ce2hg19o7fiq7v7cvmojo9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.airqo.net"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

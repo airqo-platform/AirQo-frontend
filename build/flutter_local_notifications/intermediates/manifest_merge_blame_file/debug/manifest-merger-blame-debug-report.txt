@@ -1,0 +1,65 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.dexterous.flutterlocalnotifications" >
+4
+5    <uses-sdk
+6        android:minSdkVersion="16"
+6-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+7        android:targetSdkVersion="16" />
+7-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+8
+9    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+9-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:3:5-80
+9-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:3:22-78
+10    <uses-permission android:name="android.permission.VIBRATE" />
+10-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:4:5-66
+10-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:4:22-63
+11    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+11-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:5:5-81
+11-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:5:22-78
+12    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+12-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:6:5-79
+12-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:6:22-76
+13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+13-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:7:5-76
+13-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:7:22-74
+14
+15    <application>
+15-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:8:5-19:19
+16        <receiver
+16-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:9-125
+17            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+17-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:44-122
+18            android:exported="false" />
+18-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:19-43
+19        <receiver
+19-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:9-131
+20            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+20-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:44-128
+21            android:exported="false" />
+21-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:19-43
+22        <receiver
+22-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:9-18:20
+23            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+23-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:44-132
+24            android:exported="false" >
+24-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:19-43
+25            <intent-filter>
+25-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:12:13-17:29
+26                <action android:name="android.intent.action.BOOT_COMPLETED" />
+26-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:13:17-78
+26-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:13:25-76
+27                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+27-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:14:17-83
+27-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:14:25-81
+28                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+28-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:15:17-82
+28-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:15:25-79
+29                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+29-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:16:17-81
+29-->/home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:16:25-79
+30            </intent-filter>
+31        </receiver>
+32    </application>
+33
+34</manifest>

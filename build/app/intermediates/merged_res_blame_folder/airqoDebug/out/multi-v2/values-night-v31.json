@@ -1,0 +1,28 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.airqo.app-mergeAirqoDebugResources-44:/values-night-v31/values-night-v31.xml",
+            "map": [
+                {
+                    "source": "/home/hello/AIRQO/AirQo-frontend/mobile/android/app/src/main/res/values-night-v31/styles.xml",
+                    "from": {
+                        "startLines": "3,13",
+                        "startColumns": "4,4",
+                        "startOffsets": "173,742",
+                        "endLines": "6,15",
+                        "endColumns": "12,12",
+                        "endOffsets": "391,906"
+                    },
+                    "to": {
+                        "startLines": "2,6",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,278",
+                        "endLines": "5,8",
+                        "endColumns": "12,12",
+                        "endOffsets": "273,442"
+                    }
+                }
+            ]
+        }
+    ]
+}

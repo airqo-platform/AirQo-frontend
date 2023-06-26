@@ -1,0 +1,32 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="dev.fluttercommunity.plus.share" >
+4
+5    <uses-sdk
+6        android:minSdkVersion="16"
+6-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml
+7        android:targetSdkVersion="16" />
+7-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml
+8
+9    <application>
+9-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:3:5-13:19
+10        <provider
+10-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:4:7-12:18
+11            android:name="dev.fluttercommunity.plus.share.ShareFileProvider"
+11-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:5:9-73
+12            android:authorities="${applicationId}.flutter.share_provider"
+12-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:6:9-70
+13            android:exported="false"
+13-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:7:9-33
+14            android:grantUriPermissions="true" >
+14-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:8:9-43
+15            <meta-data
+15-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:9:9-11:61
+16                android:name="android.support.FILE_PROVIDER_PATHS"
+16-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:10:11-61
+17                android:resource="@xml/flutter_share_file_paths" />
+17-->/home/hello/.pub-cache/hosted/pub.dev/share_plus-4.5.3/android/src/main/AndroidManifest.xml:11:11-59
+18        </provider>
+19    </application>
+20
+21</manifest>

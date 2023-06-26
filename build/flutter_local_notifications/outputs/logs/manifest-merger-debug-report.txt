@@ -1,0 +1,83 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:1:1-20:12
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:1:1-20:12
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:1:1-20:12
+	package
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:2:3-52
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:1:11-69
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:3:5-80
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:3:22-78
+uses-permission#android.permission.VIBRATE
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:4:5-66
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:4:22-63
+uses-permission#android.permission.USE_FULL_SCREEN_INTENT
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:5:5-81
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:5:22-78
+uses-permission#android.permission.SCHEDULE_EXACT_ALARM
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:6:5-79
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:6:22-76
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:7:5-76
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:7:22-74
+application
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:8:5-19:19
+receiver#com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:9-125
+	android:exported
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:19-43
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:9:44-122
+receiver#com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:9-131
+	android:exported
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:19-43
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:10:44-128
+receiver#com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:9-18:20
+	android:exported
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:19-43
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:11:44-132
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.MY_PACKAGE_REPLACED+action:name:android.intent.action.QUICKBOOT_POWERON+action:name:com.htc.intent.action.QUICKBOOT_POWERON
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:12:13-17:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:13:17-78
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:13:25-76
+action#android.intent.action.MY_PACKAGE_REPLACED
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:14:17-83
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:14:25-81
+action#android.intent.action.QUICKBOOT_POWERON
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:15:17-82
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:15:25-79
+action#com.htc.intent.action.QUICKBOOT_POWERON
+ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:16:17-81
+	android:name
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml:16:25-79
+uses-sdk
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+		ADDED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
+		INJECTED from /home/hello/.pub-cache/hosted/pub.dev/flutter_local_notifications-14.1.0/android/src/main/AndroidManifest.xml
