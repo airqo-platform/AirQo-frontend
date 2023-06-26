@@ -31,6 +31,7 @@ const STATUS_COLOR_CODES = {
   scheduled: 'bg-yellow-200',
   overdue: 'bg-red-200',
   re_run_required: 'bg-red-200',
+  error: 'bg-red-200',
 };
 
 const ErrorModal = ({ errorMessage, onClose }) => {
@@ -43,7 +44,8 @@ const ErrorModal = ({ errorMessage, onClose }) => {
         <div className='flex justify-end'>
           <button
             onClick={onClose}
-            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'>
+            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'
+          >
             Close
           </button>
         </div>
@@ -58,6 +60,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorReport, setErrorReport] = useState([]);
+  const [openErrorReport, setOpenErrorReport] = useState(false);
 
   const openErrorModal = () => {
     setErrorModalOpen(true);
@@ -207,7 +211,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'>
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -255,7 +260,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}>
+                    onBlur={() => setFocusedRowIndex(null)}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -278,9 +284,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
+                        onClick={() => {
+                          setErrorReport(device.errors);
+                          setOpenErrorReport(true);
+                        }}
                         className={`${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}>
+                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600 cursor-pointer`}
+                      >
                         {device.status.toLowerCase()}
                       </span>
                     </td>
@@ -308,10 +319,17 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       {/* modal */}
       <Modal
         display={visible}
-        action={deleteBatch}
+        handleConfirm={deleteBatch}
         closeModal={() => setVisible(false)}
         description='Are you sure you want to delete this batch?'
         confirmButton='Delete'
+      />
+
+      {/* error report modal */}
+      <Modal
+        display={openErrorReport && errorReport.length > 0}
+        closeModal={() => setOpenErrorReport(false)}
+        description={errorReport[0]}
       />
     </div>
   );
