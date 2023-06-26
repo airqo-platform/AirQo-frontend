@@ -360,6 +360,7 @@ class DeleteAccountButton extends StatelessWidget {
               loadingScreen(context);
               await FirebaseAuth.instance.verifyPhoneNumber(
                 phoneNumber: profile.phoneNumber,
+                // ignore: no-empty-block not used
                 verificationCompleted: (PhoneAuthCredential
                     _) {}, // ignore: no-empty-block not used
                 verificationFailed: (FirebaseAuthException exception) async {
@@ -395,6 +396,7 @@ class DeleteAccountButton extends StatelessWidget {
                     phoneAuthModel: phoneAuthModel,
                   );
                 },
+                // ignore: no-empty-block not used
                 codeAutoRetrievalTimeout:
                     (String _) {}, // ignore: no-empty-block not used
                 timeout: const Duration(seconds: 15),
