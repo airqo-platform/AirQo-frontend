@@ -14,8 +14,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  TextField,
-  CircularProgress
+  TextField
 } from '@material-ui/core';
 
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -34,6 +33,8 @@ import {
   sendUserFeedbackApi
 } from 'views/apis/authService';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import CandidateDrawer from '../CandidateDrawer';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -52,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
   },
   actions: {
     justifyContent: 'flex-end'
+  },
+  description: {
+    width: '300px'
   }
 }));
 
@@ -61,6 +65,8 @@ const CandidatesTable = (props) => {
   const [open, setOpen] = useState(false);
   const [openDel, setOpenDel] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [drawerCandidate, setDrawerCandidate] = useState(null);
 
   const [openNewMessagePopup, setOpenNewMessagePopup] = useState(false);
 
@@ -113,6 +119,14 @@ const CandidatesTable = (props) => {
     props.fetchCandidates();
   }, []);
 
+  const toggleDrawer = (anchor, open) => (event) => {
+    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+      return;
+    }
+
+    setShowFullDescription(!showFullDescription);
+  };
+
   const onConfirmBtnClick = (candidate) => () => {
     setCurrentCandidate(candidate);
     setOpen(true);
@@ -125,6 +139,8 @@ const CandidatesTable = (props) => {
 
   const confirmCandidate = () => {
     setOpen(false);
+    setShowFullDescription(false);
+    setDrawerCandidate(null);
     return confirmCandidateApi(currentCandidate)
       .then((res) => {
         props.fetchCandidates();
@@ -136,12 +152,15 @@ const CandidatesTable = (props) => {
           })
         );
       })
-      .catch((err) => {
+      .catch((error) => {
+        const errors = (error.response && error.response.data && error.response.data.errors) || {};
+
         dispatch(
           updateMainAlert({
             show: true,
-            message: 'candidate already exists',
-            severity: 'error'
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
       });
@@ -173,6 +192,8 @@ const CandidatesTable = (props) => {
 
   const modifyCandidate = (id, data) => {
     setOpenDel(false);
+    setShowFullDescription(false);
+    setDrawerCandidate(null);
     return updateCandidateApi(id, data)
       .then((res) => {
         props.fetchCandidates();
@@ -264,7 +285,53 @@ const CandidatesTable = (props) => {
           },
           {
             title: 'Description',
-            field: 'description'
+            field: 'description',
+            render: (candidate) => {
+              let description = candidate.description;
+
+              return (
+                <span>
+                  <Typography className={classes.description}>
+                    {description.length > 300 ? description.substring(0, 300) + '...' : description}
+                  </Typography>
+                  {description.length > 128 ? (
+                    <a
+                      href="#"
+                      onClick={() => {
+                        setShowFullDescription(!showFullDescription);
+                        setDrawerCandidate(candidate);
+                      }}
+                    >
+                      {!showFullDescription && 'Show More'}
+                    </a>
+                  ) : null}
+                </span>
+              );
+            }
+          },
+          {
+            title: 'Status',
+            field: 'status',
+            render: (candidate) => {
+              const statusColor = {
+                pending: 'orange',
+                approved: 'green',
+                rejected: 'red'
+              };
+              return (
+                <span
+                  style={{
+                    padding: '5px',
+                    border: `1px solid ${statusColor[candidate.status]}`,
+                    color: `${statusColor[candidate.status]}`,
+                    fontWeight: 'bold',
+                    borderRadius: '5px'
+                  }}
+                >
+                  {candidate.status}
+                </span>
+              );
+            }
           },
           {
             title: 'Organization',
@@ -280,32 +347,6 @@ const CandidatesTable = (props) => {
             render: (candidate) => (
               <span>{candidate.createdAt ? formatDateString(candidate.createdAt) : '---'}</span>
             )
-          },
-          {
-            title: 'Rejected',
-            field: 'updatedAt',
-            render: (candidate) => {
-              const pending = candidate.status === 'pending';
-              return (
-                <span
-                  style={
-                    pending
-                      ? {
-                          padding: '5px',
-                          border: '1px solid #e3e3e3',
-                          background: '#e3e3e3',
-                          fontWeight: 'bold',
-                          borderRadius: '5px'
-                        }
-                      : null
-                  }
-                >
-                  {pending
-                    ? 'pending'
-                    : formatDateString(candidate.updatedAt, 'DD-MM-YYYY HH:mm:ss')}
-                </span>
-              );
-            }
           },
           {
             title: 'Action',
@@ -528,6 +569,16 @@ const CandidatesTable = (props) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CandidateDrawer
+        toggleDrawer={toggleDrawer('right', false)}
+        drawerCandidate={drawerCandidate}
+        showFullDescription={showFullDescription}
+        onDenyBtnClick={onDenyBtnClick(drawerCandidate)}
+        modifyCandidate={() => modifyCandidate(drawerCandidate._id, { status: 'pending' })}
+        onConfirmBtnClick={() => onConfirmBtnClick(drawerCandidate)}
+        isLoading={isLoading}
+      />
     </Card>
   );
 };

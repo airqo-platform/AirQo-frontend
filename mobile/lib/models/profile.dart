@@ -12,36 +12,34 @@ class Profile extends Equatable {
       _$ProfileFromJson(json);
 
   factory Profile.initialize() {
-    String? userId;
-    String? emailAddress;
-    String? phoneNumber;
-    bool? isAnonymous;
-    bool? isSignedIn;
+    String userId = "";
+    String emailAddress = "";
+    String phoneNumber = "";
+    bool isAnonymous = true;
 
     final User? user = CustomAuth.getUser();
     if (user != null) {
-      phoneNumber = user.phoneNumber;
-      emailAddress = user.email;
+      phoneNumber = user.phoneNumber ?? "";
+      emailAddress = user.email ?? "";
       userId = user.uid;
       isAnonymous = user.isAnonymous;
-      isSignedIn = true;
     }
 
     return Profile(
-      userId: userId ?? '',
-      emailAddress: emailAddress ?? '',
-      phoneNumber: phoneNumber ?? '',
-      isAnonymous: isAnonymous ?? true,
-      isSignedIn: isSignedIn ?? false,
-      title: '',
-      firstName: '',
-      lastName: '',
-      device: '',
+      userId: userId,
+      emailAddress: emailAddress,
+      phoneNumber: phoneNumber,
+      device: "",
+      lastName: "",
+      title: "",
+      firstName: "",
+      utcOffset: DateTime.now().getUtcOffset(),
+      photoUrl: "",
       notifications: false,
       location: false,
       aqShares: 0,
-      photoUrl: '',
-      utcOffset: DateTime.now().getUtcOffset(),
+      isAnonymous: isAnonymous,
+      isSignedIn: user != null,
     );
   }
 
@@ -133,42 +131,6 @@ class Profile extends Equatable {
       notifications: notifications ?? this.notifications,
       location: location ?? this.location,
       aqShares: aqShares ?? this.aqShares,
-      isAnonymous: isAnonymous ?? this.isAnonymous,
-      isSignedIn: isSignedIn ?? this.isSignedIn,
-    );
-  }
-
-  Future<Profile> setUserCredentials() async {
-    String? userId;
-    String? emailAddress;
-    String? phoneNumber;
-    bool? isAnonymous;
-    bool? isSignedIn;
-    String? device;
-
-    final User? user = CustomAuth.getUser();
-    if (user != null) {
-      phoneNumber = user.phoneNumber;
-      emailAddress = user.email;
-      userId = user.uid;
-      isAnonymous = user.isAnonymous;
-      isSignedIn = true;
-      device = await CloudMessaging.getDeviceToken();
-    }
-
-    return Profile(
-      userId: userId ?? this.userId,
-      emailAddress: emailAddress ?? this.emailAddress,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      device: device ?? this.device,
-      lastName: lastName,
-      title: title,
-      firstName: firstName,
-      utcOffset: DateTime.now().getUtcOffset(),
-      photoUrl: photoUrl,
-      notifications: notifications,
-      location: location,
-      aqShares: aqShares,
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isSignedIn: isSignedIn ?? this.isSignedIn,
     );

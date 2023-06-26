@@ -15,6 +15,7 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 
 // css
 import 'assets/css/location-registry.css';
+import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
@@ -138,6 +139,7 @@ const SitesTable = () => {
           ]}
           onRowClick={(event, data) => {
             event.preventDefault();
+            clearSiteDetails();
             history.push(`/sites/${data._id}`);
           }}
           data={sites}

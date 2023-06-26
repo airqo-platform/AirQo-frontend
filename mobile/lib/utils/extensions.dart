@@ -1,12 +1,27 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
+  }
+}
+
+extension CurrentLocationExt on CurrentLocation {
+  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
+    final double distance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      newLocation.latitude,
+      newLocation.longitude,
+    );
+
+    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 
@@ -22,6 +37,20 @@ extension SetExt<T> on Set<T> {
 extension InsightListExt on List<Insight> {
   void sortByDateTime() {
     sort((x, y) => x.dateTime.compareTo(y.dateTime));
+  }
+}
+
+extension FavouritePlaceListExt on List<FavouritePlace> {
+  void sortByAirQuality() {
+    sort((x, y) {
+      if (x.airQualityReading != null && y.airQualityReading != null) {
+        return x.airQualityReading?.pm2_5
+                .compareTo(y.airQualityReading?.pm2_5 ?? 0) ??
+            0;
+      }
+
+      return x.airQualityReading == null ? 1 : -1;
+    });
   }
 }
 
@@ -681,8 +710,7 @@ extension StringExt on String {
     return trimmed.startsWith('+') &&
         trimmed.length >= 7 &&
         trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+        RegExp(r'^[0-9]+$').hasMatch(trimmed.substring(1));
   }
 
   bool isValidEmail() {
@@ -706,11 +734,8 @@ extension StringExt on String {
       Uri uri = Uri.parse(this);
 
       return uri.hasScheme && uri.hasAuthority;
-
     } catch (e) {
-
       return false;
-
     }
   }
 
