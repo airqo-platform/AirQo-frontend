@@ -29,7 +29,6 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorReport, setErrorReport] = useState([]);
   const [openErrorReport, setOpenErrorReport] = useState(false);
 
@@ -201,7 +200,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tr>
         </thead>
 
-        {isLoading ? (
+        {isLoading || isCheckingForDataAvailability ? (
           <Skeleton />
         ) : (
           <tbody>
