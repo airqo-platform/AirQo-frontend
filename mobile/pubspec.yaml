@@ -44,7 +44,6 @@ dependencies:
   lottie: ^2.4.0
   share_plus: ^7.0.2
   flutter_secure_storage: ^8.0.0
-  geocoding: ^2.1.0
   flutter_dotenv: ^5.1.0
   auto_size_text: ^3.0.0
   firebase_core: ^2.14.0

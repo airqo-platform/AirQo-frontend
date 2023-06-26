@@ -378,6 +378,8 @@ class SearchApiClient {
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
       'https://maps.googleapis.com/maps/api/place/details/json';
+  final String geocodingUrl =
+      'https://maps.googleapis.com/maps/api/geocode/json';
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
@@ -467,6 +469,34 @@ class SearchApiClient {
         searchResult,
       );
     } catch (_, __) {}
+
+    return null;
+  }
+
+  Future<Address?> getAddress({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('latlng', () => "$latitude,$longitude")
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent('sessiontoken', () => sessionToken);
+
+      final responseBody = await _getRequest(
+        url: geocodingUrl,
+        queryParams: queryParams,
+      );
+
+      return Address.fromGeocodingAPI(
+        responseBody['results'][0] as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
     return null;
   }
