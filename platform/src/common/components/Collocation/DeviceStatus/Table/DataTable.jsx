@@ -5,23 +5,13 @@ import {
   removeDevices,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
-import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
-import { isEmpty } from 'underscore';
-
-// Dropdown menu
 import Dropdown from '../../../Dropdowns/Dropdown';
-
-// Modal notification
 import Modal from '../../../Modal/Modal';
-
-// axios
 import axios from 'axios';
-
-// urls endpoint
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 
 const STATUS_COLOR_CODES = {
@@ -31,25 +21,7 @@ const STATUS_COLOR_CODES = {
   scheduled: 'bg-yellow-200',
   overdue: 'bg-red-200',
   re_run_required: 'bg-red-200',
-};
-
-const ErrorModal = ({ errorMessage, onClose }) => {
-  return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center'>
-      <div className='fixed inset-0 bg-gray-800 opacity-75'></div>
-      <div className='bg-white w-1/2 p-6 rounded-lg'>
-        <h2 className='text-xl font-bold mb-4'>Error Details</h2>
-        <p className='mb-4'>{errorMessage}</p>
-        <div className='flex justify-end'>
-          <button
-            onClick={onClose}
-            className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2'>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  error: 'bg-red-200',
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
@@ -57,15 +29,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-
-  const openErrorModal = () => {
-    setErrorModalOpen(true);
-  };
-
-  const closeErrorModal = () => {
-    setErrorModalOpen(false);
-  };
+  const [errorReport, setErrorReport] = useState([]);
+  const [openErrorReport, setOpenErrorReport] = useState(false);
 
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
@@ -151,7 +116,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   };
 
   useEffect(() => {
-    if (isSuccess && !isEmpty(collocationBatchResultsData)) {
+    if (isSuccess) {
       router.push({
         pathname: `/collocation/reports/${collocationInput.devices}`,
         query: {
@@ -195,19 +160,16 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   return (
     <div>
       {isError && (
-        <button onClick={openErrorModal} className='text-red-500 underline hover:text-red-700'>
-          Error Occurred. Click for details.
-        </button>
-      )}
-      {errorModalOpen && (
-        <ErrorModal
-          errorMessage='Uh-oh! Not enough data to generate a report'
-          onClose={closeErrorModal}
+        <Toast
+          type={'error'}
+          timeout={5000}
+          message={'Uh-oh! Server error. Please try again later.'}
         />
       )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
-        data-testid='collocation-device-status-summary'>
+        data-testid='collocation-device-status-summary'
+      >
         <thead>
           <tr className='border-b border-b-slate-300 text-black'>
             <th scope='col' className='font-normal w-[61px] py-[10px] px-[21px]'>
@@ -238,7 +200,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tr>
         </thead>
 
-        {isLoading ? (
+        {isLoading || isCheckingForDataAvailability ? (
           <Skeleton />
         ) : (
           <tbody>
@@ -247,15 +209,14 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                 return (
                   <tr
                     className={`border-b border-b-slate-300 ${
-                      clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
-                    } ${hoveredRowIndex === index ? 'bg-gray-100' : ''} ${
-                      focusedRowIndex === index ? 'bg-gray-200' : ''
-                    }`}
+                      hoveredRowIndex === index ? 'bg-gray-100' : ''
+                    } ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
                     key={index}
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
                     onFocus={() => setFocusedRowIndex(index)}
-                    onBlur={() => setFocusedRowIndex(null)}>
+                    onBlur={() => setFocusedRowIndex(null)}
+                  >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
                         type='checkbox'
@@ -278,9 +239,19 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <span
+                        onClick={() => {
+                          if (device.errors.length > 0) {
+                            setErrorReport(device.errors);
+                            setOpenErrorReport(true);
+                          } else {
+                            setErrorReport(['No error report found!']);
+                            setOpenErrorReport(true);
+                          }
+                        }}
                         className={`${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}>
+                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600 cursor-pointer`}
+                      >
                         {device.status.toLowerCase()}
                       </span>
                     </td>
@@ -308,10 +279,17 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       {/* modal */}
       <Modal
         display={visible}
-        action={deleteBatch}
+        handleConfirm={deleteBatch}
         closeModal={() => setVisible(false)}
         description='Are you sure you want to delete this batch?'
         confirmButton='Delete'
+      />
+
+      {/* error report modal */}
+      <Modal
+        display={openErrorReport && errorReport.length > 0}
+        closeModal={() => setOpenErrorReport(false)}
+        description={errorReport[0]}
       />
     </div>
   );
