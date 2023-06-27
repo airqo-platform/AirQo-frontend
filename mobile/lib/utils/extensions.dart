@@ -752,14 +752,13 @@ extension StringExt on String {
     if (parts.length != 2) return false;
     String localPart = parts.first;
     String domainPart = parts[1];
-    if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
-      return false;
-    }
-    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
-      return false;
-    }
+    RegExp localRegex = RegExp(r'^\w[\w.!#$%&*+/=?^_{|}~-]*$');
+    RegExp domainRegex =
+        RegExp(r'^\w(?:[\w-]{0,61}\w)?(?:\.\w(?:[\w-]{0,61}\w)?)+$');
 
-    return domainPart.split('.').last.length >= 2;
+    return localRegex.hasMatch(localPart) &&
+        domainRegex.hasMatch(domainPart) &&
+        domainPart.contains('.');
   }
 
   bool isValidUri() {
