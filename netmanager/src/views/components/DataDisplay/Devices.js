@@ -624,6 +624,7 @@ const DevicesTable = (props) => {
 
   const handleDeleteDevice = async () => {
     if (delDevice.name) {
+      setIsLoading(true);
       deleteDeviceApi(delDevice.name)
         .then(() => {
           delete devices[delDevice.name];
@@ -652,7 +653,8 @@ const DevicesTable = (props) => {
               severity: 'error'
             })
           );
-        });
+        })
+        .finally(() => setIsLoading(false));
     }
     setDelDevice({ open: false, name: '' });
   };
@@ -694,13 +696,7 @@ const DevicesTable = (props) => {
   return (
     <ErrorBoundary>
       {/* custome Horizontal loader indicator */}
-      <HorizontalLoader
-        color="#FFCC00"
-        loading={isLoading}
-        initial={0}
-        target={100}
-        duration={1500}
-      />
+      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <br />
         <div

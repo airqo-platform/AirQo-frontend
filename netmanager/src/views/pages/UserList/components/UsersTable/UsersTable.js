@@ -244,13 +244,7 @@ const UsersTable = (props) => {
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
         {/* custome Horizontal loader indicator */}
-        <HorizontalLoader
-          color="#FFCC00"
-          loading={loading}
-          initial={0}
-          target={100}
-          duration={1500}
-        />
+        <HorizontalLoader loading={loading} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}
