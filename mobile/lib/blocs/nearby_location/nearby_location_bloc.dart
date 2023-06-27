@@ -1,7 +1,7 @@
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -84,18 +84,27 @@ class NearbyLocationBloc
       newLocation.longitude,
     );
 
-    Map<String, String?> newLocationNames = await LocationService.getAddress(
-      latitude: newLocation.latitude,
-      longitude: newLocation.longitude,
-    );
+    if (nearestSite == null) {
+      newLocation = newLocation.copyWith(referenceSite: "");
+    } else {
+      newLocation = newLocation.copyWith(
+        referenceSite: nearestSite.referenceSite,
+      );
 
-    newLocation = nearestSite == null
-        ? newLocation.copyWith(referenceSite: "")
-        : newLocation.copyWith(
-            referenceSite: nearestSite.referenceSite,
-            name: newLocationNames["name"],
-            location: newLocationNames["location"],
-          );
+      Address? address = await SearchApiClient().getAddress(
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      );
+      newLocation = address == null
+          ? newLocation.copyWith(
+              name: nearestSite.name,
+              location: nearestSite.location,
+            )
+          : newLocation.copyWith(
+              name: address.name,
+              location: address.location,
+            );
+    }
 
     List<AirQualityReading> surroundingSites = [];
     int surroundingSitesRadius = Config.searchRadius;

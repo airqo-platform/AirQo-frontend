@@ -72,7 +72,8 @@ const collocate = () => {
               <Button
                 className={
                   'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium text-sm'
-                }>
+                }
+              >
                 <div className='mr-[10px]'>
                   <UploadIcon />
                 </div>
@@ -83,7 +84,8 @@ const collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'>
+                path='/collocation/add_monitor'
+              >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
                 </div>
@@ -128,6 +130,9 @@ const collocate = () => {
                   collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
                   isLoading={isLoading}
                 />
+              </Tab>
+              <Tab label='Error'>
+                <Table collocationDevices={filterDevicesByStatus('ERROR')} isLoading={isLoading} />
               </Tab>
             </Tabs>
           </div>
