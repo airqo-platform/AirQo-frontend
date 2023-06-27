@@ -15,7 +15,7 @@ export const timeSeriesChartOptions = (extraOptions) => ({
   },
   xaxis: {
     type: 'datetime',
-    tickAmount: 6,
+    tickAmount: 7,
     labels: {
       datetimeUTC: false,
       formatter: function (value, timestamp, opts) {
