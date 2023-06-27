@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http_retry/http_retry.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
