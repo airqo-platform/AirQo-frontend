@@ -330,10 +330,12 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(getHeaders);
       headers["service"] = apiService.serviceName;
 
-      final retryClient = RetryClient(http.Client(),
-    retries: 3,
-    when: (response) => response.statusCode >= 500 && response.statusCode<= 599,
-  );
+      final retryClient = RetryClient(
+        http.Client(),
+        retries: 3,
+        when: (response) =>
+            response.statusCode >= 500 && response.statusCode <= 599,
+      );
 
       final response = await retryClient
           .get(Uri.parse(url), headers: headers)
@@ -391,18 +393,16 @@ class SearchApiClient {
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
 
-
-  
-
-final retryClient = RetryClient(http.Client(),
+  final retryClient = RetryClient(
+    http.Client(),
     retries: 3,
-    when: (response) => response.statusCode >= 500 && response.statusCode<= 599,
+    when: (response) =>
+        response.statusCode >= 500 && response.statusCode <= 599,
   );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
     required String url,
-    
   }) async {
     try {
       url = addQueryParameters(queryParams, url);
