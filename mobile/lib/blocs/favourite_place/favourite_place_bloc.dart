@@ -50,14 +50,22 @@ class FavouritePlaceBloc
     Set<FavouritePlace> favouritePlaces = List.of(state).toSet();
 
     if (favouritePlaces.contains(event.favouritePlace)) {
-      favouritePlaces.remove(event.favouritePlace);
+      
+      bool removed =
+          await AirqoApiClient().deleteFavoritePlaces(event.favouritePlace);
+      if (removed) {
+        favouritePlaces.remove(event.favouritePlace);
+      }
     } else {
-      favouritePlaces.add(event.favouritePlace);
+      bool added =
+          await AirqoApiClient().addFavoritePlaces(event.favouritePlace);
+      if (added) {
+        favouritePlaces.add(event.favouritePlace);
+      }
     }
 
     _onEmitFavouritePlaces(favouritePlaces, emit);
 
-    await CloudStore.updateFavouritePlaces(state);
     if (favouritePlaces.length >= 5) {
       await CloudAnalytics.logEvent(
         CloudAnalyticsEvent.savesFiveFavorites,
@@ -76,11 +84,11 @@ class FavouritePlaceBloc
     SyncFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    List<FavouritePlace> cloudFavoritePlaces =
-        await CloudStore.getFavouritePlaces();
+    List<FavouritePlace> userFavoritePlaces =
+        await AirqoApiClient().fetchFavoritePlaces();
 
     Set<FavouritePlace> favouritePlaces = state.toSet();
-    favouritePlaces.addAll(cloudFavoritePlaces);
+    favouritePlaces.addAll(userFavoritePlaces);
 
     _onEmitFavouritePlaces(favouritePlaces, emit);
 
@@ -103,7 +111,7 @@ class FavouritePlaceBloc
     updatedFavouritePlaces = _updateAirQuality(updatedFavouritePlaces);
 
     _onEmitFavouritePlaces(favouritePlaces, emit);
-    await CloudStore.updateFavouritePlaces(updatedFavouritePlaces.toList());
+    // await CloudStore.updateFavouritePlaces(updatedFavouritePlaces.toList());
   }
 
   @override

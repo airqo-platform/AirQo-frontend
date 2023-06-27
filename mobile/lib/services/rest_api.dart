@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -280,6 +281,120 @@ class AirqoApiClient {
     }
 
     return airQualityReadings.removeInvalidData();
+  }
+
+  Future<List<FavouritePlace>> fetchFavoritePlaces() async {
+    final favoritePlaces = <FavouritePlace>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      String userId = CustomAuth.getUserId();
+
+      String url = AirQoUrls.favoritesforUser;
+
+      final body = await _performGetRequest(
+        queryParams,
+        "$url/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final favorite in body['favorites'] as List<dynamic>) {
+        if (favorite != null) {
+          try {
+            favoritePlaces.add(
+              FavouritePlace.fromAPI(favorite),
+            );
+            
+          } catch (exception, stackTrace) {
+            await logException(
+              exception,
+              stackTrace,
+            );
+          }
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return favoritePlaces;
+  }
+
+  Future<bool> addFavoritePlaces(FavouritePlace favorite) async {
+    final userId = CustomAuth.getUserId();
+
+    if (userId.isEmpty) {
+      return false;
+    }
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      final body = jsonEncode(
+        {
+          'user_id': userId,
+          'name': favorite.name,
+          'latitude': favorite.latitude,
+          'longitude': favorite.longitude,
+          'place_id': favorite.placeId,
+          'reference_site': favorite.referenceSite,
+          'location': favorite.location,
+        },
+      );
+
+      final response = await client.post(
+        Uri.parse("${AirQoUrls.favorites}?TOKEN=${Config.airqoApiV2Token}"),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+    return false;
+  }
+
+  Future<bool> deleteFavoritePlaces(FavouritePlace favorite) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+      final favoritePlaces = await fetchFavoritePlaces();
+
+      for (final fav in favoritePlaces) {
+        if (fav.placeId == favorite.placeId) {
+          final id = fav.favoriteId;
+
+          final response = await client.delete(
+            Uri.parse(
+                "${AirQoUrls.favorites}/$id?TOKEN=${Config.airqoApiV2Token}"),
+            headers: headers,
+          );
+          if (response.statusCode == 200) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+    return false;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {

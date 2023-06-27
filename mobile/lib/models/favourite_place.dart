@@ -2,12 +2,13 @@ import 'package:app/models/air_quality_reading.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 part 'favourite_place.g.dart';
 
 @JsonSerializable()
-class FavouritePlace extends Equatable {
-  const FavouritePlace({
+class FavouritePlace extends HiveObject with EquatableMixin {
+  FavouritePlace({
     required this.name,
     required this.location,
     required this.referenceSite,
@@ -15,7 +16,21 @@ class FavouritePlace extends Equatable {
     required this.latitude,
     required this.longitude,
     this.airQualityReading,
+    this.favoriteId,
   });
+
+  factory FavouritePlace.fromAPI(dynamic favorite) {
+    return FavouritePlace(
+      favoriteId: favorite['_id'] as String,
+      name: favorite['name'] as String,
+      location: favorite['location'] as String,
+      referenceSite: favorite['referenceSite'] as String? ?? '',
+      placeId: favorite['place_id'] as String,
+      latitude: favorite['latitude'] as double,
+      longitude: favorite['longitude'] as double,
+    );
+  }
+
 
   factory FavouritePlace.fromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -73,22 +88,32 @@ class FavouritePlace extends Equatable {
   Map<String, dynamic> toJson() => _$FavouritePlaceToJson(this);
 
   @JsonKey(defaultValue: '')
+  @HiveField(0)
   final String name;
 
   @JsonKey(defaultValue: '')
+  @HiveField(1)
   final String location;
 
   @JsonKey(defaultValue: '')
+  @HiveField(2)
   final String referenceSite;
 
   @JsonKey(defaultValue: '')
-  final String placeId;
+  @HiveField(3)
+  final dynamic placeId;
 
   @JsonKey(defaultValue: 0.0)
+  @HiveField(4)
   final double latitude;
 
   @JsonKey(defaultValue: 0.0)
+  @HiveField(5)
   final double longitude;
+
+  @JsonKey()
+  @HiveField(5)
+  final dynamic favoriteId;
 
   @JsonKey(
     includeToJson: false,
@@ -99,7 +124,7 @@ class FavouritePlace extends Equatable {
   final AirQualityReading? airQualityReading;
 
   @override
-  List<Object> get props => [placeId];
+  List<Object?> get props => [name, location, placeId];
 }
 
 @JsonSerializable(explicitToJson: true)
