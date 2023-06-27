@@ -205,8 +205,8 @@ function ManagementStat() {
           <ApexChart
             options={timeSeriesChartOptions({
               stroke: {
-                width: 1,
-              },
+                width: 1
+              }
             })}
             title={'Network uptime'}
             series={series}

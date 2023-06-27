@@ -21,9 +21,10 @@ const ApexChart = (props) => {
 
       const interval = setInterval(() => {
         updateChartData();
+
         ApexCharts.exec('realtime', 'updateSeries', [
           {
-            data: props.series
+            data: series
           }
         ]);
       }, 30 * 60 * 1000);
@@ -35,7 +36,7 @@ const ApexChart = (props) => {
   function updateChartData() {
     const newData = Math.random() * 100;
     const newSeries = series & (series.length > 0) && series.slice();
-    console.log(newSeries[0]);
+
     const lastDataPoint =
       newSeries[0].data.length > 0 ? newSeries[0].data[newSeries[0].data.length - 1] : null;
     // Fill in missing data with 0 values

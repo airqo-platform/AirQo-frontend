@@ -1,51 +1,60 @@
+import moment from 'moment';
+
 export const timeSeriesChartOptions = (extraOptions) => ({
   chart: {
     zoom: {
-      autoScaleYaxis: true,
-    },
+      autoScaleYaxis: true
+    }
   },
   dataLabels: {
-    enabled: false,
+    enabled: false
   },
   markers: {
     size: 0,
-    style: "hollow",
+    style: 'hollow'
   },
   xaxis: {
-    type: "datetime",
+    type: 'datetime',
+    tickAmount: 6,
+    labels: {
+      datetimeUTC: false,
+      formatter: function (value, timestamp, opts) {
+        return moment(new Date(timestamp)).format('DD MMM');
+      },
+      showDuplicates: false
+    }
   },
   tooltip: {
     x: {
-      format: "dd MMM yyyy hh:mm:ss",
-    },
+      formatter: function (val) {
+        return moment(new Date(val)).format('DD MMM yyyy hh:mm:ss');
+      }
+    }
   },
-  ...extraOptions,
+  ...extraOptions
 });
 
 export const createPieChartOptions = (colors, labels) => {
   return {
     chart: {
-      type: "pie",
+      type: 'pie'
     },
-    colors: colors || ["#BCBD22", "#17BECF"],
+    colors: colors || ['#BCBD22', '#17BECF'],
     labels: labels,
     responsive: [
       {
         options: {
           legend: {
-            position: "bottom",
-          },
-        },
-      },
-    ],
+            position: 'bottom'
+          }
+        }
+      }
+    ]
   };
 };
 
 export const uuidV4 = () => {
   return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-    (
-      c ^
-      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
-    ).toString(16)
+    (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
   );
 };
