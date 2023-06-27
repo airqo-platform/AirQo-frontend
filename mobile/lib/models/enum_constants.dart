@@ -8,6 +8,12 @@ part 'enum_constants.g.dart';
 
 enum Environment { dev, prod }
 
+enum AuthenticationStatus {
+  initial,
+  error,
+  success;
+}
+
 enum CloudAnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
   createUserProfile('created_profile'),
@@ -285,11 +291,11 @@ enum AuthMethod {
     switch (this) {
       case AuthMethod.phone:
         return procedure == AuthProcedure.login
-            ? 'Login with your mobile number or email'
+            ? 'Login with your mobile number'
             : 'Sign up with your mobile number or email';
       case AuthMethod.email:
         return procedure == AuthProcedure.login
-            ? 'Login with your email or mobile number'
+            ? 'Login with your email'
             : 'Sign up with your email or mobile number';
       default:
         return '';

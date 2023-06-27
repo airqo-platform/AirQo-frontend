@@ -4,11 +4,11 @@
 	width: 45%;
 	min-width: 350px;
 	max-width: 700px;
-	height: 500px;
+	height: 450px;
     background: #ffffff;
 	margin: 20px;
 	border: 1px solid #ffffff;
-	border-radius: 2px;
+	border-radius: 4px;
 }
 
 .chart-title-wrapper {
@@ -54,6 +54,7 @@
 	height: 80%;
 	overflow: auto;
 	position: relative;
+	padding: 10px 20px 0 0
 }
 
 .chart-flex-center-body {

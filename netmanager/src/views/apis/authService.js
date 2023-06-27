@@ -8,8 +8,16 @@ import {
   REGISTER_USER_URI,
   CHART_DEFAULTS_URI,
   CANDIDATES_URI,
-  USER_FEEDBACK_URI
+  USER_FEEDBACK_URI,
+  GET_LOGS
 } from 'config/urls/authService';
+
+let token = localStorage.jwtToken;
+if (token) {
+  axios.defaults.headers.common.Authorization = token;
+} else {
+  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+}
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await axios
@@ -84,4 +92,9 @@ export const deleteUserChartDefaultsApi = async (chartDefaultID) => {
 
 export const sendUserFeedbackApi = async (feedbackData) => {
   return await axios.post(USER_FEEDBACK_URI, feedbackData).then((response) => response.data);
+};
+
+// Logs
+export const getLogsApi = async (params) => {
+  return await axios.get(GET_LOGS, { params }).then((response) => response.data);
 };

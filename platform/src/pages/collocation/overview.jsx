@@ -87,7 +87,7 @@ const CollocationOverview = () => {
         if (matchingDevicePairs[0].length > 1) {
           dispatch(addOverviewBatch([matchingDevicePairs[0][0], matchingDevicePairs[0][1]]));
         } else {
-          dispatch(addOverviewBatch(matchingDevicePairs[0][0]));
+          dispatch(addOverviewBatch([matchingDevicePairs[0][0]]));
         }
       }
     }

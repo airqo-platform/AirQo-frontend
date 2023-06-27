@@ -203,6 +203,49 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
   );
 };
 
+const MapStyleSelectorPlaceholder = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleHover = (isHovered) => {
+    setIsHovered(isHovered);
+  };
+
+  return (
+    <div
+      ref={dropdownRef}
+      className="map-style-placeholder"
+      onClick={handleClick}
+      onMouseEnter={() => handleHover(true)}
+      onMouseLeave={() => handleHover(false)}
+    >
+      <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
+        <MapIcon className="map-icon" />
+      </div>
+      {isOpen && <MapStyleSelector />}
+    </div>
+  );
+};
+
 const MapStyleSelector = () => {
   const styleSet = [
     {
@@ -240,14 +283,11 @@ const MapStyleSelector = () => {
   return (
     <>
       <div className="map-style">
-        <h4>
-          <MapIcon />
-          <span>Change Map Mode</span>
-        </h4>
         <div className="map-style-cards">
           {styleSet.map((style) => {
             return (
               <div
+                key={style.name}
                 onClick={() => {
                   localStorage.mapStyle = style.mapStyle;
                   localStorage.mapMode = style.name;
@@ -334,7 +374,7 @@ const CustomMapControl = ({
         onChange={onPollutantChange}
         showHeatMap={showHeatmap}
       />
-      <MapStyleSelector />
+      <MapStyleSelectorPlaceholder />
     </MapControllerPosition>
   );
 };
@@ -608,7 +648,15 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
+      dispatch(
+        loadMapEventsData({
+          recent: 'yes',
+          external: 'no',
+          metadata: 'site_id',
+          frequency: 'hourly',
+          active: 'yes'
+        })
+      );
     }
   }, [monitoringSiteData]);
 
