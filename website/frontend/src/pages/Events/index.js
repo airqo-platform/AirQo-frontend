@@ -42,6 +42,15 @@ const EventsPage = () => {
     }
   }, [selectedNavTab]);
 
+  // hook to handle see more/less button
+  const [numEventsToShow, setNumEventsToShow] = useState(9);
+
+  // for handling see less button
+  const handleSeeLess = () => {
+    setNumEventsToShow(9);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       {loading ? (
@@ -77,33 +86,51 @@ const EventsPage = () => {
                 <EventsNavigation navTabs={navTabs} />
                 <div className="event-cards">
                   {selectedNavTab === 'upcoming events' &&
-                    upcomingEvents.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        image={event.event_image}
-                        title={event.title}
-                        subText={event.title_subtext}
-                        startDate={event.start_date}
-                        endDate={event.end_date}
-                        link={event.unique_title}
-                      />
-                    ))}
+                    upcomingEvents
+                      .slice(0, numEventsToShow)
+                      .map((event) => (
+                        <EventCard
+                          key={event.id}
+                          image={event.event_image}
+                          title={event.title}
+                          subText={event.title_subtext}
+                          startDate={event.start_date}
+                          endDate={event.end_date}
+                          link={event.unique_title}
+                        />
+                      ))}
                   {selectedNavTab === 'past events' &&
-                    pastEvents.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        image={event.event_image}
-                        title={event.title}
-                        subText={event.title_subtext}
-                        startDate={event.start_date}
-                        endDate={event.end_date}
-                        link={event.unique_title}
-                      />
-                    ))}
+                    pastEvents
+                      .slice(0, numEventsToShow)
+                      .map((event) => (
+                        <EventCard
+                          key={event.id}
+                          image={event.event_image}
+                          title={event.title}
+                          subText={event.title_subtext}
+                          startDate={event.start_date}
+                          endDate={event.end_date}
+                          link={event.unique_title}
+                        />
+                      ))}
                 </div>
-                {eventsApiData.length < 0 && (
-                  <div className="no-events">
-                    <span>There are currently no events</span>
+              </div>
+              {upcomingEvents.length === 0 && selectedNavTab === 'upcoming events' ? (
+                <div className="no-events">
+                  <span>There are currently no events</span>
+                </div>
+              ) : null}
+              <div className="see-more-container">
+                {(upcomingEvents.length > numEventsToShow &&
+                  selectedNavTab === 'upcoming events') ||
+                (pastEvents.length > numEventsToShow && selectedNavTab === 'past events') ? (
+                  <div className="see-more">
+                    <button onClick={() => setNumEventsToShow(numEventsToShow + 6)}>More</button>
+                  </div>
+                ) : null}
+                {numEventsToShow > 9 && (
+                  <div className="see-less">
+                    <button onClick={() => handleSeeLess()}>Less</button>
                   </div>
                 )}
               </div>

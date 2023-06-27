@@ -5,7 +5,6 @@ import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -18,6 +17,7 @@ class LocationService {
 
     switch (permissionStatus) {
       case PermissionStatus.permanentlyDenied:
+      case PermissionStatus.provisional:
       case PermissionStatus.denied:
       case PermissionStatus.restricted:
         return false;
@@ -51,49 +51,6 @@ class LocationService {
 
   static Future<void> denyLocation() async {
     await Geolocator.openAppSettings();
-  }
-
-  static Future<Map<String, String?>> getAddress({
-    required double latitude,
-    required double longitude,
-  }) async {
-    Map<String, String?> address = {};
-    address["name"] = null;
-    address["location"] = null;
-
-    List<Placemark> landMarks = await placemarkFromCoordinates(
-      latitude,
-      longitude,
-    );
-
-    if (landMarks.isEmpty) {
-      return address;
-    }
-
-    final Placemark landMark = landMarks.first;
-
-    address["name"] = landMark.thoroughfare;
-    address["name"] = address["name"].isValidLocationName()
-        ? address["name"]
-        : landMark.locality;
-    address["name"] = address["name"].isValidLocationName()
-        ? address["name"]
-        : landMark.subLocality;
-    address["name"] = address["name"].isValidLocationName()
-        ? address["name"]
-        : landMark.subThoroughfare;
-    address["name"] =
-        address["name"].isValidLocationName() ? address["name"] : landMark.name;
-
-    if (landMark.subAdministrativeArea == null) {
-      address["location"] =
-          "${landMark.administrativeArea}, ${landMark.country}";
-    } else {
-      address["location"] =
-          "${landMark.subAdministrativeArea}, ${landMark.administrativeArea}";
-    }
-
-    return address;
   }
 
   static Future<CurrentLocation?> getCurrentLocation() async {

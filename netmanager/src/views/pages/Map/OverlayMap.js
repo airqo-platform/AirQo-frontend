@@ -231,7 +231,13 @@ const MapStyleSelectorPlaceholder = () => {
   };
 
   return (
-    <div ref={dropdownRef} className="map-style-placeholder" onClick={handleClick} onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)}>
+    <div
+      ref={dropdownRef}
+      className="map-style-placeholder"
+      onClick={handleClick}
+      onMouseEnter={() => handleHover(true)}
+      onMouseLeave={() => handleHover(false)}
+    >
       <div className={`map-icon-container${isHovered ? ' map-icon-hovered' : ''}`}>
         <MapIcon className="map-icon" />
       </div>
@@ -239,7 +245,6 @@ const MapStyleSelectorPlaceholder = () => {
     </div>
   );
 };
-
 
 const MapStyleSelector = () => {
   const styleSet = [
@@ -643,7 +648,15 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
+      dispatch(
+        loadMapEventsData({
+          recent: 'yes',
+          external: 'no',
+          metadata: 'site_id',
+          frequency: 'hourly',
+          active: 'yes'
+        })
+      );
     }
   }, [monitoringSiteData]);
 
