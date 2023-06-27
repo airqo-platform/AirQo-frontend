@@ -563,7 +563,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
-       child: ListView(
+      child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         children: [
@@ -600,7 +600,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
                   ),
                   child: HealthTipContainer(widget.insight.healthTips[index]),
                 );
-              },       
+              },
               itemCount: widget.insight.healthTips.length,
             ),
           ),
