@@ -9,14 +9,16 @@ if (token) {
 }
 
 const API_TOKEN = process.env.REACT_APP_API_TOKEN
+const API_LIMIT = 20000
+const TIMEOUT = 500000
 
 export const heatmapPredictApi = async () => {
   return await axios.get(GET_HEATMAP_DATA, {
     params:{
       token: API_TOKEN,
-      limit: 10000
+      limit: API_LIMIT
     }
-  }).then((response) => response.data);
+  }, { timeout: TIMEOUT }).then((response) => response.data);
 };
 
 export const geocoordinatesPredictApi = async (params) => {

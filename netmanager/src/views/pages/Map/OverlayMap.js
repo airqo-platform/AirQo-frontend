@@ -638,7 +638,7 @@ const MapContainer = () => {
   console.log("Heatmap:",heatMapData)
 
   useEffect(() => {
-    if (isEmpty(heatMapData.features)) {
+    if (isEmpty(heatMapData)) {
       dispatch(loadPM25HeatMapData());
     }
   }, [heatMapData]);
