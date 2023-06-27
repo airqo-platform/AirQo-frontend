@@ -27,12 +27,10 @@ class HealthTipContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 304,
-      height: 128,
-      constraints: const BoxConstraints(
-        minWidth: 304,
+      constraints: BoxConstraints(
+        minWidth: MediaQuery.of(context).size.width * 0.85,
         minHeight: 128,
-        maxWidth: 304,
+        maxWidth: MediaQuery.of(context).size.width * 0.85,
         maxHeight: 128,
       ),
       padding: const EdgeInsets.all(8.0),
