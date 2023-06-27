@@ -7,7 +7,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'dart:async';
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
@@ -502,59 +501,13 @@ class ForecastContainer extends StatelessWidget {
   }
 }
 
-class HealthTipsWidget extends StatefulWidget {
-  HealthTipsWidget(
-    this.insight,
-  );
+class HealthTipsWidget extends StatelessWidget {
+  const HealthTipsWidget(this.insight, {super.key});
   final Insight insight;
 
   @override
-  _HealthTipsWidgetState createState() => _HealthTipsWidgetState();
-}
-
-class _HealthTipsWidgetState extends State<HealthTipsWidget> {
-  late PageController _pageController;
-  late Timer _timer;
-  int _currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: 0);
-    _startAutoScroll();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _stopAutoScroll();
-    super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_currentPage < widget.insight.healthTips.length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-        _pageController.jumpToPage(
-            0); // Jump back to the first page for seamless scrolling
-      }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
-  void _stopAutoScroll() {
-    _timer.cancel();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.insight.healthTips.isEmpty) {
+    if (insight.healthTips.isEmpty) {
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         child: Container(),
@@ -563,7 +516,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
-       child: ListView(
+      child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         children: [
@@ -573,7 +526,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              widget.insight.healthTipsTitle(),
+              insight.healthTipsTitle(),
               textAlign: TextAlign.left,
               style: CustomTextStyle.headline7(context),
             ),
@@ -583,25 +536,20 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
           ),
           SizedBox(
             height: 128,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              controller: ScrollController(),
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(
                     left: index == 0 ? 12.0 : 6.0,
-                    right: index == (widget.insight.healthTips.length - 1)
-                        ? 12.0
-                        : 6.0,
+                    right:
+                        index == (insight.healthTips.length - 1) ? 12.0 : 6.0,
                   ),
-                  child: HealthTipContainer(widget.insight.healthTips[index]),
+                  child: HealthTipContainer(insight.healthTips[index]),
                 );
-              },       
-              itemCount: widget.insight.healthTips.length,
+              },
+              itemCount: insight.healthTips.length,
             ),
           ),
         ],
