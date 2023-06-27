@@ -11,9 +11,8 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
     fontSize: '16px'
   });
   const [tutorialPosition, setTutorialPosition] = useState({ top: 0, left: 0 });
-  const [arrowDirection, setArrowDirection] = useState('down'); // arrow direction for the tutorial box
+  const [arrowDirection, setArrowDirection] = useState('down');
 
-  // total number of tutorial steps
   const totalSteps = steps.length;
 
   useEffect(() => {
@@ -24,7 +23,6 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
       if (fieldRefs[FieldRefIndex].current) {
         const rect = fieldRefs[FieldRefIndex].current.getBoundingClientRect();
 
-        // setting the responsive position of the tutorial box
         if (window.innerWidth < 576) {
           setTutorialPosition({
             top: rect.top - 260,
@@ -61,14 +59,51 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
           setTutorialBoxStyles({ width: '320px', fontSize: '18px' });
           setArrowDirection('up');
         }
+
+        // check if the tutorial box is off-screen and adjust its position and arrow direction accordingly
+        const tutorialBoxRect = document.querySelector('.tutorial-box').getBoundingClientRect();
+        if (tutorialBoxRect.top < 0) {
+          setTutorialPosition((prev) => ({
+            ...prev,
+            top: rect.bottom + 30
+          }));
+          setArrowDirection('up');
+        } else if (tutorialBoxRect.right > window.innerWidth) {
+          setTutorialPosition((prev) => ({
+            ...prev,
+            left:
+              rect.left -
+              tutorialBoxRect.width +
+              fieldRefs[FieldRefIndex].current.offsetWidth / 2 +
+              20
+          }));
+          setArrowDirection('right');
+        } else if (tutorialBoxRect.bottom > window.innerHeight) {
+          setTutorialPosition((prev) => ({
+            ...prev,
+            top: rect.top - tutorialBoxRect.height - 30
+          }));
+          setArrowDirection('down');
+        } else if (tutorialBoxRect.left < 0) {
+          setTutorialPosition((prev) => ({
+            ...prev,
+            left:
+              rect.left +
+              fieldRefs[FieldRefIndex].current.offsetWidth / 2 -
+              tutorialBoxRect.width / 2
+          }));
+          setArrowDirection('left');
+        }
       }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize);
     };
   }, [FieldRefIndex]);
 
