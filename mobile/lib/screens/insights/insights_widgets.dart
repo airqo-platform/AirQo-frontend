@@ -538,7 +538,8 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
       } else {
         _currentPage = 0;
         _pageController.jumpToPage(
-            0); // Jump back to the first page for seamless scrolling
+          0,
+        ); // Jump back to the first page for seamless scrolling
       }
       _pageController.animateToPage(
         _currentPage,
