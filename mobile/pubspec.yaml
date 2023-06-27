@@ -55,6 +55,7 @@ dependencies:
   package_info_plus: ^4.0.2
   webview_flutter: ^4.2.2
   hive: ^2.2.3
+  retry: ^3.0.0
   hive_flutter: ^1.1.0
   firebase_in_app_messaging: ^0.7.3+3
   permission_handler: ^10.3.0
