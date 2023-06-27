@@ -920,14 +920,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
-  http_retry:
-    dependency: "direct main"
-    description:
-      name: http_retry
-      sha256: "189c36a738f4321fbd9c8719afc758369516736bcfd0a0454a80f194b0638699"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   hydrated_bloc:
     dependency: "direct main"
     description:
