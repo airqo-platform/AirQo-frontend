@@ -23,9 +23,6 @@ class Config {
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
 
-  static String get favPlacesCollection =>
-      dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
-
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
   static String get usersNotificationCollection =>

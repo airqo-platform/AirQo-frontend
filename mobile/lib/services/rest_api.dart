@@ -300,18 +300,18 @@ class AirqoApiClient {
       );
 
       for (final favorite in body['favorites'] as List<dynamic>) {
-        if (favorite != null) {
-          try {
-            favoritePlaces.add(
-              FavouritePlace.fromAPI(favorite),
+        try {
+          favoritePlaces.add(
+            FavouritePlace.fromJson(
+              favorite as Map<String, dynamic>,
+            ),
             );
-            
-          } catch (exception, stackTrace) {
-            await logException(
-              exception,
-              stackTrace,
-            );
-          }
+          
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
         }
       }
     } catch (exception, stackTrace) {
@@ -334,35 +334,23 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final body = jsonEncode(
-        {
-          'user_id': userId,
-          'name': favorite.name,
-          'latitude': favorite.latitude,
-          'longitude': favorite.longitude,
-          'place_id': favorite.placeId,
-          'reference_site': favorite.referenceSite,
-          'location': favorite.location,
-        },
-      );
-
+      final body = jsonEncode(favorite.toJson()..remove('_id'));
+ 
       final response = await client.post(
         Uri.parse("${AirQoUrls.favorites}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: body,
       );
 
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode == 200 ? true : false;
+      
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
     }
+
     return false;
   }
 
@@ -378,14 +366,12 @@ class AirqoApiClient {
 
           final response = await client.delete(
             Uri.parse(
-                "${AirQoUrls.favorites}/$id?TOKEN=${Config.airqoApiV2Token}"),
+              "${AirQoUrls.favorites}/$id?TOKEN=${Config.airqoApiV2Token}",
+            ),
             headers: headers,
           );
-          if (response.statusCode == 200) {
-            return true;
-          } else {
-            return false;
-          }
+
+          return response.statusCode == 200 ? true : false;
         }
       }
     } catch (exception, stackTrace) {
@@ -394,6 +380,7 @@ class AirqoApiClient {
         stackTrace,
       );
     }
+    
     return false;
   }
 
