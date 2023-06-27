@@ -695,7 +695,7 @@ const DevicesTable = (props) => {
     <ErrorBoundary>
       {/* custome Horizontal loader indicator */}
       <HorizontalLoader
-        color="#FF0000"
+        color="#FFCC00"
         loading={isLoading}
         initial={0}
         target={100}

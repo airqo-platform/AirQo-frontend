@@ -245,7 +245,7 @@ const UsersTable = (props) => {
       <Card {...rest} className={clsx(classes.root, className)}>
         {/* custome Horizontal loader indicator */}
         <HorizontalLoader
-          color="#FF0000"
+          color="#FFCC00"
           loading={loading}
           initial={0}
           target={100}
