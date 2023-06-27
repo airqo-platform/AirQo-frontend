@@ -6,6 +6,7 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http_retry/http_retry.dart';
