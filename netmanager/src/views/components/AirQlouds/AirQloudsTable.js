@@ -16,14 +16,13 @@ import { useDispatch } from 'react-redux';
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
 
-const renderBooleanCell = (field) => (rowData) =>
-  (
-    <span>
-      {(rowData[field] && <span style={{ color: 'green' }}>Yes</span>) || (
-        <span style={{ color: 'red' }}>No</span>
-      )}
-    </span>
-  );
+const renderBooleanCell = (field) => (rowData) => (
+  <span>
+    {(rowData[field] && <span style={{ color: 'green' }}>Yes</span>) || (
+      <span style={{ color: 'red' }}>No</span>
+    )}
+  </span>
+);
 
 const AirQloudsTable = () => {
   const history = useHistory();
