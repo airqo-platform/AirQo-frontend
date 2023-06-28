@@ -11,8 +11,11 @@ import {
   Divider,
   Grid,
   IconButton,
+  Box,
+  Typography
 } from "@material-ui/core";
 import clsx from "clsx";
+import LinearProgress from '@material-ui/core/LinearProgress';
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -29,7 +32,6 @@ import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions } from "utils/sites";
 import { usePollutantsOptions } from "utils/customHooks";
 import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
-
 function appendLeadingZeroes(n) {
   if (n <= 9) {
     return "0" + n;
@@ -346,9 +348,8 @@ const AveragesChart = ({ classes }) => {
         const [labels, average_values, background_colors] = unzip(zippedArr);
         setAllLocations(zippedArr);
   
-        if (!modalOpen) {
-          setDisplayedLocations(zippedArr.slice(0, 10));
-        }
+
+        setDisplayedLocations(zippedArr.slice(0, 10));
   
         setAverages({ labels, average_values, background_colors });
         setLoading(false);
@@ -358,7 +359,76 @@ const AveragesChart = ({ classes }) => {
         console.log(e);
       });
   };
+
+  const ProgressBars = () => {
+    const barRanges = [
+      { label: "Good:", min: 0, max: 12.09 },
+      { label: "Moderate:", min: 12.1, max: 35.49 },
+      { label: "Unhealthy For Sensitive Groups:", min: 35.5, max: 55.49 },
+      { label: "Unhealthy:", min: 55.5, max: 150.49 },
+      { label: "Very Unhealthy:", min: 150.5, max: 250.49 },
+      { label: "Hazardous:", min: 250.5, max: 500 }
+    ];
   
+    // Calculate the counts for each range
+    const totalLocations = allLocations.length;
+
+    // Calculate the percentage for each range
+    const barPercentages = barRanges.map(({ min, max }) => {
+      const count = allLocations.filter(([_, value]) => value >= min && value <= max).length;
+      return (count / totalLocations) * 100;
+    });
+  
+    // Calculate the maximum percentage among all bars
+    const maxPercentage = Math.max(...barPercentages);
+  
+    return (
+      <Card>
+        <CardHeader title={customChartTitle} />
+        <CardContent>
+          <div>
+          {barRanges.map(({ label }, index) => {
+            const barPercentage = barPercentages[index];
+            const remainingPercentage = maxPercentage - barPercentage;
+    
+            return (
+              <div key={index} style={{ marginBottom: "10px" }}>
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    color: "",
+                    fontSize: "16px",
+                    marginBottom: "5px"
+                    
+                  }}
+                >{label}</div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    maxWidth: "500px",
+                    height: "5px",
+                    backgroundColor: "lightgray",
+                    marginBottom: "5px"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${barPercentage}%`,
+                      height: "100%",
+                      backgroundColor: "#175df5"
+                    }}
+                  ></div>
+                  
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        </CardContent>
+      </Card>
+    );
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -483,16 +553,49 @@ const AveragesChart = ({ classes }) => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         aria-labelledby="locations-dialog-title"
+        PaperProps={{
+          style: {
+            width: "100%",
+            maxWidth: "none",
+            margin: "10px",
+            borderRadius: "8px",
+          },
+        }}
       >
         <DialogTitle id="locations-dialog-title">All Locations</DialogTitle>
         <DialogContent>
-          {allLocations.map(([location, value, color]) => (
-            <div key={location}>
-              <span>{location}</span>
-              <span>{value}</span>
-              <span>{color}</span>
-            </div>
-          ))}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}
+            style={{ 
+              maxHeight: 'calc(100vh - 200px)', 
+              overflow: 'auto', 
+              border: '1px solid #ccc', 
+              borderRadius: '2px', 
+              marginBottom: '2px' 
+            }}
+          >
+            {allLocations.map(([location, value, color]) => (
+              <div 
+                key={location} 
+                style={{
+                  padding: '10px',
+                }}
+              >
+                <span 
+                  style={{ 
+                    fontWeight: 'bold',
+                    color: "#175df5" 
+                  }}
+                >{location}</span>
+              </div>
+            ))}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Box position="sticky" top={8}>
+              <ProgressBars />
+            </Box>
+          </Grid>
+        </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setModalOpen(false)} color="primary">
