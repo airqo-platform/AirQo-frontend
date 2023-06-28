@@ -281,7 +281,7 @@ const AveragesChart = ({ classes }) => {
           categoryPercentage: 0.5,
           ticks: {
             fontColor: "black",
-            callback: (value) => `${value.substr(0, 7)}...`,
+            callback: (value) => `${value.substr(0, 7)}`,
           },
           gridLines: {
             display: false,
@@ -344,11 +344,10 @@ const AveragesChart = ({ classes }) => {
           return 0;
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
-        setAllLocations(zippedArr); // Save all locations data
+        setAllLocations(zippedArr);
   
         if (!modalOpen) {
-          // Only set displayed locations if modal is not open
-          setDisplayedLocations(zippedArr.slice(0, 5)); // Display only 5 locations initially
+          setDisplayedLocations(zippedArr.slice(0, 10));
         }
   
         setAverages({ labels, average_values, background_colors });
@@ -372,11 +371,6 @@ const AveragesChart = ({ classes }) => {
     handleModalClose();
     fetchAndSetAverages(tempPollutant);
   };
-
-  useEffect(() => {
-    fetchAndSetAverages(pollutant);
-  }, []);
-
   useEffect(() => {
     fetchAndSetAverages(pollutant);
   }, [airqloud, modalOpen]);
@@ -414,6 +408,9 @@ const AveragesChart = ({ classes }) => {
                     {option.text}
                   </MenuItem>
                 ))}
+                <MenuItem variant="outlined" onClick={handleSeeMoreClick}>
+                  See More
+                </MenuItem>
               </Menu>
             </Grid>
           }
@@ -438,9 +435,6 @@ const AveragesChart = ({ classes }) => {
           </div>
           
         </CardContent>
-        <Button variant="outlined" onClick={handleSeeMoreClick}>
-          See More
-        </Button>
 
       </Card>
       <Dialog
@@ -485,6 +479,7 @@ const AveragesChart = ({ classes }) => {
         </DialogActions>
       </Dialog>
       <Dialog
+        fullscreen
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         aria-labelledby="locations-dialog-title"

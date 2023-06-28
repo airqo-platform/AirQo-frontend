@@ -346,6 +346,9 @@ const ExceedancesChart = (props) => {
                   {option.text}
                 </MenuItem>
               ))}
+                <MenuItem variant="outlined" onClick={openDialog}>
+                  See More
+                </MenuItem>
             </Menu>
           </Grid>
         }
@@ -448,7 +451,6 @@ const ExceedancesChart = (props) => {
               }
             />
           )}
-          <button onClick={openDialog}>Show Locations</button>  
           </div>
         </Grid>
 
