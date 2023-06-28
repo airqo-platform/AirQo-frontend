@@ -519,8 +519,8 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
       Future.delayed(const Duration(seconds: 1)).then((value) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(seconds: 20),
-          curve: Curves.easeOut,
+          duration: Duration(seconds: widget.insight.healthTips.length * 10),
+          curve: Curves.linear,
         );
       });
     });
