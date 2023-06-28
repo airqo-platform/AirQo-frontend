@@ -49,7 +49,6 @@ function ManagementStat() {
   });
   const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
   const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
-  const [isLoading, setLoading] = useState(false);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -166,7 +165,6 @@ function ManagementStat() {
 
   const updateLeaderboardDateRange = (e) => {
     e.preventDefault();
-    setLoading(true);
     const { value } = e.target;
 
     setLeaderboardDateRange(value);
@@ -188,7 +186,6 @@ function ManagementStat() {
         })
       );
     }
-    setLoading(false);
   };
 
   return (
@@ -205,7 +202,7 @@ function ManagementStat() {
           <ApexChart
             options={timeSeriesChartOptions({
               stroke: {
-                width: 1
+                width: 2
               }
             })}
             title={'Network uptime'}
@@ -229,7 +226,6 @@ function ManagementStat() {
             title={`Leaderboard in the last ${
               leaderboardDateRange === '1' ? '24 hours' : `${leaderboardDateRange} days`
             }`}
-            loading={isLoading}
             controller={
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {devicesUptimeDescending ? (

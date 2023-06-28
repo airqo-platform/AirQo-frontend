@@ -15,7 +15,7 @@ export const timeSeriesChartOptions = (extraOptions) => ({
   },
   xaxis: {
     type: 'datetime',
-    tickAmount: 7,
+    tickAmount: 4,
     labels: {
       datetimeUTC: false,
       formatter: function (value, timestamp, opts) {
@@ -30,6 +30,9 @@ export const timeSeriesChartOptions = (extraOptions) => ({
         return moment(new Date(val)).format('DD MMM yyyy hh:mm:ss');
       }
     }
+  },
+  stroke: {
+    width: 2
   },
   ...extraOptions
 });

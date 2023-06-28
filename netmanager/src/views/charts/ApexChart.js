@@ -10,13 +10,11 @@ import ApexCharts from 'apexcharts';
 const ApexChart = (props) => {
   const [chartType, setChartType] = useState(props.type);
   const [series, setSeries] = useState(props.series);
-  const [options, setOptions] = useState(props.options);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (props.series && props.series.length > 0) {
       setSeries(props.series);
-      setOptions(props.options);
       setChartType(props.type);
 
       const interval = setInterval(() => {
@@ -131,7 +129,7 @@ const ApexChart = (props) => {
     >
       <ReactApexChart
         key={chartType}
-        options={options}
+        options={props.options}
         series={series}
         type={chartType}
         height="320px"
