@@ -382,9 +382,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   // for device active status update
   const [isActive, setIsActive] = useState(deviceData.isActive);
 
-  console.log('deviceData', deviceStatus);
-  console.log('deviceData2', deviceData.isActive);
-
   const handleHeightChange = (enteredHeight) => {
     let re = /\s*|\d+(\.d+)?/;
     if (re.test(enteredHeight.target.value)) {
