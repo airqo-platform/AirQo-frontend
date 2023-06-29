@@ -24,6 +24,7 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
 import { GET_DEVICE_IMAGES, SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
+import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
 export const getAllDevicesApi = async (networkID) => {
   return await axios
@@ -140,11 +141,15 @@ export const deleteDevicePhotos = async (deviceId, urls) => {
 };
 
 export const getEventsApi = async (params) => {
-  return await axios.get(EVENTS, { params }).then((response) => response.data);
+  return await axios
+    .get(EVENTS, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
 };
 
 export const getSitesApi = async (params) => {
-  return await axios.get(SITES, { params }).then((response) => response.data);
+  return await axios
+    .get(SITES, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
 };
 
 export const getSitesSummaryApi = async (params) => {

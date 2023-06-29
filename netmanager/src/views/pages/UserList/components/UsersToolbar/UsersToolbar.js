@@ -23,6 +23,9 @@ import { fetchNetworkUsers } from 'redux/AccessControl/operations';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -301,11 +304,13 @@ const UsersToolbar = (props) => {
 
   return (
     <div className={clsx(classes.root, className)}>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
-            {loading ? 'Loading...' : 'Add new user'}
+            Add new user
           </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>

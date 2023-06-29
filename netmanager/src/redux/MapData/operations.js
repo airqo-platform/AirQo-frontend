@@ -20,34 +20,31 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
       const payload = transformDataToGeoJsonType(res)
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
-        payload,
+        payload
       });
     })
     .catch(() => {
       dispatch({
-        type: LOAD_PM25_HEATMAP_DATA_FAILURE,
+        type: LOAD_PM25_HEATMAP_DATA_FAILURE
       });
     });
 };
 
 export const loadPM25SensorData = () => async (dispatch) => {
-  return await getMonitoringSitesInfoApi("")
+  return await getMonitoringSitesInfoApi('')
     .then((responseData) => {
-      const payload = transformDataToGeoJson(
-        responseData.airquality_monitoring_sites,
-        {
-          longitude: "Longitude",
-          latitude: "Latitude",
-        }
-      );
+      const payload = transformDataToGeoJson(responseData.airquality_monitoring_sites, {
+        longitude: 'Longitude',
+        latitude: 'Latitude'
+      });
       dispatch({
         type: LOAD_PM25_SENSOR_DATA_SUCCESS,
-        payload,
+        payload
       });
     })
     .catch(() => {
       dispatch({
-        type: LOAD_PM25_SENSOR_DATA_FAILURE,
+        type: LOAD_PM25_SENSOR_DATA_FAILURE
       });
     });
 };
@@ -58,29 +55,23 @@ export const loadMapEventsData = (params) => async (dispatch) => {
       const payload = transformDataToGeoJson(
         responseData.measurements,
         {
-          longitude: "Longitude",
-          latitude: "Latitude",
+          longitude: 'Longitude',
+          latitude: 'Latitude'
         },
         (feature) => [
-          (feature.deviceDetails && feature.deviceDetails.longitude) ||
-            (feature.location &&
-              feature.location.longitude &&
-              feature.location.longitude.value),
-          (feature.deviceDetails && feature.deviceDetails.latitude) ||
-            (feature.location &&
-              feature.location.latitude &&
-              feature.location.latitude.value),
+          feature.siteDetails && feature.siteDetails.longitude,
+          feature.siteDetails && feature.siteDetails.latitude
         ]
       );
 
       dispatch({
         type: LOAD_MAP_EVENTS_SUCCESS,
-        payload,
+        payload
       });
     })
     .catch(() => {
       dispatch({
-        type: LOAD_MAP_EVENTS_FAILURE,
+        type: LOAD_MAP_EVENTS_FAILURE
       });
     });
 };

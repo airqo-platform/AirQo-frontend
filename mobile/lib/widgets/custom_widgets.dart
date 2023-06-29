@@ -27,12 +27,10 @@ class HealthTipContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 304,
-      height: 128,
-      constraints: const BoxConstraints(
-        minWidth: 304,
+      constraints: BoxConstraints(
+        minWidth: MediaQuery.of(context).size.width * 0.85,
         minHeight: 128,
-        maxWidth: 304,
+        maxWidth: MediaQuery.of(context).size.width * 0.85,
         maxHeight: 128,
       ),
       padding: const EdgeInsets.all(8.0),
@@ -42,25 +40,45 @@ class HealthTipContainer extends StatelessWidget {
           Radius.circular(16.0),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
+                child: Row(
+                  children: [
+                    Container(
             constraints: const BoxConstraints(
               maxWidth: 83,
               maxHeight: 112,
               minWidth: 83,
               minHeight: 112,
             ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  healthTip.image,
+            child: CachedNetworkImage(
+              imageUrl: healthTip.image,
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: imageProvider,
+                  ),
+                ),
+              ),
+              placeholder: (context, url) => const ContainerLoadingAnimation(
+                radius: 8,
+                height: 48,
+              ),
+              errorWidget: (context, url, error) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: Colors.grey, 
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.error,
+                    color: Colors.white, 
+                  ),
                 ),
               ),
             ),
           ),
+
           const SizedBox(
             width: 12,
           ),
