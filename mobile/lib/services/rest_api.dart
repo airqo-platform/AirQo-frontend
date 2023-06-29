@@ -334,8 +334,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final body = jsonEncode(favorite.toJson()..remove('_id'));
- 
+      final body = jsonEncode(favorite.toJson()
+        ..remove('_id')
+        ..addAll({'firebase_user_id': userId}));
+
       final response = await client.post(
         Uri.parse("${AirQoUrls.favorites}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,

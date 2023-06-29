@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity/connectivity.dart';
 
 import 'firebase_service.dart';
 import 'hive_service.dart';
@@ -139,5 +140,24 @@ class AppService {
     }
 
     return appStoreVersion;
+  }
+
+  Future<bool> checkInternetConnectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  Future<void> storeFavoritesLocally(String key, String data) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> favorites = prefs.getStringList(key) ?? [];
+    favorites.add(data);
+    await prefs.setStringList(key, favorites);
+  }
+
+  Future<List<String>> getStoredFavorites(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> favorites = prefs.getStringList(key) ?? [];
+    await prefs.remove(key);
+    return favorites;
   }
 }

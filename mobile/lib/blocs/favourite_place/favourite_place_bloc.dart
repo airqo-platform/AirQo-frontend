@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -15,6 +16,8 @@ class FavouritePlaceBloc
     on<ClearFavouritePlaces>(_onClearFavouritePlaces);
     on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
   }
+
+  final AppService _appService = AppService();
 
   Set<FavouritePlace> _updateAirQuality(Set<FavouritePlace> data) {
     List<AirQualityReading> airQualityReadings =
@@ -47,28 +50,46 @@ class FavouritePlaceBloc
     UpdateFavouritePlace event,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    Set<FavouritePlace> favouritePlaces = List.of(state).toSet();
+    try {
+      Set<FavouritePlace> favouritePlaces = List.of(state).toSet();
 
-    if (favouritePlaces.contains(event.favouritePlace)) {
-      
-      bool removed =
-          await AirqoApiClient().deleteFavoritePlaces(event.favouritePlace);
-      if (removed) {
-        favouritePlaces.remove(event.favouritePlace);
+      if (favouritePlaces.contains(event.favouritePlace)) {
+        if (await _appService.checkInternetConnectivity()) {
+        
+          bool removed =
+              await AirqoApiClient().deleteFavoritePlaces(event.favouritePlace);
+          if (removed) {
+            favouritePlaces.remove(event.favouritePlace);
+          }
+        } else {
+         
+          String storedFav = jsonEncode(event.favouritePlace.toJson());
+          await _appService.storeFavoritesLocally("remove", storedFav);
+        }
+      } else {
+        if (await _appService.checkInternetConnectivity()) {
+          bool added =
+              await AirqoApiClient().addFavoritePlaces(event.favouritePlace);
+          if (added) {
+            favouritePlaces.add(event.favouritePlace);
+          }
+        } else {
+          String storedFav = jsonEncode(event.favouritePlace.toJson());
+          await _appService.storeFavoritesLocally("add", storedFav);
+        }
       }
-    } else {
-      bool added =
-          await AirqoApiClient().addFavoritePlaces(event.favouritePlace);
-      if (added) {
-        favouritePlaces.add(event.favouritePlace);
+
+      _onEmitFavouritePlaces(favouritePlaces, emit);
+
+      if (favouritePlaces.length >= 5) {
+        await CloudAnalytics.logEvent(
+          CloudAnalyticsEvent.savesFiveFavorites,
+        );
       }
-    }
-
-    _onEmitFavouritePlaces(favouritePlaces, emit);
-
-    if (favouritePlaces.length >= 5) {
-      await CloudAnalytics.logEvent(
-        CloudAnalyticsEvent.savesFiveFavorites,
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
       );
     }
   }
@@ -84,6 +105,27 @@ class FavouritePlaceBloc
     SyncFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) async {
+    if (await _appService.checkInternetConnectivity()) {
+      List<String> addedFavorites = await _appService.getStoredFavorites("add");
+
+      for (String favorite in addedFavorites) {
+        FavouritePlace fav = FavouritePlace.fromJson(
+          jsonDecode(favorite) as Map<String, dynamic>,
+        );
+
+        await AirqoApiClient().addFavoritePlaces(fav);
+      }
+
+      List<String> removedFavorites =
+          await _appService.getStoredFavorites("remove");
+
+      for (String favorite in removedFavorites) {
+        FavouritePlace fav = FavouritePlace.fromJson(
+          jsonDecode(favorite) as Map<String, dynamic>,
+        );
+        await AirqoApiClient().deleteFavoritePlaces(fav);
+      }
+    }
     List<FavouritePlace> userFavoritePlaces =
         await AirqoApiClient().fetchFavoritePlaces();
 
@@ -111,7 +153,6 @@ class FavouritePlaceBloc
     updatedFavouritePlaces = _updateAirQuality(updatedFavouritePlaces);
 
     _onEmitFavouritePlaces(favouritePlaces, emit);
-    // await CloudStore.updateFavouritePlaces(updatedFavouritePlaces.toList());
   }
 
   @override
