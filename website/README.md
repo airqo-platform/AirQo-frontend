@@ -212,7 +212,7 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
 Populate the `.env` file in the root of the folder with the values of the keys given in [.env.sample](./.env.sample) file as a template.
 
-Here is the [documentation link](https://staging-wiki.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
+Here is the [documentation link](https://wiki.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
 
 **Note**: Remove `DATABASE_URI` variable if you are using docker
 

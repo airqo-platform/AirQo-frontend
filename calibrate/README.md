@@ -11,7 +11,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 Use the [.env.sample](./.env.sample) to create a personal `.env` file.
 
-Refer to the [documentation](https://staging-wiki.airqo.net/#/../api/users?id=login) to learn how to obtain an authentication token.
+Refer to the [documentation](https://wiki.airqo.net/#/../api/users?id=login) to learn how to obtain an authentication token.
 
 ## Installing product dependencies/packages
 
