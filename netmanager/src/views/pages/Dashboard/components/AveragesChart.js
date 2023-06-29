@@ -11,6 +11,7 @@ import {
   Divider,
   Grid,
   IconButton,
+  Badge,
   Box,
   Typography
 } from "@material-ui/core";
@@ -32,6 +33,7 @@ import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions } from "utils/sites";
 import { usePollutantsOptions } from "utils/customHooks";
 import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
+import PropTypes from 'prop-types';
 function appendLeadingZeroes(n) {
   if (n <= 9) {
     return "0" + n;
@@ -360,6 +362,68 @@ const AveragesChart = ({ classes }) => {
       });
   };
 
+  const Location = ({ location, value }) => {
+    const getLocationStatus = (value) => {
+      if (value <= 12.09) {
+        return { status: 'Good', color: 'green' };
+      } else if (value <= 35.49) {
+        return { status: 'Moderate', color: 'orange' };
+      } else if (value <= 55.49) {
+        return { status: 'UFSG', color: 'yellow' };
+      } else if (value <= 150.49) {
+        return { status: 'Unhealthy', color: 'red' };
+      } else if (value <= 250.49) {
+        return { status: 'Very Unhealthy', color: 'purple' };
+      } else {
+        return { status: 'Hazardous', color: 'brown' };
+      }
+    };
+    const { status, color } = getLocationStatus(value);
+
+    const locationStyle = {
+      fontWeight: 'bold',
+      color: "#175df5",
+      marginRight: '10px',
+    };
+
+    const badgeStyle = {
+      marginRight: '10px',
+      color: color,
+      padding: '5px 8px',
+      borderRadius: '4px',
+    };
+    return (
+      
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              maxHeight: 'calc(100vh - 200px)',
+              overflow: 'auto',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              marginBottom: '10px',
+            }}
+          >
+            <span id="location" style={locationStyle}>{location}</span>
+            <Badge badgeContent={status} style={badgeStyle} />
+            <span id="value"
+              style={{
+                fontWeight:"bold"
+              }}
+            >{value}</span>
+          </div>
+        
+    );
+  };
+  
+  Location.propTypes = {
+    location: PropTypes.string.isRequired,
+    value: PropTypes.number.isRequired,
+  };
+
   const ProgressBars = () => {
     const barRanges = [
       { label: "Good:", min: 0, max: 12.09 },
@@ -370,46 +434,63 @@ const AveragesChart = ({ classes }) => {
       { label: "Hazardous:", min: 250.5, max: 500 }
     ];
   
-    // Calculate the counts for each range
     const totalLocations = allLocations.length;
 
-    // Calculate the percentage for each range
     const barPercentages = barRanges.map(({ min, max }) => {
       const count = allLocations.filter(([_, value]) => value >= min && value <= max).length;
       return (count / totalLocations) * 100;
     });
   
-    // Calculate the maximum percentage among all bars
     const maxPercentage = Math.max(...barPercentages);
   
     return (
-      <Card>
-        <CardHeader title={customChartTitle} />
+      <Card
+        style={{
+          width: "100%",
+          height: "100%"
+        }}
+      >
         <CardContent>
           <div>
           {barRanges.map(({ label }, index) => {
             const barPercentage = barPercentages[index];
-            const remainingPercentage = maxPercentage - barPercentage;
+
+            const count = allLocations.filter(
+              ([_, value]) => value >= barRanges[index].min && value <= barRanges[index].max
+            ).length;
+
     
             return (
-              <div key={index} style={{ marginBottom: "10px" }}>
+              <div key={index} style={{ marginBottom: "8px" }}>
                 <div
                   style={{
                     fontWeight: "bold",
-                    color: "",
+                    display: "flex",
                     fontSize: "16px",
-                    marginBottom: "5px"
+                    marginBottom: "5px",
+                    justifyContent: "space-between",
+                    marginTop: "5px",
                     
                   }}
-                >{label}</div>
+                >
+                  {label}
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      paddingLeft: "10px",
+                      fontWeight: "bold"
+                    }}
+                  >{count} Locations. </span>
+                </div>
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    maxWidth: "500px",
+                    maxWidth: "100%",
                     height: "5px",
                     backgroundColor: "lightgray",
-                    marginBottom: "5px"
+                    marginBottom: "20px"
                   }}
                 >
                   <div
@@ -421,6 +502,7 @@ const AveragesChart = ({ classes }) => {
                   ></div>
                   
                 </div>
+                
               </div>
             );
           })}
@@ -446,8 +528,8 @@ const AveragesChart = ({ classes }) => {
   }, [airqloud, modalOpen]);
   
   const handleSeeMoreClick = () => {
-    setDisplayedLocations(allLocations); // Display all locations
-    setModalOpen(true); // Open the modal
+    setDisplayedLocations(allLocations); 
+    setModalOpen(true); 
   };
 
   return (
@@ -562,40 +644,37 @@ const AveragesChart = ({ classes }) => {
           },
         }}
       >
-        <DialogTitle id="locations-dialog-title">All Locations</DialogTitle>
+        <DialogTitle id="locations-dialog-title"
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            paddingLeft: "500px",
+            fontSize: "18px"
+          }}
+        >{customChartTitle}</DialogTitle>
         <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}
-            style={{ 
-              maxHeight: 'calc(100vh - 200px)', 
-              overflow: 'auto', 
-              border: '1px solid #ccc', 
-              borderRadius: '2px', 
-              marginBottom: '2px' 
-            }}
-          >
-            {allLocations.map(([location, value, color]) => (
-              <div 
-                key={location} 
-                style={{
-                  padding: '10px',
-                }}
-              >
-                <span 
-                  style={{ 
-                    fontWeight: 'bold',
-                    color: "#175df5" 
-                  }}
-                >{location}</span>
-              </div>
-            ))}
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Box position="sticky" top={8}>
+          <Grid container spacing={2}>
+            <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
               <ProgressBars />
-            </Box>
+            </Grid>
+            <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+              <Card>
+                <CardContent
+                  style={{ 
+                    maxHeight: 'calc(100vh - 200px)', 
+                    overflow: 'auto',  
+                    // borderRadius: '2px', 
+                    marginBottom: '2px' 
+                  }}
+                >
+                  {allLocations.map(([location, value, color]) => (
+                    <Location key={location} location={location} value={value} />
+                  ))}
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setModalOpen(false)} color="primary">
