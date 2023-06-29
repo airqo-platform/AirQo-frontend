@@ -19,6 +19,7 @@ class NotificationService {
     await Permission.notification.request().then((status) {
       switch (status) {
         case PermissionStatus.granted:
+        case PermissionStatus.provisional:
         case PermissionStatus.limited:
           context
               .read<ProfileBloc>()
@@ -61,6 +62,7 @@ class NotificationService {
       await Permission.notification.status.then((status) async {
         switch (status) {
           case PermissionStatus.permanentlyDenied:
+          case PermissionStatus.provisional:
             await openPhoneSettings(context, enableNotificationsMessage);
             break;
           case PermissionStatus.denied:
