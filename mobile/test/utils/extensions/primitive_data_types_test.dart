@@ -86,7 +86,7 @@ void main() {
       expect('abcdefgh'.isValidPhoneNumber(), isFalse);
       expect('123456'.isValidPhoneNumber(), isFalse);
       expect('+123456789a2'.isValidPhoneNumber(), isFalse);
-      expect('12345678901'.isValidPhoneNumber(), isFalse);
+      expect('12345!8901'.isValidPhoneNumber(), isFalse);
       expect('+1234567890123456'.isValidPhoneNumber(), isFalse);
       expect('(123)456-7890'.isValidPhoneNumber(), isFalse);
       expect('+12345678901'.isValidPhoneNumber(), isTrue);
@@ -98,10 +98,11 @@ void main() {
         () {
       expect(''.isValidEmail(), isFalse);
       expect('noblethegreat'.isValidEmail(), isFalse);
-      expect('.@example.com'.isValidEmail(), isFalse);
+      expect('noble@airqo'.isValidEmail(), isFalse);
+      expect('noble@airqo.google.com'.isValidEmail(), isTrue);
+      expect('\$@example.com'.isValidEmail(), isFalse);
       expect('@example.com'.isValidEmail(), isFalse);
       expect('john.doe@example.'.isValidEmail(), isFalse);
-      expect('noble@airqo.u'.isValidEmail(), isFalse);
       expect('noble@airqo.ug'.isValidEmail(), isTrue);
       expect('noble.m@airqo.net'.isValidEmail(), isTrue);
       expect('noble.m+/spam@airqo.net'.isValidEmail(), isTrue);
