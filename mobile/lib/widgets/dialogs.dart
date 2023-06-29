@@ -320,12 +320,11 @@ void showSnackBar(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-Future<void> showFavouritePlaceSnackBar(
+void showFavouritePlaceSnackBar(
   BuildContext context,
   AirQualityReading airQualityReading, {
-  int durationInSeconds = 2,
-}) async {
-  bool isInternetOn = await AppService().checkInternetConnectivity();
+  int durationInSeconds = 4,
+}) {
   final snackBar = SnackBar(
     duration: Duration(seconds: durationInSeconds),
     elevation: 0,
@@ -406,8 +405,7 @@ Future<void> showFavouritePlaceSnackBar(
         const SizedBox(
           width: 12,
         ),
-        isInternetOn
-            ? Expanded(
+        Expanded(
           child: AutoSizeText(
             "${airQualityReading.name} has been added to your favorites",
             maxLines: 1,
@@ -417,18 +415,7 @@ Future<void> showFavouritePlaceSnackBar(
               color: Colors.white,
             ),
           ),
-              )
-            : Expanded(
-                child: AutoSizeText(
-                  "Currently offline, ${airQualityReading.name} will be added to your favorites when online",
-                  maxLines: 1,
-                  minFontSize: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+        ),
       ],
     ),
     backgroundColor: CustomColors.appColorBlack,

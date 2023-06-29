@@ -17,9 +17,8 @@ class FavouritePlace extends Equatable {
     required this.latitude,
     required this.longitude,
     this.airQualityReading,
-    this.favoriteId,
+    this.id,
   });
-
 
   factory FavouritePlace.fromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -33,7 +32,6 @@ class FavouritePlace extends Equatable {
       longitude: airQualityReading.longitude,
     );
   }
-
 
   FavouritePlace copyWith({
     String? referenceSite,
@@ -62,7 +60,7 @@ class FavouritePlace extends Equatable {
   final String referenceSite;
 
   @JsonKey(defaultValue: '', name: 'place_id')
-  final dynamic placeId;
+  final String placeId;
 
   @JsonKey(defaultValue: 0.0)
   final double latitude;
@@ -71,7 +69,7 @@ class FavouritePlace extends Equatable {
   final double longitude;
 
   @JsonKey(name: '_id')
-  final dynamic favoriteId;
+  final String? id;
 
   @JsonKey(
     includeToJson: false,

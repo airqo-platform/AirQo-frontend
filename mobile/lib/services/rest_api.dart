@@ -283,19 +283,15 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
-  Future<List<FavouritePlace>> fetchFavoritePlaces() async {
+  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
     final favoritePlaces = <FavouritePlace>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
 
     try {
-      String userId = CustomAuth.getUserId();
-
-      String url = AirQoUrls.favoritesforUser;
-
       final body = await _performGetRequest(
         queryParams,
-        "$url/$userId",
+        "${AirQoUrls.favourites}/$userId",
         apiService: ApiService.auth,
       );
 
@@ -305,8 +301,7 @@ class AirqoApiClient {
             FavouritePlace.fromJson(
               favorite as Map<String, dynamic>,
             ),
-            );
-          
+          );
         } catch (exception, stackTrace) {
           await logException(
             exception,
@@ -324,7 +319,7 @@ class AirqoApiClient {
     return favoritePlaces;
   }
 
-  Future<bool> addFavoritePlaces(FavouritePlace favorite) async {
+  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites) async {
     final userId = CustomAuth.getUserId();
 
     if (userId.isEmpty) {
@@ -334,18 +329,16 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final body = jsonEncode(favorite.toJson()
-        ..remove('_id')
-        ..addAll({'firebase_user_id': userId}));
+      final body = favorites.map((e) => e.toJson()).toList();
 
       final response = await client.post(
-        Uri.parse("${AirQoUrls.favorites}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(
+            "${AirQoUrls.favouritesSync}?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: body,
       );
 
       return response.statusCode == 200 ? true : false;
-      
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -353,36 +346,6 @@ class AirqoApiClient {
       );
     }
 
-    return false;
-  }
-
-  Future<bool> deleteFavoritePlaces(FavouritePlace favorite) async {
-    try {
-      Map<String, String> headers = Map.from(postHeaders);
-      headers["service"] = ApiService.auth.serviceName;
-      final favoritePlaces = await fetchFavoritePlaces();
-
-      for (final fav in favoritePlaces) {
-        if (fav.placeId == favorite.placeId) {
-          final id = fav.favoriteId;
-
-          final response = await client.delete(
-            Uri.parse(
-              "${AirQoUrls.favorites}/$id?TOKEN=${Config.airqoApiV2Token}",
-            ),
-            headers: headers,
-          );
-
-          return response.statusCode == 200 ? true : false;
-        }
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-    
     return false;
   }
 

@@ -69,7 +69,6 @@ dependencies:
   showcaseview: ^2.0.3
   url_launcher: ^6.1.11
   hydrated_bloc: ^9.1.1
-  connectivity: ^3.0.6
   # Drift previous database => airqo_app_db.sqlite
   
 dev_dependencies:
