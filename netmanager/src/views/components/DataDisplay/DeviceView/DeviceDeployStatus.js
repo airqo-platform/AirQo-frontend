@@ -29,7 +29,8 @@ import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
-
+// dropdown component
+import Select from 'react-select';
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
@@ -37,6 +38,55 @@ const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
   notDeployed: 'not deployed',
   recalled: 'recalled'
+};
+
+// power options
+const powerOptions = [
+  { value: 'Mains', label: 'Mains' },
+  { value: 'Solar', label: 'Solar' },
+  { value: 'Alternator', label: 'Alternator' }
+];
+
+// mount type options
+const mountTypeOptions = [
+  { value: 'Faceboard', label: 'Faceboard' },
+  { value: 'Pole', label: 'Pole' },
+  { value: 'Rooftop', label: 'Rooftop' },
+  { value: 'Suspended', label: 'Suspended' },
+  { value: 'Wall', label: 'Wall' }
+];
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '50px',
+    marginBottom: '12px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -306,8 +356,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     error: false
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-  console.log('Device', deviceData.site);
-  const [site, setSite] = useState(filterSite(siteOptions, deviceData.site && deviceData.site._id));
+  // const [site, setSite] = useState(filterSite(siteOptions, deviceData.site && deviceData.site._id));
+  const [site, setSite] = useState('');
   const [deployLoading, setDeployLoading] = useState(false);
   const [deployed, setDeployed] = useState(false);
   const [recallLoading, setrecallLoading] = useState(false);
@@ -320,11 +370,20 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   });
   const [inputErrors, setInputErrors] = useState(false);
 
-  const deviceStatus = !deviceData.status
-    ? deviceData.isActive === true
-      ? 'deployed'
-      : 'not deployed'
-    : deviceData.status;
+  // for device status update
+  const [deviceStatus, setDeviceStatus] = useState(
+    !deviceData.status
+      ? deviceData.isActive === true
+        ? 'deployed'
+        : 'not deployed'
+      : deviceData.status
+  );
+
+  // for device active status update
+  const [isActive, setIsActive] = useState(deviceData.isActive);
+
+  console.log('deviceData', deviceStatus);
+  console.log('deviceData2', deviceData.isActive);
 
   const handleHeightChange = (enteredHeight) => {
     let re = /\s*|\d+(\.d+)?/;
@@ -409,6 +468,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         );
         setDeployed(true);
         setInputErrors(false);
+
+        //  this will update the device status to deployed and active to true
+        setDeviceStatus('deployed');
+        setIsActive(true);
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.errors) || {};
@@ -443,6 +506,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: 'success'
           })
         );
+        // this will update the device status and isActive state after recalling the device
+        setDeviceStatus('recalled');
+        setIsActive(false);
       })
       .catch((err) => {
         dispatch(
@@ -455,6 +521,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       });
     setrecallLoading(false);
   };
+
+  useEffect(() => {
+    deviceData.isActive = isActive;
+  }, [isActive]);
 
   const weightedBool = (primary, secondary) => {
     if (primary) {
@@ -519,7 +589,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               <Button
                 variant="contained"
                 color="primary"
-                disabled={!deviceData.isActive}
+                disabled={!isActive}
                 onClick={() => setRecallOpen(!recallOpen)}>
                 {recallLoading ? 'Recalling' : 'Recall Device'}
               </Button>
@@ -544,16 +614,19 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         }}>
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
-            <div style={{ marginBottom: '15px' }}>
-              <OutlinedSelect
-                label="Site"
+            <div>
+              <Select
                 options={siteOptions}
                 value={site}
+                isSearchable
+                required
+                styles={customStyles}
                 onChange={(newValue, actionMeta) => {
                   setSite(newValue);
                   setInputErrors(false);
                   setErrors({ ...errors, site: '' });
                 }}
+                placeholder="Select a site"
               />
               {errors.site_id && (
                 <div
@@ -583,63 +656,55 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               }}
             />
 
-            <TextField
-              select
-              fullWidth
-              required
-              label="Power type"
-              style={{ marginBottom: '15px' }}
-              value={power}
-              error={!!errors.powerType}
-              helperText={errors.powerType}
-              onChange={(event) => {
-                setPower(event.target.value);
-                setInputErrors(false);
-                setErrors({
-                  ...errors,
-                  power: event.target.value.length > 0 ? '' : errors.power
-                });
-              }}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
-              variant="outlined">
-              <option value="" />
-              <option value="Mains">Mains</option>
-              <option value="Solar">Solar</option>
-              <option value="Alternator">Alternator</option>
-            </TextField>
+            <div>
+              <Select
+                options={powerOptions}
+                value={powerOptions.find((option) => option.value === power)}
+                isSearchable
+                required
+                styles={customStyles}
+                placeholder="Select a power type"
+                onChange={(newValue, actionMeta) => {
+                  setPower(newValue.value);
+                  setInputErrors(false);
+                  setErrors({
+                    ...errors,
+                    power: newValue.value.length > 0 ? '' : errors.power
+                  });
+                }}
+              />
+              {errors.powerType && (
+                <div style={{ color: 'red', textAlign: 'left', fontSize: '0.7rem' }}>
+                  {errors.powerType}
+                </div>
+              )}
+            </div>
 
-            <TextField
-              select
-              label="Mount Type"
-              required
-              variant="outlined"
-              style={{ marginBottom: '15px' }}
-              value={capitalize(installationType)}
-              error={!!errors.mountType}
-              helperText={errors.mountType}
-              onChange={(event) => {
-                setInstallationType(event.target.value);
-                setInputErrors(false);
-                setErrors({
-                  ...errors,
-                  installationType: event.target.value.length > 0 ? '' : errors.installationType
-                });
-              }}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
-              fullWidth>
-              <option value="" />
-              <option value="Faceboard">Faceboard</option>
-              <option value="Pole">Pole</option>
-              <option value="Rooftop">Rooftop</option>
-              <option value="Suspended">Suspended</option>
-              <option value="Wall">Wall</option>
-            </TextField>
+            <div>
+              <Select
+                options={mountTypeOptions}
+                value={mountTypeOptions.find(
+                  (option) => option.value === capitalize(installationType)
+                )}
+                onChange={(newValue, actionMeta) => {
+                  setInstallationType(newValue.value);
+                  setInputErrors(false);
+                  setErrors({
+                    ...errors,
+                    installationType: newValue.value.length > 0 ? '' : errors.installationType
+                  });
+                }}
+                isSearchable
+                required
+                styles={customStyles}
+                placeholder="Select a mount type"
+              />
+              {errors.mountType && (
+                <div style={{ color: 'red', textAlign: 'left', fontSize: '0.7rem' }}>
+                  {errors.mountType}
+                </div>
+              )}
+            </div>
 
             <TextField
               autoFocus
@@ -756,7 +821,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 <Button
                   variant="contained"
                   color="primary"
-                  disabled={weightedBool(deployLoading, deviceData.isActive || inputErrors)}
+                  disabled={weightedBool(deployLoading, isActive || inputErrors)}
                   onClick={handleDeploySubmit}
                   style={{ marginLeft: '10px' }}>
                   {deployLoading ? 'Deploying' : deployed ? 'Deployed' : 'Deploy'}
