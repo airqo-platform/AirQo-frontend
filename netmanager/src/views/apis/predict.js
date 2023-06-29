@@ -9,16 +9,37 @@ if (token) {
 }
 
 const API_TOKEN = process.env.REACT_APP_API_TOKEN
-const API_LIMIT = 20000
-const TIMEOUT = 500000
 
 export const heatmapPredictApi = async () => {
-  return await axios.get(GET_HEATMAP_DATA, {
-    params:{
-      token: API_TOKEN,
-      limit: API_LIMIT
+  let allHeatMapData =[];
+  let page = 1
+  let response;
+  let MAX_PAGES;
+  do {
+    try {
+      response = await axios.get(GET_HEATMAP_DATA, {
+        params: {
+          token: API_TOKEN
+        }
+      })
+      MAX_PAGES = response.data.pages;
+      allHeatMapData.push(axios.get(`${GET_HEATMAP_DATA}?page=${page}`, {
+        params: {
+          token: API_TOKEN
+        }
+      }))
+      let resolvedPromises = await Promise.all(allHeatMapData);
+      for (let i = 0; i < resolvedPromises.length; i++){
+        allHeatMapData = resolvedPromises[i]
+      }
+      page++  
     }
-  }, { timeout: TIMEOUT }).then((response) => response.data);
+    catch (error) {
+      break;
+    }
+  }
+  while (page <= MAX_PAGES);
+  return allHeatMapData;
 };
 
 export const geocoordinatesPredictApi = async (params) => {
