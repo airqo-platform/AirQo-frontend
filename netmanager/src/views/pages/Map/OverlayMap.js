@@ -635,8 +635,6 @@ const MapContainer = () => {
   const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
 
-  console.log("Heatmap:",heatMapData)
-
   useEffect(() => {
     if (isEmpty(heatMapData)) {
       dispatch(loadPM25HeatMapData());
