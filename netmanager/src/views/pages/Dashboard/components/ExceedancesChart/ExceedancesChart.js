@@ -14,8 +14,10 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  CardActions,
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import axios from "axios";
 import palette from "theme/palette";
 import { EXCEEDANCES_URI } from "config/urls/analytics";
@@ -346,9 +348,6 @@ const ExceedancesChart = (props) => {
                   {option.text}
                 </MenuItem>
               ))}
-                <MenuItem variant="outlined" onClick={openDialog}>
-                  See More
-                </MenuItem>
             </Menu>
           </Grid>
         }
@@ -533,7 +532,29 @@ const ExceedancesChart = (props) => {
           <button onClick={() => setDialogOpen(false)}>Close</button>
         </DialogActions>
       </Dialog>
-
+      <CardActions className={classes.cardActions} 
+          style={{
+            justifyContent: 'flex-end',
+            marginTop: 'auto',
+          }}
+        >
+          <Button variant="outlined"  color="primary"
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
+            // onClick={openDialog}
+            style={{
+              textTransform: 'none',
+              paddingLeft: 0,
+              paddingRight: 0,
+              boxShadow: 'none',
+              background: 'transparent',
+              border: 'none',
+            }}
+          >
+            View all Exceedances <ArrowForwardIcon />
+          </Button>
+        </CardActions>
     </Card>
   );
 };

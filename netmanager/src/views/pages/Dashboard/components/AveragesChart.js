@@ -12,11 +12,11 @@ import {
   Grid,
   IconButton,
   Badge,
-  Box,
-  Typography
+  Link,
+  CardActions,
 } from "@material-ui/core";
 import clsx from "clsx";
-import LinearProgress from '@material-ui/core/LinearProgress';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -560,9 +560,6 @@ const AveragesChart = ({ classes }) => {
                     {option.text}
                   </MenuItem>
                 ))}
-                <MenuItem variant="outlined" onClick={handleSeeMoreClick}>
-                  See More
-                </MenuItem>
               </Menu>
             </Grid>
           }
@@ -587,7 +584,29 @@ const AveragesChart = ({ classes }) => {
           </div>
           
         </CardContent>
-
+        <CardActions className={classes.cardActions} 
+          style={{
+            justifyContent: 'flex-end',
+            marginTop: 'auto',
+          }}
+        >
+          <Button variant="outlined"  color="primary"
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
+            onClick={handleSeeMoreClick}
+            style={{
+              textTransform: 'none',
+              paddingLeft: 0,
+              paddingRight: 0,
+              boxShadow: 'none',
+              background: 'transparent',
+              border: 'none',
+            }}
+          >
+            View all Locations <ArrowForwardIcon />
+          </Button>
+        </CardActions>
       </Card>
       <Dialog
         // classes={{ paper: classes.dialogPaper }}
@@ -644,13 +663,13 @@ const AveragesChart = ({ classes }) => {
           },
         }}
       >
-        <DialogTitle id="locations-dialog-title"
+        <DialogTitle
           style={{
             alignItems: "center",
             justifyContent: "center",
-            fontWeight: "bold",
+            fontWeight: "600",
             paddingLeft: "500px",
-            fontSize: "18px"
+            fontSize: "100"
           }}
         >{customChartTitle}</DialogTitle>
         <DialogContent>
