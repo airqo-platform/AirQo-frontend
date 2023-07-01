@@ -13,11 +13,11 @@ class WidgetService {
   static Future<void> sendData() async {
     CurrentLocation? currentLocation =
         await LocationService.getCurrentLocation();
-    // final favouritePlaces =
-    //     BlocProvider.of<FavouritePlaceBloc>(context as BuildContext).state;
-    // final firstFavouritePlace =
-    //     favouritePlaces.isNotEmpty ? favouritePlaces.first : null;
-
+    final favouritePlaces =
+        BlocProvider.of<FavouritePlaceBloc>(context as BuildContext).state;
+    final firstFavouritePlace =
+        favouritePlaces.isNotEmpty ? favouritePlaces.first : null;
+    //
     Future<AirQualityReading?> getAirQualityReading(
         double latitude, double longitude) async {
       return await LocationService.getNearestSite(latitude, longitude) ??
@@ -31,28 +31,28 @@ class WidgetService {
             ? (HiveService().getNearbyAirQualityReadings()..shuffle()).first
             : null;
 
-    // AirQualityReading? airQualityReading = currentLocation != null
-    //     ? await getAirQualityReading(
-    //         currentLocation.latitude, currentLocation.longitude)
-    //     : firstFavouritePlace != null
-    //         ? await getAirQualityReading(
-    //             firstFavouritePlace.latitude, firstFavouritePlace.longitude)
-    //         : hiveAirQualityReading;
-
     AirQualityReading? airQualityReading = currentLocation != null
         ? await getAirQualityReading(
             currentLocation.latitude, currentLocation.longitude)
-        : hiveAirQualityReading;
-
-    // final airQualityReading = await LocationService.getNearestSite(
-    //       currentLocation!.latitude,
-    //       currentLocation.longitude,
-    //     ) ??
-    //     (await LocationService.getSurroundingSites(
-    //       latitude: currentLocation.latitude,
-    //       longitude: currentLocation.longitude,
-    //     ))
-    //         .firstOrNull;
+        : firstFavouritePlace != null
+            ? await getAirQualityReading(
+                firstFavouritePlace.latitude, firstFavouritePlace.longitude)
+            : hiveAirQualityReading;
+    //
+    // AirQualityReading? airQualityReading = currentLocation != null
+    //     ? await getAirQualityReading(
+    //         currentLocation.latitude, currentLocation.longitude)
+    //     : hiveAirQualityReading;
+    //
+    // // final airQualityReading = await LocationService.getNearestSite(
+    // //       currentLocation!.latitude,
+    // //       currentLocation.longitude,
+    // //     ) ??
+    // //     (await LocationService.getSurroundingSites(
+    // //       latitude: currentLocation.latitude,
+    // //       longitude: currentLocation.longitude,
+    // //     ))
+    // //         .firstOrNull;
 
     if (airQualityReading != null) {
       final widgetData =
