@@ -46,6 +46,9 @@ const StyledMenuItem = withStyles((theme) => ({
       color: 'black',
       '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
         color: theme.palette.common.white
+      },
+      '& .MuiListItemText-primary:hover': {
+        color: '#175df5',
       }
     },
     '& .MuiListItemText-primary': {
