@@ -56,21 +56,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v1.1.1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="prod-env-netmanager" > netmanager/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3.6.0
         with:
           node-version: "12"
       - run: |
@@ -79,7 +79,7 @@ jobs:
           CI=false npm run build
 
       - name: Login to GCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v2.2.0
         with:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
@@ -94,7 +94,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-platform-frontend:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.3.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -107,7 +107,7 @@ jobs:
             createPR: false
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v3
+        uses: azure/k8s-set-context@v3.0
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
@@ -125,29 +125,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Login to GCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v2.2.0
         with:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2.8.0
 
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
+        uses: "google-github-actions/setup-gcloud@v1.1.1"
 
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
-        uses: jsdaniell/create-json@1.1.2
+        uses: jsdaniell/create-json@1.2.2
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
@@ -207,21 +207,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v1.1.1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="prod-env-calibrate-app" > calibrate/.env
 
       - name: NPM Setup and Build
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3.6.0
         with:
           node-version: "12"
       - run: |
@@ -230,7 +230,7 @@ jobs:
           CI=false npm run build
 
       - name: Login to GCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v2.2.0
         with:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
@@ -245,7 +245,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-calibrate-app:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.3.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -257,7 +257,7 @@ jobs:
             message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v3
+        uses: azure/k8s-set-context@v3.0
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
@@ -275,21 +275,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v1.1.1
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="prod-env-next-platform" > platform/.env
 
       - name: Login to GCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v2.2.0
         with:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
@@ -304,7 +304,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-next-platform:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.3.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
@@ -316,7 +316,7 @@ jobs:
             message: "Update analytics platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
-        uses: azure/k8s-set-context@v3
+        uses: azure/k8s-set-context@v3.0
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
@@ -334,10 +334,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Login to GCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v2.2.0
         with:
           registry: ${{ env.REGISTRY_URL }}
           username: _json_key
@@ -352,7 +352,7 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-prod-docs:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.3.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
