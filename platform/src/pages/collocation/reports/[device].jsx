@@ -154,19 +154,29 @@ const Reports = () => {
               </div>
             ) : (
               <>
-                {isCollocationResultsSuccess && (
-                  <>
-                    <CorrelationChart
-                      data={collocationResultsList}
-                      pmConcentration={pmConcentration}
-                      height={'210'}
-                      isInterSensorCorrelation
-                      graphColors={graphColors}
-                    />
-                    {batchList && graphColors && (
-                      <CustomLegend isDeviceLegend devices={batchList} graphColors={graphColors} />
-                    )}
-                  </>
+                {isCollocationResultsSuccess &&
+                  collocationResultsList &&
+                  !isEmpty(collocationResultsList) && (
+                    <>
+                      <CorrelationChart
+                        data={collocationResultsList}
+                        pmConcentration={pmConcentration}
+                        height={'210'}
+                        isInterSensorCorrelation
+                        graphColors={graphColors}
+                      />
+                      {batchList && graphColors && (
+                        <CustomLegend
+                          isDeviceLegend
+                          devices={batchList}
+                          graphColors={graphColors}
+                        />
+                      )}
+                    </>
+                  )}
+
+                {isEmpty(collocationResultsList) && (
+                  <div className='text-center pb-6 text-grey-300 text-sm'>No data found</div>
                 )}
               </>
             )}
