@@ -2,18 +2,18 @@ import HomeSmileIcon from '@/icons/SideBar/home-smile.svg';
 import CollapseIcon from '@/icons/SideBar/Collapse.svg';
 import BookOpenIcon from '@/icons/SideBar/book-open-01.svg';
 import NotificationIcon from '@/icons/SideBar/notification-box.svg';
-import SupportIcon from "@/icons/SideBar/life-buoy-02.svg";
-import SiteIcon from "@/icons/SideBar/Sites.svg";
-import GridIcon from "@/icons/SideBar/grid-01.svg";
-import SettingsIcon from "@/icons/SideBar/settings-02.svg";
-import BarChartSqIcon from "@/icons/SideBar/bar-chart.svg";
+import SupportIcon from '@/icons/SideBar/life-buoy-02.svg';
+import SiteIcon from '@/icons/SideBar/Sites.svg';
+import GridIcon from '@/icons/SideBar/grid-01.svg';
+import SettingsIcon from '@/icons/SideBar/settings-02.svg';
+import BarChartSqIcon from '@/icons/SideBar/bar-chart.svg';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import MenuBarIcon from '@/icons/menu_bar';
 import { useEffect, useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import AnnouncementCard from "./AnnouncementCard"
+import AnnouncementCard from './AnnouncementCard';
 
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
@@ -39,6 +39,7 @@ const SideBar = () => {
     }
   }, []);
 
+  // local storage
   useEffect(() => {
     localStorage.setItem('collocationOpen', JSON.stringify(collocationOpen));
     localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
@@ -49,19 +50,17 @@ const SideBar = () => {
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750`}
-      >
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750`}>
         <div>
-          <div 
-            className="
+          <div
+            className='
               p-4
               flex
               flex-row
               justify-between
-            "
-          >
+            '>
             <AirqoLogo className='invisible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
-            <CollapseIcon className="pt-1 h-full flex flex-col flex-3" />
+            <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
           {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
@@ -81,8 +80,7 @@ const SideBar = () => {
               Icon={BarChartSqIcon}
               dropdown
               toggleMethod={() => setAnalyticsOpen(!analyticsOpen)}
-              toggleState={analyticsOpen}
-            >
+              toggleState={analyticsOpen}>
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
@@ -96,8 +94,7 @@ const SideBar = () => {
               Icon={CollocationIcon}
               dropdown
               toggleMethod={() => setCollocationOpen(!collocationOpen)}
-              toggleState={collocationOpen}
-            >
+              toggleState={collocationOpen}>
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
@@ -116,8 +113,7 @@ const SideBar = () => {
         role='button'
         tabIndex={0}
         onKeyDown={() => setToggleDrawer(!toggleDrawer)}
-        onClick={() => setToggleDrawer(!toggleDrawer)}
-      >
+        onClick={() => setToggleDrawer(!toggleDrawer)}>
         <MenuBarIcon />
       </div>
     </div>
