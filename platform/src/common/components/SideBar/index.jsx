@@ -1,9 +1,19 @@
-import BarChartIcon from '@/icons/bar_chart.svg';
+import HomeSmileIcon from '@/icons/SideBar/home-smile.svg';
+import CollapseIcon from '@/icons/SideBar/Collapse.svg';
+import BookOpenIcon from '@/icons/SideBar/book-open-01.svg';
+import NotificationIcon from '@/icons/SideBar/notification-box.svg';
+import SupportIcon from "@/icons/SideBar/life-buoy-02.svg";
+import SiteIcon from "@/icons/SideBar/Sites.svg";
+import GridIcon from "@/icons/SideBar/grid-01.svg";
+import SettingsIcon from "@/icons/SideBar/settings-02.svg";
+import BarChartSqIcon from "@/icons/SideBar/bar-chart.svg";
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import MenuBarIcon from '@/icons/menu_bar';
 import { useEffect, useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
+import AirqoLogo from '@/icons/airqo_logo.svg';
+import AnnouncementCard from "./AnnouncementCard"
 
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
 
@@ -39,10 +49,21 @@ const SideBar = () => {
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh-64px)] lg:relative flex-col justify-between overflow-y-scroll border-t-0 border-r-[1px] border-r-grey-750`}
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750`}
       >
         <div>
-          {/* <div className='border border-grey-750 h-14 p-3 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
+          <div 
+            className="
+              p-4
+              flex
+              flex-row
+              justify-between
+            "
+          >
+            <AirqoLogo className='invisible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
+            <CollapseIcon className="pt-1 h-full flex flex-col flex-3" />
+          </div>
+          {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
               <div className='bg-grey-700 w-8 h-8 p-[5px] flex items-center justify-center rounded-full mr-4'>
                 <h3 className='text-sm font-normal'>FP</h3>
@@ -51,12 +72,13 @@ const SideBar = () => {
             </div>
             <ArrowDropDownIcon />
           </div> */}
-          <div className='mt-5 mx-2'>
-            {/* <SideBarItem label='Home' Icon={BarChartIcon} navPath='/' />
-            <SideBarItem label='Notifications' Icon={BarChartIcon} />
+          <div className='mt-3 mx-2'>
+            <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
+            <SideBarItem label='Learn' Icon={BookOpenIcon} />
+            <SideBarItem label='Notification' Icon={NotificationIcon} />
             <SideBarItem
               label='Analytics'
-              Icon={BarChartIcon}
+              Icon={BarChartSqIcon}
               dropdown
               toggleMethod={() => setAnalyticsOpen(!analyticsOpen)}
               toggleState={analyticsOpen}
@@ -64,11 +86,11 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
-            </SideBarItem> */}
+            </SideBarItem>
 
-            {/* <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <hr className='my-3 h-[0.5px] bg-grey-150' />
 
-            <SideBarItem label='Network' Icon={BarChartIcon} /> */}
+            <h3>Network</h3>
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -79,14 +101,15 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
               <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
             </SideBarItem>
-            {/* <SideBarItem label='Calibrate' Icon={BarChartIcon} />
-            <SideBarItem label='Other tools' Icon={BarChartIcon} /> */}
+            <SideBarItem label='Sites' Icon={SiteIcon} />
+            <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
-
-        {/* <div className='mx-2'>
-          <SideBarItem label='Settings' Icon={BarChartIcon} active />
-        </div> */}
+        <AnnouncementCard />
+        <div className='mx-2'>
+          <SideBarItem label='Get Support' Icon={SupportIcon} active />
+          <SideBarItem label='Settings' Icon={SettingsIcon} active />
+        </div>
       </div>
       <div
         className='lg:hidden fixed top-5 left-4 z-30'
