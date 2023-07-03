@@ -1,26 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
-import { makeStyles } from "@material-ui/styles";
-import MaterialTable from "material-table";
-import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
-import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/styles';
+import MaterialTable from 'material-table';
+import PropTypes from 'prop-types';
+import PerfectScrollbar from 'react-perfect-scrollbar';
+import { useUserPreferencePaginationData } from 'redux/UserPreference/selectors';
 import {
   generatePaginateOptions,
   getPaginationOption,
-  getPaginationOptionIndexMapper,
-} from "utils/pagination";
-import { updateUserPreferenceData } from "redux/UserPreference/operators";
+  getPaginationOptionIndexMapper
+} from 'utils/pagination';
+import { updateUserPreferenceData } from 'redux/UserPreference/operators';
 
 const useStyles = makeStyles((theme) => ({
   tableWrapper: {
-    "& tbody>.MuiTableRow-root:hover": {
-      background: "#EEE",
-    },
+    '& tbody>.MuiTableRow-root:hover': {
+      background: '#EEE'
+    }
   },
   cursorPointer: {
-    cursor: "pointer",
-  },
+    cursor: 'pointer'
+  }
 }));
 
 export default function CustomMaterialTable({
@@ -36,10 +36,7 @@ export default function CustomMaterialTable({
   const userPreferencePaginationData = useUserPreferencePaginationData();
   const pageSizeOptions = generatePaginateOptions(props.data.length);
   const [defaultPageSize, setDefaultPageSize] = useState(
-    getPaginationOption(
-      userPreferencePaginationData[userPreferencePaginationKey],
-      pageSizeOptions
-    )
+    getPaginationOption(userPreferencePaginationData[userPreferencePaginationKey], pageSizeOptions)
   );
   const pageSizeMapper = getPaginationOptionIndexMapper(pageSizeOptions);
 
@@ -61,21 +58,21 @@ export default function CustomMaterialTable({
       ...(props.options || {}),
       pageSizeOptions: pageSizeOptions,
       pageSize: defaultPageSize,
+      sorting: true
     },
     onChangeRowsPerPage: (pageSize) => {
       const itemsPerPage = pageSizeMapper[pageSize] || defaultPageSize;
       dispatch(
-        updateUserPreferenceData("pagination", {
-          [userPreferencePaginationKey]: itemsPerPage,
+        updateUserPreferenceData('pagination', {
+          [userPreferencePaginationKey]: itemsPerPage
         })
       );
-    },
+    }
   };
   return (
     <div
       className={
-        className ||
-        `${classes.tableWrapper} ${pointerCursor ? classes.cursorPointer : ""}`
+        className || `${classes.tableWrapper} ${pointerCursor ? classes.cursorPointer : ''}`
       }
       style={style || {}}
     >
@@ -94,5 +91,5 @@ CustomMaterialTable.propTypes = {
   userPreferencePaginationKey: PropTypes.string,
   pointerCursor: PropTypes.bool,
   data: PropTypes.array,
-  options: PropTypes.object,
+  options: PropTypes.object
 };

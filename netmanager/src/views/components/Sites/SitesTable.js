@@ -17,6 +17,9 @@ import { updateMainAlert } from 'redux/MainAlert/operations';
 import 'assets/css/location-registry.css';
 import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
 
@@ -24,6 +27,9 @@ const SitesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
   const sites = useSitesSummaryData();
+
+  // for horizontal loader
+  const [loading, setLoading] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [delState, setDelState] = useState({ open: false, name: '', id: '' });
@@ -42,6 +48,7 @@ const SitesTable = () => {
 
   const handleDeleteSite = (e) => {
     setDelState({ open: false, name: '', id: '' });
+    setLoading(true);
     deleteSiteApi(delState.id)
       .then((resData) => {
         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -59,16 +66,21 @@ const SitesTable = () => {
       .catch((error) => {
         dispatch(
           updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
+            message:
+              (error.response && error.response.data && error.response.data.message) ||
+              'An error occurred',
             show: true,
             severity: 'error'
           })
         );
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
     <>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <LoadingOverlay active={isLoading} spinner text="Loading Locations...">
         <CustomMaterialTable
           pointerCursor
