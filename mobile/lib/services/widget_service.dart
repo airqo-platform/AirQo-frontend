@@ -1,12 +1,4 @@
-import 'package:app/models/air_quality_reading.dart';
-import 'package:app/services/location_service.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:collection/collection.dart';
-import 'package:path/path.dart';
-import '../blocs/favourite_place/favourite_place_bloc.dart';
 import '../models/models.dart';
 import 'services.dart';
 
