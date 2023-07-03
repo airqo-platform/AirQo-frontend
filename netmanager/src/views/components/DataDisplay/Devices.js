@@ -33,6 +33,9 @@ import { updateDeviceDetails } from '../../../redux/DeviceOverview/OverviewSlice
 // dropdown component
 import Select from 'react-select';
 
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(3)
@@ -249,7 +252,7 @@ const categoriesOptions = CATEGORIES.map((category) => ({
   label: category.name
 }));
 
-const CreateDevice = ({ open, setOpen }) => {
+const CreateDevice = ({ open, setOpen, setIsLoading }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -285,6 +288,8 @@ const CreateDevice = ({ open, setOpen }) => {
   };
 
   let handleRegisterSubmit = (e) => {
+    // Set loading to true when submitting
+    setIsLoading(true);
     setOpen(false);
 
     if (!isEmpty(userNetworks)) {
@@ -306,6 +311,9 @@ const CreateDevice = ({ open, setOpen }) => {
           network: selectedNetwork
         });
         setErrors({ long_name: '', category: '', network: '' });
+
+        // Set loading to false when done
+        setIsLoading(false);
 
         return;
       } else {
@@ -330,6 +338,8 @@ const CreateDevice = ({ open, setOpen }) => {
                 severity: 'success'
               })
             );
+            // Set loading to false when done
+            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -342,6 +352,8 @@ const CreateDevice = ({ open, setOpen }) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            // Set loading to false when done
+            setIsLoading(false);
           });
       }
     }
@@ -421,7 +433,7 @@ const CreateDevice = ({ open, setOpen }) => {
   );
 };
 
-const SoftCreateDevice = ({ open, setOpen, network }) => {
+const SoftCreateDevice = ({ open, setOpen, network, setIsLoading }) => {
   const selectedNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -456,8 +468,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
   };
 
   let handleRegisterSubmit = (e) => {
+    setIsLoading(true);
     setOpen(false);
-    // check device is in user's networks, if not inform them that only members of the network can add devices
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
 
@@ -470,13 +482,14 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           })
         );
 
-        //clear the new device form
         setNewDevice({
           long_name: '',
           category: CATEGORIES[0].value,
           network: selectedNetwork
         });
         setErrors({ long_name: '', category: '', network: '' });
+
+        setIsLoading(false);
 
         return;
       } else {
@@ -496,6 +509,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
                 severity: 'success'
               })
             );
+            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -508,6 +522,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            setIsLoading(false);
           });
       }
     }
@@ -604,8 +619,12 @@ const DevicesTable = (props) => {
   // setting the loading state
   const [loading, setLoading] = useState(true);
 
+  // for horizontal loader
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleDeleteDevice = async () => {
     if (delDevice.name) {
+      setIsLoading(true);
       deleteDeviceApi(delDevice.name)
         .then(() => {
           delete devices[delDevice.name];
@@ -634,7 +653,8 @@ const DevicesTable = (props) => {
               severity: 'error'
             })
           );
-        });
+        })
+        .finally(() => setIsLoading(false));
     }
     setDelDevice({ open: false, name: '' });
   };
@@ -675,6 +695,8 @@ const DevicesTable = (props) => {
 
   return (
     <ErrorBoundary>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={isLoading} />
       <div className={classes.root}>
         <br />
         <div
@@ -732,11 +754,17 @@ const DevicesTable = (props) => {
           }}
         />
 
-        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} network={activeNetwork} />
+        <CreateDevice
+          open={registerOpen}
+          setOpen={setRegisterOpen}
+          network={activeNetwork}
+          setIsLoading={setIsLoading}
+        />
         <SoftCreateDevice
           open={softRegisterOpen}
           setOpen={setSoftRegisterOpen}
           network={activeNetwork}
+          setIsLoading={setIsLoading}
         />
 
         <ConfirmDialog

@@ -32,6 +32,8 @@ import EditIcon from '@material-ui/icons/EditOutlined';
 import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { humanReadableDate } from 'utils/dateTime';
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const titleStyles = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
@@ -45,7 +47,7 @@ const TableTitle = ({ deviceName }) => {
   );
 };
 
-const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
+const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoading }) => {
   const dispatch = useDispatch();
   const maintenanceTypeMapper = {
     preventive: { value: 'preventive', label: 'Preventive' },
@@ -58,7 +60,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     options.map((option) => extracted.push(createOption(option)));
     return extracted;
   };
-  const [loading, setLoading] = useState(false);
   const [maintenanceType, setMaintenanceType] = useState(
     maintenanceTypeMapper[log.maintenanceType] ||
       (log.maintenanceType && createOption(log.maintenanceType)) ||
@@ -207,8 +208,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-          >
+            style={{ marginLeft: '10px' }}>
             Save Changes
           </Button>
         </Grid>
@@ -217,9 +217,8 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
   );
 };
 
-const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
+const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoading }) => {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -373,8 +372,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}
-          >
+            style={{ marginLeft: '10px' }}>
             Add Log
           </Button>
         </Grid>
@@ -385,6 +383,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 
 export default function DeviceLogs({ deviceName, deviceLocation }) {
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState(0);
   const [selectedLog, setSelectedLog] = useState({});
   const [delState, setDelState] = useState({ open: false, data: {} });
@@ -431,6 +430,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                 setSelectedRow(rowData.tableIndex);
                 setShow({ logTable: false, addLog: false, editLog: true });
               }}
+              setEditLoading={setLoading}
             />
           </Tooltip>
           <Tooltip title="Delete">
@@ -448,6 +448,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
   const handleLogDelete = async () => {
     setDelState({ ...delState, open: false });
     if (delState.data._id) {
+      setLoading(true);
       await deleteMaintenanceLogApi(delState.data._id)
         .then(async (responseData) => {
           dispatch(
@@ -501,7 +502,8 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
               severity: 'error'
             })
           );
-        });
+        })
+        .finally(() => setLoading(false));
     }
   };
 
@@ -515,20 +517,20 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
 
   return (
     <>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',
           justifyContent: 'flex-end',
           margin: '10px 0'
-        }}
-      >
+        }}>
         <Button
           style={{ marginRight: '5px' }}
           variant="contained"
           color="primary"
           disabled={show.logTable}
-          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}
-        >
+          onClick={() => setShow({ logTable: true, addLog: false, editLog: false })}>
           {' '}
           Logs Table
         </Button>
@@ -538,8 +540,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           disabled={show.addLog}
           onClick={() => {
             setShow({ logTable: false, addLog: true, editLog: false });
-          }}
-        >
+          }}>
           {' '}
           Add Log
         </Button>
@@ -599,6 +600,8 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             deviceName={deviceName}
             deviceLocation={deviceLocation}
             toggleShow={() => setShow({ logTable: true, addLog: false, editLog: false })}
+            loading={loading}
+            setLoading={setLoading}
           />
         )}
         {show.editLog && (
@@ -608,6 +611,8 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             toggleShow={() => setShow({ logTable: true, addLog: false, editLog: false })}
             log={selectedLog}
             updateSelectedRow={setSelectedRow}
+            loading={loading}
+            setLoading={setLoading}
           />
         )}
       </div>
