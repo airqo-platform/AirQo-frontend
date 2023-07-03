@@ -340,7 +340,8 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-            "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}"),
+          "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}",
+        ),
         headers: headers,
         body: body,
       );
