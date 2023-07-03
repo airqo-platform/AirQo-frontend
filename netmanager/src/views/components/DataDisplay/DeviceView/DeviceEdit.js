@@ -15,7 +15,8 @@ import { capitalize } from 'utils/string';
 import { getDateString } from 'utils/dateTime';
 
 import { filterSite } from 'utils/sites';
-
+// dropdown component
+import Select from 'react-select';
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
@@ -35,6 +36,38 @@ const EDIT_OMITTED_KEYS = [
   'nextMaintenance',
   'pictures'
 ];
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '50px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const dispatch = useDispatch();
@@ -58,6 +91,44 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     setEditData({
       ...editData,
       [id]: event.target.value
+    });
+  };
+
+  console.log('editData', editData);
+
+  const options = [
+    { value: false, label: 'Private' },
+    { value: true, label: 'Public' }
+  ];
+
+  const internetProviders = [
+    { value: '', label: '' },
+    { value: 'MTN', label: 'MTN' },
+    { value: 'Airtel', label: 'Airtel' },
+    { value: 'Africell', label: 'Africell' }
+  ];
+
+  const primaryDeviceInLocation = [
+    { value: '', label: '' },
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' }
+  ];
+
+  const networks = [
+    { value: 'airqo', label: 'AirQo' },
+    { value: 'kcca', label: 'KCCA' },
+    { value: 'usembassy', label: 'US EMBASSY' }
+  ];
+
+  const categorys = [
+    { value: 'lowcost', label: 'Lowcost' },
+    { value: 'bam', label: 'BAM' }
+  ];
+
+  const handleChange = (id) => (selectedOption) => {
+    setEditData({
+      ...editData,
+      [id]: selectedOption.value
     });
   };
 
@@ -207,64 +278,55 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
-              label="Data Access"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.visibility}
-              onChange={handleSelectFieldChange('visibility')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+            <Select
+              label="Data Access Visibility"
+              defaultValue={options.find((option) => option.value === deviceData.visibility)}
+              value={options.find((option) => option.value === editData.visibility)}
+              onChange={handleChange('visibility')}
+              options={options}
+              variant="outlined"
+              placeholder="Select Data Access"
+              styles={customStyles}
               error={!!errors.visibility}
               helperText={errors.visibility}
-              variant="outlined">
-              <option value={false}>Private</option>
-              <option value={true}>Public</option>
-            </TextField>
+              required
+            />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
+            <Select
               label="Internet Service Provider"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.ISP}
-              onChange={handleSelectFieldChange('ISP')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              defaultValue={internetProviders.find(
+                (internetProvider) => internetProvider.value === deviceData.ISP
+              )}
+              value={internetProviders.find(
+                (internetProvider) => internetProvider.value === editData.ISP
+              )}
+              onChange={handleChange('ISP')}
+              options={internetProviders}
+              styles={customStyles}
+              placeholder="Select ISP"
               variant="outlined"
               error={!!errors.ISP}
-              helperText={errors.ISP}>
-              <option value="" />
-              <option value="MTN">MTN</option>
-              <option value="Airtel">Airtel</option>
-              <option value="Africell">Africell</option>
-            </TextField>
+              helperText={errors.ISP}
+            />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
+            <Select
               label="Primary Device In Location"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.isPrimaryInLocation}
-              onChange={handleSelectFieldChange('isPrimaryInLocation')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              defaultValue={primaryDeviceInLocation.find(
+                (option) => option.value === deviceData.isPrimaryInLocation
+              )}
+              value={primaryDeviceInLocation.find(
+                (option) => option.value === editData.isPrimaryInLocation
+              )}
+              onChange={handleChange('isPrimaryInLocation')}
+              options={primaryDeviceInLocation}
               variant="outlined"
               error={!!errors.isPrimaryInLocation}
-              helperText={errors.isPrimaryInLocation}>
-              <option value="" />
-              <option value={true}>Yes</option>
-              <option value={false}>No</option>
-            </TextField>
+              helperText={errors.isPrimaryInLocation}
+              styles={customStyles}
+              placeholder="Select Primary Device"
+            />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
@@ -281,25 +343,26 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
+            <Select
               label="Network"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.network}
-              onChange={handleSelectFieldChange('network')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              defaultValue={networks.find((network) => network.value === deviceData.network)}
+              value={networks.find((network) => network.value === editData.network)}
+              onChange={handleChange('network')}
+              options={networks}
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
-              required>
-              <option value={'airqo'}>AirQo</option>
-              <option value={'kcca'}>KCCA</option>
-              <option value={'usembassy'}>US EMBASSY</option>
-            </TextField>
+              styles={{
+                ...customStyles,
+                control: (base) => ({
+                  ...base,
+                  position: 'relative',
+                  top: '10px'
+                })
+              }}
+              placeholder="Select Network"
+              required
+            />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
@@ -316,24 +379,26 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
+            <Select
               label="Category"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.category}
-              onChange={handleSelectFieldChange('category')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              defaultValue={categorys.find((category) => category.value === deviceData.category)}
+              value={categorys.find((category) => category.value === editData.category)}
+              onChange={handleChange('category')}
+              options={categorys}
               variant="outlined"
               error={!!errors.category}
               helperText={errors.category}
-              required>
-              <option value={'lowcost'}>Lowcost</option>
-              <option value={'bam'}>BAM</option>
-            </TextField>
+              required
+              styles={{
+                ...customStyles,
+                control: (base) => ({
+                  ...base,
+                  position: 'relative',
+                  top: '10px'
+                })
+              }}
+              placeholder="Select Category"
+            />
           </Grid>
 
           <Grid
