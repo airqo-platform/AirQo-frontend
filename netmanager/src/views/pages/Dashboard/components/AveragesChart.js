@@ -116,9 +116,9 @@ const AveragesChart = ({ classes }) => {
   };
 
   const labelMapper = {
-    pm2_5: "PM2.5 (µg/m3)",
-    pm10: "PM10 (µg/m3)",
-    no2: "NO2 (µg/m3)",
+    pm2_5: "PM₂.₅(µg/m³)",
+    pm10: "PM10 (µg/m³)",
+    no2: "NO2 (µg/m³)",
   };
 
   const annotationMapper = {
@@ -279,8 +279,8 @@ const AveragesChart = ({ classes }) => {
     scales: {
       xAxes: [
         {
-          barThickness: 12,
-          maxBarThickness: 10,
+          barThickness: 20,
+          maxBarThickness: 20,
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
@@ -663,7 +663,7 @@ const AveragesChart = ({ classes }) => {
           },
         }}
       >
-        <DialogTitle
+        {/* <DialogTitle
           style={{
             alignItems: "center",
             justifyContent: "center",
@@ -671,7 +671,16 @@ const AveragesChart = ({ classes }) => {
             paddingLeft: "500px",
             fontSize: "100"
           }}
-        >{customChartTitle}</DialogTitle>
+        >{customChartTitle}</DialogTitle> */}
+        <h5
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            paddingLeft: "450px",
+            fontSize: "100"
+          }}
+        >{customChartTitle}</h5>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
