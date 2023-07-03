@@ -481,7 +481,7 @@ const AveragesChart = ({ classes }) => {
                       paddingLeft: "10px",
                       fontWeight: "bold"
                     }}
-                  >{count} Locations. </span>
+                  >{count} Locations </span>
                 </div>
                 <div
                   style={{
