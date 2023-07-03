@@ -330,7 +330,8 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      List<Map<String, dynamic>> body = favorites.map((e) => e.toAPiJson(userId)).toList();
+      List<Map<String, dynamic>> body =
+          favorites.map((e) => e.toAPiJson(userId)).toList();
 
       final response = await client.post(
         Uri.parse(

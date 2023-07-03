@@ -51,9 +51,12 @@ class FavouritePlace extends Equatable {
   Map<String, dynamic> toJson() => _$FavouritePlaceToJson(this);
 
   Map<String, dynamic> toAPiJson(String firebaseUserId) {
-    return toJson()..remove("id")..addAll({"firebase_user_id": firebaseUserId,});
+    return toJson()
+      ..remove("id")
+      ..addAll({
+        "firebase_user_id": firebaseUserId,
+      });
   }
-
 
   @JsonKey(defaultValue: '')
   final String name;
