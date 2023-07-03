@@ -622,6 +622,7 @@ const ExportData = (props) => {
   return (
     <ErrorBoundary>
       <Tutorial
+        tutorialId={'exportData'}
         fieldRefs={[FieldRef1, FieldRef2, FieldRef3]}
         steps={steps}
         FieldRefIndex={FieldRefIndex}

@@ -151,11 +151,13 @@ const Dashboard = () => {
     <ErrorBoundary>
       {/* using the tutorial component */}
       <Tutorial
+        tutorialId={'dashboard'}
         fieldRefs={[FieldRef1]}
         steps={steps}
         FieldRefIndex={FieldRefIndex}
         setFieldRefIndex={setFieldRefIndex}
-        overlay={false}
+        overlay={true}
+        textBoxColor={'#4d4d4d'}
       />
       <div className={classes.root}>
         <Grid container spacing={5}>
@@ -163,7 +165,13 @@ const Dashboard = () => {
             <AirQloudDropDown />
           </Grid>
           <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
-            <span ref={FieldRef1}>
+            <span
+              ref={FieldRef1}
+              style={{
+                position: 'relative',
+                zIndex: FieldRefIndex === 0 ? 1000 : 0,
+                backgroundColor: FieldRefIndex === 0 ? 'white' : 'transparent'
+              }}>
               <DashboardSearchBar />
             </span>
           </Grid>

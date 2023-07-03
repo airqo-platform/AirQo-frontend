@@ -8,10 +8,11 @@ const Tutorial = ({
   setFieldRefIndex,
   overlay,
   textBoxColor,
-  textColor
+  textColor,
+  tutorialId
 }) => {
   const [showTutorial, setShowTutorial] = useState(
-    localStorage.getItem('hasViewedTutorial') !== 'true'
+    localStorage.getItem(`hasViewedTutorial-${tutorialId}`) !== 'true'
   );
   const [tutorialBoxStyles, setTutorialBoxStyles] = useState({
     width: '280px',
@@ -24,7 +25,7 @@ const Tutorial = ({
 
   useEffect(() => {
     // to help clear the local storage for testing
-    localStorage.removeItem('hasViewedTutorial');
+    // localStorage.removeItem(`hasViewedTutorial-${tutorialId}`);
 
     const handleResize = () => {
       if (fieldRefs[FieldRefIndex].current) {
@@ -127,7 +128,7 @@ const Tutorial = ({
   // for closing the tutorial
   const handleDismissTutorial = () => {
     setShowTutorial(false);
-    localStorage.setItem('hasViewedTutorial', 'true');
+    localStorage.setItem(`hasViewedTutorial-${tutorialId}`, 'true');
   };
 
   // function to handle next tutorial step
