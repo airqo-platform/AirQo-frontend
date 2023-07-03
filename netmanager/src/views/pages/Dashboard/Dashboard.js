@@ -156,8 +156,7 @@ const Dashboard = () => {
         steps={steps}
         FieldRefIndex={FieldRefIndex}
         setFieldRefIndex={setFieldRefIndex}
-        overlay={true}
-        textBoxColor={'#4d4d4d'}
+        overlay={false}
       />
       <div className={classes.root}>
         <Grid container spacing={5}>
