@@ -14,7 +14,7 @@ class Config {
   static double get minimumTextScaleFactor => 1.0;
   static double get maximumTextScaleFactor => 1.1;
 
-  static String get airqoApi => 'https://api.airqo.net/api';
+  static String get airqoApi => 'https://platform.airqo.net/api';
 
   static String get automatedTestsEmail => "automated-tests@airqo.net";
 

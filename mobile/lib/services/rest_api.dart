@@ -330,11 +330,17 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      final body = favorites.map((e) => e.toJson()).toList();
+      dynamic body = favorites.map((e) => e.toJson()).toList();
+      body = body.map((e) => e..remove("id")).toList();
+      body.forEach((item) {
+        item['firebase_user_id'] = userId;
+      });
+      body = {"favorite_places": body};
+      body = jsonEncode(body);
 
       final response = await client.post(
         Uri.parse(
-            "${AirQoUrls.favouritesSync}?TOKEN=${Config.airqoApiV2Token}"),
+            "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}"),
         headers: headers,
         body: body,
       );
