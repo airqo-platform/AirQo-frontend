@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './Tutorial.css';
 
-const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
-  // Small tutorial for new users
+const Tutorial = ({
+  fieldRefs,
+  steps,
+  FieldRefIndex,
+  setFieldRefIndex,
+  overlay,
+  textBoxColor,
+  textColor
+}) => {
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem('hasViewedTutorial') !== 'true'
   );
@@ -17,7 +24,7 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
 
   useEffect(() => {
     // to help clear the local storage for testing
-    // localStorage.removeItem('hasViewedTutorial');
+    localStorage.removeItem('hasViewedTutorial');
 
     const handleResize = () => {
       if (fieldRefs[FieldRefIndex].current) {
@@ -61,49 +68,59 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
         }
 
         // check if the tutorial box is off-screen and adjust its position and arrow direction accordingly
-        const tutorialBoxRect = document.querySelector('.tutorial-box').getBoundingClientRect();
-        if (tutorialBoxRect.top < 0) {
+        const tutorialBox = document.querySelector('.tutorial-box');
+        if (tutorialBox) {
+          const tutorialBoxRect = tutorialBox.getBoundingClientRect();
+          if (tutorialBoxRect.top < 0) {
+            setTutorialPosition((prev) => ({
+              ...prev,
+              top: rect.bottom + 30
+            }));
+            setArrowDirection('up');
+          } else if (tutorialBoxRect.right > window.innerWidth) {
+            setTutorialPosition((prev) => ({
+              ...prev,
+              left:
+                rect.left -
+                tutorialBoxRect.width +
+                fieldRefs[FieldRefIndex].current.offsetWidth / 2 +
+                20
+            }));
+            setArrowDirection('right');
+          } else if (tutorialBoxRect.bottom > window.innerHeight) {
+            setTutorialPosition((prev) => ({
+              ...prev,
+              top: rect.top - tutorialBoxRect.height - 30
+            }));
+            setArrowDirection('down');
+          } else if (tutorialBoxRect.left < 0) {
+            setTutorialPosition((prev) => ({
+              ...prev,
+              left:
+                rect.left +
+                fieldRefs[FieldRefIndex].current.offsetWidth / 2 -
+                tutorialBoxRect.width / 2
+            }));
+            setArrowDirection('left');
+          }
+        } else {
           setTutorialPosition((prev) => ({
             ...prev,
-            top: rect.bottom + 30
+            top: rect.bottom + 30,
+            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 140
           }));
           setArrowDirection('up');
-        } else if (tutorialBoxRect.right > window.innerWidth) {
-          setTutorialPosition((prev) => ({
-            ...prev,
-            left:
-              rect.left -
-              tutorialBoxRect.width +
-              fieldRefs[FieldRefIndex].current.offsetWidth / 2 +
-              20
-          }));
-          setArrowDirection('right');
-        } else if (tutorialBoxRect.bottom > window.innerHeight) {
-          setTutorialPosition((prev) => ({
-            ...prev,
-            top: rect.top - tutorialBoxRect.height - 30
-          }));
-          setArrowDirection('down');
-        } else if (tutorialBoxRect.left < 0) {
-          setTutorialPosition((prev) => ({
-            ...prev,
-            left:
-              rect.left +
-              fieldRefs[FieldRefIndex].current.offsetWidth / 2 -
-              tutorialBoxRect.width / 2
-          }));
-          setArrowDirection('left');
         }
       }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize);
+    // window.addEventListener('scroll', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize);
+      // window.removeEventListener('scroll', handleResize);
     };
   }, [FieldRefIndex]);
 
@@ -135,20 +152,30 @@ const Tutorial = ({ fieldRefs, steps, FieldRefIndex, setFieldRefIndex }) => {
     <>
       {showTutorial && (
         <>
-          <div className="tutorial-overlay" />
+          <div className={overlay ? 'tutorial-overlay' : ''} />
           <div
             className="tutorial-box"
             style={{
               top: tutorialPosition.top,
               left: tutorialPosition.left,
-              width: tutorialBoxStyles.width
+              width: tutorialBoxStyles.width,
+              backgroundColor: `${textBoxColor ? textBoxColor : '#3f51b5'}`
             }}>
-            <div className={`tutorial-arrow-${arrowDirection}`} />
-            <span className="tutorial-count">
+            <div
+              className={`tutorial-arrow-${arrowDirection}`}
+              style={{
+                borderBlockColor: `${textBoxColor ? textBoxColor : '#3f51b5'}`
+              }}
+            />
+            <span className="tutorial-count" style={{ color: textColor }}>
               {FieldRefIndex + 1} / {totalSteps}
             </span>
-            <p className="title">{steps[FieldRefIndex].title}</p>
-            <p className="description">{steps[FieldRefIndex].description}</p>
+            <p className="title" style={{ color: textColor }}>
+              {steps[FieldRefIndex].title}
+            </p>
+            <p className="description" style={{ color: textColor }}>
+              {steps[FieldRefIndex].description}
+            </p>
             <div className="buttons">
               {steps.length > 1 && (
                 <button

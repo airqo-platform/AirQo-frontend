@@ -593,8 +593,9 @@ const ExportData = (props) => {
   };
 
   // tooltip
-  const textFieldRef1 = React.useRef(null);
-  const textFieldRef2 = React.useRef(null);
+  const FieldRef1 = React.useRef(null);
+  const FieldRef2 = React.useRef(null);
+  const FieldRef3 = React.useRef(null);
 
   // this is an array of the title and description for the features to be explained
   const steps = [
@@ -607,22 +608,25 @@ const ExportData = (props) => {
       title: 'Export Options',
       description:
         "You can download your data using the schedule option. This option is especially useful if your data covers a large time span (more than one month's worth). You can avoid delays and get your data ready for download when they are processed."
+    },
+    {
+      title: 'Download Button',
+      description:
+        'Click on this button to download your data. You can also schedule your data for download using the schedule option.'
     }
   ];
 
   // Adding this to track the index of the text field that is currently focused
   const [FieldRefIndex, setFieldRefIndex] = useState(0);
 
-  console.log('FieldRefIndex', FieldRefIndex);
-
   return (
     <ErrorBoundary>
-      {/* using the tutorial component */}
       <Tutorial
-        fieldRefs={[textFieldRef1, textFieldRef2]}
+        fieldRefs={[FieldRef1, FieldRef2, FieldRef3]}
         steps={steps}
         FieldRefIndex={FieldRefIndex}
         setFieldRefIndex={setFieldRefIndex}
+        overlay={false}
       />
 
       <div className={classes.root}>
@@ -666,15 +670,7 @@ const ExportData = (props) => {
                 <form onSubmit={submitExportData}>
                   <CardContent>
                     <Grid container spacing={2}>
-                      <Grid
-                        item
-                        md={6}
-                        xs={12}
-                        style={{
-                          backgroundColor: FieldRefIndex === 0 ? '#ffffff' : null,
-                          zIndex: FieldRefIndex === 0 ? 3 : 1,
-                          borderRadius: 4
-                        }}>
+                      <Grid item md={6} xs={12}>
                         <TextField
                           label="Start Date"
                           className="reactSelect"
@@ -684,7 +680,7 @@ const ExportData = (props) => {
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setStartDate(event.target.value)}
-                          inputRef={textFieldRef1}
+                          inputRef={FieldRef1}
                         />
                       </Grid>
                       <Grid item md={6} xs={12}>
@@ -701,19 +697,21 @@ const ExportData = (props) => {
                       </Grid>
 
                       <Grid item md={6} xs={12}>
-                        <Select
-                          fullWidth
-                          className="reactSelect"
-                          name="location"
-                          placeholder="Select Site(s)"
-                          value={selectedSites}
-                          options={siteOptions}
-                          onChange={(options) => setSelectedSites(options)}
-                          isMulti
-                          variant="outlined"
-                          margin="dense"
-                          required
-                        />
+                        <div ref={FieldRef2}>
+                          <Select
+                            fullWidth
+                            className="reactSelect"
+                            name="location"
+                            placeholder="Select Site(s)"
+                            value={selectedSites}
+                            options={siteOptions}
+                            onChange={(options) => setSelectedSites(options)}
+                            isMulti
+                            variant="outlined"
+                            margin="dense"
+                            required
+                          />
+                        </div>
                       </Grid>
 
                       <Grid item md={6} xs={12}>
@@ -785,14 +783,7 @@ const ExportData = (props) => {
                   <Divider />
                   <CardActions>
                     <Box display="flex" justifyContent="center" width="100%">
-                      <div
-                        ref={textFieldRef2}
-                        style={{
-                          backgroundColor: FieldRefIndex === 1 ? '#ffffff' : null,
-                          zIndex: FieldRefIndex === 1 ? 3 : 1,
-                          padding: '4px',
-                          borderRadius: 4
-                        }}>
+                      <div ref={FieldRef3}>
                         <Button
                           color="primary"
                           variant="outlined"
