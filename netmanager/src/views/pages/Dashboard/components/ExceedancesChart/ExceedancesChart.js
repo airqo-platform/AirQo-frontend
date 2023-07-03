@@ -535,7 +535,7 @@ const ExceedancesChart = (props) => {
       <CardActions className={classes.cardActions} 
           style={{
             justifyContent: 'flex-end',
-            marginTop: 'auto',
+            marginTop: '-20px',
           }}
         >
           <Button variant="outlined"  color="primary"
