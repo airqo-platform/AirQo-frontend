@@ -330,14 +330,14 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      String body = toApiJson(favorites, userId);
+      List<Map<String, dynamic>> body = favorites.map((e) => e.toAPiJson(userId)).toList();
 
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}",
         ),
         headers: headers,
-        body: body,
+        body: jsonEncode({'favorite_places': body}),
       );
 
       return response.statusCode == 200 ? true : false;
@@ -349,17 +349,6 @@ class AirqoApiClient {
     }
 
     return false;
-  }
-
-  static String toApiJson(List<FavouritePlace> favorites, String userId) {
-    final List<Map<String, dynamic>> body =
-        favorites.map((e) => e.toJson()).toList();
-    body.forEach((item) {
-      item.remove('id');
-      item['firebase_user_id'] = userId;
-    });
-    final Map<String, dynamic> jsonData = {'favorite_places': body};
-    return jsonEncode(jsonData);
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
