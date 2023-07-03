@@ -296,6 +296,8 @@ const ExceedancesChart = (props) => {
     }
   };
 
+  const numLocations = locations.length;
+
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
     { key: "Print", action: print, text: "Print" },
@@ -419,10 +421,10 @@ const ExceedancesChart = (props) => {
                     ],
                     xAxes: [
                       {
-                        barThickness: 20,
-                        maxBarThickness: 20,
-                        barPercentage: 0.5,
-                        categoryPercentage: 0.5,
+                        barThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+                        maxBarThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+                        barPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
+                        categoryPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
                         stacked: true,
                         scaleLabel: {
                           display: true,
