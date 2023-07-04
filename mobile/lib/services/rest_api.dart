@@ -223,7 +223,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
+          "${AirQoUrls.emailReAuthentication}/mobileAccountDelete?TOKEN=${Config.airqoApiV2Token}",
         ),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
