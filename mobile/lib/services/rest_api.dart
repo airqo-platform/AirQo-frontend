@@ -325,7 +325,9 @@ class AirqoApiClient {
   }
 
   Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
-      {bool clear = false},) async {
+      {
+    bool clear = false,
+  }) async {
     final userId = CustomAuth.getUserId();
 
     if ((userId.isEmpty) || (favorites.isEmpty && !clear)) {
