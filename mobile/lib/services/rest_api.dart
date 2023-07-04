@@ -289,10 +289,14 @@ class AirqoApiClient {
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
 
+    if (userId.isEmpty) {
+      return [];
+    }
+
     try {
       final body = await _performGetRequest(
         queryParams,
-        "${AirQoUrls.favourites}/$userId",
+        "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
 
@@ -320,10 +324,11 @@ class AirqoApiClient {
     return favoritePlaces;
   }
 
-  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites) async {
+  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
+      {bool clear = false}) async {
     final userId = CustomAuth.getUserId();
 
-    if (userId.isEmpty) {
+    if ((userId.isEmpty) || (favorites.isEmpty && !clear)) {
       return false;
     }
     try {

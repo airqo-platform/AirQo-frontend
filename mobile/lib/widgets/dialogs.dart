@@ -3,6 +3,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -325,6 +326,7 @@ void showFavouritePlaceSnackBar(
   AirQualityReading airQualityReading, {
   int durationInSeconds = 4,
 }) {
+  final User? user = CustomAuth.getUser();
   final snackBar = SnackBar(
     duration: Duration(seconds: durationInSeconds),
     elevation: 0,
@@ -407,7 +409,9 @@ void showFavouritePlaceSnackBar(
         ),
         Expanded(
           child: AutoSizeText(
-            "${airQualityReading.name} has been added to your favorites",
+            user != null
+                ? "${airQualityReading.name} has been added to your favorites"
+                : "Please Sign in to save your favorites",
             maxLines: 1,
             minFontSize: 1,
             overflow: TextOverflow.ellipsis,
