@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ProfileIcon from '@/icons/SideBar/Profile.svg';
+import ProfileIcon from '@/icons/SideBar/profile.svg';
 import SearchMdIcon from '@/icons/SideBar/search-md.svg';
 import NotificationsIcon from '@/icons/SideBar/Notification.svg';
 import TopBarItem from './TopBarItem';
