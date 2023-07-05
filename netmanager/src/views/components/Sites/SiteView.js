@@ -23,6 +23,9 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
 
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+
 const gridItemStyle = {
   padding: '5px',
   margin: '5px 0'
@@ -109,6 +112,8 @@ const SiteForm = ({ site }) => {
         padding: '20px 20px',
         maxWidth: '1500px'
       }}>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',
