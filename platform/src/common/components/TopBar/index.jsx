@@ -1,13 +1,13 @@
 import ProfileIcon from '@/icons/SideBar/Profile.svg';
 import SearchMdIcon from '@/icons/SideBar/search-md.svg';
 import NotificationsIcon from '@/icons/SideBar/Notification.svg';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down';
-import SearchIcon from '@/icons/Actions/search.svg';
+// import ArrowDropDownIcon from '@/icons/arrow_drop_down';
+// import SearchIcon from '@/icons/Actions/search.svg';
 import { useState } from 'react';
 
 const TopBar = () => {
-  const [searchInput, setSearchInput] = useState();
-  const [currentPage, setCurrentPage] = useState('Home'); // Set the initial page name here
+  // const [searchInput, setSearchInput] = useState();
+  const [currentPage, setCurrentPage] = useState('Home'); 
 
   // Function to update the current page
   const handlePageChange = (page) => {
