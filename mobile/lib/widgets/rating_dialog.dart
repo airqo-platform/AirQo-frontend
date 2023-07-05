@@ -1,13 +1,10 @@
+import 'package:app/services/native_api.dart';
 import 'package:flutter/material.dart';
 import 'package:rating_dialog/rating_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/dashboard/dashboard_view.dart';
-import '../services/native_api.dart';
-import '../screens/feedback/feedback_page.dart';
 
-//import '../models/favourite_place.dart';
-//import '../services/firebase_service.dart';
-//import 'package:app/models/models.dart';
+import '../screens/dashboard/dashboard_view.dart';
+import '../screens/feedback/feedback_page.dart';
 
 class Rating extends StatefulWidget {
   const Rating({Key? key}) : super(key: key);
@@ -19,12 +16,6 @@ class Rating extends StatefulWidget {
 class _RatingState extends State<Rating> {
   late SharedPreferences _prefs;
   int appOpenCount = 0;
-
-  //Future<List<FavouritePlace>> fetchFavouritePlaces() async {
-    //List<FavouritePlace> cloudFavoritePlaces =
-      //  await CloudStore.getFavouritePlaces();
-    //return cloudFavoritePlaces;
-  //}
 
   @override
   void initState() {
@@ -61,15 +52,17 @@ class _RatingState extends State<Rating> {
                   commentHint: 'Set your custom comment hint',
                   onCancelled: () => print('cancelled'),
                   onSubmitted: (response) {
-                    print('rating: ${response.rating}, comment: ${response.comment}');
+                    print(
+                        'rating: ${response.rating}, comment: ${response.comment}');
 
                     if (response.rating < 3.0) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const FeedbackPage()),
+                        MaterialPageRoute(
+                            builder: (context) => const FeedbackPage()),
                       );
                     } else {
-                      RateService();
+                      RateService.rateApp();
                     }
                   },
                 );
@@ -85,11 +78,11 @@ class _RatingState extends State<Rating> {
 
   @override
   Widget build(BuildContext context) {
-   // return FutureBuilder<List<FavouritePlace>>(
-     // future: fetchFavouritePlaces(),
-      //builder: (context, snapshot) {
-        return const DashboardView();
-      }//,
-    //);
-  //}
+    // return FutureBuilder<List<FavouritePlace>>(
+    // future: fetchFavouritePlaces(),
+    //builder: (context, snapshot) {
+    return const DashboardView();
+  } //,
+//);
+//}
 }

@@ -40,6 +40,7 @@ class Profile extends Equatable {
       aqShares: 0,
       isAnonymous: isAnonymous,
       isSignedIn: user != null,
+      lastRated: DateTime.now(),
     );
   }
 
@@ -58,6 +59,7 @@ class Profile extends Equatable {
     required this.aqShares,
     required this.isAnonymous,
     required this.isSignedIn,
+    required this.lastRated,
   });
 
   @JsonKey(defaultValue: '')
@@ -102,6 +104,9 @@ class Profile extends Equatable {
   @JsonKey(defaultValue: false, required: false)
   final bool isSignedIn;
 
+  @JsonKey(required: false)
+  final DateTime lastRated;
+
   Profile copyWith({
     String? title,
     String? firstName,
@@ -117,6 +122,7 @@ class Profile extends Equatable {
     int? aqShares,
     bool? isAnonymous,
     bool? isSignedIn,
+    DateTime? lastRated,
   }) {
     return Profile(
       title: title ?? this.title,
@@ -133,6 +139,7 @@ class Profile extends Equatable {
       aqShares: aqShares ?? this.aqShares,
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isSignedIn: isSignedIn ?? this.isSignedIn,
+      lastRated: lastRated ?? this.lastRated,
     );
   }
 
