@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
   late BuildContext _showcaseContext;
   final AppService _appService = AppService();
   late List<Widget> _widgetOptions;
-
+  
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;

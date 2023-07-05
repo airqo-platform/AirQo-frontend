@@ -282,6 +282,8 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
+  
+
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
