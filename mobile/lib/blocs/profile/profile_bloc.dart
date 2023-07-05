@@ -33,6 +33,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
       notifications: state.notifications,
       location: state.location,
       aqShares: state.aqShares,
+      //lastRated: state.lastRated,
     );
     emit(profile);
 
@@ -63,6 +64,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
       location: await PermissionService.checkPermission(
         AppPermission.location,
       ),
+      //lastRated: cloudProfile.lastRated,
       aqShares:
           profile.aqShares == 0 ? cloudProfile.aqShares : profile.aqShares,
       title: profile.title.isEmpty ? cloudProfile.title : profile.title,

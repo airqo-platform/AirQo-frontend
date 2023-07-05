@@ -201,6 +201,7 @@ class AirqoApiClient {
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
+      print("response:${response.body}");
 
       return EmailAuthModel.fromJson(
         json.decode(response.body) as Map<String, dynamic>,
@@ -324,8 +325,8 @@ class AirqoApiClient {
     return favoritePlaces;
   }
 
-  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
-      {
+  Future<bool> syncFavouritePlaces(
+    List<FavouritePlace> favorites, {
     bool clear = false,
   }) async {
     final userId = CustomAuth.getUserId();

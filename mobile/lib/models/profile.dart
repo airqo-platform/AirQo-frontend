@@ -161,5 +161,6 @@ class Profile extends Equatable {
         aqShares,
         isAnonymous,
         isSignedIn,
+        lastRated
       ];
 }

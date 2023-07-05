@@ -189,41 +189,48 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    context.read<DashboardBloc>().add(const RefreshDashboard());
-    context.read<MapBloc>().add(const InitializeMapState());
-    context.read<KyaBloc>().add(const SyncKya());
-    context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
-    context.read<NotificationBloc>().add(const SyncNotifications());
-    await checkNetworkConnection(
-      context,
-      notifyUser: true,
-    );
-    await _initializeDynamicLinks();
-    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AppService().latestVersion().then((version) async {
-          if (version != null && mounted) {
-            await canLaunchUrl(version.url).then((bool result) async {
-              await openUpdateScreen(context, version);
-            });
-          } else {
-            await displayRatingDialog(context).then((showDialog) async {
-              if (showDialog) {
-                await showRatingDialog(context);
-              }
-            });
-          }
-        });
-      } else {
-        await displayRatingDialog(context).then((showDialog) async {
-          if (showDialog) {
-            await showRatingDialog(context);
-          }
-        });
-      }
-    });
+    try {
+      print("initaaaaaaaa");
+      context.read<DashboardBloc>().add(const RefreshDashboard());
+      context.read<MapBloc>().add(const InitializeMapState());
+      context.read<KyaBloc>().add(const SyncKya());
+      context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+      context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
+      context.read<NotificationBloc>().add(const SyncNotifications());
+      await checkNetworkConnection(
+        context,
+        notifyUser: true,
+      );
+      await _initializeDynamicLinks();
+      print("111111111111111111111");
+      await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (context.read<DashboardBloc>().state.checkForUpdates) {
+          await AppService().latestVersion().then((version) async {
+            if (version != null && mounted) {
+              await canLaunchUrl(version.url).then((bool result) async {
+                await openUpdateScreen(context, version);
+              });
+            } else {
+              await displayRatingDialog(context).then((showDialog) async {
+                if (showDialog) {
+                  await showRatingDialog(context);
+                }
+              });
+            }
+          });
+        } else {
+          await displayRatingDialog(context).then((showDialog) async {
+            if (showDialog) {
+              await showRatingDialog(context);
+            }
+          });
+        }
+      });
+    } on Exception catch (e) {
+      print("errrrrrrrrrrrrrrrrrrrrr$e");
+      // TODO
+    }
   }
 
   Future<void> _initializeDynamicLinks() async {
@@ -313,3 +320,9 @@ class _HomePageState extends State<HomePage> {
     });
   }
 }
+
+
+
+ //Initial task failed for action 
+ //RecaptchaAction(action=getOobCode)with exception - 
+ //An internal error has occurred. [ CONFIGURATION_NOT_FOUND ]

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "airqo-dev",
+  "private_key_id": "7031556e715ca5baa8091fb825648a5edf6e32d4",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCsQ7KO3VcKfalK\nk5P4YIJGH5ptppzIzhU96TapQqTZcmivUqeHRCAQR/aOMwbxQ7MSillGv4vq7j4f\nlM6xALyxtrlI8hTv2K1Ga/nxCWABbnyMvTJyhkB8i/24MhSO/gh8uYQRDmpPC/ID\nLr0B91RNyWRukjLhMszIZi62VbtzQW6+VrHFdeTcsbmsu/tBlRyCVOgawkAi+qa3\n9sTOgd2rv39KtpxMhDRWlLy/2wgWqVcPeJ90y+q4ln646jlURC7wOywiRYAbdKD/\nPYLc860d0tbrUw92vyjKsgsLGoB/ySlPDPkko+nfkOX/uYy61BNwJhAX0KV3+AgW\nL8L1AdnrAgMBAAECggEATcJVRJX3J14n3+kT/ycZRywW2m4+EYqtHgA601ao8Rrq\n1FE8HBwNWSwSyIeSF7AWkkTvHbdzIj4evsS+NDn/8zxnEN1txAKL3OD6tuojcyH7\niNASiI2/aDkM82tvykgzbpGTYtud80aSHQuo9808Ocyx0BOgcfUraT5u0ZGLhu+A\ngoF/rIpkRtiSmLtZt/nNiIOVont2PfiTG0BGW/wo3UBJrWMNQERuepXHBMxi+1C8\nCnuQoYJAHXoIoXVDFINYlKdQVveUX4BndyoDSb9QllYoQRom91EZeNPo9ux+ToTv\n5PyrCGK2BFL2JrnjI1QrEo8yPnmywurEmpbSaLYUMQKBgQDrs/fdZzwUWfdD3SDY\nIu76AFF8Kj+urj72i+nuK8rRfxS064EZsKi2iAMaKXj1vUp/Pw2QidJg0HE0cC4j\nJt7JE7bXpnkjgyo+xJYvF6JjOaKPgDg2aH+1ArhS4+YryeQF+bFu4vPDvyB/QOne\nXWo14hU2uWksJWjtq9JqbDUhcwKBgQC7GTy9zJFLpkvJBYKFu8kXTHa4nl558LuB\neokBAGCXLsKQCDMA91if/RI7Nwi1KS5RsJf1/qviZq12bAZs2pptLHf2zA16LBim\n0klueliUq5icTKqk+5cQNpdj3BQRdpDW7DGl0WI2AXw6CyCPGy0UNqusNVfgx6NL\n1U1n6EDnqQKBgQCf5IQes6tz+tvcM6PWO0x2V8TvQBHXQ+j+g0d8BEUf/N9lI+V+\nMfMhb/76vmuJ+JES5QkkpfoLJxvEgN0rh3DWYwNEI3BGAPKlheKDq7rDKRP32PlJ\nH3aSqnez81nvFpQS4aHWIStP/NXkvXppGGG2j9noN7r68Z3OrSKegy0/tQKBgQCA\nLKTpHdi365/lggnN1jzH4lE+3ve4MAw0gp6S+hAx4g3WIFfYpJqpV/UCbgxgF2ss\n+X7RPnvAaTkSdKTeM9AxVJKGl3nwJX9p4Yv+zIAcsYWmJfuNdPIjYFLMTXvODtzg\n8AR/JXdTqibRmMfgYey6+U0Yd57RVdLv45vYwEqeqQKBgQDfWYcrfiJhCMpnSvP6\nmdU36qZI7mTnvHX2cCbtRYc0KI7Qng/2mx0N6yLeVctA/ytoDyzWrKc0BlPg+syt\n8sAulQL6a5fpHm5Ctu91Gg3gNBTKdZkEwyI+eMkMYx/1Kq9kUH/4X1FASSN+ahSS\n4FpcYmrMsER2aWFw7uDl70bzKQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "airqo-dev@appspot.gserviceaccount.com",
+  "client_id": "110983581202863615055",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/airqo-dev%40appspot.gserviceaccount.com"
+}
