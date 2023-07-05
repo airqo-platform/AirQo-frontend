@@ -2,41 +2,41 @@
 
 ---
 
--   [Prerequisites](#prerequisites)
-    -   [OSX, Linux, Windows](#osx-linux-windows)
-    -   [Docker](#docker)
-    -   [Git](#git)
--   [Setting up the development environment](#setting-up-the-development-environment)
-    -   [Clone the repository](#clone-the-repository)
-    -   [OSX](#osx)
-    -   [Linux](#linux)
-    -   [Windows](#windows)
--   [Running the stack](#running-the-stack)
-    -   [Create the .envrc and .env files](#create-the-envrc-and-env-files)
-    -   [Docker](#docker-1)
-    - [Running the website frontend](#run-the-website-frontend)
-    -   [Running the website application](#run-the-website-app)
--   [Database Management](#database-management)
--   [Development Invoke Commands](#development-invoke-commands)
-    -   [Running servers](#running-servers)
-    -   [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
-    -   [Static builds](#static-builds)
+- [Prerequisites](#prerequisites)
+  - [OSX, Linux, Windows](#osx-linux-windows)
+  - [Docker](#docker)
+  - [Git](#git)
+- [Setting up the development environment](#setting-up-the-development-environment)
+  - [Clone the repository](#clone-the-repository)
+  - [OSX](#osx)
+  - [Linux](#linux)
+  - [Windows](#windows)
+- [Running the stack](#running-the-stack)
+  - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
+  - [Docker](#docker-1)
+  - [Running the website frontend](#run-the-website-frontend)
+  - [Running the website application](#run-the-website-app)
+- [Database Management](#database-management)
+- [Development Invoke Commands](#development-invoke-commands)
+  - [Running servers](#running-servers)
+  - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
+  - [Static builds](#static-builds)
 
 ## Prerequisites
 
 #### OSX, Linux, Windows
 
--   `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
--   `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
--   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
+- `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
+- `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
+- `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
 #### Docker
 
--   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
+- `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
 
 #### Git
 
--   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
+- `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 
 ## Setting up the development environment
 
@@ -97,8 +97,8 @@ Now we need to create two new users in postgresql.
 
 _NOTE_: if using zsh, error `zsh: command not found: psql`, you need to include `export PATH="/usr/local/Cellar/postgresql@13.4/13.4.XX/bin:$PATH"` in your `~/.zshrc`, after replacing `XX` with the actual patch/directory you have.
 
--   type `CREATE USER YOURUSERNAME CREATEDB;` (use your `whoami` username).
--   then press enter and exit the psql shell with `\q`
+- type `CREATE USER YOURUSERNAME CREATEDB;` (use your `whoami` username).
+- then press enter and exit the psql shell with `\q`
 
 Stop the postgresql service using
 
@@ -155,11 +155,11 @@ Now we need to create a new user in postgresql.
 
     sudo su postgres
 
--   open a postgresql shell using `psql`.
--   type `CREATE USER <YOURUSERNAME> CREATEDB;` where `<YOURUSERNAME>` matches your login / `whoami`
--   type `CREATE USER gitprime_app_user CREATEDB;`
--   type `ALTER USER <YOURUSERNAME> WITH SUPERUSER;` to give your user the super role.
--   then press enter and exit the shell with `\q`
+- open a postgresql shell using `psql`.
+- type `CREATE USER <YOURUSERNAME> CREATEDB;` where `<YOURUSERNAME>` matches your login / `whoami`
+- type `CREATE USER gitprime_app_user CREATEDB;`
+- type `ALTER USER <YOURUSERNAME> WITH SUPERUSER;` to give your user the super role.
+- then press enter and exit the shell with `\q`
 
 Stop the postgresql service using
 
@@ -212,7 +212,7 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
 Populate the `.env` file in the root of the folder with the values of the keys given in [.env.sample](./.env.sample) file as a template.
 
-Here is the [documentation link](https://staging-docs.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
+Here is the [documentation link](https://wiki.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
 
 **Note**: Remove `DATABASE_URI` variable if you are using docker
 

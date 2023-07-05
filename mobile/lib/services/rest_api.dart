@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
@@ -283,7 +284,80 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
-  
+  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
+    final favoritePlaces = <FavouritePlace>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    if (userId.isEmpty) {
+      return [];
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.favourites}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final favorite in body['favorites'] as List<dynamic>) {
+        try {
+          favoritePlaces.add(
+            FavouritePlace.fromJson(
+              favorite as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return favoritePlaces;
+  }
+
+  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
+      {
+    bool clear = false,
+  }) async {
+    final userId = CustomAuth.getUserId();
+
+    if ((userId.isEmpty) || (favorites.isEmpty && !clear)) {
+      return false;
+    }
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          favorites.map((e) => e.toAPiJson(userId)).toList();
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}",
+        ),
+        headers: headers,
+        body: jsonEncode({'favorite_places': body}),
+      );
+
+      return response.statusCode == 200 ? true : false;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {

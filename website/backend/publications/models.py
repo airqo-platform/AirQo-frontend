@@ -15,6 +15,7 @@ class Publication(BaseModel):
     title = models.CharField(max_length=255)
     authors = models.TextField(null=True, blank=True)
     link = models.URLField(null=True, blank=True)
+    resource_file = models.FileField(upload_to='publications/', null=True, blank=True)
     link_title = models.CharField(max_length=100, default="Read More", null=True, blank=True)
     category = models.CharField(
         max_length=40, default=CategoryTypes.Research, choices=CategoryTypes.choices, null=True, blank=True
