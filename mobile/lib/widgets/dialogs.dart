@@ -763,7 +763,6 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
 }
 
 Future<void> showRatingDialog(BuildContext context) async {
-  print('***************showRatingDialog has been called');
   await showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -771,7 +770,6 @@ Future<void> showRatingDialog(BuildContext context) async {
         builder: (BuildContext context) {
           return RatingDialog(
             initialRating: 1.0,
-            force: true, //this forces the user to rate the app
             title: const Text(
               'Rating Dialog',
               textAlign: TextAlign.center,
@@ -785,7 +783,7 @@ Future<void> showRatingDialog(BuildContext context) async {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15),
             ),
-            image: SvgPicture.asset('assets/icon/airqo_logo.svg'),
+            image: const FlutterLogo(size: 100),
             submitButtonText: 'Submit',
             commentHint: 'Set your custom comment hint',
             onCancelled: () => print('cancelled'),
@@ -798,7 +796,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                   MaterialPageRoute(builder: (context) => const FeedbackPage()),
                 );
               } else {
-                RateService.rateApp();
+                RateService();
               }
             },
           );
