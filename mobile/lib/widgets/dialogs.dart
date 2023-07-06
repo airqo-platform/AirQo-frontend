@@ -8,7 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rating_dialog/rating_dialog.dart';
 
+import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
 import 'custom_shimmer.dart';
 
@@ -481,6 +483,7 @@ class AuthFailureDialog extends StatelessWidget {
 
 class SettingsDialog extends StatelessWidget {
   const SettingsDialog(this.message, {super.key});
+
   final String message;
 
   @override
@@ -533,6 +536,7 @@ class AuthMethodDialog extends StatelessWidget {
     required this.authMethod,
     required this.credentials,
   });
+
   final AuthMethod authMethod;
   final String credentials;
 
@@ -659,6 +663,7 @@ class AuthProcedureDialog extends StatelessWidget {
     super.key,
     required this.authProcedure,
   });
+
   final AuthProcedure authProcedure;
 
   @override
@@ -710,6 +715,7 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
     super.key,
     required this.authMethod,
   });
+
   final AuthMethod authMethod;
 
   @override
@@ -754,4 +760,50 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> showRatingDialog(BuildContext context) async {
+  print('***************showRatingDialog has been called');
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Builder(
+        builder: (BuildContext context) {
+          return RatingDialog(
+            initialRating: 1.0,
+            force: true, //this forces the user to rate the app
+            title: const Text(
+              'Rating Dialog',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            message: const Text(
+              'Tap a star to set your rating. ',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15),
+            ),
+            image: SvgPicture.asset('assets/icon/airqo_logo.svg'),
+            submitButtonText: 'Submit',
+            commentHint: 'Set your custom comment hint',
+            onCancelled: () => print('cancelled'),
+            onSubmitted: (response) {
+              print('rating: ${response.rating}, comment: ${response.comment}');
+
+              if (response.rating < 3.0) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FeedbackPage()),
+                );
+              } else {
+                RateService.rateApp();
+              }
+            },
+          );
+        },
+      );
+    },
+  );
 }

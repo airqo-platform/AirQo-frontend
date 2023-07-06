@@ -231,6 +231,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
 
       return;
     }
+    print("AUTHHHHHHHHHHHHHHHHHH");
 
     EmailAuthModel? emailAuthModel =
         await apiClient.sendEmailVerificationCode(emailAddress);
@@ -238,9 +239,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     if (!mounted) {
       return;
     }
-    Navigator.pop(context);
+    print("here");
 
     if (emailAuthModel == null) {
+      print("AUTH IS NULL###########");
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
