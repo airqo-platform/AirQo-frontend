@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Default App Name</string>
+    <string name="app_name">AirQo</string>
+    <string name="app_widget_description">This is the AirQo application homescreen widget</string>
+    <string name="location">Kampala</string>
+    <string name="pm_scale">PM<sub>2.5</sub></string>
+    <string name="date">12/12, 3:06pm</string>
+    <string name="date_circle">14:45</string>
+    <string name="pm_value">40</string>
+    <string name="pmUnit">µg/m<sup>3</sup></string>
+    <string name="forecast_value1">22</string>
+    <string name="forecast_time1">4pm</string>
+    <string name="forecast_value2">23</string>
+    <string name="forecast_time2">5pm</string>
+    <string name="forecast_value3">24</string>
+    <string name="forecast_time3">6pm</string>
+    <string name="refresh_icon">Refresh icon</string>
+    <string name="location_icon">Location icon</string>
 </resources>
