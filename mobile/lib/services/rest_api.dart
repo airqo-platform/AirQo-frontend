@@ -1,29 +1,24 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
-  if (queryParams.isNotEmpty) {
-    url = '$url?';
-    queryParams.forEach(
-      (key, value) {
-        url = queryParams.keys.first.compareTo(key) == 0
-            ? '$url$key=$value'
-            : '$url&$key=$value';
-      },
-    );
-  }
+  String formattedUrl = '$url?TOKEN=${Config.airqoApiV2Token}';
+  queryParams
+      .forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
 
-  return url;
+  return formattedUrl;
 }
 
 class AirqoApiClient {
@@ -57,13 +52,13 @@ class AirqoApiClient {
   final Map<String, String> getHeaders = HashMap()
     ..putIfAbsent(
       'Authorization',
-      () => 'JWT ${Config.airqoApiToken}',
+      () => 'JWT ${Config.airqoJWTToken}',
     );
 
   final Map<String, String> postHeaders = HashMap()
     ..putIfAbsent(
       'Authorization',
-      () => 'JWT ${Config.airqoApiToken}',
+      () => 'JWT ${Config.airqoJWTToken}',
     )
     ..putIfAbsent('Content-Type', () => 'application/json');
 
@@ -96,9 +91,10 @@ class AirqoApiClient {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.metaData.serviceName;
+      String url = addQueryParameters({}, AirQoUrls.mobileCarrier);
 
       final response = await client.post(
-        Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(url),
         headers: headers,
         body: json.encode({'phone_number': phoneNumber}),
       );
@@ -112,6 +108,30 @@ class AirqoApiClient {
     }
 
     return '';
+  }
+
+  static Future<void> sendErrorToSlack(
+    Object exception,
+    StackTrace? stackTrace,
+  ) async {
+    try {
+      final retryClient = RetryClient(
+        http.Client(),
+        retries: 10,
+      );
+
+      await retryClient.post(
+        Uri.parse(Config.slackWebhookUrl),
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+        body: jsonEncode({
+          'text': "Exception $exception\nStackTrace$stackTrace",
+        }),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Future<bool?> checkIfUserExists({
@@ -130,10 +150,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
+      String url = addQueryParameters({}, AirQoUrls.firebaseLookup);
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode(body),
       );
@@ -194,10 +214,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
+      String url = addQueryParameters({}, AirQoUrls.emailVerification);
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
@@ -222,10 +242,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
+      String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
@@ -324,8 +344,8 @@ class AirqoApiClient {
     return favoritePlaces;
   }
 
-  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
-      {
+  Future<bool> syncFavouritePlaces(
+    List<FavouritePlace> favorites, {
     bool clear = false,
   }) async {
     final userId = CustomAuth.getUserId();
@@ -340,10 +360,11 @@ class AirqoApiClient {
       List<Map<String, dynamic>> body =
           favorites.map((e) => e.toAPiJson(userId)).toList();
 
+      String url = addQueryParameters(
+          {}, "${AirQoUrls.favourites}/syncFavorites/$userId");
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode({'favorite_places': body}),
       );
@@ -372,8 +393,10 @@ class AirqoApiClient {
         },
       );
 
+      String url = addQueryParameters({}, AirQoUrls.feedback);
+
       final response = await client.post(
-        Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(url),
         headers: headers,
         body: body,
       );
