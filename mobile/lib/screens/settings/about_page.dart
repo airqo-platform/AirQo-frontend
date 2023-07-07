@@ -1,4 +1,4 @@
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
@@ -61,7 +61,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     MaterialPageRoute(
                       builder: (context) {
                         return WebViewScreen(
-                          url: Config.termsUrl,
+                          url: AirQoUrls.termsUrl,
                           title: 'Terms & Privacy Policy',
                         );
                       },

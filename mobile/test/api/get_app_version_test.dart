@@ -2,10 +2,9 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/app_store_version.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:mockito/annotationsdart';
 import 'package:mockito/mockito.dart';
 
 import 'api.mocks.dart';
@@ -21,7 +20,7 @@ Future<void> main() async {
     setUpAll(() async {
       await dotenv.load(fileName: Config.environmentFile);
       headers = {
-        'Authorization': 'JWT ${Config.airqoApiToken}',
+        'Authorization': 'JWT ${Config.airqoJWTToken}',
         'service': ApiService.view.serviceName,
       };
       client = MockClient();
