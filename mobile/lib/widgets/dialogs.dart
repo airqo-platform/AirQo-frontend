@@ -894,8 +894,6 @@ Future<void> showRatingDialog(BuildContext context) async {
   );
 }
 
-
-
 class RatingDialogWidget extends StatefulWidget {
   @override
   _RatingDialogWidgetState createState() => _RatingDialogWidgetState();
@@ -938,95 +936,105 @@ class _RatingDialogWidgetState extends State<RatingDialogWidget> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SvgPicture.asset(
-                          'assets/icon/airqo_logo.svg',
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Please rate us five stars if you enjoy our app',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        RatingBar.builder(
-                          initialRating: 0,
-                          minRating: 1,
-                          direction: Axis.horizontal,
-                          allowHalfRating: false,
-                          itemCount: 5,
-                          itemSize: 45,
-                          itemBuilder: (context, _) => const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          onRatingUpdate: (rating) {
-                            // Handle rating update
-                            print('New rating: $rating');
-                            if (rating < 3.0) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const FeedbackPage(),
-                                ),
-                              );
-                            } else {
-                              RateService();
-                            }
-                          },
-                          glowColor: Colors.amber.withOpacity(0.8),
-                        ),
-                        const SizedBox(height: 16),
-                        const Divider(
-                          color: Colors.grey,
-                          thickness: 1,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                // Handle rate button press
-                                Navigator.pop(context); // Close the dialog
-                              },
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(120, 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/icon/airqo_logo.svg',
                               ),
-                              child: const Text(
-                                'RATE',
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Please rate us five stars if you enjoy our app',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
                               ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                // Handle cancel button press
-                                Navigator.pop(context); // Close the dialog
-                              },
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(120, 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
+                              const SizedBox(height: 16),
+                              RatingBar.builder(
+                                initialRating: 0,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: false,
+                                itemCount: 5,
+                                itemSize: 30,
+                                itemBuilder: (context, _) => const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
                                 ),
+                                onRatingUpdate: (rating) {
+                                  // Handle rating update
+                                  print('New rating: $rating');
+                                  if (rating < 3.0) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const FeedbackPage(),
+                                      ),
+                                    );
+                                  } else {
+                                    RateService();
+                                  }
+                                },
+                                glowColor: Colors.amber.withOpacity(0.8),
                               ),
-                              child: const Text(
-                                'LATER',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              const SizedBox(height: 16),
+                              const Divider(
+                                color: Colors.grey,
+                                thickness: 1,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Handle rate button press
+                                      Navigator.pop(
+                                          context); // Close the dialog
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      minimumSize: const Size(120, 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'RATE',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Handle cancel button press
+                                      Navigator.pop(
+                                          context); // Close the dialog
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      minimumSize: const Size(120, 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'LATER',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
