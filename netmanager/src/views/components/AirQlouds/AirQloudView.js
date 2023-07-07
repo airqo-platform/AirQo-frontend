@@ -190,7 +190,6 @@ const AirQloudView = (props) => {
   const [dataSummaryReady, setDataSummaryReady] = useState(false);
   const [airQloudDataSummaryReport, setAirQloudDataSummaryReport] = useState(null);
 
-
   const [uptimeStartDate, setUptimeStartDate] = useState(null);
   const [uptimeEndDate, setUptimeEndDate] = useState(null);
   const [uptimeSummaryReady, setUptimeSummaryReady] = useState(false);
@@ -242,8 +241,8 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        
-        if (resData && resData.length>0){
+
+        if (resData && resData.length > 0) {
           setAirQloudDataSummaryReport(resData);
           setLoading(false);
           setStartDate(null);
@@ -256,32 +255,28 @@ const AirQloudView = (props) => {
               severity: 'success'
             })
           );
-        }else{
+        } else {
           setLoading(false);
           setStartDate(null);
           setEndDate(null);
           dispatch(
             updateMainAlert({
               message:
-              'Uh-oh! No data summary report generated for the selected time period. No data!, select alternative time period.',
+                'Uh-oh! No data found for the selected time period. Select alternative time period.',
               show: true,
-              severity: 'error'
+              severity: 'success'
             })
           );
-
         }
-        
       })
       .catch((err) => {
-       
-          dispatch(
-            updateMainAlert({
-              message:
-              err.message + 'Uh-oh! No data summary report generated for the selected time period. No data',
-              show: true,
-              severity: 'error'
-            })
-          );
+        dispatch(
+          updateMainAlert({
+            message: err.message,
+            show: true,
+            severity: 'error'
+          })
+        );
         setLoading(false);
         setStartDate(null);
         setEndDate(null);
@@ -293,7 +288,7 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        if (resData && resData.length>0){
+        if (resData && resData.length > 0) {
           setAirQloudUptimeSummaryReport(resData);
           setLoading(false);
           setUptimeEndDate(null);
@@ -301,37 +296,33 @@ const AirQloudView = (props) => {
           setUptimeSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message: 'AirQloud Uptime Report Generated ',
+              message: 'AirQloud uptime report successfully generated',
               show: true,
               severity: 'success'
             })
           );
-        }else{
+        } else {
           setLoading(false);
           setUptimeEndDate(null);
           setUptimeEndDate(null);
           dispatch(
             updateMainAlert({
-              message: 'Uh-oh! No uptime report generated for the selected time period. No data, please select alternative time period',
+              message:
+                'Uh-oh! No data found for the selected time period. Select alternative time period.',
               show: true,
-              severity: 'error'
+              severity: 'success'
             })
           );
-          
-        }  
-        
-        
+        }
       })
       .catch((err) => {
-          console.log(err)
-          dispatch(
-            updateMainAlert({
-              message:
-              err.message + 'Uh-oh! No uptime report generated for the selected time period. no data',
-              show: true,
-              severity: 'error'
-            })
-          );
+        dispatch(
+          updateMainAlert({
+            message: err.message,
+            show: true,
+            severity: 'error'
+          })
+        );
 
         setLoading(false);
         setUptimeStartDate(null);
@@ -695,13 +686,11 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>Reports will appear here</p>
+              <p>AirQloud data summary report will appear here</p>
             </Paper>
           )}
         </div>
 
-        
-        
         <div
           style={{
             margin: '50px auto',
@@ -721,7 +710,8 @@ const AirQloudView = (props) => {
                     Generate AirQloud Uptime Report
                   </Typography>
                   <p>
-                    Select the time period of your interest to view the uptime report for this airqloud
+                    Select the time period of your interest to view the uptime report for this
+                    airqloud
                   </p>
                   <form onSubmit={generateAirQloudUptimeReport}>
                     <CardContent>
@@ -764,7 +754,7 @@ const AirQloudView = (props) => {
                           color="primary"
                           variant="outlined"
                           type="submit"
-                          disabled={disableUptimeReportGenerationBtn ()}
+                          disabled={disableUptimeReportGenerationBtn()}
                         >
                           {' '}
                           Generate Uptime Report for the AirQloud
@@ -790,7 +780,6 @@ const AirQloudView = (props) => {
           </div>
         </div>
 
-
         <div
           style={{
             margin: '50px auto',
@@ -806,9 +795,10 @@ const AirQloudView = (props) => {
                     className={clsx(classes.root, className)}
                     style={{ overflow: 'visible' }}
                   >
-
                     <Typography className={clsx(classes.cardTitle, classes.titleSpacing)}>
-                      {`Uptime Statistics For ${airQloudUptimeSummaryReport.airqloud_name} From ${formatDate(
+                      {`Uptime Statistics For ${
+                        airQloudUptimeSummaryReport.airqloud_name
+                      } From ${formatDate(
                         airQloudUptimeSummaryReport.start_date_time,
                         'YYYY-MM-DD'
                       )} to ${formatDate(airQloudUptimeSummaryReport.end_date_time, 'YYYY-MM-DD')}`}
@@ -879,12 +869,8 @@ const AirQloudView = (props) => {
                               color="textSecondary"
                               gutterBottom
                               variant="body2"
-                            >
-                              
-                            </Typography>
-                            <Typography variant="h3">
-                              
-                            </Typography>
+                            ></Typography>
+                            <Typography variant="h3"></Typography>
                           </Grid>
                         </Grid>
 
@@ -901,8 +887,7 @@ const AirQloudView = (props) => {
                                 title: 'Hourly Data Point(Records Count)',
                                 field: 'data_points'
                               },
-                              
-                              
+
                               {
                                 title: 'Uptime (%)',
                                 field: 'uptime'
@@ -943,8 +928,7 @@ const AirQloudView = (props) => {
                                 title: 'Hourly Data Point(Records Count)',
                                 field: 'data_points'
                               },
-                              
-                              
+
                               {
                                 title: 'Uptime (%)',
                                 field: 'uptime'
@@ -979,7 +963,7 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>AirQloud Uptime Report will appear here</p>
+              <p>AirQloud uptime report will appear here</p>
             </Paper>
           )}
         </div>
