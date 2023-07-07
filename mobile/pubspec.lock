@@ -671,7 +671,7 @@ packages:
     source: hosted
     version: "2.0.15"
   flutter_rating_bar:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_rating_bar
       sha256: d2af03469eac832c591a1eba47c91ecc871fe5708e69967073c043b2d775ed93
@@ -1384,14 +1384,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  rating_dialog:
-    dependency: "direct main"
-    description:
-      name: rating_dialog
-      sha256: "4856ba266c255081f05c57148345ea13f0d86c4049859d66e14c47e2ab1f90d3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.4"
   retry:
     dependency: "direct main"
     description:

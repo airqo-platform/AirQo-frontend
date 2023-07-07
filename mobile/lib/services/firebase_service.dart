@@ -317,8 +317,6 @@ class CloudStore {
     return null;
   }
 
- 
-
   static Future<bool> updateProfile(Profile profile) async {
     final User? currentUser = CustomAuth.getUser();
     if (!profile.isSignedIn || currentUser == null) {
@@ -392,10 +390,9 @@ class CustomAuth {
       return true;
     }
 
-    //userCredential = await FirebaseAuth.instance.signInAnonymously();
+    userCredential = await FirebaseAuth.instance.signInAnonymously();
 
-    //return userCredential.user != null;
-    return true;
+    return userCredential.user != null;
   }
 
   static Future<bool> signOut() async {

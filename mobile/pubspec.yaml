@@ -70,8 +70,9 @@ dependencies:
   url_launcher: ^6.1.11
   hydrated_bloc: ^9.1.2
   firebase_crashlytics: ^3.3.1
-  rating_dialog: ^2.0.4
   rate_my_app: ^2.0.0
+  flutter_rating_bar: ^4.0.1
+
   # Drift previous database => airqo_app_db.sqlite
   
 dev_dependencies:
