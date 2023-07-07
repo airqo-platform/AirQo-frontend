@@ -422,7 +422,7 @@ class _DashboardViewState extends State<DashboardView>
             context,
             MaterialPageRoute(
               builder: (context) {
-                return const SearchPage();
+                return RatingDialogWidget();
               },
             ),
           );
