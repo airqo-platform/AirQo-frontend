@@ -23,7 +23,6 @@ class HiveService {
       ..registerAdapter(ForecastAdapter())
       ..registerAdapter<HealthTip>(HealthTipAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
-
     await Future.wait([
       Hive.openBox<SearchHistory>(_searchHistory),
       Hive.openBox<List<Forecast>>(_forecast),

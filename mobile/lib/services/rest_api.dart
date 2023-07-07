@@ -4,8 +4,10 @@ import 'dart:convert';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -282,6 +284,81 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
+  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
+    final favoritePlaces = <FavouritePlace>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    if (userId.isEmpty) {
+      return [];
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.favourites}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final favorite in body['favorites'] as List<dynamic>) {
+        try {
+          favoritePlaces.add(
+            FavouritePlace.fromJson(
+              favorite as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return favoritePlaces;
+  }
+
+  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
+      {
+    bool clear = false,
+  }) async {
+    final userId = CustomAuth.getUserId();
+
+    if ((userId.isEmpty) || (favorites.isEmpty && !clear)) {
+      return false;
+    }
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          favorites.map((e) => e.toAPiJson(userId)).toList();
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.favourites}/syncFavorites/$userId?TOKEN=${Config.airqoApiV2Token}",
+        ),
+        headers: headers,
+        body: jsonEncode({'favorite_places': body}),
+      );
+
+      return response.statusCode == 200 ? true : false;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
@@ -329,9 +406,17 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(getHeaders);
       headers["service"] = apiService.serviceName;
 
-      final response = await client
+      final retryClient = RetryClient(
+        http.Client(),
+        retries: 3,
+        when: (response) =>
+            response.statusCode >= 500 && response.statusCode <= 599,
+      );
+
+      final response = await retryClient
           .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
+
       if (response.statusCode == 200) {
         // TODO : use advanced decoding
         return json.decode(response.body);
@@ -378,9 +463,18 @@ class SearchApiClient {
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
       'https://maps.googleapis.com/maps/api/place/details/json';
+  final String geocodingUrl =
+      'https://maps.googleapis.com/maps/api/geocode/json';
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
+
+  final retryClient = RetryClient(
+    http.Client(),
+    retries: 3,
+    when: (response) =>
+        response.statusCode >= 500 && response.statusCode <= 599,
+  );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
@@ -389,7 +483,7 @@ class SearchApiClient {
     try {
       url = addQueryParameters(queryParams, url);
 
-      final response = await client.get(
+      final response = await retryClient.get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {
@@ -467,6 +561,34 @@ class SearchApiClient {
         searchResult,
       );
     } catch (_, __) {}
+
+    return null;
+  }
+
+  Future<Address?> getAddress({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('latlng', () => "$latitude,$longitude")
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent('sessiontoken', () => sessionToken);
+
+      final responseBody = await _getRequest(
+        url: geocodingUrl,
+        queryParams: queryParams,
+      );
+
+      return Address.fromGeocodingAPI(
+        responseBody['results'][0] as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
     return null;
   }
