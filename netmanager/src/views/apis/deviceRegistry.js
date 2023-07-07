@@ -34,14 +34,20 @@ export const getAllDevicesApi = async (networkID) => {
 
 export const createDeviceComponentApi = async (deviceName, componentType, data) => {
   const ctype = componentType;
+  const headers = {
+    service: 'create-device'
+  };
   return await axios
-    .post(ADD_COMPONENT_URI + deviceName, data, { params: { ctype } })
+    .post(ADD_COMPONENT_URI + deviceName, data, { params: { ctype } }, { headers })
     .then((response) => response.data);
 };
 
 export const softCreateDeviceApi = async (data, ctype) => {
+  const headers = {
+    service: 'soft-create-device'
+  };
   return await axios
-    .post(SOFT_EDIT_DEVICE_URI, data, { params: { ctype } })
+    .post(SOFT_EDIT_DEVICE_URI, data, { params: { ctype } }, { headers })
     .then((response) => response.data);
 };
 
@@ -64,20 +70,29 @@ export const getActivitiesApi = async (params) => {
 };
 
 export const addMaintenanceLogApi = async (deviceName, logData) => {
+  const headers = {
+    service: 'add-maintenance-log'
+  };
   return await axios
-    .post(ADD_MAINTENANCE_LOGS_URI, logData, { params: { deviceName } })
+    .post(ADD_MAINTENANCE_LOGS_URI, logData, { params: { deviceName } }, { headers })
     .then((response) => response.data);
 };
 
 export const recallDeviceApi = async (deviceName) => {
+  const headers = {
+    service: 'recall-device'
+  };
   return await axios
-    .post(RECALL_DEVICE_URI, {}, { params: { deviceName } })
+    .post(RECALL_DEVICE_URI, {}, { params: { deviceName } }, { headers })
     .then((response) => response.data);
 };
 
 export const deployDeviceApi = async (deviceName, deployData) => {
+  const headers = {
+    service: 'deploy-device'
+  };
   return axios
-    .post(DEPLOY_DEVICE_URI, deployData, { params: { deviceName } })
+    .post(DEPLOY_DEVICE_URI, deployData, { params: { deviceName } }, { headers })
     .then((response) => response.data);
 };
 
@@ -88,31 +103,48 @@ export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
 };
 
 export const updateDeviceDetails = async (id, updateData) => {
+  const headers = {
+    service: 'update-device'
+  };
   return await axios
-    .put(EDIT_DEVICE_URI, updateData, { params: { id } })
+    .put(EDIT_DEVICE_URI, updateData, { params: { id } }, { headers })
     .then((response) => response.data);
 };
 
 export const softUpdateDeviceDetails = async (deviceId, updateData) => {
+  const headers = {
+    service: 'soft-update-device'
+  };
   return await axios
-    .put(SOFT_EDIT_DEVICE_URI, updateData, { params: { id: deviceId } })
+    .put(SOFT_EDIT_DEVICE_URI, updateData, { params: { id: deviceId } }, { headers })
     .then((response) => response.data);
 };
 
 export const deleteDeviceApi = async (deviceName) => {
+  const headers = {
+    service: 'delete-device'
+  };
   return axios
-    .delete(DELETE_DEVICE_URI, { params: { device: deviceName } })
+    .delete(DELETE_DEVICE_URI, { params: { device: deviceName } }, { headers })
     .then((response) => response.data);
 };
 
 export const updateMaintenanceLogApi = async (deviceId, logData) => {
+  const headers = {
+    service: 'update-maintenance-log'
+  };
   return axios
-    .put(ACTIVITY_URI, logData, { params: { id: deviceId } })
+    .put(ACTIVITY_URI, logData, { params: { id: deviceId } }, { headers })
     .then((response) => response.data);
 };
 
 export const deleteMaintenanceLogApi = (deviceId) => {
-  return axios.delete(ACTIVITY_URI, { params: { id: deviceId } }).then((response) => response.data);
+  const headers = {
+    service: 'delete-maintenance-log'
+  };
+  return axios
+    .delete(ACTIVITY_URI, { params: { id: deviceId } }, { headers })
+    .then((response) => response.data);
 };
 
 export const updateComponentApi = async (deviceName, componentName, data) => {
@@ -132,11 +164,33 @@ export const deleteComponentApi = async (deviceName, componentName) => {
 };
 
 export const deleteDevicePhotos = async (deviceId, urls) => {
+  const headers = {
+    service: 'delete-device-photo'
+  };
   return await axios
-    .delete(DELETE_DEVICE_PHOTO, {
-      params: { id: deviceId },
-      data: { photos: urls }
-    })
+    .delete(
+      DELETE_DEVICE_PHOTO,
+      {
+        params: { id: deviceId },
+        data: { photos: urls }
+      },
+      { headers }
+    )
+    .then((response) => response.data);
+};
+
+export const softCreateDevicePhoto = async (data) => {
+  const headers = {
+    service: 'soft-create-device-photo'
+  };
+  return await axios
+    .post(SOFT_EDIT_DEVICE_IMAGE, data, { headers })
+    .then((response) => response.data);
+};
+
+export const getDevicePhotos = async (params) => {
+  return await axios
+    .get(GET_DEVICE_IMAGES, { params: { device_id: params } })
     .then((response) => response.data);
 };
 
@@ -192,14 +246,4 @@ export const QRCodeApi = async (params) => {
 
 export const refreshAirQloudApi = async (params) => {
   return await axios.put(REFRESH_AIRQLOUD, {}, { params }).then((response) => response.data);
-};
-
-export const softCreateDevicePhoto = async (data) => {
-  return await axios.post(SOFT_EDIT_DEVICE_IMAGE, data).then((response) => response.data);
-};
-
-export const getDevicePhotos = async (params) => {
-  return await axios
-    .get(GET_DEVICE_IMAGES, { params: { device_id: params } })
-    .then((response) => response.data);
 };
