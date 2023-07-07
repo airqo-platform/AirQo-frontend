@@ -262,9 +262,9 @@ const AirQloudView = (props) => {
           dispatch(
             updateMainAlert({
               message:
-                'Uh-oh! No data summary report generated for the selected time period. No data!, select alternative time period.',
+                'Uh-oh! No data found for the selected time period. Select alternative time period.',
               show: true,
-              severity: 'error'
+              severity: 'success'
             })
           );
         }
@@ -272,9 +272,7 @@ const AirQloudView = (props) => {
       .catch((err) => {
         dispatch(
           updateMainAlert({
-            message:
-              err.message +
-              'Uh-oh! No data summary report generated for the selected time period. No data',
+            message: err.message,
             show: true,
             severity: 'error'
           })
@@ -298,7 +296,7 @@ const AirQloudView = (props) => {
           setUptimeSummaryReady(true);
           dispatch(
             updateMainAlert({
-              message: 'AirQloud Uptime Report Generated ',
+              message: 'AirQloud uptime report successfully generated',
               show: true,
               severity: 'success'
             })
@@ -310,20 +308,17 @@ const AirQloudView = (props) => {
           dispatch(
             updateMainAlert({
               message:
-                'Uh-oh! No uptime report generated for the selected time period. No data, please select alternative time period',
+                'Uh-oh! No data found for the selected time period. Select alternative time period.',
               show: true,
-              severity: 'error'
+              severity: 'success'
             })
           );
         }
       })
       .catch((err) => {
-        console.log(err);
         dispatch(
           updateMainAlert({
-            message:
-              err.message +
-              'Uh-oh! No uptime report generated for the selected time period. no data',
+            message: err.message,
             show: true,
             severity: 'error'
           })
@@ -691,7 +686,7 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>Reports will appear here</p>
+              <p>AirQloud data summary report will appear here</p>
             </Paper>
           )}
         </div>
@@ -968,7 +963,7 @@ const AirQloudView = (props) => {
             </div>
           ) : (
             <Paper style={{ textAlign: 'center', padding: '50px' }}>
-              <p>AirQloud Uptime Report will appear here</p>
+              <p>AirQloud uptime report will appear here</p>
             </Paper>
           )}
         </div>
