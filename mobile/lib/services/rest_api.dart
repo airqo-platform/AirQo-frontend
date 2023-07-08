@@ -7,10 +7,11 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -115,6 +116,7 @@ class AirqoApiClient {
     StackTrace? stackTrace,
   ) async {
     try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
       final retryClient = RetryClient(
         http.Client(),
         retries: 10,
@@ -126,7 +128,9 @@ class AirqoApiClient {
           HttpHeaders.contentTypeHeader: 'application/json',
         },
         body: jsonEncode({
-          'text': "Exception $exception\nStackTrace$stackTrace",
+          'text': "Exception: ${exception.toString()}\n\n "
+              "App details: $packageInfo\n\n "
+              "StackTrace: $stackTrace\n\n",
         }),
       );
     } catch (e) {
@@ -369,7 +373,7 @@ class AirqoApiClient {
         body: jsonEncode({'favorite_places': body}),
       );
 
-      return response.statusCode == 200 ? true : false;
+      return response.statusCode == 200;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -401,9 +405,7 @@ class AirqoApiClient {
         body: body,
       );
 
-      if (response.statusCode == 200) {
-        return true;
-      }
+      return response.statusCode == 200;
     } catch (exception, stackTrace) {
       await logException(
         exception,

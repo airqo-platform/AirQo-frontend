@@ -75,7 +75,7 @@ class AppService {
 
       return true;
     } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
+      await logException(exception, stackTrace);
 
       return false;
     }
