@@ -11,8 +11,11 @@ class NetworkConnectionException implements Exception {
   NetworkConnectionException(this.cause);
 }
 
-Future<void> logException(exception, StackTrace? stackTrace,
-    {bool fatal = true}) async {
+Future<void> logException(
+  exception,
+  StackTrace? stackTrace, {
+  bool fatal = true,
+}) async {
   final unHandledExceptions = [
     SocketException,
     TimeoutException,
@@ -28,6 +31,7 @@ Future<void> logException(exception, StackTrace? stackTrace,
       if (fatal) {
         await AirqoApiClient.sendErrorToSlack(exception as Object, stackTrace);
       }
+
       return;
     }
 

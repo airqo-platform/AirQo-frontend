@@ -365,7 +365,9 @@ class AirqoApiClient {
           favorites.map((e) => e.toAPiJson(userId)).toList();
 
       String url = addQueryParameters(
-          {}, "${AirQoUrls.favourites}/syncFavorites/$userId");
+        {},
+        "${AirQoUrls.favourites}/syncFavorites/$userId",
+      );
 
       final response = await client.post(
         Uri.parse(url),
