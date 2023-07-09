@@ -45,10 +45,7 @@ Future<void> main() async {
 
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
 
-      expect(
-          await airqoApiClient.getAppVersion(
-              bundleId: bundleId, packageName: packageName),
-          isA<AppStoreVersion>());
+      expect(await airqoApiClient.getAppVersion(), isA<AppStoreVersion>());
     });
 
     test('returns null if data not in response body', () async {
@@ -67,8 +64,7 @@ Future<void> main() async {
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
 
       expect(
-        await airqoApiClient.getAppVersion(
-            bundleId: bundleId, packageName: packageName),
+        await airqoApiClient.getAppVersion(),
         null,
       );
     });
@@ -88,18 +84,14 @@ Future<void> main() async {
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
 
       expect(
-        await airqoApiClient.getAppVersion(
-            bundleId: bundleId, packageName: packageName),
+        await airqoApiClient.getAppVersion(),
         null,
       );
     });
 
     test('return Android version from API', () async {
       AirqoApiClient airqoApiClient = AirqoApiClient();
-      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
-        bundleId: bundleId,
-        packageName: "",
-      );
+      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion();
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,
@@ -110,10 +102,7 @@ Future<void> main() async {
 
     test('returns iOS version from API', () async {
       AirqoApiClient airqoApiClient = AirqoApiClient();
-      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
-        bundleId: "",
-        packageName: packageName,
-      );
+      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion();
       expect(appVersion, isA<AppStoreVersion>());
       expect(
         appVersion?.url,

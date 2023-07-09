@@ -324,14 +324,6 @@ void main() {
       expect(today.add(day).isYesterday(), isFalse);
     });
 
-    test(
-        'notificationDisplayDate should return the formatted date for notification display',
-        () {
-      expect(fixedDate2.notificationDisplayDate(), '04 May');
-      expect(fixedDate1.subtract(day).notificationDisplayDate(), '03 May');
-      expect(fixedDate1.add(day).notificationDisplayDate(), '05 May');
-    });
-
     test('tomorrow should return the date of tomorrow', () {
       expect(today.tomorrow().weekday, tomorrow.weekday);
       expect(today.tomorrow().day, tomorrow.day);

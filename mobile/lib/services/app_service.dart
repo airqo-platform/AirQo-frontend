@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_service.dart';
@@ -108,36 +105,5 @@ class AppService {
         builder: (_) => screen,
       ),
     );
-  }
-
-  Future<AppStoreVersion?> latestVersion() async {
-    AppStoreVersion? appStoreVersion;
-
-    try {
-      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-      if (Platform.isAndroid) {
-        appStoreVersion = await AirqoApiClient()
-            .getAppVersion(packageName: packageInfo.packageName);
-      } else if (Platform.isIOS) {
-        appStoreVersion = await AirqoApiClient()
-            .getAppVersion(bundleId: packageInfo.packageName);
-      } else {
-        return appStoreVersion;
-      }
-
-      if (appStoreVersion == null) return null;
-
-      return appStoreVersion.compareVersion(packageInfo.version) >= 1
-          ? appStoreVersion
-          : null;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return appStoreVersion;
   }
 }

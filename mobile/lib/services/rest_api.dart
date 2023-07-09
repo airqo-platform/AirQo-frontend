@@ -63,16 +63,19 @@ class AirqoApiClient {
     )
     ..putIfAbsent('Content-Type', () => 'application/json');
 
-  Future<AppStoreVersion?> getAppVersion({
-    String bundleId = "",
-    String packageName = "",
-  }) async {
+  Future<AppStoreVersion?> getAppVersion() async {
     try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      Map<String, String> queryParams = {"version": packageInfo.version};
+      if (Platform.isAndroid) {
+        queryParams["packageName"] = packageInfo.packageName;
+      } else if (Platform.isIOS) {
+        queryParams["bundleId"] = packageInfo.packageName;
+      }
+
       final body = await _performGetRequest(
-        {
-          "bundleId": bundleId,
-          "packageName": packageName,
-        },
+        queryParams,
         AirQoUrls.appVersion,
         apiService: ApiService.view,
       );
