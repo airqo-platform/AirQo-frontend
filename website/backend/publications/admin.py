@@ -20,6 +20,7 @@ class PublicationAdmin(admin.ModelAdmin):
         "category",
         "link",
         "link_title",
+        "resource_file",
         "order",
         "created",
         "author",

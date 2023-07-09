@@ -14,7 +14,7 @@ class Config {
   static double get minimumTextScaleFactor => 1.0;
   static double get maximumTextScaleFactor => 1.1;
 
-  static String get airqoApi => 'https://api.airqo.net/api';
+  static String get airqoApi => 'https://platform.airqo.net/api';
 
   static String get automatedTestsEmail => "automated-tests@airqo.net";
 
@@ -22,9 +22,6 @@ class Config {
 
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
-
-  static String get favPlacesCollection =>
-      dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
 
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 

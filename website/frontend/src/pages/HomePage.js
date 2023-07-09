@@ -11,7 +11,7 @@ import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 import HighlightsSection from '../components/HighlightsSection';
 import SEO from 'utils/seo';
-import TweetsComponent from '../components/Tweets';
+// import TweetsComponent from '../components/Tweets';
 import ImpactNumbers from '../components/ImpactNumbers';
 
 const HomePage = () => {
@@ -34,7 +34,7 @@ const HomePage = () => {
         <MapSection />
         <GetApp />
         <HighlightsSection />
-        <TweetsComponent />
+        {/* <TweetsComponent /> */}
       </div>
     </Page>
   );
