@@ -108,6 +108,7 @@ class AirqoApiClient {
       await logException(
         exception,
         stackTrace,
+        fatal: false,
       );
     }
 
