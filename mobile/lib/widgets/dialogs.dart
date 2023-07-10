@@ -765,44 +765,74 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
 Future<void> showRatingDialog(BuildContext context) async {
   await showDialog(
     context: context,
-    barrierDismissible:
-        false, // Prevent dismiss by tapping outside or using back button
-
+    barrierDismissible: false, // Prevent dismiss by tapping outside or using back button
     builder: (BuildContext context) {
-      return Builder(
-        builder: (BuildContext context) {
-          return RatingDialog(
-            initialRating: 1.0,
-            force: true, //this forces the user to rate the app
-            title: const Text(
-              'Rating Dialog',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            message: const Text(
-              'Tap a star to set your rating. ',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15),
-            ),
-            image: SvgPicture.asset('assets/icon/airqo_logo.svg'),
-            submitButtonText: 'Submit',
-            onCancelled: () => print('cancelled'),
-            onSubmitted: (response) {
-              print('rating: ${response.rating}, comment: ${response.comment}');
-
-              if (response.rating < 3.0) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const FeedbackPage()),
+      return RatingDialog(
+        initialRating: 1.0,
+        commentHint: '',
+        message: const Text(
+          'Thank you for using our app! We would greatly appreciate it \nIf you could take a moment to rate your experience.',
+          textAlign: TextAlign.center,
+          style:  TextStyle(fontSize: 19),
+        ),
+        title: const Text(
+          'ENJOYING THE APP',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 22,
+            //color: Color.fromARGB(232, 5, 248, 208),
+          ),
+        ),
+        submitButtonText: '\nRATE\n',
+        //onCancelled: () => print('cancelled'),
+        onSubmitted: (response) {
+          //print('rating: ${response.rating}, comment: ${response.comment}');
+          if (response.rating < 3.0) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return CupertinoAlertDialog(
+                  content: const Column(
+                    children: [
+                      SizedBox(height: 15),
+                      Text(
+                        'We value your feedback.\nPlease share your thoughts and suggestions on our feedback page by clicking OK.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 17,
+                          //color: Color.fromARGB(232, 5, 248, 208),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    CupertinoDialogAction(
+                      onPressed: () {
+                        // Perform action here
+                        Navigator.of(context).pop(); // Close the dialog
+                        Navigator.of(context).pop(); // Close the RatingDialog
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const FeedbackPage()),
+                        );
+                      },
+                      isDefaultAction: true,
+                      child: const Text('OK'),
+                    ),
+                  ],
                 );
-              } else {
-                RateService.rateApp();
-              }
-            },
-          );
+              },
+            );
+          } else {
+            RateService.rateApp();
+          }
         },
       );
     },
