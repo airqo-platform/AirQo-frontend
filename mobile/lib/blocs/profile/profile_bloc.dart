@@ -76,11 +76,11 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
     UpdateProfile event,
     Emitter<Profile> emit,
   ) async {
+    emit(event.profile);
+
     if (state.isAnonymous) {
       return;
     }
-
-    emit(event.profile);
     await CloudStore.updateProfile(event.profile);
   }
 

@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -6,6 +7,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rating_dialog/rating_dialog.dart';
@@ -790,6 +792,10 @@ Future<void> showRatingDialog(BuildContext context) async {
         ),
         submitButtonText: '\nRate\n',
         onSubmitted: (response) {
+          Profile profile = context.read<ProfileBloc>().state;
+          profile = profile.copyWith(lastRated: DateTime.now());
+          context.read<ProfileBloc>().add(UpdateProfile(profile));
+
           if (response.rating < 3.0) {
             showDialog(
               context: context,
