@@ -1,7 +1,3 @@
-import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rating_dialog/rating_dialog.dart';
+
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 
 import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
