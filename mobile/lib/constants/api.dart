@@ -1,6 +1,9 @@
 import 'config.dart';
 
 class AirQoUrls {
+  static String get termsUrl =>
+      'https://docs.airqo.net/#/mobile_app/privacy_policy';
+
   static String get firebaseLookup =>
       '${Config.airqoApi}/v1/users/firebase/lookup';
 
