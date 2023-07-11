@@ -40,9 +40,9 @@ class HealthTipContainer extends StatelessWidget {
           Radius.circular(16.0),
         ),
       ),
-                child: Row(
-                  children: [
-                    Container(
+      child: Row(
+        children: [
+          Container(
             constraints: const BoxConstraints(
               maxWidth: 83,
               maxHeight: 112,
@@ -67,18 +67,17 @@ class HealthTipContainer extends StatelessWidget {
               errorWidget: (context, url, error) => Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
-                  color: Colors.grey, 
+                  color: Colors.grey,
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.error,
-                    color: Colors.white, 
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
           ),
-
           const SizedBox(
             width: 12,
           ),

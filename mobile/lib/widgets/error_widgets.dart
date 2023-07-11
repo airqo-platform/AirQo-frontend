@@ -1,16 +1,18 @@
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
   const NoSearchResultsWidget({super.key, this.message});
+
   final String? message;
 
   @override
@@ -109,6 +111,7 @@ class NoAirQualityDataWidget extends StatelessWidget {
     required this.callBack,
     this.actionButtonText,
   });
+
   final Function() callBack;
   final String? actionButtonText;
 
@@ -231,6 +234,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
 
 class NoAnalyticsWidget extends StatelessWidget {
   const NoAnalyticsWidget({super.key, required this.callBack});
+
   final Function() callBack;
 
   @override
@@ -280,6 +284,7 @@ class NoAnalyticsWidget extends StatelessWidget {
 
 class NoCompleteKyaWidget extends StatelessWidget {
   const NoCompleteKyaWidget({super.key, required this.callBack});
+
   final Function() callBack;
 
   @override
@@ -328,6 +333,7 @@ class NoCompleteKyaWidget extends StatelessWidget {
 
 class NoKyaWidget extends StatelessWidget {
   const NoKyaWidget({super.key, required this.callBack});
+
   final Function() callBack;
 
   @override
@@ -381,6 +387,7 @@ class NoInternetConnectionWidget extends StatelessWidget {
     required this.callBack,
     this.actionButtonText,
   });
+
   final Function() callBack;
   final String? actionButtonText;
 
@@ -431,6 +438,7 @@ class NoInternetConnectionWidget extends StatelessWidget {
 
 class AppErrorWidget extends StatelessWidget {
   const AppErrorWidget({super.key, required this.callBack});
+
   final Function() callBack;
 
   @override
@@ -502,7 +510,8 @@ class AppErrorWidget extends StatelessWidget {
 
 class AppCrushWidget extends StatelessWidget {
   const AppCrushWidget(this.exception, this.stackTrace, {super.key});
-  final dynamic exception;
+
+  final Object exception;
   final StackTrace? stackTrace;
 
   @override
@@ -559,16 +568,16 @@ class AppCrushWidget extends StatelessWidget {
             const Spacer(),
             InkWell(
               onTap: () async {
-                // TODO log to  a backend service
-                PackageInfo packageInfo = await PackageInfo.fromPlatform();
-                String subject = "Mobile App Crush";
-                String body = ""
-                    "App Version : ${packageInfo.version}\n"
-                    "Build Number : ${packageInfo.buildNumber}\n"
-                    "Installed via : ${packageInfo.installerStore}\n\n"
-                    "Error : $exception\n\n"
-                    "StackTrace : $stackTrace\n\n";
-                await Share.share(body, subject: subject);
+                loadingScreen(context);
+                await AirqoApiClient.sendErrorToSlack(exception, stackTrace)
+                    .then((_) {
+                  Navigator.pop(context);
+                  showSnackBar(
+                    context,
+                    "Report has been successfully sent.",
+                    durationInSeconds: 10,
+                  );
+                });
               },
               child: const ActionButton(
                 icon: Icons.error_outline_rounded,

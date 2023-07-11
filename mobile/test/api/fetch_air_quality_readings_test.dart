@@ -2,14 +2,13 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: Config.environmentFile);
 
   group('fetchesAirQualityReadings', () {
-    test('fetches latest air quality readings from  API', () async {
+    test('fetches latest air quality readings from API', () async {
       List<AirQualityReading> readings =
           await AirqoApiClient().fetchAirQualityReadings();
       expect(readings.isEmpty, false);
