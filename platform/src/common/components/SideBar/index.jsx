@@ -25,6 +25,21 @@ const SideBar = () => {
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
+  const [isMediumDevice, setIsMediumDevice] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleMediaQueryChange = (e) => {
+      setIsMediumDevice(e.matches);
+    };
+
+    setIsMediumDevice(mediaQuery.matches);
+    mediaQuery.addListener(handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeListener(handleMediaQueryChange);
+    };
+  }, []);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
@@ -59,8 +74,10 @@ const SideBar = () => {
               flex-row
               justify-between
             '>
-            <AirqoLogo className='invisible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
-            <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
+            <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
+            {!isMediumDevice && (
+              <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
+            )}
           </div>
           {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
@@ -102,14 +119,16 @@ const SideBar = () => {
             <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
-        <AnnouncementCard />
+        {!isMediumDevice && (
+          <AnnouncementCard />
+        )}
         <div className='mx-2'>
-          <SideBarItem label='Get Support' Icon={SupportIcon} active />
-          <SideBarItem label='Settings' Icon={SettingsIcon} active />
+          <SideBarItem label='Get Support' Icon={SupportIcon} />
+          <SideBarItem label='Settings' Icon={SettingsIcon} />
         </div>
       </div>
       <div
-        className='lg:hidden fixed top-5 left-4 z-30'
+        className='lg:hidden fixed top-5 right-10 z-30'
         role='button'
         tabIndex={0}
         onKeyDown={() => setToggleDrawer(!toggleDrawer)}

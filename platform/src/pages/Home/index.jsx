@@ -4,6 +4,7 @@ import illustration from '@/icons/Home/illustration.jpg';
 import Image from 'next/image'
 const Home = () => (
   <Layout>
+    {/* <HeaderNav category={'Home Page'} component={'Home'} /> */}
     <section
       
     >
@@ -29,7 +30,7 @@ const Home = () => (
           </div>
         </div>
       </div>
-      <div className="flex-row justify-between">
+      {/* <div className="flex-row justify-between">
         <div className="flex">
           <div
             className="flex-col flex flex-1 items-start p-24 self-stretch rounded-lg border border-gray-100 bg-white mt-6 mx-12 "
@@ -53,7 +54,7 @@ const Home = () => (
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
     </section>
   </Layout>
