@@ -104,7 +104,7 @@ class Profile extends Equatable {
   @JsonKey(defaultValue: false, required: false)
   final bool isSignedIn;
 
-  @JsonKey(required: false)
+  @JsonKey(required: false, name: "last_rated")
   final DateTime lastRated;
 
   Profile copyWith({

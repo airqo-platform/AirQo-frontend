@@ -1,3 +1,7 @@
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -5,11 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rating_dialog/rating_dialog.dart';
-
-import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
-import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 
 import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
@@ -766,28 +765,31 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
 Future<void> showRatingDialog(BuildContext context) async {
   await showDialog(
     context: context,
-    barrierDismissible: false, // Prevent dismiss by tapping outside or using back button
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return RatingDialog(
+        image: SvgPicture.asset(
+          'assets/icon/airqo_logo.svg',
+          height: 30,
+          width: 30,
+          semanticsLabel: 'AirQo',
+        ),
+        enableComment: false,
         initialRating: 1.0,
-        commentHint: '',
         message: const Text(
-          'Thank you for using our app! We would greatly appreciate it \nIf you could take a moment to rate your experience.',
+          'Thank you for using the AirQo app! We would greatly appreciate it if you could take a moment to rate your experience.',
           textAlign: TextAlign.center,
-          style:  TextStyle(fontSize: 19),
+          style: TextStyle(fontSize: 19),
         ),
         title: const Text(
-          'ENJOYING THE APP',
+          'Enjoying AirQo app',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 22,
-            //color: Color.fromARGB(232, 5, 248, 208),
           ),
         ),
-        submitButtonText: '\nRATE\n',
-        //onCancelled: () => print('cancelled'),
+        submitButtonText: '\nRate\n',
         onSubmitted: (response) {
-          //print('rating: ${response.rating}, comment: ${response.comment}');
           if (response.rating < 3.0) {
             showDialog(
               context: context,
@@ -802,26 +804,26 @@ Future<void> showRatingDialog(BuildContext context) async {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 17,
-                          //color: Color.fromARGB(232, 5, 248, 208),
                         ),
                       ),
                     ],
                   ),
                   actions: <Widget>[
                     CupertinoDialogAction(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
+                      onPressed: () async {
+                        Navigator.of(context).pop();
                       },
                       child: const Text('Cancel'),
                     ),
                     CupertinoDialogAction(
                       onPressed: () {
-                        // Perform action here
-                        Navigator.of(context).pop(); // Close the dialog
-                        Navigator.of(context).pop(); // Close the RatingDialog
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const FeedbackPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const FeedbackPage(),
+                          ),
                         );
                       },
                       isDefaultAction: true,
