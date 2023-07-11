@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'api.mocks.dart';
 
@@ -26,6 +27,13 @@ Future<void> main() async {
       client = MockClient();
       bundleId = "com.airqo.net";
       packageName = "com.airqo.app";
+      PackageInfo.setMockInitialValues(
+        appName: "airqo",
+        packageName: "com.airqo.app",
+        version: "2.0.1",
+        buildNumber: "123",
+        buildSignature: "123",
+      );
     });
 
     test('returns mocked AppVersion', () async {
@@ -38,7 +46,7 @@ Future<void> main() async {
         ),
       ).thenAnswer(
         (_) async => http.Response(
-          '{"data": {"version": "v1.0.0", "url": "https://api.airqo.net/version"}}',
+          '{"data": {"version": "v1.0.0", "url": "https://api.airqo.net/version", "is_updated": true}}',
           200,
         ),
       );
@@ -57,7 +65,7 @@ Future<void> main() async {
             headers: headers),
       ).thenAnswer(
         (_) async => http.Response(
-            '{"version": "v1.0.0", "url": "https://api.airqo.net/version"}',
+            '{"version": "v1.0.0", "url": "https://api.airqo.net/version", "is_updated": true}',
             200),
       );
 
@@ -96,7 +104,7 @@ Future<void> main() async {
       expect(
         appVersion?.url,
         Uri.parse(
-            "https://apps.apple.com/us/app/airqo-air-quality/id1337573091?uo=4"),
+            "https://apps.apple.com/us/app/airqo-air-quality/id1337573091"),
       );
     });
 

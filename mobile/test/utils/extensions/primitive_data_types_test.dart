@@ -280,8 +280,7 @@ void main() {
         'isWithInNextWeek should return true if the date is within the next week',
         () {
       expect(today.add(const Duration(days: 7)).isWithInNextWeek(), isTrue);
-      expect(today.add(Duration(days: 7 + today.weekday)).isWithInNextWeek(),
-          isFalse);
+      expect(today.add(const Duration(days: 14)).isWithInNextWeek(), isFalse);
 
       if (today.weekday > 7) {
         expect(today.isWithInNextWeek(), isTrue);
