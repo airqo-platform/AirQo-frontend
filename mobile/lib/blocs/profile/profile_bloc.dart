@@ -57,6 +57,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
       photoUrl:
           profile.photoUrl.isEmpty ? cloudProfile.photoUrl : profile.photoUrl,
       utcOffset: DateTime.now().getUtcOffset(),
+      lastRated: cloudProfile.lastRated,
       notifications: await PermissionService.checkPermission(
         AppPermission.notification,
       ),

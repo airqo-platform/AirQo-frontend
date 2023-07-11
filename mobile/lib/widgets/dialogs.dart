@@ -816,7 +816,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                   ),
                   actions: <Widget>[
                     CupertinoDialogAction(
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.of(context).pop();
                       },
                       child: const Text('Cancel'),
