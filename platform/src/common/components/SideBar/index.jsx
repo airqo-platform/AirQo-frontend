@@ -25,21 +25,21 @@ const SideBar = () => {
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
-  const [isMediumDevice, setIsMediumDevice] = useState(false);
+  // const [isMediumDevice, setIsMediumDevice] = useState(false);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const handleMediaQueryChange = (e) => {
-      setIsMediumDevice(e.matches);
-    };
+  // useEffect(() => {
+  //   const mediaQuery = window.matchMedia('(max-width: 768px)');
+  //   const handleMediaQueryChange = (e) => {
+  //     setIsMediumDevice(e.matches);
+  //   };
 
-    setIsMediumDevice(mediaQuery.matches);
-    mediaQuery.addListener(handleMediaQueryChange);
+  //   setIsMediumDevice(mediaQuery.matches);
+  //   mediaQuery.addListener(handleMediaQueryChange);
 
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  //   return () => {
+  //     mediaQuery.removeListener(handleMediaQueryChange);
+  //   };
+  // }, []);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
@@ -75,9 +75,7 @@ const SideBar = () => {
               justify-between
             '>
             <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
-            {!isMediumDevice && (
               <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
-            )}
           </div>
           {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
@@ -119,9 +117,7 @@ const SideBar = () => {
             <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
-        {!isMediumDevice && (
           <AnnouncementCard />
-        )}
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />

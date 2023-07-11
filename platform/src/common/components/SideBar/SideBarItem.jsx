@@ -47,19 +47,19 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
 const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
   const [isMediumDevice, setIsMediumDevice] = useState(false);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const handleMediaQueryChange = (e) => {
-      setIsMediumDevice(e.matches);
-    };
+  // useEffect(() => {
+  //   const mediaQuery = window.matchMedia('(max-width: 768px)');
+  //   const handleMediaQueryChange = (e) => {
+  //     setIsMediumDevice(e.matches);
+  //   };
 
-    setIsMediumDevice(mediaQuery.matches);
-    mediaQuery.addListener(handleMediaQueryChange);
+  //   setIsMediumDevice(mediaQuery.matches);
+  //   mediaQuery.addListener(handleMediaQueryChange);
 
-    return () => {
-      mediaQuery.removeListener(handleMediaQueryChange);
-    };
-  }, []);
+  //   return () => {
+  //     mediaQuery.removeListener(handleMediaQueryChange);
+  //   };
+  // }, []);
 
   return (
     <div
@@ -75,7 +75,6 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
               <Icon />
             </div>
 
-            {!isMediumDevice && (
               <h3
                 className={`text-base font-normal text-black-900 ${
                   toggleState && 'text-blue font-medium'
@@ -83,9 +82,8 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
               >
                 {label}
               </h3>
-            )}
           </div>
-          {dropdown && !isMediumDevice && (
+          {dropdown &&(
             <div className='mr-6'>
               <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue[900]} />
             </div>
