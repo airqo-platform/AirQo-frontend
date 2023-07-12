@@ -21,7 +21,7 @@ import 'for_you_page.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -92,12 +92,16 @@ class _HomePageState extends State<HomePage> {
               _showcaseContext = context;
 
               return BottomNavigationBar(
-                selectedIconTheme: Theme.of(context)
-                    .iconTheme
-                    .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
-                unselectedIconTheme: Theme.of(context)
-                    .iconTheme
-                    .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
+                selectedIconTheme: Theme.of(context).iconTheme.copyWith(
+                  color: CustomColors.appColorBlack,
+                  size: 28, // Increase the size of selected icons
+                  opacity: 0.3,
+                ),
+                unselectedIconTheme: Theme.of(context).iconTheme.copyWith(
+                  color: CustomColors.appColorBlack,
+                  size: 24, // Size for unselected icons
+                  opacity: 0.3,
+                ),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: CustomShowcaseWidget(
@@ -169,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
                 currentIndex: _selectedIndex,
-                selectedItemColor: CustomColors.appColorBlue,
+                selectedItemColor: CustomColors.appColorBlue,//on selected change color
                 unselectedItemColor:
                     CustomColors.appColorBlack.withOpacity(0.3),
                 elevation: 0.0,
