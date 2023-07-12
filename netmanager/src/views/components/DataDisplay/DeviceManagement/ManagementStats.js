@@ -270,7 +270,7 @@ function ManagementStat() {
             }
             blue
           >
-            <div>
+            <div style={{ overflow: 'auto', height: '100%' }}>
               <div className={`m-device-uptime-row uptime-table-header`}>
                 <span>device name</span>
                 <span>downtime (%)</span>
