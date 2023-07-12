@@ -653,9 +653,8 @@ extension DateTimeExt on DateTime {
     final now = DateTime.now();
 
     return (day == now.day)
-        ? DateFormat('HH:mm')
-            .format(DateTime(now.year, now.month, now.day, hour, minute))
-        : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
+        ? DateFormat('HH:mm').format(this)
+        : DateFormat('dd MMM').format(this);
   }
 
   DateTime tomorrow() {
@@ -670,41 +669,6 @@ extension DateTimeExt on DateTime {
 extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
-  }
-}
-
-extension AppStoreVersionExt on AppStoreVersion {
-  int compareVersion(String checkVersion) {
-    List<int> versionSections =
-        version.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (versionSections.length != 3) {
-      throw Exception('Invalid version $this');
-    }
-
-    List<int> candidateSections =
-        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (candidateSections.length != 3) {
-      throw Exception('Invalid version $checkVersion');
-    }
-
-    // checking first code
-    if (versionSections.first > candidateSections.first) return 1;
-
-    if (versionSections.first < candidateSections.first) return -1;
-
-    // checking second code
-    if (versionSections[1] > candidateSections[1]) return 1;
-
-    if (versionSections[1] < candidateSections[1]) return -1;
-
-    // checking last code
-    if (versionSections.last > candidateSections.last) return 1;
-
-    if (versionSections.last < candidateSections.last) return -1;
-
-    return 0;
   }
 }
 
