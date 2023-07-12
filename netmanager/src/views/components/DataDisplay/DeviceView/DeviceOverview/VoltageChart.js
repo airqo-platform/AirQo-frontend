@@ -1,19 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ApexChart, timeSeriesChartOptions } from 'views/charts';
 import { createChartData } from './util';
 import { ApexTimeSeriesData } from 'utils/charts';
+import { isEmpty } from 'underscore';
+import moment from 'moment';
 
 const DeviceVoltageChart = ({ deviceUptimeData }) => {
-  const deviceVoltage = createChartData(deviceUptimeData, {
-    key: 'battery_voltage'
-  });
+  const [series, setSeries] = useState([]);
 
-  const batteryVoltageSeries = [
-    {
-      name: 'voltage',
-      data: ApexTimeSeriesData(deviceVoltage.line.label, deviceVoltage.line.data)
+  useEffect(() => {
+    if (!isEmpty(deviceUptimeData)) {
+      const updatedData = deviceUptimeData.map((object) => {
+        return { ...object, created_at: object.timestamp };
+      });
+
+      const label = [];
+      const values = [];
+
+      updatedData.forEach((status) => {
+        label.push(status.created_at);
+        values.push(status['voltage']);
+      });
+
+      const deviceVoltage = { line: { label, data: values } };
+
+      const batteryVoltageSeries = [
+        {
+          name: 'voltage',
+          data: ApexTimeSeriesData(deviceVoltage.line.label, deviceVoltage.line.data)
+        }
+      ];
+
+      setSeries(batteryVoltageSeries);
     }
-  ];
+  }, [deviceUptimeData]);
 
   const todaysDate = new Date().getTime();
   const minDate = new Date();
@@ -67,13 +87,15 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
   };
 
   return (
-    <ApexChart
-      title={'battery voltage'}
-      options={ChartOptions}
-      series={batteryVoltageSeries}
-      type="line"
-      blue
-    />
+    <>
+      <ApexChart
+        title={'battery voltage'}
+        options={ChartOptions}
+        series={series}
+        type="line"
+        blue
+      />
+    </>
   );
 };
 
