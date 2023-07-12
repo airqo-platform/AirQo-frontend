@@ -102,6 +102,9 @@ class AirqoApiClient {
         headers: headers,
         body: json.encode({'phone_number': phoneNumber}),
       );
+      if (response.statusCode != 200) {
+        return "";
+      }
 
       return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {

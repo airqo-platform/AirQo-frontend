@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.23+20040
+version: 2.0.24+20041
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -69,10 +69,9 @@ dependencies:
   showcaseview: ^2.0.3
   url_launcher: ^6.1.11
   hydrated_bloc: ^9.1.2
-  firebase_crashlytics: ^3.3.1
   home_widget: ^0.3.0
   # Drift previous database => airqo_app_db.sqlite
-  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

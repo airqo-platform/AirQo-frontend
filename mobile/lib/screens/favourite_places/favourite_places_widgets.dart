@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FavouritePlaceCard extends StatelessWidget {
   const FavouritePlaceCard(this.favouritePlace, {super.key});
+
   final FavouritePlace favouritePlace;
 
   @override
@@ -86,7 +87,7 @@ class FavouritePlaceCard extends StatelessWidget {
                         ),
                         child: HeartIcon(
                           showAnimation: false,
-                          airQualityReading: airQualityReading,
+                          placeId: favouritePlace.placeId,
                         ),
                       ),
                     ),

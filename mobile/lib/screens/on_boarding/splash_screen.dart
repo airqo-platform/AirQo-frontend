@@ -157,6 +157,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _updateWidget() {
+    if (!mounted) return;
+
     setState(
       () {
         _visible = true;
