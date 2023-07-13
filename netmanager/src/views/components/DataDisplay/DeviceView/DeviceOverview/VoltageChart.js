@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ApexChart, timeSeriesChartOptions } from 'views/charts';
-import { createChartData } from './util';
+import { ApexChart } from 'views/charts';
 import { ApexTimeSeriesData } from 'utils/charts';
 import { isEmpty } from 'underscore';
-import moment from 'moment';
 
-const DeviceVoltageChart = ({ deviceUptimeData }) => {
+const DeviceVoltageChart = ({ deviceUptimeData, controllerChildren, controllerChildrenOpen }) => {
   const [series, setSeries] = useState([]);
 
   useEffect(() => {
@@ -94,6 +92,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
         series={series}
         type="line"
         blue
+        controllerChildren={controllerChildren}
       />
     </>
   );

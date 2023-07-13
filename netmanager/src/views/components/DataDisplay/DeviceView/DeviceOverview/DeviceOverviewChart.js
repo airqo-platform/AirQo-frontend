@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { useDeviceUptimeData } from 'redux/DeviceManagement/selectors';
@@ -9,10 +9,12 @@ import DeviceUptimeChart from './UptimeChart';
 import DeviceVoltageChart from './VoltageChart';
 import DeviceSensorChart from './SensorChart';
 import PropTypes from 'prop-types';
-import { loadDeviceBatteryVoltage } from '../../../../../redux/DeviceRegistry/operations';
+import { loadDeviceBatteryVoltage } from 'redux/DeviceRegistry/operations';
+import { TextField } from '@material-ui/core';
 
 const DeviceOverviewCharts = ({ deviceName }) => {
   const dispatch = useDispatch();
+  const [minutesAverage, setMinutesAverage] = useState('30');
 
   const deviceUptimeData = useDeviceUptimeData(deviceName);
   const deviceBatteryVoltageData = useSelector((state) => state.deviceRegistry.batteryVoltage);
@@ -39,17 +41,48 @@ const DeviceOverviewCharts = ({ deviceName }) => {
           startDate: roundToStartOfDay(
             moment(new Date()).subtract(3, 'days').toISOString()
           ).toISOString(),
-          endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          roundingValue: 2,
+          minutesAverage: minutesAverage
         })
       );
     }
-  }, [deviceName]);
+  }, [deviceName, minutesAverage]);
 
   return (
     <>
       <DeviceUptimeChart deviceUptimeData={deviceUptimeData} />
 
-      <DeviceVoltageChart deviceUptimeData={deviceBatteryVoltageData.deviceData} />
+      <DeviceVoltageChart
+        deviceUptimeData={deviceBatteryVoltageData.deviceData}
+        controllerChildren={
+          <>
+            <TextField
+              select
+              label="Minutes Average"
+              id="minutesAverage"
+              fullWidth
+              style={{ marginTop: '15px' }}
+              value={minutesAverage}
+              onChange={(e) => {
+                setMinutesAverage(e.target.value);
+              }}
+              SelectProps={{
+                native: true,
+                style: { width: '100%', height: '40px' }
+              }}
+              variant="outlined"
+            >
+              <option value={'20'}>20</option>
+              <option value={'30'}>30</option>
+              <option value={'45'}>45</option>
+              <option value={'60'}>60</option>
+              <option value={'90'}>90</option>
+              <option value={'120'}>120</option>
+            </TextField>
+          </>
+        }
+      />
 
       <DeviceSensorChart deviceUptimeData={deviceUptimeData} />
     </>

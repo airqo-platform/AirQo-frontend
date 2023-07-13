@@ -115,6 +115,7 @@ const ApexChart = (props) => {
                   <option value={'lastDay'}>Last day</option>
                   <option value={'lastWeek'}>Last week</option>
                 </TextField>
+                {props.controllerChildren}
               </div>
             }
             open={open}
@@ -149,7 +150,8 @@ ApexChart.propTypes = {
   green: PropTypes.bool,
   centerItems: PropTypes.bool,
   footerContent: PropTypes.any,
-  disableController: PropTypes.bool
+  disableController: PropTypes.bool,
+  controllerChildren: PropTypes.any
 };
 
 export default ApexChart;
