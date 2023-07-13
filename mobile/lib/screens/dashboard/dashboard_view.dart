@@ -23,6 +23,7 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+import 'package:animations/animations.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
@@ -421,20 +422,43 @@ class _DashboardViewState extends State<DashboardView>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const SearchPage();
-              },
-            ),
-          );
-        },
-        backgroundColor: CustomColors.appColorBlue,
-        child: const Icon(Icons.search),
+      floatingActionButton: OpenContainer(
+        openColor: Colors.transparent,
+        closedColor: Colors.transparent,
+        closedBuilder: (BuildContext c, VoidCallback action) =>
+            FloatingActionButton(
+          backgroundColor: CustomColors.appColorBlue,
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const SearchPage();
+                },
+              ),
+            );
+          },
+          child: const Icon(Icons.search),
+        ),
+        openBuilder: (BuildContext c, VoidCallback action) =>
+            const SearchPage(),
+        tappable: true,
       ),
+
+      //floatingActionButton: FloatingActionButton(
+      //onPressed: () async {
+      //await Navigator.push(
+      //context,
+      //MaterialPageRoute(
+      //builder: (context) {
+      //return const SearchPage();
+      //},
+      //  ),
+      //);
+      // },
+      // backgroundColor: CustomColors.appColorBlue,
+      //child: const Icon(Icons.search),
+      //),
     );
   }
 

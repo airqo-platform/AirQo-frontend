@@ -94,16 +94,19 @@ class PageScaffold extends StatelessWidget {
             alignment: Alignment.topCenter,
             widthFactor: 1.0,
             heightFactor: 0.4,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: CachedNetworkImageProvider(
-                    kya.imageUrl,
-                    cacheKey: kya.imageUrlCacheKey(),
-                    cacheManager: CacheManager(
-                      CacheService.cacheConfig(
-                        kya.imageUrlCacheKey(),
+            child: Hero(
+              tag: 'kyaImage_${kya.id}', // Same tag as the source page
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: CachedNetworkImageProvider(
+                      kya.imageUrl,
+                      cacheKey: kya.imageUrlCacheKey(),
+                      cacheManager: CacheManager(
+                        CacheService.cacheConfig(
+                          kya.imageUrlCacheKey(),
+                        ),
                       ),
                     ),
                   ),
