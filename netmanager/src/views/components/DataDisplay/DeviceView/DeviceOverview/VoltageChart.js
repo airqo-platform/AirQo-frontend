@@ -50,7 +50,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
     },
     stroke: {
       curve: 'stepline',
-      width: 2,
+      width: 1.5,
       breaks: {
         style: 'null'
       }

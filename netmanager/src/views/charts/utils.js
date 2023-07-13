@@ -32,7 +32,7 @@ export const timeSeriesChartOptions = (extraOptions) => ({
     }
   },
   stroke: {
-    width: 2
+    width: 1
   },
   ...extraOptions
 });
