@@ -1,4 +1,4 @@
-import Announcement from "@/icons/SideBar/announcement-card.svg"
+import Announcement from "@/icons/SideBar/announcement_card.svg"
 
 const AnnouncementCard = () => {
   return (

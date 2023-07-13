@@ -2,8 +2,8 @@ import SideBar from '@/components/SideBar';
 import TopBar from '@/components/TopBar';
 
 const Layout = ({ children }) => (
-  <div className='relative w-screen h-screen bg-white overflow-x-hidden'>
-    <div className='relative lg:flex w-screen h-screen'>
+  <div className=' w-screen h-screen  overflow-x-hidden'>
+    <div className=' lg:flex w-screen h-screen'>
       <div>
         <SideBar />
       </div>
