@@ -73,7 +73,7 @@ const DeviceOverviewCharts = ({ deviceName }) => {
               }}
               variant="outlined"
             >
-              <option value={'0'}>5</option>
+              <option value={'5'}>5</option>
               <option value={'20'}>10</option>
               <option value={'30'}>20</option>
               <option value={'30'}>30</option>
