@@ -133,7 +133,7 @@ const ActivitiesForm = ({ site }) => {
             onClick={() => history.push(goBackUrl)}
           />
         </div>
-        Site Details
+        Site Activities
       </div>
       <Grid container spacing={1}>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
