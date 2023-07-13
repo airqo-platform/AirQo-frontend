@@ -5,6 +5,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/dashboard/testsearch.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -422,12 +423,9 @@ class _DashboardViewState extends State<DashboardView>
           ),
         ),
       ),
-      floatingActionButton: OpenContainer(
-        openColor: Colors.transparent,
-        closedColor: Colors.transparent,
-        closedBuilder: (BuildContext c, VoidCallback action) =>
-            FloatingActionButton(
-          backgroundColor: CustomColors.appColorBlue,
+      floatingActionButton: _FadeThroughTransitionSwitcher(
+        fillColor: Colors.transparent,
+        child: FloatingActionButton(
           onPressed: () async {
             await Navigator.push(
               context,
@@ -438,27 +436,10 @@ class _DashboardViewState extends State<DashboardView>
               ),
             );
           },
+          backgroundColor: CustomColors.appColorBlue,
           child: const Icon(Icons.search),
         ),
-        openBuilder: (BuildContext c, VoidCallback action) =>
-            const SearchPage(),
-        tappable: true,
       ),
-
-      //floatingActionButton: FloatingActionButton(
-      //onPressed: () async {
-      //await Navigator.push(
-      //context,
-      //MaterialPageRoute(
-      //builder: (context) {
-      //return const SearchPage();
-      //},
-      //  ),
-      //);
-      // },
-      // backgroundColor: CustomColors.appColorBlue,
-      //child: const Icon(Icons.search),
-      //),
     );
   }
 
@@ -619,5 +600,30 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     return maxHeight != oldDelegate.maxHeight ||
         minHeight != oldDelegate.minHeight ||
         child != oldDelegate.child;
+  }
+}
+
+class _FadeThroughTransitionSwitcher extends StatelessWidget {
+  const _FadeThroughTransitionSwitcher({
+    required this.fillColor,
+    required this.child,
+  });
+
+  final Widget child;
+  final Color fillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return PageTransitionSwitcher(
+      transitionBuilder: (child, animation, secondaryAnimation) {
+        return FadeThroughTransition(
+          fillColor: fillColor,
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+          child: child,
+        );
+      },
+      child: child,
+    );
   }
 }
