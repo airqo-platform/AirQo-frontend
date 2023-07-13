@@ -9,7 +9,7 @@ import highlightsReducer from './Highlights/reducers';
 import partnersReducer from './Partners/reducers';
 import boardReducer from './Board/reducers';
 import publicationsReducer from './Publications/reducers';
-import pressReducer from './Press/reducers';
+import pressReducer from './Press/PressSlice';
 import EventsNavTabReducer from './EventsNav/NavigationSlice';
 import EventsReducer from './Events/EventSlice';
 import CitiesReducer from './AfricanCities/CitiesSlice';

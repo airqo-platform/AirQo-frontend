@@ -5,9 +5,13 @@ const Article = ({ icon, date, title, subtitle, url }) => (
   <div className="article">
     <div className="a-header">
       {icon === null ? (
-        <div className="image">{<NilePost />}</div>
+        <div class="image-container">
+          <span className="image">{<NilePost />}</span>
+        </div>
       ) : (
-        <img className="image" src={icon} alt="icon" />
+        <div class="image-container">
+          <img class="image" src={icon} alt="icon" />
+        </div>
       )}
       <span className="date">
         {date
