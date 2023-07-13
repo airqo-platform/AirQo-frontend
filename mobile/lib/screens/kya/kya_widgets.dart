@@ -123,9 +123,7 @@ class KyaCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: 'kyaCard_${kya.id}', // Unique tag for the Hero widget
-    child: OutlinedButton(
+    return OutlinedButton(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(112),
         foregroundColor: CustomColors.appColorBlue,
@@ -212,7 +210,7 @@ class KyaCardWidget extends StatelessWidget {
           ),
         ],
       ),
-    ));
+    );
   }
 }
 
