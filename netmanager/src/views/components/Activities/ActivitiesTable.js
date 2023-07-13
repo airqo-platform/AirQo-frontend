@@ -9,14 +9,10 @@ import { Parser } from 'json2csv';
 import { loadActivitiesData} from 'redux/ActivityLogs/operations';
 import { useActivitiesSummaryData } from 'redux/ActivityLogs/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-// import ConfirmDialog from '../../containers/ConfirmDialog';
-// import { deleteSiteApi } from 'views/apis/deviceRegistry';
-// import { updateMainAlert } from 'redux/MainAlert/operations';
 import { formatDateString } from 'utils/dateTime';
 
 // css
 import 'assets/css/location-registry.css';
-// import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
@@ -46,37 +42,6 @@ const ActivitiesTable = () => {
       setIsLoading(false);
     }
   }, []);
-
-  // const handleDeleteSite = (e) => {
-  //   setDelState({ open: false, device: '', id: '' });
-  //   setLoading(true);
-  //   deleteSiteApi(delState.id)
-  //     .then((resData) => {
-  //       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-  //       if (!isEmpty(activeNetwork)) {
-  //         dispatch(loadActivitiesData(activeNetwork.net_name));
-  //       }
-  //       dispatch(
-  //         updateMainAlert({
-  //           message: resData.message,
-  //           show: true,
-  //           severity: 'success'
-  //         })
-  //       );
-  //     })
-  //     .catch((error) => {
-  //       dispatch(
-  //         updateMainAlert({
-  //           message:
-  //             (error.response && error.response.data && error.response.data.message) ||
-  //             'An error occurred',
-  //           show: true,
-  //           severity: 'error'
-  //         })
-  //       );
-  //     })
-  //     .finally(() => setLoading(false));
-  // };
 
   return (
     <>
@@ -116,45 +81,8 @@ const ActivitiesTable = () => {
               field: 'date',
               render: renderCell('date'),
               cellStyle: { fontFamily: 'Open Sans' }
-            },
-            // {
-            //   title: 'Region',
-            //   field: 'region',
-            //   render: renderCell('region'),
-            //   cellStyle: { fontFamily: 'Open Sans' }
-            // },
-            // {
-            //   title: 'Actions',
-            //   render: (rowData) => (
-            //     <div>
-            //       <Tooltip title="Delete">
-            //         <DeleteIcon
-            //           // className={"hover-red"}
-            //           style={{
-            //             margin: '0 5px',
-            //             cursor: 'not-allowed',
-            //             color: 'grey'
-            //           }}
-            //           disable deletion for now
-            //           onClick={(event) => {
-            //             event.stopPropagation();
-            //             setDelState({
-            //               open: true,
-            //               name: rowData.name || rowData.description,
-            //               id: rowData._id,
-            //             });
-            //           }}
-            //         />
-            //       </Tooltip>
-            //     </div>
-            //   )
-            // }
+            }
           ]}
-          // onRowClick={(event, data) => {
-          //   event.preventDefault();
-          //   clearSiteDetails();
-          //   history.push(`/site_activities/${data._id}`);
-          // }}
           data={site_activities}
           options={{
             search: true,
@@ -198,14 +126,6 @@ const ActivitiesTable = () => {
           }}
         />
       </LoadingOverlay>
-      {/* <ConfirmDialog
-        open={delState.open}
-        title={'Delete a site Activity?'}
-        message={`Are you sure you want to delete this ${delState.name} site`}
-        close={() => setDelState({ open: false, name: '', id: '' })}
-        confirm={handleDeleteSite}
-        error
-      /> */}
     </>
   );
 };

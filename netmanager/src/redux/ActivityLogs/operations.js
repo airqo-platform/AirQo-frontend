@@ -55,31 +55,3 @@ export const loadActivitiesSummary = (networkID) => {
       });
   };
 };
-
-// export const loadSiteDetails = (siteId, networkID) => {
-//   return async (dispatch) => {
-//     return await getSitesApi({ id: siteId, network: networkID })
-//       .then((responseData) => {
-//         const siteDetails = responseData.sites[0];
-//         dispatch({
-//           type: GET_ACTIVITY_DETAILS_SUCCESS,
-//           payload: siteDetails
-//         });
-//       })
-//       .catch((err) => {
-//         dispatch({
-//           type: GET_ACTIVITY_DETAILS_FAILURE,
-//           payload: err
-//         });
-//       });
-//   };
-// };
-
-// export const clearSiteDetails = () => {
-//   return (dispatch) => {
-//     dispatch({
-//       type: GET_ACTIVITY_DETAILS_SUCCESS,
-//       payload: {}
-//     });
-//   };
-// };
