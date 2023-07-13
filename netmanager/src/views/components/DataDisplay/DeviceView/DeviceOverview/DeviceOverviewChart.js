@@ -18,7 +18,7 @@ const DeviceOverviewCharts = ({ deviceName }) => {
   const deviceBatteryVoltageData = useSelector((state) => state.deviceRegistry.batteryVoltage);
 
   useEffect(() => {
-    if (isEmpty(deviceUptimeData) && deviceName) {
+    if (deviceName) {
       dispatch(
         loadSingleDeviceUptime({
           device_name: deviceName,
@@ -29,10 +29,10 @@ const DeviceOverviewCharts = ({ deviceName }) => {
         })
       );
     }
-  }, []);
+  }, [deviceName]);
 
   useEffect(() => {
-    if (deviceName && isEmpty(deviceBatteryVoltageData.deviceData)) {
+    if (deviceName) {
       dispatch(
         loadDeviceBatteryVoltage({
           deviceName: deviceName,
@@ -43,7 +43,7 @@ const DeviceOverviewCharts = ({ deviceName }) => {
         })
       );
     }
-  });
+  }, [deviceName]);
 
   return (
     <>
