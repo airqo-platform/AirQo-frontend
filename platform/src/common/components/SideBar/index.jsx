@@ -25,21 +25,6 @@ const SideBar = () => {
   // Toggle Dropdown open and close
   const [collocationOpen, setCollocationOpen] = useState(true);
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
-  // const [isMediumDevice, setIsMediumDevice] = useState(false);
-
-  // useEffect(() => {
-  //   const mediaQuery = window.matchMedia('(max-width: 768px)');
-  //   const handleMediaQueryChange = (e) => {
-  //     setIsMediumDevice(e.matches);
-  //   };
-
-  //   setIsMediumDevice(mediaQuery.matches);
-  //   mediaQuery.addListener(handleMediaQueryChange);
-
-  //   return () => {
-  //     mediaQuery.removeListener(handleMediaQueryChange);
-  //   };
-  // }, []);
 
   useEffect(() => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
