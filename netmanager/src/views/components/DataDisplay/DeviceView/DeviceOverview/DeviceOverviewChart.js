@@ -14,7 +14,7 @@ import { TextField } from '@material-ui/core';
 
 const DeviceOverviewCharts = ({ deviceName }) => {
   const dispatch = useDispatch();
-  const [minutesAverage, setMinutesAverage] = useState('30');
+  const [minutesAverage, setMinutesAverage] = useState('');
 
   const deviceUptimeData = useDeviceUptimeData(deviceName);
   const deviceBatteryVoltageData = useSelector((state) => state.deviceRegistry.batteryVoltage);
@@ -73,11 +73,14 @@ const DeviceOverviewCharts = ({ deviceName }) => {
               }}
               variant="outlined"
             >
-              <option value={'20'}>20</option>
+              <option value={'0'}>5</option>
+              <option value={'20'}>10</option>
+              <option value={'30'}>20</option>
               <option value={'30'}>30</option>
-              <option value={'45'}>45</option>
+              <option value={'45'}>40</option>
               <option value={'60'}>60</option>
-              <option value={'90'}>90</option>
+              <option value={'90'}>80</option>
+              <option value={'90'}>100</option>
               <option value={'120'}>120</option>
             </TextField>
           </>

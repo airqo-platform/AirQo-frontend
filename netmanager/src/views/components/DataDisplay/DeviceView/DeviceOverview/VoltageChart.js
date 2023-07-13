@@ -47,7 +47,7 @@ const DeviceVoltageChart = ({ deviceUptimeData, controllerChildren, controllerCh
       }
     },
     stroke: {
-      curve: 'stepline',
+      curve: 'straight',
       width: 1.5,
       breaks: {
         style: 'null'
