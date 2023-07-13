@@ -23,6 +23,7 @@ const EventsDetailsPage = React.lazy(() => import('src/pages/Events/Details'));
 const MonitorPage = React.lazy(() => import('src/pages/OurProducts/MonitorPage'));
 const AnalyticsPage = React.lazy(() => import('src/pages/OurProducts/AnalyticsPage'));
 const MobileAppPage = React.lazy(() => import('src/pages/OurProducts/MobileAppPage'));
+const QRCodeRedirectPage = React.lazy(()=>import('src/pages/ExploreData/Redirect'))
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import store from './store';
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/products/monitor" element={<MonitorPage />} />
             <Route path="/products/analytics" element={<AnalyticsPage />} />
             <Route path="/products/mobile-app" element={<MobileAppPage />} />
+            <Route path="/download-apps" element={<QRCodeRedirectPage />} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </Suspense>

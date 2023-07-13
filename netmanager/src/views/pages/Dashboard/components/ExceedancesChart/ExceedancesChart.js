@@ -195,7 +195,9 @@ const ExceedancesChart = (props) => {
   
         myDataset = labels.map((label, index) => ({
           label,
-          data: exceedanceData.map((element) => element.exceedance[properties[index]]),
+          data: exceedanceData
+            .map((element) => element.exceedance[properties[index]])
+            .slice(0, maxLocations),
           backgroundColor: colors[index],
           borderColor: "rgba(0,0,0,1)",
           borderWidth: 1,
@@ -204,7 +206,9 @@ const ExceedancesChart = (props) => {
         myDataset = [
           {
             label: "Exceedances",
-            data: exceedanceData.map((element) => element.exceedance),
+            data: exceedanceData
+              .map((element) => element.exceedance)
+              .slice(0, maxLocations),
             backgroundColor: palette.primary.main,
             //borderColor: 'rgba(0,0,0,1)',
             borderWidth: 1,
@@ -407,6 +411,13 @@ const ExceedancesChart = (props) => {
                           fontColor: palette.text.secondary,
                           beginAtZero: true,
                           min: 0,
+                          // suggestedMax:
+                          //   numLocations > 0
+                          //     ? Math.max(
+                          //         ...slicedData.dataset[0].data,
+                          //         10
+                          //       ) 
+                          //     : undefined,
                         },
                         gridLines: {
                           borderDash: [2],
