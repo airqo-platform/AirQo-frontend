@@ -1,8 +1,7 @@
-import { stripTrailingSlash } from "../utils";
+import { stripTrailingSlash } from '../utils';
 
 const BASE_DEVICE_MONITORING_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_DEVICE_MONITORING_URL ||
-    process.env.REACT_APP_BASE_URL
+  process.env.REACT_APP_BASE_DEVICE_MONITORING_URL || process.env.REACT_APP_BASE_URL
 );
 
 export const GET_DEVICE_STATUS_SUMMARY = `${BASE_DEVICE_MONITORING_URL}/monitor/device/status`;
@@ -13,7 +12,7 @@ export const GET_DEVICE_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/device/u
 
 export const GET_DEVICE_UPTIME_LEADERBOARD = `${BASE_DEVICE_MONITORING_URL}/monitor/device/uptime/leaderboard`;
 
-export const GET_DEVICE_BATTERY_VOLTAGE = `${BASE_DEVICE_MONITORING_URL}/monitor/device/batteryvoltage`;
+export const GET_DEVICE_BATTERY_VOLTAGE = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/battery`;
 
 export const GET_DEVICE_SENSOR_CORRELATION = `${BASE_DEVICE_MONITORING_URL}/monitor/device/sensors/correlation`;
 
