@@ -32,6 +32,7 @@ import { getAirqloudDetails, removeAirQloudData, refreshAirQloud } from 'redux/A
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -242,7 +243,7 @@ const AirQloudView = (props) => {
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
 
-        if (resData && resData.length > 0) {
+        if (resData && !isEmpty(resData)) {
           setAirQloudDataSummaryReport(resData);
           setLoading(false);
           setStartDate(null);
@@ -288,7 +289,7 @@ const AirQloudView = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         //TODO: Populate the charts and reports to be displayed.
-        if (resData && resData.length > 0) {
+        if (resData && !isEmpty(resData)) {
           setAirQloudUptimeSummaryReport(resData);
           setLoading(false);
           setUptimeEndDate(null);

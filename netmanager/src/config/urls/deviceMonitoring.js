@@ -4,6 +4,8 @@ const BASE_DEVICE_MONITORING_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_DEVICE_MONITORING_URL || process.env.REACT_APP_BASE_URL
 );
 
+const BASE_DEVICE_MONITORING_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_V2);
+
 export const GET_DEVICE_STATUS_SUMMARY = `${BASE_DEVICE_MONITORING_URL}/monitor/device/status`;
 
 export const GET_NETWORK_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/network/uptime`;
@@ -24,4 +26,4 @@ export const DEVICES_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/upt
 
 export const GET_ONLINE_OFFLINE_MAINTENANCE_STATUS = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/online_offline`;
 
-export const GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI = `${BASE_DEVICE_MONITORING_URL}/monitor/uptime`;
+export const GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI = `${BASE_DEVICE_MONITORING_URL_V2}/monitor/uptime`;
