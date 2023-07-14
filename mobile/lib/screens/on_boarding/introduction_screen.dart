@@ -97,8 +97,8 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     updateOnBoardingPage();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AppService().latestVersion().then((version) async {
-          if (version != null && mounted) {
+        await AirqoApiClient().getAppVersion().then((version) async {
+          if (version != null && mounted && !version.isUpdated) {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);
             });

@@ -124,14 +124,17 @@ Future<void> initializeMainMethod() async {
   );
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    logException(error, stack);
+    logException(error, stack, fatal: true);
 
     return true;
   };
 
   FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    logException(details, null);
+    if (kDebugMode) {
+      FlutterError.dumpErrorToConsole(details);
+    } else {
+      logException(details, null, fatal: true);
+    }
   };
 
   ErrorWidget.builder = (FlutterErrorDetails details) {
