@@ -27,7 +27,7 @@ export const timeSeriesChartOptions = (extraOptions) => ({
   tooltip: {
     x: {
       formatter: function (val) {
-        return moment(new Date(val)).format('DD MMM yyyy hh:mm:ss');
+        return moment(new Date(val)).format('DD MMM yyyy HH:mm:ss');
       }
     }
   },
