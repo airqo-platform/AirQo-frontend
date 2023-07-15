@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { SiteToolbar, ActivitiesTable } from './index';
+import { ActivitiesTable } from './index';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 
 // styles
