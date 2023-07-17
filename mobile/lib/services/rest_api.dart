@@ -284,6 +284,117 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
+  Future<List<Kya>> fetchKyaLessons(List<KyaProgress> kyaUserProgress) async {
+    final kyaLessons = <Kya>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.kya}/lessons",
+        apiService: ApiService.deviceRegistry,
+      );
+      if (kyaUserProgress == []) {
+        kyaUserProgress = await AirqoApiClient().fetchKyaProgress();
+      }
+
+      for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
+        kya['progress'] = 0;
+        if (kyaUserProgress != []) {
+          for (final kyaProgress in kyaUserProgress) {
+            if (kyaProgress.kyaId == kya['_id']) {
+              kya['progress'] = kyaProgress.progress;
+            }
+          }
+        }
+
+        Kya apiKya = Kya.fromJson(
+          kya as Map<String, dynamic>,
+        );
+        kyaLessons.add(apiKya);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return kyaLessons;
+  }
+
+  Future<List<KyaProgress>> fetchKyaProgress() async {
+    final kyaProgress = <KyaProgress>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+    final userId = CustomAuth.getUserId();
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.kya}/progress/$userId",
+        apiService: ApiService.deviceRegistry,
+      );
+      if (body['kya_user_progress'] != null) {
+        for (final progress in body['kya_user_progress'] as List<dynamic>) {
+          kyaProgress.add(
+            KyaProgress.fromJson(
+              progress as Map<String, dynamic>,
+            ),
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return kyaProgress;
+  }
+
+  Future<List<KyaProgress>> syncKyaProgress(
+      List<Map<String, dynamic>> kyaProgressList) async {
+    final userId = CustomAuth.getUserId();
+    List<KyaProgress> progressFromApi = [];
+
+    if ((userId.isEmpty)) {
+      return [];
+    }
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.deviceRegistry.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.kya}/sync/$userId",
+        ),
+        headers: headers,
+        body: jsonEncode({'kya_user_progress': kyaProgressList}),
+      );
+      final responseBody = json.decode(response.body);
+      for (final progress
+          in responseBody['kya_user_progress'] as List<dynamic>) {
+        progressFromApi.add(
+          KyaProgress.fromJson(
+            progress as Map<String, dynamic>,
+          ),
+        );
+      }
+
+      return progressFromApi;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return [];
+  }
+
   Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
     final favoritePlaces = <FavouritePlace>[];
     final queryParams = <String, String>{}
@@ -299,6 +410,10 @@ class AirqoApiClient {
         "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
+
+      if (body['favorites'] == []) {
+        return [];
+      }
 
       for (final favorite in body['favorites'] as List<dynamic>) {
         try {
@@ -324,8 +439,8 @@ class AirqoApiClient {
     return favoritePlaces;
   }
 
-  Future<bool> syncFavouritePlaces(List<FavouritePlace> favorites,
-      {
+  Future<bool> syncFavouritePlaces(
+    List<FavouritePlace> favorites, {
     bool clear = false,
   }) async {
     final userId = CustomAuth.getUserId();

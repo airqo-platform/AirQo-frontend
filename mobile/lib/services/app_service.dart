@@ -55,11 +55,11 @@ class AppService {
       throw NetworkConnectionException('No internet Connection');
     }
     try {
-      List<Kya> kyaList = await CloudStore.getKya();
-      List<Kya> cloudKya =
+      List<Kya> kyaList = await AirqoApiClient().fetchKyaLessons([]);
+      List<Kya> apiKya =
           kyaList.where((element) => element.id == kya.id).toList();
 
-      return cloudKya.isEmpty ? null : cloudKya.first;
+      return apiKya.isEmpty ? null : apiKya.first;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
 

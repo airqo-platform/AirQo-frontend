@@ -303,9 +303,9 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, List<Kya>>(
                     builder: (context, state) {
-                      List<Kya> kya = state
-                        ..filterPendingCompletion()
-                        ..sortByProgress();
+                      List<Kya> kya = state.filterPendingCompletion();
+                      kya.sortByProgress();
+                      
                       if (kya.isEmpty) {
                         kya = state.filterInProgressKya();
                       }

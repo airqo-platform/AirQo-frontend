@@ -17,15 +17,12 @@ class ClearKya extends KyaEvent {
 }
 
 class UpdateKyaProgress extends KyaEvent {
-  const UpdateKyaProgress(
-    this.kya, {
-    required this.visibleCardIndex,
-  });
-  final int visibleCardIndex;
+  const UpdateKyaProgress(this.kya, this.progress);
   final Kya kya;
+  final double progress;
 
   @override
-  List<Object?> get props => [visibleCardIndex, kya];
+  List<Object?> get props => [progress];
 }
 
 class CompleteKya extends KyaEvent {

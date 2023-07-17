@@ -21,7 +21,6 @@ void main() {
               id: (index + 1).toString(),
               imageUrl: '',
               lessons: const [],
-              secondaryImageUrl: '',
               shareLink: '',
               title: '',
             ),

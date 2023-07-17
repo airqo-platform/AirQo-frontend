@@ -82,9 +82,9 @@ class ShareService {
       }
 
       if (kya != null &&
-          kya.shareLink.isNotEmpty &&
-          kya.shareLink.length < Config.shareLinkMaxLength) {
-        return Uri.parse(kya.shareLink);
+          kya.shareLink!.isNotEmpty &&
+          kya.shareLink!.length < Config.shareLinkMaxLength) {
+        return Uri.parse(kya.shareLink ?? '');
       }
     } catch (exception, stackTrace) {
       await logException(

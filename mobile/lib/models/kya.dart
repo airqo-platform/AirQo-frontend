@@ -15,30 +15,31 @@ class Kya extends Equatable {
     required this.lessons,
     required this.progress,
     required this.completionMessage,
-    required this.secondaryImageUrl,
-    required this.shareLink,
+    this.shareLink,
   });
 
   final String title;
 
-  @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
+  @JsonKey(
+      defaultValue: 'You just finished your first Know You Air Lesson',
+      name: 'completion_message')
   final String completionMessage;
 
+  @JsonKey(name: 'image')
   final String imageUrl;
 
-  @JsonKey(defaultValue: '')
-  final String secondaryImageUrl;
-
+  @JsonKey(name: '_id')
   final String id;
 
+  @JsonKey(name: 'tasks')
   final List<KyaLesson> lessons;
-
-  @JsonKey(defaultValue: 0)
-  final double progress;
 
   // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
   @JsonKey(defaultValue: '')
-  final String shareLink;
+  final String? shareLink;
+
+  @JsonKey(defaultValue: 0)
+  final double progress;
 
   factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
     final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
@@ -48,10 +49,9 @@ class Kya extends Equatable {
       imageUrl: '',
       id: id,
       lessons: const [],
-      progress: 0,
       completionMessage: '',
-      secondaryImageUrl: '',
       shareLink: '',
+      progress: 0,
     );
   }
 
@@ -62,7 +62,6 @@ class Kya extends Equatable {
       title: title,
       completionMessage: completionMessage,
       imageUrl: imageUrl,
-      secondaryImageUrl: secondaryImageUrl,
       id: id,
       lessons: lessons,
       progress: progress ?? this.progress,
@@ -83,24 +82,40 @@ class Kya extends Equatable {
   }
 
   @override
-  List<Object> get props => [id];
+  List<Object> get props => [id, title, progress];
 }
 
 @JsonSerializable(explicitToJson: true)
 class KyaLesson extends Equatable {
   const KyaLesson({
+    required this.id,
     required this.title,
     required this.imageUrl,
     required this.body,
   });
 
-  factory KyaLesson.fromJson(Map<String, dynamic> json) =>
-      _$KyaLessonFromJson(json);
+  factory KyaLesson.fromJson(Map<String, dynamic> json) {
+    return _$KyaLessonFromJson(json);
+  }
+
+  factory KyaLesson.fromKya(Kya kya, int index) {
+    return KyaLesson(
+      id: kya.lessons[index].id,
+      title: kya.lessons[index].title,
+      imageUrl: kya.lessons[index].imageUrl,
+      body: kya.lessons[index].body,
+    );
+  }
+
+  @JsonKey(name: '_id')
+  final String id;
 
   final String title;
 
+  @JsonKey(name: 'image')
   final String imageUrl;
 
+  @JsonKey(name: 'content')
   final String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
@@ -120,27 +135,35 @@ class KyaLesson extends Equatable {
 @JsonSerializable()
 class KyaProgress {
   const KyaProgress({
-    required this.id,
     required this.progress,
+    required this.kyaId,
+    this.id,
   });
 
   factory KyaProgress.fromJson(Map<String, dynamic> json) =>
       _$KyaProgressFromJson(json);
 
   factory KyaProgress.fromKya(Kya kya) => KyaProgress(
-        id: kya.id,
         progress: kya.progress,
+        kyaId: kya.id,
       );
 
   KyaProgress copyWith({double? progress}) {
     return KyaProgress(
       id: id,
       progress: progress ?? this.progress,
+      kyaId: kyaId,
     );
   }
 
-  final String id;
+  @JsonKey(name: '_id')
+  final String? id;
+
+  @JsonKey(defaultValue: 0)
   final double progress;
+
+  @JsonKey(name: 'lesson_id')
+  final String kyaId;
 
   Map<String, dynamic> toJson() => _$KyaProgressToJson(this);
 }

@@ -27,13 +27,9 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
     SyncKya _,
     Emitter<List<Kya>> emit,
   ) async {
-    final cloudKya = await CloudStore.getKya();
-    Set<Kya> kya = state.toSet();
-    kya.addAll(cloudKya.toSet());
-
-    emit(kya.toList());
-
-    await CloudStore.updateKya(state);
+    List<KyaProgress> progressFromApi = await sendProgresstoApi(state.toSet());
+    final apiKya = await AirqoApiClient().fetchKyaLessons(progressFromApi);
+    emit(apiKya);
   }
 
   void _onClearKya(ClearKya _, Emitter<List<Kya>> emit) {
@@ -46,10 +42,8 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
   ) async {
     Kya kya = event.kya.copyWith(progress: 1);
     Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
+    await sendProgresstoApi(kyaSet);
     emit(kyaSet.toList());
-
-    await CloudStore.updateKya([kya]);
   }
 
   Future<void> _onCompleteKya(
@@ -58,15 +52,15 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
   ) async {
     Kya kya = event.kya.copyWith(progress: -1);
     Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
+    List<Kya> kyaList = kyaSet.toList();
+    emit(kyaList);
 
-    await hasNetworkConnection().then((hasConnection) {
+    await hasNetworkConnection().then((hasConnection) async {
       if (hasConnection) {
         Future.wait([
           CloudAnalytics.logEvent(CloudAnalyticsEvent.completeOneKYA),
-          CloudStore.updateKya([kya]),
         ]);
+        await sendProgresstoApi(kyaSet);
       }
     });
   }
@@ -75,20 +69,32 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
     UpdateKyaProgress event,
     Emitter<List<Kya>> emit,
   ) async {
-    Kya kya = event.kya.copyWith();
+    Kya kya = event.kya;
 
     if (kya.isPendingCompletion() || kya.isComplete()) return;
-    int index = event.visibleCardIndex;
+    double progress = event.progress;
 
-    if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
+    if (progress < 0 || (progress > kya.lessons.length - 1)) progress = 0;
 
     Set<Kya> kyaSet = {
-      kya.copyWith(progress: kya.getProgress(event.visibleCardIndex)),
+      kya.copyWith(progress: progress),
     };
-    kyaSet.addAll(state);
+    await sendProgresstoApi(kyaSet);
     emit(kyaSet.toList());
+  }
 
-    await CloudStore.updateKya([kya]);
+  Future<List<KyaProgress>> sendProgresstoApi(Set<Kya> kyaSet) async {
+    List<Kya> kyaList = kyaSet.toList();
+
+    List<Map<String, dynamic>> kyaProgressList = [];
+    for (Kya kya in kyaList) {
+      Map<String, dynamic> kyaMap = KyaProgress.fromKya(kya).toJson();
+      kyaProgressList.add(kyaMap);
+    }
+
+    List<KyaProgress> progressFromApi =
+        await AirqoApiClient().syncKyaProgress(kyaProgressList);
+    return progressFromApi;
   }
 
   @override
