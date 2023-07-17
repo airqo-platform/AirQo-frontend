@@ -2,14 +2,31 @@ import Link from 'next/link';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { theme } from '../../../../tailwind.config';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
+  const [isMediumDevice, setIsMediumDevice] = useState(false);
 
   const changePath = (e) => {
     e.preventDefault();
     router.push(itemPath);
   };
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleMediaQueryChange = (e) => {
+      setIsMediumDevice(e.matches);
+    };
+
+    setIsMediumDevice(mediaQuery.matches);
+    mediaQuery.addListener(handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeListener(handleMediaQueryChange);
+    };
+  }, []);
+
+
   return (
     <a href={itemPath} onClick={changePath}>
       <span
@@ -19,13 +36,31 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
             : 'hover:bg-grey-900 hover:opacity-50 hover:cursor-not-allowed'
         }`}
       >
-        <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
+        {!isMediumDevice && (
+          <h3 className={`text-sm text-grey leading-[21px]`}>{itemLabel}</h3>
+        )}
       </span>
     </a>
   );
 };
 
 const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, toggleState }) => {
+  const [isMediumDevice, setIsMediumDevice] = useState(false);
+
+  // useEffect(() => {
+  //   const mediaQuery = window.matchMedia('(max-width: 768px)');
+  //   const handleMediaQueryChange = (e) => {
+  //     setIsMediumDevice(e.matches);
+  //   };
+
+  //   setIsMediumDevice(mediaQuery.matches);
+  //   mediaQuery.addListener(handleMediaQueryChange);
+
+  //   return () => {
+  //     mediaQuery.removeListener(handleMediaQueryChange);
+  //   };
+  // }, []);
+
   return (
     <div
       className={`cursor-pointer ${toggleState && 'bg-sidebar-blue rounded'}`}
@@ -40,15 +75,15 @@ const SideBarItem = ({ Icon, label, dropdown, navPath, children, toggleMethod, t
               <Icon />
             </div>
 
-            <h3
-              className={`text-base font-normal text-black-900 ${
-                toggleState && 'text-blue font-medium'
-              }`}
-            >
-              {label}
-            </h3>
+              <h3
+                className={`text-base font-normal text-black-900 ${
+                  toggleState && 'text-blue font-medium'
+                }`}
+              >
+                {label}
+              </h3>
           </div>
-          {dropdown && (
+          {dropdown &&(
             <div className='mr-6'>
               <ArrowDropDownIcon fillColor={toggleState && theme.extend.colors.blue[900]} />
             </div>
