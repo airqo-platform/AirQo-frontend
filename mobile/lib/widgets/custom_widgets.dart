@@ -784,3 +784,31 @@ class CustomShowcaseWidget extends StatelessWidget {
     );
   }
 }
+
+class SwipeDismissible extends Dismissible {
+  const SwipeDismissible(
+      {required super.key,
+      required super.onDismissed,
+      required super.confirmDismiss,
+      required super.background,
+      required super.child});
+
+  static Container defaultBackground({
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+        color: color,
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(label, style: const TextStyle(color: Colors.white)),
+            ],
+          ),
+        ));
+  }
+}
