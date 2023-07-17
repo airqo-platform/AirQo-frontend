@@ -16,13 +16,16 @@ class Profile extends Equatable {
     String emailAddress = "";
     String phoneNumber = "";
     bool isAnonymous = true;
+    DateTime lastRated = DateTime.now();
 
     final User? user = CustomAuth.getUser();
+
     if (user != null) {
       phoneNumber = user.phoneNumber ?? "";
       emailAddress = user.email ?? "";
       userId = user.uid;
       isAnonymous = user.isAnonymous;
+      lastRated = user.metadata.creationTime ?? DateTime.now();
     }
 
     return Profile(
@@ -40,6 +43,7 @@ class Profile extends Equatable {
       aqShares: 0,
       isAnonymous: isAnonymous,
       isSignedIn: user != null,
+      lastRated: lastRated,
     );
   }
 
@@ -58,6 +62,7 @@ class Profile extends Equatable {
     required this.aqShares,
     required this.isAnonymous,
     required this.isSignedIn,
+    required this.lastRated,
   });
 
   @JsonKey(defaultValue: '')
@@ -102,6 +107,9 @@ class Profile extends Equatable {
   @JsonKey(defaultValue: false, required: false)
   final bool isSignedIn;
 
+  @JsonKey(required: false, name: "last_rated")
+  final DateTime lastRated;
+
   Profile copyWith({
     String? title,
     String? firstName,
@@ -117,6 +125,7 @@ class Profile extends Equatable {
     int? aqShares,
     bool? isAnonymous,
     bool? isSignedIn,
+    DateTime? lastRated,
   }) {
     return Profile(
       title: title ?? this.title,
@@ -133,6 +142,7 @@ class Profile extends Equatable {
       aqShares: aqShares ?? this.aqShares,
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isSignedIn: isSignedIn ?? this.isSignedIn,
+      lastRated: lastRated ?? this.lastRated,
     );
   }
 
