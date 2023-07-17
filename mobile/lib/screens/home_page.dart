@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: PageTransitionSwitcher(
+          duration: const Duration(milliseconds: 300),
           transitionBuilder: (
             Widget child,
             Animation<double> primaryAnimation,
