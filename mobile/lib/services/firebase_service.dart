@@ -235,8 +235,6 @@ class CloudStore {
     return null;
   }
 
- 
-
   static Future<bool> updateProfile(Profile profile) async {
     final User? currentUser = CustomAuth.getUser();
     if (!profile.isSignedIn || currentUser == null) {

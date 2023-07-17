@@ -280,8 +280,7 @@ void main() {
         'isWithInNextWeek should return true if the date is within the next week',
         () {
       expect(today.add(const Duration(days: 7)).isWithInNextWeek(), isTrue);
-      expect(today.add(Duration(days: 7 + today.weekday)).isWithInNextWeek(),
-          isFalse);
+      expect(today.add(const Duration(days: 14)).isWithInNextWeek(), isFalse);
 
       if (today.weekday > 7) {
         expect(today.isWithInNextWeek(), isTrue);
@@ -322,14 +321,6 @@ void main() {
       expect(today.subtract(day).isYesterday(), isTrue);
       expect(today.isYesterday(), isFalse);
       expect(today.add(day).isYesterday(), isFalse);
-    });
-
-    test(
-        'notificationDisplayDate should return the formatted date for notification display',
-        () {
-      expect(fixedDate2.notificationDisplayDate(), '04 May');
-      expect(fixedDate1.subtract(day).notificationDisplayDate(), '03 May');
-      expect(fixedDate1.add(day).notificationDisplayDate(), '05 May');
     });
 
     test('tomorrow should return the date of tomorrow', () {

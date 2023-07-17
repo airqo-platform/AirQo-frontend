@@ -14,15 +14,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+
+@pragma("vm:entry-point")
+void backgroundCallback(Uri? _) async {
+  await WidgetService.sendAndUpdate();
+}
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -458,6 +463,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
@@ -503,7 +509,7 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  void _refresh({bool refreshMap = true}) {
+  void _refresh({bool refreshMap = true}) async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     if (refreshMap) {
@@ -512,6 +518,7 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    await WidgetService.sendAndUpdate();
   }
 
   Future<void> _startShowcase() async {
