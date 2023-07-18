@@ -1,25 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { setUserName, setUserPassword, loginUser } from '@/lib/store/services/account/LoginSlice';
 
 const UserLogin = () => {
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const [error, setError] = useState(false);
+  const [errors, setErrors] = useState(false);
+  const [error, setError] = useState();
   const dispatch = useDispatch();
   const router = useRouter();
   const postData = useSelector((state) => state.login);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(setUserName(email));
-    dispatch(setUserPassword(password));
-    await dispatch(loginUser({ userName: email, password })).then(() => {
-      if (postData.success) router.push('/analytics');
-      else setError(true);
-    });
+    try {
+      await dispatch(loginUser(postData.userData)).then(()=>{
+        if (postData.success) {
+          router.push('/analytics');
+        } else {
+          setErrors(true);
+          setError(postData.errors);
+        }
+      })
+    } catch (err) {}
   };
 
   return (
@@ -34,20 +37,20 @@ const UserLogin = () => {
             <div className='text-xs'>User Name</div>
             <div className='mt-2 w-full'>
               <input
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => dispatch(setUserName(e.target.value))}
                 placeholder='e.g. greta.nagawa@gmail.com'
                 className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
                 required
               />
               <div className='text-xs mt-6'>Password</div>
               <input
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => dispatch(setUserPassword(e.target.value))}
                 type='password'
                 placeholder='******'
                 className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
                 required
               />
-              {error && <div className='text-xs text-red-600 py-2'>{postData.errors}</div>}
+              <div>{errors && <div className='text-sm text-red-600 py-2'>{error || 'Retry'}</div>}</div>
               <button
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
                 type='submit'>
