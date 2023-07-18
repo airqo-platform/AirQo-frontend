@@ -5,6 +5,7 @@ import selectedCollocateDevicesReducer from './services/collocation/selectedColl
 import { collocateApi } from './services/collocation';
 import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
+import { userLoginSlice } from './services/account/LoginSlice';
 
 const store = () =>
   configureStore({
@@ -14,6 +15,7 @@ const store = () =>
       selectedCollocateDevices: selectedCollocateDevicesReducer,
       collocationData: collocationDataReducer,
       [createAccountSlice.name]: createAccountSlice.reducer,
+      [userLoginSlice.name]: userLoginSlice.reducer
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(deviceRegistryApi.middleware, collocateApi.middleware),
