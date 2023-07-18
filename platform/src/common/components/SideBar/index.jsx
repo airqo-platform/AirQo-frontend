@@ -16,6 +16,7 @@ import AirqoLogo from '@/icons/airqo_logo.svg';
 import AnnouncementCard from './AnnouncementCard';
 
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
+import Link from 'next/link';
 
 const SideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
@@ -60,7 +61,7 @@ const SideBar = () => {
               justify-between
             '>
             <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
-              <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
+            <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
           {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
             <div className='flex justify-start items-center'>
@@ -85,24 +86,14 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
             </SideBarItem>
-
             <hr className='my-3 h-[0.5px] bg-grey-150' />
-
-            <h3>Network</h3>
-            <SideBarItem
-              label='Collocation'
-              Icon={CollocationIcon}
-              dropdown
-              toggleMethod={() => setCollocationOpen(!collocationOpen)}
-              toggleState={collocationOpen}>
-              <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
-              <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
-            </SideBarItem>
             <SideBarItem label='Sites' Icon={SiteIcon} />
             <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
+        <Link href='/account/creation'>
           <AnnouncementCard />
+        </Link>
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />
