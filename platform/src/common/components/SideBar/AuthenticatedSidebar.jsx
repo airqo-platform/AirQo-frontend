@@ -81,8 +81,14 @@ const AuthenticatedSideBar = () => {
               dropdown
               toggleMethod={() => setCollocationOpen(!collocationOpen)}
               toggleState={collocationOpen}>
-              <SideBarDropdownItem itemLabel='Overview' itemPath='/collocation/overview' />
-              <SideBarDropdownItem itemLabel='Collocate' itemPath='/collocation/collocate' />
+              <SideBarDropdownItem
+                itemLabel='Overview'
+                itemPath='/analytics/collocation/overview'
+              />
+              <SideBarDropdownItem
+                itemLabel='Collocate'
+                itemPath='/analytics/collocation/collocate'
+              />
             </SideBarItem>
             <SideBarItem label='Sites' Icon={SiteIcon} />
             <SideBarItem label='Other tools' Icon={GridIcon} />
