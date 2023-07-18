@@ -8,6 +8,11 @@ export const getGoogleAuthDetails = async () => {
   await axios.get(GOOGLE_AUTH_URL);
 };
 
-export const postUserLoginDetails = async (data)=>{
-  await axios.post(LOGIN_URL, data).then((response)=>response.data)
+export const postUserLoginDetails = async (data) => {
+  try {
+    const response = await axios.post(LOGIN_URL, data)
+    return response.data
+  } catch (error) {
+    return error;
+  }
 }
