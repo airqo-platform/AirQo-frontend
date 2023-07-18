@@ -18,6 +18,8 @@ import { removeDevices } from '@/lib/store/services/collocation/selectedCollocat
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -73,7 +75,7 @@ const AddMonitor = () => {
   };
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       {(isFetchRunningDevicesError || isCollocateDeviceError) && (
         <Toast
           type={'error'}
@@ -121,8 +123,8 @@ const AddMonitor = () => {
           </ContentBox>
         </>
       )}
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default AddMonitor;
+export default withAuth(AddMonitor);
