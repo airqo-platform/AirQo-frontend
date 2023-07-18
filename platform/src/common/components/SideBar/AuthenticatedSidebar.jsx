@@ -74,10 +74,7 @@ const AuthenticatedSideBar = () => {
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
             </SideBarItem>
-
             <hr className='my-3 h-[0.5px] bg-grey-150' />
-
-            <h3>Network</h3>
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
