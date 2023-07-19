@@ -21,6 +21,8 @@ import { isEmpty } from 'underscore';
 import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
 import { generateRandomColors } from '@/core/utils/colors';
+import withAuth from '../../../../../core/utils/protectedRoute';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -146,7 +148,7 @@ const MonitorReport = () => {
   };
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       <NavigationBreadCrumb navTitle={'Monitor Report'} />
       {(isFetchCollocationResultsError || isFetchDataCompletenessError) && (
         <Toast
@@ -182,8 +184,8 @@ const MonitorReport = () => {
           isLoading={isFetchDataCompletenessLoading}
         />
       )}
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default MonitorReport;
+export default withAuth(MonitorReport);

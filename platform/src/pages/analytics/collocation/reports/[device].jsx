@@ -17,6 +17,8 @@ import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import withAuth from '@/core/utils/protectedRoute';
 
 const Reports = () => {
   const router = useRouter();
@@ -112,7 +114,7 @@ const Reports = () => {
   };
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       <NavigationBreadCrumb navTitle={'Reports'} />
       {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
@@ -202,8 +204,8 @@ const Reports = () => {
           />
         )}
       </ContentBox>
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default Reports;
+export default withAuth(Reports);

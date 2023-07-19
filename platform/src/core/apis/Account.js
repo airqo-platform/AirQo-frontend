@@ -1,4 +1,4 @@
-import { AUTH_URL, GOOGLE_AUTH_URL } from '../urls/authentication';
+import { AUTH_URL, GOOGLE_AUTH_URL, LOGIN_URL } from '../urls/authentication';
 import axios from 'axios';
 
 export const postUserCreationDetails = async (data) =>
@@ -7,3 +7,12 @@ export const postUserCreationDetails = async (data) =>
 export const getGoogleAuthDetails = async () => {
   await axios.get(GOOGLE_AUTH_URL);
 };
+
+export const postUserLoginDetails = async (data) => {
+  try {
+    const response = await axios.post(LOGIN_URL, data)
+    return response.data
+  } catch (error) {
+    return error;
+  }
+}

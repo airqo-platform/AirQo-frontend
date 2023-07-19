@@ -7,18 +7,15 @@ import SiteIcon from '@/icons/SideBar/Sites.svg';
 import GridIcon from '@/icons/SideBar/grid_01.svg';
 import SettingsIcon from '@/icons/SideBar/settings_02.svg';
 import BarChartSqIcon from '@/icons/SideBar/bar_chart.svg';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import MenuBarIcon from '@/icons/menu_bar';
 import { useEffect, useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import AnnouncementCard from './AnnouncementCard';
 
 import CollocationIcon from '@/icons/Collocation/collocation.svg';
-import Link from 'next/link';
 
-const SideBar = () => {
+const AuthenticatedSideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const sideBarDisplayStyle = toggleDrawer ? 'flex fixed top-16 left-0 z-10' : 'hidden';
   const size = useWindowSize();
@@ -63,15 +60,6 @@ const SideBar = () => {
             <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
             <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
-          {/* <div className='border border-grey-750 h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4'>
-            <div className='flex justify-start items-center'>
-              <div className='bg-grey-700 w-8 h-8 p-[5px] flex items-center justify-center rounded-full mr-4'>
-                <h3 className='text-sm font-normal'>FP</h3>
-              </div>
-              <h3 className='text-sm font-normal'>Fort Portal</h3>
-            </div>
-            <ArrowDropDownIcon />
-          </div> */}
           <div className='mt-3 mx-2'>
             <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
             <SideBarItem label='Learn' Icon={BookOpenIcon} />
@@ -87,13 +75,25 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
             </SideBarItem>
             <hr className='my-3 h-[0.5px] bg-grey-150' />
+            <SideBarItem
+              label='Collocation'
+              Icon={CollocationIcon}
+              dropdown
+              toggleMethod={() => setCollocationOpen(!collocationOpen)}
+              toggleState={collocationOpen}>
+              <SideBarDropdownItem
+                itemLabel='Overview'
+                itemPath='/analytics/collocation/overview'
+              />
+              <SideBarDropdownItem
+                itemLabel='Collocate'
+                itemPath='/analytics/collocation/collocate'
+              />
+            </SideBarItem>
             <SideBarItem label='Sites' Icon={SiteIcon} />
             <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
-        <Link href='/account/creation'>
-          <AnnouncementCard />
-        </Link>
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />
@@ -111,4 +111,4 @@ const SideBar = () => {
   );
 };
 
-export default SideBar;
+export default AuthenticatedSideBar;

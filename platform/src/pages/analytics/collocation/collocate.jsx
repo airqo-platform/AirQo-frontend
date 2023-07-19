@@ -18,6 +18,8 @@ import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -32,7 +34,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
   };
 });
 
-const collocate = () => {
+const Collocate = () => {
   const {
     data: data,
     isLoading,
@@ -57,7 +59,7 @@ const collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -140,8 +142,8 @@ const collocate = () => {
           <EmptyState />
         )}
       </ContentBox>
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default collocate;
+export default withAuth(Collocate);

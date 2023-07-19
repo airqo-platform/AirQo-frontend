@@ -3,6 +3,7 @@ import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import Link from 'next/link';
 import ContentLessTopBar from '@/components/TopBar/content_less_header';
 import Button from '@/components/Button';
+import withAuth from '@/core/utils/protectedRoute';
 
 const CollocationSuccess = () => {
   return (
@@ -32,4 +33,4 @@ const CollocationSuccess = () => {
   );
 };
 
-export default CollocationSuccess;
+export default withAuth(CollocationSuccess);
