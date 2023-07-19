@@ -66,7 +66,7 @@ const AddMonitor = () => {
       const response = await collocateDevices(body);
 
       if (!response.error) {
-        router.push('/collocation/collocate_success');
+        router.push('/analytics/collocation/collocate_success');
       }
     }
     setCollocating(false);

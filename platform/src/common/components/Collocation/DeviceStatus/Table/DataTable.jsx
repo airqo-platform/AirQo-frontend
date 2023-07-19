@@ -118,7 +118,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   useEffect(() => {
     if (isSuccess) {
       router.push({
-        pathname: `/collocation/reports/${collocationInput.devices}`,
+        pathname: `/analytics/collocation/reports/${collocationInput.devices}`,
         query: {
           device: collocationInput.devices,
           batchId: collocationInput.batchId,

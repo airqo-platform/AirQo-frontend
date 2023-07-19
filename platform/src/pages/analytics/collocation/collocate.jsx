@@ -85,7 +85,7 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
+                path='/analytics/collocation/add_monitor'
               >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
