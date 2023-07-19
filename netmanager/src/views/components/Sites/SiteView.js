@@ -4,7 +4,7 @@ import { isEmpty } from 'underscore';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
-import { Button, Grid, Paper, TextField } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core';
 
 import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
 import { loadSiteDetails } from 'redux/SiteRegistry/operations';
@@ -266,32 +266,6 @@ const SiteForm = ({ site }) => {
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
-            id="search_name"
-            label="Editable Name"
-            defaultValue={site.search_name}
-            variant="outlined"
-            onChange={handleSiteInfoChange}
-            error={!!errors.search_name}
-            helperText={errors.search_name}
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
-            id="location_name"
-            label="Editable Description"
-            defaultValue={site.location_name}
-            variant="outlined"
-            onChange={handleSiteInfoChange}
-            error={!!errors.location_name}
-            helperText={errors.location_name}
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid items xs={12} sm={6} style={gridItemStyle}>
-          <TextField
             id="region"
             label="Region"
             variant="outlined"
@@ -409,6 +383,36 @@ const SiteForm = ({ site }) => {
             error={!!errors.distance_to_kampala_center}
             helperText={errors.distance_to_kampala_center}
             fullWidth
+          />
+        </Grid>
+
+        <Grid xs={12} sm={12} style={gridItemStyle}>
+          <Typography variant="h3">Mobile app site details</Typography>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="search_name"
+            label="Editable Name"
+            defaultValue={site.search_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.search_name}
+            helperText={errors.search_name}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="location_name"
+            label="Editable Description"
+            defaultValue={site.location_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.location_name}
+            helperText={errors.location_name}
+            fullWidth
+            required
           />
         </Grid>
 
