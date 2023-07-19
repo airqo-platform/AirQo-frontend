@@ -1,12 +1,13 @@
 import React from 'react';
-import Layout from '@/components/Layout';
 import HeaderNav from '@/components/Layout/header';
 import Box from '@/components/Collocation/Report/box';
 import ContentBox from '@/components/Layout/content_box';
+import withAuth from '@/core/utils/protectedRoute';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 const CollocationReports = () => {
   return (
-    <Layout>
+    <AuthenticatedLayout>
       <HeaderNav category={'Collocation'} component={'Reports'}></HeaderNav>
       <div className='grid grid-cols-2'>
         <Box
@@ -48,8 +49,8 @@ const CollocationReports = () => {
           </thead>
         </table>
       </ContentBox>
-    </Layout>
+    </AuthenticatedLayout>
   );
 }
 
-export default CollocationReports
+export default withAuth(CollocationReports);
