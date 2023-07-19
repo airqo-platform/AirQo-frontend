@@ -89,6 +89,10 @@ const AuthenticatedSideBar = () => {
                 itemLabel='Collocate'
                 itemPath='/analytics/collocation/collocate'
               />
+              <SideBarDropdownItem
+                itemLabel='Reports'
+                itemPath='/analytics/collocation/reports'
+              />
             </SideBarItem>
             <SideBarItem label='Sites' Icon={SiteIcon} />
             <SideBarItem label='Other tools' Icon={GridIcon} />
