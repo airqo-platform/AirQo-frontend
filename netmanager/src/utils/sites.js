@@ -4,6 +4,10 @@ const siteLabel = (name, description) => {
   return `${name || description}`;
 };
 
+const activitiesLabel = (device, description) => {
+  return `${device || description}`;
+};
+
 export const createSiteOptions = (sites) => {
   const siteOptions = [];
   sites.map(({ name, description, ...rest }) => {
@@ -13,6 +17,17 @@ export const createSiteOptions = (sites) => {
     });
   });
   return siteOptions;
+};
+
+export const createActivitiesOptions = (site_activities) => {
+  const activitiesOptions = [];
+  site_activities.map(({ device, description, ...rest }) => {
+    activitiesOptions.push({
+      label: activitiesLabel(device, description),
+      value: rest._id,
+    });
+  });
+  return activitiesOptions;
 };
 
 export const filterSite = (sites, site_id) => {
