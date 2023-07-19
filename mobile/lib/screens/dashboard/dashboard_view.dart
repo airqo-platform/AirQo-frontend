@@ -518,7 +518,11 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    await WidgetService.sendAndUpdate();
+    try {
+      await WidgetService.sendAndUpdate();
+    } catch (e) {
+      // debugPrint('error updating widget: $e');
+    }
   }
 
   Future<void> _startShowcase() async {

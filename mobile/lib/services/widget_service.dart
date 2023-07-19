@@ -6,16 +6,18 @@ class WidgetService {
   static Future<void> sendData() async {
     CurrentLocation? currentLocation =
         await LocationService.getCurrentLocation();
-    var airQualityReading = await LocationService.getNearestSite(
-          currentLocation!.latitude,
-          currentLocation.longitude,
-        ) ??
-        (await LocationService.getSurroundingSites(
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-        ))
-            .firstOrNull;
-
+    AirQualityReading? airQualityReading;
+    if (currentLocation != null) {
+      airQualityReading = await LocationService.getNearestSite(
+            currentLocation.latitude,
+            currentLocation.longitude,
+          ) ??
+          (await LocationService.getSurroundingSites(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          ))
+              .firstOrNull;
+    }
     airQualityReading ??= HiveService().getNearbyAirQualityReadings().isNotEmpty
         ? (HiveService().getNearbyAirQualityReadings()..shuffle()).first
         : null;
@@ -38,7 +40,6 @@ class WidgetService {
     await HomeWidget.updateWidget(
       name: 'AirQoCircularWidget',
       androidName: 'AirQoCircularWidget',
-      iOSName: 'AirQoCircularWidget',
       qualifiedAndroidName: 'com.airqo.app.AirQoCircularWidget',
     );
   }
