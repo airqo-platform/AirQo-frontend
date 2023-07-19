@@ -250,7 +250,9 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
+
+      //TODO: @noah and @benjie, flutter analyse says this is unused
+      // String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
 
       final response = await client.post(
         Uri.parse(
