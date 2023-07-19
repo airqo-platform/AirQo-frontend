@@ -112,11 +112,7 @@ class NotificationService {
       );
       FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
         // TODO update cloud store
-      }).onError(
-        (exception) {
-          logException(exception, null);
-        },
-      );
+      });
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }

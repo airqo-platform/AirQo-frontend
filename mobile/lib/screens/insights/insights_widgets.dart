@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
+
   final Insight insight;
   final String name;
 
@@ -112,6 +113,7 @@ class InsightAirQualityWidget extends StatelessWidget {
 
 class InsightAirQualityMessageWidget extends StatelessWidget {
   InsightAirQualityMessageWidget(this.insight, {super.key});
+
   final Insight insight;
   final ScrollController _scrollController = ScrollController();
 
@@ -298,6 +300,7 @@ class InsightsDayReading extends StatelessWidget {
     super.key,
     required this.isActive,
   });
+
   final Insight insight;
   final bool isActive;
 
@@ -351,6 +354,7 @@ class InsightsDayReading extends StatelessWidget {
 
 class InsightsCalendar extends StatelessWidget {
   const InsightsCalendar(this.airQualityReading, {super.key});
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -440,6 +444,7 @@ class InsightsCalendar extends StatelessWidget {
 
 class ForecastContainer extends StatelessWidget {
   const ForecastContainer(this.insight, {super.key});
+
   final Insight insight;
 
   @override
@@ -503,6 +508,7 @@ class ForecastContainer extends StatelessWidget {
 
 class HealthTipsWidget extends StatefulWidget {
   const HealthTipsWidget(this.insight, {super.key});
+
   final Insight insight;
 
   @override
@@ -519,8 +525,8 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
       Future.delayed(const Duration(seconds: 1)).then((value) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(seconds: 20),
-          curve: Curves.easeOut,
+          duration: Duration(seconds: widget.insight.healthTips.length * 10),
+          curve: Curves.linear,
         );
       });
     });
