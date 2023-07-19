@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';

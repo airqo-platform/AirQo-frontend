@@ -1,5 +1,4 @@
 import Button from '@/components/Button';
-import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
