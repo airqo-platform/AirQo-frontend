@@ -91,9 +91,7 @@ const SideBar = () => {
             <SideBarItem label='Other tools' Icon={GridIcon} />
           </div>
         </div>
-        <Link href='/account/creation'>
-          <AnnouncementCard />
-        </Link>
+        <AnnouncementCard />
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />
