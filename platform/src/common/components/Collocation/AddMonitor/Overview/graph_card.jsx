@@ -28,7 +28,7 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
 
   const goToReport = () => {
     router.push({
-      pathname: `/collocation/reports/${device.device_name}`,
+      pathname: `/analytics/collocation/reports/${device.device_name}`,
       query: {
         device: device.device_name,
         batchId: device.batch_id,
