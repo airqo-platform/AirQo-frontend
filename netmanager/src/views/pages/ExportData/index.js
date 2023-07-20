@@ -608,26 +608,20 @@ const ExportData = (props) => {
       title: 'Export Options',
       description:
         "You can download your data using the schedule option. This option is especially useful if your data covers a large time span (more than one month's worth). You can avoid delays and get your data ready for download when they are processed."
-    },
-    {
-      title: 'Download Button',
-      description:
-        'Click on this button to download your data. You can also schedule your data for download using the schedule option.'
     }
   ];
 
-  // Adding this to track the index of the text field that is currently focused
-  const [FieldRefIndex, setFieldRefIndex] = useState(0);
+  const classNames = ['step-1', 'step-2'];
 
   return (
     <ErrorBoundary>
       <Tutorial
-        tutorialId={'exportData'}
-        fieldRefs={[FieldRef1, FieldRef2, FieldRef3]}
+        classNames={classNames}
         steps={steps}
-        FieldRefIndex={FieldRefIndex}
-        setFieldRefIndex={setFieldRefIndex}
         overlay={false}
+        textBoxColor="#fff"
+        textColor="#000"
+        tutorialId="my-tutorial"
       />
 
       <div className={classes.root}>
@@ -674,20 +668,18 @@ const ExportData = (props) => {
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="Start Date"
-                          className="reactSelect"
+                          className="step-1"
                           fullWidth
                           variant="outlined"
                           value={startDate}
                           InputLabelProps={{ shrink: true }}
                           type="date"
                           onChange={(event) => setStartDate(event.target.value)}
-                          inputRef={FieldRef1}
                         />
                       </Grid>
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="End Date"
-                          className="reactSelect"
                           fullWidth
                           variant="outlined"
                           value={endDate}
@@ -698,28 +690,24 @@ const ExportData = (props) => {
                       </Grid>
 
                       <Grid item md={6} xs={12}>
-                        <div ref={FieldRef2}>
-                          <Select
-                            fullWidth
-                            className="reactSelect"
-                            name="location"
-                            placeholder="Select Site(s)"
-                            value={selectedSites}
-                            options={siteOptions}
-                            onChange={(options) => setSelectedSites(options)}
-                            isMulti
-                            variant="outlined"
-                            margin="dense"
-                            required
-                          />
-                        </div>
+                        <Select
+                          fullWidth
+                          name="location"
+                          placeholder="Select Site(s)"
+                          value={selectedSites}
+                          options={siteOptions}
+                          onChange={(options) => setSelectedSites(options)}
+                          isMulti
+                          variant="outlined"
+                          margin="dense"
+                          required
+                        />
                       </Grid>
 
                       <Grid item md={6} xs={12}>
                         <Select
                           fullWidth
                           label="Frequency"
-                          className=""
                           name="chart-frequency"
                           placeholder="Frequency"
                           value={frequency}
@@ -783,26 +771,24 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
-                      <div ref={FieldRef3}>
-                        <Button
-                          color="primary"
-                          variant="outlined"
-                          type="submit"
-                          style={{ marginRight: '15px' }}
-                          disabled={disableDownloadBtn('sites')}>
-                          {' '}
-                          Download Data
-                        </Button>
-                        <Button
-                          color="primary"
-                          variant="outlined"
-                          onClick={scheduleExportData}
-                          disabled={disableDownloadBtn('sites')}>
-                          {' '}
-                          Schedule Download
-                        </Button>
-                      </div>
+                    <Box display="flex" justifyContent="center" width="100%" className="step-2">
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        type="submit"
+                        style={{ marginRight: '15px' }}
+                        disabled={disableDownloadBtn('sites')}>
+                        {' '}
+                        Download Data
+                      </Button>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={scheduleExportData}
+                        disabled={disableDownloadBtn('sites')}>
+                        {' '}
+                        Schedule Download
+                      </Button>
                     </Box>
                   </CardActions>
                 </form>

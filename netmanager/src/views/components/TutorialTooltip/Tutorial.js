@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './Tutorial.css';
 
-const Tutorial = ({
-  fieldRefs,
-  steps,
-  FieldRefIndex,
-  setFieldRefIndex,
-  overlay,
-  textBoxColor,
-  textColor,
-  tutorialId
-}) => {
+const Tutorial = ({ classNames, steps, overlay, textBoxColor, textColor, tutorialId }) => {
+  // Adding this to track the index of the text field that is currently focused
+  const [FieldRefIndex, setFieldRefIndex] = useState(0);
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem(`hasViewedTutorial-${tutorialId}`) !== 'true'
   );
   const [tutorialBoxStyles, setTutorialBoxStyles] = useState({
-    width: '280px',
+    width: '380px',
     fontSize: '16px'
   });
   const [tutorialPosition, setTutorialPosition] = useState({ top: 0, left: 0 });
@@ -25,46 +18,63 @@ const Tutorial = ({
 
   useEffect(() => {
     // to help clear the local storage for testing
-    // localStorage.removeItem(`hasViewedTutorial-${tutorialId}`);
+    localStorage.removeItem(`hasViewedTutorial-${tutorialId}`);
 
     const handleResize = () => {
-      if (fieldRefs[FieldRefIndex].current) {
-        const rect = fieldRefs[FieldRefIndex].current.getBoundingClientRect();
+      if (document.querySelector(`.${classNames[FieldRefIndex]}`)) {
+        const rect = document
+          .querySelector(`.${classNames[FieldRefIndex]}`)
+          .getBoundingClientRect();
 
         if (window.innerWidth < 576) {
           setTutorialPosition({
-            top: rect.top - 260,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 100
+            top: rect.bottom + 30,
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              100
           });
           setTutorialBoxStyles({ width: '240px', fontSize: '14px' });
-          setArrowDirection('down');
+          setArrowDirection('up');
         } else if (window.innerWidth < 768) {
           setTutorialPosition({
             top: rect.bottom + 30,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 120
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              120
           });
           setTutorialBoxStyles({ width: '260px', fontSize: '15px' });
           setArrowDirection('up');
         } else if (window.innerWidth < 992) {
           setTutorialPosition({
             top: rect.bottom + 30,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 140
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              140
           });
           setTutorialBoxStyles({ width: '280px', fontSize: '16px' });
           setArrowDirection('up');
         } else if (window.innerWidth < 1200) {
           setTutorialPosition({
-            top: rect.bottom + 80,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 160
+            top: rect.bottom + 35,
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              160
           });
           setTutorialBoxStyles({ width: '300px', fontSize: '17px' });
           setArrowDirection('up');
         } else {
           setTutorialPosition({
-            top: rect.bottom + 30,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 180
+            top: rect.bottom + 35,
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              180
           });
-          setTutorialBoxStyles({ width: '320px', fontSize: '18px' });
+          setTutorialBoxStyles({ width: '380px', fontSize: '18px' });
           setArrowDirection('up');
         }
 
@@ -84,7 +94,7 @@ const Tutorial = ({
               left:
                 rect.left -
                 tutorialBoxRect.width +
-                fieldRefs[FieldRefIndex].current.offsetWidth / 2 +
+                document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 +
                 20
             }));
             setArrowDirection('right');
@@ -99,7 +109,7 @@ const Tutorial = ({
               ...prev,
               left:
                 rect.left +
-                fieldRefs[FieldRefIndex].current.offsetWidth / 2 -
+                document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
                 tutorialBoxRect.width / 2
             }));
             setArrowDirection('left');
@@ -108,7 +118,10 @@ const Tutorial = ({
           setTutorialPosition((prev) => ({
             ...prev,
             top: rect.bottom + 30,
-            left: rect.left + fieldRefs[FieldRefIndex].current.offsetWidth / 2 - 140
+            left:
+              rect.left +
+              document.querySelector(`.${classNames[FieldRefIndex]}`).offsetWidth / 2 -
+              140
           }));
           setArrowDirection('up');
         }
@@ -117,13 +130,27 @@ const Tutorial = ({
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    // window.addEventListener('scroll', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      // window.removeEventListener('scroll', handleResize);
     };
   }, [FieldRefIndex]);
+
+  // This will handle showing the tutorial box heighlighted when the overlay is true
+  useEffect(() => {
+    if (overlay && classNames.every((className) => document.querySelector(`.${className}`))) {
+      classNames.forEach((className, index) => {
+        if (index === FieldRefIndex) {
+          document.querySelector(`.${className}`).style.zIndex = '3';
+          document.querySelector(`.${className}`).style.backgroundColor = 'white';
+          document.querySelector(`.${className}`).style.borderRadius = '8px';
+        } else {
+          document.querySelector(`.${className}`).style.zIndex = '0';
+          document.querySelector(`.${className}`).style.backgroundColor = 'none';
+        }
+      });
+    }
+  }, [FieldRefIndex, overlay, classNames]);
 
   // for closing the tutorial
   const handleDismissTutorial = () => {
@@ -137,6 +164,11 @@ const Tutorial = ({
       handleDismissTutorial();
     } else {
       setFieldRefIndex((prevIndex) => prevIndex + 1);
+      // scroll to the highlighted element
+      document.querySelector(`.${classNames[FieldRefIndex + 1]}`).scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     }
   };
 
@@ -144,6 +176,11 @@ const Tutorial = ({
   const handlePrevStep = () => {
     if (FieldRefIndex > 0) {
       setFieldRefIndex((prevIndex) => prevIndex - 1);
+      // scroll to the highlighted element
+      document.querySelector(`.${classNames[FieldRefIndex - 1]}`).scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     } else {
       handleDismissTutorial();
     }
@@ -183,7 +220,10 @@ const Tutorial = ({
                   onClick={handlePrevStep}
                   className="prev-button"
                   style={{
-                    backgroundColor: 'transparent'
+                    backgroundColor: FieldRefIndex === 0 ? '#3067e2' : 'transparent',
+                    borderRadius: '4px',
+                    border: FieldRefIndex === 0 ? '1px solid #3067e2' : '1px solid #000',
+                    color: FieldRefIndex === 0 ? '#fff' : '#000'
                   }}>
                   {FieldRefIndex === 0 ? 'Skip' : 'Previous'}
                 </button>
@@ -192,9 +232,10 @@ const Tutorial = ({
                 onClick={handleNextStep}
                 className="next-button"
                 style={{
-                  backgroundColor: FieldRefIndex === totalSteps - 1 ? '#FF8C00' : 'transparent',
-                  border: FieldRefIndex === totalSteps - 1 ? 'none' : '1px solid #fff',
-                  borderRadius: FieldRefIndex === totalSteps - 1 ? 'none' : '4px'
+                  backgroundColor: FieldRefIndex === totalSteps - 1 ? '#3067e2' : 'transparent',
+                  border: FieldRefIndex === totalSteps - 1 ? '1px solid #3067e2' : '1px solid #000',
+                  color: FieldRefIndex === totalSteps - 1 ? '#fff' : '#000',
+                  borderRadius: '4px'
                 }}>
                 {FieldRefIndex === totalSteps - 1 ? 'Finish' : 'Next'}
               </button>
