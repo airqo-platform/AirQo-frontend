@@ -1,5 +1,4 @@
 import Button from '@/components/Button';
-import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
@@ -18,6 +17,8 @@ import { removeDevices } from '@/lib/store/services/collocation/selectedCollocat
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -65,7 +66,7 @@ const AddMonitor = () => {
       const response = await collocateDevices(body);
 
       if (!response.error) {
-        router.push('/collocation/collocate_success');
+        router.push('/analytics/collocation/collocate_success');
       }
     }
     setCollocating(false);
@@ -73,7 +74,7 @@ const AddMonitor = () => {
   };
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       {(isFetchRunningDevicesError || isCollocateDeviceError) && (
         <Toast
           type={'error'}
@@ -121,8 +122,8 @@ const AddMonitor = () => {
           </ContentBox>
         </>
       )}
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default AddMonitor;
+export default withAuth(AddMonitor);

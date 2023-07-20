@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 
 const AccountCreationPage3 = () => {
-  const userData = useSelector((state) => state.account.userData);
-  const errors = useSelector((state) => state.account.errors);
+  const userData = useSelector((state) => state.creation.userData);
+  const errors = useSelector((state) => state.creation.errors);
   const dispatch = useDispatch();
 
   const handleSubmit = async () => {

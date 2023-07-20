@@ -33,6 +33,7 @@ const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUse
 const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
+const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
 const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'));
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
 const AirQloudRegistry = lazy(() => import('./views/components/AirQlouds/AirQloudRegistry'));
@@ -91,6 +92,12 @@ const AppRoutes = () => {
               exact
               path="/manager/stats"
               component={ManagerStats}
+              layout={MainLayout}
+            />
+            <PrivateRoute
+              exact
+              path="/manager/activities"
+              component={SiteActivities}
               layout={MainLayout}
             />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />

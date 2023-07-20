@@ -43,3 +43,9 @@ class EventAdmin(nested_admin.NestedModelAdmin):
     list_filter = ('event_tag','start_date')
     inlines = (ProgramInline, PartnerLogoInline, InquiryInline, ResourceInline,)
     list_per_page = 10
+
+@admin.register(Resource)
+class ResourceAdmin(admin.ModelAdmin):
+    fields=('event','title','link', 'resource')
+    readonly_fields = ('author', 'updated_by')
+

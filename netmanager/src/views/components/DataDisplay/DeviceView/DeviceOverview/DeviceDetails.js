@@ -33,7 +33,7 @@ const DeviceDetails = ({ deviceData }) => {
   }, []);
 
   return (
-    <ChartContainer title={'device details'} blue>
+    <ChartContainer title={'device details'} blue scrollableYAxis>
       <TableContainer component={Paper}>
         <Table stickyHeader aria-label="sticky table">
           <TableBody>
@@ -65,7 +65,8 @@ const DeviceDetails = ({ deviceData }) => {
                   style={{
                     color: deviceStatus === 'deployed' ? 'green' : 'red',
                     textTransform: 'capitalize'
-                  }}>
+                  }}
+                >
                   {deviceStatus}
                 </span>
               </TableCell>

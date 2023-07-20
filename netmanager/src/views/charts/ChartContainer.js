@@ -18,6 +18,7 @@ const ChartContainer = ({
   controller,
   children,
   loading,
+  scrollableYAxis,
   type
 }) => {
   const titleStyle = (blue && 'title-blue') || (green && 'title-green') || 'title-default';
@@ -27,7 +28,11 @@ const ChartContainer = ({
         <span className={'chart-title'}>{title}</span>
         <span className={'chart-control'}>{controller}</span>
       </div>
-      <div className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''}`}>
+      <div
+        className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''} ${
+          scrollableYAxis && 'chart-scrollable-yaxis'
+        }`}
+      >
         {loading ? <CircularProgress /> : children}
       </div>
       <div className={'chart-footer'}>

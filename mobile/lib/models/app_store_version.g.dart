@@ -10,5 +10,5 @@ AppStoreVersion _$AppStoreVersionFromJson(Map<String, dynamic> json) =>
     AppStoreVersion(
       version: json['version'] as String,
       url: Uri.parse(json['url'] as String),
-      isUpdated: json['is_updated'] as bool,
+      isUpdated: json['is_updated'] as bool? ?? true,
     );
