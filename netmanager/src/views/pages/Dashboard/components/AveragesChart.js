@@ -665,22 +665,14 @@ const AveragesChart = ({ classes }) => {
           },
         }}
       >
-        {/* <DialogTitle
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "600",
-            paddingLeft: "500px",
-            fontSize: "100"
-          }}
-        >{customChartTitle}</DialogTitle> */}
         <h5
           style={{
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            textAlign: "center",
             fontWeight: "bold",
-            paddingLeft: "450px",
-            fontSize: "100"
+            fontSize: "20px",
           }}
         >{customChartTitle}</h5>
         <DialogContent>
