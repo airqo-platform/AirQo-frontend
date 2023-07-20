@@ -672,6 +672,7 @@ const AveragesChart = ({ classes }) => {
             justifyContent: "center",
             textAlign: "center",
             fontWeight: "bold",
+            padding: "20px",
             fontSize: "20px",
           }}
         >{customChartTitle}</h5>
