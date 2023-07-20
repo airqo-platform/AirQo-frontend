@@ -25,8 +25,6 @@ import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
 import D3CustomisableChart from '../../components/d3/CustomisableChart';
 import DashboardSearchBar from '../../components/AirqualitySearch/dashboard_searchbar';
-// tutorial tooltip
-import Tutorial from 'views/components/TutorialTooltip/Tutorial';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -135,44 +133,15 @@ const Dashboard = () => {
     return () => dispatch(loadUserDefaultGraphData());
   }, []);
 
-  const FieldRef1 = React.useRef(null);
-
-  const steps = [
-    {
-      title: 'AirQloud Search Bar',
-      description:
-        'This is the AirQloud Search Bar. You can search for a site by typing in the site name or site ID.'
-    }
-  ];
-
-  const [FieldRefIndex, setFieldRefIndex] = useState(0);
-
   return (
     <ErrorBoundary>
-      {/* using the tutorial component */}
-      <Tutorial
-        tutorialId={'dashboard'}
-        fieldRefs={[FieldRef1]}
-        steps={steps}
-        FieldRefIndex={FieldRefIndex}
-        setFieldRefIndex={setFieldRefIndex}
-        overlay={false}
-      />
       <div className={classes.root}>
         <Grid container spacing={5}>
           <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
           </Grid>
           <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
-            <span
-              ref={FieldRef1}
-              style={{
-                position: 'relative',
-                zIndex: FieldRefIndex === 0 ? 1000 : 0,
-                backgroundColor: FieldRefIndex === 0 ? 'white' : 'transparent'
-              }}>
-              <DashboardSearchBar />
-            </span>
+            <DashboardSearchBar />
           </Grid>
         </Grid>
         <Grid container spacing={4}>
