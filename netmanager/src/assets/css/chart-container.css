@@ -66,6 +66,10 @@
   width: 100%;
 }
 
+.chart-scrollable-yaxis {
+  overflow-y: auto;
+}
+
 .chart-footer {
   color: #999;
   display: inline-flex;
