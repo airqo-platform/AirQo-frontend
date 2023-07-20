@@ -86,6 +86,14 @@ jobs:
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
+            if [[ $file == workflow-trigger ]]; then
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
+              echo "run_website=true" >>$GITHUB_OUTPUT
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
           done < files.txt
 
   ### build and push netmanager image ###
