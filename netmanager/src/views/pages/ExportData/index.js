@@ -602,12 +602,12 @@ const ExportData = (props) => {
     {
       title: 'Date Field',
       description:
-        "This text field enables you to select a date for your data. You can easily click on the calendar icon and choose a date from the pop-up calendar. It's simple and user-friendly."
+        'Use this field to select a date for your data. Click the calendar icon and choose a date from the pop-up calendar.'
     },
     {
       title: 'Export Options',
       description:
-        "You can download your data using the schedule option. This option is especially useful if your data covers a large time span (more than one month's worth). You can avoid delays and get your data ready for download when they are processed."
+        'Download your data using the schedule option. This is useful for large time spans (more than a month). Avoid delays and have your data ready for download when processed.'
     }
   ];
 
@@ -621,7 +621,7 @@ const ExportData = (props) => {
         overlay={false}
         textBoxColor="#fff"
         textColor="#000"
-        tutorialId="my-tutorial"
+        tutorialId="ExportData"
       />
 
       <div className={classes.root}>

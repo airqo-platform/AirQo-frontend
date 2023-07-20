@@ -17,9 +17,6 @@ const Tutorial = ({ classNames, steps, overlay, textBoxColor, textColor, tutoria
   const totalSteps = steps.length;
 
   useEffect(() => {
-    // to help clear the local storage for testing
-    localStorage.removeItem(`hasViewedTutorial-${tutorialId}`);
-
     const handleResize = () => {
       if (document.querySelector(`.${classNames[FieldRefIndex]}`)) {
         const rect = document
@@ -158,33 +155,33 @@ const Tutorial = ({ classNames, steps, overlay, textBoxColor, textColor, tutoria
     localStorage.setItem(`hasViewedTutorial-${tutorialId}`, 'true');
   };
 
-  // function to handle next tutorial step
-  const handleNextStep = () => {
-    if (FieldRefIndex === totalSteps - 1) {
-      handleDismissTutorial();
-    } else {
-      setFieldRefIndex((prevIndex) => prevIndex + 1);
-      // scroll to the highlighted element
-      document.querySelector(`.${classNames[FieldRefIndex + 1]}`).scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
+  const handleStep = (direction) => {
+    let newIndex;
+    if (direction === 'next') {
+      if (FieldRefIndex === totalSteps - 1) {
+        handleDismissTutorial();
+        return;
+      } else {
+        newIndex = FieldRefIndex + 1;
+      }
+    } else if (direction === 'prev') {
+      if (FieldRefIndex > 0) {
+        newIndex = FieldRefIndex - 1;
+      } else {
+        handleDismissTutorial();
+        return;
+      }
     }
+    setFieldRefIndex(newIndex);
+    // scroll to the highlighted element
+    document.querySelector(`.${classNames[newIndex]}`).scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
   };
 
-  // function to handle previous tutorial step
-  const handlePrevStep = () => {
-    if (FieldRefIndex > 0) {
-      setFieldRefIndex((prevIndex) => prevIndex - 1);
-      // scroll to the highlighted element
-      document.querySelector(`.${classNames[FieldRefIndex - 1]}`).scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    } else {
-      handleDismissTutorial();
-    }
-  };
+  const handleNextStep = () => handleStep('next');
+  const handlePrevStep = () => handleStep('prev');
 
   return (
     <>
