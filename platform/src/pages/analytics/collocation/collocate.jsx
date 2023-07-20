@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
@@ -86,7 +85,7 @@ const Collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
+                path='/analytics/collocation/add_monitor'
               >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />

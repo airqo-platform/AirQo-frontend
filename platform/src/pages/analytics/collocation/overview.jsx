@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import { format } from 'date-fns';
 import GraphCard from '@/components/Collocation/AddMonitor/Overview/graph_card';

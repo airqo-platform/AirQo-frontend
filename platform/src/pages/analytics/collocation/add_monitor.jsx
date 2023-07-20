@@ -1,5 +1,4 @@
 import Button from '@/components/Button';
-import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import {
@@ -67,7 +66,7 @@ const AddMonitor = () => {
       const response = await collocateDevices(body);
 
       if (!response.error) {
-        router.push('/collocation/collocate_success');
+        router.push('/analytics/collocation/collocate_success');
       }
     }
     setCollocating(false);
