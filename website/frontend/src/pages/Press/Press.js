@@ -11,7 +11,7 @@ import Loadspinner from '../../components/LoadSpinner';
 const Press = () => {
   useInitScrollTop();
   const dispatch = useDispatch();
-  const pressData = useSelector((state) => state.pressData.press);
+  const pressData = useSelector((state) => state.pressData.pressData);
   const loading = useSelector((state) => state.pressData.loading);
   const [numArticlesToShow, setNumArticlesToShow] = useState(5);
 
