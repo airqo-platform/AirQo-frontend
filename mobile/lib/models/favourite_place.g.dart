@@ -11,9 +11,10 @@ FavouritePlace _$FavouritePlaceFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String? ?? '',
       location: json['location'] as String? ?? '',
       referenceSite: json['referenceSite'] as String? ?? '',
-      placeId: json['placeId'] as String? ?? '',
+      placeId: json['place_id'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      id: json['_id'] as String?,
     );
 
 Map<String, dynamic> _$FavouritePlaceToJson(FavouritePlace instance) =>
@@ -21,9 +22,10 @@ Map<String, dynamic> _$FavouritePlaceToJson(FavouritePlace instance) =>
       'name': instance.name,
       'location': instance.location,
       'referenceSite': instance.referenceSite,
-      'placeId': instance.placeId,
+      'place_id': instance.placeId,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      '_id': instance.id,
     };
 
 FavouritePlaceList _$FavouritePlaceListFromJson(Map<String, dynamic> json) =>

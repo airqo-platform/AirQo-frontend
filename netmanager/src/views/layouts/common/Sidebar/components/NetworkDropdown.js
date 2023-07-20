@@ -42,16 +42,23 @@ const StyledMenu = withStyles({
 const StyledMenuItem = withStyles((theme) => ({
   root: {
     '&:focus': {
-      backgroundColor: '#175df5',
-      color: 'black',
+      backgroundColor: '#2a3daa',
       '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
         color: theme.palette.common.white
-      }
+      },
+      
+      '&:hover': {
+        backgroundColor: 'lightgray',
+        '& .MuiListItemText-primary': {
+          color: '#175df5',
+        },
+      },
     },
     '& .MuiListItemText-primary': {
       fontWeight: 'bold',
       color: '#175df5',
-    }
+    },
+    
   }
 }))(MenuItem);
 

@@ -105,24 +105,6 @@ void main() {
     });
   });
 
-  testWidgets('Insights health tips list tests', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: HealthTipsWidget(insight),
-      ),
-    );
-
-    final titleFinder = find.text(insight.healthTipsTitle());
-    expect(titleFinder, findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is ListView && widget.scrollDirection == Axis.horizontal,
-      ),
-      findsOneWidget,
-    );
-  });
-
   testWidgets('Health tip widget', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

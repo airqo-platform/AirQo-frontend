@@ -1,13 +1,18 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rating_dialog/rating_dialog.dart';
 
+import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
 import 'custom_shimmer.dart';
 
@@ -323,8 +328,9 @@ void showSnackBar(
 void showFavouritePlaceSnackBar(
   BuildContext context,
   AirQualityReading airQualityReading, {
-  int durationInSeconds = 2,
+  int durationInSeconds = 4,
 }) {
+  final User? user = CustomAuth.getUser();
   final snackBar = SnackBar(
     duration: Duration(seconds: durationInSeconds),
     elevation: 0,
@@ -407,7 +413,9 @@ void showFavouritePlaceSnackBar(
         ),
         Expanded(
           child: AutoSizeText(
-            "${airQualityReading.name} has been added to your favorites",
+            user != null
+                ? "${airQualityReading.name} has been added to your favorites"
+                : "Please Sign in to save your favorites",
             maxLines: 1,
             minFontSize: 1,
             overflow: TextOverflow.ellipsis,
@@ -477,6 +485,7 @@ class AuthFailureDialog extends StatelessWidget {
 
 class SettingsDialog extends StatelessWidget {
   const SettingsDialog(this.message, {super.key});
+
   final String message;
 
   @override
@@ -529,6 +538,7 @@ class AuthMethodDialog extends StatelessWidget {
     required this.authMethod,
     required this.credentials,
   });
+
   final AuthMethod authMethod;
   final String credentials;
 
@@ -655,6 +665,7 @@ class AuthProcedureDialog extends StatelessWidget {
     super.key,
     required this.authProcedure,
   });
+
   final AuthProcedure authProcedure;
 
   @override
@@ -706,6 +717,7 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
     super.key,
     required this.authMethod,
   });
+
   final AuthMethod authMethod;
 
   @override
@@ -750,4 +762,88 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> showRatingDialog(BuildContext context) async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return RatingDialog(
+        image: SvgPicture.asset(
+          'assets/icon/airqo_logo.svg',
+          height: 30,
+          width: 30,
+          semanticsLabel: 'AirQo',
+        ),
+        enableComment: false,
+        initialRating: 1.0,
+        message: const Text(
+          'Thank you for using the AirQo app! We would greatly appreciate it if you could take a moment to rate your experience.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 19),
+        ),
+        title: const Text(
+          'Enjoying AirQo app',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 22,
+          ),
+        ),
+        submitButtonText: '\nRate\n',
+        onSubmitted: (response) {
+          Profile profile = context.read<ProfileBloc>().state;
+          profile = profile.copyWith(lastRated: DateTime.now());
+          context.read<ProfileBloc>().add(UpdateProfile(profile));
+
+          if (response.rating < 3.0) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return CupertinoAlertDialog(
+                  content: const Column(
+                    children: [
+                      SizedBox(height: 15),
+                      Text(
+                        'We value your feedback.\nPlease share your thoughts and suggestions on our feedback page by clicking OK.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 17,
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    CupertinoDialogAction(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FeedbackPage(),
+                          ),
+                        );
+                      },
+                      isDefaultAction: true,
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            RateService.rateApp();
+          }
+        },
+      );
+    },
+  );
 }

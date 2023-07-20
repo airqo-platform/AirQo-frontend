@@ -12,7 +12,7 @@ const AccountCreation = () => {
   const [error, setError] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
-  const userData = useSelector((state) => state.account.userData);
+  const userData = useSelector((state) => state.creation.userData);
 
   const handleChange = () => {
     dispatch(setUserEmail(email));

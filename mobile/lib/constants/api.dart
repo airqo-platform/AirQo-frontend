@@ -1,6 +1,9 @@
 import 'config.dart';
 
 class AirQoUrls {
+  static String get termsUrl =>
+      'https://docs.airqo.net/#/mobile_app/privacy_policy';
+
   static String get firebaseLookup =>
       '${Config.airqoApi}/v1/users/firebase/lookup';
 
@@ -21,6 +24,8 @@ class AirQoUrls {
 
   static String get mobileCarrier =>
       '${Config.airqoApi}/v1/meta-data/mobile-carrier';
+
+  static String get favourites => '${Config.airqoApi}/v2/users/favorites';
 }
 
 enum ApiService {
