@@ -1,15 +1,15 @@
 import { stripTrailingSlash } from './utils';
 
-const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL)
+const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL);
 
 const BASE_AIRQLOUDS_URL = stripTrailingSlash(
-    process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL,
+  process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL
 );
 
 export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/airqlouds/summary?tenant=airqo`;
 
 const BASE_NEWSLETTER_URL = stripTrailingSlash(
-    process.env.REACT_APP_BASE_NEWSLETTER_URL || process.env.REACT_NETMANAGER_BASE_URL,
+  process.env.REACT_APP_BASE_NEWSLETTER_URL || process.env.REACT_NETMANAGER_BASE_URL
 );
 
 export const NEWSLETTER_SUBSCRIPTION = `${BASE_NEWSLETTER_URL}/users/newsletter/subscribe?tenant=airqo`;
@@ -36,7 +36,9 @@ export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
-export const NETMANAGER_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace("/api/v1/", ""));
+export const NETMANAGER_URL = stripTrailingSlash(
+  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', '')
+);
 
 // highlights urls
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
@@ -50,10 +52,13 @@ export const PARTNERS_URL = `${WEBSITE_BASE_URL}/partner/`;
 export const BOARD_MEMBERS_URL = `${WEBSITE_BASE_URL}/board/`;
 
 // Publications url
-export const PUBLICATIONS_URL = `${WEBSITE_BASE_URL}/publications/`
+export const PUBLICATIONS_URL = `${WEBSITE_BASE_URL}/publications/`;
+
+// Press url
+export const PRESS_URL = `${WEBSITE_BASE_URL}/press/`;
 
 // Events url
-export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`
+export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`;
 
 // African Cities url
 export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
