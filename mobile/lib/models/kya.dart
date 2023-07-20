@@ -5,14 +5,15 @@ import 'package:json_annotation/json_annotation.dart';
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Kya extends Equatable {
-  factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
+class KyaLesson extends Equatable {
+  factory KyaLesson.fromJson(Map<String, dynamic> json) =>
+      _$KyaLessonFromJson(json);
 
-  const Kya({
+  const KyaLesson({
     required this.title,
     required this.imageUrl,
     required this.id,
-    required this.lessons,
+    required this.tasks,
     required this.progress,
     required this.completionMessage,
     this.shareLink,
@@ -20,9 +21,7 @@ class Kya extends Equatable {
 
   final String title;
 
-  @JsonKey(
-      defaultValue: 'You just finished your first Know You Air Lesson',
-      name: 'completion_message')
+  @JsonKey(name: 'completion_message')
   final String completionMessage;
 
   @JsonKey(name: 'image')
@@ -31,39 +30,39 @@ class Kya extends Equatable {
   @JsonKey(name: '_id')
   final String id;
 
-  @JsonKey(name: 'tasks')
-  final List<KyaLesson> lessons;
+  @JsonKey()
+  final List<KyaTask> tasks;
 
   // Example: https://storage.googleapis.com/airqo_open_data/hero_image.jpeg
   @JsonKey(defaultValue: '')
   final String? shareLink;
 
-  @JsonKey(defaultValue: 0)
+  @JsonKey(defaultValue: 0, name: 'kya_user_progress')
   final double progress;
 
-  factory Kya.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
+  factory KyaLesson.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
     final String id = dynamicLinkData.link.queryParameters['kyaId'] ?? '';
 
-    return Kya(
+    return KyaLesson(
       title: '',
       imageUrl: '',
       id: id,
-      lessons: const [],
+      tasks: const [],
       completionMessage: '',
       shareLink: '',
       progress: 0,
     );
   }
 
-  Map<String, dynamic> toJson() => _$KyaToJson(this);
+  Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
 
-  Kya copyWith({String? shareLink, double? progress}) {
-    return Kya(
+  KyaLesson copyWith({String? shareLink, double? progress}) {
+    return KyaLesson(
       title: title,
       completionMessage: completionMessage,
       imageUrl: imageUrl,
       id: id,
-      lessons: lessons,
+      tasks: tasks,
       progress: progress ?? this.progress,
       shareLink: shareLink ?? this.shareLink,
     );
@@ -82,28 +81,28 @@ class Kya extends Equatable {
   }
 
   @override
-  List<Object> get props => [id, title, progress];
+  List<Object> get props => [id];
 }
 
 @JsonSerializable(explicitToJson: true)
-class KyaLesson extends Equatable {
-  const KyaLesson({
+class KyaTask extends Equatable {
+  const KyaTask({
     required this.id,
     required this.title,
     required this.imageUrl,
-    required this.body,
+    required this.content,
   });
 
-  factory KyaLesson.fromJson(Map<String, dynamic> json) {
-    return _$KyaLessonFromJson(json);
+  factory KyaTask.fromJson(Map<String, dynamic> json) {
+    return _$KyaTaskFromJson(json);
   }
 
-  factory KyaLesson.fromKya(Kya kya, int index) {
-    return KyaLesson(
-      id: kya.lessons[index].id,
-      title: kya.lessons[index].title,
-      imageUrl: kya.lessons[index].imageUrl,
-      body: kya.lessons[index].body,
+  factory KyaTask.fromKya(KyaLesson kya, int index) {
+    return KyaTask(
+      id: kya.tasks[index].id,
+      title: kya.tasks[index].title,
+      imageUrl: kya.tasks[index].imageUrl,
+      content: kya.tasks[index].content,
     );
   }
 
@@ -115,20 +114,20 @@ class KyaLesson extends Equatable {
   @JsonKey(name: 'image')
   final String imageUrl;
 
-  @JsonKey(name: 'content')
-  final String body;
+  @JsonKey()
+  final String content;
 
-  Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
+  Map<String, dynamic> toJson() => _$KyaTaskToJson(this);
 
-  String imageUrlCacheKey(Kya kya) {
-    return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
+  String imageUrlCacheKey(KyaLesson kya) {
+    return 'kya-${kya.id}-${kya.tasks.indexOf(this)}-lesson-image-url';
   }
 
   @override
   List<Object?> get props => [
         title,
         imageUrl,
-        body,
+        content,
       ];
 }
 
@@ -143,7 +142,7 @@ class KyaProgress {
   factory KyaProgress.fromJson(Map<String, dynamic> json) =>
       _$KyaProgressFromJson(json);
 
-  factory KyaProgress.fromKya(Kya kya) => KyaProgress(
+  factory KyaProgress.fromKya(KyaLesson kya) => KyaProgress(
         progress: kya.progress,
         kyaId: kya.id,
       );
@@ -175,7 +174,7 @@ class KyaList {
 
   KyaList({required this.data});
 
-  List<Kya> data;
+  List<KyaLesson> data;
 
   Map<String, dynamic> toJson() => _$KyaListToJson(this);
 }

@@ -21,7 +21,7 @@ class AppService {
 
   static Future<void> postSignInActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -44,7 +44,7 @@ class AppService {
     }
   }
 
-  static Future<Kya?> getKya(Kya kya) async {
+  static Future<KyaLesson?> getKya(KyaLesson kya) async {
     if (!kya.isEmpty()) return kya;
 
     final bool isConnected = await hasNetworkConnection();
@@ -52,8 +52,8 @@ class AppService {
       throw NetworkConnectionException('No internet Connection');
     }
     try {
-      List<Kya> kyaList = await AirqoApiClient().fetchKyaLessons([]);
-      List<Kya> apiKya =
+      List<KyaLesson> kyaList = await AirqoApiClient().fetchKyaLessons();
+      List<KyaLesson> apiKya =
           kyaList.where((element) => element.id == kya.id).toList();
 
       return apiKya.isEmpty ? null : apiKya.first;

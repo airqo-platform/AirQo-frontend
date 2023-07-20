@@ -47,7 +47,7 @@ class CircularKyaButton extends StatelessWidget {
 
 class KyaMessageChip extends StatelessWidget {
   const KyaMessageChip(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,7 @@ class KyaMessageChip extends StatelessWidget {
 
 class KyaCardWidget extends StatelessWidget {
   const KyaCardWidget(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -240,9 +240,9 @@ class KyaProgressBar extends StatelessWidget {
 }
 
 class KyaLessonCard extends StatelessWidget {
-  const KyaLessonCard(this.kyaLesson, this.kya, {super.key});
-  final KyaLesson kyaLesson;
-  final Kya kya;
+  const KyaLessonCard(this.kyaTask, this.kya, {super.key});
+  final KyaTask kyaTask;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +272,7 @@ class KyaLessonCard extends StatelessWidget {
                   height: 180,
                   radius: 8,
                 ),
-                imageUrl: kyaLesson.imageUrl,
+                imageUrl: kyaTask.imageUrl,
                 errorWidget: (context, url, error) => SizedBox(
                   height: 180,
                   child: Center(
@@ -281,10 +281,10 @@ class KyaLessonCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                cacheKey: kyaLesson.imageUrlCacheKey(kya),
+                cacheKey: kyaTask.imageUrlCacheKey(kya),
                 cacheManager: CacheManager(
                   CacheService.cacheConfig(
-                    kyaLesson.imageUrlCacheKey(kya),
+                    kyaTask.imageUrlCacheKey(kya),
                   ),
                 ),
               ),
@@ -293,7 +293,7 @@ class KyaLessonCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
             child: AutoSizeText(
-              kyaLesson.title,
+              kyaTask.title,
               maxLines: 2,
               minFontSize: 20,
               overflow: TextOverflow.ellipsis,
@@ -304,7 +304,7 @@ class KyaLessonCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
             child: AutoSizeText(
-              kyaLesson.body,
+              kyaTask.content,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,

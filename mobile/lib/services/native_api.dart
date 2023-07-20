@@ -67,7 +67,7 @@ class RateService {
 class ShareService {
   // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri> createShareLink({
-    Kya? kya,
+    KyaLesson? kya,
     AirQualityReading? airQualityReading,
   }) async {
     if (airQualityReading != null && kya != null) {
@@ -198,7 +198,7 @@ class ShareService {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
-            return KyaTitlePage(Kya.fromDynamicLink(linkData));
+            return KyaTitlePage(KyaLesson.fromDynamicLink(linkData));
           }),
           (r) => false,
         );
@@ -217,7 +217,7 @@ class ShareService {
   static Future<void> shareLink(
     Uri link,
     BuildContext context, {
-    Kya? kya,
+    KyaLesson? kya,
     AirQualityReading? airQualityReading,
   }) async {
     if (airQualityReading != null && kya != null) {
@@ -399,7 +399,7 @@ class CacheService {
     );
   }
 
-  static void cacheKyaImages(Kya _) {
+  static void cacheKyaImages(KyaLesson _) {
     // TODO : implement caching
     // await Future.wait([
     //   cache_manager.DefaultCacheManager()

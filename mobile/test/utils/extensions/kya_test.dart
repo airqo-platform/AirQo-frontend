@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('kyaExtension', () {
-    List<Kya> kyas = [];
+    List<KyaLesson> kyas = [];
 
     setUp(() => {
           kyas = List.generate(
             4,
-            (index) => Kya(
+            (index) => KyaLesson(
               progress: index == 0
                   ? 1
                   : index == 1
@@ -20,7 +20,7 @@ void main() {
               completionMessage: 'Lesson ${index + 1} Completed',
               id: (index + 1).toString(),
               imageUrl: '',
-              lessons: const [],
+              tasks: const [],
               shareLink: '',
               title: '',
             ),
@@ -29,9 +29,9 @@ void main() {
 
     group('sortByProgress', () {
       test('Should sort Kyas in descending order by progress', () {
-        Kya kya = kyas[0];
+        KyaLesson kya = kyas[0];
 
-        List<Kya> testKyas = [
+        List<KyaLesson> testKyas = [
           kya.copyWith(progress: 0),
           kya.copyWith(progress: 0.6),
           kya.copyWith(progress: -1),
@@ -65,7 +65,7 @@ void main() {
           fail('Kyas already does not contain uncompleted lessons');
         }
 
-        Set<Kya> unCompletedKyasSet = {kyas[1], kyas[0], kyas[3]};
+        Set<KyaLesson> unCompletedKyasSet = {kyas[1], kyas[0], kyas[3]};
 
         final completedKyas = kyas.filterComplete();
         expect(completedKyas.length, 1);
@@ -81,8 +81,8 @@ void main() {
           fail('Kyas already does not contain ToDo lessons');
         }
 
-        Set<Kya> toDoKyasSet = {kyas[3]};
-        Set<Kya> startedKyasSet = kyas.toSet().difference(toDoKyasSet);
+        Set<KyaLesson> toDoKyasSet = {kyas[3]};
+        Set<KyaLesson> startedKyasSet = kyas.toSet().difference(toDoKyasSet);
 
         final toDoKyas = kyas.filterToDo();
         expect(toDoKyas.length, 1);
@@ -96,8 +96,9 @@ void main() {
         if (kyas.length == 1 && kyas.contains(kyas[0])) {
           fail('Kyas already does not contain pending completion lessons');
         }
-        Set<Kya> pendingCompletionKyasSet = {kyas[0]};
-        Set<Kya> othersSet = kyas.toSet().difference(pendingCompletionKyasSet);
+        Set<KyaLesson> pendingCompletionKyasSet = {kyas[0]};
+        Set<KyaLesson> othersSet =
+            kyas.toSet().difference(pendingCompletionKyasSet);
 
         final pendingCompletionKyas = kyas.filterPendingCompletion();
         expect(pendingCompletionKyas.length, 1);
@@ -112,8 +113,8 @@ void main() {
         if (kyas.length == 1 && kyas.contains(kyas[1])) {
           fail('Kyas already does not contain In Progress lessons');
         }
-        Set<Kya> inProgressKyasSet = {kyas[1]};
-        Set<Kya> othersSet = kyas.toSet().difference(inProgressKyasSet);
+        Set<KyaLesson> inProgressKyasSet = {kyas[1]};
+        Set<KyaLesson> othersSet = kyas.toSet().difference(inProgressKyasSet);
 
         final inProgressKyas = kyas.filterInProgressKya();
         expect(inProgressKyas.length, 1);

@@ -19,7 +19,7 @@ class KyaLessonsPage extends StatefulWidget {
     super.key,
   });
 
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   State<KyaLessonsPage> createState() => _KyaLessonsPageState();
@@ -50,7 +50,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           children: [
             InkWell(
               onTap: () async {
-                int lessonCount = widget.kya.lessons.length;
+                int lessonCount = widget.kya.tasks.length;
 
                 double currentProgress = (lessonIndex) / lessonCount;
 
@@ -157,7 +157,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
                       child: KyaProgressBar(
                         context.watch<KyaProgressCubit>().state,
-                        height: widget.kya.lessons.length.toDouble(),
+                        height: widget.kya.tasks.length.toDouble(),
                       ),
                     ),
                   );
@@ -169,13 +169,13 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               height: 400,
               child: AppinioSwiper(
                 padding: EdgeInsets.zero,
-                cardsCount: widget.kya.lessons.length,
+                cardsCount: widget.kya.tasks.length,
                 cardsBuilder: (BuildContext context, int index) {
-                  if (lessonIndex >= widget.kya.lessons.length) {
-                    lessonIndex = widget.kya.lessons.length - 1;
+                  if (lessonIndex >= widget.kya.tasks.length) {
+                    lessonIndex = widget.kya.tasks.length - 1;
                   }
                   return KyaLessonCard(
-                      widget.kya.lessons[lessonIndex], widget.kya);
+                      widget.kya.tasks[lessonIndex], widget.kya);
                 },
                 allowUnswipe: true,
                 unlimitedUnswipe: true,
@@ -226,19 +226,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   initState() {
     super.initState();
+    _initializeKya();
+  }
+
+  void _initializeKya() {
     double initialProgress = widget.kya.progress;
     if (initialProgress == 0 || initialProgress == -1) {
-      initialProgress = 1 / widget.kya.lessons.length;
+      initialProgress = 1 / widget.kya.tasks.length;
     }
     context.read<KyaProgressCubit>().updateProgress(initialProgress);
 
     int initialCardIndex =
-        ((widget.kya.lessons.length * initialProgress).toInt() - 1);
+        ((widget.kya.tasks.length * initialProgress).toInt() - 1);
     setState(() => lessonIndex = initialCardIndex);
+
   }
 
   void _onSwipe(int card, AppinioSwiperDirection _) {
-    int lessonCount = widget.kya.lessons.length;
+    int lessonCount = widget.kya.tasks.length;
     if (lessonIndex >= lessonCount - 1) {
       Navigator.pushReplacement(
         context,
@@ -258,7 +263,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   void _onUnSwipe(bool unSwiped) {
-    int lessonCount = widget.kya.lessons.length;
+    int lessonCount = widget.kya.tasks.length;
     int prevCard = lessonIndex - 1;
     if (prevCard < 0) {
       return;

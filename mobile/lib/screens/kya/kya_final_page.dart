@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   State<KyaFinalPage> createState() => _KyaFinalPageState();

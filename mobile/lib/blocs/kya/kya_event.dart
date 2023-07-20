@@ -4,8 +4,8 @@ abstract class KyaEvent extends Equatable {
   const KyaEvent();
 }
 
-class SyncKya extends KyaEvent {
-  const SyncKya();
+class FetchKya extends KyaEvent {
+  const FetchKya();
   @override
   List<Object?> get props => [];
 }
@@ -18,7 +18,7 @@ class ClearKya extends KyaEvent {
 
 class UpdateKyaProgress extends KyaEvent {
   const UpdateKyaProgress(this.kya, this.progress);
-  final Kya kya;
+  final KyaLesson kya;
   final double progress;
 
   @override
@@ -27,7 +27,7 @@ class UpdateKyaProgress extends KyaEvent {
 
 class CompleteKya extends KyaEvent {
   const CompleteKya(this.kya);
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   List<Object> get props => [kya];
@@ -35,7 +35,7 @@ class CompleteKya extends KyaEvent {
 
 class PartiallyCompleteKya extends KyaEvent {
   const PartiallyCompleteKya(this.kya);
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   List<Object> get props => [kya];

@@ -96,7 +96,7 @@ extension ForecastListExt on List<Forecast> {
       where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
-extension KyaExt on Kya {
+extension KyaExt on KyaLesson {
   String getKyaMessage() {
     if (isInProgress()) {
       return 'Continue';
@@ -116,7 +116,7 @@ extension KyaExt on Kya {
   }
 
   bool isEmpty() {
-    return lessons.isEmpty;
+    return tasks.isEmpty;
   }
 
   bool isInProgress() {
@@ -128,11 +128,11 @@ extension KyaExt on Kya {
   }
 
   double getProgress(int visibleCardIndex) {
-    return (visibleCardIndex + 1) / lessons.length;
+    return (visibleCardIndex + 1) / tasks.length;
   }
 }
 
-extension KyaListExt on List<Kya> {
+extension KyaListExt on List<KyaLesson> {
   void sortByProgress() {
     sort((x, y) {
       if (x.progress == -1) return -1;
@@ -143,25 +143,25 @@ extension KyaListExt on List<Kya> {
     });
   }
 
-  List<Kya> filterInProgressKya() {
+  List<KyaLesson> filterInProgressKya() {
     return where((element) {
       return element.isInProgress();
     }).toList();
   }
 
-  List<Kya> filterToDo() {
+  List<KyaLesson> filterToDo() {
     return where((element) {
       return element.todo();
     }).toList();
   }
 
-  List<Kya> filterPendingCompletion() {
+  List<KyaLesson> filterPendingCompletion() {
     return where((element) {
       return element.isPendingCompletion();
     }).toList();
   }
 
-  List<Kya> filterComplete() {
+  List<KyaLesson> filterComplete() {
     return where((element) {
       return element.isComplete();
     }).toList();

@@ -14,7 +14,7 @@ import 'kya_widgets.dart';
 
 class KyaTitlePage extends StatelessWidget {
   const KyaTitlePage(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -27,23 +27,23 @@ class KyaTitlePage extends StatelessWidget {
 
     return MediaQuery(
       data: mediaQueryData.copyWith(textScaleFactor: textScaleFactor as double),
-      child: BlocBuilder<KyaBloc, List<Kya>>(
+      child: BlocBuilder<KyaBloc, List<KyaLesson>>(
         builder: (context, state) {
-          Kya cachedKya = state.firstWhere(
+          KyaLesson cachedKya = state.firstWhere(
             (element) => element.id == kya.id,
             orElse: () => kya,
           );
 
           if (!cachedKya.isEmpty()) return PageScaffold(cachedKya);
 
-          return FutureBuilder<Kya?>(
+          return FutureBuilder<KyaLesson?>(
             future: AppService.getKya(kya),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 if (snapshot.error.runtimeType == NetworkConnectionException) {
                   return NoInternetConnectionWidget(
                     callBack: () =>
-                        context.read<KyaBloc>().add(const SyncKya()),
+                        context.read<KyaBloc>().add(const FetchKya()),
                   );
                 }
 
@@ -51,7 +51,7 @@ class KyaTitlePage extends StatelessWidget {
               }
 
               if (snapshot.hasData) {
-                final Kya? kya = snapshot.data;
+                final KyaLesson? kya = snapshot.data;
                 if (kya == null) {
                   return const KyaNotFoundWidget();
                 }
@@ -70,12 +70,12 @@ class KyaTitlePage extends StatelessWidget {
 
 class PageScaffold extends StatelessWidget {
   const PageScaffold(this.kya, {super.key});
-  final Kya kya;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
     final String buttonText =
-        kya.progress > 0 && kya.progress < kya.lessons.length
+        kya.progress > 0 && kya.progress < kya.tasks.length
             ? 'Resume'
             : 'Begin';
 
