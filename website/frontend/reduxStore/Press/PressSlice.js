@@ -1,41 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getAllPressApi } from '../../apis';
 
 const initialState = {
   loading: false,
-  press: [],
+  pressData: [],
   error: null
 };
+
+export const loadPressData = createAsyncThunk('get/press', async () => {
+  const response = await getAllPressApi();
+  return response;
+});
 
 const pressSlice = createSlice({
   name: 'press',
   initialState,
   reducers: {
-    loadPressSuccess(state, action) {
-      state.press = action.payload;
-      state.loading = false;
-      state.error = null;
-    },
-    loadPressFailure(state, action) {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    startLoading(state) {
-      state.loading = true;
+    getPressData: (state, action) => {
+      state.pressData = action.payload;
     }
-  }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadPressData.fulfilled, (state, action) => {
+        state.pressData = action.payload;
+        state.loading = false;
+      })
+      .addCase(loadPressData.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(loadPressData.rejected, (state, action) => {
+        state.error = action.error.message;
+        state.loading = false;
+      });
+  },
 });
 
-export const { loadPressSuccess, loadPressFailure, startLoading } = pressSlice.actions;
+export const { getPressData } = pressSlice.actions;
 
 export default pressSlice.reducer;
-
-export const loadPressData = () => async (dispatch) => {
-  try {
-    dispatch(startLoading());
-    const resData = await getAllPressApi();
-    dispatch(loadPressSuccess(resData));
-  } catch (err) {
-    dispatch(loadPressFailure(err.message));
-  }
-};
