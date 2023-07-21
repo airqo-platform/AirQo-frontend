@@ -230,16 +230,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   void _initializeKya() {
-    double initialProgress = widget.kya.progress;
-    if (initialProgress == 0 || initialProgress == -1) {
-      initialProgress = 1 / widget.kya.tasks.length;
-    }
-    context.read<KyaProgressCubit>().updateProgress(initialProgress);
-
-    int initialCardIndex =
-        ((widget.kya.tasks.length * initialProgress).toInt() - 1);
+    context.read<KyaProgressCubit>().updateProgress(widget.kya.progress());
+    int initialCardIndex = widget.kya.activeTask - 1;
     setState(() => lessonIndex = initialCardIndex);
-
   }
 
   void _onSwipe(int card, AppinioSwiperDirection _) {

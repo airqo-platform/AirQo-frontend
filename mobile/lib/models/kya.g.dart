@@ -13,7 +13,9 @@ KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
       tasks: (json['tasks'] as List<dynamic>)
           .map((e) => KyaTask.fromJson(e as Map<String, dynamic>))
           .toList(),
-      progress: (json['kya_user_progress'] as num?)?.toDouble() ?? 0,
+      activeTask: json['active_task'] as int? ?? 1,
+      status: $enumDecodeNullable(_$KyaLessonStatusEnumMap, json['status']) ??
+          KyaLessonStatus.todo,
       completionMessage: json['completion_message'] as String,
       shareLink: json['shareLink'] as String? ?? '',
     );
@@ -24,9 +26,17 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
       'image': instance.imageUrl,
       '_id': instance.id,
       'tasks': instance.tasks.map((e) => e.toJson()).toList(),
+      'active_task': instance.activeTask,
+      'status': _$KyaLessonStatusEnumMap[instance.status]!,
       'shareLink': instance.shareLink,
-      'kya_user_progress': instance.progress,
     };
+
+const _$KyaLessonStatusEnumMap = {
+  KyaLessonStatus.todo: 'todo',
+  KyaLessonStatus.inProgress: 'inProgress',
+  KyaLessonStatus.pendingCompletion: 'pendingCompletion',
+  KyaLessonStatus.complete: 'complete',
+};
 
 KyaTask _$KyaTaskFromJson(Map<String, dynamic> json) => KyaTask(
       id: json['_id'] as String,
@@ -40,19 +50,6 @@ Map<String, dynamic> _$KyaTaskToJson(KyaTask instance) => <String, dynamic>{
       'title': instance.title,
       'image': instance.imageUrl,
       'content': instance.content,
-    };
-
-KyaProgress _$KyaProgressFromJson(Map<String, dynamic> json) => KyaProgress(
-      progress: (json['progress'] as num?)?.toDouble() ?? 0,
-      kyaId: json['lesson_id'] as String,
-      id: json['_id'] as String?,
-    );
-
-Map<String, dynamic> _$KyaProgressToJson(KyaProgress instance) =>
-    <String, dynamic>{
-      '_id': instance.id,
-      'progress': instance.progress,
-      'lesson_id': instance.kyaId,
     };
 
 KyaList _$KyaListFromJson(Map<String, dynamic> json) => KyaList(

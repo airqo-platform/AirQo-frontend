@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kya, {super.key});
+
   final KyaLesson kya;
 
   @override
@@ -68,7 +69,10 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KyaBloc>().add(PartiallyCompleteKya(widget.kya));
+    context.read<KyaBloc>().add(
+          UpdateKyaProgress(
+              widget.kya.copyWith(status: KyaLessonStatus.pendingCompletion)),
+        );
     _initialize();
   }
 

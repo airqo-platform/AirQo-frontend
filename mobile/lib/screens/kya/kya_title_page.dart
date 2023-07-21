@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart' as config;
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -8,12 +9,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:app/constants/constants.dart' as config;
+
 import 'kya_lessons_page.dart';
 import 'kya_widgets.dart';
 
 class KyaTitlePage extends StatelessWidget {
   const KyaTitlePage(this.kya, {super.key});
+
   final KyaLesson kya;
 
   @override
@@ -34,7 +36,7 @@ class KyaTitlePage extends StatelessWidget {
             orElse: () => kya,
           );
 
-          if (!cachedKya.isEmpty()) return PageScaffold(cachedKya);
+          if (cachedKya.tasks.isNotEmpty) return PageScaffold(cachedKya);
 
           return FutureBuilder<KyaLesson?>(
             future: AppService.getKya(kya),
@@ -69,16 +71,12 @@ class KyaTitlePage extends StatelessWidget {
 }
 
 class PageScaffold extends StatelessWidget {
-  const PageScaffold(this.kya, {super.key});
-  final KyaLesson kya;
+  const PageScaffold(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
 
   @override
   Widget build(BuildContext context) {
-    final String buttonText =
-        kya.progress > 0 && kya.progress < kya.tasks.length
-            ? 'Resume'
-            : 'Begin';
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const KnowYourAirAppBar(),
@@ -99,11 +97,11 @@ class PageScaffold extends StatelessWidget {
                 image: DecorationImage(
                   fit: BoxFit.cover,
                   image: CachedNetworkImageProvider(
-                    kya.imageUrl,
-                    cacheKey: kya.imageUrlCacheKey(),
+                    kyaLesson.imageUrl,
+                    cacheKey: kyaLesson.imageUrlCacheKey(),
                     cacheManager: CacheManager(
                       CacheService.cacheConfig(
-                        kya.imageUrlCacheKey(),
+                        kyaLesson.imageUrlCacheKey(),
                       ),
                     ),
                   ),
@@ -120,14 +118,14 @@ class PageScaffold extends StatelessWidget {
                 bottom: 32,
               ),
               child: NextButton(
-                text: buttonText,
+                text: kyaLesson.startButtonText(),
                 buttonColor: CustomColors.appColorBlue,
                 callBack: () {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return KyaLessonsPage(kya);
+                        return KyaLessonsPage(kyaLesson);
                       },
                     ),
                   );
@@ -182,7 +180,7 @@ class PageScaffold extends StatelessWidget {
                                 horizontal: 40,
                               ),
                               child: Text(
-                                kya.title,
+                                kyaLesson.title,
                                 textAlign: TextAlign.center,
                                 style: CustomTextStyle.headline11(context)
                                     ?.copyWith(

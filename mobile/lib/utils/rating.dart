@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,7 +26,7 @@ Future<bool> displayRatingDialog(BuildContext context) async {
   List<KyaLesson> completeKya = context
       .read<KyaBloc>()
       .state
-      .where((kya) => kya.progress >= 100)
+      .where((kya) => kya.progress() >= 100)
       .toList();
   if (completeKya.length >= 5) {
     return true;

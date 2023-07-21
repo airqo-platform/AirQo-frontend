@@ -45,7 +45,7 @@ class AppService {
   }
 
   static Future<KyaLesson?> getKya(KyaLesson kya) async {
-    if (!kya.isEmpty()) return kya;
+    if (kya.tasks.isNotEmpty) return kya;
 
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {

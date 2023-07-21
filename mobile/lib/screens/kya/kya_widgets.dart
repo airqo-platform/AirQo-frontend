@@ -19,6 +19,7 @@ class CircularKyaButton extends StatelessWidget {
     required this.icon,
     required this.isActive,
   });
+
   final String icon;
   final bool isActive;
 
@@ -47,6 +48,7 @@ class CircularKyaButton extends StatelessWidget {
 
 class KyaMessageChip extends StatelessWidget {
   const KyaMessageChip(this.kya, {super.key});
+
   final KyaLesson kya;
 
   @override
@@ -60,7 +62,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.isPendingCompletion()) {
+    if (kya.status == KyaLessonStatus.pendingCompletion) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -119,6 +121,7 @@ class KyaMessageChip extends StatelessWidget {
 
 class KyaCardWidget extends StatelessWidget {
   const KyaCardWidget(this.kya, {super.key});
+
   final KyaLesson kya;
 
   @override
@@ -141,8 +144,14 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.isPendingCompletion()) {
-          context.read<KyaBloc>().add(CompleteKya(kya));
+        if (kya.status == KyaLessonStatus.pendingCompletion) {
+          context.read<KyaBloc>().add(
+                UpdateKyaProgress(
+                  kya.copyWith(
+                    status: KyaLessonStatus.complete,
+                  ),
+                ),
+              );
         } else {
           await Navigator.push(
             context,
@@ -176,9 +185,9 @@ class KyaCardWidget extends StatelessWidget {
                 const Spacer(),
                 KyaMessageChip(kya),
                 Visibility(
-                  visible: kya.isInProgress(),
+                  visible: kya.status == KyaLessonStatus.inProgress,
                   child: KyaProgressBar(
-                    kya.progress,
+                    kya.progress(),
                     height: 6,
                   ),
                 ),
@@ -220,6 +229,7 @@ class KyaProgressBar extends StatelessWidget {
     super.key,
     this.height = 10,
   });
+
   final double height;
   final double progress;
 
@@ -241,6 +251,7 @@ class KyaProgressBar extends StatelessWidget {
 
 class KyaLessonCard extends StatelessWidget {
   const KyaLessonCard(this.kyaTask, this.kya, {super.key});
+
   final KyaTask kyaTask;
   final KyaLesson kya;
 

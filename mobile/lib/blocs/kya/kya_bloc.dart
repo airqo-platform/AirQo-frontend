@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
@@ -17,8 +16,6 @@ class KyaProgressCubit extends Cubit<double> {
 class KyaBloc extends HydratedBloc<KyaEvent, List<KyaLesson>> {
   KyaBloc() : super([]) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
-    on<CompleteKya>(_onCompleteKya);
-    on<PartiallyCompleteKya>(_onPartiallyCompleteKya);
     on<ClearKya>(_onClearKya);
     on<FetchKya>(_onFetchKya);
   }
@@ -31,66 +28,25 @@ class KyaBloc extends HydratedBloc<KyaEvent, List<KyaLesson>> {
     emit(apiKya);
   }
 
-  void _onClearKya(ClearKya _, Emitter<List<KyaLesson>> emit) {
-    emit(state.map((e) => e.copyWith(progress: 0)).toList());
-  }
-
-  Future<void> _onPartiallyCompleteKya(
-    PartiallyCompleteKya event,
-    Emitter<List<KyaLesson>> emit,
-  ) async {
-    KyaLesson kya = event.kya.copyWith(progress: 1);
-    Set<KyaLesson> kyaSet = {kya};
-    await sendProgresstoApi(kyaSet);
-    emit(kyaSet.toList());
-  }
-
-  Future<void> _onCompleteKya(
-    CompleteKya event,
-    Emitter<List<KyaLesson>> emit,
-  ) async {
-    KyaLesson kya = event.kya.copyWith(progress: -1);
-    Set<KyaLesson> kyaSet = {kya};
-    List<KyaLesson> kyaList = kyaSet.toList();
-    emit(kyaList);
-
-    await hasNetworkConnection().then((hasConnection) async {
-      if (hasConnection) {
-        Future.wait([
-          CloudAnalytics.logEvent(CloudAnalyticsEvent.completeOneKYA),
-        ]);
-        await sendProgresstoApi(kyaSet);
-      }
-    });
+  Future<void> _onClearKya(ClearKya _, Emitter<List<KyaLesson>> emit) async {
+    final apiKya = await AirqoApiClient().fetchKyaLessons();
+    if (apiKya.isEmpty) {
+      emit(state.map((e) => e.copyWith(status: KyaLessonStatus.todo)).toList());
+    } else {
+      emit(apiKya);
+    }
   }
 
   Future<void> _onUpdateKyaProgress(
     UpdateKyaProgress event,
     Emitter<List<KyaLesson>> emit,
   ) async {
-    KyaLesson kya = event.kya;
-
-    if (kya.isPendingCompletion() || kya.isComplete()) return;
-    double progress = event.progress;
-
-
-    Set<KyaLesson> kyaSet = {
-      kya.copyWith(progress: progress),
-    };
-    await sendProgresstoApi(kyaSet);
-    emit(kyaSet.toList());
-  }
-
-  Future<void> sendProgresstoApi(Set<KyaLesson> kyaSet) async {
-    List<KyaLesson> kyaList = kyaSet.toList();
-
-    List<Map<String, dynamic>> kyaProgressList = [];
-    for (KyaLesson kya in kyaList) {
-      Map<String, dynamic> kyaMap = KyaProgress.fromKya(kya).toJson();
-      kyaProgressList.add(kyaMap);
-    }
-    await AirqoApiClient().syncKyaProgress(kyaProgressList);
-    return;
+    KyaLesson kya = event.kyaLesson;
+    Set<KyaLesson> kyaLessons = state.toSet();
+    kyaLessons.remove(kya);
+    kyaLessons.add(kya);
+    await AirqoApiClient().syncKyaProgress(kyaLessons.toList());
+    emit(kyaLessons.toList());
   }
 
   @override

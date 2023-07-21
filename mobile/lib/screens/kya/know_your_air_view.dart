@@ -23,16 +23,19 @@ class KnowYourAirView extends StatelessWidget {
             },
           );
         }
-        final completeKya = state.filterComplete();
-        if (completeKya.isEmpty) {
-          final inCompleteKya = state.filterInProgressKya();
+        final completeKya = state
+            .where((lesson) => lesson.status == KyaLessonStatus.complete)
+            .take(3)
+            .toList();
 
+        if (completeKya.isEmpty) {
+          List<KyaLesson> inCompleteLessons = state.filterInCompleteLessons();
           return NoCompleteKyaWidget(
             callBack: () async {
-              if (inCompleteKya.isEmpty) {
+              if (inCompleteLessons.isEmpty) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
               } else {
-                await _startKyaLessons(context, inCompleteKya.first);
+                await _startKyaLessons(context, inCompleteLessons.first);
               }
             },
           );

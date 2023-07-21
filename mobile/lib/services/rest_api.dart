@@ -347,13 +347,12 @@ class AirqoApiClient {
     return kyaLessons;
   }
 
-  Future<bool> syncKyaProgress(
-      List<Map<String, dynamic>> kyaProgressList) async {
+  Future<bool> syncKyaProgress(List<KyaLesson> kyaLessons) async {
     final userId = CustomAuth.getUserId();
     if ((userId.isEmpty)) {
       return false;
     }
-    print(kyaProgressList);
+
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.deviceRegistry.serviceName;
@@ -363,7 +362,7 @@ class AirqoApiClient {
           "${AirQoUrls.kya}/sync/$userId",
         ),
         headers: headers,
-        body: jsonEncode({'kya_user_progress': kyaProgressList}),
+        body: jsonEncode(kyaLessons.map((e) => e.toJson()).toList()),
       );
       final responseBody = json.decode(response.body);
 

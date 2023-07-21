@@ -14,10 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:home_widget/home_widget.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
@@ -155,9 +156,12 @@ class _DashboardViewState extends State<DashboardView>
                     ),
                     BlocBuilder<KyaBloc, List<KyaLesson>>(
                       builder: (context, state) {
-                        final kyaWidgets = completeKyaWidgets(
-                          state.filterComplete().take(3).toList(),
-                        );
+                        final completeLessons = state
+                            .where((lesson) =>
+                                lesson.status == KyaLessonStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(completeLessons);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
@@ -308,16 +312,10 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, List<KyaLesson>>(
                     builder: (context, state) {
-                      List<KyaLesson> kya = state.filterPendingCompletion();
-                      kya.sortByProgress();
-                      
-                      if (kya.isEmpty) {
-                        kya = state.filterInProgressKya();
-                      }
-                      if (kya.isEmpty) {
-                        kya = state.filterToDo();
-                      }
-                      if (kya.isEmpty) {
+                      List<KyaLesson> inCompleteLessons =
+                          state.filterInCompleteLessons();
+
+                      if (inCompleteLessons.isEmpty) {
                         _kyaExists = false;
 
                         return const SizedBox();
@@ -331,7 +329,7 @@ class _DashboardViewState extends State<DashboardView>
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
-                            kya.first,
+                            inCompleteLessons.first,
                           ),
                         ),
                       );

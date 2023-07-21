@@ -14,6 +14,13 @@ enum AuthenticationStatus {
   success;
 }
 
+enum KyaLessonStatus {
+  todo,
+  inProgress,
+  pendingCompletion,
+  complete;
+}
+
 enum CloudAnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
   createUserProfile('created_profile'),
