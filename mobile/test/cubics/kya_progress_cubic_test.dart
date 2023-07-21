@@ -12,14 +12,14 @@ void main() {
       expect(kyaProgressCubit.state, 0.0);
     });
 
-    blocTest<KyaProgressCubit, double>(
+    blocTest<KyaProgressCubit, int>(
       'emits value when updateProgress called',
       build: () => kyaProgressCubit,
       act: (cubit) => cubit.updateProgress(300),
       expect: () => [300.0],
     );
 
-    blocTest<KyaProgressCubit, double>(
+    blocTest<KyaProgressCubit, int>(
       'emits value when updateProgress called',
       build: () => kyaProgressCubit,
       act: (cubit) => cubit.updateProgress(1),

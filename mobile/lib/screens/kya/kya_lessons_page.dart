@@ -50,16 +50,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           children: [
             InkWell(
               onTap: () async {
-                int lessonCount = widget.kya.tasks.length;
 
-                double currentProgress = (lessonIndex) / lessonCount;
-
-                context
-                    .read<KyaBloc>()
-                    .add(UpdateKyaProgress(widget.kya, currentProgress));
+                context.read<KyaBloc>().add(UpdateKyaProgress(
+                    widget.kya.copyWith(activeTask: lessonIndex + 1)));
                 context
                     .read<KyaProgressCubit>()
-                    .updateProgress(currentProgress);
+                    .updateProgress(lessonIndex + 1);
 
                 await popNavigation(context);
               },
@@ -131,7 +127,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         horizontalPadding: 20,
         child: Column(
           children: [
-            BlocBuilder<KyaProgressCubit, double>(
+            BlocBuilder<KyaProgressCubit, int>(
               builder: (context, state) {
                 if (state <= 0) {
                   return SizedBox(
@@ -189,7 +185,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                BlocBuilder<KyaProgressCubit, double>(
+                BlocBuilder<KyaProgressCubit, int>(
                   builder: (context, state) {
                     return GestureDetector(
                       onTap: () {
@@ -230,7 +226,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   void _initializeKya() {
-    context.read<KyaProgressCubit>().updateProgress(widget.kya.progress());
+    context.read<KyaProgressCubit>().updateProgress(widget.kya.activeTask);
     int initialCardIndex = widget.kya.activeTask - 1;
     setState(() => lessonIndex = initialCardIndex);
   }
@@ -242,29 +238,31 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         context,
         MaterialPageRoute(
           builder: (context) {
-            return KyaFinalPage(widget.kya);
+            return KyaFinalPage(widget.kya.copyWith(activeTask: lessonCount));
           },
         ),
       );
+      return;
     }
 
     int nextCard = lessonIndex + 2;
-    double nextProgress = (nextCard) / lessonCount;
-    context.read<KyaBloc>().add(UpdateKyaProgress(widget.kya, nextProgress));
-    context.read<KyaProgressCubit>().updateProgress(nextProgress);
+    context
+        .read<KyaBloc>()
+        .add(UpdateKyaProgress(widget.kya.copyWith(activeTask: nextCard)));
+    context.read<KyaProgressCubit>().updateProgress(nextCard);
     setState(() => lessonIndex = lessonIndex + 1);
   }
 
   void _onUnSwipe(bool unSwiped) {
-    int lessonCount = widget.kya.tasks.length;
     int prevCard = lessonIndex - 1;
     if (prevCard < 0) {
       return;
     }
-    double nextProgress = (lessonIndex) / lessonCount;
 
-    context.read<KyaBloc>().add(UpdateKyaProgress(widget.kya, nextProgress));
-    context.read<KyaProgressCubit>().updateProgress(nextProgress);
+    context
+        .read<KyaBloc>()
+        .add(UpdateKyaProgress(widget.kya.copyWith(activeTask: prevCard)));
+    context.read<KyaProgressCubit>().updateProgress(prevCard);
     setState(() => lessonIndex = prevCard);
   }
 }

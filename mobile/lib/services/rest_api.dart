@@ -356,13 +356,16 @@ class AirqoApiClient {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.deviceRegistry.serviceName;
+      dynamic body = {
+        'kya_user_progress': kyaLessons.map((e) => e.toJson()).toList(),
+      };
 
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.kya}/sync/$userId",
         ),
         headers: headers,
-        body: jsonEncode(kyaLessons.map((e) => e.toJson()).toList()),
+        body: jsonEncode(body),
       );
       final responseBody = json.decode(response.body);
 

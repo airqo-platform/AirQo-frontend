@@ -7,10 +7,10 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 part 'kya_event.dart';
 
-class KyaProgressCubit extends Cubit<double> {
+class KyaProgressCubit extends Cubit<int> {
   KyaProgressCubit() : super(0);
 
-  void updateProgress(double value) => emit(value);
+  void updateProgress(int value) => emit(value);
 }
 
 class KyaBloc extends HydratedBloc<KyaEvent, List<KyaLesson>> {

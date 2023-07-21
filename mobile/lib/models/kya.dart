@@ -62,7 +62,8 @@ class KyaLesson extends Equatable {
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
 
-  KyaLesson copyWith({String? shareLink, KyaLessonStatus? status}) {
+  KyaLesson copyWith(
+      {String? shareLink, KyaLessonStatus? status, int? activeTask}) {
     return KyaLesson(
       title: title,
       completionMessage: completionMessage,
@@ -70,7 +71,7 @@ class KyaLesson extends Equatable {
       id: id,
       tasks: tasks,
       status: status ?? this.status,
-      activeTask: activeTask,
+      activeTask: activeTask ?? this.activeTask,
       shareLink: shareLink ?? this.shareLink,
     );
   }

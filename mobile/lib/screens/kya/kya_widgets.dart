@@ -187,8 +187,8 @@ class KyaCardWidget extends StatelessWidget {
                 Visibility(
                   visible: kya.status == KyaLessonStatus.inProgress,
                   child: KyaProgressBar(
-                    kya.progress(),
-                    height: 6,
+                    kya.activeTask,
+                    height: kya.tasks.length.toDouble(),
                   ),
                 ),
               ],
@@ -225,16 +225,17 @@ class KyaCardWidget extends StatelessWidget {
 
 class KyaProgressBar extends StatelessWidget {
   const KyaProgressBar(
-    this.progress, {
+    this.activeTask, {
     super.key,
     this.height = 10,
   });
 
   final double height;
-  final double progress;
+  final int activeTask;
 
   @override
   Widget build(BuildContext context) {
+    double progress = activeTask / height;
     return SizedBox(
       height: height,
       child: ClipRRect(
