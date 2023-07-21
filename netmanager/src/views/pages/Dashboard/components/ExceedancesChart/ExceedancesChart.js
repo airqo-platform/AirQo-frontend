@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { Bar } from "react-chartjs-2";
 import PropTypes from "prop-types";
+import clsx from "clsx";
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import {
   DialogTitle,
   IconButton,
   CardActions,
+  Badge,
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
@@ -107,6 +109,7 @@ const ExceedancesChart = (props) => {
   };
 
   const [locations, setLocations] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
   const [dataset, setDataset] = useState([]);
 
   useEffect(() => {
@@ -186,7 +189,13 @@ const ExceedancesChart = (props) => {
           element.site.generated_name
         )
         .slice(0, maxLocations);
-  
+
+      const dialogData = exceedanceData
+        .map((element) =>
+          element.site.name ||
+          element.site.description ||
+          element.site.generated_name 
+        )
       let myDataset = [];
       if (tempStandard.value.toLowerCase() === "aqi") {
         const labels = ["UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
@@ -215,8 +224,36 @@ const ExceedancesChart = (props) => {
           },
         ];
       }
+
+      let myDialogDataset = [];
+      if (tempStandard.value.toLowerCase() === "aqi") {
+        myDialogDataset = [
+          {
+            label: "Exceedances",
+            data: exceedanceData
+              .map((element) => [element.site, element.total, element.exceedance]),
+
+            backgroundColor: palette.primary.main,
+            //borderColor: 'rgba(0,0,0,1)',
+            borderWidth: 1,
+          },
+        ];
+      } else {
+        myDialogDataset = [
+          {
+            label: "Exceedances",
+            data: exceedanceData
+              .map((element) => [element.site, element.total, element.exceedance]),
+
+            backgroundColor: palette.primary.main,
+            //borderColor: 'rgba(0,0,0,1)',
+            borderWidth: 1,
+          },
+        ];
+      }
   
       setLocations(myLocations);
+      setAllLocations(myDialogDataset)
       setDataset(myDataset);
       setLoading(false);
     } catch (error) {
@@ -298,6 +335,161 @@ const ExceedancesChart = (props) => {
       // eslint-disable-next-line no-console
       console.error("oops, something went wrong!", err);
     }
+  };
+
+
+  const Location = ({ site, total, exceedance }) => {
+    const [isSelected, setIsSelected] = useState(false);
+    const label = ["UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
+
+    const handleLocationClick = () => {
+      setIsSelected(!isSelected);
+    };
+
+    const { Good, Moderate, UHFSG, Unhealthy, VeryUnhealthy, Hazardous } = exceedance;
+
+  const data = {
+    labels: ['Good', 'Moderate', 'UHFSG', 'Unhealthy', 'Very Unhealthy', 'Hazardous'],
+    datasets: [
+      {
+        label: 'Exceedances',
+        data: [Good, Moderate, UHFSG, Unhealthy, VeryUnhealthy, Hazardous],
+        backgroundColor: [
+          'green',
+          'orange',
+          'yellow',
+          'red',
+          'purple',
+          'brown',
+        ],
+      },
+    ],
+  };
+  const numberLocations = exceedance.length 
+  const options={
+      layout: { padding: 4 },
+      tooltips: {
+        enabled: true,
+        mode: "index",
+        intersect: false,
+        borderWidth: 1,
+        borderColor: palette.divider,
+        backgroundColor: palette.white,
+        titleFontColor: palette.text.primary,
+        bodyFontColor: palette.text.secondary,
+        footerFontColor: palette.text.secondary,
+      },
+      scales: {
+        yAxes: [
+          {
+            stacked: true,
+            scaleLabel: {
+              display: true,
+              labelString: "Exceedances",
+              // fontWeight: 4,
+              // fontColor: "black",
+              fontSize: 15,
+              padding: 10,
+            },
+            ticks: {
+              fontColor: palette.text.secondary,
+              beginAtZero: true,
+              min: 0,
+              // suggestedMax:
+              //   numLocations > 0
+              //     ? Math.max(
+              //         ...slicedData.dataset[0].data,
+              //         10
+              //       ) 
+              //     : undefined,
+            },
+            gridLines: {
+              borderDash: [2],
+              borderDashOffset: [2],
+              color: palette.divider,
+              drawBorder: false,
+              zeroLineBorderDash: [2],
+              zeroLineBorderDashOffset: [2],
+              zeroLineColor: palette.divider,
+            },
+          },
+        ],
+        xAxes: [
+          {
+            barThickness:  20,
+            maxBarThickness: 20,
+            barPercentage: 0.5,
+            categoryPercentage: 0.5,
+            stacked: true,
+            scaleLabel: {
+              display: true,
+              labelString: "Locations",
+              // fontWeight: 4,
+              // fontColor: "black",
+              fontSize: 15,
+              padding: 10,
+            },
+            ticks: {
+              fontColor: "black",
+              callback: (value) => `${value.substr(0, 7)}`,
+            },
+            gridLines: {
+              display: false,
+              drawBorder: false,
+            },
+          },
+        ],
+      },
+
+      maintainAspectRatio: true,
+      responsive: true,
+  };
+
+  
+  
+    return (
+      <Grid container spacing={2}>
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <div
+              onClick={handleLocationClick}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                maxHeight: 'calc(100vh - 200px)',
+                overflow: 'auto',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                marginBottom: '10px',
+              }}
+            >
+              <span style={{ fontWeight: 'bold', color: '#175df5', display: "flex", marginRight: '10px' }}>
+                {site.name || site.description || site.generated_name}
+              </span>
+              <span style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', display: "flex", color: '#175df5' }}>{total}</span>
+              <ArrowForwardIcon style={{  color: '#175df5', display: "flex",  }}/>
+            </div>
+          </Grid>
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <Card>
+              <CardContent
+                style={{ 
+                  maxHeight: 'calc(100vh - 200px)', 
+                  overflow: 'auto',  
+                  // borderRadius: '2px', 
+                  border: '1px solid #ccc',
+                  padding: '10px',
+                  borderRadius: '4px',
+                }}
+              >
+                <Bar data={data} options={options} />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      
+    );
   };
 
   const numLocations = locations.length;
@@ -447,7 +639,7 @@ const ExceedancesChart = (props) => {
                         },
                         ticks: {
                           fontColor: "black",
-                          callback: (value) => `${value.substr(0, 7)}...`,
+                          callback: (value) => `${value.substr(0, 7)}`,
                         },
                         gridLines: {
                           display: false,
@@ -521,28 +713,42 @@ const ExceedancesChart = (props) => {
         </Grid>
       </CardContent>
       {/* Dialog component */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>Locations and Exceedance Values</DialogTitle>
+      <Dialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)}
+        PaperProps={{
+          style: {
+            width: "100%",
+            maxWidth: "none",
+            margin: "10px",
+            borderRadius: "8px",
+          },
+        }}
+      >
         <DialogContent>
-          {locations && locations.length > 0 ? (
-            <ul>
-              {locations.map((location, index) => {
-                const aqi = dataset[0]?.data[index] || 'N/A';
-                const exceedance = dataset[1]?.data[index] || 'N/A';
-
-                return (
-                  <li key={index}>
-                    Location: {location} | AQI: {aqi} | Exceedance: {exceedance}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p>No data available.</p>
-          )}
+        {allLocations.map((dataset) => (
+          <div key={dataset.label}>
+            <h5
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                fontWeight: "bold",
+                padding: "6px",
+                fontSize: "20px",
+              }}
+            >{dataset.label}</h5>
+            {dataset.data.map(([site, total, exceedance]) => (
+              <Location key={site.name} site={site} exceedance={exceedance} />
+            ))}
+          </div>
+        ))}
         </DialogContent>
         <DialogActions>
-          <button onClick={() => setDialogOpen(false)}>Close</button>
+          <Button onClick={() => setDialogOpen(false)} color="primary">
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
       <CardActions className={classes.cardActions} 
@@ -555,7 +761,7 @@ const ExceedancesChart = (props) => {
             disableRipple
             disableFocusRipple
             disableTouchRipple
-            // onClick={openDialog}
+            onClick={openDialog}
             style={{
               textTransform: 'none',
               paddingLeft: 0,
