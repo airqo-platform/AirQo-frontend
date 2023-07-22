@@ -14,11 +14,11 @@ import 'kya_widgets.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
-    this.kya, {
+    this.kyaLesson, {
     super.key,
   });
 
-  final KyaLesson kya;
+  final KyaLesson kyaLesson;
 
   @override
   State<KyaLessonsPage> createState() => _KyaLessonsPageState();
@@ -26,7 +26,6 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
-  int lessonIndex = 0;
 
   @override
   void dispose() {
@@ -49,12 +48,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           children: [
             InkWell(
               onTap: () async {
-                context.read<KyaBloc>().add(UpdateKyaProgress(
-                    widget.kya.copyWith(activeTask: lessonIndex + 1)));
-                context
-                    .read<KyaProgressCubit>()
-                    .updateProgress(lessonIndex + 1);
-
                 await popNavigation(context);
               },
               child: SvgPicture.asset(
@@ -64,7 +57,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             FutureBuilder<Uri>(
-              future: ShareService.createShareLink(kya: widget.kya),
+              future: ShareService.createShareLink(kya: widget.kyaLesson),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   showSnackBar(context, 'Could not create a share link.');
@@ -77,22 +70,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         await ShareService.shareLink(
                           link,
                           context,
-                          kya: widget.kya,
+                          kya: widget.kyaLesson,
                         );
-                        // disabling copying to clipboard
-                        // if (link.toString().length >
-                        //     Config.shareLinkMaxLength) {
-                        //   await Clipboard.setData(
-                        //     ClipboardData(text: link.toString()),
-                        //   ).then((_) {
-                        //     showSnackBar(context, 'Copied to your clipboard !');
-                        //   });
-                        // } else {
-                        //   await ShareService.shareLink(
-                        //     link,
-                        //     kya: widget.kya,
-                        //   );
-                        // }
                       }
                     },
                     child: SvgPicture.asset(
@@ -123,12 +102,16 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       body: AppSafeArea(
         backgroundColor: CustomColors.appBodyColor,
         horizontalPadding: 20,
-        child: Column(
-          children: [
-            BlocBuilder<KyaProgressCubit, int>(
-              builder: (context, state) {
-                if (state <= 0) {
-                  return SizedBox(
+        child: BlocBuilder<KyaBloc, KyaState>(
+          builder: (context, state) {
+            KyaLesson kyaLesson = state.lessons.firstWhere(
+              (element) => element == widget.kyaLesson,
+            );
+            return Column(
+              children: [
+                Visibility(
+                  visible: kyaLesson.activeTask <= 1,
+                  child: SizedBox(
                     height: 50,
                     child: Center(
                       child: Padding(
@@ -143,124 +126,116 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         ),
                       ),
                     ),
-                  );
-                } else {
-                  return SizedBox(
+                  ),
+                ),
+                Visibility(
+                  visible: kyaLesson.activeTask > 1,
+                  child: SizedBox(
                     height: 50,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: KyaProgressBar(
-                        context.watch<KyaProgressCubit>().state,
-                        height: widget.kya.tasks.length.toDouble(),
-                      ),
+                      child: KyaLessonProgressBar(kyaLesson),
                     ),
-                  );
-                }
-              },
-            ),
-            const Spacer(),
-            SizedBox(
-              height: 400,
-              child: AppinioSwiper(
-                padding: EdgeInsets.zero,
-                cardsCount: widget.kya.tasks.length,
-                cardsBuilder: (BuildContext context, int index) {
-                  if (lessonIndex >= widget.kya.tasks.length) {
-                    lessonIndex = widget.kya.tasks.length - 1;
-                  }
-                  return KyaLessonCard(
-                      widget.kya.tasks[lessonIndex], widget.kya);
-                },
-                allowUnswipe: true,
-                unlimitedUnswipe: true,
-                controller: _swipeController,
-                onSwipe: _onSwipe,
-                duration: const Duration(milliseconds: 300),
-                unswipe: _onUnSwipe,
-              ),
-            ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                BlocBuilder<KyaProgressCubit, int>(
-                  builder: (context, state) {
-                    return GestureDetector(
-                      onTap: () {
-                        _swipeController.unswipe();
-                      },
-                      child: CircularKyaButton(
-                        icon: 'assets/icon/previous_arrow.svg',
-                        isActive: lessonIndex >= 1,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(
-                  width: 38,
-                ),
-                GestureDetector(
-                  onTap: () => _swipeController.swipe(),
-                  child: const CircularKyaButton(
-                    icon: 'assets/icon/next_arrow.svg',
-                    isActive: true,
                   ),
                 ),
+                const Spacer(),
+                SizedBox(
+                  height: 400,
+                  child: AppinioSwiper(
+                    padding: EdgeInsets.zero,
+                    cardsCount: kyaLesson.tasks.length,
+                    cardsBuilder: (BuildContext context, int index) {
+                      return KyaLessonCard(
+                        kyaLesson.tasks[kyaLesson.activeTask - 1],
+                        kyaLesson,
+                      );
+                    },
+                    swipeOptions: const AppinioSwipeOptions.symmetric(
+                      horizontal: true,
+                    ),
+                    allowUnswipe: true,
+                    unlimitedUnswipe: true,
+                    controller: _swipeController,
+                    onSwipe: _onSwipe,
+                    duration: const Duration(milliseconds: 300),
+                    unswipe: _onUnSwipe,
+                    onEnd: _onEnd,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _swipeController.unswipe(),
+                      child: CircularKyaButton(
+                        icon: 'assets/icon/previous_arrow.svg',
+                        isActive: kyaLesson.activeTask > 1,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 38,
+                    ),
+                    GestureDetector(
+                      onTap: () => _swipeController.swipe(),
+                      child: const CircularKyaButton(
+                        icon: 'assets/icon/next_arrow.svg',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
               ],
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  @override
-  initState() {
-    super.initState();
-    _initializeKya();
+  Future<void> _onEnd() async {
+    KyaLesson kyaLesson = context
+        .read<KyaBloc>()
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return KyaFinalPage(kyaLesson);
+        },
+      ),
+    );
   }
 
-  void _initializeKya() {
-    context.read<KyaProgressCubit>().updateProgress(widget.kya.activeTask);
-    int initialCardIndex = widget.kya.activeTask - 1;
-    setState(() => lessonIndex = initialCardIndex);
-  }
+  Future<void> _onSwipe(int previousTaskIndex, AppinioSwiperDirection _) async {
+    int activeTask = previousTaskIndex + 1;
+    KyaLesson kyaLesson = context
+        .read<KyaBloc>()
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
 
-  void _onSwipe(int card, AppinioSwiperDirection _) {
-    int lessonCount = widget.kya.tasks.length;
-    if (lessonIndex >= lessonCount - 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return KyaFinalPage(widget.kya.copyWith(activeTask: lessonCount));
-          },
-        ),
-      );
-      return;
-    }
-
-    int nextCard = lessonIndex + 2;
     context
         .read<KyaBloc>()
-        .add(UpdateKyaProgress(widget.kya.copyWith(activeTask: nextCard)));
-    context.read<KyaProgressCubit>().updateProgress(nextCard);
-    setState(() => lessonIndex = lessonIndex + 1);
+        .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
   }
 
   void _onUnSwipe(bool unSwiped) {
-    int prevCard = lessonIndex - 1;
-    if (prevCard < 0) {
-      return;
-    }
-
-    context
+    KyaLesson kyaLesson = context
         .read<KyaBloc>()
-        .add(UpdateKyaProgress(widget.kya.copyWith(activeTask: prevCard)));
-    context.read<KyaProgressCubit>().updateProgress(prevCard);
-    setState(() => lessonIndex = prevCard);
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
+    int previousTask = kyaLesson.activeTask - 1;
+
+    if (unSwiped && previousTask > 0) {
+      context
+          .read<KyaBloc>()
+          .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: previousTask)));
+    }
   }
 }

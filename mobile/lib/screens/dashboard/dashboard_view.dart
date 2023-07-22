@@ -154,9 +154,9 @@ class _DashboardViewState extends State<DashboardView>
                     const SizedBox(
                       width: 16,
                     ),
-                    BlocBuilder<KyaBloc, List<KyaLesson>>(
+                    BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        final completeLessons = state
+                        final completeLessons = state.lessons
                             .where((lesson) =>
                                 lesson.status == KyaLessonStatus.complete)
                             .take(3)
@@ -310,10 +310,10 @@ class _DashboardViewState extends State<DashboardView>
                       );
                     },
                   ),
-                  BlocBuilder<KyaBloc, List<KyaLesson>>(
+                  BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
                       List<KyaLesson> inCompleteLessons =
-                          state.filterInCompleteLessons();
+                          state.lessons.filterInCompleteLessons();
 
                       if (inCompleteLessons.isEmpty) {
                         _kyaExists = false;

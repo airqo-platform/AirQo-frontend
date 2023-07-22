@@ -329,10 +329,13 @@ class AirqoApiClient {
         apiService: ApiService.deviceRegistry,
       );
 
-      for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
-        KyaLesson apiKya = KyaLesson.fromJson(
-          kya as Map<String, dynamic>,
-        );
+      List<Map<String, dynamic>> lessons =
+          body['kya_lessons'] as List<Map<String, dynamic>>;
+      lessons.sort((x, y) =>
+          (x["task_position"] as int).compareTo((y["task_position"] as int)));
+
+      for (Map<String, dynamic> kya in lessons) {
+        KyaLesson apiKya = KyaLesson.fromJson(kya);
         kyaLessons.add(apiKya);
       }
     } catch (exception, stackTrace) {
@@ -354,16 +357,15 @@ class AirqoApiClient {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.deviceRegistry.serviceName;
-      dynamic body = {
-        'kya_user_progress': kyaLessons.map((e) => e.toJson()).toList(),
-      };
 
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.kya}/sync/$userId",
         ),
         headers: headers,
-        body: jsonEncode(body),
+        body: jsonEncode({
+          'kya_user_progress': kyaLessons.map((e) => e.toJson()).toList(),
+        }),
       );
       final responseBody = json.decode(response.body);
 
@@ -393,10 +395,6 @@ class AirqoApiClient {
         "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
-
-      if (body['favorites'] == []) {
-        return [];
-      }
 
       for (final favorite in body['favorites'] as List<dynamic>) {
         try {

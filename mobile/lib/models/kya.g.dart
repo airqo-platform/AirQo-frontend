@@ -51,13 +51,3 @@ Map<String, dynamic> _$KyaTaskToJson(KyaTask instance) => <String, dynamic>{
       'image': instance.imageUrl,
       'content': instance.content,
     };
-
-KyaList _$KyaListFromJson(Map<String, dynamic> json) => KyaList(
-      data: (json['data'] as List<dynamic>)
-          .map((e) => KyaLesson.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$KyaListToJson(KyaList instance) => <String, dynamic>{
-      'data': instance.data.map((e) => e.toJson()).toList(),
-    };

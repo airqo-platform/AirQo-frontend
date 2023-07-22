@@ -17,7 +17,7 @@ class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
     required this.icon,
-    required this.isActive,
+    this.isActive = true,
   });
 
   final String icon;
@@ -120,9 +120,9 @@ class KyaMessageChip extends StatelessWidget {
 }
 
 class KyaCardWidget extends StatelessWidget {
-  const KyaCardWidget(this.kya, {super.key});
+  const KyaCardWidget(this.kyaLesson, {super.key});
 
-  final KyaLesson kya;
+  final KyaLesson kyaLesson;
 
   @override
   Widget build(BuildContext context) {
@@ -144,12 +144,14 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.status == KyaLessonStatus.pendingCompletion) {
+        if (kyaLesson.status == KyaLessonStatus.pendingCompletion) {
           context.read<KyaBloc>().add(
                 UpdateKyaProgress(
-                  kya.copyWith(
+                  kyaLesson.copyWith(
                     status: KyaLessonStatus.complete,
+                    activeTask: 1,
                   ),
+                  updateRemote: true,
                 ),
               );
         } else {
@@ -157,7 +159,7 @@ class KyaCardWidget extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) {
-                return KyaTitlePage(kya);
+                return KyaTitlePage(kyaLesson);
               },
             ),
           );
@@ -176,20 +178,17 @@ class KyaCardWidget extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: AutoSizeText(
-                    kya.title,
+                    kyaLesson.title,
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),
                   ),
                 ),
                 const Spacer(),
-                KyaMessageChip(kya),
+                KyaMessageChip(kyaLesson),
                 Visibility(
-                  visible: kya.status == KyaLessonStatus.inProgress,
-                  child: KyaProgressBar(
-                    kya.activeTask,
-                    height: kya.tasks.length.toDouble(),
-                  ),
+                  visible: kyaLesson.status == KyaLessonStatus.inProgress,
+                  child: KyaLessonProgressBar(kyaLesson),
                 ),
               ],
             ),
@@ -206,11 +205,11 @@ class KyaCardWidget extends StatelessWidget {
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: CachedNetworkImageProvider(
-                  kya.imageUrl,
-                  cacheKey: kya.imageUrlCacheKey(),
+                  kyaLesson.imageUrl,
+                  cacheKey: kyaLesson.imageUrlCacheKey(),
                   cacheManager: CacheManager(
                     CacheService.cacheConfig(
-                      kya.imageUrlCacheKey(),
+                      kyaLesson.imageUrlCacheKey(),
                     ),
                   ),
                 ),
@@ -223,27 +222,22 @@ class KyaCardWidget extends StatelessWidget {
   }
 }
 
-class KyaProgressBar extends StatelessWidget {
-  const KyaProgressBar(
-    this.activeTask, {
-    super.key,
-    this.height = 10,
-  });
+class KyaLessonProgressBar extends StatelessWidget {
+  const KyaLessonProgressBar(this.kyaLesson, {super.key});
 
-  final double height;
-  final int activeTask;
+  final KyaLesson kyaLesson;
 
   @override
   Widget build(BuildContext context) {
-    double progress = activeTask / height;
     return SizedBox(
-      height: height,
+      height: kyaLesson.tasks.length.toDouble(),
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: progress,
+          value: kyaLesson.activeTask / kyaLesson.tasks.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
       ),
     );

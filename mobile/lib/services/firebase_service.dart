@@ -101,7 +101,6 @@ class CloudAnalytics {
 }
 
 class CloudStore {
-
   static Future<List<AppNotification>> getNotifications() async {
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {

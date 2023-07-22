@@ -62,8 +62,11 @@ class KyaLesson extends Equatable {
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
 
-  KyaLesson copyWith(
-      {String? shareLink, KyaLessonStatus? status, int? activeTask}) {
+  KyaLesson copyWith({
+    String? shareLink,
+    KyaLessonStatus? status,
+    int? activeTask,
+  }) {
     return KyaLesson(
       title: title,
       completionMessage: completionMessage,
@@ -120,16 +123,4 @@ class KyaTask extends Equatable {
 
   @override
   List<Object> get props => [id];
-}
-
-@JsonSerializable(explicitToJson: true)
-class KyaList {
-  factory KyaList.fromJson(Map<String, dynamic> json) =>
-      _$KyaListFromJson(json);
-
-  KyaList({required this.data});
-
-  List<KyaLesson> data;
-
-  Map<String, dynamic> toJson() => _$KyaListToJson(this);
 }

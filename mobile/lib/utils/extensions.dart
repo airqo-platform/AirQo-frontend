@@ -104,10 +104,6 @@ extension KyaExt on KyaLesson {
     return "Resume";
   }
 
-  double progress() {
-    return activeTask / tasks.length;
-  }
-
   String getKyaMessage() {
     switch (status) {
       case KyaLessonStatus.todo:
@@ -115,8 +111,8 @@ extension KyaExt on KyaLesson {
       case KyaLessonStatus.pendingCompletion:
         return 'Complete! Move to For You';
       case KyaLessonStatus.inProgress:
-        return 'Continue';
       case KyaLessonStatus.complete:
+        if (activeTask == 1) return 'Start learning';
         return 'Continue';
     }
   }

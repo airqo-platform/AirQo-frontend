@@ -14,22 +14,23 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KyaBloc, List<KyaLesson>>(
+    return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
-        if (state.isEmpty) {
+        if (state.lessons.isEmpty) {
           return NoKyaWidget(
             callBack: () {
               context.read<KyaBloc>().add(const FetchKya());
             },
           );
         }
-        final completeKya = state
+        final completeKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
             .take(3)
             .toList();
 
         if (completeKya.isEmpty) {
-          List<KyaLesson> inCompleteLessons = state.filterInCompleteLessons();
+          List<KyaLesson> inCompleteLessons =
+              state.lessons.filterInCompleteLessons();
           return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteLessons.isEmpty) {
