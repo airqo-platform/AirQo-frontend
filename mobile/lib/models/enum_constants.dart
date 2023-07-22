@@ -3,6 +3,7 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -15,9 +16,13 @@ enum AuthenticationStatus {
 }
 
 enum KyaLessonStatus {
+  @JsonValue("TODO")
   todo,
+  @JsonValue("IN_PROGRESS")
   inProgress,
+  @JsonValue("PENDING_COMPLETION")
   pendingCompletion,
+  @JsonValue("COMPLETE")
   complete;
 }
 

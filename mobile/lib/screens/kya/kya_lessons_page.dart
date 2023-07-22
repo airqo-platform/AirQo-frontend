@@ -2,7 +2,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -50,7 +49,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           children: [
             InkWell(
               onTap: () async {
-
                 context.read<KyaBloc>().add(UpdateKyaProgress(
                     widget.kya.copyWith(activeTask: lessonIndex + 1)));
                 context

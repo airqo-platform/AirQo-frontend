@@ -250,8 +250,6 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
-
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.emailReAuthentication}/mobileAccountDelete?TOKEN=${Config.airqoApiV2Token}",

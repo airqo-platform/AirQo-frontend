@@ -42,7 +42,7 @@ class KyaLesson extends Equatable {
   @JsonKey(defaultValue: KyaLessonStatus.todo)
   final KyaLessonStatus status;
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(name: 'share_link', defaultValue: '')
   final String? shareLink;
 
   factory KyaLesson.fromDynamicLink(PendingDynamicLinkData dynamicLinkData) {
