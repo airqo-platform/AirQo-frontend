@@ -1,4 +1,4 @@
-import { createBarChartData } from "utils/charts";
+import { createBarChartData } from 'utils/charts';
 
 export const createChartData = (rawData, { key, includeBarData }) => {
   const label = [];
@@ -16,7 +16,7 @@ export const createChartData = (rawData, { key, includeBarData }) => {
 
   lastSevenDaysData.forEach((status) => {
     label.push(status.created_at);
-    values.push(parseFloat(status[key]).toFixed(2));
+    values.push(status[key]);
   });
 
   if (includeBarData) {
@@ -26,13 +26,12 @@ export const createChartData = (rawData, { key, includeBarData }) => {
       bar: {
         label: uptimeBarChartData.label,
         data: uptimeBarChartData.data,
-        created_at,
-      },
+        created_at
+      }
     };
   }
 
   return {
-    line: { label, data: values, created_at },
+    line: { label, data: values, created_at }
   };
 };
-

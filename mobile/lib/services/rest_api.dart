@@ -256,7 +256,9 @@ class AirqoApiClient {
       String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
 
       final response = await client.post(
-        Uri.parse(url),
+        Uri.parse(
+          "${AirQoUrls.emailReAuthentication}/mobileAccountDelete?TOKEN=${Config.airqoApiV2Token}",
+        ),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );

@@ -164,8 +164,8 @@ export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
     });
 };
 
-export const loadDeviceBatteryVoltage = (deviceName) => async (dispatch) => {
-  return await getDeviceBatteryVoltageApi({ device_name: deviceName })
+export const loadDeviceBatteryVoltage = (params) => async (dispatch) => {
+  return await getDeviceBatteryVoltageApi(params)
     .then((responseData) => {
       if (typeof responseData.success !== 'undefined' && !responseData.success) {
         dispatch({
@@ -175,7 +175,7 @@ export const loadDeviceBatteryVoltage = (deviceName) => async (dispatch) => {
       }
       dispatch({
         type: LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
-        payload: { deviceName, data: responseData }
+        payload: responseData.data
       });
     })
     .catch(() => {

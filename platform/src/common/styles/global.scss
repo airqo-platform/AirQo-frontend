@@ -13,3 +13,24 @@ textarea:focus {
   box-shadow: none !important;
   outline: none !important;
 }
+
+/* Hide the default scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background-color: #F3F6F8;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background-color: #9EB0C2;
+  border-radius: 4px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}

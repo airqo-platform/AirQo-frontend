@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
@@ -18,6 +17,8 @@ import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -32,7 +33,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
   };
 });
 
-const collocate = () => {
+const Collocate = () => {
   const {
     data: data,
     isLoading,
@@ -57,7 +58,7 @@ const collocate = () => {
   }, [refetch]);
 
   return (
-    <Layout>
+    <AuthenticatedLayout>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -84,7 +85,7 @@ const collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
+                path='/analytics/collocation/add_monitor'
               >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
@@ -140,8 +141,8 @@ const collocate = () => {
           <EmptyState />
         )}
       </ContentBox>
-    </Layout>
+    </AuthenticatedLayout>
   );
 };
 
-export default collocate;
+export default withAuth(Collocate);
