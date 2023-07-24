@@ -190,12 +190,6 @@ const ExceedancesChart = (props) => {
         )
         .slice(0, maxLocations);
 
-      const dialogData = exceedanceData
-        .map((element) =>
-          element.site.name ||
-          element.site.description ||
-          element.site.generated_name 
-        )
       let myDataset = [];
       if (tempStandard.value.toLowerCase() === "aqi") {
         const labels = ["UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
@@ -241,7 +235,7 @@ const ExceedancesChart = (props) => {
       } else {
         myDialogDataset = [
           {
-            label: "Exceedances",
+            // label: "Exceedances",
             data: exceedanceData
               .map((element) => [element.site, element.total, element.exceedance]),
 
@@ -340,7 +334,9 @@ const ExceedancesChart = (props) => {
 
   const Location = ({ site, total, exceedance }) => {
     const [isSelected, setIsSelected] = useState(false);
-    const label = ["UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
+    const label = ["Good","UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
+    const colors = ["green", "yellow", "orange", "red", "purple", "maroon"];
+    const properties = ["Good","UHFSG", "Unhealthy", "VeryUnhealthy", "Hazardous"];
 
     const handleLocationClick = () => {
       setIsSelected(!isSelected);
@@ -354,18 +350,11 @@ const ExceedancesChart = (props) => {
       {
         label: 'Exceedances',
         data: [Good, Moderate, UHFSG, Unhealthy, VeryUnhealthy, Hazardous],
-        backgroundColor: [
-          'green',
-          'orange',
-          'yellow',
-          'red',
-          'purple',
-          'brown',
-        ],
+        backgroundColor: colors
       },
     ],
   };
-  const numberLocations = exceedance.length 
+ 
   const options={
       layout: { padding: 4 },
       tooltips: {
@@ -416,14 +405,14 @@ const ExceedancesChart = (props) => {
         ],
         xAxes: [
           {
-            barThickness:  20,
-            maxBarThickness: 20,
-            barPercentage: 0.5,
-            categoryPercentage: 0.5,
+            barThickness:  40,
+            maxBarThickness: 40,
+            barPercentage: 1,
+            categoryPercentage: 0.8,
             stacked: true,
             scaleLabel: {
               display: true,
-              labelString: "Locations",
+              labelString: "AQI",
               // fontWeight: 4,
               // fontColor: "black",
               fontSize: 15,
@@ -448,46 +437,32 @@ const ExceedancesChart = (props) => {
   
   
     return (
-      <Grid container spacing={2}>
-          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-            <div
-              onClick={handleLocationClick}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                maxHeight: 'calc(100vh - 200px)',
-                overflow: 'auto',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                marginBottom: '10px',
-              }}
-            >
-              <span style={{ fontWeight: 'bold', color: '#175df5', display: "flex", marginRight: '10px' }}>
-                {site.name || site.description || site.generated_name}
-              </span>
-              <span style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', display: "flex", color: '#175df5' }}>{total}</span>
-              <ArrowForwardIcon style={{  color: '#175df5', display: "flex",  }}/>
-            </div>
-          </Grid>
-          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-            <Card>
-              <CardContent
-                style={{ 
-                  maxHeight: 'calc(100vh - 200px)', 
-                  overflow: 'auto',  
-                  // borderRadius: '2px', 
-                  border: '1px solid #ccc',
-                  padding: '10px',
-                  borderRadius: '4px',
-                }}
-              >
-                <Bar data={data} options={options} />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+
+        <Card
+          style={{ 
+              maxHeight: 'calc(100vh - 200px)', 
+              overflow: 'hidden',  
+              // borderRadius: '2px', 
+              border: '1px solid #ccc',
+              padding: '10px',
+              borderRadius: '4px',
+              marginBottom: '10px',
+              borderRadius: '4px',
+            }}
+        >
+          <CardHeader
+            title={site.name || site.description || site.generated_name}
+            style={{
+              textAlign: 'center',
+              fontWeight: 'bold',
+              color: '#175df5',
+              display: 'flex',
+            }}
+          />
+          <CardContent>
+            <Bar data={data} options={options} />
+          </CardContent>
+        </Card>
       
     );
   };
@@ -726,24 +701,28 @@ const ExceedancesChart = (props) => {
         }}
       >
         <DialogContent>
-        {allLocations.map((dataset) => (
-          <div key={dataset.label}>
-            <h5
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                fontWeight: "bold",
-                padding: "6px",
-                fontSize: "20px",
-              }}
-            >{dataset.label}</h5>
-            {dataset.data.map(([site, total, exceedance]) => (
-              <Location key={site.name} site={site} exceedance={exceedance} />
-            ))}
-          </div>
-        ))}
+          {allLocations.map((dataset) => (
+            <div key={dataset.label}>
+              <h5
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  padding: "6px",
+                  fontSize: "20px",
+                }}
+              >{dataset.label}</h5>
+              <Grid container spacing={2}> {/* Use Grid container */}
+                {dataset.data.map(([site, total, exceedance], index) => (
+                  <Grid key={site.name} item lg={6} md={6} sm={12} xl={6} xs={12}> {/* Use Grid item */}
+                    <Location site={site} exceedance={exceedance} />
+                  </Grid>
+                ))}
+              </Grid>
+            </div>
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} color="primary">
