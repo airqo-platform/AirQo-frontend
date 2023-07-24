@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import Dropdown from '../../../Dropdowns/Dropdown';
+import InfoIcon from '@/icons/Common/info-circle.svg';
 import Modal from '../../../Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
@@ -238,7 +239,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       {moment(device.end_date).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
-                      <span
+                      <div
                         onClick={() => {
                           if (device.errors.length > 0) {
                             setErrorReport(device.errors);
@@ -248,12 +249,19 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                             setOpenErrorReport(true);
                           }
                         }}
-                        className={`${
+                        className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600 cursor-pointer`}
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
                       >
-                        {device.status.toLowerCase()}
-                      </span>
+                        <div className='text-center text-neutral-800 capitalize'>
+                          {device.status.toLowerCase()}
+                        </div>
+                        <div className='justify-start items-start gap-1 flex'>
+                          <div className='w-3.5 h-3.5 relative'>
+                            <InfoIcon />
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <Dropdown
