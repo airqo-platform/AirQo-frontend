@@ -7,10 +7,10 @@ const ApiPage = () => {
   useInitScrollTop();
   return (
     <Page>
-      <div className="product-page">
+      <div className="product-page api">
         <Header
           pageTitle={'AirQo API'}
-          title={'Access air quality data for your research, application or project'}
+          title={'Access air quality data through our API'}
           subText={
             'The AirQo API provides access to air quality data collected from the AirQo network of low-cost air quality monitors deployed across different African cities. The API is free to use and does not require authentication.'
           }>
@@ -21,6 +21,11 @@ const ApiPage = () => {
             alt=""
           />
         </Header>
+        <div className="content">
+          <div className="section"></div>
+          <div className="section"></div>
+          <div className="section"></div>
+        </div>
       </div>
     </Page>
   );
