@@ -34,7 +34,7 @@ class FavouritePlaceCard extends StatelessWidget {
                 barrierDismissible: false,
                 context: context,
                 builder: (BuildContext context) {
-                  return CupertinoAlertDialog(                    
+                  return CupertinoAlertDialog(
                     title: const Text("REMOVE LOCATION",
                         style: TextStyle(
                             color: Colors.blue,
@@ -43,17 +43,17 @@ class FavouritePlaceCard extends StatelessWidget {
                     content: const Text(
                         "Are you sure you want to remove this location from your favourites?"),
                     actions: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text("Yes")),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text("No"),
-                          ),
-                        ],
+                      CupertinoDialogAction(
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                        child: const Text("YES"),
+                      ),
+                      CupertinoDialogAction(
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                        child: const Text("NO"),
                       ),
                     ],
                   );
