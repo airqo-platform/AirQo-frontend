@@ -19,7 +19,6 @@ class FavouritePlaceCard extends StatelessWidget {
     return Builder(
       builder: (BuildContext context) {
         return SwipeDismissible(
-          // key: ValueKey(favouritePlace.id),
           key: UniqueKey(),
           onDismissed: (dir) {
             ScaffoldMessenger.of(context).removeCurrentSnackBar();
@@ -35,10 +34,7 @@ class FavouritePlaceCard extends StatelessWidget {
                 barrierDismissible: false,
                 context: context,
                 builder: (BuildContext context) {
-                  return CupertinoAlertDialog(
-                    //shape: RoundedRectangleBorder(
-                    //borderRadius: BorderRadius.circular(4.0),
-                    //), This is for the android Alert dialog.
+                  return CupertinoAlertDialog(                    
                     title: const Text("REMOVE LOCATION",
                         style: TextStyle(
                             color: Colors.blue,
