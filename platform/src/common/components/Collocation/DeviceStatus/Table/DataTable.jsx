@@ -10,10 +10,11 @@ import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import Dropdown from '../../../Dropdowns/Dropdown';
-import InfoIcon from '@/icons/Common/info-circle.svg';
+import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '../../../Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
+import ReportDetailCard from '../ReportDetailCard';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
@@ -30,8 +31,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [errorReport, setErrorReport] = useState([]);
-  const [openErrorReport, setOpenErrorReport] = useState(false);
+  const [statusSummary, setStatusSummary] = useState([]);
+  const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
 
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
@@ -241,13 +242,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       <div
                         onClick={() => {
-                          if (device.errors.length > 0) {
-                            setErrorReport(device.errors);
-                            setOpenErrorReport(true);
-                          } else {
-                            setErrorReport(['No error report found!']);
-                            setOpenErrorReport(true);
-                          }
+                          setStatusSummary(device.status_summary);
+                          setOpenStatusSummaryModal(true);
                         }}
                         className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
@@ -284,7 +280,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         )}
       </table>
 
-      {/* modal */}
+      {/* delete device/batch modal */}
       <Modal
         display={visible}
         handleConfirm={deleteBatch}
@@ -293,12 +289,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         confirmButton='Delete'
       />
 
-      {/* error report modal */}
-      <Modal
-        display={openErrorReport && errorReport.length > 0}
-        closeModal={() => setOpenErrorReport(false)}
-        description={errorReport[0]}
-      />
+      {/* detailed report modal */}
+      <ReportDetailCard data={statusSummary} open={openStatusSummaryModal} />
     </div>
   );
 };
