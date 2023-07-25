@@ -13,7 +13,6 @@ const ApiPage = () => {
   return (
     <Page>
       <div className="product-page api mobile-app analytics">
-        <div></div>
         <Header
           style={{ backgroundColor: '#FFFDEA' }}
           pageTitle={'AirQo API'}
