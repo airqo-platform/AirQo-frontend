@@ -28,7 +28,7 @@ const DetailCard = ({ index, action, description, extra_message, status, title }
         <div className='w-3.5 h-3.5 relative'>
           <InfoIcon />
         </div>
-        <div className='text-gray-700 text-sm leading-none max-w-[270px]'>{extra_message}</div>
+        <div className='text-gray-700 text-sm leading-none max-w-[250px]'>{extra_message}</div>
       </div>
       <div className='h-4 justify-end items-start gap-4 flex'>
         <div className='text-gray-700 text-sm leading-none'>Full Report</div>

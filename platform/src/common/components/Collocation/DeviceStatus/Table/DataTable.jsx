@@ -290,7 +290,11 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       />
 
       {/* detailed report modal */}
-      <ReportDetailCard data={statusSummary} open={openStatusSummaryModal} />
+      <ReportDetailCard
+        data={statusSummary}
+        open={openStatusSummaryModal}
+        closeModal={() => setOpenStatusSummaryModal(false)}
+      />
     </div>
   );
 };
