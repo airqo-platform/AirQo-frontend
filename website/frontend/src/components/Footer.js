@@ -149,6 +149,9 @@ const Footer = () => {
                 <span>
                   <Link to="/products/mobile-app">AirQo Mobile App</Link>
                 </span>
+                <span>
+                  <Link to="/products/api">Air quality API</Link>
+                </span>
               </div>
             </span>
             <span className="content-tabs middle-tab">
