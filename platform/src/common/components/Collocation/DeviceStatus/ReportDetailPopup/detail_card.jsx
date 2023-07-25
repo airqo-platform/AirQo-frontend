@@ -32,7 +32,7 @@ const DetailCard = ({
       </div>
       <div className='text-gray-700 text-sm leading-none'>{description}</div>
     </div>
-    <div className='flex flex-col md:flex-row justify-start items-center md:self-stretch md:justify-between md:items-center gap-4 md:inline-flex'>
+    <div className='flex flex-col md:flex-row justify-start items-start md:self-stretch md:justify-between md:items-center gap-4 md:inline-flex'>
       <div className='justify-start items-center gap-1.5 flex'>
         <div className='w-3.5 h-3.5 relative'>
           <InfoIcon />

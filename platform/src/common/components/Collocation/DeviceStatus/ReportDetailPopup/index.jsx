@@ -8,7 +8,7 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
     <dialog id='report_detail_popup' className={`modal ${open && 'modal-open'} w-screen h-screen`}>
       <form
         method='dialog'
-        className='modal-box p-0 overflow-hidden rounded max-w-2xl w-full h-full shadow border border-slate-100'
+        className='modal-box p-0 overflow-hidden rounded max-w-3xl w-full h-full shadow border border-slate-100'
       >
         <div className='flex justify-between items-center p-5 border-b border-b-gray-200'>
           <div className='text-black text-base font-medium'>Status summary</div>
