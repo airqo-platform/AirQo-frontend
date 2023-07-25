@@ -28,24 +28,23 @@ const DetailCard = ({
   >
     <div className='flex-col justify-start items-start gap-1 flex'>
       <div className='justify-start items-start gap-1.5 inline-flex'>
-        <div className='text-gray-700 text-sm font-semibold leading-none'>{title}</div>
-      </div>
-      <div className='text-gray-700 text-sm leading-none'>{description}</div>
-    </div>
-    <div className='flex flex-col md:flex-row justify-start items-start md:self-stretch md:justify-between md:items-center gap-4 md:inline-flex'>
-      <div className='justify-start items-center gap-1.5 flex'>
         <div className='w-3.5 h-3.5 relative'>
           <InfoIcon />
         </div>
-        <div className='text-gray-700 text-sm leading-none max-w-[250px]'>{extra_message}</div>
+        <div className='text-gray-700 text-sm font-semibold leading-none'>{extra_message}</div>
       </div>
-      <div className='h-4 justify-end items-center gap-4 flex'>
+      <div className='text-gray-700 text-sm font-normal leading-snug'>{description}</div>
+    </div>
+    <div className='flex flex-col md:flex-row justify-end items-start md:self-stretch md:justify-end md:items-center gap-4 md:inline-flex pt-4'>
+      <div className='justify-end items-center gap-4 flex'>
         <div className='text-gray-700 text-sm leading-none'>
-          <button className='hover:underline' onClick={handleReportClick}>
+          <button className='underline' onClick={handleReportClick}>
             Full Report
           </button>
         </div>
-        <div className='text-gray-700 text-sm leading-none'>{action}</div>
+        <div className='text-gray-700 text-sm leading-none underline capitalize'>
+          {action.toLowerCase().includes('adjust') && action}
+        </div>
       </div>
     </div>
   </div>

@@ -16,7 +16,7 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
             ✕
           </button>
         </div>
-        <div className='self-stretch px-5 pt-4 sm:pb-20 pb-10 flex-col justify-start items-start gap-3.5 flex h-full overflow-y-auto'>
+        <div className='self-stretch px-5 pt-4 sm:pb-20 pb-10 flex-col items-start gap-3.5 flex h-full overflow-y-auto'>
           {data.map((item, index) => (
             <DetailCard
               index={index}
