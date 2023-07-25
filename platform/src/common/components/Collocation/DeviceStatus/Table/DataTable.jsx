@@ -14,7 +14,7 @@ import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '../../../Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
-import ReportDetailCard from '../ReportDetailCard';
+import ReportDetailCard from '../ReportDetailPopup';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
