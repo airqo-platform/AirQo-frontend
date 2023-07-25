@@ -21,12 +21,14 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     FetchKya _,
     Emitter<KyaState> emit,
   ) async {
-    List<KyaLesson> lessons = await AirqoApiClient().fetchKyaLessons();
+    final userId = CustomAuth.getUserId();
+    List<KyaLesson> lessons = await AirqoApiClient().fetchKyaLessons(userId);
     emit(state.copyWith(lessons: lessons));
   }
 
   Future<void> _onClearKya(ClearKya _, Emitter<KyaState> emit) async {
-    List<KyaLesson> kyaLessons = await AirqoApiClient().fetchKyaLessons();
+    final userId = CustomAuth.getUserId();
+    List<KyaLesson> kyaLessons = await AirqoApiClient().fetchKyaLessons(userId);
     if (kyaLessons.isEmpty) {
       kyaLessons = state.lessons
           .map((e) => e.copyWith(

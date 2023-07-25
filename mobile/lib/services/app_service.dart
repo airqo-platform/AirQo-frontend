@@ -52,7 +52,8 @@ class AppService {
       throw NetworkConnectionException('No internet Connection');
     }
     try {
-      List<KyaLesson> kyaList = await AirqoApiClient().fetchKyaLessons();
+      final userId = CustomAuth.getUserId();
+      List<KyaLesson> kyaList = await AirqoApiClient().fetchKyaLessons(userId);
       List<KyaLesson> apiKya =
           kyaList.where((element) => element.id == kya.id).toList();
 

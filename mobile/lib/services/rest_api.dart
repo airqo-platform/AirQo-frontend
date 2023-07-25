@@ -15,9 +15,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
+  Map<String, dynamic> params = queryParams;
+  params.remove("TOKEN");
   String formattedUrl = '$url?TOKEN=${Config.airqoApiV2Token}';
-  queryParams
-      .forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
+  params.forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
 
   return formattedUrl;
 }
@@ -312,14 +313,13 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
-  Future<List<KyaLesson>> fetchKyaLessons() async {
+  Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
     final kyaLessons = <KyaLesson>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
-    final userId = CustomAuth.getUserId();
     String url = "${AirQoUrls.kya}/lessons/users/$userId";
     if (userId.isEmpty) {
-      url == "${AirQoUrls.kya}/lessons";
+      url = "${AirQoUrls.kya}/lessons";
     }
 
     try {
@@ -329,13 +329,8 @@ class AirqoApiClient {
         apiService: ApiService.deviceRegistry,
       );
 
-      List<Map<String, dynamic>> lessons =
-          body['kya_lessons'] as List<Map<String, dynamic>>;
-      lessons.sort((x, y) =>
-          (x["task_position"] as int).compareTo((y["task_position"] as int)));
-
-      for (Map<String, dynamic> kya in lessons) {
-        KyaLesson apiKya = KyaLesson.fromJson(kya);
+      for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
+        KyaLesson apiKya = KyaLesson.fromJson(kya as Map<String, dynamic>);
         kyaLessons.add(apiKya);
       }
     } catch (exception, stackTrace) {
