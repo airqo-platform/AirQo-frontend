@@ -18,32 +18,32 @@ const ApiPage = () => {
           pageTitle={'AirQo API'}
           title={'AirQo’s Application Programming Interface.'}
           subText={
-            ' Are you a developer? We invite you to access and leverage our open-air quality data on your Application. Our free API enables seamless integration with applications and provides you with real-time, historical, and forecast raw and calibrated air quality data.'
+            ' Are you a developer? We invite you to access and leverage our open-air quality data on your Application. '
           }>
-          <img src={HeaderImage} alt="" />
+          <img src={HeaderImage} alt="" style={{ borderRadius: '8px' }} />
         </Header>
         <div className="content">
           <div className="grid-wrapper column section section-1">
             <div className="row">
               <h2 className="left title">
-                Access raw and calibrated <span className="blue">data</span>
+                Access Raw and Calibrated <span className="blue">Data</span>
               </h2>
               <p className="right">
-                AirQo API is free to use and gives you access to historical, real-time and forecast
+                The AirQo API is free to use and gives you access to historical, real-time and forecast
                 raw and calibrated air quality data to further air quality awareness across Africa.
                 The API enables seamless integration with software applications and provides access
                 to raw data for various use cases.
               </p>
             </div>
             <div className="overlap-section">
-              <div className="lapping-left card" style={{ backgroundColor: '#F2F1F6' }}>
+              <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
                 <h5>How it works</h5>
                 <p>
-                  AirQo API allows registered data users to extract their own data or incorporate it
+                  The API allows registered users to extract their own data or incorporate it
                   into their systems without having to go through the data master process.
                   <br />
-                  <br /> Our data can then be integrated into Open Source Projects, Browser
-                  Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
+                  <br /> Our free API enables seamless integration with applications and can be used in Open Source Projects, Browser
+                  Extensions, Plugins, Mobile Apps, Desktop and Web Apps, and so forth.
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
@@ -53,7 +53,7 @@ const ApiPage = () => {
           </div>
           <div className="grid-wrapper section">
             <div className="overlap-section">
-              <div className="lapping-right card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
+              <div className="lapping-right card larger-top" style={{ backgroundColor: '#FFFCE1' }}>
                 <h5>Did you know?</h5>
                 <p>
                   93 developers across the globe use data from our API. Our continuous air quality
@@ -71,7 +71,7 @@ const ApiPage = () => {
           <div
             className="grid-full column section landscape-section"
             id="section-3"
-            style={{ backgroundColor: '#FFFDEA' }}>
+            style={{ backgroundColor: '#F2F1F6' }}>
             <div className="column smaller-width">
               <h2 className="left title">
                 <span className="blue">API</span> Documentation
@@ -80,12 +80,15 @@ const ApiPage = () => {
                 We invite you to leverage our open-air quality data in your App. Amplify air quality
                 impact through our API.
               </p>
-              <NavTab
-                text="Read Docs"
-                path="https://docs.airqo.net/airqo-rest-api-documentation/"
-                hideArrow
-                filled
-              />
+              <div className='cta-button'>
+                <NavTab
+                  text="Read Docs"
+                  path="https://docs.airqo.net/airqo-rest-api-documentation/"
+                  externalLink
+                  hideArrow
+                  filled
+                />
+              </div>
             </div>
             <div className="image">
               <img src={Section3Image} alt="" />
