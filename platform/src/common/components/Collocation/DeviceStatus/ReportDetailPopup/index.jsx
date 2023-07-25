@@ -1,8 +1,8 @@
-import InfoIcon from '@/icons/Common/info_circle.svg';
 import DetailCard from './detail_card';
+import { useRouter } from 'next/router';
 
-const ReportDetailCard = ({ data, open, closeModal }) => {
-  // Add report links
+const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
+  const router = useRouter();
   // Adjust correlation & offset functionality
   return (
     <dialog id='report_detail_popup' className={`modal ${open && 'modal-open'} w-screen h-screen`}>
@@ -25,6 +25,15 @@ const ReportDetailCard = ({ data, open, closeModal }) => {
               extra_message={item.extra_message}
               status={item.status}
               title={item.title}
+              handleReportClick={() => {
+                router.push({
+                  pathname: `/analytics/collocation/reports/${deviceName}`,
+                  query: {
+                    device: deviceName,
+                    batchId: batchId,
+                  },
+                });
+              }}
             />
           ))}
         </div>

@@ -33,6 +33,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
   const [statusSummary, setStatusSummary] = useState([]);
   const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
+  const [selectedReportDeviceName, setSelectedReportDeviceName] = useState(null);
+  const [selectedReportBatchId, setSelectedReportBatchId] = useState(null);
 
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
@@ -243,6 +245,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       <div
                         onClick={() => {
                           setStatusSummary(device.status_summary);
+                          setSelectedReportBatchId(device.batch_id);
+                          setSelectedReportDeviceName(device.device_name);
                           setOpenStatusSummaryModal(true);
                         }}
                         className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
@@ -292,6 +296,8 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
       {/* detailed report modal */}
       <ReportDetailCard
         data={statusSummary}
+        deviceName={selectedReportDeviceName}
+        batchId={selectedReportBatchId}
         open={openStatusSummaryModal}
         closeModal={() => setOpenStatusSummaryModal(false)}
       />
