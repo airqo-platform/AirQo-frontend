@@ -41,9 +41,9 @@ const DetailCard = ({
       </div>
       <div className='h-4 justify-end items-center gap-4 flex'>
         <div className='text-gray-700 text-sm leading-none'>
-          <Button className='hover:underline' onClick={handleReportClick}>
+          <button className='hover:underline' onClick={handleReportClick}>
             Full Report
-          </Button>
+          </button>
         </div>
         <div className='text-gray-700 text-sm leading-none'>{action}</div>
       </div>
