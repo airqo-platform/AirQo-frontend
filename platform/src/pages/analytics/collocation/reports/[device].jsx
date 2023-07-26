@@ -17,7 +17,6 @@ import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
-import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 
 const Reports = () => {
