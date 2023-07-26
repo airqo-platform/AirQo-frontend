@@ -8,7 +8,7 @@ const Toast = ({ message, type, timeout, dataTestId, size }) => {
     error: 'bg-red-500',
   };
 
-  const textColor = type === 'success' ? 'text-black-600' : 'text-white';
+  const textColor = type === 'success' ? 'text-white' : 'text-white';
 
   const containerStyles = `flex ${
     size === 'sm' ? 'items-center py-1 px-2' : 'p-4'

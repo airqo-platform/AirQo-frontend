@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { resetCollocationBatch } from '@/core/apis/Collocation';
 import Toast from '@/components/Toast';
 
-const ResetThreshold = ({ closeForm, batchId, type }) => {
+const ResetThreshold = ({ batchId, type, closeModal }) => {
   const [thresholdValue, setThresholdValue] = useState('');
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -15,47 +15,63 @@ const ResetThreshold = ({ closeForm, batchId, type }) => {
     let body = {};
 
     switch (type) {
-      case 'intra_correlation':
+      case 'INTRA_SENSOR_CORRELATION':
         body = {
-          intra_correlation_threshold: thresholdValue,
+          intraCorrelationThreshold: parseFloat(thresholdValue),
         };
         break;
-      case 'inter_correlation':
+      case 'INTER_SENSOR_CORRELATION':
         body = {
-          inter_correlation_threshold: thresholdValue,
+          interCorrelationThreshold: parseFloat(thresholdValue),
         };
         break;
-      case 'differences':
+      case 'DIFFERENCES':
         body = {
-          differences_threshold: thresholdValue,
+          differencesThreshold: parseFloat(thresholdValue),
         };
         break;
-      case 'data_completeness':
+      case 'DATA_COMPLETENESS':
         body = {
-          data_completeness_threshold: thresholdValue,
+          dataCompletenessThreshold: parseFloat(thresholdValue),
         };
         break;
       default:
         break;
     }
 
-    resetCollocationBatch({ data_completeness_threshold: thresholdValue }, { batchId })
+    resetCollocationBatch(body, { batchId })
       .then((res) => {
-        setShowRecomputeToast(true);
-        closeForm();
+        setShowRecomputeToast(!showRecomputeToast);
+        setTimeout(() => {
+          setShowErrorToast(false);
+          setErrorMessage('');
+          setShowRecomputeToast(false);
+          closeModal();
+          window.location.reload();
+        }, 3000);
       })
       .catch((err) => {
         setErrorMessage(err.response.data.message);
         setShowErrorToast(true);
+        setTimeout(() => {
+          setShowErrorToast(false);
+          setErrorMessage('');
+        }, 3000);
       });
-
-    setShowErrorToast(false);
-    setErrorMessage('');
-    setShowRecomputeToast(false);
   };
 
   return (
     <div className='w-full mt-4'>
+      {showErrorToast && <Toast type={'error'} timeout={5000} message={errorMessage} size='sm' />}
+
+      {showRecomputeToast && (
+        <Toast
+          type={'success'}
+          timeout={5000}
+          message={'Recomputing data. Please check back in a few minutes.'}
+          size='sm'
+        />
+      )}
       <div className='flex gap-2 flex-wrap'>
         <input
           type='text'
@@ -71,16 +87,6 @@ const ResetThreshold = ({ closeForm, batchId, type }) => {
           Reset threshold
         </Button>
       </div>
-      {showErrorToast && <Toast type={'error'} timeout={5000} message={errorMessage} size='sm' />}
-
-      {showRecomputeToast && (
-        <Toast
-          type={'success'}
-          timeout={5000}
-          message={'Recomputing data. Please check back in a few minutes.'}
-          size='sm'
-        />
-      )}
     </div>
   );
 };

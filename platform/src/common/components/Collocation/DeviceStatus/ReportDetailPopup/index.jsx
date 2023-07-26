@@ -1,3 +1,4 @@
+import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
 import { useRouter } from 'next/router';
 
@@ -17,27 +18,34 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
           </button>
         </div>
         <div className='self-stretch px-5 pt-4 sm:pb-20 pb-10 flex-col items-start gap-3.5 flex h-full overflow-y-auto'>
-          {data.map((item, index) => (
-            <DetailCard
-              index={index}
-              action={item.action}
-              description={item.description}
-              extra_message={item.extra_message}
-              status={item.status}
-              title={item.title}
-              batchId={batchId}
-              type={item.type}
-              handleReportClick={() => {
-                router.push({
-                  pathname: `/analytics/collocation/reports/${deviceName}`,
-                  query: {
-                    device: deviceName,
-                    batchId: batchId,
-                  },
-                });
-              }}
-            />
-          ))}
+          {!isEmpty(data) ? (
+            data.map((item, index) => (
+              <DetailCard
+                index={index}
+                action={item.action}
+                description={item.description}
+                extra_message={item.extra_message}
+                status={item.status}
+                title={item.title}
+                batchId={batchId}
+                type={item.type}
+                handleReportClick={() => {
+                  router.push({
+                    pathname: `/analytics/collocation/reports/${deviceName}`,
+                    query: {
+                      device: deviceName,
+                      batchId: batchId,
+                    },
+                  });
+                }}
+                closeModal={closeModal}
+              />
+            ))
+          ) : (
+            <div className='text-gray-400 text-sm font-normal leading-snug flex items-center justify-center mx-auto w-full h-full'>
+              No report yet. Please check later
+            </div>
+          )}
         </div>
       </form>
     </dialog>
