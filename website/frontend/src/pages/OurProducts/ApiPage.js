@@ -16,9 +16,9 @@ const ApiPage = () => {
         <Header
           style={{ backgroundColor: '#FFFDEA' }}
           pageTitle={'AirQo API'}
-          title={'AirQo’s Application Programming Interface.'}
+          title={'Access real-time air quality data.'}
           subText={
-            ' Are you a developer? We invite you to access and leverage our open-air quality data on your Application. '
+            'Designed to effortlessly enhance your application with vital insights, embrace the transformative potential of air quality information through our API.'
           }>
           <img src={HeaderImage} alt="" style={{ borderRadius: '8px' }} />
         </Header>
@@ -26,24 +26,21 @@ const ApiPage = () => {
           <div className="grid-wrapper column section section-1">
             <div className="row">
               <h2 className="left title">
-                Access Raw and Calibrated <span className="blue">Data</span>
+                Unlock Air Quality <span className="blue">Insights</span>
               </h2>
               <p className="right">
-                The AirQo API is free to use and gives you access to historical, real-time and forecast
-                raw and calibrated air quality data to further air quality awareness across Africa.
-                The API enables seamless integration with software applications and provides access
-                to raw data for various use cases.
+                The AirQo API provides open access to a vast repository of over 2 million records of raw and calibrated real-time, historical, and forecast air quality data. 
               </p>
             </div>
             <div className="overlap-section">
               <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
-                <h5>How it works</h5>
+                <h5>Defining data access</h5>
                 <p>
-                  The API allows registered users to extract their own data or incorporate it
-                  into their systems without having to go through the data master process.
+                  The API uses AI and data analysis techniques to provide accurate air quality measurements.
+                  It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the most common pollutants in African cities.
                   <br />
-                  <br /> Our free API enables seamless integration with applications and can be used in Open Source Projects, Browser
-                  Extensions, Plugins, Mobile Apps, Desktop and Web Apps, and so forth.
+                  <br />
+                  Our comprehensive datasets include information from both our air quality and reference-grade monitors strategically deployed in major African Cities. 
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
@@ -53,14 +50,14 @@ const ApiPage = () => {
           </div>
           <div className="grid-wrapper section">
             <div className="overlap-section">
-              <div className="lapping-right card larger-top" style={{ backgroundColor: '#FFFCE1' }}>
-                <h5>Did you know?</h5>
+              <div className="lapping-right card" style={{ backgroundColor: '#FFFCE1' }}>
+                <h5>Start empowering your audience</h5>
                 <p>
-                  93 developers across the globe use data from our API. Our continuous air quality
-                  data calibration process and real time monitoring ensures that we provide the most
-                  reliable air quality information across Africa.
+                  The AirQo API is not only about air quality data — it's about empowering users to take action to protect themselves against air pollution.
                   <br /> <br />
-                  Highly accurate air quality information at your fingertips, through the AirQo API.
+                  Integrate air quality information in your Open Source Projects, Browser Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
+                  <br/><br/>
+                  Help users take charge of their health and join the movement for cleaner air!
                 </p>
               </div>
               <div className="lapping-right image" id="section-2">
@@ -74,11 +71,10 @@ const ApiPage = () => {
             style={{ backgroundColor: '#F2F1F6' }}>
             <div className="column smaller-width">
               <h2 className="left title">
-                <span className="blue">API</span> Documentation
+                <span className="blue">How</span> it works
               </h2>
               <p className="right">
-                We invite you to leverage our open-air quality data in your App. Amplify air quality
-                impact through our API.
+                With our API, you have access to comprehensive documentation to enable you seamlessly integrate the data, and a dedicated support team to assist you at every step of the integration process.
               </p>
               <div className='cta-button'>
                 <NavTab
@@ -101,3 +97,4 @@ const ApiPage = () => {
 };
 
 export default ApiPage;
+ 
