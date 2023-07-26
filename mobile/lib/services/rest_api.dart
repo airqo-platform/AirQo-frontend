@@ -364,7 +364,7 @@ class AirqoApiClient {
       );
       final responseBody = json.decode(response.body);
 
-      return responseBody['success'] == true ? true : false;
+      return responseBody['success'] as bool;
     } catch (exception, stackTrace) {
       await logException(
         exception,
