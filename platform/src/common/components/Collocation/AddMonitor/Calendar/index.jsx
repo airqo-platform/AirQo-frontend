@@ -110,6 +110,8 @@ const ScheduleCalendar = () => {
               onChange={(e) => {
                 dispatch(addScheduledBatchName(e.target.value));
               }}
+              required
+              aria-required='true'
             />
           </div>
           <div className='form-control w-full max-w-xs'>

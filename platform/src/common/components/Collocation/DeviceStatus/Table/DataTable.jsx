@@ -190,6 +190,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
               Monitor name
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+              Batch name
+            </th>
+            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Added by
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
@@ -231,6 +234,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
+                    </td>
+                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
+                      {device.batch_name}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       {device.added_by || ' '}

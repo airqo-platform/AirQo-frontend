@@ -121,7 +121,11 @@ const AddMonitor = () => {
               )} */}
               <Button
                 className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
-                  selectedCollocateDevices.length > 0 && endDate && startDate && !isCollocating
+                  selectedCollocateDevices.length > 0 &&
+                  endDate &&
+                  startDate &&
+                  scheduledBatchName &&
+                  !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}
