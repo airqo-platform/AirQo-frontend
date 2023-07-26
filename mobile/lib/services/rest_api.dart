@@ -314,7 +314,7 @@ class AirqoApiClient {
   }
 
   Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
-    final kyaLessons = <KyaLesson>[];
+    final lessons = <KyaLesson>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
     String url = "${AirQoUrls.kya}/lessons/users/$userId";
@@ -331,7 +331,7 @@ class AirqoApiClient {
 
       for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
         KyaLesson apiKya = KyaLesson.fromJson(kya as Map<String, dynamic>);
-        kyaLessons.add(apiKya);
+        lessons.add(apiKya);
       }
     } catch (exception, stackTrace) {
       await logException(
@@ -340,7 +340,7 @@ class AirqoApiClient {
       );
     }
 
-    return kyaLessons;
+    return lessons;
   }
 
   Future<bool> syncKyaProgress(List<KyaLesson> kyaLessons) async {
