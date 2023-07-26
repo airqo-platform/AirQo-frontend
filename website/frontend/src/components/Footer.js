@@ -147,6 +147,9 @@ const Footer = () => {
                   <Link to="/products/analytics">Air quality Dashboard</Link>
                 </span>
                 <span>
+                  <Link to="/products/api">Air quality API</Link>
+                </span>
+                <span>
                   <Link to="/products/mobile-app">AirQo Mobile App</Link>
                 </span>
               </div>
