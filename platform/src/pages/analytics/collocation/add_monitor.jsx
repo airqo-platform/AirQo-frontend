@@ -53,6 +53,21 @@ const AddMonitor = () => {
 
   const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
   const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
+  const scheduledBatchName = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchName,
+  );
+  const scheduledBatchDataCompletenessThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
+  );
+  const scheduledBatchInterCorrelationThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
+  );
+  const scheduledBatchIntraCorrelationThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
+  );
+  const scheduledBatchDifferencesThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
+  );
 
   const handleCollocation = async () => {
     setCollocating(true);
@@ -61,6 +76,11 @@ const AddMonitor = () => {
         startDate,
         endDate,
         devices: selectedCollocateDevices,
+        batchName: scheduledBatchName,
+        differencesThreshold: scheduledBatchDifferencesThreshold,
+        dataCompletenessThreshold: scheduledBatchDataCompletenessThreshold,
+        interCorrelationThreshold: scheduledBatchInterCorrelationThreshold,
+        intraCorrelationThreshold: scheduledBatchIntraCorrelationThreshold,
       };
 
       const response = await collocateDevices(body);
