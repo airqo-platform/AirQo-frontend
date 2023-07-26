@@ -75,7 +75,7 @@ const SideBar = () => {
             <ArrowDropDownIcon />
           </div> */}
           <div className='mt-3 mx-2'>
-            <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
+            {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
             <SideBarItem label='Learn' Icon={BookOpenIcon} />
             <SideBarItem label='Notification' Icon={NotificationIcon} />
             <SideBarItem
@@ -88,7 +88,7 @@ const SideBar = () => {
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
-            </SideBarItem>
+            </SideBarItem> */}
             <SideBarItem
               label='Collocation'
               Icon={CollocationIcon}
@@ -106,15 +106,15 @@ const SideBar = () => {
               />
               <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' />
             </SideBarItem>
-            <SideBarItem label='Sites' Icon={SiteIcon} />
-            <SideBarItem label='Other tools' Icon={GridIcon} />
+            {/* <SideBarItem label='Sites' Icon={SiteIcon} />
+            <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
-        <AnnouncementCard />
+        {/* <AnnouncementCard />
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />
-        </div>
+        </div> */}
       </div>
       <div
         className='lg:hidden fixed top-5 right-10 z-30'
