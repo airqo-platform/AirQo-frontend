@@ -8,6 +8,7 @@ import 'air_quality_reading.dart';
 part 'location_history.g.dart';
 
 @JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class LocationHistory extends Equatable {
   factory LocationHistory.fromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -37,8 +38,10 @@ class LocationHistory extends Equatable {
     this.airQualityReading,
   });
 
+  @JsonKey(name: "place_id")
   final String placeId;
 
+  @JsonKey(name: "site_id")
   final String site;
 
   final String name;
@@ -49,6 +52,7 @@ class LocationHistory extends Equatable {
 
   final double longitude;
 
+  @JsonKey(name: "date_time")
   final DateTime dateTime;
 
   @JsonKey(
@@ -97,7 +101,7 @@ class LocationHistory extends Equatable {
   }
 
   @override
-  List<Object?> get props => [name, location];
+  List<Object?> get props => [placeId];
 }
 
 @JsonSerializable(explicitToJson: true)

@@ -8,24 +8,24 @@ part of 'location_history.dart';
 
 LocationHistory _$LocationHistoryFromJson(Map<String, dynamic> json) =>
     LocationHistory(
-      placeId: json['placeId'] as String,
-      site: json['site'] as String,
+      placeId: json['place_id'] as String,
+      site: json['site_id'] as String,
       name: json['name'] as String,
       location: json['location'] as String,
-      dateTime: DateTime.parse(json['dateTime'] as String),
+      dateTime: DateTime.parse(json['date_time'] as String),
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$LocationHistoryToJson(LocationHistory instance) =>
     <String, dynamic>{
-      'placeId': instance.placeId,
-      'site': instance.site,
+      'place_id': instance.placeId,
+      'site_id': instance.site,
       'name': instance.name,
       'location': instance.location,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'dateTime': instance.dateTime.toIso8601String(),
+      'date_time': instance.dateTime.toIso8601String(),
     };
 
 LocationHistoryList _$LocationHistoryListFromJson(Map<String, dynamic> json) =>

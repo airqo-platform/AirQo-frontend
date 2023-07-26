@@ -33,9 +33,6 @@ class Config {
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
-  static String get usersLocationHistoryCollection =>
-      dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
-
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
   static String get usersKyaCollection =>

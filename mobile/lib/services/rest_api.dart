@@ -243,6 +243,75 @@ class AirqoApiClient {
     return null;
   }
 
+  Future<List<LocationHistory>> fetchLocationHistory(String userId) async {
+    final locationHistory = <LocationHistory>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.locationHistory}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final favorite in body['location-history'] as List<dynamic>) {
+        try {
+          locationHistory.add(
+            LocationHistory.fromJson(
+              favorite as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return locationHistory;
+  }
+
+  Future<bool> syncLocationHistory(
+    List<LocationHistory> historyList,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          historyList.map((e) => e.toJson()).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.locationHistory}/syncLocationHistory/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'location_history': body}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<EmailAuthModel?> sendEmailReAuthenticationCode(
     String emailAddress,
   ) async {
