@@ -25,6 +25,8 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
               extra_message={item.extra_message}
               status={item.status}
               title={item.title}
+              batchId={batchId}
+              type={item.type}
               handleReportClick={() => {
                 router.push({
                   pathname: `/analytics/collocation/reports/${deviceName}`,

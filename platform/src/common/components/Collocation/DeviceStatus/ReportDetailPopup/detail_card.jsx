@@ -15,7 +15,8 @@ const DetailCard = ({
   description,
   extra_message,
   status,
-  title,
+  batchId,
+  type,
   handleReportClick,
 }) => {
   const [openThresholdResetForm, setOpenThresholdResetForm] = useState(false);
@@ -52,7 +53,11 @@ const DetailCard = ({
         </div>
       </div>
       {openThresholdResetForm && (
-        <ResetThreshold title={title} closeForm={() => setOpenThresholdResetForm(false)} />
+        <ResetThreshold
+          batchId={batchId}
+          type={type}
+          closeForm={() => setOpenThresholdResetForm(false)}
+        />
       )}
     </div>
   );
