@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { isEmpty } from 'underscore';
 
 const initialState = {
   selectedCollocateDevices: [],
@@ -6,10 +7,10 @@ const initialState = {
   startDate: null,
   endDate: null,
   scheduledBatchName: '',
-  scheduledBatchDataCompletenessThreshold: 0,
-  scheduledBatchInterCorrelationThreshold: 0,
-  scheduledBatchIntraCorrelationThreshold: 0,
-  scheduledBatchDifferencesThreshold: 0,
+  scheduledBatchDataCompletenessThreshold: 0.8,
+  scheduledBatchInterCorrelationThreshold: 0.98,
+  scheduledBatchIntraCorrelationThreshold: 0.98,
+  scheduledBatchDifferencesThreshold: 5,
 };
 
 const selectedCollocateDevicesSlice = createSlice({
@@ -49,16 +50,24 @@ const selectedCollocateDevicesSlice = createSlice({
       state.scheduledBatchName = action.payload;
     },
     addScheduledBatchDataCompletenessThreshold: (state, action) => {
-      state.scheduledBatchDataCompletenessThreshold = parseFloat(action.payload);
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchDataCompletenessThreshold = parseFloat(action.payload);
+      }
     },
     addScheduledBatchInterCorrelationThreshold: (state, action) => {
-      state.scheduledBatchInterCorrelationThreshold = parseFloat(action.payload);
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchInterCorrelationThreshold = parseFloat(action.payload);
+      }
     },
     addScheduledBatchIntraCorrelationThreshold: (state, action) => {
-      state.scheduledBatchIntraCorrelationThreshold = parseFloat(action.payload);
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchIntraCorrelationThreshold = parseFloat(action.payload);
+      }
     },
     addScheduledBatchDifferencesThreshold: (state, action) => {
-      state.scheduledBatchDifferencesThreshold = parseFloat(action.payload);
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchDifferencesThreshold = action.payload;
+      }
     },
   },
 });
