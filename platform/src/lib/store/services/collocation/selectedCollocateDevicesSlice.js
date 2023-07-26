@@ -5,6 +5,11 @@ const initialState = {
   isLoading: false,
   startDate: null,
   endDate: null,
+  scheduledBatchName: '',
+  scheduledBatchDataCompletenessThreshold: 0,
+  scheduledBatchInterCorrelationThreshold: 0,
+  scheduledBatchIntraCorrelationThreshold: 0,
+  scheduledBatchDifferencesThreshold: 0,
 };
 
 const selectedCollocateDevicesSlice = createSlice({
@@ -40,10 +45,35 @@ const selectedCollocateDevicesSlice = createSlice({
     addEndDate: (state, action) => {
       state.endDate = action.payload;
     },
+    addScheduledBatchName: (state, action) => {
+      state.scheduledBatchName = action.payload;
+    },
+    addScheduledBatchDataCompletenessThreshold: (state, action) => {
+      state.scheduledBatchDataCompletenessThreshold = parseFloat(action.payload);
+    },
+    addScheduledBatchInterCorrelationThreshold: (state, action) => {
+      state.scheduledBatchInterCorrelationThreshold = parseFloat(action.payload);
+    },
+    addScheduledBatchIntraCorrelationThreshold: (state, action) => {
+      state.scheduledBatchIntraCorrelationThreshold = parseFloat(action.payload);
+    },
+    addScheduledBatchDifferencesThreshold: (state, action) => {
+      state.scheduledBatchDifferencesThreshold = parseFloat(action.payload);
+    },
   },
 });
 
-export const { addDevices, removeDevices, addDevice, addStartDate, addEndDate } =
-  selectedCollocateDevicesSlice.actions;
+export const {
+  addDevices,
+  removeDevices,
+  addDevice,
+  addStartDate,
+  addEndDate,
+  addScheduledBatchName,
+  addScheduledBatchDataCompletenessThreshold,
+  addScheduledBatchDifferencesThreshold,
+  addScheduledBatchInterCorrelationThreshold,
+  addScheduledBatchIntraCorrelationThreshold,
+} = selectedCollocateDevicesSlice.actions;
 
 export default selectedCollocateDevicesSlice.reducer;

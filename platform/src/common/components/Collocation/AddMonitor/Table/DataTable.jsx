@@ -41,7 +41,8 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
   return (
     <table
       className='border-collapse text-xs text-left w-full mb-6'
-      data-testid='collocation-device-selection-table'>
+      data-testid='collocation-device-selection-table'
+    >
       <thead>
         <tr className='border-b border-b-slate-300 text-black'>
           <th scope='col' className='font-normal w-[61px] pb-3 px-6'>
@@ -55,7 +56,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
             Monitor name
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
-            Date added
+            Last pushed data
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
             Added by
