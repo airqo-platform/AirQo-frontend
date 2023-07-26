@@ -51,7 +51,7 @@ const ResetThreshold = ({ batchId, type, closeModal }) => {
         }, 3000);
       })
       .catch((err) => {
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err && err.response && err.response.data && err.response.data.message);
         setShowErrorToast(true);
         setTimeout(() => {
           setShowErrorToast(false);
