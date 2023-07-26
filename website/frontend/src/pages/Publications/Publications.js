@@ -96,13 +96,14 @@ const PublicationsPage = () => {
           <div className="content">
             {selectedTab === 'Research' ? (
               currentResearch.map((publication) => (
-                <div className="press-cards-lg">
+                <div className="press-cards-lg publication">
                   <div className="card-lg">
                     <CardComponent
                       title={publication.title}
                       authors={publication.authors}
                       link={publication.link}
                       linkTitle={publication.link_title}
+                      downloadLink={publication.resource_file}
                     />
                   </div>
                 </div>
@@ -118,6 +119,7 @@ const PublicationsPage = () => {
                   link={publication.link}
                   linkTitle={publication.link_title}
                   showSecondAuthor={true}
+                  resourceFile={publication.resource_file}
                 />
               ))
             ) : (
@@ -131,6 +133,7 @@ const PublicationsPage = () => {
                   link={guide.link}
                   linkTitle={guide.link_title}
                   showSecondAuthor={false}
+                  resourceFile={guide.resource_file}
                 />
               ))
             ) : (
