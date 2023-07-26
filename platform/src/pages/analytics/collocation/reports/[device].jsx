@@ -17,7 +17,7 @@ import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 
 const Reports = () => {
@@ -114,7 +114,7 @@ const Reports = () => {
   };
 
   return (
-    <AuthenticatedLayout>
+    <Layout>
       <NavigationBreadCrumb navTitle={'Reports'} />
       {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast
@@ -158,7 +158,8 @@ const Reports = () => {
                 console.log('I am an event');
               },
             },
-          ]}>
+          ]}
+        >
           <div className='flex flex-col justify-start w-full' data-testid='intra-correlation-chart'>
             <PollutantDropdown
               pollutantValue={pmConcentration}
@@ -203,8 +204,8 @@ const Reports = () => {
           </div>
         </Box>
       </div>
-    </AuthenticatedLayout>
+    </Layout>
   );
 };
 
-export default withAuth(Reports);
+export default Reports;
