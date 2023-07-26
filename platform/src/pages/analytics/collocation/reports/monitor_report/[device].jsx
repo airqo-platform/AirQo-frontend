@@ -21,7 +21,7 @@ import { isEmpty } from 'underscore';
 import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
 import { generateRandomColors } from '@/core/utils/colors';
-import withAuth from '../../../../../core/utils/protectedRoute';
+import withAuth from '@/core/utils/protectedRoute';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
