@@ -9,7 +9,7 @@ part of 'location_history.dart';
 LocationHistory _$LocationHistoryFromJson(Map<String, dynamic> json) =>
     LocationHistory(
       placeId: json['place_id'] as String,
-      site: json['site_id'] as String,
+      site: json['reference_site'] as String,
       name: json['name'] as String,
       location: json['location'] as String,
       dateTime: DateTime.parse(json['date_time'] as String),
@@ -20,7 +20,7 @@ LocationHistory _$LocationHistoryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$LocationHistoryToJson(LocationHistory instance) =>
     <String, dynamic>{
       'place_id': instance.placeId,
-      'site_id': instance.site,
+      'reference_site': instance.site,
       'name': instance.name,
       'location': instance.location,
       'latitude': instance.latitude,

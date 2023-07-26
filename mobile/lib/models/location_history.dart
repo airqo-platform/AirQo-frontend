@@ -1,5 +1,3 @@
-import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -41,7 +39,7 @@ class LocationHistory extends Equatable {
   @JsonKey(name: "place_id")
   final String placeId;
 
-  @JsonKey(name: "site_id")
+  @JsonKey(name: "reference_site")
   final String site;
 
   final String name;
@@ -80,25 +78,6 @@ class LocationHistory extends Equatable {
   }
 
   Map<String, dynamic> toJson() => _$LocationHistoryToJson(this);
-
-  static LocationHistory? parseAnalytics(Map<String, dynamic> jsonBody) {
-    try {
-      return LocationHistory.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-
-      return null;
-    }
-  }
-
-  static List<LocationHistory> fromAirQualityReadings() {
-    return HiveService()
-        .getAirQualityReadings()
-        .map((airQualityReading) => LocationHistory.fromAirQualityReading(
-              airQualityReading,
-            ))
-        .toList();
-  }
 
   @override
   List<Object?> get props => [placeId];
