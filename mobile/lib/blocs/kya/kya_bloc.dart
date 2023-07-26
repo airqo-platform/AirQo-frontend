@@ -51,7 +51,10 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     kyaLessons.add(kyaLesson);
     emit(state.copyWith(lessons: kyaLessons.toList()));
     if (event.updateRemote) {
-      await AirqoApiClient().syncKyaProgress(kyaLessons.toList());
+      final userId = CustomAuth.getUserId();
+      if ((userId.isNotEmpty)) {
+        await AirqoApiClient().syncKyaProgress(kyaLessons.toList(), userId);
+      }
     }
   }
 

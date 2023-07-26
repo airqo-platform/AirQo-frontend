@@ -187,7 +187,8 @@ class KyaCardWidget extends StatelessWidget {
                 const Spacer(),
                 KyaMessageChip(kyaLesson),
                 Visibility(
-                  visible: kyaLesson.status == KyaLessonStatus.inProgress,
+                  visible: kyaLesson.status != KyaLessonStatus.todo &&
+                      kyaLesson.activeTask != 1,
                   child: KyaLessonProgressBar(kyaLesson),
                 ),
               ],

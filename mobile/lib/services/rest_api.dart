@@ -343,12 +343,10 @@ class AirqoApiClient {
     return lessons;
   }
 
-  Future<bool> syncKyaProgress(List<KyaLesson> kyaLessons) async {
-    final userId = CustomAuth.getUserId();
-    if ((userId.isEmpty)) {
-      return false;
-    }
-
+  Future<bool> syncKyaProgress(
+    List<KyaLesson> kyaLessons,
+    String userId,
+  ) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.deviceRegistry.serviceName;

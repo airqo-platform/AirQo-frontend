@@ -34,6 +34,18 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    context.read<KyaBloc>().add(
+          UpdateKyaProgress(
+            widget.kyaLesson.copyWith(
+              activeTask: 1,
+            ),
+          ),
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.appBodyColor,
@@ -196,11 +208,23 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   Future<void> _onEnd() async {
-    KyaLesson kyaLesson = context
-        .read<KyaBloc>()
-        .state
-        .lessons
-        .firstWhere((element) => element == widget.kyaLesson);
+    KyaLesson kyaLesson = context.read<KyaBloc>().state.lessons.firstWhere(
+          (element) => element == widget.kyaLesson,
+        );
+    if (kyaLesson.status == KyaLessonStatus.complete) {
+      context.read<KyaBloc>().add(
+            UpdateKyaProgress(
+              kyaLesson.copyWith(
+                activeTask: 1,
+                status: KyaLessonStatus.complete,
+              ),
+              updateRemote: true,
+            ),
+          );
+      await popNavigation(context);
+
+      return;
+    }
     await Navigator.pushReplacement(
       context,
       MaterialPageRoute(
