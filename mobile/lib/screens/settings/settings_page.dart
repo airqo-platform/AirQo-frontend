@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
@@ -44,7 +45,7 @@ class _SettingsPageState extends State<SettingsPage>
     final Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: const AppTopBar('Settings'),
+      appBar: AppTopBar(AppLocalizations.of(context)?.settings ?? ""),
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
@@ -82,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage>
                           tileColor: Colors.white,
                           shape: topBorder,
                           title: Text(
-                            'Location',
+                            AppLocalizations.of(context)?.location as String  ?? "",
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -105,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ListTile(
                           tileColor: Colors.white,
                           title: Text(
-                            'Notification',
+                            AppLocalizations.of(context)?.nortification  as String?? "",
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -147,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage>
                         showcaseKey: _appTourShowcaseKey,
                         descriptionHeight: screenSize.height * 0.1,
                         description:
-                            "You can always restart the App Tour from here anytime.",
+                            AppLocalizations.of(context)?.restartTour ?? "",
                         child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
@@ -171,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage>
                               });
                             },
                             title: Text(
-                              'Take a tour of the App',
+                              AppLocalizations.of(context)?.takeTour ?? "",
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
@@ -196,7 +197,7 @@ class _SettingsPageState extends State<SettingsPage>
                             });
                           },
                           title: Text(
-                            'Rate the AirQo App',
+                            AppLocalizations.of(context)?.rateAirQoApp ?? "",
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -220,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage>
                             );
                           },
                           title: Text(
-                            'About',
+                            AppLocalizations.of(context)?.about ?? "",
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -346,7 +347,7 @@ class DeleteAccountButton extends StatelessWidget {
                 if (emailAuthModel == null) {
                   showSnackBar(
                     context,
-                    "Can't delete account now. Try again later",
+                    AppLocalizations.of(context)?.unableDeleteAccount ?? "",
                   );
 
                   return;

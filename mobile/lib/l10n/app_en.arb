@@ -1,0 +1,12 @@
+{
+    "about": "About",
+    "unableDeleteAccount": "Can't delete account now. Try again later",
+    "location": "Location",
+    "nortification": "Nortification",
+    "rateAirQoApp": "Rate the AirQo App",
+    "select_Language": "Select Language",
+    "send_Feedback": "Send feedback",
+    "settings": "Settings",
+    "takeTour": "Take a tour of the App",
+    "restartTour": "You can always restart the App Tour from here anytime."
+  }

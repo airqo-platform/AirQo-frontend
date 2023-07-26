@@ -1,0 +1,12 @@
+{
+  "about": "À propos",
+  "unableDeleteAccount": "Impossible de supprimer le compte maintenant. Réessayez plus tard",
+  "location": "emplacement",
+  "nortification": "notification",
+  "rateAirQoApp": "Évaluez l'application AirQo",
+  "select_Language": "Choisir la langue",
+  "send_Feedback": "Envoyer des commentaires",
+  "settings": "Paramètres",
+  "takeTour": "Faites le tour de l'application",
+  "restartTour": "Vous pouvez toujours redémarrer l'App Tour à partir d'ici à tout moment."
+}
