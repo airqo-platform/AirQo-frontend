@@ -15,9 +15,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
+  Map<String, dynamic> params = queryParams;
+  params.remove("TOKEN");
   String formattedUrl = '$url?TOKEN=${Config.airqoApiV2Token}';
-  queryParams
-      .forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
+  params.forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
 
   return formattedUrl;
 }
@@ -250,8 +251,6 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
-      String url = addQueryParameters({}, AirQoUrls.emailReAuthentication);
-
       final response = await client.post(
         Uri.parse(
           "${AirQoUrls.emailReAuthentication}/mobileAccountDelete?TOKEN=${Config.airqoApiV2Token}",
@@ -312,6 +311,66 @@ class AirqoApiClient {
     }
 
     return airQualityReadings.removeInvalidData();
+  }
+
+  Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
+    final lessons = <KyaLesson>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+    String url = "${AirQoUrls.kya}/lessons/users/$userId";
+    if (userId.isEmpty) {
+      url = "${AirQoUrls.kya}/lessons";
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        url,
+        apiService: ApiService.deviceRegistry,
+      );
+
+      for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
+        KyaLesson apiKya = KyaLesson.fromJson(kya as Map<String, dynamic>);
+        lessons.add(apiKya);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return lessons;
+  }
+
+  Future<bool> syncKyaProgress(
+    List<KyaLesson> kyaLessons,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.deviceRegistry.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.kya}/sync/$userId",
+        ),
+        headers: headers,
+        body: jsonEncode({
+          'kya_user_progress': kyaLessons.map((e) => e.toJson()).toList(),
+        }),
+      );
+      final responseBody = json.decode(response.body);
+
+      return responseBody['success'] as bool;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
   }
 
   Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {

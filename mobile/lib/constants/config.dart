@@ -28,8 +28,6 @@ class Config {
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
 
-  static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
-
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
@@ -37,9 +35,6 @@ class Config {
       dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
 
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
-
-  static String get usersKyaCollection =>
-      dotenv.env['USERS_KYA_COLLECTION'] ?? '';
 
   static String get usersProfilePictureStorage =>
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
