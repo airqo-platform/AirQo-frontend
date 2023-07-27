@@ -255,11 +255,11 @@ class AirqoApiClient {
         apiService: ApiService.auth,
       );
 
-      for (final favorite in body['location-history'] as List<dynamic>) {
+      for (final history in body['location_histories'] as List<dynamic>) {
         try {
           locationHistory.add(
             LocationHistory.fromJson(
-              favorite as Map<String, dynamic>,
+              history as Map<String, dynamic>,
             ),
           );
         } catch (exception, stackTrace) {
@@ -268,7 +268,7 @@ class AirqoApiClient {
             stackTrace,
           );
         }
-      }
+      }  
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -298,7 +298,7 @@ class AirqoApiClient {
       final response = await client.post(
         Uri.parse(url),
         headers: headers,
-        body: jsonEncode({'location_history': body}),
+        body: jsonEncode({'location_histories': body}),
       );
 
       return response.statusCode == 200;

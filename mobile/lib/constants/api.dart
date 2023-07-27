@@ -28,7 +28,7 @@ class AirQoUrls {
   static String get favourites => '${Config.airqoApi}/v2/users/favorites';
 
   static String get locationHistory =>
-      '${Config.airqoApi}/v2/users/location-history';
+      '${Config.airqoApi}/v2/users/locationHistory';
 }
 
 enum ApiService {
