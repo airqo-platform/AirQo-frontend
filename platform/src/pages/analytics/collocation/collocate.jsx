@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import BoxedAddIcon from '@/icons/Actions/addBoxed.svg';
 import UploadIcon from '@/icons/Actions/upload.svg';
 import Button from '@/components/Button';
@@ -18,6 +17,8 @@ import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
+import Layout from '@/components/Layout';
+import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -32,7 +33,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async (c
   };
 });
 
-const collocate = () => {
+const Collocate = () => {
   const {
     data: data,
     isLoading,
@@ -84,7 +85,7 @@ const collocate = () => {
                 className={
                   'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium text-sm'
                 }
-                path='/collocation/add_monitor'
+                path='/analytics/collocation/add_monitor'
               >
                 <div className='mr-[10px]'>
                   <BoxedAddIcon />
@@ -119,21 +120,6 @@ const collocate = () => {
                   isLoading={isLoading}
                 />
               </Tab>
-              <Tab label='Overdue'>
-                <Table
-                  collocationDevices={filterDevicesByStatus('OVERDUE')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label='Re-run required'>
-                <Table
-                  collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label='Error'>
-                <Table collocationDevices={filterDevicesByStatus('ERROR')} isLoading={isLoading} />
-              </Tab>
             </Tabs>
           </div>
         ) : (
@@ -144,4 +130,4 @@ const collocate = () => {
   );
 };
 
-export default collocate;
+export default Collocate;

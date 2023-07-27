@@ -40,6 +40,9 @@ import { scheduleExportDataApi } from '../../apis/analytics';
 import ExportDataBreadCrumb from './components/BreadCrumb';
 import CloseIcon from '@material-ui/icons/Close';
 
+// tutorial tooltip
+import Tutorial from 'views/components/TutorialTooltip/Tutorial';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4)
@@ -243,8 +246,7 @@ const ExportData = (props) => {
         hidden={value !== index}
         id={`data-export-tabpanel-${index}`}
         aria-labelledby={`data-export-tab-${index}`}
-        {...other}
-      >
+        {...other}>
         {value === index && <div sx={{ p: 3 }}>{children}</div>}
       </div>
     );
@@ -590,8 +592,38 @@ const ExportData = (props) => {
       });
   };
 
+  // tooltip
+  const FieldRef1 = React.useRef(null);
+  const FieldRef2 = React.useRef(null);
+  const FieldRef3 = React.useRef(null);
+
+  // this is an array of the title and description for the features to be explained
+  const steps = [
+    {
+      title: 'Date Field',
+      description:
+        'Use this field to select a date for your data. Click the calendar icon and choose a date from the pop-up calendar.'
+    },
+    {
+      title: 'Export Options',
+      description:
+        'Download your data using the schedule option. This is useful for large time spans (more than a month). Avoid delays and have your data ready for download when processed.'
+    }
+  ];
+
+  const classNames = ['step-1', 'step-2'];
+
   return (
     <ErrorBoundary>
+      <Tutorial
+        classNames={classNames}
+        steps={steps}
+        overlay={false}
+        textBoxColor="#fff"
+        textColor="#000"
+        tutorialId="ExportData"
+      />
+
       <div className={classes.root}>
         <ExportDataBreadCrumb title="Export Options" paddingBottom={'5px'} />
         <Box
@@ -599,8 +631,7 @@ const ExportData = (props) => {
           paddingBottom={'12px'}
           color={'grey.700'}
           fontSize={'14px'}
-          fontWeight={300}
-        >
+          fontWeight={300}>
           Customize the data you want to download. We recommend scheduling your downloads for bulky
           data/time periods greater than a month to avoid timeouts.
         </Box>
@@ -610,8 +641,9 @@ const ExportData = (props) => {
             <Card
               {...rest}
               className={clsx(classes.root, className)}
-              style={{ overflow: 'visible' }}
-            >
+              style={{
+                overflow: 'visible'
+              }}>
               <Tabs
                 value={value}
                 onChange={handleChangeTabPanel}
@@ -622,8 +654,7 @@ const ExportData = (props) => {
                 classes={{
                   root: classes.tabs, // Apply custom styles to the root element
                   indicator: classes.indicator // Apply custom styles to the indicator element
-                }}
-              >
+                }}>
                 <Tab disableTouchRipple label="Export by Sites" {...a11yProps(0)} />
                 <Tab disableTouchRipple label="Export by Devices" {...a11yProps(1)} />
                 <Tab disableTouchRipple label="Export by AirQlouds" {...a11yProps(2)} />
@@ -637,7 +668,7 @@ const ExportData = (props) => {
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="Start Date"
-                          className="reactSelect"
+                          className="step-1"
                           fullWidth
                           variant="outlined"
                           value={startDate}
@@ -646,11 +677,9 @@ const ExportData = (props) => {
                           onChange={(event) => setStartDate(event.target.value)}
                         />
                       </Grid>
-
                       <Grid item md={6} xs={12}>
                         <TextField
                           label="End Date"
-                          className="reactSelect"
                           fullWidth
                           variant="outlined"
                           value={endDate}
@@ -663,7 +692,6 @@ const ExportData = (props) => {
                       <Grid item md={6} xs={12}>
                         <Select
                           fullWidth
-                          className="reactSelect"
                           name="location"
                           placeholder="Select Site(s)"
                           value={selectedSites}
@@ -680,7 +708,6 @@ const ExportData = (props) => {
                         <Select
                           fullWidth
                           label="Frequency"
-                          className=""
                           name="chart-frequency"
                           placeholder="Frequency"
                           value={frequency}
@@ -744,14 +771,13 @@ const ExportData = (props) => {
 
                   <Divider />
                   <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
+                    <Box display="flex" justifyContent="center" width="100%" className="step-2">
                       <Button
                         color="primary"
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('sites')}
-                      >
+                        disabled={disableDownloadBtn('sites')}>
                         {' '}
                         Download Data
                       </Button>
@@ -759,8 +785,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('sites')}
-                      >
+                        disabled={disableDownloadBtn('sites')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -890,8 +915,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('devices')}
-                      >
+                        disabled={disableDownloadBtn('devices')}>
                         {' '}
                         Download Data
                       </Button>
@@ -899,8 +923,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('devices')}
-                      >
+                        disabled={disableDownloadBtn('devices')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1029,8 +1052,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('airqlouds')}
-                      >
+                        disabled={disableDownloadBtn('airqlouds')}>
                         {' '}
                         Download Data
                       </Button>
@@ -1038,8 +1060,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('airqlouds')}
-                      >
+                        disabled={disableDownloadBtn('airqlouds')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1168,8 +1189,7 @@ const ExportData = (props) => {
                         variant="outlined"
                         type="submit"
                         style={{ marginRight: '15px' }}
-                        disabled={disableDownloadBtn('regions')}
-                      >
+                        disabled={disableDownloadBtn('regions')}>
                         {' '}
                         Download Data
                       </Button>
@@ -1177,8 +1197,7 @@ const ExportData = (props) => {
                         color="primary"
                         variant="outlined"
                         onClick={scheduleExportData}
-                        disabled={disableDownloadBtn('regions')}
-                      >
+                        disabled={disableDownloadBtn('regions')}>
                         {' '}
                         Schedule Download
                       </Button>
@@ -1205,8 +1224,7 @@ const ExportData = (props) => {
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={handleClickSnackbar}
-              >
+                onClick={handleClickSnackbar}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </React.Fragment>

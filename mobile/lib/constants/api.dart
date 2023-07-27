@@ -26,6 +26,8 @@ class AirQoUrls {
       '${Config.airqoApi}/v1/meta-data/mobile-carrier';
 
   static String get favourites => '${Config.airqoApi}/v2/users/favorites';
+
+  static String get kya => '${Config.airqoApi}/v2/devices/kya';
 }
 
 enum ApiService {

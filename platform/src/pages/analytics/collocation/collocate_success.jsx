@@ -3,6 +3,7 @@ import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import Link from 'next/link';
 import ContentLessTopBar from '@/components/TopBar/content_less_header';
 import Button from '@/components/Button';
+import withAuth from '@/core/utils/protectedRoute';
 
 const CollocationSuccess = () => {
   return (
@@ -18,7 +19,7 @@ const CollocationSuccess = () => {
                 You’ve successfully scheduled your first device for collocation
               </p>
               <Button
-                path='/collocation/collocate'
+                path='/analytics/collocation/collocate'
                 className='text-blue-900 text-xl cursor-pointer'
                 dataTestId='collocation-view-device-status-button'
               >

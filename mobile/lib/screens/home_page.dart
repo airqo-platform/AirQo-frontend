@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<MapBloc>().add(const InitializeMapState());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -208,6 +208,18 @@ class _HomePageState extends State<HomePage> {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);
             });
+          } else {
+            await displayRatingDialog(context).then((showDialog) async {
+              if (showDialog) {
+                await showRatingDialog(context);
+              }
+            });
+          }
+        });
+      } else {
+        await displayRatingDialog(context).then((showDialog) async {
+          if (showDialog) {
+            await showRatingDialog(context);
           }
         });
       }

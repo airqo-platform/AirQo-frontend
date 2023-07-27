@@ -6,60 +6,48 @@ part of 'kya.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
-      title: json['title'] as String,
-      imageUrl: json['imageUrl'] as String,
-      id: json['id'] as String,
-      lessons: (json['lessons'] as List<dynamic>)
-          .map((e) => KyaLesson.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      progress: (json['progress'] as num?)?.toDouble() ?? 0,
-      completionMessage: json['completionMessage'] as String? ??
-          'You just finished your first Know You Air Lesson',
-      secondaryImageUrl: json['secondaryImageUrl'] as String? ?? '',
-      shareLink: json['shareLink'] as String? ?? '',
-    );
-
-Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
-      'title': instance.title,
-      'completionMessage': instance.completionMessage,
-      'imageUrl': instance.imageUrl,
-      'secondaryImageUrl': instance.secondaryImageUrl,
-      'id': instance.id,
-      'lessons': instance.lessons.map((e) => e.toJson()).toList(),
-      'progress': instance.progress,
-      'shareLink': instance.shareLink,
-    };
-
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
       title: json['title'] as String,
-      imageUrl: json['imageUrl'] as String,
-      body: json['body'] as String,
+      imageUrl: json['image'] as String,
+      id: json['_id'] as String,
+      tasks: (json['tasks'] as List<dynamic>)
+          .map((e) => KyaTask.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      activeTask: json['active_task'] as int? ?? 1,
+      status: $enumDecodeNullable(_$KyaLessonStatusEnumMap, json['status']) ??
+          KyaLessonStatus.todo,
+      completionMessage: json['completion_message'] as String,
+      shareLink: json['share_link'] as String? ?? '',
     );
 
 Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
       'title': instance.title,
-      'imageUrl': instance.imageUrl,
-      'body': instance.body,
+      'completion_message': instance.completionMessage,
+      'image': instance.imageUrl,
+      '_id': instance.id,
+      'tasks': instance.tasks.map((e) => e.toJson()).toList(),
+      'active_task': instance.activeTask,
+      'status': _$KyaLessonStatusEnumMap[instance.status]!,
+      'share_link': instance.shareLink,
     };
 
-KyaProgress _$KyaProgressFromJson(Map<String, dynamic> json) => KyaProgress(
-      id: json['id'] as String,
-      progress: (json['progress'] as num).toDouble(),
+const _$KyaLessonStatusEnumMap = {
+  KyaLessonStatus.todo: 'TODO',
+  KyaLessonStatus.inProgress: 'IN_PROGRESS',
+  KyaLessonStatus.pendingCompletion: 'PENDING_COMPLETION',
+  KyaLessonStatus.complete: 'COMPLETE',
+};
+
+KyaTask _$KyaTaskFromJson(Map<String, dynamic> json) => KyaTask(
+      id: json['_id'] as String,
+      title: json['title'] as String,
+      imageUrl: json['image'] as String,
+      content: json['content'] as String,
     );
 
-Map<String, dynamic> _$KyaProgressToJson(KyaProgress instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'progress': instance.progress,
-    };
-
-KyaList _$KyaListFromJson(Map<String, dynamic> json) => KyaList(
-      data: (json['data'] as List<dynamic>)
-          .map((e) => Kya.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$KyaListToJson(KyaList instance) => <String, dynamic>{
-      'data': instance.data.map((e) => e.toJson()).toList(),
+Map<String, dynamic> _$KyaTaskToJson(KyaTask instance) => <String, dynamic>{
+      '_id': instance.id,
+      'title': instance.title,
+      'image': instance.imageUrl,
+      'content': instance.content,
     };
