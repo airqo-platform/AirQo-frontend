@@ -195,27 +195,17 @@ extension SearchHistoryListExt on List<SearchHistory> {
     });
   }
 
-  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
-    List<AirQualityReading> airQualityReadings = [];
+  Future<List<SearchHistory>> attachedAirQualityReadings() async {
+    List<SearchHistory> history = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
           await LocationService.getNearestSite(
         searchHistory.latitude,
         searchHistory.longitude,
       );
-      if (airQualityReading != null) {
-        airQualityReadings.add(airQualityReading.copyWith(
-          name: searchHistory.name,
-          location: searchHistory.location,
-          latitude: searchHistory.latitude,
-          longitude: searchHistory.longitude,
-          placeId: searchHistory.placeId,
-          dateTime: searchHistory.dateTime,
-        ));
-      }
+      history.add(searchHistory.copyWith(airQualityReading: airQualityReading));
     }
-
-    return airQualityReadings;
+    return history;
   }
 }
 

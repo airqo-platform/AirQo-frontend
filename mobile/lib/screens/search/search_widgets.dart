@@ -501,7 +501,7 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
 
       return;
     }
-
+    context.read<SearchHistoryBloc>().add(AddSearchHistory(airQualityReading));
     await navigateToInsights(context, airQualityReading);
   }
 

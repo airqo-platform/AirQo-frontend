@@ -1,6 +1,5 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +10,8 @@ Future<bool> displayRatingDialog(BuildContext context) async {
     return false;
   }
 
-  List<SearchHistory> searchHistory = HiveService().getSearchHistory();
+  List<SearchHistory> searchHistory =
+      context.read<SearchHistoryBloc>().state.history;
   if (searchHistory.length >= 5) {
     return true;
   }

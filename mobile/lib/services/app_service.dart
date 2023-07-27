@@ -25,7 +25,7 @@ class AppService {
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
-    context.read<SearchBloc>().add(const ClearSearchHistory());
+    context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     Profile profile = context.read<ProfileBloc>().state;
     await CloudAnalytics.logSignInEvents(profile);
   }
@@ -38,7 +38,7 @@ class AppService {
     context.read<KyaBloc>().add(const ClearKya());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
-    context.read<SearchBloc>().add(const ClearSearchHistory());
+    context.read<SearchHistoryBloc>().add(const ClearSearchHistory());
     if (log) {
       await CloudAnalytics.logSignOutEvents();
     }

@@ -95,6 +95,9 @@ class AirQoApp extends StatelessWidget {
         BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
         ),
+        BlocProvider(
+          create: (BuildContext context) => SearchHistoryBloc(),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,

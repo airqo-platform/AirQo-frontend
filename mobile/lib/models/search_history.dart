@@ -1,22 +1,26 @@
 import 'package:equatable/equatable.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'air_quality_reading.dart';
-import 'hive_type_id.dart';
 
 part 'search_history.g.dart';
 
-@HiveType(typeId: searchHistoryTypeId)
-class SearchHistory extends HiveObject with EquatableMixin {
-  SearchHistory({
+@JsonSerializable(explicitToJson: true)
+class SearchHistory extends Equatable {
+  const SearchHistory({
     required this.latitude,
     required this.longitude,
     required this.name,
     required this.location,
     required this.dateTime,
     required this.placeId,
+    this.airQualityReading,
   });
+
+  factory SearchHistory.fromJson(Map<String, dynamic> json) =>
+      _$SearchHistoryFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchHistoryToJson(this);
 
   factory SearchHistory.fromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -30,36 +34,46 @@ class SearchHistory extends HiveObject with EquatableMixin {
         placeId: airQualityReading.placeId,
       );
 
-  @HiveField(0)
-  @JsonKey()
+  @JsonKey(name: "place_id")
   final String placeId;
 
-  @HiveField(1)
   @JsonKey()
   final double latitude;
 
-  @HiveField(2)
   @JsonKey()
   final double longitude;
 
-  @HiveField(3)
   @JsonKey()
   final String name;
 
-  @HiveField(4)
   @JsonKey()
   final String location;
 
-  @HiveField(5)
+  @JsonKey(name: "date_time")
   final DateTime dateTime;
 
+  @JsonKey(
+    includeToJson: false,
+    includeFromJson: false,
+    includeIfNull: true,
+    disallowNullValue: false,
+  )
+  final AirQualityReading? airQualityReading;
+
+  SearchHistory copyWith({
+    AirQualityReading? airQualityReading,
+  }) {
+    return SearchHistory(
+      name: name,
+      location: location,
+      placeId: placeId,
+      latitude: latitude,
+      longitude: longitude,
+      airQualityReading: airQualityReading ?? this.airQualityReading,
+      dateTime: dateTime,
+    );
+  }
+
   @override
-  List<Object?> get props => [
-        dateTime,
-        name,
-        location,
-        longitude,
-        latitude,
-        placeId,
-      ];
+  List<Object?> get props => [placeId];
 }
