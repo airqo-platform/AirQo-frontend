@@ -5,7 +5,6 @@ import 'air_quality_reading.dart';
 
 part 'location_history.g.dart';
 
-@JsonSerializable()
 @JsonSerializable(explicitToJson: true)
 class LocationHistory extends Equatable {
   factory LocationHistory.fromAirQualityReading(
