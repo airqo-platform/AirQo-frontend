@@ -22,14 +22,16 @@ class FavouritePlaceCard extends StatelessWidget {
           key: UniqueKey(),
           onDismissed: (dir) {
             ScaffoldMessenger.of(context).removeCurrentSnackBar();
-            if (dir == DismissDirection.endToStart) {
+            if (dir == DismissDirection.endToStart ||
+                dir == DismissDirection.startToEnd) {
               context.read<FavouritePlaceBloc>().add(UpdateFavouritePlace(
                   favouritePlace.copyWith(
                       airQualityReading: airQualityReading)));
             }
           },
           confirmDismiss: (DismissDirection direction) async {
-            if (direction == DismissDirection.endToStart) {
+            if (direction == DismissDirection.endToStart ||
+                direction == DismissDirection.startToEnd) {
               return await showDialog(
                 barrierDismissible: false,
                 context: context,
