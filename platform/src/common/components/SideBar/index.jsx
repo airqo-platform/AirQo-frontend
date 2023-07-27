@@ -105,7 +105,7 @@ const SideBar = () => {
           <AnnouncementCard />
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
-          <SideBarItem label='Settings' Icon={SettingsIcon} />
+          <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings/profiledetails' />
         </div>
       </div>
       <div
