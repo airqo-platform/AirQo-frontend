@@ -26,6 +26,7 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
+  late int lessonIndex;
 
   @override
   void dispose() {
@@ -36,13 +37,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KyaBloc>().add(
-          UpdateKyaProgress(
-            widget.kyaLesson.copyWith(
-              activeTask: 1,
-            ),
-          ),
-        );
+    lessonIndex = widget.kyaLesson.activeTask;
   }
 
   @override
