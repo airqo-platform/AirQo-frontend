@@ -1,5 +1,6 @@
 import React from 'react';
 import ApiSectionImg from "assets/img/ApiSection.png";
+import { Link } from 'react-router-dom';
 
 const ApiSection = () => (
     <div className="Apisection">
@@ -8,7 +9,7 @@ const ApiSection = () => (
             <h1>Amplify air quality impact through our API</h1>
             <p>Are you a developer? We invite you to leverage our open-air quality data on your App </p>
             <div className="Apisection-details-btn">
-                <a href="https://docs.airqo.net/airqo-rest-api-documentation/" target="_blank">Get Started {'-->'}</a>
+                <Link to="/products/api">Get Started {'-->'}</Link>
             </div>
         </div>
         <div className="api-section-img">

@@ -17,7 +17,7 @@ import { removeDevices } from '@/lib/store/services/collocation/selectedCollocat
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -53,6 +53,21 @@ const AddMonitor = () => {
 
   const startDate = useSelector((state) => state.selectedCollocateDevices.startDate);
   const endDate = useSelector((state) => state.selectedCollocateDevices.endDate);
+  const scheduledBatchName = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchName,
+  );
+  const scheduledBatchDataCompletenessThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchDataCompletenessThreshold,
+  );
+  const scheduledBatchInterCorrelationThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchInterCorrelationThreshold,
+  );
+  const scheduledBatchIntraCorrelationThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchIntraCorrelationThreshold,
+  );
+  const scheduledBatchDifferencesThreshold = useSelector(
+    (state) => state.selectedCollocateDevices.scheduledBatchDifferencesThreshold,
+  );
 
   const handleCollocation = async () => {
     setCollocating(true);
@@ -61,6 +76,11 @@ const AddMonitor = () => {
         startDate,
         endDate,
         devices: selectedCollocateDevices,
+        batchName: scheduledBatchName,
+        differencesThreshold: scheduledBatchDifferencesThreshold,
+        dataCompletenessThreshold: scheduledBatchDataCompletenessThreshold,
+        interCorrelationThreshold: scheduledBatchInterCorrelationThreshold,
+        intraCorrelationThreshold: scheduledBatchIntraCorrelationThreshold,
       };
 
       const response = await collocateDevices(body);
@@ -74,7 +94,7 @@ const AddMonitor = () => {
   };
 
   return (
-    <AuthenticatedLayout>
+    <Layout>
       {(isFetchRunningDevicesError || isCollocateDeviceError) && (
         <Toast
           type={'error'}
@@ -101,7 +121,11 @@ const AddMonitor = () => {
               )} */}
               <Button
                 className={`rounded-none text-white bg-blue-900 border border-blue-900 font-medium ${
-                  selectedCollocateDevices.length > 0 && endDate && startDate && !isCollocating
+                  selectedCollocateDevices.length > 0 &&
+                  endDate &&
+                  startDate &&
+                  scheduledBatchName &&
+                  !isCollocating
                     ? 'cursor-pointer'
                     : 'opacity-40 cursor-not-allowed'
                 }`}
@@ -122,8 +146,8 @@ const AddMonitor = () => {
           </ContentBox>
         </>
       )}
-    </AuthenticatedLayout>
+    </Layout>
   );
 };
 
-export default withAuth(AddMonitor);
+export default AddMonitor;

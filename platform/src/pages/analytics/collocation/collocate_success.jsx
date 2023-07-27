@@ -33,4 +33,4 @@ const CollocationSuccess = () => {
   );
 };
 
-export default withAuth(CollocationSuccess);
+export default CollocationSuccess;

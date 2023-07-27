@@ -14,25 +14,29 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KyaBloc, List<Kya>>(
+    return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
-        if (state.isEmpty) {
+        if (state.lessons.isEmpty) {
           return NoKyaWidget(
             callBack: () {
-              context.read<KyaBloc>().add(const SyncKya());
+              context.read<KyaBloc>().add(const FetchKya());
             },
           );
         }
-        final completeKya = state.filterComplete();
-        if (completeKya.isEmpty) {
-          final inCompleteKya = state.filterInProgressKya();
+        final completeKya = state.lessons
+            .where((lesson) => lesson.status == KyaLessonStatus.complete)
+            .take(3)
+            .toList();
 
+        if (completeKya.isEmpty) {
+          List<KyaLesson> inCompleteLessons =
+              state.lessons.filterInCompleteLessons();
           return NoCompleteKyaWidget(
             callBack: () async {
-              if (inCompleteKya.isEmpty) {
+              if (inCompleteLessons.isEmpty) {
                 showSnackBar(context, 'Oops.. No Lessons at the moment');
               } else {
-                await _startKyaLessons(context, inCompleteKya.first);
+                await _startKyaLessons(context, inCompleteLessons.first);
               }
             },
           );
@@ -65,10 +69,10 @@ class KnowYourAirView extends StatelessWidget {
   }
 
   void _refresh(BuildContext context) {
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
   }
 
-  Future<void> _startKyaLessons(BuildContext context, Kya kya) async {
+  Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
