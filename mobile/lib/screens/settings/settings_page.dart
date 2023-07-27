@@ -83,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage>
                           tileColor: Colors.white,
                           shape: topBorder,
                           title: Text(
-                            AppLocalizations.of(context)?.location as String  ?? "",
+                            AppLocalizations.of(context)?.location as String,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -106,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ListTile(
                           tileColor: Colors.white,
                           title: Text(
-                            AppLocalizations.of(context)?.nortification  as String?? "",
+                            AppLocalizations.of(context)?.nortification  as String,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
