@@ -32,6 +32,7 @@ class SearchHistoryBloc
     history.add(SearchHistory.fromAirQualityReading(event.airQualityReading));
     history = history.toSet().toList();
     history = await history.attachedAirQualityReadings();
+    history.sortByDateTime();
     emit(state.copyWith(history: history));
     String userId = CustomAuth.getUserId();
     if (userId.isNotEmpty) {
@@ -56,6 +57,7 @@ class SearchHistoryBloc
     history.addAll(apiSearchHistory);
     history = history.toSet().toList();
     history = await history.attachedAirQualityReadings();
+    history.sortByDateTime();
     emit(state.copyWith(history: history));
     if (userId.isNotEmpty) {
       await apiClient.syncSearchHistory(
@@ -87,6 +89,7 @@ class SearchHistoryBloc
 
   @override
   Map<String, dynamic>? toJson(SearchHistoryState state) {
-    return {"history": state.history.map((e) => e.toJson())};
+    List<dynamic> history = state.history.map((e) => e.toJson()).toList();
+    return {"history": history};
   }
 }
