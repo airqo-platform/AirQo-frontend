@@ -58,7 +58,7 @@ const Press = () => {
                   {sortedArticles.slice(0, numArticlesToShow).map((article, index) => {
                     if (index % 5 === 4) {
                       return (
-                        <div className="press-cards-lg">
+                        <div className="press-cards-lg modulo">
                           <div className="card-lg" style={{ paddingBottom: '0px' }}>
                             <Article
                               key={article.id}

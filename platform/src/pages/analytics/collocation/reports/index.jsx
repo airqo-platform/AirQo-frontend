@@ -3,19 +3,21 @@ import HeaderNav from '@/components/Layout/header';
 import Box from '@/components/Collocation/Report/box';
 import ContentBox from '@/components/Layout/content_box';
 import withAuth from '@/core/utils/protectedRoute';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import Layout from '@/components/Layout';
 
 const CollocationReports = () => {
   return (
-    <AuthenticatedLayout>
+    <Layout>
       <HeaderNav category={'Collocation'} component={'Reports'}></HeaderNav>
       <div className='grid grid-cols-2'>
         <Box
           title={'Intra Sensor Correlation'}
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'></Box>
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+        ></Box>
         <Box
           title={'Inter Sensor Correlation'}
-          subtitle='Detailed comparison of data between two sensors that are located within the same device.'></Box>
+          subtitle='Detailed comparison of data between two sensors that are located within the same device.'
+        ></Box>
       </div>
       <ContentBox>
         <table className='border-collapse text-xs text-left w-full mb-6'>
@@ -49,8 +51,8 @@ const CollocationReports = () => {
           </thead>
         </table>
       </ContentBox>
-    </AuthenticatedLayout>
+    </Layout>
   );
-}
+};
 
-export default withAuth(CollocationReports);
+export default CollocationReports;
