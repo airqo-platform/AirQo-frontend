@@ -24,9 +24,13 @@ class FavouritePlaceCard extends StatelessWidget {
             ScaffoldMessenger.of(context).removeCurrentSnackBar();
             if (dir == DismissDirection.endToStart ||
                 dir == DismissDirection.startToEnd) {
-              context.read<FavouritePlaceBloc>().add(UpdateFavouritePlace(
-                  favouritePlace.copyWith(
-                      airQualityReading: airQualityReading)));
+              context.read<FavouritePlaceBloc>().add(
+                    UpdateFavouritePlace(
+                      favouritePlace.copyWith(
+                        airQualityReading: airQualityReading,
+                      ),
+                    ),
+                  );
             }
           },
           confirmDismiss: (DismissDirection direction) async {
@@ -37,25 +41,62 @@ class FavouritePlaceCard extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return CupertinoAlertDialog(
-                    title: const Text("REMOVE LOCATION",
-                        style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600)),
-                    content: const Text(
-                        "Are you sure you want to remove this location from your favourites?"),
+                    title: Text(
+                      "Confirm",
+                      style: TextStyle(
+                        color: CustomColors.appColorBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    content: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Are you sure you want to remove\n",
+                            style: TextStyle(
+                              color: CustomColors.appColorBlack,
+                            ),
+                          ),
+                          TextSpan(
+                            text: favouritePlace.name,
+                            style: TextStyle(
+                              color: CustomColors.appColorBlack,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: "\nfrom your favorites?",
+                            style: TextStyle(
+                              color: CustomColors.appColorBlack,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     actions: <Widget>[
                       CupertinoDialogAction(
                         onPressed: () {
                           Navigator.of(context).pop(true);
                         },
-                        child: const Text("YES"),
+                        child: Text("Yes",
+                            style: TextStyle(
+                              color: CustomColors.appColorBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            )),
                       ),
                       CupertinoDialogAction(
                         onPressed: () {
                           Navigator.of(context).pop(false);
                         },
-                        child: const Text("NO"),
+                        child: Text("No",
+                            style: TextStyle(
+                              color: CustomColors.appColorBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            )),
                       ),
                     ],
                   );
@@ -65,9 +106,9 @@ class FavouritePlaceCard extends StatelessWidget {
             return null;
           },
           background: SwipeDismissible.defaultBackground(
-            color: Colors.red,
+            color: CustomColors.appColorRed,
             icon: Icons.delete,
-            label: 'Remove',
+            label: 'Remove from favorites',
           ),
           child: InkWell(
             onTap: () async {
