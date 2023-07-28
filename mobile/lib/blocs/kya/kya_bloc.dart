@@ -2,102 +2,69 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'kya_bloc.g.dart';
 part 'kya_event.dart';
+part 'kya_state.dart';
 
-class KyaProgressCubit extends Cubit<double> {
-  KyaProgressCubit() : super(0);
-
-  void updateProgress(double value) => emit(value);
-}
-
-class KyaBloc extends HydratedBloc<KyaEvent, List<Kya>> {
-  KyaBloc() : super([]) {
+class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
+  KyaBloc() : super(const KyaState(lessons: [])) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
-    on<CompleteKya>(_onCompleteKya);
-    on<PartiallyCompleteKya>(_onPartiallyCompleteKya);
     on<ClearKya>(_onClearKya);
-    on<SyncKya>(_onSyncKya);
+    on<FetchKya>(_onFetchKya);
   }
 
-  Future<void> _onSyncKya(
-    SyncKya _,
-    Emitter<List<Kya>> emit,
+  Future<void> _onFetchKya(
+    FetchKya _,
+    Emitter<KyaState> emit,
   ) async {
-    final cloudKya = await CloudStore.getKya();
-    Set<Kya> kya = state.toSet();
-    kya.addAll(cloudKya.toSet());
-
-    emit(kya.toList());
-
-    await CloudStore.updateKya(state);
+    final userId = CustomAuth.getUserId();
+    List<KyaLesson> lessons = await AirqoApiClient().fetchKyaLessons(userId);
+    emit(state.copyWith(lessons: lessons));
   }
 
-  void _onClearKya(ClearKya _, Emitter<List<Kya>> emit) {
-    emit(state.map((e) => e.copyWith(progress: 0)).toList());
-  }
+  Future<void> _onClearKya(ClearKya _, Emitter<KyaState> emit) async {
+    final userId = CustomAuth.getUserId();
+    List<KyaLesson> kyaLessons = await AirqoApiClient().fetchKyaLessons(userId);
+    if (kyaLessons.isEmpty) {
+      kyaLessons = state.lessons
+          .map((e) => e.copyWith(
+                status: KyaLessonStatus.todo,
+                activeTask: 1,
+              ))
+          .toList();
+    }
 
-  Future<void> _onPartiallyCompleteKya(
-    PartiallyCompleteKya event,
-    Emitter<List<Kya>> emit,
-  ) async {
-    Kya kya = event.kya.copyWith(progress: 1);
-    Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await CloudStore.updateKya([kya]);
-  }
-
-  Future<void> _onCompleteKya(
-    CompleteKya event,
-    Emitter<List<Kya>> emit,
-  ) async {
-    Kya kya = event.kya.copyWith(progress: -1);
-    Set<Kya> kyaSet = {kya};
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await hasNetworkConnection().then((hasConnection) {
-      if (hasConnection) {
-        Future.wait([
-          CloudAnalytics.logEvent(CloudAnalyticsEvent.completeOneKYA),
-          CloudStore.updateKya([kya]),
-        ]);
-      }
-    });
+    emit(KyaState(lessons: kyaLessons));
   }
 
   Future<void> _onUpdateKyaProgress(
     UpdateKyaProgress event,
-    Emitter<List<Kya>> emit,
+    Emitter<KyaState> emit,
   ) async {
-    Kya kya = event.kya.copyWith();
-
-    if (kya.isPendingCompletion() || kya.isComplete()) return;
-    int index = event.visibleCardIndex;
-
-    if (index < 0 || (index > kya.lessons.length - 1)) index = 0;
-
-    Set<Kya> kyaSet = {
-      kya.copyWith(progress: kya.getProgress(event.visibleCardIndex)),
-    };
-    kyaSet.addAll(state);
-    emit(kyaSet.toList());
-
-    await CloudStore.updateKya([kya]);
+    KyaLesson kyaLesson = event.kyaLesson;
+    Set<KyaLesson> kyaLessons = state.lessons.toSet();
+    kyaLessons.remove(kyaLesson);
+    kyaLessons.add(kyaLesson);
+    emit(state.copyWith(lessons: kyaLessons.toList()));
+    if (event.updateRemote) {
+      final userId = CustomAuth.getUserId();
+      if ((userId.isNotEmpty)) {
+        await AirqoApiClient().syncKyaProgress(kyaLessons.toList(), userId);
+      }
+    }
   }
 
   @override
-  List<Kya>? fromJson(Map<String, dynamic> json) {
-    return KyaList.fromJson(json).data;
+  KyaState? fromJson(Map<String, dynamic> json) {
+    return KyaState.fromJson(json);
   }
 
   @override
-  Map<String, dynamic>? toJson(List<Kya> state) {
-    return KyaList(data: state).toJson();
+  Map<String, dynamic>? toJson(KyaState state) {
+    return state.toJson();
   }
 }

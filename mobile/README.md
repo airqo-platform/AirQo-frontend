@@ -150,7 +150,7 @@ flutter run --flavor airqo -t lib/main.dart --release
 
 ```bash
 bash upgrade-dependencies.sh
-flutter packages pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 dart fix --dry-run
 dart fix --apply
 dart format lib/
