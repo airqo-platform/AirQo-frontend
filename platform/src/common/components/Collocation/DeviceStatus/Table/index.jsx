@@ -17,7 +17,7 @@ const Table = ({ collocationDevices, isLoading }) => {
 
   useEffect(() => {
     const filterList = collocationDevices.filter((row) =>
-      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase())
+      Object.values(row).join('').toLowerCase().includes(searchTerm.toLowerCase()),
     );
     setFilteredData(filterList);
   }, [searchTerm, collocationDevices]);
@@ -60,24 +60,21 @@ const Table = ({ collocationDevices, isLoading }) => {
 
     setCurrentSortOption(sortOption);
     setCurrentSortOrder(
-      sortOption === currentSortOption && currentSortOrder === 'asc' ? 'desc' : 'asc'
+      sortOption === currentSortOption && currentSortOrder === 'asc' ? 'desc' : 'asc',
     );
     setFilteredData(sortedData);
   };
-  
-  
 
   const sortByDate = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
       const dateA = moment(a.start_date);
       const dateB = moment(b.start_date);
-  
+
       return order === 'asc' ? dateA - dateB : dateB - dateA;
     });
-  
+
     return sortedData;
   };
-
 
   const sortByDeviceName = (data, order) => {
     const sortedData = [...data].sort((a, b) => {
@@ -96,7 +93,7 @@ const Table = ({ collocationDevices, isLoading }) => {
         <div className='flex items-center w-full flex-wrap xl:flex-nowrap'>
           <SearchBar onSearch={handleSearch} />
           <div className='md:flex md:items-center w-full'>
-            <Button
+            {/* <Button
               className={
                 'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium xl:ml-2 mb-2 md:mb-0'
               }
@@ -108,7 +105,7 @@ const Table = ({ collocationDevices, isLoading }) => {
               <span className='ml-1'>
                 <ArrowDropDownIcon />
               </span>{' '}
-            </Button>
+            </Button> */}
             <div className='dropdown md:ml-2'>
               <Button
                 className={
@@ -206,7 +203,7 @@ const Table = ({ collocationDevices, isLoading }) => {
           </div>
         </div>
 
-        <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
+        {/* <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
           <Button
             className={'w-auto h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'}
           >
@@ -215,7 +212,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             </span>
             <span>{'Customize columns'}</span>
           </Button>
-        </div>
+        </div> */}
       </div>
       <div className='overflow-x-scroll md:overflow-x-hidden'>
         <DataTable

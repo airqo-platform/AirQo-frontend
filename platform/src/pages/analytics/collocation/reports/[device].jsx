@@ -17,6 +17,7 @@ import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
+import withAuth from '@/core/utils/protectedRoute';
 
 const Reports = () => {
   const router = useRouter();
@@ -121,6 +122,25 @@ const Reports = () => {
           message="We're sorry, but our server is currently unavailable. We are working to resolve the issue and apologize for the inconvenience"
         />
       )}
+      <ContentBox>
+        {(collocationStatisticsSuccess || collocationStatisticsLoading) && (
+          <CustomTable
+            headers={[
+              'Monitor Name',
+              'Mean Sensor Reading',
+              'Sensor 01',
+              'Sensor 02',
+              'Voltage',
+              'Internal Humidity',
+              'Internal Temperature',
+            ]}
+            sortableColumns={['Sensor 01']}
+            data={deviceStatistics}
+            isLoading={collocationStatisticsLoading}
+            type='device statistics'
+          />
+        )}
+      </ContentBox>
       <div className='grid grid-cols-1'>
         <Box
           title='Intra Sensor Correlation'
@@ -128,7 +148,7 @@ const Reports = () => {
             {
               type: 'path',
               label: 'View monitor report',
-              link: `/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
+              link: `/analytics/collocation/reports/monitor_report/${device}?device=${device}&batchId=${batchId}`,
             },
             {
               type: 'event',
@@ -183,25 +203,6 @@ const Reports = () => {
           </div>
         </Box>
       </div>
-      <ContentBox>
-        {(collocationStatisticsSuccess || collocationStatisticsLoading) && (
-          <CustomTable
-            headers={[
-              'Monitor Name',
-              'Mean Sensor Reading',
-              'Sensor 01',
-              'Sensor 02',
-              'Voltage',
-              'Internal Humidity',
-              'Internal Temperature',
-            ]}
-            sortableColumns={['Sensor 01']}
-            data={deviceStatistics}
-            isLoading={collocationStatisticsLoading}
-            type='device statistics'
-          />
-        )}
-      </ContentBox>
     </Layout>
   );
 };

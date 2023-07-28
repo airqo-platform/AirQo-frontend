@@ -1,10 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { isEmpty } from 'underscore';
 
 const initialState = {
   selectedCollocateDevices: [],
   isLoading: false,
   startDate: null,
   endDate: null,
+  scheduledBatchName: '',
+  scheduledBatchDataCompletenessThreshold: 0.8,
+  scheduledBatchInterCorrelationThreshold: 0.98,
+  scheduledBatchIntraCorrelationThreshold: 0.98,
+  scheduledBatchDifferencesThreshold: 5,
 };
 
 const selectedCollocateDevicesSlice = createSlice({
@@ -40,10 +46,43 @@ const selectedCollocateDevicesSlice = createSlice({
     addEndDate: (state, action) => {
       state.endDate = action.payload;
     },
+    addScheduledBatchName: (state, action) => {
+      state.scheduledBatchName = action.payload;
+    },
+    addScheduledBatchDataCompletenessThreshold: (state, action) => {
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchDataCompletenessThreshold = parseFloat(action.payload);
+      }
+    },
+    addScheduledBatchInterCorrelationThreshold: (state, action) => {
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchInterCorrelationThreshold = parseFloat(action.payload);
+      }
+    },
+    addScheduledBatchIntraCorrelationThreshold: (state, action) => {
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchIntraCorrelationThreshold = parseFloat(action.payload);
+      }
+    },
+    addScheduledBatchDifferencesThreshold: (state, action) => {
+      if (!isEmpty(action.payload)) {
+        state.scheduledBatchDifferencesThreshold = action.payload;
+      }
+    },
   },
 });
 
-export const { addDevices, removeDevices, addDevice, addStartDate, addEndDate } =
-  selectedCollocateDevicesSlice.actions;
+export const {
+  addDevices,
+  removeDevices,
+  addDevice,
+  addStartDate,
+  addEndDate,
+  addScheduledBatchName,
+  addScheduledBatchDataCompletenessThreshold,
+  addScheduledBatchDifferencesThreshold,
+  addScheduledBatchInterCorrelationThreshold,
+  addScheduledBatchIntraCorrelationThreshold,
+} = selectedCollocateDevicesSlice.actions;
 
 export default selectedCollocateDevicesSlice.reducer;
