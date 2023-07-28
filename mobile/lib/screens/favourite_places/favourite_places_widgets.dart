@@ -91,12 +91,14 @@ class FavouritePlaceCard extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop(false);
                         },
-                        child: Text("No",
-                            style: TextStyle(
-                              color: CustomColors.appColorBlue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            )),
+                        child: Text(
+                          "No",
+                          style: TextStyle(
+                            color: CustomColors.appColorBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   );
@@ -105,11 +107,12 @@ class FavouritePlaceCard extends StatelessWidget {
             }
             return null;
           },
-          background: SwipeDismissible.defaultBackground(
-            color: CustomColors.appColorRed,
-            icon: Icons.delete,
-            label: 'Remove from favorites',
-          ),
+          background: const SizedBox.shrink(),
+          // background: SwipeDismissible.defaultBackground(
+          //   color: CustomColors.appColorRed,
+          //   icon: Icons.delete,
+          //   label: 'Remove from favorites',
+          // ),
           child: InkWell(
             onTap: () async {
               await _navigateToInsights(context, airQualityReading);
