@@ -45,7 +45,7 @@ class _SettingsPageState extends State<SettingsPage>
     final Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppTopBar(AppLocalizations.of(context)?.settings ?? ""),
+      appBar: AppTopBar(AppLocalizations.of(context)!.settings),
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
@@ -83,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage>
                           tileColor: Colors.white,
                           shape: topBorder,
                           title: Text(
-                            AppLocalizations.of(context)?.location as String,
+                            AppLocalizations.of(context)!.location,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -106,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ListTile(
                           tileColor: Colors.white,
                           title: Text(
-                            AppLocalizations.of(context)?.nortification  as String,
+                            AppLocalizations.of(context)!.nortification,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -138,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage>
                             );
                           },
                           title: Text(
-                            'Send feedback',
+                            AppLocalizations.of(context)!.sendFeedback,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -148,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage>
                         showcaseKey: _appTourShowcaseKey,
                         descriptionHeight: screenSize.height * 0.1,
                         description:
-                            AppLocalizations.of(context)?.restartTour ?? "",
+                            "You can always restart the App Tour from here anytime.",
                         child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
@@ -172,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage>
                               });
                             },
                             title: Text(
-                              AppLocalizations.of(context)?.takeTour ?? "",
+                              AppLocalizations.of(context)!.takeTour,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
@@ -197,7 +197,7 @@ class _SettingsPageState extends State<SettingsPage>
                             });
                           },
                           title: Text(
-                            AppLocalizations.of(context)?.rateAirQoApp ?? "",
+                            AppLocalizations.of(context)!.rateAirQoApp,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -221,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage>
                             );
                           },
                           title: Text(
-                            AppLocalizations.of(context)?.about ?? "",
+                            AppLocalizations.of(context)!.about,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -309,7 +309,7 @@ class DeleteAccountButton extends StatelessWidget {
             ),
             onTap: () => _deleteAccount(context),
             title: Text(
-              'Delete your account',
+              AppLocalizations.of(context)!.deleteAccount,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.6),
@@ -347,7 +347,7 @@ class DeleteAccountButton extends StatelessWidget {
                 if (emailAuthModel == null) {
                   showSnackBar(
                     context,
-                    AppLocalizations.of(context)?.unableDeleteAccount ?? "",
+                    AppLocalizations.of(context)!.unableDeleteAccount,
                   );
 
                   return;

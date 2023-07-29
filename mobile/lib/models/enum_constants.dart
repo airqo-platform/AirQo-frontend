@@ -3,6 +3,7 @@ import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 part 'enum_constants.g.dart';
 
@@ -240,6 +241,21 @@ enum FeedbackType {
 
   @override
   String toString() => string;
+
+  String getStringValue(BuildContext context) {
+    switch (this) {
+      case FeedbackType.inquiry:
+        return AppLocalizations.of(context)!.inquiry ;
+      case FeedbackType.suggestion:
+        return AppLocalizations.of(context)!.suggestion ;
+      case FeedbackType.appBugs:
+        return AppLocalizations.of(context)!.appBugs ;
+      case FeedbackType.reportAirPollution:
+        return AppLocalizations.of(context)!.reportAirPollution ;
+      case FeedbackType.none:
+        return '';
+    }
+  }
 }
 
 enum FeedbackChannel {
@@ -253,6 +269,16 @@ enum FeedbackChannel {
 
   @override
   String toString() => string;
+  String getStringValue(BuildContext context) {
+    switch (this) {
+      case FeedbackChannel.whatsApp:
+        //return AppLocalizations.of(context)!.whatsApp ;
+      case FeedbackChannel.email:
+        return AppLocalizations.of(context)!.email ;
+      case FeedbackChannel.none:
+        return '';
+    }
+  }
 }
 
 enum AuthMethod {
