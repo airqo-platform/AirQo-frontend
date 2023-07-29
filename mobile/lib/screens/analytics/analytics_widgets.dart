@@ -12,6 +12,7 @@ import 'package:flutter_svg/svg.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar(this.airQualityReading, {super.key});
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -122,6 +123,7 @@ class AnalyticsCard extends StatelessWidget {
     this.showHelpTip, {
     super.key,
   });
+
   final AirQualityReading airQualityReading;
   final bool showHelpTip;
   final GlobalKey _infoToolTipKey = GlobalKey();
@@ -330,6 +332,7 @@ class MiniAnalyticsCard extends StatefulWidget {
     super.key,
     required this.animateOnClick,
   });
+
   final AirQualityReading airQualityReading;
   final bool animateOnClick;
 
@@ -413,7 +416,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         ),
                         child: HeartIcon(
                           showAnimation: _showHeartAnimation,
-                          airQualityReading: airQualityReading,
+                          placeId: airQualityReading.placeId,
                         ),
                       ),
                     ),
