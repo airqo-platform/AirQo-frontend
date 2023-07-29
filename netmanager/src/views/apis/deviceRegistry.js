@@ -63,6 +63,10 @@ export const getActivitiesApi = async (params) => {
   return await axios.get(ACTIVITY_URI, { params }).then((response) => response.data);
 };
 
+export const getActivitiesSummaryApi = async (params) => {
+  return await axios.get(ACTIVITY_URI, { params }).then((response) => response.data);
+};
+
 export const addMaintenanceLogApi = async (deviceName, logData) => {
   return await axios
     .post(ADD_MAINTENANCE_LOGS_URI, logData, { params: { deviceName } })

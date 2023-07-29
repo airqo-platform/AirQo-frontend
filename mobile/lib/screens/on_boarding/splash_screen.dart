@@ -64,7 +64,7 @@ class SplashScreenState extends State<SplashScreen> {
         ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
@@ -157,6 +157,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _updateWidget() {
+    if (!mounted) return;
+
     setState(
       () {
         _visible = true;

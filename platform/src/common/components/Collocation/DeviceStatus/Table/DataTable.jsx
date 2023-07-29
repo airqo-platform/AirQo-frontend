@@ -10,9 +10,11 @@ import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
 import Dropdown from '../../../Dropdowns/Dropdown';
+import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '../../../Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
+import ReportDetailCard from '../ReportDetailPopup';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
@@ -29,8 +31,10 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const router = useRouter();
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState(null);
-  const [errorReport, setErrorReport] = useState([]);
-  const [openErrorReport, setOpenErrorReport] = useState(false);
+  const [statusSummary, setStatusSummary] = useState([]);
+  const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
+  const [selectedReportDeviceName, setSelectedReportDeviceName] = useState(null);
+  const [selectedReportBatchId, setSelectedReportBatchId] = useState(null);
 
   // state to handle modal visibility
   const [visible, setVisible] = useState(false);
@@ -118,7 +122,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   useEffect(() => {
     if (isSuccess) {
       router.push({
-        pathname: `/collocation/reports/${collocationInput.devices}`,
+        pathname: `/analytics/collocation/reports/${collocationInput.devices}`,
         query: {
           device: collocationInput.devices,
           batchId: collocationInput.batchId,
@@ -186,6 +190,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
               Monitor name
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+              Batch name
+            </th>
+            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Added by
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
@@ -228,6 +235,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
                     </td>
+                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
+                      {device.batch_name}
+                    </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       {device.added_by || ' '}
                     </td>
@@ -238,22 +248,26 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       {moment(device.end_date).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
-                      <span
+                      <div
                         onClick={() => {
-                          if (device.errors.length > 0) {
-                            setErrorReport(device.errors);
-                            setOpenErrorReport(true);
-                          } else {
-                            setErrorReport(['No error report found!']);
-                            setOpenErrorReport(true);
-                          }
+                          setStatusSummary(device.status_summary);
+                          setSelectedReportBatchId(device.batch_id);
+                          setSelectedReportDeviceName(device.device_name);
+                          setOpenStatusSummaryModal(true);
                         }}
-                        className={`${
+                        className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
                           STATUS_COLOR_CODES[device.status.toLowerCase()]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600 cursor-pointer`}
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
                       >
-                        {device.status.toLowerCase()}
-                      </span>
+                        <div className='text-center text-neutral-800 capitalize'>
+                          {device.status.toLowerCase()}
+                        </div>
+                        <div className='justify-start items-start gap-1 flex'>
+                          <div className='w-3.5 h-3.5 relative'>
+                            <InfoIcon />
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
                       <Dropdown
@@ -276,7 +290,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         )}
       </table>
 
-      {/* modal */}
+      {/* delete device/batch modal */}
       <Modal
         display={visible}
         handleConfirm={deleteBatch}
@@ -285,11 +299,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
         confirmButton='Delete'
       />
 
-      {/* error report modal */}
-      <Modal
-        display={openErrorReport && errorReport.length > 0}
-        closeModal={() => setOpenErrorReport(false)}
-        description={errorReport[0]}
+      {/* detailed report modal */}
+      <ReportDetailCard
+        data={statusSummary}
+        deviceName={selectedReportDeviceName}
+        batchId={selectedReportBatchId}
+        open={openStatusSummaryModal}
+        closeModal={() => setOpenStatusSummaryModal(false)}
       />
     </div>
   );
