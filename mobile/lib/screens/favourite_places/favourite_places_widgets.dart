@@ -133,7 +133,7 @@ class FavouritePlaceCard extends StatelessWidget {
                     Container(
                       height: 16,
                       width: 16,
-                      padding: const EdgeInsets.all(5),
+                      padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         color: appColors.appColorBlue.withOpacity(0.24),
                         borderRadius: const BorderRadius.all(
