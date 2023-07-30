@@ -59,7 +59,6 @@ const Footer = () => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [showModal, setShowModal] = useState(false);
 
   const airqloudSummaries = useAirqloudSummaryData();
   const currentAirqloud = useCurrentAirqloudData();
@@ -95,40 +94,59 @@ const Footer = () => {
     setSelectedCountry(currentAirqloud);
   }, [currentAirqloud]);
 
-  const onCountryClick = (country) => () => {
-    setSelectedCountry(country);
-    setSelectedAirqloud(country);
-    dispatch(setCurrentAirQloudData(country));
-    localStorage.setItem('selectedCountry', country);
-    setShowModal(false);
-  };
-
-  const updateUserLocation = async () => {
-    try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      const newCountry = data.country_name;
-      localStorage.setItem('selectedCountry', newCountry);
-      setSelectedCountry(newCountry);
-      setSelectedAirqloud(newCountry);
-      dispatch(setCurrentAirQloudData(newCountry));
-    } catch (error) {
-      console.error('issue', error);
-    }
-  };
-
   useEffect(() => {
-    // localStorage.removeItem('selectedCountry');
-    const storedCountry = localStorage.getItem('selectedCountry');
-    if (storedCountry) {
-      setSelectedCountry(storedCountry || currentAirqloud);
-      setSelectedAirqloud(storedCountry || currentAirqloud);
-      dispatch(setCurrentAirQloudData(storedCountry || currentAirqloud));
+    const updateSelectedCountry = async (position) => {
+      try {
+        const response = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
+        );
+        const data = await response.json();
+        if (data?.countryName) {
+          const countryName = countries.some((country) => data.countryName === country.name)
+            ? data.countryName
+            : currentAirqloud;
+          setSelectedCountry(countryName);
+          setSelectedAirqloud(countryName);
+          dispatch(setCurrentAirQloudData(countryName));
+          localStorage.setItem('selectedCountry', countryName);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const selectedCountry = localStorage.getItem('selectedCountry');
+    const locationPermission = localStorage.getItem('locationPermission');
+    if (!selectedCountry && navigator.geolocation && !locationPermission) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          updateSelectedCountry(position);
+          localStorage.setItem('locationPermission', 'granted');
+        },
+        (error) => {
+          console.log(error);
+          localStorage.setItem('locationPermission', 'denied');
+        }
+      );
+    } else if (selectedCountry && navigator.geolocation && locationPermission === 'granted') {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
+          );
+          const data = await response.json();
+          if (data?.countryName && data.countryName !== selectedCountry) {
+            updateSelectedCountry(position);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      });
     } else {
-      setShowModal(true);
-      localStorage.setItem('selectedCountry', currentAirqloud);
+      setSelectedCountry(currentAirqloud);
+      setSelectedAirqloud(currentAirqloud);
+      dispatch(setCurrentAirQloudData(currentAirqloud));
     }
-    updateUserLocation();
   }, []);
 
   // an array for the countries
@@ -142,12 +160,6 @@ const Footer = () => {
     { name: 'Mozambique', flag: <Mozambique /> },
     { name: 'Cameroon', flag: <Cameroon /> }
   ];
-
-  console.log('selectedCountry', selectedCountry);
-  console.log('selectedAirqloud', selectedAirqloud);
-  console.log('currentAirqloud', currentAirqloud);
-  console.log('airqloudSummaries', currentAirqloudData);
-  console.log('stored', localStorage.getItem('selectedCountry'));
 
   return (
     <footer className="footer-wrapper">
@@ -314,31 +326,6 @@ const Footer = () => {
               <div className="save-btn" onClick={onSave}>
                 save
               </div>
-            </div>
-          </div>
-        </Box>
-      </Modal>
-
-      <Modal open={showModal} onClose={() => setShowModal(!showModal)}>
-        <Box sx={style}>
-          <div className="modal-2">
-            <div className="modal-title">
-              <span>Country AirQloud</span>
-              <CancelIcon className="modal-cancel" onClick={() => setShowModal(!showModal)} />
-            </div>
-            <div className="divider" />
-            <div className="category-label">Select your country</div>
-            <div className="countries">
-              {/* The country list displayed here */}
-              {countries.map((country) => (
-                <CountryTab
-                  className={`tab tab-margin-sm ${active(country.name)}`}
-                  flag={country.flag}
-                  name={country.name}
-                  onClick={onCountryClick(country.name)}
-                />
-              ))}
-              <CountryTab className={`tab tab-margin-sm`} />
             </div>
           </div>
         </Box>
