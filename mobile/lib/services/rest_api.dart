@@ -469,7 +469,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          searchHistory.map((e) => e.toJson()).toList();
+          searchHistory.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -479,7 +479,7 @@ class AirqoApiClient {
       final response = await client.post(
         Uri.parse(url),
         headers: headers,
-        body: jsonEncode({'search_history': body}),
+        body: jsonEncode({'search_histories': body}),
       );
 
       return response.statusCode == 200;

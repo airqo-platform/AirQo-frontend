@@ -22,6 +22,13 @@ class SearchHistory extends Equatable {
 
   Map<String, dynamic> toJson() => _$SearchHistoryToJson(this);
 
+  Map<String, dynamic> toAPIJson(String firebaseUserId) {
+    return toJson()
+      ..addAll({
+        "firebase_user_id": firebaseUserId,
+      });
+  }
+
   factory SearchHistory.fromAirQualityReading(
     AirQualityReading airQualityReading,
   ) =>
