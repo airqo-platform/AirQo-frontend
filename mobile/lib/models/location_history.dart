@@ -78,7 +78,7 @@ class LocationHistory extends Equatable {
 
   Map<String, dynamic> toJson() => _$LocationHistoryToJson(this);
 
-  Map<String, dynamic> toAPiJson(String firebaseUserId) {
+  Map<String, dynamic> toAPIJson(String firebaseUserId) {
     return toJson()
       ..addAll({
         "firebase_user_id": firebaseUserId,

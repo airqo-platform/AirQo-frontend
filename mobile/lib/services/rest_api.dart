@@ -292,7 +292,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          historyList.map((e) => e.toAPiJson(userId)).toList();
+          historyList.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -499,7 +499,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          favorites.map((e) => e.toAPiJson(userId)).toList();
+          favorites.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
