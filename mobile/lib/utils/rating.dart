@@ -22,10 +22,11 @@ Future<bool> displayRatingDialog(BuildContext context) async {
     return true;
   }
 
-  List<Kya> completeKya = context
+  List<KyaLesson> completeKya = context
       .read<KyaBloc>()
       .state
-      .where((kya) => kya.progress >= 100)
+      .lessons
+      .where((kya) => kya.status == KyaLessonStatus.complete)
       .toList();
   if (completeKya.length >= 5) {
     return true;

@@ -17,7 +17,7 @@ import Toast from '@/components/Toast';
 import { wrapper } from '@/lib/store';
 import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -58,7 +58,7 @@ const Collocate = () => {
   }, [refetch]);
 
   return (
-    <AuthenticatedLayout>
+    <Layout>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
@@ -120,29 +120,14 @@ const Collocate = () => {
                   isLoading={isLoading}
                 />
               </Tab>
-              <Tab label='Overdue'>
-                <Table
-                  collocationDevices={filterDevicesByStatus('OVERDUE')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label='Re-run required'>
-                <Table
-                  collocationDevices={filterDevicesByStatus('RE_RUN_REQUIRED')}
-                  isLoading={isLoading}
-                />
-              </Tab>
-              <Tab label='Error'>
-                <Table collocationDevices={filterDevicesByStatus('ERROR')} isLoading={isLoading} />
-              </Tab>
             </Tabs>
           </div>
         ) : (
           <EmptyState />
         )}
       </ContentBox>
-    </AuthenticatedLayout>
+    </Layout>
   );
 };
 
-export default withAuth(Collocate);
+export default Collocate;

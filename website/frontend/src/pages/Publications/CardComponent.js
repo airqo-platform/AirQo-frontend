@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileDownloadOutlined } from '@mui/icons-material';
 
 const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
   return (
@@ -8,14 +9,14 @@ const CardComponent = ({ title, authors, link, linkTitle, downloadLink }) => {
       </div>
       <div className="sub-title">{authors} </div>
       <div className="cta-links">
-        <a className="a-link" href={link} target="_blank" rel='noreferrer noopener'>
+        <a className="link" href={link} target="_blank" rel='noreferrer noopener'>
           <small>
             {linkTitle || 'Read More'} {'->'}
           </small>
         </a>
-        {downloadLink ? (
-          <a className="a-link" href="#" target="_blank">
-            <small>Download </small>
+        {downloadLink !== null ? (
+          <a className="link" href={downloadLink} target="_blank">
+            <small>Download <FileDownloadOutlined /> </small>
           </a>
         ) : (
           <span />

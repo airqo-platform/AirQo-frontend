@@ -72,9 +72,6 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => KyaProgressCubit(),
-        ),
-        BlocProvider(
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(

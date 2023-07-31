@@ -10,7 +10,7 @@ class AirQoUrls {
   static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
   static String get appVersion =>
-      '${Config.airqoApi}/v1/view/mobile-app/version-info';
+      '${Config.airqoApi}/v2/view/mobile-app/version-info';
 
   static String get measurements => '${Config.airqoApi}/v2/devices/events';
 
@@ -23,9 +23,14 @@ class AirQoUrls {
   static String get feedback => '${Config.airqoApi}/v1/users/feedback';
 
   static String get mobileCarrier =>
-      '${Config.airqoApi}/v1/meta-data/mobile-carrier';
+      '${Config.airqoApi}/v2/meta-data/mobile-carrier';
 
   static String get favourites => '${Config.airqoApi}/v2/users/favorites';
+
+  static String get locationHistory =>
+      '${Config.airqoApi}/v2/users/locationHistory';
+
+  static String get kya => '${Config.airqoApi}/v2/devices/kya';
 
   static String get searchHistory =>
       '${Config.airqoApi}/v2/users/searchHistory';

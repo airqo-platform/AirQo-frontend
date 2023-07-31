@@ -96,75 +96,50 @@ extension ForecastListExt on List<Forecast> {
       where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
-extension KyaExt on Kya {
-  String getKyaMessage() {
-    if (isInProgress()) {
-      return 'Continue';
-    } else if (isPendingCompletion()) {
-      return 'Complete! Move to For You';
-    } else {
-      return 'Start learning';
+extension KyaExt on KyaLesson {
+  String startButtonText() {
+    if (activeTask == 1) {
+      return "Begin";
     }
+    return "Resume";
   }
 
-  bool isPendingCompletion() {
-    return progress == 1;
-  }
-
-  bool isComplete() {
-    return progress == -1;
-  }
-
-  bool isEmpty() {
-    return lessons.isEmpty;
-  }
-
-  bool isInProgress() {
-    return progress > 0 && progress < 1;
-  }
-
-  bool todo() {
-    return progress == 0;
-  }
-
-  double getProgress(int visibleCardIndex) {
-    return (visibleCardIndex + 1) / lessons.length;
+  String getKyaMessage() {
+    switch (status) {
+      case KyaLessonStatus.todo:
+        return 'Start learning';
+      case KyaLessonStatus.pendingCompletion:
+        return 'Complete! Move to For You';
+      case KyaLessonStatus.inProgress:
+      case KyaLessonStatus.complete:
+        if (activeTask == 1) return 'Start learning';
+        return 'Continue';
+    }
   }
 }
 
-extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) {
-      if (x.progress == -1) return -1;
+extension KyaListExt on List<KyaLesson> {
+  List<KyaLesson> filterInCompleteLessons() {
+    List<KyaLesson> inCompleteLessons =
+        where((lesson) => lesson.status == KyaLessonStatus.pendingCompletion)
+            .take(3)
+            .toList();
 
-      if (y.progress == -1) return 1;
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.inProgress)
+              .take(3)
+              .toList();
+    }
 
-      return -(x.progress.compareTo(y.progress));
-    });
-  }
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.todo)
+              .take(3)
+              .toList();
+    }
 
-  List<Kya> filterInProgressKya() {
-    return where((element) {
-      return element.isInProgress();
-    }).toList();
-  }
-
-  List<Kya> filterToDo() {
-    return where((element) {
-      return element.todo();
-    }).toList();
-  }
-
-  List<Kya> filterPendingCompletion() {
-    return where((element) {
-      return element.isPendingCompletion();
-    }).toList();
-  }
-
-  List<Kya> filterComplete() {
-    return where((element) {
-      return element.isComplete();
-    }).toList();
+    return inCompleteLessons;
   }
 }
 
