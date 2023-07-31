@@ -32,7 +32,7 @@ Future<void> main() async {
       String userId = "test";
       List<LocationHistory> historyList = [
         LocationHistory(
-            location: "testLocation2",
+            location: "testLocation",
             name: "testName",
             latitude: 21.423,
             longitude: 21.423,
