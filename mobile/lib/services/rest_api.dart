@@ -18,7 +18,7 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   Map<String, dynamic> params = queryParams;
   params.remove("TOKEN");
   String formattedUrl = '$url?';
-  params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value");
+  params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
   return formattedUrl;
 }
