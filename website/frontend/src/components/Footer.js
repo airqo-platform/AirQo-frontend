@@ -11,6 +11,8 @@ import LinkedIn from 'icons/footer/LinkedIn.svg';
 import Location from 'icons/footer/Location';
 import ArrowDown from 'icons/footer/ArrowDown';
 import CancelIcon from 'icons/footer/cancel.svg';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import Github from 'icons/footer/Github';
 
 import Uganda from 'icons/africanCities/countries/uganda.svg';
 import Kenya from 'icons/africanCities/countries/kenya.svg';
@@ -188,6 +190,11 @@ const Footer = () => {
               </a>
               <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer">
                 <Twitter />
+              </a>
+              <a target="_blank" href="https://github.com/airqo-platform" rel="noreferrer">
+                <span className="github-icon">
+                  <Github />
+                </span>
               </a>
             </div>
           </div>

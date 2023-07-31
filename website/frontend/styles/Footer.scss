@@ -181,102 +181,6 @@
   }
 }
 
-.modal-2 {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  max-width: 720px;
-  // min-height: 604px;
-  max-height: 604px;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 12px 26px;
-  outline: none;
-
-  .modal-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    > span {
-      height: 40px;
-      font-style: normal;
-      font-weight: 500;
-      font-size: 18px;
-      line-height: 40px;
-      /* identical to box height, or 222% */
-
-      color: #353e52;
-    }
-  }
-
-  .divider {
-    margin: 12px 0 16px 0;
-    border: 1px solid rgba(53, 62, 82, 0.08);
-  }
-
-  .category-label {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 20px;
-    /* identical to box height, or 143% */
-
-    text-transform: uppercase;
-
-    color: rgba(53, 62, 82, 0.5);
-  }
-
-  .tab {
-    display: flex;
-    align-items: center;
-    width: 168px;
-    height: 40px;
-    padding: 0 15px;
-
-    > span {
-      color: #353e52;
-      margin-left: 15px;
-    }
-  }
-
-  .tab:hover {
-    cursor: pointer;
-    background: #f2f1f6;
-    border-radius: 8px;
-  }
-
-  .tab-selected {
-    background: #f2f1f6;
-    border-radius: 8px;
-  }
-  .tab-margin {
-    margin: 12px 0 40px 0;
-  }
-
-  .tab-margin-sm {
-    margin: 12px 0 10px 0;
-  }
-  .tab-mb {
-    margin-bottom: 0;
-  }
-
-  .countries {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: scroll;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-}
-
 .Footer {
   width: 100%;
   padding: 80px 16px 16px 16px;
@@ -306,6 +210,15 @@
         align-items: center;
         width: 176px;
         height: 40px;
+
+        .github-icon {
+          background-color: #ebebfe;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 6px;
+          border-radius: 50%;
+        }
       }
     }
 

@@ -134,6 +134,18 @@ h4 {
     }
   }
 
+  .github-icon-con {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 16px;
+
+    .github-icon-text {
+      display: none;
+    }
+  }
+
   .menu-btn,
   .close-menu-btn {
     display: none;
@@ -168,6 +180,22 @@ h4 {
       align-items: flex-start;
       background-color: $aq-white-0;
       transition: all 0.5s ease;
+
+      .github-icon-con {
+        .github-icon {
+          display: none;
+        }
+        .github-icon-text {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          line-height: 20px;
+          color: $aq-blue-2;
+          letter-spacing: -0.022em;
+          margin-left: 8px;
+        }
+      }
 
       .logo {
         position: absolute;
