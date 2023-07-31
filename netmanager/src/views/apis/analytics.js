@@ -3,7 +3,9 @@ import {
   GET_DATA_MAP,
   GET_SITES,
   DOWNLOAD_CUSTOMISED_DATA_URI,
-  D3_CHART_DATA_URI
+  D3_CHART_DATA_URI,
+  GENERATE_AIRQLOUD_DATA_SUMMARY_URI,
+  SCHEDULE_EXPORT_DATA
 } from 'config/urls/analytics';
 
 let token = localStorage.jwtToken;
@@ -33,4 +35,26 @@ export const downloadDataApi = async (data) => {
 
 export const loadD3ChartDataApi = async (data) => {
   return await axios.post(D3_CHART_DATA_URI, data).then((response) => response.data);
+};
+
+export const scheduleExportDataApi = async (data) => {
+  return await axios.post(SCHEDULE_EXPORT_DATA, data).then((response) => response.data);
+};
+
+export const refreshScheduleExportDataApi = async (requestId) => {
+  return await axios
+    .patch(SCHEDULE_EXPORT_DATA, { params: { requestId } })
+    .then((response) => response.data);
+};
+
+export const getScheduleExportDataApi = async (USERID) => {
+  return await axios
+    .get(SCHEDULE_EXPORT_DATA, { params: { userId: USERID } })
+    .then((response) => response.data);
+};
+
+export const generateAirQloudDataSummaryApi = async (data) => {
+  return await axios
+    .post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data)
+    .then((response) => response.data);
 };

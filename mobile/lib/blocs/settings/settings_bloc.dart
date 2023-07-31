@@ -17,6 +17,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final locationStatus = await Permission.location.status;
     switch (locationStatus) {
       case PermissionStatus.permanentlyDenied:
+      case PermissionStatus.provisional:
       case PermissionStatus.denied:
         emit(state.copyWith(location: false));
         break;
@@ -31,6 +32,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     switch (notificationStatus) {
       case PermissionStatus.permanentlyDenied:
       case PermissionStatus.denied:
+      case PermissionStatus.provisional:
         emit(state.copyWith(notifications: false));
         break;
       case PermissionStatus.restricted:

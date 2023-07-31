@@ -40,6 +40,39 @@ extension InsightListExt on List<Insight> {
   }
 }
 
+extension AddressComponentListExt on List<AddressComponent> {
+  String getName() {
+    AddressComponent addressComponent = firstWhere(
+      (element) => element.types.contains("route"),
+      orElse: () => firstWhere(
+        (element) => element.types.contains("sublocality_level_1"),
+        orElse: () => firstWhere(
+          (element) => element.types.contains("sublocality"),
+          orElse: () => firstWhere(
+            (element) => element.types.contains("locality"),
+          ),
+        ),
+      ),
+    );
+
+    return addressComponent.shortName;
+  }
+
+  String getLocation() {
+    AddressComponent locationComponent = firstWhere(
+      (element) => element.types.contains("administrative_area_level_2"),
+      orElse: () => firstWhere(
+        (element) => element.types.contains("administrative_area_level_1"),
+      ),
+    );
+    AddressComponent countryComponent = firstWhere(
+      (element) => element.types.contains("country"),
+    );
+
+    return "${locationComponent.shortName}, ${countryComponent.longName}";
+  }
+}
+
 extension FavouritePlaceListExt on List<FavouritePlace> {
   void sortByAirQuality() {
     sort((x, y) {
@@ -63,75 +96,50 @@ extension ForecastListExt on List<Forecast> {
       where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
-extension KyaExt on Kya {
-  String getKyaMessage() {
-    if (isInProgress()) {
-      return 'Continue';
-    } else if (isPendingCompletion()) {
-      return 'Complete! Move to For You';
-    } else {
-      return 'Start learning';
+extension KyaExt on KyaLesson {
+  String startButtonText() {
+    if (activeTask == 1) {
+      return "Begin";
     }
+    return "Resume";
   }
 
-  bool isPendingCompletion() {
-    return progress == 1;
-  }
-
-  bool isComplete() {
-    return progress == -1;
-  }
-
-  bool isEmpty() {
-    return lessons.isEmpty;
-  }
-
-  bool isInProgress() {
-    return progress > 0 && progress < 1;
-  }
-
-  bool todo() {
-    return progress == 0;
-  }
-
-  double getProgress(int visibleCardIndex) {
-    return (visibleCardIndex + 1) / lessons.length;
+  String getKyaMessage() {
+    switch (status) {
+      case KyaLessonStatus.todo:
+        return 'Start learning';
+      case KyaLessonStatus.pendingCompletion:
+        return 'Complete! Move to For You';
+      case KyaLessonStatus.inProgress:
+      case KyaLessonStatus.complete:
+        if (activeTask == 1) return 'Start learning';
+        return 'Continue';
+    }
   }
 }
 
-extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) {
-      if (x.progress == -1) return -1;
+extension KyaListExt on List<KyaLesson> {
+  List<KyaLesson> filterInCompleteLessons() {
+    List<KyaLesson> inCompleteLessons =
+        where((lesson) => lesson.status == KyaLessonStatus.pendingCompletion)
+            .take(3)
+            .toList();
 
-      if (y.progress == -1) return 1;
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.inProgress)
+              .take(3)
+              .toList();
+    }
 
-      return -(x.progress.compareTo(y.progress));
-    });
-  }
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.todo)
+              .take(3)
+              .toList();
+    }
 
-  List<Kya> filterInProgressKya() {
-    return where((element) {
-      return element.isInProgress();
-    }).toList();
-  }
-
-  List<Kya> filterToDo() {
-    return where((element) {
-      return element.todo();
-    }).toList();
-  }
-
-  List<Kya> filterPendingCompletion() {
-    return where((element) {
-      return element.isPendingCompletion();
-    }).toList();
-  }
-
-  List<Kya> filterComplete() {
-    return where((element) {
-      return element.isComplete();
-    }).toList();
+    return inCompleteLessons;
   }
 }
 
@@ -620,9 +628,8 @@ extension DateTimeExt on DateTime {
     final now = DateTime.now();
 
     return (day == now.day)
-        ? DateFormat('HH:mm')
-            .format(DateTime(now.year, now.month, now.day, hour, minute))
-        : DateFormat('dd MMM').format(DateTime(now.year, now.month, day));
+        ? DateFormat('HH:mm').format(this)
+        : DateFormat('dd MMM').format(this);
   }
 
   DateTime tomorrow() {
@@ -637,41 +644,6 @@ extension DateTimeExt on DateTime {
 extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
-  }
-}
-
-extension AppStoreVersionExt on AppStoreVersion {
-  int compareVersion(String checkVersion) {
-    List<int> versionSections =
-        version.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (versionSections.length != 3) {
-      throw Exception('Invalid version $this');
-    }
-
-    List<int> candidateSections =
-        checkVersion.split('.').take(3).map((e) => int.parse(e)).toList();
-
-    if (candidateSections.length != 3) {
-      throw Exception('Invalid version $checkVersion');
-    }
-
-    // checking first code
-    if (versionSections.first > candidateSections.first) return 1;
-
-    if (versionSections.first < candidateSections.first) return -1;
-
-    // checking second code
-    if (versionSections[1] > candidateSections[1]) return 1;
-
-    if (versionSections[1] < candidateSections[1]) return -1;
-
-    // checking last code
-    if (versionSections.last > candidateSections.last) return 1;
-
-    if (versionSections.last < candidateSections.last) return -1;
-
-    return 0;
   }
 }
 
@@ -710,8 +682,7 @@ extension StringExt on String {
     return trimmed.startsWith('+') &&
         trimmed.length >= 7 &&
         trimmed.length <= 15 &&
-        !trimmed.contains(RegExp(r'[a-zA-Z]')) &&
-        !trimmed.contains(RegExp(r'[^\d+]'));
+        RegExp(r'^[0-9]+$').hasMatch(trimmed.substring(1));
   }
 
   bool isValidEmail() {
@@ -720,14 +691,13 @@ extension StringExt on String {
     if (parts.length != 2) return false;
     String localPart = parts.first;
     String domainPart = parts[1];
-    if (localPart.isEmpty || localPart[0] == '.' || localPart.endsWith('.')) {
-      return false;
-    }
-    if (domainPart.isEmpty || domainPart.split('.').any((s) => s.isEmpty)) {
-      return false;
-    }
+    RegExp localRegex = RegExp(r'^\w[\w.!#$%&*+/=?^_{|}~-]*$');
+    RegExp domainRegex =
+        RegExp(r'^\w(?:[\w-]{0,61}\w)?(?:\.\w(?:[\w-]{0,61}\w)?)+$');
 
-    return domainPart.split('.').last.length >= 2;
+    return localRegex.hasMatch(localPart) &&
+        domainRegex.hasMatch(domainPart) &&
+        domainPart.contains('.');
   }
 
   bool isValidUri() {

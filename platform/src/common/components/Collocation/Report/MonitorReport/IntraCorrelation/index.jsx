@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'next/router';
 import CustomLegend from './custom_legend';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import { isEmpty } from 'underscore';
 
 const IntraCorrelationChart = ({
   intraCorrelationConcentration,
@@ -71,7 +72,7 @@ const IntraCorrelationChart = ({
       };
 
       router.replace({
-        pathname: `/collocation/reports/monitor_report/${updatedQuery.device}`,
+        pathname: `/analytics/collocation/reports/monitor_report/${updatedQuery.device}`,
         query: updatedQuery,
       });
 
@@ -129,7 +130,7 @@ const IntraCorrelationChart = ({
               { value: '10', label: 'pm10' },
             ]}
           />
-          {activeSelectedDeviceCollocationReportData ? (
+          {!isEmpty(activeSelectedDeviceCollocationReportData) ? (
             <CorrelationChart
               data={activeSelectedDeviceCollocationReportData}
               pmConcentration={intraCorrelationConcentration}

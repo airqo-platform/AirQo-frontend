@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import FullscreenIcon from '@material-ui/icons/Fullscreen';
 import AccessTime from '@material-ui/icons/AccessTime';
 import { humanReadableDate } from 'utils/dateTime';
 
@@ -18,19 +17,22 @@ const ChartContainer = ({
   footerContent,
   controller,
   children,
-  loading
+  loading,
+  scrollableYAxis,
+  type
 }) => {
   const titleStyle = (blue && 'title-blue') || (green && 'title-green') || 'title-default';
   return (
     <div className={className || 'chart-container-wrapper'}>
       <div className={`chart-title-wrapper ${titleStyle}`}>
         <span className={'chart-title'}>{title}</span>
-        <span className={'chart-control'}>
-          {controller}
-          <FullscreenIcon />
-        </span>
+        <span className={'chart-control'}>{controller}</span>
       </div>
-      <div className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''}`}>
+      <div
+        className={`chart-body ${(centerItems && 'chart-flex-center-body') || ''} ${
+          scrollableYAxis && 'chart-scrollable-yaxis'
+        }`}
+      >
         {loading ? <CircularProgress /> : children}
       </div>
       <div className={'chart-footer'}>

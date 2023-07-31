@@ -1,12 +1,14 @@
 import 'package:app/models/air_quality_reading.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'favourite_place.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class FavouritePlace extends Equatable {
+  factory FavouritePlace.fromJson(Map<String, dynamic> json) =>
+      _$FavouritePlaceFromJson(json);
+
   const FavouritePlace({
     required this.name,
     required this.location,
@@ -15,6 +17,7 @@ class FavouritePlace extends Equatable {
     required this.latitude,
     required this.longitude,
     this.airQualityReading,
+    this.id,
   });
 
   factory FavouritePlace.fromAirQualityReading(
@@ -27,33 +30,9 @@ class FavouritePlace extends Equatable {
       placeId: airQualityReading.placeId,
       latitude: airQualityReading.latitude,
       longitude: airQualityReading.longitude,
+      airQualityReading: airQualityReading,
     );
   }
-
-  factory FavouritePlace.fromFirestore({
-    required DocumentSnapshot<Map<String, dynamic>> snapshot,
-  }) {
-    final data = snapshot.data()!;
-
-    var referenceSite = '';
-    if (data.keys.contains('referenceSite')) {
-      referenceSite = data['referenceSite'] as String;
-    } else if (data.keys.contains('siteId')) {
-      referenceSite = data['siteId'] as String;
-    }
-
-    return FavouritePlace(
-      name: data['name'] as String,
-      location: data['location'] as String,
-      referenceSite: referenceSite,
-      placeId: data['placeId'] as String,
-      latitude: data['latitude'] as double,
-      longitude: data['longitude'] as double,
-    );
-  }
-
-  factory FavouritePlace.fromJson(Map<String, dynamic> json) =>
-      _$FavouritePlaceFromJson(json);
 
   FavouritePlace copyWith({
     String? referenceSite,
@@ -72,6 +51,14 @@ class FavouritePlace extends Equatable {
 
   Map<String, dynamic> toJson() => _$FavouritePlaceToJson(this);
 
+  Map<String, dynamic> toAPiJson(String firebaseUserId) {
+    return toJson()
+      ..remove("id")
+      ..addAll({
+        "firebase_user_id": firebaseUserId,
+      });
+  }
+
   @JsonKey(defaultValue: '')
   final String name;
 
@@ -81,7 +68,7 @@ class FavouritePlace extends Equatable {
   @JsonKey(defaultValue: '')
   final String referenceSite;
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', name: 'place_id')
   final String placeId;
 
   @JsonKey(defaultValue: 0.0)
@@ -89,6 +76,9 @@ class FavouritePlace extends Equatable {
 
   @JsonKey(defaultValue: 0.0)
   final double longitude;
+
+  @JsonKey(name: '_id')
+  final String? id;
 
   @JsonKey(
     includeToJson: false,
@@ -99,7 +89,7 @@ class FavouritePlace extends Equatable {
   final AirQualityReading? airQualityReading;
 
   @override
-  List<Object> get props => [placeId];
+  List<Object?> get props => [placeId];
 }
 
 @JsonSerializable(explicitToJson: true)

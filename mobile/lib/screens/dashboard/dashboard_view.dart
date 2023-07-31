@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -23,6 +24,11 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+
+@pragma("vm:entry-point")
+void backgroundCallback(Uri? _) async {
+  await WidgetService.sendAndUpdate();
+}
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -148,11 +154,14 @@ class _DashboardViewState extends State<DashboardView>
                     const SizedBox(
                       width: 16,
                     ),
-                    BlocBuilder<KyaBloc, List<Kya>>(
+                    BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        final kyaWidgets = completeKyaWidgets(
-                          state.filterComplete().take(3).toList(),
-                        );
+                        final completeLessons = state.lessons
+                            .where((lesson) =>
+                                lesson.status == KyaLessonStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(completeLessons);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
@@ -301,18 +310,12 @@ class _DashboardViewState extends State<DashboardView>
                       );
                     },
                   ),
-                  BlocBuilder<KyaBloc, List<Kya>>(
+                  BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      List<Kya> kya = state
-                        ..filterPendingCompletion()
-                        ..sortByProgress();
-                      if (kya.isEmpty) {
-                        kya = state.filterInProgressKya();
-                      }
-                      if (kya.isEmpty) {
-                        kya = state.filterToDo();
-                      }
-                      if (kya.isEmpty) {
+                      List<KyaLesson> inCompleteLessons =
+                          state.lessons.filterInCompleteLessons();
+
+                      if (inCompleteLessons.isEmpty) {
                         _kyaExists = false;
 
                         return const SizedBox();
@@ -326,7 +329,7 @@ class _DashboardViewState extends State<DashboardView>
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
                           child: KyaCardWidget(
-                            kya.first,
+                            inCompleteLessons.first,
                           ),
                         ),
                       );
@@ -458,6 +461,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
@@ -503,7 +507,7 @@ class _DashboardViewState extends State<DashboardView>
     );
   }
 
-  void _refresh({bool refreshMap = true}) {
+  void _refresh({bool refreshMap = true}) async {
     context.read<DashboardBloc>().add(const RefreshDashboard());
     context.read<NearbyLocationBloc>().add(const SearchLocationAirQuality());
     if (refreshMap) {
@@ -512,6 +516,7 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
+    await WidgetService.sendAndUpdate();
   }
 
   Future<void> _startShowcase() async {

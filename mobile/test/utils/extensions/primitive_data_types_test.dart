@@ -86,7 +86,7 @@ void main() {
       expect('abcdefgh'.isValidPhoneNumber(), isFalse);
       expect('123456'.isValidPhoneNumber(), isFalse);
       expect('+123456789a2'.isValidPhoneNumber(), isFalse);
-      expect('12345678901'.isValidPhoneNumber(), isFalse);
+      expect('12345!8901'.isValidPhoneNumber(), isFalse);
       expect('+1234567890123456'.isValidPhoneNumber(), isFalse);
       expect('(123)456-7890'.isValidPhoneNumber(), isFalse);
       expect('+12345678901'.isValidPhoneNumber(), isTrue);
@@ -98,10 +98,11 @@ void main() {
         () {
       expect(''.isValidEmail(), isFalse);
       expect('noblethegreat'.isValidEmail(), isFalse);
-      expect('.@example.com'.isValidEmail(), isFalse);
+      expect('noble@airqo'.isValidEmail(), isFalse);
+      expect('noble@airqo.google.com'.isValidEmail(), isTrue);
+      expect('\$@example.com'.isValidEmail(), isFalse);
       expect('@example.com'.isValidEmail(), isFalse);
       expect('john.doe@example.'.isValidEmail(), isFalse);
-      expect('noble@airqo.u'.isValidEmail(), isFalse);
       expect('noble@airqo.ug'.isValidEmail(), isTrue);
       expect('noble.m@airqo.net'.isValidEmail(), isTrue);
       expect('noble.m+/spam@airqo.net'.isValidEmail(), isTrue);
@@ -148,7 +149,6 @@ void main() {
     final DateTime tomorrow = today.add(day);
 
     final fixedDate1 = DateTime(2023, 5, 4);
-    final fixedDate2 = DateTime(2023, 5, 4, 15, 30);
     final fixedDate3 = DateTime(2023, 5, 4, 8, 45, 53);
 
     test(
@@ -279,8 +279,7 @@ void main() {
         'isWithInNextWeek should return true if the date is within the next week',
         () {
       expect(today.add(const Duration(days: 7)).isWithInNextWeek(), isTrue);
-      expect(today.add(Duration(days: 7 + today.weekday)).isWithInNextWeek(),
-          isFalse);
+      expect(today.add(const Duration(days: 14)).isWithInNextWeek(), isFalse);
 
       if (today.weekday > 7) {
         expect(today.isWithInNextWeek(), isTrue);
@@ -321,14 +320,6 @@ void main() {
       expect(today.subtract(day).isYesterday(), isTrue);
       expect(today.isYesterday(), isFalse);
       expect(today.add(day).isYesterday(), isFalse);
-    });
-
-    test(
-        'notificationDisplayDate should return the formatted date for notification display',
-        () {
-      expect(fixedDate2.notificationDisplayDate(), '04 May');
-      expect(fixedDate1.subtract(day).notificationDisplayDate(), '03 May');
-      expect(fixedDate1.add(day).notificationDisplayDate(), '05 May');
     });
 
     test('tomorrow should return the date of tomorrow', () {

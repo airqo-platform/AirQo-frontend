@@ -17,6 +17,8 @@ import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -95,7 +97,11 @@ const SiteToolbar = (props) => {
     return setSiteData({ ...siteData, [key]: event.target.value });
   };
 
+  // for horizontal loader
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSiteSubmit = (e) => {
+    setIsLoading(true);
     setOpen(false);
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
@@ -109,9 +115,9 @@ const SiteToolbar = (props) => {
           })
         );
 
-        // clear the form
         setSiteData(initSiteData);
         setErrors(initErrorData);
+        setIsLoading(false);
         return;
       } else {
         createSiteApi(siteData)
@@ -132,6 +138,7 @@ const SiteToolbar = (props) => {
                 severity: 'success'
               })
             );
+            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -144,6 +151,7 @@ const SiteToolbar = (props) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            setIsLoading(false);
           });
       }
     }
@@ -152,6 +160,14 @@ const SiteToolbar = (props) => {
   return (
     <>
       <div {...rest} className={clsx(classes.root, className)}>
+        {/* custome Horizontal loader indicator */}
+        <HorizontalLoader
+          color="#FFCC00"
+          loading={isLoading}
+          initial={0}
+          target={100}
+          duration={1500}
+        />
         <div className={classes.row}>
           <span className={classes.spacer} />
           <Button
@@ -189,7 +205,6 @@ const SiteToolbar = (props) => {
               helperText={errors.name}
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Latitude"
               variant="outlined"
@@ -201,7 +216,6 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Longitude"
               variant="outlined"

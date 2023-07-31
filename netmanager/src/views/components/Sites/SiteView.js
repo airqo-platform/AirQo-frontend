@@ -4,7 +4,7 @@ import { isEmpty } from 'underscore';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
-import { Button, Grid, Paper, TextField } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core';
 
 import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
 import { loadSiteDetails } from 'redux/SiteRegistry/operations';
@@ -22,6 +22,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
+
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const gridItemStyle = {
   padding: '5px',
@@ -108,7 +111,10 @@ const SiteForm = ({ site }) => {
         minHeight: '400px',
         padding: '20px 20px',
         maxWidth: '1500px'
-      }}>
+      }}
+    >
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',
@@ -116,13 +122,15 @@ const SiteForm = ({ site }) => {
           fontSize: '1.2rem',
           fontWeight: 'bold',
           margin: '20px 0'
-        }}>
+        }}
+      >
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             padding: '5px'
-          }}>
+          }}
+        >
           <ArrowBackIosRounded
             style={{ color: '#3f51b5', cursor: 'pointer' }}
             onClick={() => history.push(goBackUrl)}
@@ -378,13 +386,44 @@ const SiteForm = ({ site }) => {
           />
         </Grid>
 
+        <Grid xs={12} sm={12} style={gridItemStyle}>
+          <Typography variant="h3">Mobile app site details</Typography>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="search_name"
+            label="Editable Name"
+            defaultValue={site.search_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.search_name}
+            helperText={errors.search_name}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="location_name"
+            label="Editable Description"
+            defaultValue={site.location_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.location_name}
+            helperText={errors.location_name}
+            fullWidth
+            required
+          />
+        </Grid>
+
         <Grid
           container
           alignItems="flex-end"
           alignContent="flex-end"
           justify="flex-end"
           xs={12}
-          style={{ margin: '10px 0' }}>
+          style={{ margin: '10px 0' }}
+        >
           <Button variant="contained" onClick={handleCancel}>
             Cancel
           </Button>
@@ -394,7 +433,8 @@ const SiteForm = ({ site }) => {
             color="primary"
             disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
-            style={{ marginLeft: '10px' }}>
+            style={{ marginLeft: '10px' }}
+          >
             Save Changes
           </Button>
         </Grid>
@@ -423,7 +463,8 @@ const SiteView = (props) => {
       style={{
         width: '96%',
         margin: ' 20px auto'
-      }}>
+      }}
+    >
       <SiteForm site={site} key={`${site._id}`} />
 
       <div>
@@ -432,7 +473,8 @@ const SiteView = (props) => {
             margin: '50px auto',
             // minHeight: "400px",
             maxWidth: '1500px'
-          }}>
+          }}
+        >
           <CustomMaterialTable
             title="Site Devices details"
             userPreferencePaginationKey={'siteDevices'}

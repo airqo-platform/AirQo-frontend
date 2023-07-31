@@ -33,6 +33,8 @@ import LoadingOverlay from 'react-loading-overlay';
 import UsersListBreadCrumb from '../Breadcrumb';
 // dropdown component
 import Dropdown from 'react-select';
+// Horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -116,6 +118,8 @@ const UsersTable = (props) => {
   const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const users = useSelector((state) => state.accessControl.networkUsers);
+  // for horizontal loader
+  const [loading, setIsLoading] = useState(false);
 
   //the methods:
 
@@ -152,6 +156,7 @@ const UsersTable = (props) => {
   };
 
   const submitEditUser = (e) => {
+    setIsLoading(true);
     setLoading(true);
     e.preventDefault();
     if (updatedUser.userName !== '') {
@@ -163,6 +168,7 @@ const UsersTable = (props) => {
             user: props.mappeduserState.userToEdit._id
           }).then((res) => {
             dispatch(fetchNetworkUsers(activeNetwork._id));
+            setIsLoading(false);
             dispatch(
               updateMainAlert({
                 message: 'User successfully added to the organisation',
@@ -174,10 +180,12 @@ const UsersTable = (props) => {
           });
         }
       }
-
       hideEditDialog();
       props.mappedEditUser(data);
     }
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
     setLoading(false);
   };
 
@@ -189,9 +197,20 @@ const UsersTable = (props) => {
     setUserDelState({ open: false, user: {} });
   };
 
-  const deleteUser = () => {
-    props.mappedConfirmDeleteUser(userDelState.user);
-    setUserDelState({ open: false, user: {} });
+  // delete user function
+  const deleteUser = async () => {
+    // Set loading to true when deleting
+    setIsLoading(true);
+    try {
+      await props.mappedConfirmDeleteUser(userDelState.user);
+      hideDeleteDialog();
+      await dispatch(fetchNetworkUsers(activeNetwork._id));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      // Set loading to false when done
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -224,6 +243,8 @@ const UsersTable = (props) => {
     <>
       <UsersListBreadCrumb category={'Users'} usersTable={'Assigned Users'} />
       <Card {...rest} className={clsx(classes.root, className)}>
+        {/* custome Horizontal loader indicator */}
+        <HorizontalLoader loading={loading} />
         <CustomMaterialTable
           title={'Users'}
           userPreferencePaginationKey={'users'}

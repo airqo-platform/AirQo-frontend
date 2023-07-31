@@ -93,6 +93,19 @@ const Footer = () => {
   useEffect(() => {
     setSelectedCountry(currentAirqloud);
   }, [currentAirqloud]);
+
+  // an array for the countries
+  const countries = [
+    { name: 'Uganda', flag: <Uganda /> },
+    { name: 'Kenya', flag: <Kenya /> },
+    { name: 'Nigeria', flag: <Nigeria /> },
+    { name: 'Ghana', flag: <Ghana /> },
+    { name: 'Burundi', flag: <Burundi /> },
+    { name: 'Senegal', flag: <Senegal /> },
+    { name: 'Mozambique', flag: <Mozambique /> },
+    { name: 'Cameroon', flag: <Cameroon /> }
+  ];
+
   return (
     <footer className="footer-wrapper">
       <div className="Footer">
@@ -132,6 +145,9 @@ const Footer = () => {
                 </span>
                 <span>
                   <Link to="/products/analytics">Air quality Dashboard</Link>
+                </span>
+                <span>
+                  <Link to="/products/api">Air quality API</Link>
                 </span>
                 <span>
                   <Link to="/products/mobile-app">AirQo Mobile App</Link>
@@ -236,54 +252,15 @@ const Footer = () => {
             />
             <div className="category-label">Select country</div>
             <div className="countries">
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Uganda')}`}
-                flag={<Uganda />}
-                name="Uganda"
-                onClick={onTabClick('Uganda')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Kenya')}`}
-                flag={<Kenya />}
-                name="Kenya"
-                onClick={onTabClick('Kenya')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Nigeria')}`}
-                flag={<Nigeria />}
-                name="Nigeria"
-                onClick={onTabClick('Nigeria')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Ghana')}`}
-                flag={<Ghana />}
-                name="Ghana"
-                onClick={onTabClick('Ghana')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Burundi')}`}
-                flag={<Burundi />}
-                name="Burundi"
-                onClick={onTabClick('Burundi')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Senegal')}`}
-                flag={<Senegal />}
-                name="Senegal"
-                onClick={onTabClick('Senegal')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Mozambique')}`}
-                flag={<Mozambique />}
-                name="Mozambique"
-                onClick={onTabClick('Mozambique')}
-              />
-              <CountryTab
-                className={`tab tab-margin-sm ${active('Cameroon')}`}
-                flag={<Cameroon />}
-                name="Cameroon"
-                onClick={onTabClick('Cameroon')}
-              />
+              {/* The country list displayed here */}
+              {countries.map((country) => (
+                <CountryTab
+                  className={`tab tab-margin-sm ${active(country.name)}`}
+                  flag={country.flag}
+                  name={country.name}
+                  onClick={onTabClick(country.name)}
+                />
+              ))}
               <CountryTab className={`tab tab-margin-sm`} />
             </div>
             <div className="divider" />

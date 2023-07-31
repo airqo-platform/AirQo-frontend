@@ -1,13 +1,16 @@
 import 'config.dart';
 
 class AirQoUrls {
+  static String get termsUrl =>
+      'https://docs.airqo.net/#/mobile_app/privacy_policy';
+
   static String get firebaseLookup =>
       '${Config.airqoApi}/v1/users/firebase/lookup';
 
   static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
   static String get appVersion =>
-      '${Config.airqoApi}/v1/view/mobile-app/version-info';
+      '${Config.airqoApi}/v2/view/mobile-app/version-info';
 
   static String get searchAirQuality => '${Config.airqoApi}/v2/predict/search';
 
@@ -22,7 +25,14 @@ class AirQoUrls {
   static String get feedback => '${Config.airqoApi}/v1/users/feedback';
 
   static String get mobileCarrier =>
-      '${Config.airqoApi}/v1/meta-data/mobile-carrier';
+      '${Config.airqoApi}/v2/meta-data/mobile-carrier';
+
+  static String get favourites => '${Config.airqoApi}/v2/users/favorites';
+
+  static String get locationHistory =>
+      '${Config.airqoApi}/v2/users/locationHistory';
+
+  static String get kya => '${Config.airqoApi}/v2/devices/kya';
 }
 
 enum ApiService {

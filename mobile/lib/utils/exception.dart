@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app/services/services.dart';
 import 'package:flutter/foundation.dart';
 
 class NetworkConnectionException implements Exception {
   String cause;
+
   NetworkConnectionException(this.cause);
 }
 
 Future<void> logException(
   exception,
-  StackTrace? stackTrace,
-) async {
+  StackTrace? stackTrace, {
+  bool fatal = true,
+}) async {
   final unHandledExceptions = [
     SocketException,
     TimeoutException,
@@ -22,9 +25,5 @@ Future<void> logException(
     return;
   }
 
-  // TODO reconfigure remote error logging
-  // ignore: no-empty-block
-  try {} catch (e) {
-    debugPrint(e.toString());
-  }
+  await AirqoApiClient.sendErrorToSlack(exception as Object, stackTrace);
 }

@@ -18,6 +18,7 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
+import DataUsageIcon from '@material-ui/icons/DataUsage';
 import { Profile, SidebarNav, SidebarWidgets } from './components';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
@@ -92,8 +93,13 @@ const allMainPages = [
   },
 
   {
-    title: 'Export',
-    href: '/download',
+    title: 'Export data',
+    href: '/export-data',
+    nested: true,
+    nestItems: [
+      { title: 'Export Options', href: '/export-data/options' },
+      { title: 'Scheduled', href: '/export-data/scheduled' }
+    ],
     icon: <CloudDownloadIcon />
   },
   {
@@ -111,7 +117,8 @@ const allMainPages = [
     nested: true,
     nestItems: [
       { title: 'Network Map', href: '/manager/map' },
-      { title: 'Network Statistics', href: '/manager/stats' }
+      { title: 'Network Statistics', href: '/manager/stats' },
+      { title: 'Network Activity Logs', href: '/manager/activities' }
     ]
   },
   {
@@ -135,6 +142,15 @@ const allMainPages = [
 ];
 
 const allUserManagementPages = [
+  {
+    title: 'Logs',
+    href: '/logs',
+    icon: <DataUsageIcon />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+    collapse: true,
+    nested: true,
+    nestItems: [{ title: 'Data export', href: '/logs/data-export' }]
+  },
   {
     title: 'Organisation',
     href: '/organisation',
@@ -191,6 +207,7 @@ const Sidebar = (props) => {
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
 
   useEffect(() => {
+    setLoading(true);
     if (!isEmpty(user)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       getUserDetails(user._id).then((res) => {
@@ -199,14 +216,19 @@ const Sidebar = (props) => {
         localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
         if (isEmpty(activeNetwork)) {
-          localStorage.setItem('activeNetwork', JSON.stringify(res.users[0].networks[0]));
-          dispatch(addActiveNetwork(res.users[0].networks[0]));
+          res.users[0].networks.map((network) => {
+            if (network.net_name === 'airqo') {
+              localStorage.setItem('activeNetwork', JSON.stringify(network));
+              dispatch(addActiveNetwork(network));
+            }
+          });
         }
 
         getRoleDetailsApi(res.users[0].role._id)
           .then((res) => {
             dispatch(addCurrentUserRole(res.roles[0]));
             localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
+            setLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -218,13 +240,13 @@ const Sidebar = (props) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            setLoading(false);
           });
       });
     }
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     // check whether user has a role
     if (!isEmpty(user)) {
       if (!isEmpty(currentRole)) {
@@ -245,13 +267,9 @@ const Sidebar = (props) => {
 
           setUserPages(selectedUserPages);
           setAdminPages(selectedAdminPages);
-          setLoading(false);
         }
       }
-    }
-
-    // if user has no role or organisation, show default pages
-    if (isEmpty(user) || isEmpty(currentRole)) {
+    } else {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
         'Network Monitoring',
@@ -263,7 +281,8 @@ const Sidebar = (props) => {
       const selectedAdminPages = excludePages(allUserManagementPages, [
         'Users',
         'Candidates',
-        'Roles'
+        'Roles',
+        'Logs'
       ]);
       setUserPages(selectedUserPages);
       setAdminPages(selectedAdminPages);

@@ -47,6 +47,7 @@ class InsightsLoadingWidget extends StatelessWidget {
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
+
   final Insight insight;
   final String name;
 
@@ -149,6 +150,7 @@ class InsightAirQualityWidget extends StatelessWidget {
 
 class InsightAirQualityMessageWidget extends StatelessWidget {
   InsightAirQualityMessageWidget(this.insight, {super.key});
+
   final Insight insight;
   final ScrollController _scrollController = ScrollController();
 
@@ -335,6 +337,7 @@ class InsightsDayReading extends StatelessWidget {
     super.key,
     required this.isActive,
   });
+
   final Insight insight;
   final bool isActive;
 
@@ -388,6 +391,7 @@ class InsightsDayReading extends StatelessWidget {
 
 class InsightsCalendar extends StatelessWidget {
   const InsightsCalendar(this.airQualityReading, {super.key});
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -477,6 +481,7 @@ class InsightsCalendar extends StatelessWidget {
 
 class ForecastContainer extends StatelessWidget {
   const ForecastContainer(this.insight, {super.key});
+
   final Insight insight;
 
   @override
@@ -538,13 +543,41 @@ class ForecastContainer extends StatelessWidget {
   }
 }
 
-class HealthTipsWidget extends StatelessWidget {
+class HealthTipsWidget extends StatefulWidget {
   const HealthTipsWidget(this.insight, {super.key});
+
   final Insight insight;
 
   @override
+  State<HealthTipsWidget> createState() => _HealthTipsWidgetState();
+}
+
+class _HealthTipsWidgetState extends State<HealthTipsWidget> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 1)).then((value) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(seconds: widget.insight.healthTips.length * 10),
+          curve: Curves.linear,
+        );
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (insight.healthTips.isEmpty) {
+    if (widget.insight.healthTips.isEmpty) {
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         child: Container(),
@@ -563,7 +596,7 @@ class HealthTipsWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              insight.healthTipsTitle(),
+              widget.insight.healthTipsTitle(),
               textAlign: TextAlign.left,
               style: CustomTextStyle.headline7(context),
             ),
@@ -575,18 +608,19 @@ class HealthTipsWidget extends StatelessWidget {
             height: 128,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              controller: ScrollController(),
+              controller: _scrollController,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(
                     left: index == 0 ? 12.0 : 6.0,
-                    right:
-                        index == (insight.healthTips.length - 1) ? 12.0 : 6.0,
+                    right: index == (widget.insight.healthTips.length - 1)
+                        ? 12.0
+                        : 6.0,
                   ),
-                  child: HealthTipContainer(insight.healthTips[index]),
+                  child: HealthTipContainer(widget.insight.healthTips[index]),
                 );
               },
-              itemCount: insight.healthTips.length,
+              itemCount: widget.insight.healthTips.length,
             ),
           ),
         ],

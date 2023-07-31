@@ -8,16 +8,19 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - [NPM](https://docs.npmjs.com/)
 
 ## Prerequisites
-Use the [.env.sample](./.env.sample) to create a personal `.env` file. 
 
-Refer to the [documentation](https://staging-docs.airqo.net/#/../api/users?id=login) to learn how to obtain an authentication token.
+Use the [.env.sample](./.env.sample) to create a personal `.env` file.
+
+Refer to the [documentation](https://wiki.airqo.net/#/../api/users?id=login) to learn how to obtain an authentication token.
 
 ## Installing product dependencies/packages
+
 ```
 npm install
 ```
 
 ## Running project/app
+
 ```
 npm run stage
 ```

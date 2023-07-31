@@ -69,7 +69,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (isEmpty(recentEventsData.features))
-      dispatch(loadMapEventsData({ recent: 'yes', external: 'no' }));
+      dispatch(
+        loadMapEventsData({ recent: 'yes', external: 'no', metadata: 'site_id', active: 'yes' })
+      );
   }, []);
 
   useEffect(() => {
@@ -135,10 +137,10 @@ const Dashboard = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <Grid container spacing={5}>
-          <Grid item lg={4} xs={12} sm={12} md={6} xl={6}>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <AirQloudDropDown />
           </Grid>
-          <Grid item lg={8} xs={12} sm={12} md={6} xl={6}>
+          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
             <DashboardSearchBar />
           </Grid>
         </Grid>

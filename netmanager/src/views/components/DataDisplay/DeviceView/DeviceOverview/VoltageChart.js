@@ -1,23 +1,41 @@
-import React from 'react';
-import { ApexChart, timeSeriesChartOptions } from 'views/charts';
-import { createChartData } from './util';
+import React, { useEffect, useState } from 'react';
+import { ApexChart } from 'views/charts';
 import { ApexTimeSeriesData } from 'utils/charts';
+import { isEmpty } from 'underscore';
 
-const DeviceVoltageChart = ({ deviceUptimeData }) => {
-  const deviceVoltage = createChartData(deviceUptimeData, {
-    key: 'battery_voltage'
-  });
+const DeviceVoltageChart = ({ deviceUptimeData, controllerChildren, controllerChildrenOpen }) => {
+  const [series, setSeries] = useState([]);
 
-  const batteryVoltageSeries = [
-    {
-      name: 'voltage',
-      data: ApexTimeSeriesData(deviceVoltage.line.label, deviceVoltage.line.data)
+  useEffect(() => {
+    if (!isEmpty(deviceUptimeData)) {
+      const updatedData = deviceUptimeData.map((object) => {
+        return { ...object, created_at: object.timestamp };
+      });
+
+      const label = [];
+      const values = [];
+
+      updatedData.forEach((status) => {
+        label.push(status.created_at);
+        values.push(status['voltage']);
+      });
+
+      const deviceVoltage = { line: { label, data: values } };
+
+      const batteryVoltageSeries = [
+        {
+          name: 'voltage',
+          data: ApexTimeSeriesData(deviceVoltage.line.label, deviceVoltage.line.data)
+        }
+      ];
+
+      setSeries(batteryVoltageSeries);
     }
-  ];
+  }, [deviceUptimeData]);
 
   const todaysDate = new Date().getTime();
-  const minDate =  new Date();
-  minDate.setDate(minDate.getDate()-2.5);
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() - 1);
 
   const ChartOptions = {
     chart: {
@@ -29,13 +47,14 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
       }
     },
     stroke: {
-      curve: 'stepline',
+      curve: 'straight',
+      width: 1.5,
       breaks: {
         style: 'null'
       }
     },
-    dataLabels:{
-      enabled:false
+    dataLabels: {
+      enabled: false
     },
     xaxis: {
       type: 'datetime',
@@ -43,13 +62,14 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
       max: todaysDate,
       labels: {
         dateTimeUTC: false
-      }
+      },
+      tickAmount: 4
     },
-    yaxis:{
-      min:0,
-      max:4.5,
-      decimalsInFloat:2,
-      tickAmount:5
+    yaxis: {
+      min: 2.5,
+      max: 4.5,
+      decimalsInFloat: 2,
+      tickAmount: 5
     },
     grid: {
       row: {
@@ -65,13 +85,16 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
   };
 
   return (
-    <ApexChart
-      title={'battery voltage'}
-      options={ChartOptions}
-      series={batteryVoltageSeries}
-      type="line"
-      blue
-    />
+    <>
+      <ApexChart
+        title={'battery voltage'}
+        options={ChartOptions}
+        series={series}
+        type="line"
+        blue
+        controllerChildren={controllerChildren}
+      />
+    </>
   );
 };
 
