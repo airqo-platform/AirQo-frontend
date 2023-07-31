@@ -644,6 +644,7 @@ class SearchApiClient {
     required String url,
   }) async {
     try {
+      queryParams["TOKEN"] = Config.airqoApiV2Token;
       url = addQueryParameters(queryParams, url);
 
       final response = await retryClient.get(
