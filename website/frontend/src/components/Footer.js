@@ -11,8 +11,6 @@ import LinkedIn from 'icons/footer/LinkedIn.svg';
 import Location from 'icons/footer/Location';
 import ArrowDown from 'icons/footer/ArrowDown';
 import CancelIcon from 'icons/footer/cancel.svg';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import Github from 'icons/footer/Github';
 
 import Uganda from 'icons/africanCities/countries/uganda.svg';
 import Kenya from 'icons/africanCities/countries/kenya.svg';
@@ -25,6 +23,8 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
+
+import axios from 'axios';
 
 const style = {
   position: 'absolute',
@@ -97,59 +97,81 @@ const Footer = () => {
   }, [currentAirqloud]);
 
   useEffect(() => {
-    const updateSelectedCountry = async (position) => {
-      try {
-        const response = await fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
-        );
-        const data = await response.json();
-        if (data?.countryName) {
-          const countryName = countries.some((country) => data.countryName === country.name)
-            ? data.countryName
-            : currentAirqloud;
-          setSelectedCountry(countryName);
-          setSelectedAirqloud(countryName);
-          dispatch(setCurrentAirQloudData(countryName));
-          localStorage.setItem('selectedCountry', countryName);
-        }
-      } catch (error) {
-        console.log(error);
+    const getUserCountryFromStorage = () => {
+      const storedCountry = localStorage.getItem('userCountry');
+      if (storedCountry) {
+        dispatch(setCurrentAirQloudData(storedCountry));
+      } else {
+        getUserGeolocation();
       }
     };
 
-    const selectedCountry = localStorage.getItem('selectedCountry');
-    const locationPermission = localStorage.getItem('locationPermission');
-    if (!selectedCountry && navigator.geolocation && !locationPermission) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          updateSelectedCountry(position);
-          localStorage.setItem('locationPermission', 'granted');
-        },
-        (error) => {
-          console.log(error);
-          localStorage.setItem('locationPermission', 'denied');
+    // Function to fetch users country based on their IP address
+    const getUserCountry = async (latitude, longitude) => {
+      try {
+        const response = await axios.get(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        );
+        const { countryName } = response.data;
+        if (countries.some((country) => countryName === country.name)) {
+          dispatch(setCurrentAirQloudData(countryName));
+          localStorage.setItem('userCountry', countryName);
+        } else {
+          dispatch(setCurrentAirQloudData('Uganda'));
+          localStorage.setItem('userCountry', 'Uganda');
         }
-      );
-    } else if (selectedCountry && navigator.geolocation && locationPermission === 'granted') {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
-          );
-          const data = await response.json();
-          if (data?.countryName && data.countryName !== selectedCountry) {
-            updateSelectedCountry(position);
+      } catch (error) {
+        console.error('Error fetching user country:', error);
+      }
+    };
+
+    // Function to get user's geolocation if available
+    const getUserGeolocation = () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            const storedLatitude = parseFloat(localStorage.getItem('latitude'));
+            const storedLongitude = parseFloat(localStorage.getItem('longitude'));
+            if (
+              !storedLatitude ||
+              !storedLongitude ||
+              distance(storedLatitude, storedLongitude, latitude, longitude) > 100
+            ) {
+              try {
+                await getUserCountry(latitude, longitude);
+                localStorage.setItem('latitude', latitude);
+                localStorage.setItem('longitude', longitude);
+              } catch (error) {
+                console.error('Error fetching user country from geolocation:', error);
+                getUserCountryFromStorage();
+              }
+            } else {
+              getUserCountryFromStorage();
+            }
+          },
+          (error) => {
+            console.error('Error getting user geolocation:', error);
+            getUserCountryFromStorage();
           }
-        } catch (error) {
-          console.log(error);
-        }
-      });
-    } else {
-      setSelectedCountry(currentAirqloud);
-      setSelectedAirqloud(currentAirqloud);
-      dispatch(setCurrentAirQloudData(currentAirqloud));
-    }
+        );
+      } else {
+        getUserCountryFromStorage();
+      }
+    };
+
+    getUserCountryFromStorage();
   }, []);
+
+  // Function to calculate distance between two sets of latitude and longitude
+  const distance = (lat1, lon1, lat2, lon2) => {
+    const p = 0.017453292519943295;
+    const a =
+      0.5 -
+      Math.cos((lat2 - lat1) * p) / 2 +
+      (Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))) / 2;
+    return 12742 * Math.asin(Math.sqrt(a));
+  };
 
   // an array for the countries
   const countries = [
@@ -190,11 +212,6 @@ const Footer = () => {
               </a>
               <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer">
                 <Twitter />
-              </a>
-              <a target="_blank" href="https://github.com/airqo-platform" rel="noreferrer">
-                <span className="github-icon">
-                  <Github />
-                </span>
               </a>
             </div>
           </div>

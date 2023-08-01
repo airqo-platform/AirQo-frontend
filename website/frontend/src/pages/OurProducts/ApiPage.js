@@ -35,17 +35,16 @@ const ApiPage = () => {
             </div>
             <div className="overlap-section">
               <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
-                <h5>Defining data access</h5>
+                <h5>Redefining data access</h5>
                 <p>
                   The API uses AI and data analysis techniques to provide accurate air quality
                   measurements. It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the
                   most common pollutants in African cities.
                   <br />
                   <br />
-                  Our comprehensive datasets provide valuable insights into air quality in major
-                  African cities. By strategically deploying both low-cost air quality monitors and
-                  reference-grade monitors, we are able to gather accurate and reliable data for our
-                  users
+                  Our comprehensive air quality datasets include data from our low-cost air quality
+                  monitors as well as reference-grade monitors strategically deployed in major
+                  African Cities.
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">

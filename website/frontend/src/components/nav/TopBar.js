@@ -7,6 +7,7 @@ import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { Route } from 'react-router-dom';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -155,18 +156,6 @@ const TopBar = () => {
             </div>
           </div>
           {/* <NavTab text="About" path="/about-us" hideArrow /> */}
-          <div className="github-icon-con">
-            <a target="_blank" href="https://github.com/airqo-platform" rel="noreferrer">
-              <GitHubIcon className="github-icon" color="primary" />
-            </a>
-            <a
-              target="_blank"
-              href="https://github.com/airqo-platform"
-              rel="noreferrer"
-              className="github-icon-text">
-              GitHub
-            </a>
-          </div>
           <NavTab text="Get involved" hideArrow colored onClick={showModal} />
           <NavTab text="Explore data" path="/explore-data" hideArrow filled />
         </div>
