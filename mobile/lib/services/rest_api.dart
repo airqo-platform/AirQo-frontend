@@ -17,8 +17,8 @@ import 'package:uuid/uuid.dart';
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   Map<String, dynamic> params = queryParams;
   params.remove("TOKEN");
-  String formattedUrl = '$url?TOKEN=${Config.airqoApiV2Token}';
-  params.forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
+  String formattedUrl = '$url?';
+  params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
   return formattedUrl;
 }
@@ -272,7 +272,7 @@ class AirqoApiClient {
             stackTrace,
           );
         }
-      }  
+      }
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -292,7 +292,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          historyList.map((e) => e.toJson()).toList();
+          historyList.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -499,7 +499,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          favorites.map((e) => e.toAPiJson(userId)).toList();
+          favorites.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -632,7 +632,6 @@ class AirqoApiClient {
   }) async {
     try {
       Map<String, dynamic> params = queryParams;
-      params["TOKEN"] = Config.airqoApiV2Token;
 
       url = addQueryParameters(params, url);
 
@@ -714,6 +713,7 @@ class SearchApiClient {
     required String url,
   }) async {
     try {
+      queryParams["TOKEN"] = Config.airqoApiV2Token;
       url = addQueryParameters(queryParams, url);
 
       final response = await retryClient.get(
