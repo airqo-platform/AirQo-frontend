@@ -9,6 +9,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar(this.airQualityReading, {super.key});
@@ -99,7 +100,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
           width: 8.0,
         ),
         Text(
-          'View More Insights',
+          AppLocalizations.of(context)!.viewMoreInsights,
           style: CustomTextStyle.caption4(context)?.copyWith(
             color: appColors.appColorBlue,
           ),
@@ -452,7 +453,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      'View More Insights',
+                      AppLocalizations.of(context)!.viewMoreInsights,
                       style: CustomTextStyle.caption3(context)?.copyWith(
                         color: appColors.appColorBlue,
                       ),

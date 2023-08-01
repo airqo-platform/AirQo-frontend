@@ -12,6 +12,8 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
@@ -67,13 +69,13 @@ class KyaMessageChip extends StatelessWidget {
         text: TextSpan(
           children: [
             TextSpan(
-              text: 'Complete! Move to ',
+              text: AppLocalizations.of(context)!.completeMoveTo,
               style: CustomTextStyle.caption3(context)?.copyWith(
                 color: CustomColors.appColorBlack,
               ),
             ),
             TextSpan(
-              text: 'For You',
+              text: AppLocalizations.of(context)!.forYou,
               style: CustomTextStyle.caption3(context)?.copyWith(
                 color: CustomColors.appColorBlue,
               ),

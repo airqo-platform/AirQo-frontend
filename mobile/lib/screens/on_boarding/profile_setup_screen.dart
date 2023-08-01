@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -43,7 +44,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Great!\nPlease enter your name?',
+              AppLocalizations.of(context)!.greatPleaseEnterYourName,
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline7(context),
               ),
@@ -110,7 +111,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
       showSnackBar(
         context,
-        'Tap again to exit !',
+        AppLocalizations.of(context)!.tapAgainToExit,
       );
 
       return Future.value(false);

@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> navigateToInsights(
   BuildContext context,
@@ -66,14 +67,16 @@ class InsightsPage extends StatelessWidget {
                 width: 40,
               ),
             ),
-            Text('More Insights', style: CustomTextStyle.headline8(context)),
+            Text(AppLocalizations.of(context)!.moreInsights,
+                style: CustomTextStyle.headline8(context)),
             FutureBuilder<Uri>(
               future: ShareService.createShareLink(
                 airQualityReading: airQualityReading,
               ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
+                  showSnackBar(context,
+                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
                 }
                 if (snapshot.hasData) {
                   return InkWell(
@@ -102,7 +105,7 @@ class InsightsPage extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
+                    showSnackBar(context, AppLocalizations.of(context)!.creatingShareLink);
                   },
                   child: const Center(
                     child: LoadingIcon(radius: 20),

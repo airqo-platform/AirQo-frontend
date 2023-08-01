@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -66,7 +67,7 @@ class SearchingAirQuality extends StatelessWidget {
         ),
       ),
       child: Text(
-        "Searching for air quality near you, hold on tight.",
+        AppLocalizations.of(context)!.searchingForAirQualityNearYouHoldOnTight,
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
@@ -170,8 +171,8 @@ class DashboardLocationButton extends StatelessWidget {
           horizontal: 14,
         ),
       ),
-      child: const Text(
-        "Turn on location to get air quality near you",
+      child: Text(
+        AppLocalizations.of(context)!.turnOnLocationToGetAirQualityNearYou,
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,

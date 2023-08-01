@@ -23,6 +23,7 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
@@ -128,11 +129,11 @@ class _DashboardViewState extends State<DashboardView>
                           child: CustomShowcaseWidget(
                             showcaseKey: _favoritesShowcaseKey,
                             descriptionHeight: screenSize.height * 0.12,
-                            description:
-                                "Find the latest air quality from your favorite locations",
+                            description: AppLocalizations.of(context)!
+                                .findTheLatestAirQualityFromYourFavoriteLocations,
                             child: DashboardTopCard(
                               toolTipType: ToolTipType.favouritePlaces,
-                              title: 'Favorites',
+                              title: AppLocalizations.of(context)!.favorites,
                               widgetKey: _favToolTipKey,
                               nextScreenClickHandler: () async {
                                 await Navigator.push(
@@ -164,11 +165,11 @@ class _DashboardViewState extends State<DashboardView>
                             showcaseKey: _forYouShowcaseKey,
                             descriptionWidth: screenSize.width * 0.3,
                             descriptionHeight: screenSize.height * 0.17,
-                            description:
-                                "Find amazing content specifically designed for you here.",
+                            description: AppLocalizations.of(context)!
+                                .findAmazingContentSpecificallyDesignedForYouHere,
                             child: DashboardTopCard(
                               toolTipType: ToolTipType.forYou,
-                              title: 'For You',
+                              title: AppLocalizations.of(context)!.forYou,
                               widgetKey: _kyaToolTipKey,
                               nextScreenClickHandler: () async {
                                 await Navigator.push(
@@ -208,7 +209,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  'Today’s air quality',
+                  AppLocalizations.of(context)!.todayAirQuality,
                   style: CustomTextStyle.headline11(context),
                 ),
                 minHeight: 40,
@@ -246,10 +247,11 @@ class _DashboardViewState extends State<DashboardView>
 
                       if (currentLocation == null) {
                         return state.showErrorMessage
-                            ? const Padding(
-                                padding: EdgeInsets.only(top: 16),
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 16),
                                 child: NoLocationAirQualityMessage(
-                                  "We’re unable to get your current location. Explore locations below in the meantime.",
+                                  AppLocalizations.of(context)!
+                                      .unableToGetCurrentLocation,
                                 ),
                               )
                             : Container();
@@ -271,10 +273,11 @@ class _DashboardViewState extends State<DashboardView>
                             _nearbyLocationExists = false;
 
                             return state.showErrorMessage
-                                ? const Padding(
-                                    padding: EdgeInsets.only(top: 16),
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 16),
                                     child: NoLocationAirQualityMessage(
-                                      "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                      AppLocalizations.of(context)!
+                                          .unableToGetAirQuality,
                                     ),
                                   )
                                 : Container();
@@ -294,8 +297,8 @@ class _DashboardViewState extends State<DashboardView>
                             child: CustomShowcaseWidget(
                               showcaseKey: _nearestLocationShowcaseKey,
                               descriptionHeight: screenSize.height * 0.17,
-                              description:
-                                  "This card shows the air quality of your nearest location",
+                              description: AppLocalizations.of(context)!
+                                  .thisCardShowsTheAirQualityOfYourNearestLocation,
                               child: AnalyticsCard(
                                 airQualityReading,
                                 false,
@@ -328,8 +331,8 @@ class _DashboardViewState extends State<DashboardView>
                         child: CustomShowcaseWidget(
                           showcaseKey: _kyaShowcaseKey,
                           descriptionHeight: screenSize.height * 0.14,
-                          description:
-                              "Do you want to know more about air quality? Know your air in this section",
+                          description: AppLocalizations.of(context)!
+                              .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
                           child: KyaCardWidget(
                             kya.first,
                           ),
@@ -394,8 +397,9 @@ class _DashboardViewState extends State<DashboardView>
                                             screenSize.height * 0.17,
                                         customize: ShowcaseOptions.up,
                                         showLine: false,
-                                        description:
-                                            "Find the air quality of different locations across Africa here.",
+                                        description: AppLocalizations.of(
+                                                context)!
+                                            .findTheAirQualityOfDifferentLocationsAcrossAfricaHere,
                                         child: AnalyticsCard(
                                           surroundingSites[index],
                                           false,

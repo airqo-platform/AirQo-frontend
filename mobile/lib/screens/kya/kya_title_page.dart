@@ -11,6 +11,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:app/constants/constants.dart' as config;
 import 'kya_lessons_page.dart';
 import 'kya_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class KyaTitlePage extends StatelessWidget {
   const KyaTitlePage(this.kya, {super.key});
@@ -76,8 +77,8 @@ class PageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final String buttonText =
         kya.progress > 0 && kya.progress < kya.lessons.length
-            ? 'Resume'
-            : 'Begin';
+            ? AppLocalizations.of(context)!.resume
+            : AppLocalizations.of(context)!.begin;
 
     return Scaffold(
       extendBodyBehindAppBar: true,

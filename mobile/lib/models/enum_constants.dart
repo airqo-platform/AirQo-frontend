@@ -201,6 +201,22 @@ enum AirQuality {
     minimumValue: 250.5,
     maximumValue: 500,
   );
+  String getStringValue(BuildContext context) {
+    switch (this) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.good;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.moderate;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!.unhealthySG;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.unhealthy;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.veryUnhealthy;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.hazardous;
+    }
+  }
 
   const AirQuality({
     required this.title,

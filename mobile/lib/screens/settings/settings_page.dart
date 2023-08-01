@@ -147,8 +147,8 @@ class _SettingsPageState extends State<SettingsPage>
                       CustomShowcaseWidget(
                         showcaseKey: _appTourShowcaseKey,
                         descriptionHeight: screenSize.height * 0.1,
-                        description:
-                            "You can always restart the App Tour from here anytime.",
+                        description: AppLocalizations.of(context)!
+                            .youCanAlwaysRestartTheAppTourFromHereAnytime,
                         child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,

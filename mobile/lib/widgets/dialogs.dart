@@ -15,6 +15,7 @@ import 'package:rating_dialog/rating_dialog.dart';
 import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
 import 'custom_shimmer.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> openPhoneSettings(BuildContext context, String message) async {
   final confirmation = await showDialog<ConfirmationAction>(
@@ -81,7 +82,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                   Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: Text(
-                      'Know Your Air',
+                      AppLocalizations.of(context)!.knowYourair,
                       style: CustomTextStyle.headline10(context)
                           ?.copyWith(color: CustomColors.appColorBlue),
                     ),

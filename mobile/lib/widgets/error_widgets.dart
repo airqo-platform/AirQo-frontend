@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../screens/home_page.dart';
 import '../screens/search/search_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NoSearchResultsWidget extends StatelessWidget {
   const NoSearchResultsWidget({super.key, this.message});
@@ -30,14 +31,15 @@ class NoSearchResultsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 53),
             Text(
-              'No results found',
+              AppLocalizations.of(context)!.noResultsFound,
               style: CustomTextStyle.errorTitle(context),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 23),
             Text(
               message ??
-                  'Try adjusting your search to find what you’re looking for.',
+                  AppLocalizations.of(context)!
+                      .tryAdjustingYourSearchToFindWhatYoureLookingFor,
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),
@@ -68,7 +70,8 @@ class KyaNotFoundWidget extends StatelessWidget {
                   height: 50,
                 ),
                 Text(
-                  'We can’t seem to find the KYA content you’re looking for.',
+                  AppLocalizations.of(context)!
+                      .weCantSeemToFindTheKYAContentYoureLookingFor,
                   style: CustomTextStyle.errorTitle(context),
                   textAlign: TextAlign.center,
                 ),
@@ -76,14 +79,15 @@ class KyaNotFoundWidget extends StatelessWidget {
                   height: 23,
                 ),
                 Text(
-                  'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                  AppLocalizations.of(context)!
+                      .scaredTakeADeepBreathOfCleanAirOnUsReadyBreatheInBreatheOut,
                   style: CustomTextStyle.errorSubTitle(context),
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
                 NextButton(
                   buttonColor: CustomColors.appColorBlue,
-                  text: 'Return home',
+                  text: AppLocalizations.of(context)!.returnHome,
                   callBack: () {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -129,7 +133,7 @@ class NoAirQualityDataWidget extends StatelessWidget {
               height: 50,
             ),
             Text(
-              'No Air Quality data',
+              AppLocalizations.of(context)!.noAirQualityData,
               style: CustomTextStyle.errorTitle(context),
               textAlign: TextAlign.center,
             ),
@@ -137,7 +141,8 @@ class NoAirQualityDataWidget extends StatelessWidget {
               height: 23,
             ),
             Text(
-              'We’re having issues with our network no worries, we’ll be back up soon.',
+              AppLocalizations.of(context)!
+                  .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon,
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),
@@ -150,7 +155,7 @@ class NoAirQualityDataWidget extends StatelessWidget {
               },
               child: ActionButton(
                 icon: Icons.refresh_outlined,
-                text: actionButtonText ?? 'Reload',
+                text: actionButtonText ?? AppLocalizations.of(context)!.reload,
               ),
             ),
           ],
@@ -177,7 +182,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             height: 50,
           ),
           Text(
-            'View your favorite places',
+            AppLocalizations.of(context)!.viewYourFavoritPlaces,
             style: CustomTextStyle.errorTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -188,7 +193,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             textAlign: TextAlign.center,
             text: TextSpan(children: [
               TextSpan(
-                text: 'Tap the ',
+                text: AppLocalizations.of(context)!.tapThe,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               WidgetSpan(
@@ -200,8 +205,8 @@ class NoFavouritePlacesWidget extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text:
-                    ' Favorite icon on any location to add it to your favorites',
+                text: AppLocalizations.of(context)!
+                    .favoriteIconOnAnyLocationToAddItToYourFavorites,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ]),
@@ -220,9 +225,9 @@ class NoFavouritePlacesWidget extends StatelessWidget {
                 ),
               );
             },
-            child: const ActionButton(
+            child: ActionButton(
               icon: Icons.add,
-              text: 'Add Favorites',
+              text: AppLocalizations.of(context)!.addFavorites,
             ),
           ),
           const Spacer(),
@@ -251,7 +256,7 @@ class NoAnalyticsWidget extends StatelessWidget {
             height: 50,
           ),
           Text(
-            'Know the Air Quality trends',
+            AppLocalizations.of(context)!.knowTheAirQualityTrends,
             style: CustomTextStyle.errorTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -259,7 +264,8 @@ class NoAnalyticsWidget extends StatelessWidget {
             height: 23,
           ),
           Text(
-            'Stay on top of changes in Air Quality of places important to you',
+            AppLocalizations.of(context)!
+                .stayOnTopOfChangesInAirQualityOfPlacesImportantToYou,
             style: CustomTextStyle.errorSubTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -270,9 +276,9 @@ class NoAnalyticsWidget extends StatelessWidget {
             onTap: () {
               callBack();
             },
-            child: const ActionButton(
+            child: ActionButton(
               icon: Icons.location_on_outlined,
-              text: 'Turn on location',
+              text: AppLocalizations.of(context)!.turnOnLocation,
             ),
           ),
           const Spacer(),
@@ -301,7 +307,7 @@ class NoCompleteKyaWidget extends StatelessWidget {
             height: 50,
           ),
           Text(
-            'Keep up with your lessons',
+            AppLocalizations.of(context)!.keepUpWithYourLessons,
             style: CustomTextStyle.errorTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -309,7 +315,8 @@ class NoCompleteKyaWidget extends StatelessWidget {
             height: 23,
           ),
           Text(
-            'Track your completed “Know Your Air” lessons and revisit them anytime',
+            AppLocalizations.of(context)!
+                .trackYourCompletedKnowYourAirLessonsAndRevisitThemAnytime,
             style: CustomTextStyle.errorSubTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -320,7 +327,7 @@ class NoCompleteKyaWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: NextButton(
               buttonColor: CustomColors.appColorBlue,
-              text: 'Start learning',
+              text: AppLocalizations.of(context)!.startLearning,
               callBack: callBack,
             ),
           ),
@@ -350,7 +357,7 @@ class NoKyaWidget extends StatelessWidget {
             height: 50,
           ),
           Text(
-            'No lessons',
+            AppLocalizations.of(context)!.noLessons,
             style: CustomTextStyle.errorTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -358,7 +365,8 @@ class NoKyaWidget extends StatelessWidget {
             height: 23,
           ),
           Text(
-            'We’re having issues with our network no worries, we’ll be back up soon.',
+            AppLocalizations.of(context)!
+                .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon,
             style: CustomTextStyle.errorSubTitle(context),
             textAlign: TextAlign.center,
           ),
@@ -369,9 +377,9 @@ class NoKyaWidget extends StatelessWidget {
             onTap: () {
               callBack();
             },
-            child: const ActionButton(
+            child: ActionButton(
               icon: Icons.refresh_outlined,
-              text: 'Reload',
+              text: AppLocalizations.of(context)!.reload,
             ),
           ),
           const Spacer(),
@@ -405,7 +413,7 @@ class NoInternetConnectionWidget extends StatelessWidget {
               height: 50,
             ),
             Text(
-              'No internet connection',
+              AppLocalizations.of(context)!.noInternetConnection,
               style: CustomTextStyle.errorTitle(context),
               textAlign: TextAlign.center,
             ),
@@ -413,7 +421,7 @@ class NoInternetConnectionWidget extends StatelessWidget {
               height: 23,
             ),
             Text(
-              'Connect to the internet to see results',
+              AppLocalizations.of(context)!.connectToTheInternetToSeeResults,
               style: CustomTextStyle.errorSubTitle(context),
               textAlign: TextAlign.center,
             ),
@@ -469,8 +477,8 @@ class AppErrorWidget extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text:
-                          'We can’t seem to find the content you’re looking for.',
+                      text: AppLocalizations.of(context)!
+                          .weCantSeemToFindTheContentYoureLookingFor,
                       style: CustomTextStyle.headline7(context)?.copyWith(
                         color: CustomColors.appColorBlack,
                       ),
@@ -483,7 +491,8 @@ class AppErrorWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Text(
-                'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                AppLocalizations.of(context)!
+                    .scaredTakeADeepBreathOfCleanAirOnUsReadyBreatheInBreatheOut,
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline8(context)?.copyWith(
                   color: CustomColors.appColorBlack,
@@ -496,9 +505,9 @@ class AppErrorWidget extends StatelessWidget {
               onTap: () {
                 callBack();
               },
-              child: const ActionButton(
+              child: ActionButton(
                 icon: Icons.refresh_outlined,
-                text: 'Refresh',
+                text: AppLocalizations.of(context)!.refresh,
               ),
             ),
           ],
@@ -544,7 +553,8 @@ class AppCrushWidget extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: 'A fatal error has occurred.',
+                      text:
+                          AppLocalizations.of(context)!.aFatalErrorHasOccurred,
                       style: CustomTextStyle.headline7(context)?.copyWith(
                         color: CustomColors.appColorBlack,
                       ),
@@ -557,7 +567,8 @@ class AppCrushWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Text(
-                'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                AppLocalizations.of(context)!
+                    .scaredTakeADeepBreathOfCleanAirOnUsReadyBreatheInBreatheOut,
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline8(context)?.copyWith(
                   color: CustomColors.appColorBlack,
@@ -574,14 +585,14 @@ class AppCrushWidget extends StatelessWidget {
                   Navigator.pop(context);
                   showSnackBar(
                     context,
-                    "Report has been successfully sent.",
+                    AppLocalizations.of(context)!.reportHasBeenSuccessfullySent,
                     durationInSeconds: 10,
                   );
                 });
               },
-              child: const ActionButton(
+              child: ActionButton(
                 icon: Icons.error_outline_rounded,
-                text: 'Report Error',
+                text: AppLocalizations.of(context)!.reportError,
               ),
             ),
           ],
@@ -623,8 +634,8 @@ class ErrorPage extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text:
-                          'We can’t seem to find the content you’re looking for.',
+                      text: AppLocalizations.of(context)!
+                          .weCantSeemToFindTheContentYoureLookingFor,
                       style: CustomTextStyle.headline7(context)?.copyWith(
                         color: CustomColors.appColorBlack,
                       ),
@@ -637,7 +648,8 @@ class ErrorPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Text(
-                'Scared?, take a deep breath of clean air on us. Ready? Breathe In, Breathe out.',
+                AppLocalizations.of(context)!
+                    .scaredTakeADeepBreathOfCleanAirOnUsReadyBreatheInBreatheOut,
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline8(context)?.copyWith(
                   color: CustomColors.appColorBlack,
@@ -648,7 +660,7 @@ class ErrorPage extends StatelessWidget {
             const Spacer(),
             NextButton(
               buttonColor: CustomColors.appColorBlue,
-              text: 'Return home',
+              text: AppLocalizations.of(context)!.returnHome,
               callBack: () {
                 Navigator.pushAndRemoveUntil(
                   context,

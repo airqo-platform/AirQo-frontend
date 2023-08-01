@@ -4,6 +4,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'search_widgets.dart';
 
@@ -88,16 +89,16 @@ class SearchFilterView extends StatelessWidget {
               children: [
                 SearchSection(
                   maximumElements: 3,
-                  title: 'Recent Searches',
+                  title: AppLocalizations.of(context)!.recentSearches,
                   airQualityReadings: state.recentSearches,
                 ),
                 const ExploreAfricanCitiesSection(),
               ],
             );
           case SearchFilterStatus.filterFailed:
-            return const NoSearchResultsWidget(
-              message:
-                  'Try adjusting your filters to find what you’re looking for.',
+            return NoSearchResultsWidget(
+              message: AppLocalizations.of(context)!
+                  .tryAdjustingYourFiltersToFindWhatYoureLookingFor,
             );
         }
       },
@@ -132,7 +133,7 @@ class SearchView extends StatelessWidget {
             return const AutoCompleteResultsWidget();
           case SearchStatus.initial:
             widget = SearchSection(
-              title: 'Suggestions',
+              title: AppLocalizations.of(context)!.suggestions,
               airQualityReadings: state.searchHistory,
             );
             break;
@@ -140,8 +141,7 @@ class SearchView extends StatelessWidget {
             widget = state.recommendations.isEmpty
                 ? const NoSearchResultsWidget()
                 : SearchSection(
-                    title:
-                        'Can\'t find air quality of ${state.searchTerm}?\nExplore these locations related to your search.',
+                    title:AppLocalizations.of(context)!.cantFindAirQualityOfExploreTheseLocationsRelateToYourSearch(state.searchTerm) ,
                     airQualityReadings: state.recommendations,
                   );
             break;

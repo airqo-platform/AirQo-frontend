@@ -580,7 +580,7 @@ class FeedbackChannelStep extends StatelessWidget {
                         const BorderSide(color: Colors.white, width: 1.0),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  hintText: 'Enter your email',
+                  hintText: AppLocalizations.of(context)!.enterYourEmail,
                   hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.32),
                       ),

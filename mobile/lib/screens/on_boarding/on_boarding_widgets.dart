@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 OnBoardingPage getOnBoardingPageConstant(String value) {
   switch (value) {
@@ -122,7 +123,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your name';
+              return AppLocalizations.of(context)!.pleaseEnterYourName;
             }
 
             return null;
@@ -132,7 +133,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
             focusedBorder: borderSide,
             enabledBorder: borderSide,
             border: borderSide,
-            hintText: 'Enter your name',
+            hintText: AppLocalizations.of(context)!.enterYourName,
             errorStyle: const TextStyle(
               fontSize: 0,
             ),
@@ -212,7 +213,7 @@ class SkipOnboardScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 16.0),
         child: Text(
-          'No, thanks',
+          AppLocalizations.of(context)!.noThanks,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: CustomColors.appColorBlue,
@@ -328,7 +329,7 @@ class TaglineWidget extends StatelessWidget {
               alignment: Alignment.center,
             ),
             Text(
-              'Breathe\nClean.',
+              AppLocalizations.of(context)!.breatheClean,
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme

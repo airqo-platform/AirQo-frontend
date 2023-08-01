@@ -7,6 +7,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
@@ -52,7 +53,7 @@ class InsightAirQualityWidget extends StatelessWidget {
                 ),
                 AutoSizeText(
                   insight.isEmpty
-                      ? 'No air quality data available'
+                      ? AppLocalizations.of(context)!.noAirQualityDataAvailable
                       : '${insight.airQuality?.title}',
                   maxLines: 1,
                   minFontSize: 1,
@@ -234,7 +235,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(left: 16),
                               child: Text(
-                                'Know Your Air',
+                                AppLocalizations.of(context)!.knowYourair,
                                 style: CustomTextStyle.headline10(
                                   context,
                                 )?.copyWith(
@@ -461,7 +462,7 @@ class ForecastContainer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0),
             child: Text(
-              'Forecast',
+              AppLocalizations.of(context)!.forecast,
               style: CustomTextStyle.headline8(context)?.copyWith(fontSize: 20),
             ),
           ),

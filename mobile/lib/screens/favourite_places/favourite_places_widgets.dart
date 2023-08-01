@@ -5,6 +5,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FavouritePlaceCard extends StatelessWidget {
   const FavouritePlaceCard(this.favouritePlace, {super.key});
@@ -123,7 +124,7 @@ class FavouritePlaceCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      'View More Insights',
+                      AppLocalizations.of(context)!.viewMoreInsights,
                       style: CustomTextStyle.caption3(context)?.copyWith(
                         color: appColors.appColorBlue,
                       ),
@@ -144,10 +145,10 @@ class FavouritePlaceCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 10,
-                        semanticLabel: 'more',
+                        semanticLabel: AppLocalizations.of(context)!.more,
                       ),
                     ),
                   ],
@@ -168,8 +169,8 @@ class FavouritePlaceCard extends StatelessWidget {
     AirQualityReading? airQualityReading,
   ) async {
     if (airQualityReading == null) {
-      showSnackBar(context, 'No air quality for this place');
-
+      showSnackBar(
+          context, AppLocalizations.of(context)!.noAirQualityForThisPlace);
       return;
     }
     await navigateToInsights(context, airQualityReading);

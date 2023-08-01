@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'buttons.dart';
 import 'custom_shimmer.dart';
@@ -296,7 +297,7 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Padding(
         padding: const EdgeInsets.only(top: 10),
         child: Text(
-          'Know Your Air',
+          AppLocalizations.of(context)!.knowYourair,
           style:
               CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),
         ),
@@ -486,7 +487,10 @@ class _AirQualityActionsState extends State<AirQualityActions> {
             ),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                showSnackBar(context, 'Could not create a share link.');
+                showSnackBar(
+                  context,
+                  AppLocalizations.of(context)!.couldNotCreateAShareLink,
+                );
               }
               if (snapshot.hasData) {
                 Uri? link = snapshot.data;
@@ -523,7 +527,7 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                           ),
                           semanticsLabel: 'Share',
                         ),
-                        text: 'Share',
+                        text: AppLocalizations.of(context)!.share,
                       ),
                     ),
                   );
@@ -533,7 +537,8 @@ class _AirQualityActionsState extends State<AirQualityActions> {
               return OutlinedButton(
                 style: _leftButtonStyle,
                 onPressed: () {
-                  showSnackBar(context, 'Creating share link. Hold on tight');
+                  showSnackBar(
+                      context, AppLocalizations.of(context)!.creatingShareLink);
                 },
                 child: const Center(
                   child: LoadingIcon(radius: 14),
@@ -554,7 +559,7 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                   showAnimation: _showHeartAnimation,
                   airQualityReading: widget.airQualityReading,
                 ),
-                text: 'Favorite',
+                text: AppLocalizations.of(context)!.favorite,
               ),
             ),
           ),
@@ -727,7 +732,7 @@ class CustomShowcaseWidget extends StatelessWidget {
                     color: Colors.white,
                   ),
                   child: IconButton(
-                    tooltip: "Skip Showcase",
+                    tooltip: AppLocalizations.of(context)!.skipShowCase,
                     icon: const Icon(Icons.skip_next),
                     onPressed: () async {
                       ShowCaseWidget.of(context).dismiss();

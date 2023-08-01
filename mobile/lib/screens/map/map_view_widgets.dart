@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../insights/insights_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DraggingHandle extends StatelessWidget {
   const DraggingHandle({super.key});
@@ -105,10 +106,10 @@ class SiteTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.4),
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.arrow_forward_ios_rounded,
         size: 10,
-        semanticLabel: 'more',
+        semanticLabel: AppLocalizations.of(context)!.more,
         weight: 1000,
       ),
       leading: MiniAnalyticsAvatar(airQualityReading: airQualityReading),
@@ -147,10 +148,10 @@ class SearchTile extends StatelessWidget {
           color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.arrow_forward_ios_rounded,
         size: 10,
-        semanticLabel: 'more',
+        semanticLabel: AppLocalizations.of(context)!.more,
         weight: 1000,
       ),
     );
@@ -172,8 +173,8 @@ class SearchTile extends StatelessWidget {
           if (nearestSite == null) {
             showSnackBar(
               context,
-              'Oops!!.. We don’t have air quality readings for'
-              ' ${searchResult.name}',
+              AppLocalizations.of(context)!
+                  .oopsWeDontHaveAirQualityReadingsFor(searchResult.name),
               durationInSeconds: 3,
             );
           } else {
@@ -192,7 +193,7 @@ class SearchTile extends StatelessWidget {
       } else {
         showSnackBar(
           context,
-          'Try again later',
+          AppLocalizations.of(context)!.tryAgainLater,
         );
       }
     });

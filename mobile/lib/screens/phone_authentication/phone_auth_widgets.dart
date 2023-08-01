@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../widgets/auth_widgets.dart';
 import '../email_authentication/email_auth_screen.dart';
 import 'phone_auth_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhoneAuthErrorMessage extends StatelessWidget {
   const PhoneAuthErrorMessage({super.key});
@@ -115,10 +116,12 @@ class PhoneAuthSubTitle extends StatelessWidget {
           case AuthenticationStatus.error:
             return const SizedBox.shrink();
           case AuthenticationStatus.initial:
-            message = "We’ll send you a verification code";
+            message =
+                AppLocalizations.of(context)!.wellSendYouAVerificationCode;
             break;
           case AuthenticationStatus.success:
-            message = 'Great, few more steps before you can\nbreathe';
+            message = AppLocalizations.of(context)!
+                .greatFewMoreStepsBeforeYouCanBreathe;
             break;
         }
 
@@ -152,10 +155,11 @@ class PhoneAuthTitle extends StatelessWidget {
             message = AuthMethod.phone.optionsText(state.authProcedure);
             break;
           case AuthenticationStatus.error:
-            message = 'Oops, Something’s wrong with your number';
+            message =
+                AppLocalizations.of(context)!.oopsSomethingsWrongWithYourNumber;
             break;
           case AuthenticationStatus.success:
-            message = 'Success';
+            message = AppLocalizations.of(context)!.success;
             break;
         }
 
@@ -185,16 +189,17 @@ class PhoneVerificationTitle extends StatelessWidget {
         switch (state.status) {
           case AuthenticationStatus.initial:
             title = state.authProcedure == AuthProcedure.login
-                ? "Enter code to login"
-                : "Verify your account";
+                ? AppLocalizations.of(context)!.enterCodeToLogin
+                : AppLocalizations.of(context)!.verifyYourAccount;
             break;
           case AuthenticationStatus.error:
-            title = 'Oops, Something’s wrong with your code';
+            title =
+                AppLocalizations.of(context)!.oopsSomethingsWrongWithYourCode;
             break;
           case AuthenticationStatus.success:
             title = state.authProcedure == AuthProcedure.login
-                ? "Login successful"
-                : "Your phone number has been verified";
+                ? AppLocalizations.of(context)!.loginSuccessful
+                : AppLocalizations.of(context)!.yourPhoneNumberHasBeenVerified;
             break;
         }
 
@@ -223,14 +228,15 @@ class PhoneVerificationSubTitle extends StatelessWidget {
         String subtitle;
         switch (state.status) {
           case AuthenticationStatus.initial:
-            subtitle =
-                "Enter the 6 digits code sent to\n${state.phoneAuthModel.phoneNumber}";
+            subtitle = AppLocalizations.of(context)!
+                .enterThe6DigitsCodeSentTo(state.phoneAuthModel.phoneNumber);
             break;
           case AuthenticationStatus.error:
-            subtitle = 'Sure you read it correctly? Pro Tip: Copy & Paste';
+            subtitle = AppLocalizations.of(context)!
+                .sureYouReadItCorrectlyProTipCopyPaste;
             break;
           case AuthenticationStatus.success:
-            subtitle = 'Pheww, almost done, hold in there.';
+            subtitle = AppLocalizations.of(context)!.phewwAlmostDoneHoldInThere;
             break;
         }
 
@@ -277,7 +283,7 @@ class _PhoneVerificationCodeCountDownState
                 await _resendAuthCode();
               },
               child: Text(
-                'Resend code',
+                AppLocalizations.of(context)!.resendCode,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlue,
@@ -290,7 +296,8 @@ class _PhoneVerificationCodeCountDownState
         return Padding(
           padding: const EdgeInsets.only(top: 10.0),
           child: Text(
-            'The code should arrive with in ${state.codeCountDown} sec',
+            AppLocalizations.of(context)!
+                .theCodeShouldArrive(state.codeCountDown),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.5),
@@ -313,8 +320,7 @@ class _PhoneVerificationCodeCountDownState
     }
 
     if (!hasConnection) {
-      showSnackBar(context, "No Internet connection");
-
+      showSnackBar(context, AppLocalizations.of(context)!.noInternetConnection);
       return;
     }
     final phoneAuthModel =
@@ -452,7 +458,7 @@ class SignUpOptions extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Already have an account',
+                AppLocalizations.of(context)!.alreadyHaveAnAccount,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.6),
@@ -462,7 +468,7 @@ class SignUpOptions extends StatelessWidget {
                 width: 2,
               ),
               Text(
-                'Log in',
+                AppLocalizations.of(context)!.logIn,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlue,
@@ -521,7 +527,7 @@ class LoginOptions extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Don’t have an account',
+                AppLocalizations.of(context)!.dontHaveAnAccount,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.6),
@@ -531,7 +537,7 @@ class LoginOptions extends StatelessWidget {
                 width: 2,
               ),
               Text(
-                'Sign up',
+                AppLocalizations.of(context)!.signUp,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CustomColors.appColorBlue,
