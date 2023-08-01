@@ -555,6 +555,75 @@ class AirqoApiClient {
     return false;
   }
 
+  Future<List<SearchHistory>> fetchSearchHistory(String userId) async {
+    final searchHistory = <SearchHistory>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.searchHistory}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final history in body['search_history'] as List<dynamic>) {
+        try {
+          searchHistory.add(
+            SearchHistory.fromJson(
+              history as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return searchHistory;
+  }
+
+  Future<bool> syncSearchHistory(
+    List<SearchHistory> searchHistory,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          searchHistory.map((e) => e.toAPIJson(userId)).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.searchHistory}/syncSearchHistory/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'search_histories': body}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
     String url, {
