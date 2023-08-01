@@ -72,7 +72,7 @@ const IntraCorrelationChart = ({
       };
 
       router.replace({
-        pathname: `/collocation/reports/monitor_report/${updatedQuery.device}`,
+        pathname: `/analytics/collocation/reports/monitor_report/${updatedQuery.device}`,
         query: updatedQuery,
       });
 

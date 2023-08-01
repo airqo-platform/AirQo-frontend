@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
 
@@ -13,6 +14,17 @@ enum AuthenticationStatus {
   initial,
   error,
   success;
+}
+
+enum KyaLessonStatus {
+  @JsonValue("TODO")
+  todo,
+  @JsonValue("IN_PROGRESS")
+  inProgress,
+  @JsonValue("PENDING_COMPLETION")
+  pendingCompletion,
+  @JsonValue("COMPLETE")
+  complete;
 }
 
 enum CloudAnalyticsEvent {
@@ -201,6 +213,7 @@ enum AirQuality {
     minimumValue: 250.5,
     maximumValue: 500,
   );
+
   String getStringValue(BuildContext context) {
     switch (this) {
       case AirQuality.good:
@@ -261,13 +274,13 @@ enum FeedbackType {
   String getStringValue(BuildContext context) {
     switch (this) {
       case FeedbackType.inquiry:
-        return AppLocalizations.of(context)!.inquiry ;
+        return AppLocalizations.of(context)!.inquiry;
       case FeedbackType.suggestion:
-        return AppLocalizations.of(context)!.suggestion ;
+        return AppLocalizations.of(context)!.suggestion;
       case FeedbackType.appBugs:
-        return AppLocalizations.of(context)!.appBugs ;
+        return AppLocalizations.of(context)!.appBugs;
       case FeedbackType.reportAirPollution:
-        return AppLocalizations.of(context)!.reportAirPollution ;
+        return AppLocalizations.of(context)!.reportAirPollution;
       case FeedbackType.none:
         return '';
     }
@@ -288,9 +301,9 @@ enum FeedbackChannel {
   String getStringValue(BuildContext context) {
     switch (this) {
       case FeedbackChannel.whatsApp:
-        //return AppLocalizations.of(context)!.whatsApp ;
+      //return AppLocalizations.of(context)!.whatsApp ;
       case FeedbackChannel.email:
-        return AppLocalizations.of(context)!.email ;
+        return AppLocalizations.of(context)!.email;
       case FeedbackChannel.none:
         return '';
     }

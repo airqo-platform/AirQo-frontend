@@ -12,7 +12,7 @@ const AccountCreation = () => {
   const [error, setError] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
-  const userData = useSelector((state) => state.account.userData);
+  const userData = useSelector((state) => state.creation.userData);
 
   const handleChange = () => {
     dispatch(setUserEmail(email));
@@ -74,7 +74,7 @@ const AccountCreation = () => {
           <span className='text-sm text-grey-300'>Already have an account?</span>
           <span className='text-sm text-blue-900 font-medium'>
             {' '}
-            <Link href='/'>Log in</Link>
+            <Link href='/account/login'>Log in</Link>
           </span>
         </div>
       </div>

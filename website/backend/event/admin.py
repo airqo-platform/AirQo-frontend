@@ -29,7 +29,7 @@ class PartnerLogoInline(nested_admin.NestedTabularInline):
     extra = 0
 
 class ResourceInline(nested_admin.NestedTabularInline):
-    fields=('title','link', 'resource')
+    fields=('title','link', 'resource', 'order')
     readonly_fields = ('author', 'updated_by')
     model = Resource
     extra = 0
@@ -43,3 +43,12 @@ class EventAdmin(nested_admin.NestedModelAdmin):
     list_filter = ('event_tag','start_date')
     inlines = (ProgramInline, PartnerLogoInline, InquiryInline, ResourceInline,)
     list_per_page = 10
+
+@admin.register(Resource)
+class ResourceAdmin(admin.ModelAdmin):
+    fields=('event','title','link', 'resource', 'order')
+    list_display=('title','event','author',)
+    search_fields =('event','title',)
+    list_filter = ('author','created')
+    list_per_page = 10
+

@@ -1,6 +1,5 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +10,8 @@ Future<bool> displayRatingDialog(BuildContext context) async {
     return false;
   }
 
-  List<SearchHistory> searchHistory = HiveService().getSearchHistory();
+  List<SearchHistory> searchHistory =
+      context.read<SearchHistoryBloc>().state.history;
   if (searchHistory.length >= 5) {
     return true;
   }
@@ -22,10 +22,11 @@ Future<bool> displayRatingDialog(BuildContext context) async {
     return true;
   }
 
-  List<Kya> completeKya = context
+  List<KyaLesson> completeKya = context
       .read<KyaBloc>()
       .state
-      .where((kya) => kya.progress >= 100)
+      .lessons
+      .where((kya) => kya.status == KyaLessonStatus.complete)
       .toList();
   if (completeKya.length >= 5) {
     return true;

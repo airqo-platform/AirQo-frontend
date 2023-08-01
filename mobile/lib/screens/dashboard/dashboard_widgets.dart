@@ -322,7 +322,7 @@ class KyaDashboardAvatar extends StatelessWidget {
     required this.kya,
     required this.rightPadding,
   });
-  final Kya kya;
+  final KyaLesson kya;
   final double rightPadding;
 
   @override
@@ -360,7 +360,7 @@ class KyaDashboardAvatar extends StatelessWidget {
   }
 }
 
-List<Widget> completeKyaWidgets(List<Kya> completeKya) {
+List<Widget> completeKyaWidgets(List<KyaLesson> completeKya) {
   final widgets = <Widget>[];
 
   try {

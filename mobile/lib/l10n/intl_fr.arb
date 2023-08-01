@@ -178,5 +178,10 @@
   "failedToReloadTryAgainLater": "Échec du rechargement. Réessayez plus tard",
   "noAirQualityDataAvailable": "Pas de données de qualité de l'air disponibles",
   "theAirQualityIndexColorsCanBeUsedToShowHowPollutedTheAirIs":"Les couleurs de l'indice de qualité de l'air peuvent être utilisées pour montrer à quel point l'air est pollué",
-  "forecast":"Prévision"
+  "forecast":"Prévision",
+  "no":"Non",
+  "yes":"Oui",
+  "confirm":"Confirmer",
+  "areYouSureYouWantToRemove":"Êtes-vous sûr de vouloir supprimer\n",
+  "fromYourFavorites":"\nde vos favoris?"
 }

@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -87,11 +88,19 @@ class SearchFilterView extends StatelessWidget {
           case SearchFilterStatus.initial:
             return ListView(
               children: [
-                SearchSection(
-                  maximumElements: 3,
-                  title: AppLocalizations.of(context)!.recentSearches,
-                  airQualityReadings: state.recentSearches,
-                ),
+                BlocBuilder<SearchHistoryBloc, SearchHistoryState>(
+                    builder: (context, state) {
+                  List<AirQualityReading> data = state.history
+                      .where((element) => element.airQualityReading != null)
+                      .map((e) => e.airQualityReading as AirQualityReading)
+                      .toList();
+
+                  return SearchSection(
+                    maximumElements: 3,
+                    title:AppLocalizations.of(context)!.recentSearches ,
+                    airQualityReadings: data,
+                  );
+                }),
                 const ExploreAfricanCitiesSection(),
               ],
             );
@@ -132,9 +141,16 @@ class SearchView extends StatelessWidget {
           case SearchStatus.autoCompleteFinished:
             return const AutoCompleteResultsWidget();
           case SearchStatus.initial:
+            List<AirQualityReading> data = context
+                .read<SearchHistoryBloc>()
+                .state
+                .history
+                .where((element) => element.airQualityReading != null)
+                .map((e) => e.airQualityReading as AirQualityReading)
+                .toList();
             widget = SearchSection(
               title: AppLocalizations.of(context)!.suggestions,
-              airQualityReadings: state.searchHistory,
+              airQualityReadings: data,
             );
             break;
           case SearchStatus.searchComplete:

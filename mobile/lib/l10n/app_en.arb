@@ -178,5 +178,10 @@
     "failedToReloadTryAgainLater": "Failed to reload. Try again later",
     "noAirQualityDataAvailable": "No air quality data available",
     "theAirQualityIndexColorsCanBeUsedToShowHowPollutedTheAirIs":"The Air Quality Index (AQI) colors can be used to show how polluted the air is. ",
-    "forecast":"Forecast"
+    "forecast":"Forecast",
+    "no":"No",
+    "yes":"Yes",
+    "confirm":"Confirm",
+    "areYouSureYouWantToRemove":"Are you sure you want to remove\n",
+    "fromYourFavorites":"\nfrom your favorites?"
 }

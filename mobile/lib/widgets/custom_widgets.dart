@@ -23,6 +23,7 @@ import 'custom_shimmer.dart';
 
 class HealthTipContainer extends StatelessWidget {
   const HealthTipContainer(this.healthTip, {super.key});
+
   final HealthTip healthTip;
 
   @override
@@ -117,6 +118,7 @@ class HealthTipContainer extends StatelessWidget {
 
 class AirQualityChip extends StatelessWidget {
   const AirQualityChip(this.airQuality, {super.key});
+
   final AirQuality airQuality;
 
   @override
@@ -141,6 +143,7 @@ class AppRefreshIndicator extends StatelessWidget {
     this.onRefresh,
     required this.sliverChildDelegate,
   });
+
   final Future<void> Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
@@ -169,6 +172,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.centerTitle,
   });
+
   final String title;
   final List<Widget>? actions;
   final bool? centerTitle;
@@ -235,6 +239,7 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 class AqiStringContainer extends StatelessWidget {
   const AqiStringContainer(this.airQualityReading, {super.key});
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -314,6 +319,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
     super.key,
     required this.airQualityReading,
   });
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -377,11 +383,11 @@ class HeartIcon extends StatelessWidget {
   const HeartIcon({
     super.key,
     required this.showAnimation,
-    required this.airQualityReading,
+    required this.placeId,
   });
 
   final bool showAnimation;
-  final AirQualityReading? airQualityReading;
+  final String placeId;
 
   @override
   Widget build(BuildContext context) {
@@ -402,9 +408,6 @@ class HeartIcon extends StatelessWidget {
     return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
       builder: (context, state) {
         final placesIds = state.map((e) => e.placeId).toList();
-
-        final placeId =
-            airQualityReading == null ? '' : airQualityReading?.placeId;
 
         return SvgPicture.asset(
           placesIds.contains(placeId)
@@ -557,7 +560,7 @@ class _AirQualityActionsState extends State<AirQualityActions> {
               child: IconTextButton(
                 iconWidget: HeartIcon(
                   showAnimation: _showHeartAnimation,
-                  airQualityReading: widget.airQualityReading,
+                  placeId: widget.airQualityReading.placeId,
                 ),
                 text: AppLocalizations.of(context)!.favorite,
               ),
@@ -598,6 +601,7 @@ class AppSafeArea extends StatelessWidget {
     this.horizontalPadding,
     this.backgroundColor,
   });
+
   final Widget child;
   final double? verticalPadding;
   final double? horizontalPadding;
@@ -636,10 +640,12 @@ class BottomNavIcon extends StatelessWidget {
     required this.index,
     required this.icon,
   });
+
   final int selectedIndex;
   final String label;
   final int index;
   final IconData icon;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -787,5 +793,33 @@ class CustomShowcaseWidget extends StatelessWidget {
       ),
       child: child,
     );
+  }
+}
+
+class SwipeDismissible extends Dismissible {
+  const SwipeDismissible(
+      {required super.key,
+      required super.onDismissed,
+      required super.confirmDismiss,
+      required super.background,
+      required super.child});
+
+  static Container defaultBackground({
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+        color: color,
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(label, style: const TextStyle(color: Colors.white)),
+            ],
+          ),
+        ));
   }
 }

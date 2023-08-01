@@ -65,11 +65,12 @@ class SplashScreenState extends State<SplashScreen> {
         ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
@@ -158,6 +159,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _updateWidget() {
+    if (!mounted) return;
+
     setState(
       () {
         _visible = true;
