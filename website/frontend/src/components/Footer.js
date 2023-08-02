@@ -24,6 +24,7 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
 
+import { LOCATIONS_TRACKING_URL } from '../../config/urls';
 import axios from 'axios';
 
 const style = {
@@ -110,7 +111,8 @@ const Footer = () => {
     const getUserCountry = async (latitude, longitude) => {
       try {
         const response = await axios.get(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          LOCATIONS_TRACKING_URL +
+            `?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
         );
         const { countryName } = response.data;
         if (countries.some((country) => countryName === country.name)) {
