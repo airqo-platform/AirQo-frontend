@@ -214,22 +214,22 @@ enum AirQuality {
     maximumValue: 500,
   );
 
-  String getStringValue(BuildContext context) {
-    switch (this) {
-      case AirQuality.good:
-        return AppLocalizations.of(context)!.good;
-      case AirQuality.moderate:
-        return AppLocalizations.of(context)!.moderate;
-      case AirQuality.ufsgs:
-        return AppLocalizations.of(context)!.unhealthySG;
-      case AirQuality.unhealthy:
-        return AppLocalizations.of(context)!.unhealthy;
-      case AirQuality.veryUnhealthy:
-        return AppLocalizations.of(context)!.veryUnhealthy;
-      case AirQuality.hazardous:
-        return AppLocalizations.of(context)!.hazardous;
-    }
-  }
+  // String getStringValue(BuildContext context) {
+  //   switch (this) {
+  //     case AirQuality.good:
+  //       return AppLocalizations.of(context)!.good;
+  //     case AirQuality.moderate:
+  //       return AppLocalizations.of(context)!.moderate;
+  //     case AirQuality.ufsgs:
+  //       return AppLocalizations.of(context)!.unhealthySG;
+  //     case AirQuality.unhealthy:
+  //       return AppLocalizations.of(context)!.unhealthy;
+  //     case AirQuality.veryUnhealthy:
+  //       return AppLocalizations.of(context)!.veryUnhealthy;
+  //     case AirQuality.hazardous:
+  //       return AppLocalizations.of(context)!.hazardous;
+  //   }
+  // }
 
   const AirQuality({
     required this.title,
@@ -373,6 +373,7 @@ enum AuthMethod {
         );
     }
   }
+  
 }
 
 enum AuthProcedure {
@@ -447,6 +448,24 @@ enum OnBoardingPage {
 
   @override
   String toString() => string;
+  // String getStringValue(BuildContext context) {
+  //   switch (this) {
+  //     case OnBoardingPage.signup:
+  //       return AppLocalizations.of(context)!.signUp;
+  //     case OnBoardingPage.profile:
+  //       return AppLocalizations.of(context)!.profile;
+  //     case OnBoardingPage.notification:
+  //       return AppLocalizations.of(context)!.nortification;
+  //     case OnBoardingPage.location:
+  //       return AppLocalizations.of(context)!.location;
+  //     case OnBoardingPage.complete:
+  //       return AppLocalizations.of(context)!.complete;
+  //     case OnBoardingPage.home:
+  //       return AppLocalizations.of(context)!.home;
+  //     case OnBoardingPage.welcome:
+  //       return AppLocalizations.of(context)!.welcome;
+  //   }
+  // }
 }
 
 enum Pollutant {

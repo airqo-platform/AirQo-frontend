@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../screens/home_page.dart';
 import '../screens/email_authentication/email_auth_screen.dart';
 import '../screens/phone_authentication/phone_auth_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AuthOrSeparator extends StatelessWidget {
   const AuthOrSeparator({super.key});
@@ -59,7 +60,7 @@ class ProceedAsGuest extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Proceed as',
+              AppLocalizations.of(context)!.proceedAs,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.6),
@@ -69,7 +70,7 @@ class ProceedAsGuest extends StatelessWidget {
               width: 2,
             ),
             Text(
-              'Guest',
+              AppLocalizations.of(context)!.guest,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: CustomColors.appColorBlue,
@@ -84,8 +85,8 @@ class ProceedAsGuest extends StatelessWidget {
   Future<void> _guestSignIn(BuildContext context) async {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
-        showSnackBar(context, "Check your internet connection");
-
+        showSnackBar(
+            context, AppLocalizations.of(context)!.checkYourInternetConnection);
         return;
       }
 
