@@ -245,7 +245,7 @@ class EmptyNotifications extends StatelessWidget {
             ),
             const SizedBox(height: 53),
             Text(
-              'No notifications',
+              'No notifications', // TODO translate this
               textAlign: TextAlign.center,
               style: CustomTextStyle.headline7(context)?.copyWith(
                 fontSize: 21,
@@ -259,7 +259,7 @@ class EmptyNotifications extends StatelessWidget {
                     fontSize: 15.0,
                     color: CustomColors.emptyNotificationScreenTextColor,
                   ),
-              'Here you’ll find all updates on our Air Quality network.',
+              'Here you’ll find all updates on our Air Quality network.', // TODO translate this
             ),
             const Spacer(),
           ],

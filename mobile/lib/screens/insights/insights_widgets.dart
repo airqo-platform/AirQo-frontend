@@ -6,8 +6,8 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
@@ -124,7 +124,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.only(top: 10.0),
         child: Text(
-          'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ',
+          'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ', // TODO translate this
           style: TextStyle(
             fontSize: 8,
             fontWeight: FontWeight.w500,

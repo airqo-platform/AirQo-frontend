@@ -97,7 +97,7 @@ class SearchFilterView extends StatelessWidget {
 
                   return SearchSection(
                     maximumElements: 3,
-                    title:AppLocalizations.of(context)!.recentSearches ,
+                    title: AppLocalizations.of(context)!.recentSearches,
                     airQualityReadings: data,
                   );
                 }),
@@ -157,7 +157,9 @@ class SearchView extends StatelessWidget {
             widget = state.recommendations.isEmpty
                 ? const NoSearchResultsWidget()
                 : SearchSection(
-                    title:AppLocalizations.of(context)!.cantFindAirQualityOfExploreTheseLocationsRelateToYourSearch(state.searchTerm) ,
+                    title: AppLocalizations.of(context)!
+                        .cantFindAirQualityOfExploreTheseLocationsRelateToYourSearch(
+                            state.searchTerm),
                     airQualityReadings: state.recommendations,
                   );
             break;

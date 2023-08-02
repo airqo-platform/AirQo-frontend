@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -22,7 +23,6 @@ import '../for_you_page.dart';
 import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignOutButton extends StatefulWidget {
   const SignOutButton({super.key});
@@ -133,7 +133,8 @@ class SignUpSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
-              AppLocalizations.of(context)!.createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips,
+              AppLocalizations.of(context)!
+                  .createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips,
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -189,9 +190,9 @@ class SignUpButton extends StatelessWidget {
           backgroundColor: CustomColors.appColorBlue,
           foregroundColor: CustomColors.appColorBlue,
         ),
-        child:  Text(
+        child: Text(
           AppLocalizations.of(context)!.signUp,
-          style:const TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 14,
             height: 22 / 14,
@@ -833,7 +834,9 @@ class EditCredentialsField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          authMethod == AuthMethod.email ? 'Email' : 'Phone Number',
+          authMethod == AuthMethod.email
+              ? 'Email'
+              : 'Phone Number', // TODO translate this
           style: TextStyle(
             fontSize: 12,
             color: CustomColors.inactiveColor,

@@ -2,8 +2,8 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_constants.g.dart';
@@ -214,22 +214,43 @@ enum AirQuality {
     maximumValue: 500,
   );
 
-  // String getStringValue(BuildContext context) {
-  //   switch (this) {
-  //     case AirQuality.good:
-  //       return AppLocalizations.of(context)!.good;
-  //     case AirQuality.moderate:
-  //       return AppLocalizations.of(context)!.moderate;
-  //     case AirQuality.ufsgs:
-  //       return AppLocalizations.of(context)!.unhealthySG;
-  //     case AirQuality.unhealthy:
-  //       return AppLocalizations.of(context)!.unhealthy;
-  //     case AirQuality.veryUnhealthy:
-  //       return AppLocalizations.of(context)!.veryUnhealthy;
-  //     case AirQuality.hazardous:
-  //       return AppLocalizations.of(context)!.hazardous;
-  //   }
-  // }
+  // TODO translate this
+  String getTitle(BuildContext context) {
+    switch (this) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.good;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.moderate;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!.unhealthySG;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.unhealthy;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.veryUnhealthy;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.hazardous;
+    }
+  }
+
+  // TODO translate this
+  String getDescription(BuildContext context) {
+    switch (this) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.good;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.moderate;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!.unhealthySG;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.unhealthy;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.veryUnhealthy;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.hazardous;
+    }
+  }
+
+  // TODO translate the remaining texts
 
   const AirQuality({
     required this.title,
@@ -337,18 +358,18 @@ enum AuthMethod {
   });
 
   final String updateMessage;
-  final String codeVerificationText;
+  final String codeVerificationText; // TODO remove this
   final String editEntryText;
-  final String invalidInputErrorMessage;
-  final String invalidInputMessage;
+  final String invalidInputErrorMessage; // TODO remove this
+  final String invalidInputMessage; // TODO remove this
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {
-      case AuthMethod.phone:
+      case AuthMethod.phone: // TODO translate this
         return procedure == AuthProcedure.login
             ? 'Login with your mobile number'
             : 'Sign up with your mobile number or email';
-      case AuthMethod.email:
+      case AuthMethod.email: // TODO translate this
         return procedure == AuthProcedure.login
             ? 'Login with your email'
             : 'Sign up with your email or mobile number';
@@ -359,21 +380,20 @@ enum AuthMethod {
 
   String optionsButtonText(AuthProcedure procedure) {
     switch (this) {
-      case AuthMethod.phone:
+      case AuthMethod.phone: // TODO translate this
         return procedure == AuthProcedure.login
             ? 'Login with an email instead'
             : 'Sign up with an email instead';
-      case AuthMethod.email:
+      case AuthMethod.email: // TODO translate this
         return procedure == AuthProcedure.login
             ? 'Login with a mobile number instead'
             : 'Sign up with a mobile number instead';
-      default:
+      default: // TODO translate this
         throw UnimplementedError(
           '$name does’nt have options button text implementation',
         );
     }
   }
-  
 }
 
 enum AuthProcedure {
@@ -390,18 +410,21 @@ enum AuthProcedure {
     confirmationCancelText: '',
   ),
   anonymousLogin(
+    // TODO remove this
     confirmationTitle: '',
     confirmationBody: '',
     confirmationOkayText: '',
     confirmationCancelText: '',
   ),
   deleteAccount(
+    // TODO translate this
     confirmationTitle: 'Heads up!!!.. you are about to delete your account!',
     confirmationBody: 'You will lose all your saved places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
   logout(
+    // TODO translate this
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
         'You will miss out on notifications and won’t be able to save favourite places',
@@ -448,7 +471,7 @@ enum OnBoardingPage {
 
   @override
   String toString() => string;
-  // String getStringValue(BuildContext context) {
+  // String getStringValue(BuildContext context) { // TODO remove this if not needed
   //   switch (this) {
   //     case OnBoardingPage.signup:
   //       return AppLocalizations.of(context)!.signUp;
@@ -515,25 +538,25 @@ enum Pollutant {
 
   String infoDialogText(double value) {
     switch (airQuality(value)) {
-      case AirQuality.good:
+      case AirQuality.good: // TODO translate this
         return 'Air quality is safe for everyone!';
-      case AirQuality.moderate:
+      case AirQuality.moderate: // TODO translate this
         return 'Unusually sensitive people should consider reducing '
             'prolonged or intense outdoor activities.';
-      case AirQuality.ufsgs:
+      case AirQuality.ufsgs: // TODO translate this
         return 'The elderly and children should limit intense outdoor '
             'activities. Sensitive people should reduce prolonged or '
             'intense outdoor activities.';
-      case AirQuality.unhealthy:
+      case AirQuality.unhealthy: // TODO translate this
         return 'People with respiratory or heart disease,'
             ' the elderly and children should avoid '
             'intense outdoor activities.'
             'Everyone else should limit intense outdoor activities.';
-      case AirQuality.veryUnhealthy:
+      case AirQuality.veryUnhealthy: // TODO translate this
         return 'People with respiratory or heart disease, '
             'the elderly and children should avoid any outdoor activity.'
             'Everyone else should limit intense outdoor activities.';
-      case AirQuality.hazardous:
+      case AirQuality.hazardous: // TODO translate this
         return 'Everyone should avoid any intense outdoor activities. '
             'People with respiratory or heart disease,'
             ' the elderly and children should remain indoors.';
@@ -587,13 +610,13 @@ enum Pollutant {
 }
 
 enum TitleOptions {
-  ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'),
-  mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'),
+  ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'), // TODO translate this
+  mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'), // TODO translate this
   undefined(
     value: 'Rather Not Say',
     displayValue: 'Rather Not Say',
     abbr: 'Ra.',
-  );
+  ); // TODO translate this
 
   const TitleOptions({
     required this.value,

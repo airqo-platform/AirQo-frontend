@@ -107,13 +107,13 @@ extension KyaExt on KyaLesson {
   String getKyaMessage() {
     switch (status) {
       case KyaLessonStatus.todo:
-        return 'Start learning';
+        return 'Start learning'; // TODO translate this
       case KyaLessonStatus.pendingCompletion:
-        return 'Complete! Move to For You';
+        return 'Complete! Move to For You'; // TODO translate this
       case KyaLessonStatus.inProgress:
       case KyaLessonStatus.complete:
-        if (activeTask == 1) return 'Start learning';
-        return 'Continue';
+        if (activeTask == 1) return 'Start learning'; // TODO translate this
+        return 'Continue'; // TODO translate this
     }
   }
 }
@@ -255,6 +255,7 @@ extension AirQualityReadingExt on AirQualityReading {
 
 extension InsightExt on Insight {
   String shortDate() {
+    // TODO translate this
     if (dateTime.isYesterday()) {
       return 'Yesterday';
     } else if (dateTime.isWithInPreviousWeek()) {
@@ -274,14 +275,17 @@ extension InsightExt on Insight {
 
   String healthTipsTitle() {
     if (dateTime.isToday()) {
+      // TODO translate this
       return 'Today’s health tips';
     }
 
     if (dateTime.isTomorrow()) {
+      // TODO translate this
       return 'Tomorrow’s health tips';
     }
 
     if (dateTime.isAFutureDate()) {
+      // TODO translate this
       return '${dateTime.getWeekday().toTitleCase()}’s health tips';
     }
 
@@ -353,7 +357,7 @@ extension ProfileExt on Profile {
     } else if (lastName != '') {
       return lastName.trim();
     } else {
-      return 'Hello';
+      return 'Hello'; // TODO translate this
     }
   }
 
@@ -397,6 +401,7 @@ extension ProfileExt on Profile {
   }
 
   String greetings() {
+    // TODO translate this
     final hour = DateTime.now().hour;
 
     if (00 <= hour && hour < 12) {
@@ -421,6 +426,7 @@ extension DateTimeExt on DateTime {
   }
 
   String analyticsCardString() {
+    // TODO translate this
     const String timeFormat = 'hh:mm a';
     const String dateTimeFormat = 'd MMM, $timeFormat';
     String dateString = DateFormat(timeFormat).format(this);
@@ -436,6 +442,7 @@ extension DateTimeExt on DateTime {
   }
 
   String timelineString() {
+    // TODO translate this
     return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
         .toUpperCase();
   }

@@ -12,6 +12,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -24,7 +25,6 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
@@ -70,7 +70,7 @@ class _DashboardViewState extends State<DashboardView>
         preferredSize: const Size.fromHeight(50.0),
         child: CustomShowcaseWidget(
           showcaseKey: _skipShowcaseKey,
-          description: "Click to Skip Tutorial",
+          description: "Click to Skip Tutorial", // TODO translate this
           customize: ShowcaseOptions.skip,
           child: AppBar(
             automaticallyImplyLeading: false,
@@ -98,7 +98,7 @@ class _DashboardViewState extends State<DashboardView>
                   builder: (context, state) {
                     return AutoSizeText(
                       // TODO refresh greetings
-                      state.greetings(),
+                      state.greetings(), // TODO translate this
                       maxLines: 1,
                       minFontSize: 24,
                       overflow: TextOverflow.ellipsis,
@@ -200,7 +200,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  DateTime.now().timelineString(),
+                  DateTime.now().timelineString(), // TODO translate this
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),

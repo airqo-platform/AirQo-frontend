@@ -44,7 +44,7 @@ class NextButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              text ?? 'Next',
+              text ?? 'Next', // TODO translate this
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,

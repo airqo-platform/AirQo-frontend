@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rating_dialog/rating_dialog.dart';
@@ -15,7 +16,6 @@ import 'package:rating_dialog/rating_dialog.dart';
 import '../screens/feedback/feedback_page.dart';
 import '../screens/home_page.dart';
 import 'custom_shimmer.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> openPhoneSettings(BuildContext context, String message) async {
   final confirmation = await showDialog<ConfirmationAction>(
@@ -149,7 +149,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       text: TextSpan(
                         children: <TextSpan>[
                           TextSpan(
-                            text: 'Particulate matter(PM) ',
+                            text:
+                                'Particulate matter(PM) ', // TODO translate this
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -187,7 +188,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'PM',
+                            text: 'PM', // TODO missing a space before PM
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -204,7 +205,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: ' and ',
+                            text: ' and ', // TODO Translate this
                             style: TextStyle(
                               fontSize: 10,
                               color:
@@ -279,7 +280,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: pmToInfoDialog(pm2_5),
+                            text: Pollutant.pm2_5.infoDialogText(pm2_5),
                             style: TextStyle(
                               color:
                                   CustomColors.appColorBlack.withOpacity(0.7),

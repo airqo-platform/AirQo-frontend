@@ -45,12 +45,14 @@ class NotificationService {
     late String disableNotificationsMessage;
 
     if (Platform.isAndroid) {
+      // TODO translate this
       enableNotificationsMessage =
           'To turn on notifications, go to\nApp Info > Notifications';
 
       disableNotificationsMessage =
           'To turn off notifications, go to\nApp Info > Notifications';
     } else {
+      // TODO translate this
       enableNotificationsMessage =
           'To turn on notifications, go to\nSettings > AirQo > Notifications';
 
