@@ -159,7 +159,6 @@ class LocationService {
         latitude: searchResult.latitude,
         longitude: searchResult.longitude,
       );
-      await HiveService().updateSearchHistory(airQualityReading);
     }
 
     return airQualityReading;
