@@ -112,7 +112,7 @@ const SideBar = () => {
         </div>
         {/* <AnnouncementCard />*/}
         <div className='mx-2'>
-          <SideBarItem label='Get Support' Icon={SupportIcon} />
+          <SideBarItem label='Get Support' Icon={SupportIcon}/>
           <SideBarItem label='Settings' Icon={SettingsIcon} navPath='/settings/profiledetails' />
         </div>
       </div>
