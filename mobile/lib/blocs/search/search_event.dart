@@ -11,12 +11,6 @@ class InitializeSearchFilter extends SearchEvent {
   List<Object> get props => [];
 }
 
-class ClearSearchHistory extends SearchEvent {
-  const ClearSearchHistory();
-  @override
-  List<Object?> get props => [];
-}
-
 class ReloadSearchFilter extends SearchEvent {
   const ReloadSearchFilter();
 

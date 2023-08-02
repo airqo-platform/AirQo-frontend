@@ -160,18 +160,12 @@ extension LocationHistoryExt on List<LocationHistory> {
 }
 
 extension SearchHistoryListExt on List<SearchHistory> {
-  void sortByDateTime({bool latestFirst = true}) {
-    sort((a, b) {
-      if (latestFirst) {
-        return -(a.dateTime.compareTo(b.dateTime));
-      }
-
-      return a.dateTime.compareTo(b.dateTime);
-    });
+  void sortByDateTime() {
+    sort((a, b) => -(a.dateTime.compareTo(b.dateTime)));
   }
 
-  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
-    List<AirQualityReading> airQualityReadings = [];
+  Future<List<SearchHistory>> attachedAirQualityReadings() async {
+    List<SearchHistory> history = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
           await LocationService.getNearestSite(
@@ -179,18 +173,17 @@ extension SearchHistoryListExt on List<SearchHistory> {
         searchHistory.longitude,
       );
       if (airQualityReading != null) {
-        airQualityReadings.add(airQualityReading.copyWith(
+        airQualityReading = airQualityReading.copyWith(
           name: searchHistory.name,
           location: searchHistory.location,
+          placeId: searchHistory.placeId,
           latitude: searchHistory.latitude,
           longitude: searchHistory.longitude,
-          placeId: searchHistory.placeId,
-          dateTime: searchHistory.dateTime,
-        ));
+        );
       }
+      history.add(searchHistory.copyWith(airQualityReading: airQualityReading));
     }
-
-    return airQualityReadings;
+    return history;
   }
 }
 
