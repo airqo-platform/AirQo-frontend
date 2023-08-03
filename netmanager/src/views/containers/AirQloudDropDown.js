@@ -15,10 +15,21 @@ import { isEmpty } from 'underscore';
 import { fetchDashboardAirQloudsData } from '../../redux/AirQloud/operations';
 
 const customStyles = {
-  control: (baseStyles, state) => ({
-    ...baseStyles,
+  control: (defaultStyles) => ({
+    ...defaultStyles,
     textTransform: 'uppercase',
-    borderColor: '#eee'
+    borderColor: '#eee',
+    width: '100%',
+    fontSize: '14px',
+    minHeight: '44px',
+    height: '44px',
+    outline: '0px',
+    border: '0px',
+    borderRadius: '8px'
+  }),
+  valueContainer: (provided, state) => ({
+    ...provided,
+    height: '44px'
   }),
   singleValue: (provided) => ({
     ...provided,
@@ -26,17 +37,17 @@ const customStyles = {
     fontWeight: 'bold', // Increase the font weight
     textAlign: 'center',
     justifyContent: 'center'
+  }),
+  indicatorSeparator: (state) => ({
+    display: 'none'
+  }),
+  indicatorsContainer: (provided, state) => ({
+    ...provided,
+    height: '44px'
   })
 };
 
-const useStyles = makeStyles((theme) => ({
-  dropdownButton: {
-    height: '70px'
-  }
-}));
-
 const AirQloudDropDown = () => {
-  const classes = useStyles();
   const currentAirqQloud = useCurrentAirQloudData();
   const dispatch = useDispatch();
   const airqlouds = Object.values(useDashboardAirqloudsData());
@@ -70,10 +81,6 @@ const AirQloudDropDown = () => {
 
   const [hoveredOption, setHoveredOption] = useState(null);
 
-  const handleOptionHover = (option) => {
-    setHoveredOption(option);
-  };
-
   const handleOptionMouseLeave = () => {
     setHoveredOption(null);
   };
@@ -101,7 +108,6 @@ const AirQloudDropDown = () => {
           className="basic-single"
           classNamePrefix="select"
         />
-
         <Tooltip title="Refresh AirQloud">
           <div className="dd-reload" onClick={handleAirQloudRefresh}>
             <ReloadIcon />

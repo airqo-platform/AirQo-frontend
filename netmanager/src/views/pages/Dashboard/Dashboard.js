@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
-import { Grid } from '@material-ui/core';
+import { Button, Grid } from '@material-ui/core';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import {
@@ -25,6 +25,7 @@ import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
 import D3CustomisableChart from '../../components/d3/CustomisableChart';
 import DashboardSearchBar from '../../components/AirqualitySearch/dashboard_searchbar';
+import ImportExportIcon from '@material-ui/icons/ImportExport';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,6 +67,7 @@ const Dashboard = () => {
     VeryUnhealthy: 0,
     Hazardous: 0
   });
+  const [isCohort, setIsCohort] = useState(true);
 
   useEffect(() => {
     if (isEmpty(recentEventsData.features))
@@ -133,15 +135,41 @@ const Dashboard = () => {
     return () => dispatch(loadUserDefaultGraphData());
   }, []);
 
+  const handleSwitchAirqloudTypeClick = () => {
+    setIsCohort((prevIsCohort) => !prevIsCohort);
+  };
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <Grid container spacing={5}>
-          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
-            <AirQloudDropDown />
+        <Grid container spacing={3} justify="flex-end">
+          {/* Items in a row */}
+          <Grid container item lg={8} xs={12} sm={12} md={12} xl={8}>
+            {/* Dropdown and Button */}
+            <Grid item lg={7} xl={7} md={7} sm={12} xs={12}>
+              <AirQloudDropDown />
+            </Grid>
+            <Grid item lg={5} xl={5} md={5} sm={12} xs={12}>
+              <Button
+                margin="dense"
+                color="primary"
+                style={{
+                  width: 'auto',
+                  color: '#175df5',
+                  textTransform: 'initial',
+                  height: '44px'
+                }}
+                onClick={handleSwitchAirqloudTypeClick}
+              >
+                <ImportExportIcon /> Switch to {isCohort ? 'Cohort' : 'Grid'}
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item lg={6} xs={12} sm={12} md={6} xl={6}>
-            <DashboardSearchBar />
+          {/* Search on the far end of the screen */}
+          <Grid item lg={4} xs={12} sm={12} md={12} xl={4}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <DashboardSearchBar />
+            </div>
           </Grid>
         </Grid>
         <Grid container spacing={4}>

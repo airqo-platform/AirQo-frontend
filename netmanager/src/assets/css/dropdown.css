@@ -4,32 +4,28 @@
   position: relative;
   max-width: 90%;
   font-weight: #175df5;
-
 }
 
 .select {
   color: #175df5;
-
 }
-
 
 .dd-button:hover {
   background-color: #eeeeee;
 }
 
-
 .dd-reload {
   position: absolute;
-  top: 3px;
+  top: 0px;
   right: -55px;
-  height: 40px;
-  width: 40px;
+  height: 44px;
+  width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: white;
+  border-radius: 8px;
 }
-
 
 .option-label {
   font-weight: bold;
@@ -62,7 +58,7 @@
   font-weight: bold;
 }
 
-.site-count{
+.site-count {
   color: #008000;
   font-size: 1rem;
   /* font-weight: bold; */
