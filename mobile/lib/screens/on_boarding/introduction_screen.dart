@@ -65,7 +65,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
               const SizedBox(
                 height: 24,
               ),
-               WelcomeSection(
+              WelcomeSection(
                 header: AppLocalizations.of(context)!.knowYourAirOnTheGo,
                 body: AppLocalizations.of(context)!.anEasyWayToPlanYourOutdoorActivitiesToMinimiseexcessiveExposureToBadAirQuality,
                 svg: 'assets/icon/onboarding_profile_icon.svg',

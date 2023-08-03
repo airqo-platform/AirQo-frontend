@@ -150,7 +150,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                         children: <TextSpan>[
                           TextSpan(
                             text:
-                                'Particulate matter(PM) ', // TODO translate this
+                            AppLocalizations.of(context)!
+                                .particulateMatter,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,

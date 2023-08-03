@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../screens/home_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({
@@ -44,7 +45,7 @@ class NextButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              text ?? 'Next', // TODO translate this
+              text ?? AppLocalizations.of(context)!.next, 
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,

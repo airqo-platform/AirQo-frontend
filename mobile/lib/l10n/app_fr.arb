@@ -274,5 +274,6 @@
   "signUpWithYourMobileNumberOrEmail": "Inscrivez-vous avec votre numéro de mobile ou votre e-mail",
   "loginWithYourEmail": "Connectez-vous avec votre e-mail",
   "loginWithAnEmailInstead": "Connectez-vous avec un e-mail à la place",
-  "signUpWithAnEmailInstead": "Inscrivez-vous avec un e-mail à la place"
+  "signUpWithAnEmailInstead": "Inscrivez-vous avec un e-mail à la place",
+  "particulateMatter":"Matière particulaire(PM) "
 }

@@ -274,5 +274,6 @@
     "signUpWithYourMobileNumberOrEmail": "Sign up with your mobile number or email",
     "loginWithYourEmail": "Login with your email",
     "loginWithAnEmailInstead": "Login with an email instead",
-    "signUpWithAnEmailInstead": "Sign up with an email instead"
+    "signUpWithAnEmailInstead": "Sign up with an email instead",
+    "particulateMatter":"Particulate matter(PM) "
 }
