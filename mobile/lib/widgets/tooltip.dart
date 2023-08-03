@@ -4,6 +4,7 @@ import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ToolTip {
   ToolTip(
@@ -125,7 +126,7 @@ class ToolTip {
         return RichText(
           text: TextSpan(children: [
             TextSpan(
-              text: 'Tap the ',
+              text: AppLocalizations.of(context)!.tapThe,
               style: CustomTextStyle.overline1(context),
             ),
             WidgetSpan(
@@ -137,8 +138,7 @@ class ToolTip {
               ),
             ),
             TextSpan(
-              text: ' Favorite icon on any location air quality '
-                  'to save them here for later.',
+              text: AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites,
               style: CustomTextStyle.overline1(context),
             ),
           ]),
@@ -146,7 +146,7 @@ class ToolTip {
       case ToolTipType.forYou:
         return RichText(
           text: TextSpan(
-            text: 'All your complete tasks will show up here',
+            text: AppLocalizations.of(context)!.allYourCompleteTasksWillShowUpHere,
             style: CustomTextStyle.overline1(context),
           ),
         );
@@ -154,7 +154,7 @@ class ToolTip {
         return RichText(
           text: TextSpan(children: [
             TextSpan(
-              text: 'Tap this ',
+              text: AppLocalizations.of(context)!.tapThis,
               style: CustomTextStyle.overline1(context),
             ),
             WidgetSpan(
@@ -166,8 +166,7 @@ class ToolTip {
               ),
             ),
             TextSpan(
-              text: ' icon to understand what '
-                  'air quality analytics mean.',
+              text: AppLocalizations.of(context)!.iconToUnderstandWhatAirQualityAnalyticsMean,
               style: CustomTextStyle.overline1(context),
             ),
           ]),
@@ -175,8 +174,7 @@ class ToolTip {
       case ToolTipType.forecast:
         return RichText(
           text: TextSpan(
-            text: 'Tap Forecast to view air quality analytics '
-                'for the next 24 hours',
+            text: AppLocalizations.of(context)!.tapForecastToViewAirQualityAnalyticsForTheNext24Hours,
             style: CustomTextStyle.overline1(context),
           ),
         );
@@ -185,7 +183,7 @@ class ToolTip {
           text: TextSpan(
             children: [
               TextSpan(
-                text: 'Tap the ',
+                text: AppLocalizations.of(context)!.tapThe,
                 style: CustomTextStyle.overline1(context),
               ),
               WidgetSpan(
@@ -197,8 +195,7 @@ class ToolTip {
                 ),
               ),
               TextSpan(
-                text: ' Favorite on any location air quality '
-                    'to save them here for later.',
+                text:AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites,
                 style: CustomTextStyle.overline1(context),
               ),
             ],

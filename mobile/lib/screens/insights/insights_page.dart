@@ -105,7 +105,8 @@ class InsightsPage extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    showSnackBar(context, AppLocalizations.of(context)!.creatingShareLink);
+                    showSnackBar(context,
+                        AppLocalizations.of(context)!.creatingShareLink);
                   },
                   child: const Center(
                     child: LoadingIcon(radius: 20),
@@ -142,7 +143,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.shortDate(),
+                      selectedInsight.shortDate(context),
                       style: CustomTextStyle.headline8(context)
                           ?.copyWith(fontSize: 20),
                     ),
@@ -153,7 +154,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.dateTime.timelineString(),
+                      selectedInsight.dateTime.timelineString(context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),

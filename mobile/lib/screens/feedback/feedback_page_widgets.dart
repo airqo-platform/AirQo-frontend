@@ -523,7 +523,7 @@ class FeedbackChannelStep extends StatelessWidget {
                   );
             },
             child: FeedbackCard(
-              title: FeedbackChannel.email.getStringValue(context),
+              title: FeedbackChannel.email.toString(),
               active: state.feedbackChannel == FeedbackChannel.email,
             ),
           );

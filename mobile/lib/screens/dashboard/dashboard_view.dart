@@ -70,7 +70,7 @@ class _DashboardViewState extends State<DashboardView>
         preferredSize: const Size.fromHeight(50.0),
         child: CustomShowcaseWidget(
           showcaseKey: _skipShowcaseKey,
-          description: "Click to Skip Tutorial", // TODO translate this
+          description: AppLocalizations.of(context)!.clickToSkipTutorial,
           customize: ShowcaseOptions.skip,
           child: AppBar(
             automaticallyImplyLeading: false,
@@ -97,8 +97,7 @@ class _DashboardViewState extends State<DashboardView>
                 child: BlocBuilder<ProfileBloc, Profile>(
                   builder: (context, state) {
                     return AutoSizeText(
-                      // TODO refresh greetings
-                      state.greetings(), // TODO translate this
+                      state.greetings(context),
                       maxLines: 1,
                       minFontSize: 24,
                       overflow: TextOverflow.ellipsis,
@@ -200,7 +199,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  DateTime.now().timelineString(), // TODO translate this
+                  DateTime.now().timelineString(context),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),

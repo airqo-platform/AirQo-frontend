@@ -280,7 +280,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: Pollutant.pm2_5.infoDialogText(pm2_5),
+                            text:
+                                Pollutant.pm2_5.infoDialogText(pm2_5, context),
                             style: TextStyle(
                               color:
                                   CustomColors.appColorBlack.withOpacity(0.7),

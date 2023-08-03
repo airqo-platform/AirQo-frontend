@@ -262,7 +262,7 @@ class AnalyticsCard extends StatelessWidget {
                                           ),
                                           child: Text(
                                             airQualityReading.dateTime
-                                                .analyticsCardString(),
+                                                .analyticsCardString(context),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

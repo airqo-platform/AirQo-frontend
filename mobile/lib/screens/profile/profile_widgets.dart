@@ -575,7 +575,7 @@ class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ViewProfilePicture(),
                 const SizedBox(height: 4),
                 AutoSizeText(
-                  profile.displayName(),
+                  profile.displayName(context),
                   maxLines: 2,
                   style: CustomTextStyle.headline9(context),
                 ),

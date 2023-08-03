@@ -70,7 +70,7 @@ enum FeedbackStep {
   formStep;
 }
 
-// TODO remove this enum
+// TODO translate this
 enum FirebaseAuthError {
   noInternetConnection(
     message: 'Check your internet connection',
@@ -214,7 +214,24 @@ enum AirQuality {
     maximumValue: 500,
   );
 
-  // TODO translate this
+  String getSearchNearbyLocations(BuildContext context) {
+    switch (this) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.goodQualityAirAroundYou;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.moderateQualityAirAroundYou;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!
+            .nearbyLocationsWithAirQualityUnhealthyForSensitiveGroups;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.veryUnhealthyQualityAirAroundYou;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.veryUnhealthyQualityAirAroundYou;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.hazardousQualityAirAroundYou;
+    }
+  }
+
   String getTitle(BuildContext context) {
     switch (this) {
       case AirQuality.good:
@@ -222,7 +239,7 @@ enum AirQuality {
       case AirQuality.moderate:
         return AppLocalizations.of(context)!.moderate;
       case AirQuality.ufsgs:
-        return AppLocalizations.of(context)!.unhealthySG;
+        return AppLocalizations.of(context)!.unhealthyForSensitiveGroups;
       case AirQuality.unhealthy:
         return AppLocalizations.of(context)!.unhealthy;
       case AirQuality.veryUnhealthy:
@@ -232,21 +249,44 @@ enum AirQuality {
     }
   }
 
-  // TODO translate this
+  String getSearchOtherLocations(BuildContext context) {
+    switch (this) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.locationsWithGoodQualityAir;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.locationsWithModerateQualityAir;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!
+            .locationsWithAirQualityUnhealthyForSensitiveGroups;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.locationsWithUnhealthyQualityAir;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!
+            .locationsWithVeryUnhealthyQualityAir;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.locationsWithHazardousQualityAir;
+    }
+  }
+
   String getDescription(BuildContext context) {
     switch (this) {
       case AirQuality.good:
-        return AppLocalizations.of(context)!.good;
+        return AppLocalizations.of(context)!.theAirIsCleanAndHealthyToBreathe;
       case AirQuality.moderate:
-        return AppLocalizations.of(context)!.moderate;
+        return AppLocalizations.of(context)!
+            .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
       case AirQuality.ufsgs:
-        return AppLocalizations.of(context)!.unhealthySG;
+        return AppLocalizations.of(context)!
+            .peopleWithRespiratoryOrHeartDiseasesChildrenAndElderlyMayExperienceHealthEffects;
       case AirQuality.unhealthy:
-        return AppLocalizations.of(context)!.unhealthy;
+        return AppLocalizations.of(context)!
+            .peopleWithRespiratoryOrHeartDiseasesChildrenAndElderlyMayExperienceHealthEffects;
       case AirQuality.veryUnhealthy:
-        return AppLocalizations.of(context)!.veryUnhealthy;
+        return AppLocalizations.of(context)!
+            .everyoneMayBeginToExperienceSomeAdverseHealthEffectsAndSensitiveGroupsAreAtHigherRisk;
       case AirQuality.hazardous:
-        return AppLocalizations.of(context)!.hazardous;
+        return AppLocalizations.of(context)!
+            .healthWarningsOfEmergencyConditionsTheEntirePopulationIsMoreLikelyToBeAffectedWithSeriousHealthEffectsOnSensitiveGroups;
     }
   }
 
@@ -319,16 +359,6 @@ enum FeedbackChannel {
 
   @override
   String toString() => string;
-  String getStringValue(BuildContext context) {
-    switch (this) {
-      case FeedbackChannel.whatsApp:
-      //return AppLocalizations.of(context)!.whatsApp ;
-      case FeedbackChannel.email:
-        return AppLocalizations.of(context)!.email;
-      case FeedbackChannel.none:
-        return '';
-    }
-  }
 }
 
 enum AuthMethod {
@@ -363,27 +393,27 @@ enum AuthMethod {
   final String invalidInputErrorMessage; // TODO remove this
   final String invalidInputMessage; // TODO remove this
 
-  String optionsText(AuthProcedure procedure) {
+  String optionsText(AuthProcedure procedure, BuildContext context) {
     switch (this) {
-      case AuthMethod.phone: // TODO translate this
+      case AuthMethod.phone:
         return procedure == AuthProcedure.login
-            ? 'Login with your mobile number'
-            : 'Sign up with your mobile number or email';
-      case AuthMethod.email: // TODO translate this
+            ? AppLocalizations.of(context)!.loginWithYourMobileNumber
+            : AppLocalizations.of(context)!.signUpWithYourMobileNumberOrEmail;
+      case AuthMethod.email:
         return procedure == AuthProcedure.login
-            ? 'Login with your email'
-            : 'Sign up with your email or mobile number';
+            ? AppLocalizations.of(context)!.loginWithYourEmail
+            : AppLocalizations.of(context)!.signUpWithYourMobileNumberOrEmail;
       default:
         return '';
     }
   }
 
-  String optionsButtonText(AuthProcedure procedure) {
+  String optionsButtonText(AuthProcedure procedure, BuildContext context) {
     switch (this) {
-      case AuthMethod.phone: // TODO translate this
+      case AuthMethod.phone:
         return procedure == AuthProcedure.login
-            ? 'Login with an email instead'
-            : 'Sign up with an email instead';
+            ? AppLocalizations.of(context)!.loginWithAnEmailInstead
+            : AppLocalizations.of(context)!.signUpWithAnEmailInstead;
       case AuthMethod.email: // TODO translate this
         return procedure == AuthProcedure.login
             ? 'Login with a mobile number instead'
@@ -443,6 +473,21 @@ enum AuthProcedure {
   final String confirmationBody;
   final String confirmationOkayText;
   final String confirmationCancelText;
+
+  // String  getConfirmationTitle(BuildContext context) {
+  //   switch (this) {
+  //     case AuthProcedure.login:
+  //       return AppLocalizations.of(context)!.loginConfirmationTitle;
+  //     case AuthProcedure.signup:
+  //       return AppLocalizations.of(context)!.signupConfirmationTitle;
+  //     case AuthProcedure.anonymousLogin:
+  //       return AppLocalizations.of(context)!.anonymousLoginConfirmationTitle;
+  //     case AuthProcedure.deleteAccount:
+  //       return AppLocalizations.of(context)!.deleteAccountConfirmationTitle;
+  //     case AuthProcedure.logout:
+  //       return AppLocalizations.of(context)!.logoutConfirmationTitle;
+  //   }
+  // }
 }
 
 enum Gender {
@@ -471,24 +516,6 @@ enum OnBoardingPage {
 
   @override
   String toString() => string;
-  // String getStringValue(BuildContext context) { // TODO remove this if not needed
-  //   switch (this) {
-  //     case OnBoardingPage.signup:
-  //       return AppLocalizations.of(context)!.signUp;
-  //     case OnBoardingPage.profile:
-  //       return AppLocalizations.of(context)!.profile;
-  //     case OnBoardingPage.notification:
-  //       return AppLocalizations.of(context)!.nortification;
-  //     case OnBoardingPage.location:
-  //       return AppLocalizations.of(context)!.location;
-  //     case OnBoardingPage.complete:
-  //       return AppLocalizations.of(context)!.complete;
-  //     case OnBoardingPage.home:
-  //       return AppLocalizations.of(context)!.home;
-  //     case OnBoardingPage.welcome:
-  //       return AppLocalizations.of(context)!.welcome;
-  //   }
-  // }
 }
 
 enum Pollutant {
@@ -536,30 +563,26 @@ enum Pollutant {
     }
   }
 
-  String infoDialogText(double value) {
+  String infoDialogText(double value, BuildContext context) {
     switch (airQuality(value)) {
-      case AirQuality.good: // TODO translate this
-        return 'Air quality is safe for everyone!';
-      case AirQuality.moderate: // TODO translate this
-        return 'Unusually sensitive people should consider reducing '
-            'prolonged or intense outdoor activities.';
-      case AirQuality.ufsgs: // TODO translate this
-        return 'The elderly and children should limit intense outdoor '
-            'activities. Sensitive people should reduce prolonged or '
-            'intense outdoor activities.';
-      case AirQuality.unhealthy: // TODO translate this
-        return 'People with respiratory or heart disease,'
-            ' the elderly and children should avoid '
-            'intense outdoor activities.'
-            'Everyone else should limit intense outdoor activities.';
-      case AirQuality.veryUnhealthy: // TODO translate this
-        return 'People with respiratory or heart disease, '
-            'the elderly and children should avoid any outdoor activity.'
-            'Everyone else should limit intense outdoor activities.';
-      case AirQuality.hazardous: // TODO translate this
-        return 'Everyone should avoid any intense outdoor activities. '
-            'People with respiratory or heart disease,'
-            ' the elderly and children should remain indoors.';
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.airQualityIsSafeForEveryone;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!
+            .unusuallySensitivePeopleShouldConsiderReducingProlongedOrIntenseOutdoorActivities;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!
+            .theElderlyAndChildrenShouldLimitIntenseOutdoorActivitiesSensitivePeopleShouldReduceProlongedOrIntenseOutDoorActivities;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!
+            .peopleWithRespiratoryOrHeartDiseaseTheElderlyAndChildrenShouldAvoidIntenseOutdoorActivitiesEveryoneElseShouldLimitIntenseOutdoorActivities;
+
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!
+            .peopleWithRespiratoryOrHeartDiseaseTheElderlyAndChildrenShouldAvoidIntenseOutdoorActivitiesEveryoneElseShouldLimitIntenseOutdoorActivities;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!
+            .everyoneMayBeginToExperienceSomeAdverseHealthEffectsAndSensitiveGroupsAreAtHigherRisk;
     }
   }
 
@@ -627,6 +650,17 @@ enum TitleOptions {
   final String value;
   final String displayValue;
   final String abbr;
+
+  // String getValue(BuildContext context) {
+  //   switch (this) {
+  //     case TitleOptions.ms:
+  //       return AppLocalizations.of(context)!.ms;
+  //     case TitleOptions.mr:
+  //       return AppLocalizations.of(context)!.mr;
+  //     case TitleOptions.undefined:
+  //       return AppLocalizations.of(context)!.ratherNotSay;
+  //   }
+  // }
 }
 
 enum ToolTipType {

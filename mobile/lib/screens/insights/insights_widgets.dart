@@ -560,7 +560,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              widget.insight.healthTipsTitle(),
+              widget.insight.healthTipsTitle(context),
               textAlign: TextAlign.left,
               style: CustomTextStyle.headline7(context),
             ),

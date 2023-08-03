@@ -245,7 +245,7 @@ class AuthSignUpButton extends StatelessWidget {
             ),
           ),
           child: AutoSizeText(
-            authMethod.optionsButtonText(authProcedure),
+            authMethod.optionsButtonText(authProcedure, context),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlue,

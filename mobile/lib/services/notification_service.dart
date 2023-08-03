@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'firebase_service.dart';
 import 'native_api.dart';
@@ -45,19 +46,16 @@ class NotificationService {
     late String disableNotificationsMessage;
 
     if (Platform.isAndroid) {
-      // TODO translate this
-      enableNotificationsMessage =
-          'To turn on notifications, go to\nApp Info > Notifications';
-
-      disableNotificationsMessage =
-          'To turn off notifications, go to\nApp Info > Notifications';
+      enableNotificationsMessage = AppLocalizations.of(context)!
+          .toTurnOnNotificationsGoToAppInfoNotifications;
+      disableNotificationsMessage = AppLocalizations.of(context)!
+          .toTurnOffNotificationsGoToAppInfoNotifications;
     } else {
-      // TODO translate this
-      enableNotificationsMessage =
-          'To turn on notifications, go to\nSettings > AirQo > Notifications';
+      enableNotificationsMessage = AppLocalizations.of(context)!
+          .toTurnOnNotificationsGoToSettingsAirQoNotifications;
 
-      disableNotificationsMessage =
-          'To turn off notifications, go to\nSettings > AirQo > Notifications';
+      disableNotificationsMessage = AppLocalizations.of(context)!
+          .toTurnOffNotificationsGoToSettingsAirQoNotifications;
     }
 
     if (value) {

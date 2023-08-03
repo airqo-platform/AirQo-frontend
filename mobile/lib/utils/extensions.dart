@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -97,23 +99,23 @@ extension ForecastListExt on List<Forecast> {
 }
 
 extension KyaExt on KyaLesson {
-  String startButtonText() {
+  String startButtonText(BuildContext context) {
     if (activeTask == 1) {
-      return "Begin";
+      return AppLocalizations.of(context)!.begin;
     }
-    return "Resume";
+    return AppLocalizations.of(context)!.resume;
   }
 
-  String getKyaMessage() {
+  String getKyaMessage(BuildContext context) {
     switch (status) {
       case KyaLessonStatus.todo:
-        return 'Start learning'; // TODO translate this
+        return AppLocalizations.of(context)!.startLearning;
       case KyaLessonStatus.pendingCompletion:
-        return 'Complete! Move to For You'; // TODO translate this
+        return AppLocalizations.of(context)!.completeMoveToForYou;
       case KyaLessonStatus.inProgress:
       case KyaLessonStatus.complete:
-        if (activeTask == 1) return 'Start learning'; // TODO translate this
-        return 'Continue'; // TODO translate this
+        if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
+        return AppLocalizations.of(context)!.continu;
     }
   }
 }
@@ -254,39 +256,36 @@ extension AirQualityReadingExt on AirQualityReading {
 }
 
 extension InsightExt on Insight {
-  String shortDate() {
-    // TODO translate this
+  String shortDate(BuildContext context) {
     if (dateTime.isYesterday()) {
-      return 'Yesterday';
+      return AppLocalizations.of(context)!.yesterday;
     } else if (dateTime.isWithInPreviousWeek()) {
-      return 'Last Week';
+      return AppLocalizations.of(context)!.lastWeek;
     } else if (dateTime.isWithInNextWeek()) {
-      return 'Next Week';
+      return AppLocalizations.of(context)!.nextWeek;
     } else if (dateTime.isToday()) {
-      return 'Today';
+      return AppLocalizations.of(context)!.today;
     } else if (dateTime.isTomorrow()) {
-      return 'Tomorrow';
+      return AppLocalizations.of(context)!.tomorrow;
     } else if (dateTime.isWithInCurrentWeek()) {
-      return 'This week';
+      return AppLocalizations.of(context)!.thisWeek;
     }
 
     return '';
   }
 
-  String healthTipsTitle() {
+  String healthTipsTitle(BuildContext context) {
     if (dateTime.isToday()) {
-      // TODO translate this
-      return 'Today’s health tips';
+      return AppLocalizations.of(context)!.todaysHealthTips;
     }
 
     if (dateTime.isTomorrow()) {
-      // TODO translate this
-      return 'Tomorrow’s health tips';
+      return AppLocalizations.of(context)!.tomorrowsHealthTips;
     }
 
     if (dateTime.isAFutureDate()) {
-      // TODO translate this
-      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+      return AppLocalizations.of(context)!
+          .thisDatesHealthTips(dateTime.getWeekday().toTitleCase());
     }
 
     return '';
@@ -351,13 +350,13 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 }
 
 extension ProfileExt on Profile {
-  String displayName() {
+  String displayName(BuildContext context) {
     if (firstName != '') {
       return firstName.trim();
     } else if (lastName != '') {
       return lastName.trim();
     } else {
-      return 'Hello'; // TODO translate this
+      return AppLocalizations.of(context)!.hello;
     }
   }
 
@@ -400,23 +399,22 @@ extension ProfileExt on Profile {
     return initials.isEmpty ? 'A' : initials;
   }
 
-  String greetings() {
-    // TODO translate this
+  String greetings(BuildContext context) {
     final hour = DateTime.now().hour;
 
     if (00 <= hour && hour < 12) {
-      return 'Good morning $firstName'.trim();
+      return AppLocalizations.of(context)!.goodMorningName(firstName.trim());
     }
 
     if (12 <= hour && hour < 16) {
-      return 'Good afternoon $firstName'.trim();
+      return AppLocalizations.of(context)!.goodAfternoonName(firstName.trim());
     }
 
     if (16 <= hour && hour <= 23) {
-      return 'Good evening $firstName'.trim();
+      return AppLocalizations.of(context)!.goodEveningName(firstName.trim());
     }
 
-    return 'Hello $firstName'.trim();
+    return AppLocalizations.of(context)!.helloName(firstName.trim());
   }
 }
 
@@ -425,26 +423,25 @@ extension DateTimeExt on DateTime {
     return day == dateTime.day;
   }
 
-  String analyticsCardString() {
-    // TODO translate this
+  String analyticsCardString(BuildContext context) {
     const String timeFormat = 'hh:mm a';
     const String dateTimeFormat = 'd MMM, $timeFormat';
     String dateString = DateFormat(timeFormat).format(this);
     if (isYesterday()) {
-      return 'Updated yesterday at $dateString';
+      return AppLocalizations.of(context)!
+          .updatedYesterdayAtDateString(dateString);
     } else if (isToday()) {
-      return 'Updated today at $dateString';
+      return AppLocalizations.of(context)!.updatedTodayAtDateString(dateString);
     } else if (isTomorrow()) {
-      return 'Tomorrow, $dateString';
+      return AppLocalizations.of(context)!.tomorrowDateString(dateString);
     } else {
       return DateFormat(dateTimeFormat).format(this);
     }
   }
 
-  String timelineString() {
-    // TODO translate this
-    return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
-        .toUpperCase();
+  String timelineString(BuildContext context) {
+    return AppLocalizations.of(context)!.tomorrowDateString(
+        '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'.toUpperCase());
   }
 
   DateTime getDateOfFirstDayOfWeek() {
