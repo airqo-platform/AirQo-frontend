@@ -6,6 +6,7 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -171,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 );
                               });
                             },
-                            title: Text(
+                            title: AutoSizeText(
                               AppLocalizations.of(context)!.takeTour,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
@@ -196,7 +197,7 @@ class _SettingsPageState extends State<SettingsPage>
                               }
                             });
                           },
-                          title: Text(
+                          title: AutoSizeText(
                             AppLocalizations.of(context)!.rateAirQoApp,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
@@ -220,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                             );
                           },
-                          title: Text(
+                          title: AutoSizeText(
                             AppLocalizations.of(context)!.about,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),

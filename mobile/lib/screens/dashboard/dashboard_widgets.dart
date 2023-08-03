@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -66,9 +67,10 @@ class SearchingAirQuality extends StatelessWidget {
           ),
         ),
       ),
-      child: Text(
+      child: AutoSizeText(
+        maxLines: 2,
+        minFontSize: 1,
         AppLocalizations.of(context)!.searchingForAirQualityNearYouHoldOnTight,
-        maxLines: 3,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: CustomColors.appColorBlue,
@@ -171,11 +173,12 @@ class DashboardLocationButton extends StatelessWidget {
           horizontal: 14,
         ),
       ),
-      child: Text(
+      child: AutoSizeText(
+        maxLines: 2,
+        minFontSize: 1,
         AppLocalizations.of(context)!.turnOnLocationToGetAirQualityNearYou,
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
-        maxLines: 2,
         style: const TextStyle(color: Colors.white),
       ),
     );
@@ -247,7 +250,9 @@ class DashboardTopCard extends StatelessWidget {
             const SizedBox(
               width: 8,
             ),
-            Text(
+            AutoSizeText(
+              maxLines: 2,
+              minFontSize: 1,
               title,
               style: CustomTextStyle.bodyText4(context)?.copyWith(
                 color: CustomColors.appColorBlue,

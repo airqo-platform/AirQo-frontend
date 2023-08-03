@@ -14,7 +14,6 @@ import 'package:flutter_svg/svg.dart';
 import 'kya_title_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
