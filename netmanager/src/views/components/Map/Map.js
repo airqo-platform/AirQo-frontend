@@ -301,8 +301,8 @@ class Maps extends React.Component {
         try {
           myData.forEach((element) => {
             let firstPair = element['geometry.coordinates'][0][0];
-            let latitude = firstPair[0];
-            let longitude = firstPair[1]
+            let latitude = firstPair[1];
+            let longitude = firstPair[0]
 
             let values = [element['properties.name_1'],element['properties.name_2'],element['properties.name_3'],element['properties.name_4'] ]
             console.log(values)
