@@ -3,13 +3,9 @@ import {
   ACTIVITY_URI,
   ALL_DEVICES_URI,
   ADD_MAINTENANCE_LOGS_URI,
-  ADD_COMPONENT_URI,
-  GET_COMPONENTS_URI,
   DEPLOY_DEVICE_URI,
   EDIT_DEVICE_URI,
   DELETE_DEVICE_URI,
-  UPDATE_COMPONENT,
-  DELETE_COMPONENT,
   DELETE_DEVICE_PHOTO,
   EVENTS,
   RECALL_DEVICE_URI,
@@ -32,22 +28,9 @@ export const getAllDevicesApi = async (networkID) => {
     .then((response) => response.data);
 };
 
-export const createDeviceComponentApi = async (deviceName, componentType, data) => {
-  const ctype = componentType;
-  return await axios
-    .post(ADD_COMPONENT_URI + deviceName, data, { params: { ctype } })
-    .then((response) => response.data);
-};
-
 export const softCreateDeviceApi = async (data, ctype) => {
   return await axios
     .post(SOFT_EDIT_DEVICE_URI, data, { params: { ctype } })
-    .then((response) => response.data);
-};
-
-export const getDeviceComponentsApi = async (deviceName) => {
-  return await axios
-    .get(GET_COMPONENTS_URI, { params: { device: deviceName } })
     .then((response) => response.data);
 };
 
@@ -117,22 +100,6 @@ export const updateMaintenanceLogApi = async (deviceId, logData) => {
 
 export const deleteMaintenanceLogApi = (deviceId) => {
   return axios.delete(ACTIVITY_URI, { params: { id: deviceId } }).then((response) => response.data);
-};
-
-export const updateComponentApi = async (deviceName, componentName, data) => {
-  return await axios
-    .put(UPDATE_COMPONENT, data, {
-      params: { device: deviceName, comp: componentName }
-    })
-    .then((response) => response.data);
-};
-
-export const deleteComponentApi = async (deviceName, componentName) => {
-  return await axios
-    .delete(DELETE_COMPONENT, {
-      params: { device: deviceName, comp: componentName }
-    })
-    .then((response) => response.data);
 };
 
 export const deleteDevicePhotos = async (deviceId, urls) => {

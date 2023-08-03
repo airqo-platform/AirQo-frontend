@@ -22,18 +22,6 @@ export const ADD_MAINTENANCE_LOGS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/act
 
 export const DELETE_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/ts/delete`;
 
-export const ADD_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/add/components?device=`;
-
-export const GET_COMPONENTS_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/list/components`;
-
-export const DELETE_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/delete/components?comp=`;
-
-export const UPDATE_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/update/components?device=`;
-
-export const UPDATE_COMPONENT = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/update/components`;
-
-export const DELETE_COMPONENT = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/delete/components`;
-
 export const DELETE_DEVICE_PHOTO = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/photos`;
 
 export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/recall`; // Change to V2
