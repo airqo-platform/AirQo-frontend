@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { Bar } from "react-chartjs-2";
 import PropTypes from "prop-types";
+import clsx from "clsx";
 import {
   Card,
   CardContent,
@@ -14,8 +15,11 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  CardActions,
+  Badge,
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import axios from "axios";
 import palette from "theme/palette";
 import { EXCEEDANCES_URI } from "config/urls/analytics";
@@ -53,6 +57,7 @@ const ExceedancesChart = (props) => {
   const classes = useStyles();
 
   const airqloud = useCurrentAirQloudData();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [open, setOpen] = React.useState(false);
@@ -104,6 +109,7 @@ const ExceedancesChart = (props) => {
   };
 
   const [locations, setLocations] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
   const [dataset, setDataset] = useState([]);
 
   useEffect(() => {
@@ -155,106 +161,101 @@ const ExceedancesChart = (props) => {
     setCustomChartTitle(
       `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
     );
-    axios
-      .post(EXCEEDANCES_URI, filter)
-      .then((response) => response.data)
-      .then((responseData) => {
-        const exceedanceData = responseData.data;
-        exceedanceData.sort((a, b) => {
-          const a0 = (
-            a.site.name ||
-            a.site.description ||
-            a.site.generated_name
-          ).trim();
-          const b0 = (
-            b.site.name ||
-            b.site.description ||
-            b.site.generated_name
-          ).trim();
-          if (a0 < b0) return -1;
-          if (a0 > b0) return 1;
-          return 0;
-        });
-        let myLocations = [];
-
-        if (tempStandard.value.toLowerCase() === "aqi") {
-          let myUH4SGValues = [];
-          let myUnhealthyValues = [];
-          let myVeryUnhealthyValues = [];
-          let myHazardousValues = [];
-          let myLocations = [];
-
-          exceedanceData.forEach((element) => {
-            myLocations.push(
-              element.site.name ||
-                element.site.description ||
-                element.site.generated_name
-            );
-            myUH4SGValues.push(element.exceedance.UHFSG);
-            myUnhealthyValues.push(element.exceedance.Unhealthy);
-            myVeryUnhealthyValues.push(element.exceedance.VeryUnhealthy);
-            myHazardousValues.push(element.exceedance.Hazardous);
-          });
-          setLoading(false);
-          setLocations(myLocations);
-          setDataset([
-            {
-              label: "UH4SG",
-              data: myUH4SGValues,
-              backgroundColor: "orange",
-              borderColor: "rgba(0,0,0,1)",
-              borderWidth: 1,
-            },
-            {
-              label: "Unhealthy",
-              data: myUnhealthyValues,
-              backgroundColor: "red",
-              borderColor: "rgba(0,0,0,1)",
-              borderWidth: 1,
-            },
-            {
-              label: "Very Unhealthy",
-              data: myVeryUnhealthyValues,
-              backgroundColor: "purple",
-              borderColor: "rgba(0,0,0,1)",
-              borderWidth: 1,
-            },
-            {
-              label: "Hazardous",
-              data: myHazardousValues,
-              backgroundColor: "maroon",
-              borderColor: "rgba(0,0,0,1)",
-              borderWidth: 1,
-            },
-          ]);
-        } else {
-          let myValues = [];
-          exceedanceData.forEach((element) => {
-            myLocations.push(
-              element.site.name ||
-                element.site.description ||
-                element.site.generated_name
-            );
-            myValues.push(element.exceedance);
-          });
-          setLocations(myLocations);
-          setDataset([
-            {
-              label: "Exceedances",
-              data: myValues,
-              backgroundColor: palette.primary.main,
-              //borderColor: 'rgba(0,0,0,1)',
-              borderWidth: 1,
-            },
-          ]);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        setLoading(false);
+    try {
+      const response = await axios.post(EXCEEDANCES_URI, filter);
+      const responseData = response.data;
+      const exceedanceData = responseData.data;
+      exceedanceData.sort((a, b) => {
+        const a0 = (
+          a.site.name ||
+          a.site.description ||
+          a.site.generated_name
+        ).trim();
+        const b0 = (
+          b.site.name ||
+          b.site.description ||
+          b.site.generated_name
+        ).trim();
+        if (a0 < b0) return -1;
+        if (a0 > b0) return 1;
+        return 0;
       });
+  
+      const maxLocations = 10; // Set the maximum number of locations on the x-axis
+      const myLocations = exceedanceData
+        .map((element) =>
+          element.site.name ||
+          element.site.description ||
+          element.site.generated_name
+        )
+        .slice(0, maxLocations);
+
+      let myDataset = [];
+      if (tempStandard.value.toLowerCase() === "aqi") {
+        const labels = ["UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
+        const colors = ["orange", "red", "purple", "maroon"];
+        const properties = ["UHFSG", "Unhealthy", "VeryUnhealthy", "Hazardous"];
+  
+        myDataset = labels.map((label, index) => ({
+          label,
+          data: exceedanceData
+            .map((element) => element.exceedance[properties[index]])
+            .slice(0, maxLocations),
+          backgroundColor: colors[index],
+          borderColor: "rgba(0,0,0,1)",
+          borderWidth: 1,
+        }));
+      } else {
+        myDataset = [
+          {
+            label: "Exceedances",
+            data: exceedanceData
+              .map((element) => element.exceedance)
+              .slice(0, maxLocations),
+            backgroundColor: palette.primary.main,
+            //borderColor: 'rgba(0,0,0,1)',
+            borderWidth: 1,
+          },
+        ];
+      }
+
+      let myDialogDataset = [];
+      if (tempStandard.value.toLowerCase() === "aqi") {
+        myDialogDataset = [
+          {
+            label: "Exceedances",
+            data: exceedanceData
+              .map((element) => [element.site, element.total, element.exceedance]),
+
+            backgroundColor: palette.primary.main,
+            //borderColor: 'rgba(0,0,0,1)',
+            borderWidth: 1,
+          },
+        ];
+      } else {
+        myDialogDataset = [
+          {
+            // label: "Exceedances",
+            data: exceedanceData
+              .map((element) => [element.site, element.total, element.exceedance]),
+
+            backgroundColor: palette.primary.main,
+            //borderColor: 'rgba(0,0,0,1)',
+            borderWidth: 1,
+          },
+        ];
+      }
+  
+      setLocations(myLocations);
+      setAllLocations(myDialogDataset)
+      setDataset(myDataset);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   };
+  
 
   const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
   const iconButton = "exportIconButton";
@@ -269,6 +270,10 @@ const ExceedancesChart = (props) => {
     },
   };
 
+  const openDialog = () => {
+    setDialogOpen(true);
+  };  
+  
   const exportToImage = async (chart, format, exportFunc) => {
     try {
       const dataUrl = await exportFunc(chart, { filter });
@@ -325,6 +330,144 @@ const ExceedancesChart = (props) => {
       console.error("oops, something went wrong!", err);
     }
   };
+
+
+  const Location = ({ site, total, exceedance }) => {
+    const [isSelected, setIsSelected] = useState(false);
+    const label = ["Good","UH4SG", "Unhealthy", "Very Unhealthy", "Hazardous"];
+    const colors = ["green", "yellow", "orange", "red", "purple", "maroon"];
+    const properties = ["Good","UHFSG", "Unhealthy", "VeryUnhealthy", "Hazardous"];
+
+    const handleLocationClick = () => {
+      setIsSelected(!isSelected);
+    };
+
+    const { Good, Moderate, UHFSG, Unhealthy, VeryUnhealthy, Hazardous } = exceedance;
+
+  const data = {
+    labels: ['Good', 'Moderate', 'UHFSG', 'Unhealthy', 'Very Unhealthy', 'Hazardous'],
+    datasets: [
+      {
+        label: 'Exceedances',
+        data: [Good, Moderate, UHFSG, Unhealthy, VeryUnhealthy, Hazardous],
+        backgroundColor: colors
+      },
+    ],
+  };
+ 
+  const options={
+      layout: { padding: 4 },
+      tooltips: {
+        enabled: true,
+        mode: "index",
+        intersect: false,
+        borderWidth: 1,
+        borderColor: palette.divider,
+        backgroundColor: palette.white,
+        titleFontColor: palette.text.primary,
+        bodyFontColor: palette.text.secondary,
+        footerFontColor: palette.text.secondary,
+      },
+      scales: {
+        yAxes: [
+          {
+            stacked: true,
+            scaleLabel: {
+              display: true,
+              labelString: "Exceedances",
+              // fontWeight: 4,
+              // fontColor: "black",
+              fontSize: 15,
+              padding: 10,
+            },
+            ticks: {
+              fontColor: palette.text.secondary,
+              beginAtZero: true,
+              min: 0,
+              // suggestedMax:
+              //   numLocations > 0
+              //     ? Math.max(
+              //         ...slicedData.dataset[0].data,
+              //         10
+              //       ) 
+              //     : undefined,
+            },
+            gridLines: {
+              borderDash: [2],
+              borderDashOffset: [2],
+              color: palette.divider,
+              drawBorder: false,
+              zeroLineBorderDash: [2],
+              zeroLineBorderDashOffset: [2],
+              zeroLineColor: palette.divider,
+            },
+          },
+        ],
+        xAxes: [
+          {
+            barThickness:  40,
+            maxBarThickness: 40,
+            barPercentage: 1,
+            categoryPercentage: 0.8,
+            stacked: true,
+            scaleLabel: {
+              display: true,
+              labelString: "AQI",
+              // fontWeight: 4,
+              // fontColor: "black",
+              fontSize: 15,
+              padding: 10,
+            },
+            ticks: {
+              fontColor: "black",
+              callback: (value) => `${value.substr(0, 15)}`,
+            },
+            gridLines: {
+              display: false,
+              drawBorder: false,
+            },
+          },
+        ],
+      },
+
+      maintainAspectRatio: true,
+      responsive: true,
+  };
+
+  
+  
+    return (
+
+        <Card
+          style={{ 
+              maxHeight: 'calc(100vh - 200px)', 
+              overflow: 'hidden',  
+              // borderRadius: '2px', 
+              border: '1px solid #ccc',
+              padding: '10px',
+              borderRadius: '4px',
+              marginBottom: '10px',
+              borderRadius: '4px',
+            }}
+        >
+          <CardHeader
+            title={site.name || site.description || site.generated_name}
+            style={{
+              textAlign: 'center',
+              fontWeight: 'bold',
+              color: '#175df5',
+              display: 'flex',
+            }}
+          />
+          <CardContent>
+            <Bar data={data} options={options} />
+          </CardContent>
+        </Card>
+      
+    );
+  };
+
+  const numLocations = locations.length;
 
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
@@ -435,6 +578,13 @@ const ExceedancesChart = (props) => {
                           fontColor: palette.text.secondary,
                           beginAtZero: true,
                           min: 0,
+                          // suggestedMax:
+                          //   numLocations > 0
+                          //     ? Math.max(
+                          //         ...slicedData.dataset[0].data,
+                          //         10
+                          //       ) 
+                          //     : undefined,
                         },
                         gridLines: {
                           borderDash: [2],
@@ -449,10 +599,10 @@ const ExceedancesChart = (props) => {
                     ],
                     xAxes: [
                       {
-                        barThickness: 12,
-                        maxBarThickness: 10,
-                        barPercentage: 0.5,
-                        categoryPercentage: 0.5,
+                        barThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+                        maxBarThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+                        barPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
+                        categoryPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
                         stacked: true,
                         scaleLabel: {
                           display: true,
@@ -464,7 +614,7 @@ const ExceedancesChart = (props) => {
                         },
                         ticks: {
                           fontColor: "black",
-                          callback: (value) => `${value.substr(0, 7)}...`,
+                          callback: (value) => `${value.substr(0, 7)}`,
                         },
                         gridLines: {
                           display: false,
@@ -537,6 +687,72 @@ const ExceedancesChart = (props) => {
           </Dialog>
         </Grid>
       </CardContent>
+      {/* Dialog component */}
+      <Dialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)}
+        PaperProps={{
+          style: {
+            width: "100%",
+            maxWidth: "none",
+            margin: "10px",
+            borderRadius: "8px",
+          },
+        }}
+      >
+        <DialogContent>
+          {allLocations.map((dataset) => (
+            <div key={dataset.label}>
+              <h5
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  padding: "6px",
+                  fontSize: "20px",
+                }}
+              >{dataset.label}</h5>
+              <Grid container spacing={2}> {/* Use Grid container */}
+                {dataset.data.map(([site, total, exceedance], index) => (
+                  <Grid key={site.name} item lg={6} md={6} sm={12} xl={6} xs={12}> {/* Use Grid item */}
+                    <Location site={site} exceedance={exceedance} />
+                  </Grid>
+                ))}
+              </Grid>
+            </div>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <CardActions className={classes.cardActions} 
+          style={{
+            justifyContent: 'flex-end',
+            marginTop: '-20px',
+          }}
+        >
+          <Button variant="outlined"  color="primary"
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
+            onClick={openDialog}
+            style={{
+              textTransform: 'none',
+              paddingLeft: 0,
+              paddingRight: 0,
+              boxShadow: 'none',
+              background: 'transparent',
+              border: 'none',
+            }}
+          >
+            View all Exceedances <ArrowForwardIcon />
+          </Button>
+        </CardActions>
     </Card>
   );
 };

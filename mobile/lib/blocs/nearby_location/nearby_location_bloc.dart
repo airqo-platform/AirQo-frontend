@@ -1,6 +1,7 @@
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,7 +13,6 @@ class NearbyLocationBloc
     extends Bloc<NearbyLocationEvent, NearbyLocationState> {
   NearbyLocationBloc() : super(const NearbyLocationState()) {
     on<SearchLocationAirQuality>(_onSearchLocationAirQuality);
-    on<UpdateLocationAirQuality>(_onUpdateLocationAirQuality);
     on<DismissErrorMessage>(_onDismissErrorMessage);
   }
 
@@ -22,7 +22,7 @@ class NearbyLocationBloc
   ) {
     return emit(state.copyWith(
       showErrorMessage: false,
-      locationAirQuality: state.locationAirQuality,
+      currentLocation: state.currentLocation,
     ));
   }
 
@@ -30,7 +30,7 @@ class NearbyLocationBloc
     final locationGranted = await LocationService.locationGranted();
     if (!locationGranted) {
       emit(state.copyWith(
-        blocStatus: NearbyLocationStatus.locationDenied,
+        blocStatus: NearbyLocationStatus.locationDisabled,
       ));
 
       return false;
@@ -48,51 +48,16 @@ class NearbyLocationBloc
     return true;
   }
 
-  Future<void> _onUpdateLocationAirQuality(
-    UpdateLocationAirQuality _,
-    Emitter<NearbyLocationState> emit,
-  ) async {
-    List<AirQualityReading> nearByAirQualityReadings =
-        HiveService().getNearbyAirQualityReadings();
-    List<AirQualityReading> airQualityReadings =
-        HiveService().getAirQualityReadings();
-
-    nearByAirQualityReadings = nearByAirQualityReadings.map((element) {
-      AirQualityReading referenceReading = airQualityReadings.firstWhere(
-        (reading) => reading.referenceSite == element.referenceSite,
-        orElse: () => element,
-      );
-
-      return element.copyWith(
-        pm10: referenceReading.pm10,
-        pm2_5: referenceReading.pm2_5,
-        dateTime: referenceReading.dateTime,
-      );
-    }).toList();
-    nearByAirQualityReadings.sortByDistanceToReferenceSite();
-
-    final bool isLocationEnabled = await _isLocationEnabled(emit);
-
-    if (isLocationEnabled) {
-      emit(state.copyWith(
-        locationAirQuality: nearByAirQualityReadings.isEmpty
-            ? null
-            : nearByAirQualityReadings.first,
-      ));
-    }
-
-    await HiveService()
-        .updateNearbyAirQualityReadings(nearByAirQualityReadings);
-  }
-
   Future<void> _onSearchLocationAirQuality(
     SearchLocationAirQuality event,
     Emitter<NearbyLocationState> emit,
   ) async {
+    CurrentLocation? currentLocation = state.currentLocation;
+
     emit(state.copyWith(
-      locationAirQuality: state.locationAirQuality,
       blocStatus: NearbyLocationStatus.searching,
       showErrorMessage: true,
+      currentLocation: currentLocation,
     ));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
@@ -102,19 +67,66 @@ class NearbyLocationBloc
       return;
     }
 
-    List<AirQualityReading> airQualityReadings =
-        await LocationService.getNearbyAirQualityReadings(
-      position: event.position,
+    CurrentLocation? newLocation =
+        event.newLocation ?? await LocationService.getCurrentLocation();
+
+    if (newLocation == null) {
+      return;
+    }
+
+    if (currentLocation != null &&
+        !currentLocation.hasChangedCurrentLocation(newLocation)) {
+      return;
+    }
+
+    AirQualityReading? nearestSite = await LocationService.getNearestSite(
+      newLocation.latitude,
+      newLocation.longitude,
     );
 
-    airQualityReadings.sortByDistanceToReferenceSite();
+    if (nearestSite == null) {
+      newLocation = newLocation.copyWith(referenceSite: "");
+    } else {
+      newLocation = newLocation.copyWith(
+        referenceSite: nearestSite.referenceSite,
+      );
+
+      Address? address = await SearchApiClient().getAddress(
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      );
+      newLocation = address == null
+          ? newLocation.copyWith(
+              name: nearestSite.name,
+              location: nearestSite.location,
+            )
+          : newLocation.copyWith(
+              name: address.name,
+              location: address.location,
+            );
+    }
+
+    List<AirQualityReading> surroundingSites = [];
+    int surroundingSitesRadius = Config.searchRadius;
+
+    while (surroundingSites.length < 5 &&
+        surroundingSitesRadius <
+            Config.surroundingsSitesMaxRadiusInKilometres) {
+      surroundingSites = await LocationService.getSurroundingSites(
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      );
+      surroundingSitesRadius = surroundingSitesRadius * 2;
+    }
+
+    surroundingSites = surroundingSites.take(10).toList();
 
     emit(state.copyWith(
+      currentLocation: newLocation,
       blocStatus: NearbyLocationStatus.searchComplete,
-      locationAirQuality:
-          airQualityReadings.isEmpty ? null : airQualityReadings.first,
+      surroundingSites: surroundingSites,
     ));
 
-    await HiveService().updateNearbyAirQualityReadings(airQualityReadings);
+    await HiveService().updateNearbyAirQualityReadings(surroundingSites);
   }
 }

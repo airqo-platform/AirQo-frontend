@@ -56,7 +56,7 @@ const DataTable = ({ paginatedData, collocationDevices }) => {
             Monitor name
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
-            Date added
+            Last pushed data
           </th>
           <th scope='col' className='font-normal w-[145px] px-4 pb-3 opacity-40'>
             Added by

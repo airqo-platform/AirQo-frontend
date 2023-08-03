@@ -1,28 +1,31 @@
-import React from "react";
-import { ApexChart, timeSeriesChartOptions } from "views/charts";
-import { createChartData } from "./util";
-import { ApexTimeSeriesData } from "utils/charts";
+import React from 'react';
+import { ApexChart, timeSeriesChartOptions } from 'views/charts';
+import { createChartData } from './util';
+import { ApexTimeSeriesData } from 'utils/charts';
 
 const DeviceUptimeChart = ({ deviceUptimeData }) => {
   const deviceUptime = createChartData(deviceUptimeData, {
-    key: "uptime",
+    key: 'uptime'
   });
 
   const deviceUptimeSeries = [
     {
-      name: "uptime",
-      data: ApexTimeSeriesData(deviceUptime.line.label, deviceUptime.line.data),
-    },
+      name: 'uptime',
+      data: ApexTimeSeriesData(deviceUptime.line.label, deviceUptime.line.data)
+    }
   ];
 
   return (
     <ApexChart
-      title={"device uptime"}
+      title={'device uptime'}
       options={timeSeriesChartOptions({
         yaxis: {
           min: 0,
-          max: 100,
+          max: 120
         },
+        stroke: {
+          width: 1.5
+        }
       })}
       series={deviceUptimeSeries}
       lastUpdated={deviceUptime.created_at}

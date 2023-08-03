@@ -7,10 +7,13 @@ import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import SearchBar from './SearchBar';
 import Button from '../../../Button';
 import DataTable from './DataTable';
+import moment from 'moment';
 
 const Table = ({ collocationDevices, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
+  const [currentSortOption, setCurrentSortOption] = useState('');
+  const [currentSortOrder, setCurrentSortOrder] = useState('');
 
   useEffect(() => {
     const filterList = collocationDevices.filter((row) =>
@@ -28,40 +31,59 @@ const Table = ({ collocationDevices, isLoading }) => {
 
     switch (sortOption) {
       case 'newest':
-        sortedData = sortByDate(filteredData, 'desc');
+        sortedData =
+          sortOption === currentSortOption && currentSortOrder === 'desc'
+            ? sortByDate(filteredData, 'asc')
+            : sortByDate(filteredData, 'desc');
         break;
       case 'oldest':
-        sortedData = sortByDate(filteredData, 'asc');
+        sortedData =
+          sortOption === currentSortOption && currentSortOrder === 'asc'
+            ? sortByDate(filteredData, 'desc')
+            : sortByDate(filteredData, 'asc');
         break;
       case 'ascending':
-        sortedData = sortByDeviceName(filteredData, 'asc');
+        sortedData =
+          sortOption === currentSortOption && currentSortOrder === 'asc'
+            ? sortByDeviceName(filteredData, 'desc')
+            : sortByDeviceName(filteredData, 'asc');
         break;
       case 'descending':
-        sortedData = sortByDeviceName(filteredData, 'desc');
+        sortedData =
+          sortOption === currentSortOption && currentSortOrder === 'desc'
+            ? sortByDeviceName(filteredData, 'asc')
+            : sortByDeviceName(filteredData, 'desc');
         break;
       default:
         setFilteredData(sortedData);
     }
 
+    setCurrentSortOption(sortOption);
+    setCurrentSortOrder(
+      sortOption === currentSortOption && currentSortOrder === 'asc' ? 'desc' : 'asc',
+    );
     setFilteredData(sortedData);
   };
 
   const sortByDate = (data, order) => {
-    const sortedData = [...data].sort((a, b) =>
-      order === 'asc'
-        ? new Date(a.start_date) - new Date(b.start_date)
-        : new Date(b.start_date) - new Date(a.start_date),
-    );
+    const sortedData = [...data].sort((a, b) => {
+      const dateA = moment(a.start_date);
+      const dateB = moment(b.start_date);
+
+      return order === 'asc' ? dateA - dateB : dateB - dateA;
+    });
 
     return sortedData;
   };
 
   const sortByDeviceName = (data, order) => {
-    const sortedData = [...data].sort((a, b) =>
-      order === 'asc'
-        ? a.device_id.localeCompare(b.device_id)
-        : b.device_id.localeCompare(a.device_id),
-    );
+    const sortedData = [...data].sort((a, b) => {
+      const nameA = a.device_name || '';
+      const nameB = b.device_name || '';
+
+      return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+
     return sortedData;
   };
 
@@ -71,7 +93,7 @@ const Table = ({ collocationDevices, isLoading }) => {
         <div className='flex items-center w-full flex-wrap xl:flex-nowrap'>
           <SearchBar onSearch={handleSearch} />
           <div className='md:flex md:items-center w-full'>
-            <Button
+            {/* <Button
               className={
                 'max-w-[116px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium xl:ml-2 mb-2 md:mb-0'
               }
@@ -83,7 +105,7 @@ const Table = ({ collocationDevices, isLoading }) => {
               <span className='ml-1'>
                 <ArrowDropDownIcon />
               </span>{' '}
-            </Button>
+            </Button> */}
             <div className='dropdown md:ml-2'>
               <Button
                 className={
@@ -131,19 +153,23 @@ const Table = ({ collocationDevices, isLoading }) => {
             </div>
             <div className='dropdown ml-2'>
               <Button
+                tabIndex={0}
                 className={
-                  'max-w-[121px] w-full h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'
+                  'h-9 w-auto bg-grey-250 rounded-md text-black-900 font-medium text-sm mb-1'
                 }
               >
-                <span className='mr-1'>
+                <div className='mr-1'>
                   <SortByAlphaIcon />
-                </span>
-                <span>{'Sort by'}</span>
-                <span className='ml-1'>
+                </div>
+                Sort by
+                <div className='ml-1'>
                   <ArrowDropDownIcon />
-                </span>
+                </div>
               </Button>
-              <ul className='dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44'>
+              <ul
+                tabIndex={0}
+                className='p-2 shadow dropdown-content menu bg-base-100 rounded-box w-44'
+              >
                 <li
                   role='button'
                   onClick={() => handleSort('newest')}
@@ -177,7 +203,7 @@ const Table = ({ collocationDevices, isLoading }) => {
           </div>
         </div>
 
-        <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
+        {/* <div className='max-w-[184px] w-full flex md:justify-end mt-2 md:mt-0'>
           <Button
             className={'w-auto h-9 bg-grey-250 rounded-md text-black-900 text-sm font-medium'}
           >
@@ -186,7 +212,7 @@ const Table = ({ collocationDevices, isLoading }) => {
             </span>
             <span>{'Customize columns'}</span>
           </Button>
-        </div>
+        </div> */}
       </div>
       <div className='overflow-x-scroll md:overflow-x-hidden'>
         <DataTable

@@ -18,7 +18,26 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
   }
 
   Future<void> _onSyncProfile(SyncProfile _, Emitter<Profile> emit) async {
-    Profile profile = await state.setUserCredentials();
+    Profile profile = Profile.initialize();
+
+    if (profile.isAnonymous) {
+      emit(profile);
+
+      return;
+    }
+    profile = profile.copyWith(
+      title: state.title,
+      firstName: state.firstName,
+      lastName: state.lastName,
+      photoUrl: state.photoUrl,
+      notifications: state.notifications,
+      location: state.location,
+      aqShares: state.aqShares,
+    );
+    emit(profile);
+
+    String? device = await CloudMessaging.getDeviceToken();
+    profile = profile.copyWith(device: device);
     emit(profile);
 
     Profile? cloudProfile = await CloudStore.getProfile();
@@ -38,6 +57,7 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
       photoUrl:
           profile.photoUrl.isEmpty ? cloudProfile.photoUrl : profile.photoUrl,
       utcOffset: DateTime.now().getUtcOffset(),
+      lastRated: cloudProfile.lastRated,
       notifications: await PermissionService.checkPermission(
         AppPermission.notification,
       ),
@@ -58,6 +78,10 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
     Emitter<Profile> emit,
   ) async {
     emit(event.profile);
+
+    if (state.isAnonymous) {
+      return;
+    }
     await CloudStore.updateProfile(event.profile);
   }
 

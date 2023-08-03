@@ -11,8 +11,12 @@ import {
   Divider,
   Grid,
   IconButton,
+  Badge,
+  Link,
+  CardActions,
 } from "@material-ui/core";
 import clsx from "clsx";
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -29,7 +33,7 @@ import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions } from "utils/sites";
 import { usePollutantsOptions } from "utils/customHooks";
 import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
-
+import PropTypes from 'prop-types';
 function appendLeadingZeroes(n) {
   if (n <= 9) {
     return "0" + n;
@@ -44,6 +48,10 @@ const AveragesChart = ({ classes }) => {
   const filter = (node) => node.id !== iconButton;
   const endDate = moment(new Date()).toISOString();
   const startDate = moment(endDate).subtract(28, "days").toISOString();
+  const [displayedLocations, setDisplayedLocations] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -108,9 +116,9 @@ const AveragesChart = ({ classes }) => {
   };
 
   const labelMapper = {
-    pm2_5: "PM2.5 (µg/m3)",
-    pm10: "PM10 (µg/m3)",
-    no2: "NO2 (µg/m3)",
+    pm2_5: "PM₂.₅(µg/m³)",
+    pm10: "PM10 (µg/m³)",
+    no2: "NO2 (µg/m³)",
   };
 
   const annotationMapper = {
@@ -197,6 +205,8 @@ const AveragesChart = ({ classes }) => {
     setOpen(true);
   };
 
+  const numLocations = displayedLocations.length;
+
   const options = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
     { key: "Print", action: print, text: "Print" },
@@ -212,14 +222,14 @@ const AveragesChart = ({ classes }) => {
   };
 
   const locationsGraphData = {
-    labels: averages.labels,
+    labels: displayedLocations.map(([location]) => location),
     datasets: [
       {
         label: customisedLabel,
-        data: averages.average_values,
-        fill: false, // Don't fill area under the line
-        borderColor: palette.primary.main, // Line color
-        backgroundColor: averages.background_colors, //palette.primary.main,
+        data: displayedLocations.map(([_, value]) => value),
+        fill: false,
+        borderColor: palette.primary.main,
+        backgroundColor: displayedLocations.map(([_, __, color]) => color),
       },
     ],
   };
@@ -271,13 +281,13 @@ const AveragesChart = ({ classes }) => {
     scales: {
       xAxes: [
         {
-          barThickness: 12,
-          maxBarThickness: 10,
-          barPercentage: 0.5,
-          categoryPercentage: 0.5,
+          barThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+          maxBarThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
+          barPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
+          categoryPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
           ticks: {
             fontColor: "black",
-            callback: (value) => `${value.substr(0, 7)}...`,
+            callback: (value) => `${value.substr(0, 7)}`,
           },
           gridLines: {
             display: false,
@@ -340,14 +350,170 @@ const AveragesChart = ({ classes }) => {
           return 0;
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
+        setAllLocations(zippedArr);
+  
+
+        setDisplayedLocations(zippedArr.slice(0, 10));
+  
         setAverages({ labels, average_values, background_colors });
         setLoading(false);
       })
       .catch((e) => {
         setLoading(false);
-        console.log(e)});
+        console.log(e);
+      });
   };
 
+  const Location = ({ location, value }) => {
+    const getLocationStatus = (value) => {
+      if (value <= 12.09) {
+        return { status: 'Good', color: 'green' };
+      } else if (value <= 35.49) {
+        return { status: 'Moderate', color: 'orange' };
+      } else if (value <= 55.49) {
+        return { status: 'UFSG', color: 'yellow' };
+      } else if (value <= 150.49) {
+        return { status: 'Unhealthy', color: 'red' };
+      } else if (value <= 250.49) {
+        return { status: 'Very Unhealthy', color: 'purple' };
+      } else {
+        return { status: 'Hazardous', color: 'brown' };
+      }
+    };
+    const { status, color } = getLocationStatus(value);
+
+    const locationStyle = {
+      fontWeight: 'bold',
+      color: "#175df5",
+      marginRight: '10px',
+    };
+
+    const badgeStyle = {
+      marginRight: '10px',
+      color: color,
+      padding: '5px 8px',
+      borderRadius: '4px',
+    };
+    return (
+      
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              maxHeight: 'calc(100vh - 200px)',
+              overflow: 'auto',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              marginBottom: '10px',
+            }}
+          >
+            <span id="location" style={locationStyle}>{location}</span>
+            <Badge badgeContent={status} style={badgeStyle} />
+            <span id="value"
+              style={{
+                fontWeight:"bold"
+              }}
+            >{value}</span>
+          </div>
+        
+    );
+  };
+  
+  Location.propTypes = {
+    location: PropTypes.string.isRequired,
+    value: PropTypes.number.isRequired,
+  };
+
+  const ProgressBars = () => {
+    const barRanges = [
+      { label: "Good:", min: 0, max: 12.09 },
+      { label: "Moderate:", min: 12.1, max: 35.49 },
+      { label: "Unhealthy For Sensitive Groups:", min: 35.5, max: 55.49 },
+      { label: "Unhealthy:", min: 55.5, max: 150.49 },
+      { label: "Very Unhealthy:", min: 150.5, max: 250.49 },
+      { label: "Hazardous:", min: 250.5, max: 500 }
+    ];
+  
+    const totalLocations = allLocations.length;
+
+    const barPercentages = barRanges.map(({ min, max }) => {
+      const count = allLocations.filter(([_, value]) => value >= min && value <= max).length;
+      return (count / totalLocations) * 100;
+    });
+  
+    const maxPercentage = Math.max(...barPercentages);
+  
+    return (
+      <Card
+        style={{
+          width: "100%",
+          height: "100%"
+        }}
+      >
+        <CardContent>
+          <div>
+          {barRanges.map(({ label }, index) => {
+            const barPercentage = barPercentages[index];
+
+            const count = allLocations.filter(
+              ([_, value]) => value >= barRanges[index].min && value <= barRanges[index].max
+            ).length;
+
+    
+            return (
+              <div key={index} style={{ marginBottom: "8px" }}>
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    display: "flex",
+                    fontSize: "16px",
+                    marginBottom: "5px",
+                    justifyContent: "space-between",
+                    marginTop: "5px",
+                    
+                  }}
+                >
+                  {label}
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      paddingLeft: "10px",
+                      fontWeight: "bold"
+                    }}
+                  >{count} Locations </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    maxWidth: "100%",
+                    height: "5px",
+                    backgroundColor: "lightgray",
+                    marginBottom: "20px"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${barPercentage}%`,
+                      height: "100%",
+                      backgroundColor: "#175df5"
+                    }}
+                  ></div>
+                  
+                </div>
+                
+              </div>
+            );
+          })}
+        </div>
+        </CardContent>
+      </Card>
+    );
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPollutant(tempPollutant);
@@ -359,14 +525,14 @@ const AveragesChart = ({ classes }) => {
     handleModalClose();
     fetchAndSetAverages(tempPollutant);
   };
-
   useEffect(() => {
     fetchAndSetAverages(pollutant);
-  }, []);
-
-  useEffect(() => {
-    fetchAndSetAverages(pollutant);
-  }, [airqloud]);
+  }, [airqloud, modalOpen]);
+  
+  const handleSeeMoreClick = () => {
+    setDisplayedLocations(allLocations); 
+    setModalOpen(true); 
+  };
 
   return (
     <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
@@ -415,9 +581,34 @@ const AveragesChart = ({ classes }) => {
               </div>
             ):(
             <Bar data={locationsGraphData} options={options_main} />
+            
             )}
           </div>
+          
         </CardContent>
+        <CardActions className={classes.cardActions} 
+          style={{
+            justifyContent: 'flex-end',
+            marginTop: '-20px',
+          }}
+        >
+          <Button variant="outlined"  color="primary"
+            disableRipple
+            disableFocusRipple
+            disableTouchRipple
+            onClick={handleSeeMoreClick}
+            style={{
+              textTransform: 'none',
+              paddingLeft: 0,
+              paddingRight: 0,
+              boxShadow: 'none',
+              background: 'transparent',
+              border: 'none',
+            }}
+          >
+            View all Locations <ArrowForwardIcon />
+          </Button>
+        </CardActions>
       </Card>
       <Dialog
         // classes={{ paper: classes.dialogPaper }}
@@ -460,7 +651,63 @@ const AveragesChart = ({ classes }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        fullscreen
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="locations-dialog-title"
+        PaperProps={{
+          style: {
+            width: "100%",
+            maxWidth: "none",
+            margin: "10px",
+            borderRadius: "8px",
+          },
+        }}
+      >
+        <h5
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            fontWeight: "bold",
+            padding: "20px",
+            fontSize: "20px",
+          }}
+        >{customChartTitle}</h5>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+              <ProgressBars />
+            </Grid>
+            <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+              <Card>
+                <CardContent
+                  style={{ 
+                    maxHeight: 'calc(100vh - 200px)', 
+                    overflow: 'auto',  
+                    // borderRadius: '2px', 
+                    marginBottom: '2px' 
+                  }}
+                >
+                  {allLocations.map(([location, value, color]) => (
+                    <Location key={location} location={location} value={value} />
+                  ))}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Grid>
+    
   );
 };
 

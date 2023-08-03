@@ -20,6 +20,65 @@ import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
 import { assignUserNetworkApi, assignUserToRoleApi } from '../../../../apis/accessControl';
 import { fetchNetworkUsers } from 'redux/AccessControl/operations';
+import countries from 'i18n-iso-countries';
+import enLocale from 'i18n-iso-countries/langs/en.json';
+
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+
+countries.registerLocale(enLocale);
+
+const countryObj = countries.getNames('en', { select: 'official' });
+
+const countryArr = Object.entries(countryObj).map(([key, value]) => {
+  return {
+    label: value,
+    value: key
+  };
+});
+
+// countries
+const countryOptions = countryArr.map(({ label, value }) => ({
+  label: label,
+  value: value
+}));
+
+// dropdown component
+import Select from 'react-select';
+
+// dropdown component styles
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '45px',
+    marginTop: '8px',
+    marginBottom: '8px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    },
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -145,9 +204,6 @@ const UsersToolbar = (props) => {
       case 'userName':
         errors.userName = value.length === 0 ? 'userName is required' : '';
         break;
-      case 'country':
-        errors.country = value.length === 0 ? 'country is required' : '';
-        break;
       case 'jobTitle':
         errors.jobTitle = value.length === 0 ? 'jobTitle is required' : '';
         break;
@@ -161,29 +217,15 @@ const UsersToolbar = (props) => {
         break;
     }
 
-    if (id === 'role') {
-      setState({
+    setState(
+      {
         ...form,
-        role: {
-          id: value
-        }
-      });
-    } else if (id === 'country') {
-      setState({
-        ...form,
-        country: capitalize(value)
-      });
-    } else {
-      setState(
-        {
-          ...form,
-          [id]: value
-        },
-        () => {
-          console.log(errors);
-        }
-      );
-    }
+        [id]: value
+      },
+      () => {
+        console.log(errors);
+      }
+    );
   };
 
   const onSubmit = (e) => {
@@ -246,13 +288,29 @@ const UsersToolbar = (props) => {
     clearState();
   }, []);
 
+  // role options
+  const options = roles?.map((role) => ({ value: role._id, label: role.role_name })) ?? [];
+
+  // handles role select
+  const handleDropdownChange = (selectedOption, { name }) => {
+    setState({
+      ...form,
+      [name]:
+        name === 'role'
+          ? { id: selectedOption.value, role_name: selectedOption.label }
+          : selectedOption.label
+    });
+  };
+
   return (
     <div className={clsx(classes.root, className)}>
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen} disabled={loading}>
-            {loading ? 'Loading...' : 'Add new user'}
+            Add new user
           </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
@@ -300,18 +358,16 @@ const UsersToolbar = (props) => {
                   fullWidth
                 />
 
-                <TextField
-                  margin="dense"
-                  id="country"
-                  label="country"
+                <Select
+                  value={countryOptions.find((option) => option.value === form.country)}
+                  onChange={handleDropdownChange}
+                  options={countryOptions}
+                  isSearchable
+                  placeholder="Select country"
                   name="country"
-                  type="text"
-                  helperText={errors.country}
                   error={!!errors.country}
-                  onChange={onChange}
-                  value={form.country}
-                  variant="outlined"
-                  fullWidth
+                  styles={customStyles}
+                  isRequired
                 />
 
                 <TextField
@@ -353,36 +409,26 @@ const UsersToolbar = (props) => {
                   error={!!errors.website}
                   onChange={onChange}
                   value={form.website}
-                  variant="outlined"
                   fullWidth
                 />
 
-                <TextField
-                  id="role"
-                  select
-                  fullWidth
+                {/* dropdown */}
+                <Select
+                  name="role"
                   label="role"
                   style={{ marginTop: '15px' }}
-                  onChange={onChange}
-                  SelectProps={{
-                    native: true,
-                    style: { width: '100%', height: '50px' },
-                    MenuProps: {
-                      className: classes.menu
-                    }
+                  onChange={handleDropdownChange}
+                  value={options.find((option) => option.value === form.value)}
+                  options={options}
+                  isRequired
+                  styles={{
+                    ...customStyles,
+                    menu: (provided) => ({ ...provided, position: 'relative' })
                   }}
-                  helperText={errors.role}
-                  error={!!errors.role}
-                  variant="outlined"
-                  isMulti
-                >
-                  {roles &&
-                    roles.map((option) => (
-                      <option key={option._id} value={option._id}>
-                        {option.role_name}
-                      </option>
-                    ))}
-                </TextField>
+                  isMulti={false}
+                  fullWidth
+                  placeholder="Select role"
+                />
               </div>
             </DialogContent>
 
@@ -395,8 +441,7 @@ const UsersToolbar = (props) => {
                   style={{ margin: '0 15px' }}
                   onClick={onSubmit}
                   color="primary"
-                  variant="contained"
-                >
+                  variant="contained">
                   Submit
                 </Button>
               </div>

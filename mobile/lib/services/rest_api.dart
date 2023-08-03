@@ -1,27 +1,26 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/retry.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
-  if (queryParams.isNotEmpty) {
-    url = '$url?';
-    queryParams.forEach(
-      (key, value) {
-        url = queryParams.keys.first.compareTo(key) == 0
-            ? '$url$key=$value'
-            : '$url&$key=$value';
-      },
-    );
-  }
+  Map<String, dynamic> params = queryParams;
+  params.remove("TOKEN");
+  String formattedUrl = '$url?';
+  params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
-  return url;
+  return formattedUrl;
 }
 
 class AirqoApiClient {
@@ -55,26 +54,29 @@ class AirqoApiClient {
   final Map<String, String> getHeaders = HashMap()
     ..putIfAbsent(
       'Authorization',
-      () => 'JWT ${Config.airqoApiToken}',
+      () => 'JWT ${Config.airqoJWTToken}',
     );
 
   final Map<String, String> postHeaders = HashMap()
     ..putIfAbsent(
       'Authorization',
-      () => 'JWT ${Config.airqoApiToken}',
+      () => 'JWT ${Config.airqoJWTToken}',
     )
     ..putIfAbsent('Content-Type', () => 'application/json');
 
-  Future<AppStoreVersion?> getAppVersion({
-    String bundleId = "",
-    String packageName = "",
-  }) async {
+  Future<AppStoreVersion?> getAppVersion() async {
     try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      Map<String, String> queryParams = {"version": packageInfo.version};
+      if (Platform.isAndroid) {
+        queryParams["packageName"] = packageInfo.packageName;
+      } else if (Platform.isIOS) {
+        queryParams["bundleId"] = packageInfo.packageName;
+      }
+
       final body = await _performGetRequest(
-        {
-          "bundleId": bundleId,
-          "packageName": packageName,
-        },
+        queryParams,
         AirQoUrls.appVersion,
         apiService: ApiService.view,
       );
@@ -94,22 +96,54 @@ class AirqoApiClient {
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.metaData.serviceName;
+      String url = addQueryParameters({}, AirQoUrls.mobileCarrier);
 
       final response = await client.post(
-        Uri.parse("${AirQoUrls.mobileCarrier}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(url),
         headers: headers,
         body: json.encode({'phone_number': phoneNumber}),
       );
+      if (response.statusCode != 200) {
+        return "";
+      }
 
       return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
+        fatal: false,
       );
     }
 
     return '';
+  }
+
+  static Future<void> sendErrorToSlack(
+    Object exception,
+    StackTrace? stackTrace,
+  ) async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      final retryClient = RetryClient(
+        http.Client(),
+        retries: 10,
+      );
+
+      await retryClient.post(
+        Uri.parse(Config.slackWebhookUrl),
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+        body: jsonEncode({
+          'text': "Exception: ${exception.toString()}\n\n "
+              "App details: $packageInfo\n\n "
+              "StackTrace: $stackTrace\n\n",
+        }),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Future<bool?> checkIfUserExists({
@@ -128,10 +162,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
+      String url = addQueryParameters({}, AirQoUrls.firebaseLookup);
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.firebaseLookup}?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode(body),
       );
@@ -192,10 +226,10 @@ class AirqoApiClient {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.auth.serviceName;
 
+      String url = addQueryParameters({}, AirQoUrls.emailVerification);
+
       final response = await client.post(
-        Uri.parse(
-          "${AirQoUrls.emailVerification}?TOKEN=${Config.airqoApiV2Token}",
-        ),
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
       );
@@ -213,6 +247,75 @@ class AirqoApiClient {
     return null;
   }
 
+  Future<List<LocationHistory>> fetchLocationHistory(String userId) async {
+    final locationHistory = <LocationHistory>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.locationHistory}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final history in body['location_histories'] as List<dynamic>) {
+        try {
+          locationHistory.add(
+            LocationHistory.fromJson(
+              history as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return locationHistory;
+  }
+
+  Future<bool> syncLocationHistory(
+    List<LocationHistory> historyList,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          historyList.map((e) => e.toAPIJson(userId)).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.locationHistory}/syncLocationHistory/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'location_histories': body}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<EmailAuthModel?> sendEmailReAuthenticationCode(
     String emailAddress,
   ) async {
@@ -222,7 +325,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "${AirQoUrls.emailReAuthentication}?TOKEN=${Config.airqoApiV2Token}",
+          "${AirQoUrls.emailReAuthentication}/mobileAccountDelete?TOKEN=${Config.airqoApiV2Token}",
         ),
         headers: headers,
         body: jsonEncode({'email': emailAddress}),
@@ -282,6 +385,144 @@ class AirqoApiClient {
     return airQualityReadings.removeInvalidData();
   }
 
+  Future<List<KyaLesson>> fetchKyaLessons(String userId) async {
+    final lessons = <KyaLesson>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+    String url = "${AirQoUrls.kya}/lessons/users/$userId";
+    if (userId.isEmpty) {
+      url = "${AirQoUrls.kya}/lessons";
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        url,
+        apiService: ApiService.deviceRegistry,
+      );
+
+      for (dynamic kya in body['kya_lessons'] as List<dynamic>) {
+        KyaLesson apiKya = KyaLesson.fromJson(kya as Map<String, dynamic>);
+        lessons.add(apiKya);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return lessons;
+  }
+
+  Future<bool> syncKyaProgress(
+    List<KyaLesson> kyaLessons,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.deviceRegistry.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "${AirQoUrls.kya}/sync/$userId",
+        ),
+        headers: headers,
+        body: jsonEncode({
+          'kya_user_progress': kyaLessons.map((e) => e.toJson()).toList(),
+        }),
+      );
+      final responseBody = json.decode(response.body);
+
+      return responseBody['success'] as bool;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
+  Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
+    final favoritePlaces = <FavouritePlace>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    if (userId.isEmpty) {
+      return [];
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.favourites}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final favorite in body['favorites'] as List<dynamic>) {
+        try {
+          favoritePlaces.add(
+            FavouritePlace.fromJson(
+              favorite as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return favoritePlaces;
+  }
+
+  Future<bool> syncFavouritePlaces(
+    List<FavouritePlace> favorites, {
+    bool clear = false,
+  }) async {
+    final userId = CustomAuth.getUserId();
+
+    if ((userId.isEmpty) || (favorites.isEmpty && !clear)) {
+      return false;
+    }
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          favorites.map((e) => e.toAPIJson(userId)).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.favourites}/syncFavorites/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'favorite_places': body}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
@@ -295,15 +536,84 @@ class AirqoApiClient {
         },
       );
 
+      String url = addQueryParameters({}, AirQoUrls.feedback);
+
       final response = await client.post(
-        Uri.parse("${AirQoUrls.feedback}?TOKEN=${Config.airqoApiV2Token}"),
+        Uri.parse(url),
         headers: headers,
         body: body,
       );
 
-      if (response.statusCode == 200) {
-        return true;
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
+  Future<List<SearchHistory>> fetchSearchHistory(String userId) async {
+    final searchHistory = <SearchHistory>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.searchHistory}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final history in body['search_history'] as List<dynamic>) {
+        try {
+          searchHistory.add(
+            SearchHistory.fromJson(
+              history as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
       }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return searchHistory;
+  }
+
+  Future<bool> syncSearchHistory(
+    List<SearchHistory> searchHistory,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          searchHistory.map((e) => e.toAPIJson(userId)).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.searchHistory}/syncSearchHistory/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'search_histories': body}),
+      );
+
+      return response.statusCode == 200;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -322,16 +632,23 @@ class AirqoApiClient {
   }) async {
     try {
       Map<String, dynamic> params = queryParams;
-      params["TOKEN"] = Config.airqoApiV2Token;
 
       url = addQueryParameters(params, url);
 
       Map<String, String> headers = Map.from(getHeaders);
       headers["service"] = apiService.serviceName;
 
-      final response = await client
+      final retryClient = RetryClient(
+        http.Client(),
+        retries: 3,
+        when: (response) =>
+            response.statusCode >= 500 && response.statusCode <= 599,
+      );
+
+      final response = await retryClient
           .get(Uri.parse(url), headers: headers)
           .timeout(timeout ?? const Duration(seconds: 30));
+
       if (response.statusCode == 200) {
         // TODO : use advanced decoding
         return json.decode(response.body);
@@ -378,18 +695,28 @@ class SearchApiClient {
   final String sessionToken = const Uuid().v4();
   final String placeDetailsUrl =
       'https://maps.googleapis.com/maps/api/place/details/json';
+  final String geocodingUrl =
+      'https://maps.googleapis.com/maps/api/geocode/json';
   final String autoCompleteUrl =
       'https://maps.googleapis.com/maps/api/place/autocomplete/json';
   final SearchCache _cache = SearchCache();
+
+  final retryClient = RetryClient(
+    http.Client(),
+    retries: 3,
+    when: (response) =>
+        response.statusCode >= 500 && response.statusCode <= 599,
+  );
 
   Future<dynamic> _getRequest({
     required Map<String, dynamic> queryParams,
     required String url,
   }) async {
     try {
+      queryParams["TOKEN"] = Config.airqoApiV2Token;
       url = addQueryParameters(queryParams, url);
 
-      final response = await client.get(
+      final response = await retryClient.get(
         Uri.parse(url),
       );
       if (response.statusCode == 200) {
@@ -467,6 +794,34 @@ class SearchApiClient {
         searchResult,
       );
     } catch (_, __) {}
+
+    return null;
+  }
+
+  Future<Address?> getAddress({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final queryParams = <String, String>{}
+        ..putIfAbsent('latlng', () => "$latitude,$longitude")
+        ..putIfAbsent('key', () => Config.searchApiKey)
+        ..putIfAbsent('sessiontoken', () => sessionToken);
+
+      final responseBody = await _getRequest(
+        url: geocodingUrl,
+        queryParams: queryParams,
+      );
+
+      return Address.fromGeocodingAPI(
+        responseBody['results'][0] as Map<String, dynamic>,
+      );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
     return null;
   }

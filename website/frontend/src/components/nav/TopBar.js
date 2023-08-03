@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import AirQo from 'icons/nav/AirQo';
@@ -6,12 +6,13 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const TopBar = () => {
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true));
+
   const toggleMenu = () => {
+    setOpenItem(null);
     document.getElementById('menu').classList.toggle('toggle_menu_btn');
     document.getElementById('close-menu').classList.toggle('toggle_close_menu_btn');
     document.getElementById('nav-center').classList.toggle('toggle_nav_center');
@@ -19,10 +20,32 @@ const TopBar = () => {
   };
 
   const toggleCloseMenu = () => {
+    setOpenItem(null);
     document.getElementById('close-menu').classList.remove('toggle_close_menu_btn');
     document.getElementById('menu').classList.remove('toggle_menu_btn');
     document.getElementById('nav-center').classList.remove('toggle_nav_center');
     document.getElementById('nav-right').classList.remove('toggle_nav_right');
+  };
+
+  // tracking the current open item
+  const [openItem, setOpenItem] = useState(null);
+
+  // for handling window resize
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handling click event
+  const handleClick = (item) => {
+    if (width < 1024) {
+      setOpenItem(openItem === item ? null : item);
+    } else {
+      return;
+    }
   };
 
   return (
@@ -35,8 +58,8 @@ const TopBar = () => {
         </div>
         <div className="nav-center" id="nav-center">
           <div className="nav-dropdown-item">
-            <NavTab text="Products" />
-            <div className="dropdown" id="solutions-dropdown">
+            <NavTab text="Products" onClick={() => handleClick('Products')} />
+            <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
               <h3 className="title">Products</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
@@ -57,24 +80,30 @@ const TopBar = () => {
                     <h4>Discover the quality of air around you</h4>
                   </Link>
                 </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/api" style={{ textDecoration: 'none' }}>
+                    <h3>Air Quality API</h3>
+                    <h4>Access raw and calibrated data</h4>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
           <div className="nav-dropdown-item">
-            <NavTab text="Solutions" />
-            <div className="dropdown" id="solutions-dropdown">
+            <NavTab text="Solutions" onClick={() => handleClick('Solutions')} />
+            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
               <h3 className="title">Solutions</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">
-                  <Link to="/solutions/african-cities/uganda" style={{ textDecoration: 'none' }}>
+                  <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
                     <h3>For African Cities</h3>
-                    <h4>Air quality analytics for city councils</h4>
+                    <h4>Advancing air quality management in African cities</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
                     <h3>For Communities</h3>
-                    <h4>Recruiting locals to drive awareness</h4>
+                    <h4>Empowering communities with air quality information</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
@@ -87,8 +116,8 @@ const TopBar = () => {
             </div>
           </div>
           <div className="nav-dropdown-item single-links">
-            <NavTab text="About" />
-            <div className="dropdown" id="solutions-dropdown">
+            <NavTab text="About" onClick={() => handleClick('About')} />
+            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
               <h3 className="title">About AirQo</h3>
               <div className="dropdown-list">
                 <div className="dropdown-list-item">

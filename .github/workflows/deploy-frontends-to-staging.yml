@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY_URL: eu.gcr.io
   PROJECT_ID: airqo-250220
+  DEPLOY_BRANCH: staging
 
 jobs:
   image-tag:
@@ -85,6 +86,14 @@ jobs:
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
+            if [[ $file == workflow-trigger ]]; then
+              echo "run_netmanager=true" >>$GITHUB_OUTPUT
+              echo "run_website=true" >>$GITHUB_OUTPUT
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
           done < files.txt
 
   ### build and push netmanager image ###
@@ -133,14 +142,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/netmanager/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
             createPR: false
 
@@ -280,14 +290,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/calibrate/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -338,14 +349,15 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/platform/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
@@ -385,12 +397,13 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@master # Retries action on fail
+        uses: Wandalen/wretry.action@v1.0.36 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
             valueFile: "k8s/docs/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
-            branch: deployment/argocd
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"

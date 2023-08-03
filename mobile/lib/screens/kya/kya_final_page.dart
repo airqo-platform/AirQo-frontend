@@ -7,8 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class KyaFinalPage extends StatefulWidget {
-  const KyaFinalPage(this.kya, {super.key});
-  final Kya kya;
+  const KyaFinalPage(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
 
   @override
   State<KyaFinalPage> createState() => _KyaFinalPageState();
@@ -51,7 +52,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 60),
                 child: Text(
-                  widget.kya.completionMessage,
+                  widget.kyaLesson.completionMessage,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.5),
@@ -68,7 +69,15 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KyaBloc>().add(PartiallyCompleteKya(widget.kya));
+    context.read<KyaBloc>().add(
+          UpdateKyaProgress(
+            widget.kyaLesson.copyWith(
+              activeTask: 1,
+              status: KyaLessonStatus.pendingCompletion,
+            ),
+            updateRemote: true,
+          ),
+        );
     _initialize();
   }
 

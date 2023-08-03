@@ -4,7 +4,7 @@ import { isEmpty } from 'underscore';
 import PropTypes from 'prop-types';
 import { useHistory, useParams } from 'react-router-dom';
 import { ArrowBackIosRounded } from '@material-ui/icons';
-import { Button, Grid, Paper, TextField } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core';
 
 import { useSiteDetailsData } from 'redux/SiteRegistry/selectors';
 import { loadSiteDetails } from 'redux/SiteRegistry/operations';
@@ -15,10 +15,16 @@ import { useSiteBackUrl } from 'redux/Urls/selectors';
 import { updateSiteApi } from 'views/apis/deviceRegistry';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 
+// styles
+import { makeStyles } from '@material-ui/core/styles';
+
 // css
 import 'react-leaflet-fullscreen/dist/styles.css';
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
+
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const gridItemStyle = {
   padding: '5px',
@@ -28,6 +34,14 @@ const gridItemStyle = {
 const Cell = ({ fieldValue }) => {
   return <div>{fieldValue || 'N/A'}</div>;
 };
+
+// this is style for the cursor to show disabled
+const useStyles = makeStyles({
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
+  }
+});
 
 const SiteForm = ({ site }) => {
   const history = useHistory();
@@ -99,6 +113,8 @@ const SiteForm = ({ site }) => {
         maxWidth: '1500px'
       }}
     >
+      {/* custome Horizontal loader indicator */}
+      <HorizontalLoader loading={loading} />
       <div
         style={{
           display: 'flex',
@@ -134,6 +150,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.name}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -160,6 +182,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.network}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -173,6 +201,12 @@ const SiteForm = ({ site }) => {
             helperText={errors.latitude}
             fullWidth
             required
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -185,6 +219,12 @@ const SiteForm = ({ site }) => {
             error={!!errors.longitude}
             helperText={errors.longitude}
             fullWidth
+            disabled
+            InputProps={{
+              classes: {
+                disabled: useStyles().disabled
+              }
+            }}
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
@@ -346,6 +386,36 @@ const SiteForm = ({ site }) => {
           />
         </Grid>
 
+        <Grid xs={12} sm={12} style={gridItemStyle}>
+          <Typography variant="h3">Mobile app site details</Typography>
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="search_name"
+            label="Editable Name"
+            defaultValue={site.search_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.search_name}
+            helperText={errors.search_name}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="location_name"
+            label="Editable Description"
+            defaultValue={site.location_name}
+            variant="outlined"
+            onChange={handleSiteInfoChange}
+            error={!!errors.location_name}
+            helperText={errors.location_name}
+            fullWidth
+            required
+          />
+        </Grid>
+
         <Grid
           container
           alignItems="flex-end"
@@ -378,15 +448,13 @@ const SiteView = (props) => {
   useInitScrollTop();
   let params = useParams();
   const history = useHistory();
-  const site = useSiteDetailsData(params.id);
+  const site = useSiteDetailsData();
   const dispatch = useDispatch();
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
-    if (isEmpty(site)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadSiteDetails(site._id, activeNetwork.net_name));
-      }
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadSiteDetails(params.id, activeNetwork.net_name));
     }
   }, []);
 

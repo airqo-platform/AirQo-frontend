@@ -72,22 +72,16 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => AuthCodeBloc(
-            RepositoryProvider.of<AirqoApiClient>(context),
-          ),
+          create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => KyaProgressCubit(),
+          create: (BuildContext context) => EmailAuthBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => PhoneAuthBloc(
-            RepositoryProvider.of<AirqoApiClient>(context),
-          ),
+          create: (BuildContext context) => EmailVerificationBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => EmailAuthBloc(
-            RepositoryProvider.of<AirqoApiClient>(context),
-          ),
+          create: (BuildContext context) => PhoneVerificationBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),
@@ -97,6 +91,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => SearchHistoryBloc(),
         ),
       ],
       child: MaterialApp(
@@ -127,14 +124,17 @@ Future<void> initializeMainMethod() async {
   );
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    logException(error, stack);
+    logException(error, stack, fatal: true);
 
     return true;
   };
 
   FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    logException(details, null);
+    if (kDebugMode) {
+      FlutterError.dumpErrorToConsole(details);
+    } else {
+      logException(details, null, fatal: true);
+    }
   };
 
   ErrorWidget.builder = (FlutterErrorDetails details) {

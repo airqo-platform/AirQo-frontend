@@ -16,10 +16,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../feedback/feedback_page.dart';
 import '../for_you_page.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/settings_page.dart';
 import 'profile_edit_page.dart';
 
@@ -64,28 +64,36 @@ class _SignOutButtonState extends State<SignOutButton> {
   }
 
   Future<void> _signOut() async {
-    bool hasConnection = await checkNetworkConnection(
+    await checkNetworkConnection(
       context,
       notifyUser: true,
-    );
-    if (!hasConnection) {
-      return;
-    }
-
-    if (!mounted) return;
-
-    loadingScreen(context);
-    final success = await CustomAuth.signOut();
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pop(context);
-      await AppService.postSignOutActions(context);
-    } else {
-      Navigator.pop(context);
-      showSnackBar(context, Config.signOutFailed);
-    }
+    ).then((hasConnection) async {
+      if (!hasConnection) {
+        return;
+      }
+      await showDialog<ConfirmationAction>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AuthProcedureDialog(
+            authProcedure: AuthProcedure.logout,
+          );
+        },
+      ).then((confirmation) async {
+        if (confirmation != ConfirmationAction.ok) {
+          return;
+        }
+        loadingScreen(context);
+        await CustomAuth.signOut().then((success) async {
+          Navigator.pop(context);
+          if (success) {
+            await AppService.postSignOutActions(context);
+          } else {
+            showSnackBar(context, Config.signOutFailed);
+          }
+        });
+      });
+    });
   }
 }
 
@@ -163,7 +171,7 @@ class SignUpButton extends StatelessWidget {
           await Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) {
-              return const PhoneSignUpWidget();
+              return const PhoneSignUpScreen();
             }),
             (r) => false,
           );

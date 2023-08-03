@@ -5,37 +5,58 @@ import {
   removeDevices,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
-import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import moment from 'moment';
 import { useRouter } from 'next/router';
-import { useGetCollocationResultsMutation } from '@/lib/store/services/collocation';
 import Toast from '@/components/Toast';
+import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
+import Dropdown from '../../../Dropdowns/Dropdown';
+import InfoIcon from '@/icons/Common/info_circle.svg';
+import Modal from '../../../Modal/Modal';
+import axios from 'axios';
+import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
+import ReportDetailCard from '../ReportDetailPopup';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
   failed: 'bg-red-200',
   running: 'bg-turquoise-200',
   scheduled: 'bg-yellow-200',
+  overdue: 'bg-red-200',
+  re_run_required: 'bg-red-200',
+  error: 'bg-red-200',
 };
 
 const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState(null);
+  const [statusSummary, setStatusSummary] = useState([]);
+  const [openStatusSummaryModal, setOpenStatusSummaryModal] = useState(false);
+  const [selectedReportDeviceName, setSelectedReportDeviceName] = useState(null);
+  const [selectedReportBatchId, setSelectedReportBatchId] = useState(null);
+
+  // state to handle modal visibility
+  const [visible, setVisible] = useState(false);
 
   const [collocationInput, setCollocationInput] = useState({
-    devices: '',
-    startDate: '',
-    endDate: '',
+    devices: null,
+    batchId: '',
   });
+  const [skip, setSkip] = useState(true);
+  const [clickedRowIndex, setClickedRowIndex] = useState(null);
+
+  const {
+    isLoading: isCheckingForDataAvailability,
+    isError,
+    isSuccess,
+    data: collocationBatchResults,
+  } = useGetCollocationResultsQuery(collocationInput, { skip: skip });
+  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : [];
 
   const selectedCollocateDevices = useSelector(
     (state) => state.selectedCollocateDevices.selectedCollocateDevices,
   );
-  const [shouldFetchData, setShouldFetchData] = useState(false); //this is to prevent the initial fetch of data when the page loads
-  const [getCollocationResultsData, { isLoading: isCheckingForDataAvailability, isError }] =
-    useGetCollocationResultsMutation();
-
-  const [clickedRowIndex, setClickedRowIndex] = useState(null);
 
   useEffect(() => {
     if (selectedCollocateDevices.length > 0) {
@@ -62,30 +83,93 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
     }
   };
 
-  const openMonitorReport = async (deviceName, startDate, endDate, index) => {
+  const openMonitorReport = async (deviceName, batchId, index) => {
     setCollocationInput({
       devices: deviceName,
-      startDate,
-      endDate,
+      batchId: batchId,
     });
     setClickedRowIndex(index);
-    const response = await getCollocationResultsData({ devices: deviceName, startDate, endDate });
+    setSkip(false);
+  };
 
-    if (!response.error) {
+  // This function is to delete batch
+  const deleteBatch = async () => {
+    const { device, batchId } = collocationInput;
+    const data = {
+      batchId: batchId,
+      devices: device,
+    };
+
+    try {
+      const response = await axios.delete(DELETE_COLLOCATION_DEVICE, { params: data });
+      if (response.status === 200) {
+        setVisible(false);
+        setSkip(true);
+        dispatch(removeDevices([device]));
+      }
+    } catch (error) {
+      console.log('delete batch', error);
+    }
+
+    setCollocationInput({
+      devices: null,
+      batchId: '',
+    });
+
+    router.reload();
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
       router.push({
-        pathname: `/collocation/reports/${deviceName}`,
+        pathname: `/analytics/collocation/reports/${collocationInput.devices}`,
         query: {
-          device: deviceName,
-          startDate: startDate,
-          endDate: endDate,
+          device: collocationInput.devices,
+          batchId: collocationInput.batchId,
         },
       });
+    }
+  }, [isSuccess, collocationBatchResultsData, collocationInput]);
+
+  // dropdown menu list
+  const [menu, setMenu] = useState([
+    {
+      id: 1,
+      name: 'View Reports',
+    },
+    {
+      id: 2,
+      name: 'Delete batch',
+    },
+  ]);
+
+  const handleItemClick = (id, device, index) => {
+    const { device_name, batch_id } = device;
+    switch (id) {
+      case 1:
+        openMonitorReport(device_name, batch_id, index);
+        break;
+      case 2:
+        setVisible(true);
+        setCollocationInput({
+          device: device_name,
+          batchId: batch_id,
+        });
+        break;
+      default:
+        break;
     }
   };
 
   return (
     <div>
-      {isError && <Toast type={'error'} message='Uh-oh! Not enough data to generate a report' />}
+      {isError && (
+        <Toast
+          type={'error'}
+          timeout={5000}
+          message={'Uh-oh! Server error. Please try again later.'}
+        />
+      )}
       <table
         className='border-collapse text-xs text-left w-full mb-6'
         data-testid='collocation-device-status-summary'
@@ -106,6 +190,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
               Monitor name
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
+              Batch name
+            </th>
+            <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
               Added by
             </th>
             <th scope='col' className='font-normal w-[175px] px-4 py-3 opacity-40'>
@@ -120,7 +207,7 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tr>
         </thead>
 
-        {isLoading ? (
+        {isLoading || isCheckingForDataAvailability ? (
           <Skeleton />
         ) : (
           <tbody>
@@ -129,9 +216,13 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                 return (
                   <tr
                     className={`border-b border-b-slate-300 ${
-                      clickedRowIndex === index && isCheckingForDataAvailability && 'opacity-50'
-                    }`}
+                      hoveredRowIndex === index ? 'bg-gray-100' : ''
+                    } ${focusedRowIndex === index ? 'bg-gray-200' : ''}`}
                     key={index}
+                    onMouseEnter={() => setHoveredRowIndex(index)}
+                    onMouseLeave={() => setHoveredRowIndex(null)}
+                    onFocus={() => setFocusedRowIndex(index)}
+                    onBlur={() => setFocusedRowIndex(null)}
                   >
                     <td scope='row' className='w-[61px] py-[10px] px-[21px]'>
                       <input
@@ -144,6 +235,9 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                     <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
                       {device.device_name}
                     </td>
+                    <td scope='row' className='w-[175px] px-4 py-3 uppercase'>
+                      {device.batch_name}
+                    </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
                       {device.added_by || ' '}
                     </td>
@@ -154,28 +248,33 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
                       {moment(device.end_date).format('MMM DD, YYYY')}
                     </td>
                     <td scope='row' className='w-[175px] px-4 py-3'>
-                      <span
-                        className={`${
-                          STATUS_COLOR_CODES[device.status]
-                        } rounded-[10px] px-2 py-[2px] capitalize text-black-600`}
+                      <div
+                        onClick={() => {
+                          setStatusSummary(device.status_summary);
+                          setSelectedReportBatchId(device.batch_id);
+                          setSelectedReportDeviceName(device.device_name);
+                          setOpenStatusSummaryModal(true);
+                        }}
+                        className={`max-w-[96px] h-5 pl-2 pr-0.5 py-0.5 ${
+                          STATUS_COLOR_CODES[device.status.toLowerCase()]
+                        } rounded-lg justify-start items-center gap-1 inline-flex cursor-pointer`}
                       >
-                        {device.status}
-                      </span>
+                        <div className='text-center text-neutral-800 capitalize'>
+                          {device.status.toLowerCase()}
+                        </div>
+                        <div className='justify-start items-start gap-1 flex'>
+                          <div className='w-3.5 h-3.5 relative'>
+                            <InfoIcon />
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td scope='row' className='w-[75px] px-4 py-3'>
-                      <span
-                        onClick={() =>
-                          openMonitorReport(
-                            device.device_name,
-                            moment(device.start_date).format('YYYY-MM-DD'),
-                            moment(device.end_date).format('YYYY-MM-DD'),
-                            index,
-                          )
-                        }
-                        className='w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:cursor-pointer'
-                      >
-                        <MoreHorizIcon />
-                      </span>
+                      <Dropdown
+                        menu={menu}
+                        length={index === collocationDevices.length - 1 ? 'last' : ''}
+                        onItemClick={(id) => handleItemClick(id, device, index)}
+                      />
                     </td>
                   </tr>
                 );
@@ -190,6 +289,24 @@ const DataTable = ({ filteredData, collocationDevices, isLoading }) => {
           </tbody>
         )}
       </table>
+
+      {/* delete device/batch modal */}
+      <Modal
+        display={visible}
+        handleConfirm={deleteBatch}
+        closeModal={() => setVisible(false)}
+        description='Are you sure you want to delete this batch?'
+        confirmButton='Delete'
+      />
+
+      {/* detailed report modal */}
+      <ReportDetailCard
+        data={statusSummary}
+        deviceName={selectedReportDeviceName}
+        batchId={selectedReportBatchId}
+        open={openStatusSummaryModal}
+        closeModal={() => setOpenStatusSummaryModal(false)}
+      />
     </div>
   );
 };

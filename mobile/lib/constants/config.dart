@@ -7,14 +7,19 @@ import 'package:geolocator/geolocator.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Config {
-  static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
+  static String get airqoJWTToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
+
   static String get airqoApiV2Token => dotenv.env['AIRQO_API_V2_TOKEN'] ?? '';
+
   static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
+  static String get slackWebhookUrl => dotenv.env['SLACK_WEBHOOK_URL'] ?? '';
+
   static double get minimumTextScaleFactor => 1.0;
+
   static double get maximumTextScaleFactor => 1.1;
 
-  static String get airqoApi => 'https://api.airqo.net/api';
+  static String get airqoApi => 'https://platform.airqo.net/api';
 
   static String get automatedTestsEmail => "automated-tests@airqo.net";
 
@@ -23,21 +28,10 @@ class Config {
   static String get guestLogInFailed =>
       'Failed to login as guest. Try again later';
 
-  static String get favPlacesCollection =>
-      dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
-
-  static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
-
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
-  static String get usersLocationHistoryCollection =>
-      dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
-
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
-
-  static String get usersKyaCollection =>
-      dotenv.env['USERS_KYA_COLLECTION'] ?? '';
 
   static String get usersProfilePictureStorage =>
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
@@ -62,12 +56,6 @@ class Config {
   static String get airqoSecondaryLogo =>
       'https://storage.cloud.google.com/airqo-app/public-images/airqo_logo.png';
 
-  static String get placesSearchUrl =>
-      'https://maps.googleapis.com/maps/api/place/';
-
-  static String get appStoreUrl =>
-      'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
-
   static String get iosStoreId => '1337573091';
 
   static String get iosBundleId => 'com.airqo.net';
@@ -80,15 +68,13 @@ class Config {
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
-  static String get playStoreUrl =>
-      'https://play.google.com/store/apps/details?id=com.airqo.app';
+  static int get locationChangeRadiusInMetres => 100;
 
   static int get searchRadius => 4;
 
-  static int get shareLinkMaxLength => 56;
+  static int get surroundingsSitesMaxRadiusInKilometres => 20;
 
-  static String get termsUrl =>
-      'https://docs.airqo.net/#/mobile_app/privacy_policy';
+  static int get shareLinkMaxLength => 56;
 
   static double get refreshTriggerPullDistance => 40;
 
@@ -113,7 +99,7 @@ class Config {
       locationSettings = AppleSettings(
         accuracy: LocationAccuracy.high,
         activityType: ActivityType.fitness,
-        distanceFilter: 100,
+        distanceFilter: Config.locationChangeRadiusInMetres,
         showBackgroundLocationIndicator: false,
       );
     } else {

@@ -8,12 +8,13 @@ import TextField from '@material-ui/core/TextField';
 import categories from 'utils/categories';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core';
-import { isEmpty, isEqual } from 'underscore';
+import { isEmpty, isEqual, values } from 'underscore';
 import { isFormFullyFilled, containsEmptyValues } from './utils';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import AlertMinimal from '../../layouts/AlertsMininal';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
+import Select from 'react-select';
 
 countries.registerLocale(enLocale);
 
@@ -25,6 +26,49 @@ const countryArr = Object.entries(countryObj).map(([key, value]) => {
     value: key
   };
 });
+
+// countries
+const countryOptions = countryArr.map(({ label, value }) => ({
+  label: label,
+  value: value
+}));
+
+// categories
+const categoryOptions = categories.array.map(({ label }) => ({
+  label,
+  value: label
+}));
+
+// These are custom styles for the select component dropdown
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    height: '50px',
+    borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+    '&:hover': {
+      borderColor: state.isFocused ? 'black' : 'black'
+    }
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted pink',
+    color: state.isSelected ? 'white' : 'blue',
+    textAlign: 'left'
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    height: '40px',
+    borderColor: state.isFocused ? '#3f51b5' : 'black'
+  }),
+  placeholder: (provided, state) => ({
+    ...provided,
+    color: '#000'
+  }),
+  menu: (provided, state) => ({
+    ...provided,
+    zIndex: 9999
+  })
+};
 
 const styles = (theme) => ({
   root: {
@@ -129,6 +173,23 @@ class Register extends Component {
     );
   };
 
+  // For handling the select component dropdown selections
+  onChangeDropdown = (selected, { name }) => {
+    const { label } = selected;
+    let errors = this.state.errors;
+    errors[name] = label.length === 0 ? 'This field is required' : '';
+    this.setState(
+      {
+        ...this.state,
+        errors,
+        [name]: label
+      },
+      () => {
+        console.log('errors', errors);
+      }
+    );
+  };
+
   handleCheck = (event) => {
     this.state.isChecked = event.target.checked;
     this.setState({ isChecked: this.state.isChecked });
@@ -212,8 +273,7 @@ class Register extends Component {
             maxWidth: '600px',
             marginTop: '4rem',
             backgroundColor: '#fff'
-          }}
-        >
+          }}>
           <div className="row">
             <div
               className=" offset-s2"
@@ -238,14 +298,12 @@ class Register extends Component {
                     isEmpty((this.props.errors && this.props.errors.data) || {})
                       ? { display: 'none' }
                       : {}
-                  }
-                >
+                  }>
                   <Alert
                     severity="error"
                     onClose={() => {
                       this.props.clearErrors();
-                    }}
-                  >
+                    }}>
                     {this.props.errors && this.props.errors.data && this.props.errors.data.message}
                   </Alert>
                 </div>
@@ -284,28 +342,18 @@ class Register extends Component {
                     variant="outlined"
                     helperText={errors.email}
                   />
-                  <TextField
-                    onChange={this.onChange}
-                    select
-                    value={this.state.country}
+
+                  <Select
+                    value={countryOptions.find((option) => option.value === this.state.country)}
+                    onChange={this.onChangeDropdown}
+                    options={countryOptions}
+                    isSearchable
+                    placeholder="Choose your country"
+                    name="country"
                     error={!!errors.country}
-                    id="country"
-                    label="Choose your country"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.country}
-                    SelectProps={{
-                      native: true,
-                      style: { width: '100%', height: '50px' }
-                    }}
-                  >
-                    {countryArr.map(({ label, value }) => (
-                      <option key={value} value={label}>
-                        {label}
-                      </option>
-                    ))}
-                  </TextField>
+                    styles={customStyles}
+                  />
+
                   <TextField
                     onChange={this.onChange}
                     value={this.state.long_organization}
@@ -339,27 +387,30 @@ class Register extends Component {
                     variant="outlined"
                     helperText={errors.website}
                   />
-                  <TextField
-                    id="category"
-                    select
-                    label="What best describes you?"
-                    value={this.state.category}
+
+                  <Select
+                    value={categories.array.find((option) => {
+                      option.value === this.state.category;
+                      this.state.category;
+                    })}
+                    isSearchable={false}
+                    onChange={this.onChangeDropdown}
+                    options={categoryOptions}
+                    placeholder="What best describes you?"
+                    name="category"
                     error={!!errors.category}
-                    onChange={this.onChange}
-                    fullWidth
-                    SelectProps={{
-                      native: true,
-                      style: { width: '100%', height: '50px' }
+                    styles={{
+                      ...customStyles,
+                      control: (base, state) => ({
+                        ...base,
+                        height: '55px',
+                        borderColor: state.isFocused ? '#3f51b5' : '#9a9a9a',
+                        '&:hover': {
+                          borderColor: state.isFocused ? 'black' : 'black'
+                        }
+                      })
                     }}
-                    variant="outlined"
-                    helperText={errors.category}
-                  >
-                    {categories.array.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </TextField>
+                  />
 
                   <TextField
                     id="description"
@@ -395,8 +446,7 @@ class Register extends Component {
                           errors: {},
                           isChecked: {}
                         }) || !validateForm(this.state.errors)
-                      }
-                    >
+                      }>
                       REQUEST
                     </button>
                   ) : null}

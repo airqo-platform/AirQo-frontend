@@ -22,6 +22,8 @@ export const GET_MONITORING_SITES_LOCATIONS_URI = `${BASE_ANALYTICS_URL}/analyti
 
 export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type=`;
 
+export const SCHEDULE_EXPORT_DATA = `${BASE_ANALYTICS_URL_V2}/analytics/data-export`;
+
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
@@ -32,3 +34,5 @@ export const GET_ROLES_URI = `${BASE_ANALYTICS_URL}/users/roles`;
 export const GET_NETWORKS_URI = `${BASE_ANALYTICS_URL}/users/networks`;
 
 export const GET_PERMISSIONS_URI = `${BASE_ANALYTICS_URL}/users/permissions`;
+
+export const GENERATE_AIRQLOUD_DATA_SUMMARY_URI = `${BASE_ANALYTICS_URL}/analytics/data/summary`;

@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
@@ -64,11 +64,12 @@ class SplashScreenState extends State<SplashScreen> {
         ));
     context.read<SettingsBloc>().add(const InitializeSettings());
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
@@ -133,7 +134,7 @@ class SplashScreenState extends State<SplashScreen> {
               } else {
                 switch (nextPage) {
                   case OnBoardingPage.signup:
-                    return const PhoneSignUpWidget();
+                    return const PhoneSignUpScreen();
                   case OnBoardingPage.profile:
                     return const ProfileSetupScreen();
                   case OnBoardingPage.notification:
@@ -157,6 +158,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _updateWidget() {
+    if (!mounted) return;
+
     setState(
       () {
         _visible = true;

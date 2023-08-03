@@ -17,6 +17,8 @@ import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
+// horizontal loader
+import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -42,15 +44,13 @@ const useStyles = makeStyles((theme) => ({
     color: '#3344FF',
     marginRight: theme.spacing(1),
     fontWeight: 'bold'
+  },
+  // for cursor not allowed
+  disabled: {
+    cursor: 'not-allowed',
+    opacity: 0.5
   }
 }));
-
-const NETWORKS = [
-  { value: 'airqo', name: 'AirQo' },
-  { value: 'kcca', name: 'KCCA' },
-  { value: 'usembassy', name: 'US EMBASSY' },
-  { value: 'mukwano', name: 'MUKWANO' }
-];
 
 const SiteToolbar = (props) => {
   const { className, ...rest } = props;
@@ -59,11 +59,13 @@ const SiteToolbar = (props) => {
 
   const dispatch = useDispatch();
 
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')).net_name;
+
   const initSiteData = {
     latitude: '',
     longitude: '',
     name: '',
-    network: NETWORKS[0].value
+    network: activeNetwork
   };
 
   const initErrorData = {
@@ -78,7 +80,6 @@ const SiteToolbar = (props) => {
   const [errors, setErrors] = useState(initErrorData);
 
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork')) || {};
 
   const handleSiteClose = () => {
     setOpen(false);
@@ -96,7 +97,11 @@ const SiteToolbar = (props) => {
     return setSiteData({ ...siteData, [key]: event.target.value });
   };
 
+  // for horizontal loader
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSiteSubmit = (e) => {
+    setIsLoading(true);
     setOpen(false);
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
@@ -110,9 +115,9 @@ const SiteToolbar = (props) => {
           })
         );
 
-        // clear the form
         setSiteData(initSiteData);
         setErrors(initErrorData);
+        setIsLoading(false);
         return;
       } else {
         createSiteApi(siteData)
@@ -133,6 +138,7 @@ const SiteToolbar = (props) => {
                 severity: 'success'
               })
             );
+            setIsLoading(false);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -145,6 +151,7 @@ const SiteToolbar = (props) => {
                 extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
+            setIsLoading(false);
           });
       }
     }
@@ -153,6 +160,14 @@ const SiteToolbar = (props) => {
   return (
     <>
       <div {...rest} className={clsx(classes.root, className)}>
+        {/* custome Horizontal loader indicator */}
+        <HorizontalLoader
+          color="#FFCC00"
+          loading={isLoading}
+          initial={0}
+          target={100}
+          duration={1500}
+        />
         <div className={classes.row}>
           <span className={classes.spacer} />
           <Button
@@ -160,8 +175,7 @@ const SiteToolbar = (props) => {
             color="primary"
             type="submit"
             align="centre"
-            onClick={() => setOpen(!open)}
-          >
+            onClick={() => setOpen(!open)}>
             {' '}
             Add Site
           </Button>
@@ -171,8 +185,7 @@ const SiteToolbar = (props) => {
         open={open}
         onClose={handleSiteClose}
         aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description"
-      >
+        aria-describedby="form-dialog-description">
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Add a site
         </DialogTitle>
@@ -192,7 +205,6 @@ const SiteToolbar = (props) => {
               helperText={errors.name}
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Latitude"
               variant="outlined"
@@ -204,7 +216,6 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              autoFocus
               margin="dense"
               label="Longitude"
               variant="outlined"
@@ -216,27 +227,21 @@ const SiteToolbar = (props) => {
               required
             />
             <TextField
-              select
               fullWidth
               margin="dense"
               label="Network"
-              defaultValue={siteData.network}
-              onChange={handleSiteDataChange('network')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
-              }}
+              value={siteData.network}
+              defaultChecked={siteData.network}
               variant="outlined"
               error={!!errors.network}
               helperText={errors.network}
-              required
-            >
-              {NETWORKS.map((option, index) => (
-                <option key={index} value={option.value}>
-                  {option.name}
-                </option>
-              ))}
-            </TextField>
+              InputProps={{
+                classes: {
+                  disabled: useStyles().disabled
+                }
+              }}
+              disabled
+            />
           </form>
         </DialogContent>
 
@@ -250,8 +255,7 @@ const SiteToolbar = (props) => {
               color="primary"
               type="submit"
               onClick={handleSiteSubmit}
-              style={{ margin: '0 15px' }}
-            >
+              style={{ margin: '0 15px' }}>
               Create Site
             </Button>
           </Grid>

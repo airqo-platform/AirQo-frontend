@@ -148,14 +148,14 @@ class NoLocationAirQualityMessage extends StatelessWidget {
   }
 }
 
-class LocationDeniedButton extends StatelessWidget {
-  const LocationDeniedButton({super.key});
+class DashboardLocationButton extends StatelessWidget {
+  const DashboardLocationButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: () async {
-        await LocationService.requestLocation(context, true);
+        await LocationService.requestLocation();
       },
       style: OutlinedButton.styleFrom(
         elevation: 2,
@@ -171,7 +171,7 @@ class LocationDeniedButton extends StatelessWidget {
         ),
       ),
       child: const Text(
-        "Enable location to get air quality near you",
+        "Turn on location to get air quality near you",
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
@@ -321,7 +321,7 @@ class KyaDashboardAvatar extends StatelessWidget {
     required this.kya,
     required this.rightPadding,
   });
-  final Kya kya;
+  final KyaLesson kya;
   final double rightPadding;
 
   @override
@@ -359,7 +359,7 @@ class KyaDashboardAvatar extends StatelessWidget {
   }
 }
 
-List<Widget> completeKyaWidgets(List<Kya> completeKya) {
+List<Widget> completeKyaWidgets(List<KyaLesson> completeKya) {
   final widgets = <Widget>[];
 
   try {

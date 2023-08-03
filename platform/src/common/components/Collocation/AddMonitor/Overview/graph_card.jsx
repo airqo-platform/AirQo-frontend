@@ -2,15 +2,13 @@ import React, { useState } from 'react';
 import { MdArrowDropDown } from 'react-icons/md';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import Button from '@/components/Button';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  addOverviewBatch,
-  removeDevicefromOverviewBatch,
-  removeOverviewBatch,
-} from '@/lib/store/services/collocation/collocationDataSlice';
+import { useDispatch } from 'react-redux';
+import { addOverviewBatch } from '@/lib/store/services/collocation/collocationDataSlice';
+import { useRouter } from 'next/router';
 
 const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const [pollutantConcentration, setPollutantConcentration] = useState('2.5');
   const [isOpen, setIsOpen] = useState(false);
   const [toggleDeviceDropdown, setToggleDeviceDropdown] = useState(false);
@@ -26,6 +24,16 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
 
   const tooltipFormatter = (value) => {
     return `${value.toFixed(2)}`;
+  };
+
+  const goToReport = () => {
+    router.push({
+      pathname: `/analytics/collocation/reports/${device.device_name}`,
+      query: {
+        device: device.device_name,
+        batchId: device.batch_id,
+      },
+    });
   };
 
   const toggleDropdown = (option) => {
@@ -86,7 +94,9 @@ const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
               )}
             </div>
 
-            <span className='text-sm text-blue'>Full report</span>
+            <span className='text-sm text-blue-950 cursor-pointer' onClick={goToReport}>
+              Full report
+            </span>
           </div>
           <div className='flex flex-row'>
             <div className='dropdown'>

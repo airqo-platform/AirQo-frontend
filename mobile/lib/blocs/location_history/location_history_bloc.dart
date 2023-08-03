@@ -49,19 +49,28 @@ class LocationHistoryBloc
     locationHistory = _updateAirQuality(locationHistory);
 
     emit(locationHistory.toList());
-
-    await CloudStore.updateLocationHistory(locationHistory.toList());
+    String userId = CustomAuth.getUserId();
+    if (userId.isNotEmpty) {
+      await AirqoApiClient().syncLocationHistory(
+        locationHistory.toList(),
+        userId,
+      );
+    }
   }
 
   Future<void> _onSyncLocationHistory(
     SyncLocationHistory _,
     Emitter<List<LocationHistory>> emit,
   ) async {
-    List<LocationHistory> cloudLocationHistory =
-        await CloudStore.getLocationHistory();
+    String userId = CustomAuth.getUserId();
+    AirqoApiClient apiClient = AirqoApiClient();
+    List<LocationHistory> apiLocationHistory = [];
+    if (userId.isNotEmpty) {
+      apiLocationHistory = await apiClient.fetchLocationHistory(userId);
+    }
 
     Set<LocationHistory> locationHistory = state.toSet();
-    locationHistory.addAll(cloudLocationHistory);
+    locationHistory.addAll(apiLocationHistory);
 
     locationHistory = _updateAirQuality(locationHistory);
 
@@ -85,7 +94,12 @@ class LocationHistoryBloc
     updatedLocationHistory = _updateAirQuality(updatedLocationHistory);
 
     emit(updatedLocationHistory.toList());
-    await CloudStore.updateLocationHistory(updatedLocationHistory.toList());
+    if (userId.isNotEmpty) {
+      await apiClient.syncLocationHistory(
+        locationHistory.toList(),
+        userId,
+      );
+    }
   }
 
   @override

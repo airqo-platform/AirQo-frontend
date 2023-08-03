@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../auth/phone_auth_widget.dart';
+import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -78,7 +78,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) {
-                      return const PhoneSignUpWidget();
+                      return const PhoneSignUpScreen();
                     }),
                     (r) => false,
                   );
@@ -97,8 +97,8 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     updateOnBoardingPage();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AppService().latestVersion().then((version) async {
-          if (version != null && mounted) {
+        await AirqoApiClient().getAppVersion().then((version) async {
+          if (version != null && mounted && !version.isUpdated) {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);
             });

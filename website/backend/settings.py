@@ -15,6 +15,11 @@ from pathlib import Path
 import cloudinary
 import dj_database_url
 
+# import os
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
 
 # Read environment
 env = environ.Env()
@@ -39,11 +44,13 @@ TESTING = env.bool("TESTING", default=False)
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
 
 HTTP_X_FORWARDED_PROTO_VALUE = env("HTTP_X_FORWARDED_PROTO", default="https")
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', HTTP_X_FORWARDED_PROTO_VALUE)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO',
+                           HTTP_X_FORWARDED_PROTO_VALUE)
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
-EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list("EXTRA_CORS_ORIGIN_REGEX_WHITELIST", default=[])
+EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list(
+    "EXTRA_CORS_ORIGIN_REGEX_WHITELIST", default=[])
 
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://[a-zA-Z0-9_\-]+\.airqo\.net$",
@@ -56,7 +63,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://staging-dot-airqo-frontend.appspot.com$",
 ]
 
-CORS_ORIGIN_REGEX_WHITELIST = (CORS_ORIGIN_REGEX_WHITELIST + EXTRA_CORS_ORIGIN_REGEX_WHITELIST)
+CORS_ORIGIN_REGEX_WHITELIST = (
+    CORS_ORIGIN_REGEX_WHITELIST + EXTRA_CORS_ORIGIN_REGEX_WHITELIST)
 
 CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=False)
 
@@ -93,7 +101,9 @@ INSTALLED_APPS = [
     'backend.partners.apps.PartnersConfig',
     'backend.board.apps.BoardConfig',
     'backend.publications.apps.PublicationsConfig',
-    'backend.event.apps.EventConfig'
+    'backend.event.apps.EventConfig',
+    'backend.africancities.apps.AfricanCitiesConfig',
+    'backend.press.apps.PressConfig'
 ]
 
 MIDDLEWARE = [
