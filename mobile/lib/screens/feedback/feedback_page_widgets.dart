@@ -286,7 +286,7 @@ class FeedbackCard extends StatelessWidget {
           const SizedBox(
             width: 16,
           ),
-          Text(
+          AutoSizeText(
             title,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
