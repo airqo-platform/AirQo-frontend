@@ -275,5 +275,11 @@
   "loginWithYourEmail": "Connectez-vous avec votre e-mail",
   "loginWithAnEmailInstead": "Connectez-vous avec un e-mail à la place",
   "signUpWithAnEmailInstead": "Inscrivez-vous avec un e-mail à la place",
-  "particulateMatter":"Matière particulaire(PM) "
+  "particulateMatter":"Matière particulaire(PM) ",
+  "pleaseSelectAFeedbackType":"Veuillez sélectionner un type de réaction.",
+  "neW":"nouveau",
+  "noNortifications": "Pas de notifications",
+  "hereYoullFindAllUpdatesOnOurAirQualityNetwork": "Ici, vous trouverez toutes les mises à jour sur notre réseau de qualité de l'air",
+  "and":"et"
+
 }

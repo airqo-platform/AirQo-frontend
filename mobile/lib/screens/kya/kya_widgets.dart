@@ -180,7 +180,7 @@ class KyaCardWidget extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 2),
                   child: AutoSizeText(
                     kyaLesson.title,
-                    maxLines: 4,
+                    maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),
                   ),

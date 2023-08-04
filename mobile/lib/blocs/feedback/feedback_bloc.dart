@@ -2,10 +2,14 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';
+
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   FeedbackBloc() : super(const FeedbackState.initial()) {

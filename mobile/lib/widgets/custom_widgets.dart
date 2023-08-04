@@ -301,7 +301,7 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Padding(
         padding: const EdgeInsets.only(top: 10),
-        child: Text(
+        child: AutoSizeText(
           AppLocalizations.of(context)!.knowYourair,
           style:
               CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),

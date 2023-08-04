@@ -118,13 +118,14 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
   final Insight insight;
   final ScrollController _scrollController = ScrollController();
 
-  List<Widget> aqiDialogWidgets() {
+  List<Widget> aqiDialogWidgets(BuildContext context) {
     List<Widget> aqiDialogWidgets = [];
     aqiDialogWidgets.add(
       Padding(
         padding: const EdgeInsets.only(top: 10.0),
-        child: Text(
-          'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ', // TODO translate this
+        child: AutoSizeText(
+          AppLocalizations.of(context)!
+              .theAirQualityIndexColorsCanbBeUsedToShowHowPollutedTheAirIs,
           style: TextStyle(
             fontSize: 8,
             fontWeight: FontWeight.w500,
@@ -278,7 +279,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                             child: ListView(
                               padding: EdgeInsets.zero,
                               controller: _scrollController,
-                              children: aqiDialogWidgets(),
+                              children: aqiDialogWidgets(context),
                             ),
                           ),
                         ),

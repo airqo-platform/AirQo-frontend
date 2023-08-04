@@ -4,6 +4,7 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -306,7 +307,7 @@ class NoCompleteKyaWidget extends StatelessWidget {
           const SizedBox(
             height: 50,
           ),
-          Text(
+          AutoSizeText(
             AppLocalizations.of(context)!.keepUpWithYourLessons,
             style: CustomTextStyle.errorTitle(context),
             textAlign: TextAlign.center,
@@ -314,7 +315,7 @@ class NoCompleteKyaWidget extends StatelessWidget {
           const SizedBox(
             height: 23,
           ),
-          Text(
+          AutoSizeText(
             AppLocalizations.of(context)!
                 .trackYourCompletedKnowYourAirLessonsAndRevisitThemAnytime,
             style: CustomTextStyle.errorSubTitle(context),

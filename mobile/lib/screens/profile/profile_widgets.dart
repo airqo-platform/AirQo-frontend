@@ -135,16 +135,16 @@ class SignUpSection extends StatelessWidget {
             child: AutoSizeText(
               AppLocalizations.of(context)!
                   .createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips,
-              maxLines: 6,
+              maxLines: 5,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.4),
                   ),
             ),
           ),
           const SizedBox(
-            height: 24,
+            height: 4,
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 32),

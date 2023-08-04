@@ -206,7 +206,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: ' and ', // TODO Translate this
+                            text:  AppLocalizations.of(context)!.and,
                             style: TextStyle(
                               fontSize: 10,
                               color:
