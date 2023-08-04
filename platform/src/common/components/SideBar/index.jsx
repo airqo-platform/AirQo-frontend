@@ -51,7 +51,8 @@ const SideBar = () => {
       <div
         className={`${
           size.width >= 1024 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}>
+        } bg-white h-[calc(100vh)] lg:relative flex-col justify-between overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200`}
+      >
         <div>
           <div
             className='
@@ -59,7 +60,8 @@ const SideBar = () => {
               flex
               flex-row
               justify-between
-            '>
+            '
+          >
             <AirqoLogo className='invisible md:visible lg:visible w-[46.56px] h-8 flex flex-col flex-1' />
             <CollapseIcon className='pt-1 h-full flex flex-col flex-3' />
           </div>
@@ -73,7 +75,7 @@ const SideBar = () => {
             <ArrowDropDownIcon />
           </div> */}
           <div className='mt-3 mx-2'>
-            <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
+            {/* <SideBarItem label='Home' Icon={HomeSmileIcon} navPath='/Home/home' />
             <SideBarItem label='Learn' Icon={BookOpenIcon} />
             <SideBarItem label='Notification' Icon={NotificationIcon} />
             <SideBarItem
@@ -81,30 +83,46 @@ const SideBar = () => {
               Icon={BarChartSqIcon}
               dropdown
               toggleMethod={() => setAnalyticsOpen(!analyticsOpen)}
-              toggleState={analyticsOpen}>
+              toggleState={analyticsOpen}
+            >
               <SideBarDropdownItem itemLabel='Overview' itemPath='' />
               <SideBarDropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
               <SideBarDropdownItem itemLabel='Map view' itemPath='' />
+            </SideBarItem> */}
+            <SideBarItem
+              label='Collocation'
+              Icon={CollocationIcon}
+              dropdown
+              toggleMethod={() => setCollocationOpen(!collocationOpen)}
+              toggleState={collocationOpen}
+            >
+              <SideBarDropdownItem
+                itemLabel='Overview'
+                itemPath='/analytics/collocation/overview'
+              />
+              <SideBarDropdownItem
+                itemLabel='Collocate'
+                itemPath='/analytics/collocation/collocate'
+              />
+              <SideBarDropdownItem itemLabel='Reports' itemPath='/analytics/collocation/reports' />
             </SideBarItem>
-            <hr className='my-3 h-[0.5px] bg-grey-150' />
-            <SideBarItem label='Sites' Icon={SiteIcon} />
-            <SideBarItem label='Other tools' Icon={GridIcon} />
+            {/* <SideBarItem label='Sites' Icon={SiteIcon} />
+            <SideBarItem label='Other tools' Icon={GridIcon} /> */}
           </div>
         </div>
-        <Link href='/account/creation'>
-          <AnnouncementCard />
-        </Link>
+        {/* <AnnouncementCard />
         <div className='mx-2'>
           <SideBarItem label='Get Support' Icon={SupportIcon} />
           <SideBarItem label='Settings' Icon={SettingsIcon} />
-        </div>
+        </div> */}
       </div>
       <div
         className='lg:hidden fixed top-5 right-10 z-30'
         role='button'
         tabIndex={0}
         onKeyDown={() => setToggleDrawer(!toggleDrawer)}
-        onClick={() => setToggleDrawer(!toggleDrawer)}>
+        onClick={() => setToggleDrawer(!toggleDrawer)}
+      >
         <MenuBarIcon />
       </div>
     </div>

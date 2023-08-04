@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import HeaderNav from '@/components/Layout/header';
-import Layout from '@/components/Layout';
 import ContentBox from '@/components/Layout/content_box';
 import { format } from 'date-fns';
 import GraphCard from '@/components/Collocation/AddMonitor/Overview/graph_card';
@@ -22,7 +21,7 @@ import {
 import EmptyState from '@/components/Collocation/Overview/empty_state';
 import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Overview';
 import Toast from '@/components/Toast';
-import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
@@ -145,7 +144,7 @@ const CollocationOverview = () => {
   }, [collocationStatisticsList]);
 
   return (
-    <AuthenticatedLayout>
+    <Layout>
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {(collocationStatisticsError || deviceSummaryError) && (
         <Toast type={'error'} timeout={10000} message={'Server error!'} />
@@ -294,8 +293,8 @@ const CollocationOverview = () => {
       ) : (
         <EmptyState />
       )}
-    </AuthenticatedLayout>
+    </Layout>
   );
 };
 
-export default withAuth(CollocationOverview);
+export default CollocationOverview;

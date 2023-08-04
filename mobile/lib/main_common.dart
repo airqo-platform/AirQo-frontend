@@ -72,9 +72,6 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => KyaProgressCubit(),
-        ),
-        BlocProvider(
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
@@ -94,6 +91,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => SearchHistoryBloc(),
         ),
       ],
       child: MaterialApp(

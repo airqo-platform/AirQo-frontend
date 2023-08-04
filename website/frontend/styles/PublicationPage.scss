@@ -69,7 +69,16 @@ $tab_width: 160px;
         hr{
             margin:50px 0px;
         }
+        .resource-links{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
         .link{
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin-top:70px;
             cursor: pointer;
             a{
@@ -94,7 +103,9 @@ $tab_width: 160px;
         }
         .cta-links{
             position: absolute;
-            margin-top:35px;
+            margin-top:45px;
+            display: flex;
+            flex-direction: row;
             .a-link{
                 border:1px solid $aq-black-1;
                 border-radius: 10px;
@@ -103,6 +114,18 @@ $tab_width: 160px;
             }
             .a-link:first-child{
                 margin-right: 30px;
+            }
+            .link:first-child{
+                margin-right: 40px;
+            }
+            .link{
+                cursor: pointer;
+                border:1px solid $aq-black-0;
+                padding:10px 14px;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
     }

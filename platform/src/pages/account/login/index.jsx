@@ -3,6 +3,10 @@ import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { setUserName, setUserPassword, loginUser } from '@/lib/store/services/account/LoginSlice';
+import { postUserLoginDetails } from '../../../core/apis/Account';
+import setAuthToken from '@/core/utils/setAuthToken';
+import jwt_decode from 'jwt-decode';
+import { setFailure, setSuccess, setUserInfo } from '@/lib/store/services/account/LoginSlice';
 
 const UserLogin = () => {
   const [errors, setErrors] = useState(false);
@@ -13,17 +17,40 @@ const UserLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      await dispatch(loginUser(postData.userData)).then(()=>{
-        if (postData.success) {
-          router.push('/analytics');
-        } else {
-          setErrors(true);
-          setError(postData.errors);
-        }
+    try{
+      await postUserLoginDetails(postData.userData)
+      .then((res) => {
+          const { token } = res;
+          localStorage.setItem('token', token);
+          setAuthToken(token);
+          // Decode token to get user data
+          const decoded = jwt_decode(token);
+          localStorage.setItem('loggedUser', JSON.stringify(decoded));
+          dispatch(setUserInfo(decoded))
+          dispatch(setSuccess(true))
+          router.push('/analytics')
       })
-    } catch (err) {}
+      .catch((error) => {
+          dispatch(setSuccess(false))
+          dispatch(setFailure(error.message))
+          setErrors(true)
+          setError(error.message);
+      })
+    }catch(error){
+        alert(error)
+    }
   };
+
+  const handleErrors = () => {
+    if (errors) {
+      setError(false);
+      setErrors();
+    }
+  };
+
+  useEffect(() => {
+    setErrors(false);
+  }, []);
 
   return (
     <AccountPageLayout>
@@ -50,10 +77,15 @@ const UserLogin = () => {
                 className='input w-full rounded-none bg-form-input focus:outline-form-input focus:outline-none focus:outline-offset-0'
                 required
               />
-              <div>{errors && <div className='text-sm text-red-600 py-2'>{error || 'Retry'}</div>}</div>
+              <div>
+                {errors && (
+                  <div className='text-sm text-red-600 py-2'>{error || 'Please Retry'}</div>
+                )}
+              </div>
               <button
                 className='mt-6 btn bg-blue-900 rounded-none w-full text-sm outline-none border-none hover:bg-blue-950'
-                type='submit'>
+                type='submit'
+                onClick={handleErrors}>
                 Login
               </button>
             </div>
