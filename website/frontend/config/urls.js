@@ -36,9 +36,9 @@ export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
-export const NETMANAGER_URL = stripTrailingSlash(
-  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', '')
-);
+export const NETMANAGER_URL = process.env.REACT_NETMANAGER_BASE_URL
+  ? stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', ''))
+  : '';
 
 // highlights urls
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
