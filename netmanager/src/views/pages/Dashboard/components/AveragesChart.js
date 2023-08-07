@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -13,45 +13,46 @@ import {
   IconButton,
   Badge,
   Link,
-  CardActions,
-} from "@material-ui/core";
-import clsx from "clsx";
+  CardActions
+} from '@material-ui/core';
+import clsx from 'clsx';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import { MoreHoriz } from "@material-ui/icons";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import { Bar } from "react-chartjs-2";
-import domtoimage from "dom-to-image";
-import JsPDF from "jspdf";
-import palette from "theme/palette";
-import axios from "axios";
-import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
-import { roundToEndOfDay, roundToStartOfDay } from "utils/dateTime";
-import { unzip, zip } from "underscore";
-import moment from "moment";
-import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
-import { flattenSiteOptions } from "utils/sites";
-import { usePollutantsOptions } from "utils/customHooks";
-import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
+import { MoreHoriz } from '@material-ui/icons';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import { Bar } from 'react-chartjs-2';
+import domtoimage from 'dom-to-image';
+import JsPDF from 'jspdf';
+import palette from 'theme/palette';
+import axios from 'axios';
+import { DAILY_MEAN_AVERAGES_URI } from 'config/urls/analytics';
+import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
+import { unzip, zip } from 'underscore';
+import moment from 'moment';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { flattenSiteOptions } from 'utils/sites';
+import { usePollutantsOptions } from 'utils/customHooks';
+import OutlinedSelect from '../../../components/CustomSelects/OutlinedSelect';
 import PropTypes from 'prop-types';
+import { BASE_AUTH_TOKEN } from 'utils/envVariables';
+
 function appendLeadingZeroes(n) {
   if (n <= 9) {
-    return "0" + n;
+    return '0' + n;
   }
   return n;
 }
 
 const AveragesChart = ({ classes }) => {
-  const rootContainerId = "widget-container";
-  const iconButton = "exportIconButton";
+  const rootContainerId = 'widget-container';
+  const iconButton = 'exportIconButton';
   const airqloud = useCurrentAirQloudData();
   const filter = (node) => node.id !== iconButton;
   const endDate = moment(new Date()).toISOString();
-  const startDate = moment(endDate).subtract(28, "days").toISOString();
+  const startDate = moment(endDate).subtract(28, 'days').toISOString();
   const [displayedLocations, setDisplayedLocations] = useState([]);
   const [allLocations, setAllLocations] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -60,8 +61,8 @@ const AveragesChart = ({ classes }) => {
   const pollutantOptions = usePollutantsOptions();
 
   const [pollutant, setPollutant] = useState({
-    value: "pm2_5",
-    label: "PM 2.5",
+    value: 'pm2_5',
+    label: 'PM 2.5'
   });
   const [tempPollutant, setTempPollutant] = useState(pollutant);
 
@@ -84,16 +85,16 @@ const AveragesChart = ({ classes }) => {
   const [averages, setAverages] = useState({
     labels: [],
     average_values: [],
-    background_colors: [],
+    background_colors: []
   });
 
   let todaysDate = new Date();
 
   const dateValue = appendLeadingZeroes(
     todaysDate.getDate() +
-      "/" +
+      '/' +
       appendLeadingZeroes(todaysDate.getMonth() + 1) +
-      "/" +
+      '/' +
       todaysDate.getFullYear()
   );
 
@@ -111,75 +112,70 @@ const AveragesChart = ({ classes }) => {
   const paperProps = {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5,
-      width: 150,
-    },
+      width: 150
+    }
   };
 
   const labelMapper = {
-    pm2_5: "PM₂.₅(µg/m³)",
-    pm10: "PM10 (µg/m³)",
-    no2: "NO2 (µg/m³)",
+    pm2_5: 'PM₂.₅(µg/m³)',
+    pm10: 'PM10 (µg/m³)',
+    no2: 'NO2 (µg/m³)'
   };
 
   const annotationMapper = {
     pm2_5: {
       value: 25,
-      label_content: "WHO AQG",
+      label_content: 'WHO AQG'
     },
     pm10: {
       value: 50,
-      label_content: "WHO AQG",
+      label_content: 'WHO AQG'
     },
     no2: {
       value: 40,
-      label_content: "WHO AQG",
-    },
+      label_content: 'WHO AQG'
+    }
   };
 
-  const [customisedLabel, setCustomisedLabel] = useState(
-    labelMapper[pollutant.value]
-  );
+  const [customisedLabel, setCustomisedLabel] = useState(labelMapper[pollutant.value]);
 
-  const [customisedAnnotation, setCustomAnnotations] = useState(
-    annotationMapper[pollutant.value]
-  );
+  const [customisedAnnotation, setCustomAnnotations] = useState(annotationMapper[pollutant.value]);
 
   const print = async (chart) => {
     try {
       const dataUrl = await domtoimage.toJpeg(chart, { filter });
-      let html = "<html><head><title></title></head>";
+      let html = '<html><head><title></title></head>';
       html += '<body style="width: 100%; padding: 0; margin: 0;"';
       html += ' onload="window.focus(); window.print(); window.close()">';
       html += `<img src="${dataUrl}" /></body></html>`;
 
-      const printWindow = window.open("", "print");
+      const printWindow = window.open('', 'print');
       printWindow.document.open();
       printWindow.document.write(html);
       printWindow.document.close();
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
   const exportToImage = async (chart, format, exportFunc) => {
     try {
       const dataUrl = await exportFunc(chart, { filter });
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       document.body.appendChild(link);
       link.download = `chart.${format}`;
       link.href = dataUrl;
       link.click();
       link.remove();
     } catch (err) {
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
-  const exportToJpeg = (chart) =>
-    exportToImage(chart, "jpeg", domtoimage.toJpeg);
+  const exportToJpeg = (chart) => exportToImage(chart, 'jpeg', domtoimage.toJpeg);
 
-  const exportToPng = (chart) => exportToImage(chart, "png", domtoimage.toPng);
+  const exportToPng = (chart) => exportToImage(chart, 'png', domtoimage.toPng);
 
   const exportToPdf = async (chart) => {
     const width = chart.offsetWidth;
@@ -187,17 +183,17 @@ const AveragesChart = ({ classes }) => {
     try {
       const dataUrl = await domtoimage.toJpeg(chart, { filter });
       const doc = new JsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [width, height],
+        orientation: 'landscape',
+        unit: 'px',
+        format: [width, height]
       });
       const pdfWidth = doc.internal.pageSize.getWidth();
       const pdfHeight = doc.internal.pageSize.getHeight();
-      doc.addImage(dataUrl, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      doc.save("chart");
+      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('chart');
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
@@ -208,18 +204,20 @@ const AveragesChart = ({ classes }) => {
   const numLocations = displayedLocations.length;
 
   const options = [
-    { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
-    { key: "Print", action: print, text: "Print" },
-    { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
-    { key: "PNG", action: exportToPng, text: "Save as PNG" },
-    { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    { key: 'Customise', action: handleClickOpen, text: 'Customise Chart' },
+    { key: 'Print', action: print, text: 'Print' },
+    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
+    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
+    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' }
   ];
 
-  const handleExport = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootContainerId}`);
-    handleClose();
-    action(chart);
-  };
+  const handleExport =
+    ({ action }) =>
+    () => {
+      const chart = document.querySelector(`#${rootContainerId}`);
+      handleClose();
+      action(chart);
+    };
 
   const locationsGraphData = {
     labels: displayedLocations.map(([location]) => location),
@@ -229,18 +227,18 @@ const AveragesChart = ({ classes }) => {
         data: displayedLocations.map(([_, value]) => value),
         fill: false,
         borderColor: palette.primary.main,
-        backgroundColor: displayedLocations.map(([_, __, color]) => color),
-      },
-    ],
+        backgroundColor: displayedLocations.map(([_, __, color]) => color)
+      }
+    ]
   };
 
   const options_main = {
     annotation: {
       annotations: [
         {
-          type: "line",
-          mode: "horizontal",
-          scaleID: "y-axis-0",
+          type: 'line',
+          mode: 'horizontal',
+          scaleID: 'y-axis-0',
           value: customisedAnnotation.value,
           borderColor: palette.text.secondary,
           borderWidth: 2,
@@ -250,10 +248,10 @@ const AveragesChart = ({ classes }) => {
             //backgroundColor: palette.white,
             titleFontColor: palette.text.primary,
             bodyFontColor: palette.text.primary,
-            position: "right",
-          },
-        },
-      ],
+            position: 'right'
+          }
+        }
+      ]
     },
     responsive: true,
     maintainAspectRatio: true,
@@ -262,7 +260,7 @@ const AveragesChart = ({ classes }) => {
     cornerRadius: 0,
     tooltips: {
       enabled: true,
-      mode: "index",
+      mode: 'index',
       intersect: false,
       borderWidth: 1,
       borderColor: palette.divider,
@@ -275,7 +273,7 @@ const AveragesChart = ({ classes }) => {
         //afterTitle: (items, data) =>
         //return data['labels'][tooltipItem[0]['index']]
         //label: (item, data) => data.datasets[item.datasetIndex].data[item.index]
-      },
+      }
     },
     layout: { padding: 0 },
     scales: {
@@ -283,28 +281,28 @@ const AveragesChart = ({ classes }) => {
         {
           barThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
           maxBarThickness: numLocations > 0 ? Math.max(150 / numLocations, 20) : 20,
-          barPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
-          categoryPercentage: numLocations > 0 ? (1 / numLocations) : 0.5,
+          barPercentage: numLocations > 0 ? 1 / numLocations : 0.5,
+          categoryPercentage: numLocations > 0 ? 1 / numLocations : 0.5,
           ticks: {
-            fontColor: "black",
-            callback: (value) => `${value.substr(0, 7)}`,
+            fontColor: 'black',
+            callback: (value) => `${value.substr(0, 7)}`
           },
           gridLines: {
             display: false,
-            drawBorder: false,
+            drawBorder: false
           },
           scaleLabel: {
             display: true,
-            labelString: "Locations",
-          },
-        },
+            labelString: 'Locations'
+          }
+        }
       ],
       yAxes: [
         {
           ticks: {
             fontColor: palette.text.secondary,
             beginAtZero: true,
-            min: 0,
+            min: 0
             //suggestedMin:20
           },
           gridLines: {
@@ -314,26 +312,30 @@ const AveragesChart = ({ classes }) => {
             drawBorder: false,
             zeroLineBorderDash: [2],
             zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
+            zeroLineColor: palette.divider
           },
           scaleLabel: {
             display: true,
-            labelString: customisedLabel,
-          },
-        },
-      ],
-    },
+            labelString: customisedLabel
+          }
+        }
+      ]
+    }
   };
 
   const fetchAndSetAverages = (pollutant) => {
     setLoading(true);
     axios
-      .post(DAILY_MEAN_AVERAGES_URI, {
-        startDate: roundToStartOfDay(startDate).toISOString(),
-        endDate: roundToEndOfDay(endDate).toISOString(),
-        pollutant: pollutant.value,
-        sites: flattenSiteOptions(airqloud.siteOptions),
-      })
+      .post(
+        DAILY_MEAN_AVERAGES_URI,
+        {
+          startDate: roundToStartOfDay(startDate).toISOString(),
+          endDate: roundToEndOfDay(endDate).toISOString(),
+          pollutant: pollutant.value,
+          sites: flattenSiteOptions(airqloud.siteOptions)
+        },
+        { params: { token: BASE_AUTH_TOKEN } }
+      )
       .then((response) => response.data)
       .then((responseData) => {
         const averagesData = responseData.data;
@@ -351,10 +353,9 @@ const AveragesChart = ({ classes }) => {
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
         setAllLocations(zippedArr);
-  
 
         setDisplayedLocations(zippedArr.slice(0, 10));
-  
+
         setAverages({ labels, average_values, background_colors });
         setLoading(false);
       })
@@ -384,142 +385,141 @@ const AveragesChart = ({ classes }) => {
 
     const locationStyle = {
       fontWeight: 'bold',
-      color: "#175df5",
-      marginRight: '10px',
+      color: '#175df5',
+      marginRight: '10px'
     };
 
     const badgeStyle = {
       marginRight: '10px',
       color: color,
       padding: '5px 8px',
-      borderRadius: '4px',
+      borderRadius: '4px'
     };
     return (
-      
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              maxHeight: 'calc(100vh - 200px)',
-              overflow: 'auto',
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              marginBottom: '10px',
-            }}
-          >
-            <span id="location" style={locationStyle}>{location}</span>
-            <Badge badgeContent={status} style={badgeStyle} />
-            <span id="value"
-              style={{
-                fontWeight:"bold"
-              }}
-            >{value}</span>
-          </div>
-        
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          maxHeight: 'calc(100vh - 200px)',
+          overflow: 'auto',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          marginBottom: '10px'
+        }}
+      >
+        <span id="location" style={locationStyle}>
+          {location}
+        </span>
+        <Badge badgeContent={status} style={badgeStyle} />
+        <span
+          id="value"
+          style={{
+            fontWeight: 'bold'
+          }}
+        >
+          {value}
+        </span>
+      </div>
     );
   };
-  
+
   Location.propTypes = {
     location: PropTypes.string.isRequired,
-    value: PropTypes.number.isRequired,
+    value: PropTypes.number.isRequired
   };
 
   const ProgressBars = () => {
     const barRanges = [
-      { label: "Good:", min: 0, max: 12.09 },
-      { label: "Moderate:", min: 12.1, max: 35.49 },
-      { label: "Unhealthy For Sensitive Groups:", min: 35.5, max: 55.49 },
-      { label: "Unhealthy:", min: 55.5, max: 150.49 },
-      { label: "Very Unhealthy:", min: 150.5, max: 250.49 },
-      { label: "Hazardous:", min: 250.5, max: 500 }
+      { label: 'Good:', min: 0, max: 12.09 },
+      { label: 'Moderate:', min: 12.1, max: 35.49 },
+      { label: 'Unhealthy For Sensitive Groups:', min: 35.5, max: 55.49 },
+      { label: 'Unhealthy:', min: 55.5, max: 150.49 },
+      { label: 'Very Unhealthy:', min: 150.5, max: 250.49 },
+      { label: 'Hazardous:', min: 250.5, max: 500 }
     ];
-  
+
     const totalLocations = allLocations.length;
 
     const barPercentages = barRanges.map(({ min, max }) => {
       const count = allLocations.filter(([_, value]) => value >= min && value <= max).length;
       return (count / totalLocations) * 100;
     });
-  
+
     const maxPercentage = Math.max(...barPercentages);
-  
+
     return (
       <Card
         style={{
-          width: "100%",
-          height: "100%"
+          width: '100%',
+          height: '100%'
         }}
       >
         <CardContent>
           <div>
-          {barRanges.map(({ label }, index) => {
-            const barPercentage = barPercentages[index];
+            {barRanges.map(({ label }, index) => {
+              const barPercentage = barPercentages[index];
 
-            const count = allLocations.filter(
-              ([_, value]) => value >= barRanges[index].min && value <= barRanges[index].max
-            ).length;
+              const count = allLocations.filter(
+                ([_, value]) => value >= barRanges[index].min && value <= barRanges[index].max
+              ).length;
 
-    
-            return (
-              <div key={index} style={{ marginBottom: "8px" }}>
-                <div
-                  style={{
-                    fontWeight: "bold",
-                    display: "flex",
-                    fontSize: "16px",
-                    marginBottom: "5px",
-                    justifyContent: "space-between",
-                    marginTop: "5px",
-                    
-                  }}
-                >
-                  {label}
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      paddingLeft: "10px",
-                      fontWeight: "bold"
-                    }}
-                  >{count} Locations </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    maxWidth: "100%",
-                    height: "5px",
-                    backgroundColor: "lightgray",
-                    marginBottom: "20px"
-                  }}
-                >
+              return (
+                <div key={index} style={{ marginBottom: '8px' }}>
                   <div
                     style={{
-                      width: `${barPercentage}%`,
-                      height: "100%",
-                      backgroundColor: "#175df5"
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      fontSize: '16px',
+                      marginBottom: '5px',
+                      justifyContent: 'space-between',
+                      marginTop: '5px'
                     }}
-                  ></div>
-                  
+                  >
+                    {label}
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        paddingLeft: '10px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {count} Locations{' '}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      maxWidth: '100%',
+                      height: '5px',
+                      backgroundColor: 'lightgray',
+                      marginBottom: '20px'
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${barPercentage}%`,
+                        height: '100%',
+                        backgroundColor: '#175df5'
+                      }}
+                    ></div>
+                  </div>
                 </div>
-                
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     );
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPollutant(tempPollutant);
-    setCustomChartTitle(
-      `Mean Daily ${tempPollutant.label} Over the Past 28 Days`
-    );
+    setCustomChartTitle(`Mean Daily ${tempPollutant.label} Over the Past 28 Days`);
     setCustomisedLabel(labelMapper[tempPollutant.value]);
     setCustomAnnotations(annotationMapper[tempPollutant.value]);
     handleModalClose();
@@ -528,10 +528,10 @@ const AveragesChart = ({ classes }) => {
   useEffect(() => {
     fetchAndSetAverages(pollutant);
   }, [airqloud, modalOpen]);
-  
+
   const handleSeeMoreClick = () => {
-    setDisplayedLocations(allLocations); 
-    setModalOpen(true); 
+    setDisplayedLocations(allLocations);
+    setModalOpen(true);
   };
 
   return (
@@ -570,29 +570,31 @@ const AveragesChart = ({ classes }) => {
         <CardContent>
           <div className={classes.chartContainer}>
             {loading ? (
-              <div 
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "30vh"
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '30vh'
+                }}
+              >
                 loading...
               </div>
-            ):(
-            <Bar data={locationsGraphData} options={options_main} />
-            
+            ) : (
+              <Bar data={locationsGraphData} options={options_main} />
             )}
           </div>
-          
         </CardContent>
-        <CardActions className={classes.cardActions} 
+        <CardActions
+          className={classes.cardActions}
           style={{
             justifyContent: 'flex-end',
-            marginTop: '-20px',
+            marginTop: '-20px'
           }}
         >
-          <Button variant="outlined"  color="primary"
+          <Button
+            variant="outlined"
+            color="primary"
             disableRipple
             disableFocusRipple
             disableTouchRipple
@@ -603,7 +605,7 @@ const AveragesChart = ({ classes }) => {
               paddingRight: 0,
               boxShadow: 'none',
               background: 'transparent',
-              border: 'none',
+              border: 'none'
             }}
           >
             View all Locations <ArrowForwardIcon />
@@ -622,7 +624,7 @@ const AveragesChart = ({ classes }) => {
         <Divider />
         <DialogContent>
           <form onSubmit={handleSubmit} id="customisable-form">
-            <Grid container spacing={2} style={{ marginTop: "5px" }}>
+            <Grid container spacing={2} style={{ marginTop: '5px' }}>
               <Grid item md={12} xs={12}>
                 <OutlinedSelect
                   fullWidth
@@ -641,12 +643,7 @@ const AveragesChart = ({ classes }) => {
           <Button onClick={handleModalClose} color="primary" variant="outlined">
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            form="customisable-form"
-          >
+          <Button variant="contained" color="primary" type="submit" form="customisable-form">
             Customise
           </Button>
         </DialogActions>
@@ -658,24 +655,26 @@ const AveragesChart = ({ classes }) => {
         aria-labelledby="locations-dialog-title"
         PaperProps={{
           style: {
-            width: "100%",
-            maxWidth: "none",
-            margin: "10px",
-            borderRadius: "8px",
-          },
+            width: '100%',
+            maxWidth: 'none',
+            margin: '10px',
+            borderRadius: '8px'
+          }
         }}
       >
         <h5
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            fontWeight: "bold",
-            padding: "20px",
-            fontSize: "20px",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            padding: '20px',
+            fontSize: '20px'
           }}
-        >{customChartTitle}</h5>
+        >
+          {customChartTitle}
+        </h5>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
@@ -684,11 +683,11 @@ const AveragesChart = ({ classes }) => {
             <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
               <Card>
                 <CardContent
-                  style={{ 
-                    maxHeight: 'calc(100vh - 200px)', 
-                    overflow: 'auto',  
-                    // borderRadius: '2px', 
-                    marginBottom: '2px' 
+                  style={{
+                    maxHeight: 'calc(100vh - 200px)',
+                    overflow: 'auto',
+                    // borderRadius: '2px',
+                    marginBottom: '2px'
                   }}
                 >
                   {allLocations.map(([location, value, color]) => (
@@ -705,9 +704,7 @@ const AveragesChart = ({ classes }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
     </Grid>
-    
   );
 };
 

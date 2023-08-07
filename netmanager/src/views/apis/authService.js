@@ -11,13 +11,9 @@ import {
   USER_FEEDBACK_URI,
   GET_LOGS
 } from 'config/urls/authService';
+import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
-let token = localStorage.jwtToken;
-if (token) {
-  axios.defaults.headers.common.Authorization = token;
-} else {
-  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
-}
+axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
   return await axios
@@ -73,20 +69,22 @@ export const getUserChartDefaultsApi = async (userID, airqloudID) => {
 };
 
 export const createUserChartDefaultsApi = async (defaultsData) => {
-  return await axios.post(CHART_DEFAULTS_URI, defaultsData).then((response) => response.data);
+  return await axios
+    .post(CHART_DEFAULTS_URI, defaultsData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
 };
 
 export const updateUserChartDefaultsApi = async (chartDefaultID, defaultsData) => {
   return await axios
     .put(CHART_DEFAULTS_URI, defaultsData, {
-      params: { id: chartDefaultID }
+      params: { id: chartDefaultID, token: BASE_AUTH_TOKEN }
     })
     .then((response) => response.data);
 };
 
 export const deleteUserChartDefaultsApi = async (chartDefaultID) => {
   return await axios
-    .delete(CHART_DEFAULTS_URI, { params: { id: chartDefaultID } })
+    .delete(CHART_DEFAULTS_URI, { params: { id: chartDefaultID, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 
