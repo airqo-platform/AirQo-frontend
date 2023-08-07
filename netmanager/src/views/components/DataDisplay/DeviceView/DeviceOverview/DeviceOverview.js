@@ -7,11 +7,8 @@ import { TableContainer, Table, TableBody, TableCell, TableRow } from '@material
 
 import 'chartjs-plugin-annotation';
 import { isEmpty } from 'underscore';
-import {
-  loadDeviceMaintenanceLogs,
-  loadDeviceComponentsData
-} from 'redux/DeviceRegistry/operations';
-import { useDeviceLogsData, useDeviceComponentsData } from 'redux/DeviceRegistry/selectors';
+import { loadDeviceMaintenanceLogs } from 'redux/DeviceRegistry/operations';
+import { useDeviceLogsData } from 'redux/DeviceRegistry/selectors';
 import { ChartContainer } from 'views/charts';
 import DeviceDetails from './DeviceDetails';
 import DeviceLocation from './DeviceLocation';
@@ -92,53 +89,6 @@ DeviceMaintenanceLogs.protoTypes = {
   deviceName: PropTypes.string.isRequired
 };
 
-const DeviceComponents = ({ deviceName }) => {
-  const classes = useStyles();
-  const dispatch = useDispatch();
-  const history = useHistory();
-  const deviceComponents = useDeviceComponentsData(deviceName);
-
-  function goTo(path) {
-    return history.push(`/device/${deviceName}/${path}`);
-  }
-
-  useEffect(() => {
-    if (deviceName && isEmpty(deviceComponents)) {
-      dispatch(loadDeviceComponentsData(deviceName));
-    }
-  }, []);
-
-  return (
-    <ChartContainer title={'device components'} blue centerItems>
-      {deviceComponents.length > 0 && (
-        <TableContainer className={classes.table}>
-          <Table
-            stickyHeader
-            aria-label="sticky table"
-            alignItems="left"
-            alignContent="left"
-            style={{ cursor: 'pointer' }}
-            onClick={() => goTo('components')}>
-            <TableBody style={{ alignContent: 'left', alignItems: 'left' }}>
-              {deviceComponents.map((component, index) => (
-                <TableRow key={index} style={{ align: 'left' }}>
-                  <TableCell>{component.description}</TableCell>
-                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-      {deviceComponents.length <= 0 && <div>No components</div>}
-    </ChartContainer>
-  );
-};
-
-DeviceComponents.protoTypes = {
-  deviceName: PropTypes.string.isRequired
-};
-
 const DeviceOverview = ({ deviceData }) => {
   return (
     <div
@@ -147,7 +97,8 @@ const DeviceOverview = ({ deviceData }) => {
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-around'
-      }}>
+      }}
+    >
       <DeviceDetails deviceData={deviceData} />
 
       {deviceData.latitude ? <DeviceLocation deviceData={deviceData} /> : <span />}
