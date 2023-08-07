@@ -16,9 +16,9 @@ export const SOFT_EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/soft
 
 export const DEVICES_IN_LOCATION_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/by/location?loc=`;
 
-export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/deploy`; // Change to V2
+export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/activities/deploy`; // Change to V2
 
-export const ADD_MAINTENANCE_LOGS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/maintain`; // Change to V2
+export const ADD_MAINTENANCE_LOGS_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/activities/maintain`; // Change to V2
 
 export const DELETE_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/ts/delete`;
 
