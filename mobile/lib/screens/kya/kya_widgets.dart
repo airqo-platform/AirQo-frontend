@@ -17,8 +17,9 @@ class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
     super.key,
     required this.icon,
-    required this.isActive,
+    this.isActive = true,
   });
+
   final String icon;
   final bool isActive;
 
@@ -47,7 +48,8 @@ class CircularKyaButton extends StatelessWidget {
 
 class KyaMessageChip extends StatelessWidget {
   const KyaMessageChip(this.kya, {super.key});
-  final Kya kya;
+
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +62,7 @@ class KyaMessageChip extends StatelessWidget {
         color: CustomColors.appColorBlue,
       ),
     );
-    if (kya.isPendingCompletion()) {
+    if (kya.status == KyaLessonStatus.pendingCompletion) {
       widget = RichText(
         textAlign: TextAlign.start,
         overflow: TextOverflow.ellipsis,
@@ -118,8 +120,9 @@ class KyaMessageChip extends StatelessWidget {
 }
 
 class KyaCardWidget extends StatelessWidget {
-  const KyaCardWidget(this.kya, {super.key});
-  final Kya kya;
+  const KyaCardWidget(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
 
   @override
   Widget build(BuildContext context) {
@@ -141,14 +144,22 @@ class KyaCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        if (kya.isPendingCompletion()) {
-          context.read<KyaBloc>().add(CompleteKya(kya));
+        if (kyaLesson.status == KyaLessonStatus.pendingCompletion) {
+          context.read<KyaBloc>().add(
+                UpdateKyaProgress(
+                  kyaLesson.copyWith(
+                    status: KyaLessonStatus.complete,
+                    activeTask: 1,
+                  ),
+                  updateRemote: true,
+                ),
+              );
         } else {
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) {
-                return KyaTitlePage(kya);
+                return KyaTitlePage(kyaLesson);
               },
             ),
           );
@@ -167,20 +178,18 @@ class KyaCardWidget extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: AutoSizeText(
-                    kya.title,
+                    kyaLesson.title,
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),
                   ),
                 ),
                 const Spacer(),
-                KyaMessageChip(kya),
+                KyaMessageChip(kyaLesson),
                 Visibility(
-                  visible: kya.isInProgress(),
-                  child: KyaProgressBar(
-                    kya.progress,
-                    height: 6,
-                  ),
+                  visible: kyaLesson.status != KyaLessonStatus.todo &&
+                      kyaLesson.activeTask != 1,
+                  child: KyaLessonProgressBar(kyaLesson),
                 ),
               ],
             ),
@@ -197,11 +206,11 @@ class KyaCardWidget extends StatelessWidget {
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: CachedNetworkImageProvider(
-                  kya.imageUrl,
-                  cacheKey: kya.imageUrlCacheKey(),
+                  kyaLesson.imageUrl,
+                  cacheKey: kyaLesson.imageUrlCacheKey(),
                   cacheManager: CacheManager(
                     CacheService.cacheConfig(
-                      kya.imageUrlCacheKey(),
+                      kyaLesson.imageUrlCacheKey(),
                     ),
                   ),
                 ),
@@ -214,25 +223,22 @@ class KyaCardWidget extends StatelessWidget {
   }
 }
 
-class KyaProgressBar extends StatelessWidget {
-  const KyaProgressBar(
-    this.progress, {
-    super.key,
-    this.height = 10,
-  });
-  final double height;
-  final double progress;
+class KyaLessonProgressBar extends StatelessWidget {
+  const KyaLessonProgressBar(this.kyaLesson, {super.key});
+
+  final KyaLesson kyaLesson;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
+      height: kyaLesson.tasks.length.toDouble(),
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: progress,
+          value: kyaLesson.activeTask / kyaLesson.tasks.length,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
+          valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),
       ),
     );
@@ -240,9 +246,10 @@ class KyaProgressBar extends StatelessWidget {
 }
 
 class KyaLessonCard extends StatelessWidget {
-  const KyaLessonCard(this.kyaLesson, this.kya, {super.key});
-  final KyaLesson kyaLesson;
-  final Kya kya;
+  const KyaLessonCard(this.kyaTask, this.kya, {super.key});
+
+  final KyaTask kyaTask;
+  final KyaLesson kya;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +279,7 @@ class KyaLessonCard extends StatelessWidget {
                   height: 180,
                   radius: 8,
                 ),
-                imageUrl: kyaLesson.imageUrl,
+                imageUrl: kyaTask.imageUrl,
                 errorWidget: (context, url, error) => SizedBox(
                   height: 180,
                   child: Center(
@@ -281,10 +288,10 @@ class KyaLessonCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                cacheKey: kyaLesson.imageUrlCacheKey(kya),
+                cacheKey: kyaTask.imageUrlCacheKey(kya),
                 cacheManager: CacheManager(
                   CacheService.cacheConfig(
-                    kyaLesson.imageUrlCacheKey(kya),
+                    kyaTask.imageUrlCacheKey(kya),
                   ),
                 ),
               ),
@@ -293,7 +300,7 @@ class KyaLessonCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
             child: AutoSizeText(
-              kyaLesson.title,
+              kyaTask.title,
               maxLines: 2,
               minFontSize: 20,
               overflow: TextOverflow.ellipsis,
@@ -304,7 +311,7 @@ class KyaLessonCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
             child: AutoSizeText(
-              kyaLesson.body,
+              kyaTask.content,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,

@@ -149,7 +149,6 @@ void main() {
     final DateTime tomorrow = today.add(day);
 
     final fixedDate1 = DateTime(2023, 5, 4);
-    final fixedDate2 = DateTime(2023, 5, 4, 15, 30);
     final fixedDate3 = DateTime(2023, 5, 4, 8, 45, 53);
 
     test(

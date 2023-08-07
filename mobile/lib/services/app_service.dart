@@ -21,11 +21,11 @@ class AppService {
 
   static Future<void> postSignInActions(BuildContext context) async {
     context.read<ProfileBloc>().add(const SyncProfile());
-    context.read<KyaBloc>().add(const SyncKya());
+    context.read<KyaBloc>().add(const FetchKya());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
-    context.read<SearchBloc>().add(const ClearSearchHistory());
+    context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     Profile profile = context.read<ProfileBloc>().state;
     await CloudAnalytics.logSignInEvents(profile);
   }
@@ -38,25 +38,26 @@ class AppService {
     context.read<KyaBloc>().add(const ClearKya());
     context.read<FavouritePlaceBloc>().add(const ClearFavouritePlaces());
     context.read<NotificationBloc>().add(const ClearNotifications());
-    context.read<SearchBloc>().add(const ClearSearchHistory());
+    context.read<SearchHistoryBloc>().add(const ClearSearchHistory());
     if (log) {
       await CloudAnalytics.logSignOutEvents();
     }
   }
 
-  static Future<Kya?> getKya(Kya kya) async {
-    if (!kya.isEmpty()) return kya;
+  static Future<KyaLesson?> getKya(KyaLesson kya) async {
+    if (kya.tasks.isNotEmpty) return kya;
 
     final bool isConnected = await hasNetworkConnection();
     if (!isConnected) {
       throw NetworkConnectionException('No internet Connection');
     }
     try {
-      List<Kya> kyaList = await CloudStore.getKya();
-      List<Kya> cloudKya =
+      final userId = CustomAuth.getUserId();
+      List<KyaLesson> kyaList = await AirqoApiClient().fetchKyaLessons(userId);
+      List<KyaLesson> apiKya =
           kyaList.where((element) => element.id == kya.id).toList();
 
-      return cloudKya.isEmpty ? null : cloudKya.first;
+      return apiKya.isEmpty ? null : apiKya.first;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
 
