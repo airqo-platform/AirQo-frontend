@@ -1,31 +1,17 @@
 import axios from "axios";
-import { CURRENT_AIRQLOUD_KEY } from "../../config/localStorageKeys";
-import { GET_ACCESS_TOKEN } from "../../config/urls/authService";
-
-export const postData = async () => {
-  const url = "https://staging-platform.airqo.net/api/v2/devices/activities/maintain"; // Replace with your actual endpoint
-  
+const postData = async () => {
+  const url = "https://staging-platform.airqo.net/api/v2/devices/activities/maintain"; // Replace with a more accurate endpoint
+  const formData = {
+    userName: "exampleUser",
+    email: "example@example.com",
+    firstName: "John",
+    lastName: "Doe",
+  };
   try {
-    const storedData = localStorage.getItem(CURRENT_AIRQLOUD_KEY);
-    if (!storedData) {
-      console.error("Error: No data found in local storage");
-      return;
-    }
-
-
-    const parsedData = JSON.parse(storedData);
-
-    const formData = {
-      userName: parsedData.userName,
-      email: parsedData.email,
-      firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
-    };
-
     const response = await axios.post(url, formData);
     console.log("Response:", response.data);
   } catch (error) {
     console.error("Error:", error.message);
   }
 };
-
+export default postData;
