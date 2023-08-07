@@ -2,12 +2,7 @@ import axios from 'axios';
 import { GET_NETWORKS_URI, GET_PERMISSIONS_URI, GET_ROLES_URI } from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
 
-let token = localStorage.jwtToken;
-if (token) {
-  axios.defaults.headers.common.Authorization = token;
-} else {
-  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
-}
+axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
 export const createAccessToken = async (data) => {
   return await axios.post(GET_ACCESS_TOKEN, data).then((response) => response.data);
