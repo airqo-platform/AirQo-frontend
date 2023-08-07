@@ -29,14 +29,14 @@ const GenerateToken = (props) => {
 
   useEffect(() => {
     if (apiResponse) {
-      setTimeout(() => setApiResponse(null), 1000);
+      setTimeout(() => setApiResponse(null), 1500);
     }
   }, [apiResponse]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(token);
     setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   const handleClose = () => {
