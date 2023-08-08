@@ -3,14 +3,11 @@ import ReloadIcon from '@material-ui/icons/Replay';
 import { Box, Tooltip, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
-import { useAirQloudsData } from 'utils/customHooks/AirQloudsHooks';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { setCurrentAirQloudData } from 'redux/AirQloud/operations';
 import { resetDefaultGraphData } from 'redux/Dashboard/operations';
 import { refreshAirQloud } from 'redux/AirQloud/operations';
-
 import 'assets/css/dropdown.css';
-import { useDashboardAirqloudsData, useSelectedAirqloudData } from '../../redux/AirQloud/selectors';
 import { isEmpty } from 'underscore';
 import { fetchDashboardAirQloudsData, loadGridsAndCohortsSummary } from 'redux/AirQloud/operations';
 

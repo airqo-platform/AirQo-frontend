@@ -42,6 +42,7 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const DataExportLogs = lazy(() => import('./views/pages/Logs/DataExport'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
+const Analytics = lazy(() => import('./views/pages/Analytics'));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -62,6 +63,7 @@ const AppRoutes = () => {
               component={AnalyticsDashboard}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/analytics" component={Analytics} layout={MainLayout} />
             <PrivateRoute
               exact
               path="/admin/users/assigned-users"

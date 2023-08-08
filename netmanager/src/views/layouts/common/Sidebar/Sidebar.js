@@ -91,7 +91,11 @@ const allMainPages = [
     href: '/dashboard',
     icon: <DashboardIcon />
   },
-
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    icon: <DashboardIcon />
+  },
   {
     title: 'Export data',
     href: '/export-data',
