@@ -17,7 +17,7 @@ export const recallPostData = async () => {
     const parsedData = JSON.parse(storedData);
 
     const formData = {
-      userName: parsedData.userName,
+      userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
@@ -41,7 +41,7 @@ export const maintainPostData = async () => {
     const parsedData = JSON.parse(storedData);
 
     const formData = {
-      userName: parsedData.userName,
+      userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
@@ -65,7 +65,7 @@ export const deployPostData = async () => {
     const parsedData = JSON.parse(storedData);
 
     const formData = {
-      userName: parsedData.userName,
+      userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
