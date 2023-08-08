@@ -118,7 +118,8 @@ const allMainPages = [
     nestItems: [
       { title: 'Network Map', href: '/manager/map' },
       { title: 'Network Statistics', href: '/manager/stats' },
-      { title: 'Network Activity Logs', href: '/manager/activities' }
+      { title: 'Network Activity Logs', href: '/manager/activities' },
+      { title: 'Fault Detection', href: '/manager/fault_detection' }
     ]
   },
   {
@@ -296,8 +297,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

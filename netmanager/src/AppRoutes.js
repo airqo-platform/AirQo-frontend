@@ -42,6 +42,9 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const DataExportLogs = lazy(() => import('./views/pages/Logs/DataExport'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
+const FaultDetection = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -100,6 +103,12 @@ const AppRoutes = () => {
               component={SiteActivities}
               layout={MainLayout}
             />
+            <PrivateRoute
+              exact
+              path="/manager/fault_detection"
+              component={FaultDetection}
+              layout={MainLayout}
+            />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute
@@ -153,8 +162,7 @@ const AppRoutes = () => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
       </div>
