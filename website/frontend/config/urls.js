@@ -6,6 +6,8 @@ const BASE_AIRQLOUDS_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL
 );
 
+const GEO_LOCATION_URL = stripTrailingSlash(process.env.REACT_APP_GEO_LOCATION_URL);
+
 export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/airqlouds/summary?tenant=airqo`;
 
 const BASE_NEWSLETTER_URL = stripTrailingSlash(
@@ -37,7 +39,7 @@ export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
 export const NETMANAGER_URL = process.env.REACT_NETMANAGER_BASE_URL
-  ? stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', ''))
+  ? stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v2/', ''))
   : '';
 
 // highlights urls
@@ -64,4 +66,4 @@ export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`;
 export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
 
 // Location tracking url
-export const LOCATIONS_TRACKING_URL = `${WEBSITE_BASE_URL}/https://api.bigdatacloud.net/data/reverse-geocode-client`;
+export const LOCATIONS_TRACKING_URL = `${GEO_LOCATION_URL}/data/reverse-geocode-client`;
