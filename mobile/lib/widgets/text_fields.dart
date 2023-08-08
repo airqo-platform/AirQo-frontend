@@ -71,7 +71,7 @@ class CountryCodePickerField extends StatelessWidget {
         ),
       ),
       child: CountryListPick(
-        appBar: const AppTopBar('Select Country'),
+        appBar: const AppTopBar('Select Country'), // TODO translate this
         theme: CountryTheme(
           isShowFlag: true,
           isShowTitle: false,

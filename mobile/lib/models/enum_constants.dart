@@ -70,7 +70,7 @@ enum FeedbackStep {
   formStep;
 }
 
-// TODO translate this
+// TODO translate this, remove un unsed enums
 enum FirebaseAuthError {
   noInternetConnection(
     message: 'Check your internet connection',
@@ -140,6 +140,7 @@ enum AppNotificationType {
 }
 
 enum AirQuality {
+  // TODO translate the remaining texts
   good(
     title: 'Good',
     description: 'The air is clean and healthy to breathe.',
@@ -214,7 +215,7 @@ enum AirQuality {
     maximumValue: 500,
   );
 
-  String getSearchNearbyLocations(BuildContext context) {
+  String getSearchNearbyLocationsText(BuildContext context) {
     switch (this) {
       case AirQuality.good:
         return AppLocalizations.of(context)!.goodQualityAirAroundYou;
@@ -249,7 +250,7 @@ enum AirQuality {
     }
   }
 
-  String getSearchOtherLocations(BuildContext context) {
+  String getSearchOtherLocationsText(BuildContext context) {
     switch (this) {
       case AirQuality.good:
         return AppLocalizations.of(context)!.locationsWithGoodQualityAir;
@@ -271,7 +272,8 @@ enum AirQuality {
   String getDescription(BuildContext context) {
     switch (this) {
       case AirQuality.good:
-        return AppLocalizations.of(context)!.theAirIsCleanAndHealthyToBreathe;
+        return AppLocalizations.of(context)!
+            .theAirIsCleanAndHealthyToBreathe; // TODO: rename to goodAirQualityDescription
       case AirQuality.moderate:
         return AppLocalizations.of(context)!
             .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
@@ -286,11 +288,9 @@ enum AirQuality {
             .everyoneMayBeginToExperienceSomeAdverseHealthEffectsAndSensitiveGroupsAreAtHigherRisk;
       case AirQuality.hazardous:
         return AppLocalizations.of(context)!
-            .healthWarningsOfEmergencyConditionsTheEntirePopulationIsMoreLikelyToBeAffectedWithSeriousHealthEffectsOnSensitiveGroups;
+            .healthWarningsOfEmergencyConditionsTheEntirePopulationIsMoreLikelyToBeAffectedWithSeriousHealthEffectsOnSensitiveGroups; // TODO: rename to hazardousAirQualityDescription
     }
   }
-
-  // TODO translate the remaining texts
 
   const AirQuality({
     required this.title,
@@ -418,7 +418,7 @@ enum AuthMethod {
         return procedure == AuthProcedure.login
             ? 'Login with a mobile number instead'
             : 'Sign up with a mobile number instead';
-      default: // TODO translate this
+      default:
         throw UnimplementedError(
           '$name does’nt have options button text implementation',
         );
@@ -474,20 +474,20 @@ enum AuthProcedure {
   final String confirmationOkayText;
   final String confirmationCancelText;
 
-  // String  getConfirmationTitle(BuildContext context) {
-  //   switch (this) {
-  //     case AuthProcedure.login:
-  //       return AppLocalizations.of(context)!.loginConfirmationTitle;
-  //     case AuthProcedure.signup:
-  //       return AppLocalizations.of(context)!.signupConfirmationTitle;
-  //     case AuthProcedure.anonymousLogin:
-  //       return AppLocalizations.of(context)!.anonymousLoginConfirmationTitle;
-  //     case AuthProcedure.deleteAccount:
-  //       return AppLocalizations.of(context)!.deleteAccountConfirmationTitle;
-  //     case AuthProcedure.logout:
-  //       return AppLocalizations.of(context)!.logoutConfirmationTitle;
-  //   }
-  // }
+  String getConfirmationTitle(BuildContext context) {
+    switch (this) {
+      case AuthProcedure.login:
+        return "AppLocalizations.of(context)!.loginConfirmationTitle";
+      case AuthProcedure.signup:
+        return " AppLocalizations.of(context)!.signupConfirmationTitle";
+      case AuthProcedure.anonymousLogin:
+        return "AppLocalizations.of(context)!.anonymousLoginConfirmationTitle";
+      case AuthProcedure.deleteAccount:
+        return "AppLocalizations.of(context)!.deleteAccountConfirmationTitle";
+      case AuthProcedure.logout:
+        return "AppLocalizations.of(context)!.logoutConfirmationTitle";
+    }
+  }
 }
 
 enum Gender {
@@ -601,10 +601,6 @@ enum Pollutant {
       case AirQuality.hazardous:
         return CustomColors.aqiMaroon;
     }
-  }
-
-  String stringValue(double value) {
-    return airQuality(value).toString();
   }
 
   Color textColor({required double? value, bool graph = false}) {

@@ -81,11 +81,13 @@ class _PhoneAuthVerificationWidgetState
                         validator: (value) {
                           String? error;
                           if (value == null) {
-                            error = AppLocalizations.of(context)!.pleaseEnterTheCode;
+                            error = AppLocalizations.of(context)!
+                                .pleaseEnterTheCode;
                           }
 
                           if (value != null && value.length < 6) {
-                            error = AppLocalizations.of(context)!.pleaseEnterAllTheDigits;
+                            error = AppLocalizations.of(context)!
+                                .pleaseEnterAllTheDigits;
                           }
 
                           if (error != null) {

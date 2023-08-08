@@ -138,7 +138,8 @@ class ToolTip {
               ),
             ),
             TextSpan(
-              text: AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites,
+              text: AppLocalizations.of(context)!
+                  .favoriteIconOnAnyLocationToAddItToYourFavorites,
               style: CustomTextStyle.overline1(context),
             ),
           ]),
@@ -146,7 +147,8 @@ class ToolTip {
       case ToolTipType.forYou:
         return RichText(
           text: TextSpan(
-            text: AppLocalizations.of(context)!.allYourCompleteTasksWillShowUpHere,
+            text: AppLocalizations.of(context)!
+                .allYourCompleteTasksWillShowUpHere,
             style: CustomTextStyle.overline1(context),
           ),
         );
@@ -166,7 +168,8 @@ class ToolTip {
               ),
             ),
             TextSpan(
-              text: AppLocalizations.of(context)!.iconToUnderstandWhatAirQualityAnalyticsMean,
+              text: AppLocalizations.of(context)!
+                  .iconToUnderstandWhatAirQualityAnalyticsMean,
               style: CustomTextStyle.overline1(context),
             ),
           ]),
@@ -174,7 +177,8 @@ class ToolTip {
       case ToolTipType.forecast:
         return RichText(
           text: TextSpan(
-            text: AppLocalizations.of(context)!.tapForecastToViewAirQualityAnalyticsForTheNext24Hours,
+            text: AppLocalizations.of(context)!
+                .tapForecastToViewAirQualityAnalyticsForTheNext24Hours,
             style: CustomTextStyle.overline1(context),
           ),
         );
@@ -195,7 +199,8 @@ class ToolTip {
                 ),
               ),
               TextSpan(
-                text:AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites,
+                text: AppLocalizations.of(context)!
+                    .favoriteIconOnAnyLocationToAddItToYourFavorites,
                 style: CustomTextStyle.overline1(context),
               ),
             ],

@@ -69,17 +69,19 @@ class SearchFilterView extends StatelessWidget {
             return ListView(
               children: [
                 SearchSection(
-                  title: state.filteredAirQuality?.searchNearbyLocationsText
+                  title: state.filteredAirQuality
+                          ?.getSearchNearbyLocationsText(context)
                           .toTitleCase() ??
                       '',
                   airQualityReadings: state.nearbyLocations,
                 ),
                 SearchSection(
                   title: state.nearbyLocations.isEmpty
-                      ? state.filteredAirQuality?.searchOtherLocationsText
+                      ? state.filteredAirQuality
+                              ?.getSearchOtherLocationsText(context)
                               .toTitleCase() ??
                           ''
-                      : 'Other ${state.filteredAirQuality?.searchOtherLocationsText}'
+                      : 'Other ${state.filteredAirQuality?.getSearchOtherLocationsText(context)}'
                           .toTitleCase(),
                   airQualityReadings: state.otherLocations,
                 ),

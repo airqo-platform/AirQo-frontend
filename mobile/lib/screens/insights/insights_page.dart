@@ -6,10 +6,10 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> navigateToInsights(
   BuildContext context,
@@ -167,7 +167,10 @@ class InsightsPage extends StatelessWidget {
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,
-                    child: ForecastContainer(selectedInsight),
+                    child: ForecastContainer(
+                      selectedInsight,
+                      airQualityReading.name,
+                    ),
                   ),
                   HealthTipsWidget(selectedInsight),
                   const SizedBox(

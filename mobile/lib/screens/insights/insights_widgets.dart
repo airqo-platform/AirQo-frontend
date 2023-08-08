@@ -54,7 +54,7 @@ class InsightAirQualityWidget extends StatelessWidget {
                 AutoSizeText(
                   insight.isEmpty
                       ? AppLocalizations.of(context)!.noAirQualityDataAvailable
-                      : '${insight.airQuality?.title}',
+                      : '${insight.airQuality?.getTitle(context)}',
                   maxLines: 1,
                   minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
@@ -113,9 +113,10 @@ class InsightAirQualityWidget extends StatelessWidget {
 }
 
 class InsightAirQualityMessageWidget extends StatelessWidget {
-  InsightAirQualityMessageWidget(this.insight, {super.key});
+  InsightAirQualityMessageWidget(this.insight, this.name, {super.key});
 
   final Insight insight;
+  final String name;
   final ScrollController _scrollController = ScrollController();
 
   List<Widget> aqiDialogWidgets(BuildContext context) {
@@ -152,7 +153,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: "${airQuality.title}. ",
+                        text: "${airQuality.getTitle(context)}. ",
                         style: TextStyle(
                           fontSize: 8,
                           fontWeight: FontWeight.w500,
@@ -161,7 +162,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: airQuality.description,
+                        text: airQuality.getDescription(context),
                         style: TextStyle(
                           color: CustomColors.appColorBlack.withOpacity(0.7),
                           fontSize: 8,
@@ -192,9 +193,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
         children: [
           Expanded(
             child: AutoSizeText(
-              insight.isFutureData
-                  ? insight.forecastMessage
-                  : insight.airQualityMessage,
+              insight.message(context, name),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -423,7 +422,10 @@ class InsightsCalendar extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                       ),
-                      child: InsightAirQualityMessageWidget(selectedInsight),
+                      child: InsightAirQualityMessageWidget(
+                        selectedInsight,
+                        airQualityReading.name,
+                      ),
                     ),
                   ],
                 ),
@@ -445,8 +447,8 @@ class InsightsCalendar extends StatelessWidget {
 }
 
 class ForecastContainer extends StatelessWidget {
-  const ForecastContainer(this.insight, {super.key});
-
+  const ForecastContainer(this.insight, this.name, {super.key});
+  final String name;
   final Insight insight;
 
   @override
@@ -490,7 +492,7 @@ class ForecastContainer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AutoSizeText(
-                      insight.forecastMessage,
+                      insight.message(context, name),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(

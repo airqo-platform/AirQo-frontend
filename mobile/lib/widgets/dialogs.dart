@@ -150,8 +150,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                         children: <TextSpan>[
                           TextSpan(
                             text:
-                            AppLocalizations.of(context)!
-                                .particulateMatter,
+                                AppLocalizations.of(context)!.particulateMatter,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -189,7 +188,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'PM', // TODO missing a space before PM
+                            text: ' PM',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -206,7 +205,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text:  AppLocalizations.of(context)!.and,
+                            text: AppLocalizations.of(context)!.and,
                             style: TextStyle(
                               fontSize: 10,
                               color:
@@ -251,7 +250,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                         ),
                       ),
                       child: AutoSizeText(
-                        Pollutant.pm2_5.stringValue(pm2_5),
+                        Pollutant.pm2_5.airQuality(pm2_5).getTitle(context),
                         maxLines: 2,
                         minFontSize: 10,
                         maxFontSize: 10,
@@ -271,7 +270,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '${Pollutant.pm2_5.stringValue(pm2_5)}'
+                            text:
+                                '${Pollutant.pm2_5.airQuality(pm2_5).getTitle(context)}'
                                 ' means; ',
                             style: TextStyle(
                               fontSize: 10,
@@ -680,7 +680,7 @@ class AuthProcedureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
       title: Text(
-        authProcedure.confirmationTitle,
+        authProcedure.getConfirmationTitle(context),
         textAlign: TextAlign.center,
       ),
       content: Padding(

@@ -44,7 +44,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-              AppLocalizations.of(context)!.greatPleaseEnterYourName,
+                AppLocalizations.of(context)!.greatPleaseEnterYourName,
                 textAlign: TextAlign.center,
                 style: CustomTextStyle.headline7(context),
               ),

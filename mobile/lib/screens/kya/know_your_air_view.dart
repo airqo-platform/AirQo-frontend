@@ -35,7 +35,9 @@ class KnowYourAirView extends StatelessWidget {
           return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteLessons.isEmpty) {
-                showSnackBar(context,AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
+                showSnackBar(
+                  context,
+                  AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
                 );
               } else {
                 await _startKyaLessons(context, inCompleteLessons.first);

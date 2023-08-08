@@ -1,11 +1,9 @@
 import 'package:app/models/models.dart';
-import 'package:equatable/equatable.dart';
 import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 
 class Insight extends Equatable {
   const Insight({
-    required this.forecastMessage,
-    required this.airQualityMessage,
     required this.dateTime,
     required this.pm2_5,
     required this.healthTips,
@@ -21,12 +19,6 @@ class Insight extends Equatable {
         : airQualityReading.healthTips;
 
     return Insight(
-      forecastMessage: forecast != null
-          ? forecast.message.isEmpty
-              ? forecast.tempMessage
-              : forecast.message
-          : "Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.",
-      airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
       airQuality: airQualityReading.airQuality,
       healthTips: healthTips,
@@ -35,12 +27,7 @@ class Insight extends Equatable {
   }
 
   factory Insight.fromForecast(Forecast forecast) {
-    String message =
-        forecast.message.isEmpty ? forecast.tempMessage : forecast.message;
-
     return Insight(
-      forecastMessage: message,
-      airQualityMessage: message,
       pm2_5: forecast.pm2_5,
       airQuality: forecast.airQuality,
       healthTips: forecast.healthTips,
@@ -50,10 +37,6 @@ class Insight extends Equatable {
 
   factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
-      forecastMessage:
-          'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.',
-      airQualityMessage:
-          'We’re having issues with our network no worries, we’ll be back up soon.',
       pm2_5: null,
       airQuality: null,
       healthTips: const [],
@@ -61,8 +44,6 @@ class Insight extends Equatable {
     );
   }
 
-  final String airQualityMessage;
-  final String forecastMessage;
   final double? pm2_5;
   final AirQuality? airQuality;
   final List<HealthTip> healthTips;

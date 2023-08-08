@@ -4,9 +4,9 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -218,41 +218,6 @@ extension AirQualityReadingExt on AirQualityReading {
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
   }
-
-  String insightsMessage() {
-    String message = '';
-    String verb = dateTime.isAPastDate() ? " was" : " is";
-    String dateAdverb = dateTime.isYesterday() ? " yesterday" : "";
-
-    switch (airQuality) {
-      case AirQuality.good:
-        message =
-            'The air quality$dateAdverb in $name$verb quite ${airQuality.title}.';
-        break;
-      case AirQuality.moderate:
-        message =
-            'The air quality$dateAdverb in $name$verb at a ${airQuality.title} level.';
-        break;
-      case AirQuality.ufsgs:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title}.';
-        break;
-      case AirQuality.unhealthy:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} for everyone';
-        break;
-      case AirQuality.veryUnhealthy:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} reaching levels of high alert.';
-        break;
-      case AirQuality.hazardous:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} and can cause a health emergency.';
-        break;
-    }
-
-    return message;
-  }
 }
 
 extension InsightExt on Insight {
@@ -289,6 +254,68 @@ extension InsightExt on Insight {
     }
 
     return '';
+  }
+
+  String message(BuildContext context, String name) {
+    AirQuality? airQuality = this.airQuality;
+
+    if (airQuality == null) {
+      if (dateTime.isAFutureDate()) {
+        return 'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.';
+      }
+      return "We’re having issues with our network no worries, we’ll be back up soon.";
+    }
+    // TODO translate this
+    switch (airQuality) {
+      case AirQuality.good:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was good.';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be good';
+        } else {
+          return 'The hourly air quality average in Kampala is currently good ';
+        }
+      case AirQuality.moderate:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was moderate';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be moderate';
+        } else {
+          return 'The hourly air quality average in Kampala is currently moderate';
+        }
+      case AirQuality.ufsgs:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was ufsgs.';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be ufsgs.';
+        } else {
+          return 'The hourly air quality average in Kampala is currently ufsgs.';
+        }
+      case AirQuality.unhealthy:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+        } else {
+          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+        }
+      case AirQuality.veryUnhealthy:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+        } else {
+          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+        }
+      case AirQuality.hazardous:
+        if (dateTime.isAPastDate()) {
+          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+        } else if (dateTime.isAFutureDate()) {
+          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+        } else {
+          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+        }
+    }
   }
 }
 

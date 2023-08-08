@@ -12,11 +12,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'buttons.dart';
 import 'custom_shimmer.dart';
@@ -125,7 +125,7 @@ class AirQualityChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       backgroundColor: airQuality.color.withOpacity(0.3),
-      label: Text(airQuality.title),
+      label: Text(airQuality.getTitle(context)),
       labelStyle: CustomTextStyle.airQualityChip(context),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.all(2),
@@ -266,9 +266,8 @@ class AqiStringContainer extends StatelessWidget {
       ),
       child: AutoSizeText(
         Pollutant.pm2_5
-            .stringValue(
-              airQualityReading.pm2_5,
-            )
+            .airQuality(airQualityReading.pm2_5)
+            .getTitle(context)
             .trimEllipsis(),
         maxFontSize: 14,
         maxLines: 1,
