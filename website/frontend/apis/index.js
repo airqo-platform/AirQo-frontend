@@ -80,6 +80,6 @@ export const getAllCitiesApi = async () =>
 export const getUserCountryApi = async (latitude, longitude) =>
   await axios
     .get(
-      LOCATIONS_TRACKING_URL + `?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+      `${LOCATIONS_TRACKING_URL}?latitude=${latitude}&longitude=${longitude}}&localityLanguage=en`
     )
     .then((response) => response.data);
