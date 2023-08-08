@@ -30,6 +30,7 @@ class FavouritePlace extends Equatable {
       placeId: airQualityReading.placeId,
       latitude: airQualityReading.latitude,
       longitude: airQualityReading.longitude,
+      airQualityReading: airQualityReading,
     );
   }
 
@@ -50,7 +51,7 @@ class FavouritePlace extends Equatable {
 
   Map<String, dynamic> toJson() => _$FavouritePlaceToJson(this);
 
-  Map<String, dynamic> toAPiJson(String firebaseUserId) {
+  Map<String, dynamic> toAPIJson(String firebaseUserId) {
     return toJson()
       ..remove("id")
       ..addAll({
@@ -88,7 +89,7 @@ class FavouritePlace extends Equatable {
   final AirQualityReading? airQualityReading;
 
   @override
-  List<Object?> get props => [name, location, placeId];
+  List<Object?> get props => [placeId];
 }
 
 @JsonSerializable(explicitToJson: true)
