@@ -280,5 +280,8 @@
     "neW":"New",
     "noNortifications": "No notifications",
     "hereYoullFindAllUpdatesOnOurAirQualityNetwork": "Here you’ll find all updates on our Air Quality network",
-    "and":"and"
+    "and":"and",
+    "youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt":"You will not be able to sign in with your previous phone number after changing it.",
+    "youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt":"You will not be able to sign in with your previous email address changing it.",
+    "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} does’nt have update message implementation"
 }

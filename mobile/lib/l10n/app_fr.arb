@@ -280,6 +280,9 @@
   "neW":"nouveau",
   "noNortifications": "Pas de notifications",
   "hereYoullFindAllUpdatesOnOurAirQualityNetwork": "Ici, vous trouverez toutes les mises à jour sur notre réseau de qualité de l'air",
-  "and":"et"
+  "and":"et",
+  "youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt":"Vous ne pourrez pas vous connecter avec votre ancien numéro de téléphone après l'avoir modifié.",
+  "youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt":"Vous ne pourrez pas vous connecter avec votre ancienne adresse e-mail après l'avoir modifiée.",
+  "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} n'a pas d'implémentation de message de mise à jour"
 
 }
