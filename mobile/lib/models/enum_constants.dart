@@ -69,6 +69,64 @@ enum FeedbackStep {
   typeStep,
   formStep;
 }
+// TODO remove this enum
+enum FirebaseAuthError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    message: 'Invalid Account',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    message: 'Invalid code',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    message: 'Session time out. Sending another verification code',
+    snackBarDuration: 5,
+  ),
+  authFailure(
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  logInRequired(
+    message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+    snackBarDuration: 5,
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid Phone number',
+    snackBarDuration: 5,
+  ),
+  invalidEmailAddress(
+    message: 'Invalid Email address',
+    snackBarDuration: 5,
+  ),
+  accountTaken(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    message: 'Email Taken',
+    snackBarDuration: 5,
+  );
+
+  const FirebaseAuthError({
+    required this.message,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
+}
 
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
 enum AppNotificationType {
@@ -368,9 +426,11 @@ enum AuthMethod {
   String updateMessageText(BuildContext context) {
     switch (this) {
       case AuthMethod.phone:
-        return AppLocalizations.of(context)!.youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt;
+        return AppLocalizations.of(context)!
+            .youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt;
       case AuthMethod.email:
-        return AppLocalizations.of(context)!.youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt;
+        return AppLocalizations.of(context)!
+            .youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt;
       default:
         throw UnimplementedError(
           '$name does’nt have update message implementation',
