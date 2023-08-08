@@ -22,6 +22,7 @@ import 'package:showcaseview/showcaseview.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
+import '../quiz/quiz_view.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -328,9 +329,11 @@ class _DashboardViewState extends State<DashboardView>
                           descriptionHeight: screenSize.height * 0.14,
                           description:
                               "Do you want to know more about air quality? Know your air in this section",
-                          child: KyaCardWidget(
-                            inCompleteLessons.first,
-                          ),
+                          // child: KyaCardWidget(
+                          //   inCompleteLessons.first,
+                          // ),
+
+                          child: const QuizCardWidget(),
                         ),
                       );
                     },
