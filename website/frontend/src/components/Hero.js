@@ -1,66 +1,118 @@
-import React from 'react';
-import { useDispatch } from "react-redux";
-import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import useWindowSize from 'utils/customHooks';
-import HeroCityImg from 'assets/img/HeroKampala.jpeg';
-import HeroImg from 'assets/img/Hero_Kampala.jpeg';
-import Location from 'icons/homepage/hero/location.svg';
-import Reload from 'icons/homepage/hero/reload.svg';
-import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
 import { Link } from 'react-router-dom';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import CloseIcon from '@mui/icons-material/Close';
+import { Modal, Box, IconButton } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import vid from '../assets/video/opening.mp4';
+import ReactPlayer from 'react-player/lazy';
+import { border, borderRadius } from '@mui/system';
+const VideoURL = 'https://youtu.be/52C8A3FUaqI';
 
 const breakPoint = 580;
 
-// eslint-disable-next-line react/button-has-type
-const Button = ({ className, label, onClick }) => <button className={className || 'button-hero'} onClick={onClick}>{label}</button>;
+const Button = ({ className, label, onClick }) => (
+  <button className={className || 'button-hero'} onClick={onClick}>
+    {label}
+  </button>
+);
+
+const StyledModal = styled(Modal)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+}));
+
+const CenteredBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '100%'
+}));
 
 const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
-  const showModal = () => dispatch(showGetInvolvedModal(true))
+  const showModal = () => dispatch(showGetInvolvedModal(true));
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   return (
-        <div className="Hero">
-            <span>
-                <img src={size.width <= breakPoint ? HeroImg : HeroCityImg} alt="Hero image" />
-                {/* <div className="air-quality-reading">
-                    <div className="top-reading">
-                        <span className="name-wrapper">
-                            <Location />
-                            <span className="location-name">Nakawa, Kampala</span>
-                        </span>
-                        <span className="time-wrapper">
-                            <span className="location-time">15:21:01(EAT)</span>
-                            <Reload />
-                        </span>
-                    </div>
-                    <div className="divider" />
-                    <div className="bottom-reading">
-                        <span className="category-wrapper">
-                            <div className="category-indicator"><span /></div>
-                            <span className="category-text">Good</span>
-                        </span>
-                        <span className="pollutant-wrapper">
-                            <span className="value">12 <sub> µg/m<sup>3</sup></sub></span>
-                            <span className="pollutant">
-                                <span className="text">PM<sub>2.5</sub></span>
-                                <ArrowDown />
-                            </span>
-                        </span>
-                    </div>
-                </div> */}
-            </span>
-            <div className="hero-content">
-                <div>
-                <p className="hero-title">Clean air for <br />all African cities </p>
-                <p className="hero-sub"> <span className='fact'>“9 out of 10 people breathe polluted air”</span> <br/>We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions</p>
-                <div className="hero-buttons">
-                    <Link to="/explore-data"><Button label="Explore data" /></Link>
-                    <Button className="button-get-involved" label="Get Involved" onClick={showModal} />
-                </div>
-                </div>
+    <div className="Hero">
+      <span>
+        <div className="video-container">
+          <div className="video-overlay">
+            <video src={vid} autoPlay muted loop id="myVideo" />
+            <div className="play-button" onClick={openModal}>
+              <PlayCircleOutlineIcon fontSize="large" color="primary" />
             </div>
+          </div>
         </div>
+      </span>
+      <div className="hero-content">
+        <div>
+          <p className="hero-title">
+            Clean air for <br />
+            all African cities
+          </p>
+          <p className="hero-sub">
+            <span className="fact">“9 out of 10 people breathe polluted air”</span> <br />
+            We empower communities with accurate, hyperlocal and timely air quality data to drive
+            air pollution mitigation actions
+          </p>
+          <div className="hero-buttons">
+            <Link to="/explore-data">
+              <Button label="Explore data" />
+            </Link>
+            <Button className="button-get-involved" label="Get Involved" onClick={showModal} />
+          </div>
+        </div>
+      </div>
+      <StyledModal open={modalVisible} onClose={closeModal}>
+        <CenteredBox
+          style={{
+            border: 'none',
+            outline: 'none'
+          }}>
+          <div className="modal-container">
+            <IconButton
+              onClick={closeModal}
+              style={{
+                position: 'absolute',
+                top: '0',
+                right: '0',
+                color: 'white'
+              }}>
+              <CloseIcon />
+            </IconButton>
+            <ReactPlayer
+              url={VideoURL}
+              width={size.width > breakPoint ? '80vw' : '100vw'}
+              height={size.width > breakPoint ? '80vh' : '100vh'}
+              controls={true}
+              playing={true}
+              config={{
+                file: {
+                  attributes: {
+                    controlsList: 'nodownload' // Disable download button
+                  }
+                }
+              }}
+              style={{
+                border: 'none',
+                outline: 'none'
+              }}
+            />
+          </div>
+        </CenteredBox>
+      </StyledModal>
+    </div>
   );
 };
 
