@@ -19,7 +19,12 @@ import {
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
-import { GET_DEVICE_IMAGES, SOFT_EDIT_DEVICE_IMAGE } from '../../config/urls/deviceRegistry';
+import {
+  GET_DEVICE_IMAGES,
+  GRIDS,
+  GRIDS_COHORTS_COMBINED,
+  SOFT_EDIT_DEVICE_IMAGE
+} from '../../config/urls/deviceRegistry';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
 export const getAllDevicesApi = async (networkID) => {
@@ -190,6 +195,12 @@ export const QRCodeApi = async (params) => {
 export const refreshAirQloudApi = async (params) => {
   return await axios
     .put(REFRESH_AIRQLOUD, {}, { params: { ...params, token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getGridsAndCohortsSummaryApi = async (networkID) => {
+  return await axios
+    .get(`${GRIDS_COHORTS_COMBINED}/${networkID}/summary`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 

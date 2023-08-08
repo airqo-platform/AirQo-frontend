@@ -8,13 +8,16 @@ import {
   LOAD_DASHBOARD_AIRQLOUDS_FAILURE,
   LOAD_SELECTED_AIRQLOUD_SUCCESS,
   LOAD_SELECTED_AIRQLOUD_FAILURE,
-  REMOVE_SELECTED_AIRQLOUD_SUCCESS
+  REMOVE_SELECTED_AIRQLOUD_SUCCESS,
+  LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS,
+  LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_FAILURE
 } from './actions';
 import { isEmpty } from 'underscore';
 import {
   getAirQloudsApi,
   refreshAirQloudApi,
-  getDashboardAirQloudsApi
+  getDashboardAirQloudsApi,
+  getGridsAndCohortsSummaryApi
 } from 'views/apis/deviceRegistry';
 import { transformArray } from '../utils';
 import { createSiteOptions } from 'utils/sites';
@@ -160,4 +163,20 @@ export const removeAirQloudData = () => (dispatch) => {
     type: REMOVE_SELECTED_AIRQLOUD_SUCCESS,
     payload: {}
   });
+};
+
+export const loadGridsAndCohortsSummary = (network_name) => async (dispatch) => {
+  return await getGridsAndCohortsSummaryApi(network_name)
+    .then((resData) => {
+      dispatch({
+        type: LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS,
+        payload: resData.airqlouds
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_FAILURE,
+        payload: err
+      });
+    });
 };

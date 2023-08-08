@@ -1,6 +1,7 @@
 import { LOGOUT_USER_SUCCESS } from 'redux/Join/types';
 import {
   LOAD_ALL_AIRQLOUDS_SUCCESS,
+  LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS,
   LOAD_DASHBOARD_AIRQLOUDS_SUCCESS,
   LOAD_SELECTED_AIRQLOUD_SUCCESS,
   REMOVE_SELECTED_AIRQLOUD_SUCCESS,
@@ -17,7 +18,9 @@ const initialState = {
     siteOptions: []
   },
   dashboardAirQlouds: {},
-  selectedAirqloud: {}
+  selectedAirqloud: {},
+  combinedGridAndCohortsSummary: {},
+  selectedGridAndCohort: {}
 };
 
 export default function (state = initialState, action) {
@@ -39,6 +42,9 @@ export default function (state = initialState, action) {
 
     case REMOVE_SELECTED_AIRQLOUD_SUCCESS:
       return { ...state, selectedAirqloud: action.payload };
+
+    case LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS:
+      return { ...state, combinedGridAndCohortsSummary: action.payload };
 
     default:
       return state;
