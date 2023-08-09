@@ -29,6 +29,7 @@ import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
+import { getUserDetails } from '../../../../redux/Join/actions';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
@@ -284,7 +285,7 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired
 };
 
-export default function DeviceDeployStatus({ deviceData, siteOptions }) {
+export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
@@ -427,32 +428,35 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const handleRecallSubmit = async () => {
     setRecallOpen(!recallOpen);
     setrecallLoading(true);
-
-    await recallDeviceApi(deviceData.name)
-      .then((responseData) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-        if (!isEmpty(activeNetwork)) {
-          dispatch(loadDevicesData(activeNetwork.net_name));
-          dispatch(loadSitesData(activeNetwork.net_name));
-        }
-
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        dispatch(
-          updateMainAlert({
-            message: err.response && err.response.data && err.response.data.message,
-            show: true,
-            severity: 'error'
-          })
-        );
-      });
+  
+    try {
+      const user = await getUserDetails(userId); 
+  
+      const responseData = await recallDeviceApi(deviceData.name, user); 
+  
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+  
+      dispatch(
+        updateMainAlert({
+          message: responseData.message,
+          show: true,
+          severity: 'success'
+        })
+      );
+    } catch (err) {
+      dispatch(
+        updateMainAlert({
+          message: err.response && err.response.data && err.response.data.message,
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+  
     setrecallLoading(false);
   };
 
