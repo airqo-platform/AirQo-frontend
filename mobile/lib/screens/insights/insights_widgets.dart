@@ -313,7 +313,7 @@ class InsightsDayReading extends StatelessWidget {
     return InkWell(
       onTap: () => context.read<InsightsBloc>().add(SwitchInsight(insight)),
       child: SizedBox(
-        height: 73,
+        height: 60,
         child: Column(
           children: [
             Container(
@@ -334,17 +334,14 @@ class InsightsDayReading extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 7,
-            ),
-            Text(
-              '${insight.dateTime.day}',
-              style: TextStyle(
-                color: color,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 13, 0, 0),
+              child: Container(
+                child: SvgIcons.airQualityEmoji(
+                  insight.airQuality,
+                ),
               ),
             ),
-            const Spacer(),
-            SvgIcons.airQualityEmoji(insight.airQuality),
           ],
         ),
       ),
@@ -387,7 +384,7 @@ class InsightsCalendar extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                        horizontal: 12,
                         vertical: 8,
                       ),
                       child: Row(
