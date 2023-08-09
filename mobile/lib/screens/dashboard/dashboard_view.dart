@@ -109,7 +109,7 @@ class _DashboardViewState extends State<DashboardView>
                 maxHeight: 40,
               ),
             ),
-            SliverAppBar(
+            SliverAppBar( 
               titleSpacing: 0,
               stretch: true,
               toolbarHeight: 80,
@@ -518,8 +518,11 @@ class _DashboardViewState extends State<DashboardView>
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
     try {
       await WidgetService.sendAndUpdate();
-    } catch (e) {
-      // debugPrint('error updating widget: $e');
+    } catch (e, stackTrace) {
+      await logException(
+        e,
+        stackTrace,
+      );
     }
   }
 
