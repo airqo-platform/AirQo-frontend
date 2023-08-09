@@ -1,5 +1,10 @@
 import axios from 'axios';
-import { GET_NETWORKS_URI, GET_PERMISSIONS_URI, GET_ROLES_URI } from '../../config/urls/analytics';
+import {
+  GET_NETWORKS_URI,
+  GET_PERMISSIONS_URI,
+  GET_ROLES_URI,
+  GENERATE_ACCESS_TOKEN
+} from '../../config/urls/analytics';
 import { GET_ACCESS_TOKEN } from '../../config/urls/authService';
 import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
@@ -113,4 +118,15 @@ export const getNetworkUsersListApi = async (networkID) => {
   return await axios
     .get(`${GET_NETWORKS_URI}/${networkID}/assigned-users`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
+};
+
+export const generateAccessTokenForUserApi = async (userId) => {
+  const url = `${GENERATE_ACCESS_TOKEN}`;
+  const data = { user_id: userId };
+  try {
+    const response = await axios.post(url, data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
 };

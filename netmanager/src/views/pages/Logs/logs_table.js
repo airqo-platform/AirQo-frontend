@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { getLogsApi } from '../../../apis/authService';
-import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
+import { getLogsApi } from '../../apis/authService';
+import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import { Typography } from '@material-ui/core';
-import { getFirstNDurations, getElapsedDurationMapper } from '../../../../utils/dateTime';
+import { getFirstNDurations, getElapsedDurationMapper } from 'utils/dateTime';
 import { useDispatch } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
-const DataExportLogsTable = () => {
+const LogsTable = ({ service }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -16,7 +16,7 @@ const DataExportLogsTable = () => {
     setLoading(true);
 
     const params = {
-      service: 'data-export'
+      service
     };
 
     await getLogsApi(params)
@@ -40,12 +40,14 @@ const DataExportLogsTable = () => {
   };
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    if (service !== '') {
+      fetchLogs();
+    }
+  }, [service]);
 
   return (
     <CustomMaterialTable
-      title={'data export logs'}
+      title={'activity logs'}
       userPreferencePaginationKey={'logs'}
       data={logs}
       isLoading={loading}
@@ -59,7 +61,7 @@ const DataExportLogsTable = () => {
 
             return (
               <Typography variant="body1">
-                Exported data {getFirstNDurations(elapsedDurationMapper, 2)} ago
+                {getFirstNDurations(elapsedDurationMapper, 2)} ago
               </Typography>
             );
           }
@@ -77,9 +79,9 @@ const DataExportLogsTable = () => {
           }
         },
         {
-          title: 'Level',
+          title: 'Action',
           render: (logs) => {
-            return <Typography variant="body1">{logs.level}</Typography>;
+            return <Typography variant="body1">{logs.message}</Typography>;
           }
         }
       ]}
@@ -92,4 +94,4 @@ const DataExportLogsTable = () => {
   );
 };
 
-export default DataExportLogsTable;
+export default LogsTable;

@@ -150,10 +150,7 @@ const allUserManagementPages = [
     title: 'Logs',
     href: '/logs',
     icon: <DataUsageIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-    collapse: true,
-    nested: true,
-    nestItems: [{ title: 'Data export', href: '/logs/data-export' }]
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
     title: 'Organisation',
