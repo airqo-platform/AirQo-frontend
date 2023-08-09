@@ -315,5 +315,11 @@
     "theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy": "The hourly air quality average in {placeholder} is currently unhealthy.",
     "theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy": "The hourly air quality average in {placeholder} is currently very unhealthy.",
     "theHourlyAirQualityAverageInCityIsCurrentlyHazardous": "The hourly air quality average in {placeholder} is currently hazardous.",
-    "theHourlyAirQualityAverageInCityIsCurrentlyUnavailable": "The hourly air quality average in {placeholder} is currently unavailable."
+    "theHourlyAirQualityAverageInCityIsCurrentlyUnavailable": "The hourly air quality average in {placeholder} is currently unavailable.",
+    "headsUpYouAreAboutToDeleteYourAccount": "Heads up!!!.. you are about to delete your account!",
+    "youWillLoseAllYourSavedPlaces": "You will lose all your saved places",
+    "headsUpYouAreAboutToLogout": "Heads up!!!.. you are about to logout!",
+    "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"You will miss out on notifications and won’t be able to save favourite places",
+    "selectCountry": "Select Country",
+    "phoneNumber":"Phone Number"
 }

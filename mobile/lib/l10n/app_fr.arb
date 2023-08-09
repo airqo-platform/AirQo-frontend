@@ -315,5 +315,11 @@
   "theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy": "La moyenne horaire de la qualité de l'air dans {placeholder} est actuellement malsaine.",
   "theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy": "La moyenne horaire de la qualité de l'air dans {placeholder} est actuellement très malsaine.",
   "theHourlyAirQualityAverageInCityIsCurrentlyHazardous": "La moyenne horaire de la qualité de l'air dans {placeholder} est actuellement dangereuse.",
-  "theHourlyAirQualityAverageInCityIsCurrentlyUnavailable": "La moyenne horaire de la qualité de l'air dans {placeholder} est actuellement indisponible."
-}
+  "theHourlyAirQualityAverageInCityIsCurrentlyUnavailable": "La moyenne horaire de la qualité de l'air dans {placeholder} est actuellement indisponible.",
+  "headsUpYouAreAboutToDeleteYourAccount": "Attention! Vous êtes sur le point de supprimer votre compte!",
+  "youWillLoseAllYourSavedPlaces": "Vous perdrez tous vos endroits enregistrés",
+  "headsUpYouAreAboutToLogout": "Attention! Vous êtes sur le point de vous déconnecter!",
+  "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
+  "selectCountry": "Sélectionnez un pays",
+  "phoneNumber":"Numéro de téléphone"
+}  

@@ -475,65 +475,61 @@ enum AuthProcedure {
 
   String getConfirmationTitle(BuildContext context) {
     switch (this) {
-      // TODO translate this
       case AuthProcedure.login:
-        return "AppLocalizations.of(context)!.loginConfirmationTitle";
+        return '';
       case AuthProcedure.signup:
-        return " AppLocalizations.of(context)!.signupConfirmationTitle";
+        return  '';
       case AuthProcedure.anonymousLogin:
-        return "AppLocalizations.of(context)!.anonymousLoginConfirmationTitle";
+        return '';
       case AuthProcedure.deleteAccount:
-        return "AppLocalizations.of(context)!.deleteAccountConfirmationTitle";
+        return AppLocalizations.of(context)!.headsUpYouAreAboutToDeleteYourAccount;
       case AuthProcedure.logout:
-        return "AppLocalizations.of(context)!.logoutConfirmationTitle";
+        return AppLocalizations.of(context)!.headsUpYouAreAboutToLogout;
     }
   }
 
   String getConfirmationBody(BuildContext context) {
     switch (this) {
-      // TODO translate this
       case AuthProcedure.login:
-        return "AppLocalizations.of(context)!.loginConfirmationBody";
+        return '';
       case AuthProcedure.signup:
-        return " AppLocalizations.of(context)!.signupConfirmationBody";
+        return  '';
       case AuthProcedure.anonymousLogin:
-        return "AppLocalizations.of(context)!.anonymousLoginConfirmationBody";
+        return '';
       case AuthProcedure.deleteAccount:
-        return "AppLocalizations.of(context)!.deleteAccountConfirmationBody";
+        return AppLocalizations.of(context)!.youWillLoseAllYourSavedPlaces;
       case AuthProcedure.logout:
-        return "AppLocalizations.of(context)!.logoutConfirmationBody";
+        return AppLocalizations.of(context)!.youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces;
     }
   }
 
   String getConfirmationOkayText(BuildContext context) {
     switch (this) {
-      // TODO translate this
       case AuthProcedure.login:
-        return "AppLocalizations.of(context)!.loginConfirmationOkayText";
+        return '';
       case AuthProcedure.signup:
-        return " AppLocalizations.of(context)!.signupConfirmationOkayText";
+        return  '';
       case AuthProcedure.anonymousLogin:
-        return "AppLocalizations.of(context)!.anonymousLoginConfirmationOkayText";
+        return '';
       case AuthProcedure.deleteAccount:
-        return "AppLocalizations.of(context)!.deleteAccountConfirmationOkayText";
+        return AppLocalizations.of(context)!.proceed;
       case AuthProcedure.logout:
-        return "AppLocalizations.of(context)!.logoutConfirmationOkayText";
+        return AppLocalizations.of(context)!.proceed;
     }
   }
 
   String getConfirmationCancelText(BuildContext context) {
     switch (this) {
-      // TODO translate this
       case AuthProcedure.login:
-        return "AppLocalizations.of(context)!.loginConfirmationCancelText";
+        return '';
       case AuthProcedure.signup:
-        return " AppLocalizations.of(context)!.signupConfirmationCancelText";
+        return  '';
       case AuthProcedure.anonymousLogin:
-        return "AppLocalizations.of(context)!.anonymousLoginConfirmationCancelText";
+        return '';
       case AuthProcedure.deleteAccount:
-        return "AppLocalizations.of(context)!.deleteAccountConfirmationCancelText";
+        return AppLocalizations.of(context)!.cancel;
       case AuthProcedure.logout:
-        return "AppLocalizations.of(context)!.logoutConfirmationCancelText";
+        return AppLocalizations.of(context)!.cancel;
     }
   }
 }

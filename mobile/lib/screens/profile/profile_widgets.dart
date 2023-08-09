@@ -835,8 +835,8 @@ class EditCredentialsField extends StatelessWidget {
       children: [
         Text(
           authMethod == AuthMethod.email
-              ? 'Email'
-              : 'Phone Number', // TODO translate this
+              ? AppLocalizations.of(context)!.email
+              : AppLocalizations.of(context)!.phoneNumber,
           style: TextStyle(
             fontSize: 12,
             color: CustomColors.inactiveColor,
