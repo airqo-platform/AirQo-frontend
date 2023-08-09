@@ -154,7 +154,8 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.dateTime.timelineString(context),
+                      AppLocalizations.of(context)!
+                          .actualDate(selectedInsight.dateTime).toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
