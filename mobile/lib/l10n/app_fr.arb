@@ -321,5 +321,6 @@
   "headsUpYouAreAboutToLogout": "Attention! Vous êtes sur le point de vous déconnecter!",
   "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
   "selectCountry": "Sélectionnez un pays",
-  "phoneNumber":"Numéro de téléphone"
-}  
+  "phoneNumber":"Numéro de téléphone",
+  "actualDate":"{date}"
+}
