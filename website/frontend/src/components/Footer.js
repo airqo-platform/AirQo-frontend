@@ -109,7 +109,7 @@ const Footer = () => {
 
   return (
     <footer className="footer-wrapper">
-      {/* <Geolocate countries={countries} /> */}
+      <Geolocate countries={countries} />
       <div className="Footer">
         <div className="body-section">
           <div className="logo">
