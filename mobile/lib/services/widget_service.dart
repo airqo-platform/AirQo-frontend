@@ -18,9 +18,38 @@ class WidgetService {
           ))
               .firstOrNull;
     }
+    if (airQualityReading == null) {
+      String userId = CustomAuth.getUserId();
+      List<FavouritePlace> favouritePlaces = [];
+      List<LocationHistory> locationHistory = [];
+      String widgetLocation = '';
+      favouritePlaces = await AirqoApiClient().fetchFavoritePlaces(userId)
+        ..shuffle();
+
+      if (favouritePlaces.isNotEmpty) {
+        widgetLocation = (favouritePlaces.first).placeId;
+      }
+
+      if (widgetLocation == '') {
+        locationHistory = await AirqoApiClient().fetchLocationHistory(userId)
+          ..shuffle();
+        if (locationHistory.isNotEmpty) {
+          widgetLocation = (locationHistory.first).placeId;
+        }
+      }
+
+      if (widgetLocation != '') {
+        airQualityReading = await getAirQuality(widgetLocation);
+      }
+    }
     airQualityReading ??= HiveService().getNearbyAirQualityReadings().isNotEmpty
         ? (HiveService().getNearbyAirQualityReadings()..shuffle()).first
         : null;
+
+    airQualityReading ??= HiveService().getAirQualityReadings().isNotEmpty
+        ? (HiveService().getAirQualityReadings()..shuffle()).first
+        : null;
+    airQualityReading = null;
     final widgetData =
         WidgetData.initializeFromAirQualityReading(airQualityReading!);
     await Future.wait(widgetData.idMapping().entries.map(
@@ -47,5 +76,15 @@ class WidgetService {
   static Future<void> sendAndUpdate() async {
     await sendData();
     await updateWidget();
+  }
+
+  static Future<AirQualityReading> getAirQuality(String placeId) async {
+    List<AirQualityReading> airQualityReadings =
+        HiveService().getAirQualityReadings();
+    AirQualityReading airQualityReading;
+    airQualityReading = airQualityReadings.firstWhere(
+      (element) => element.placeId == placeId,
+    );
+    return airQualityReading;
   }
 }
