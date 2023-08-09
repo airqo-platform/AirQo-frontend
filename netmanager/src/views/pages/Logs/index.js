@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
-import { ErrorBoundary } from '../../../ErrorBoundary';
-import { withPermission } from '../../../containers/PageAccess';
-import LogsBreadCrumb from '../BreadCrumb';
-import DataExportLogsTable from './logs_table';
+import { ErrorBoundary } from '../../ErrorBoundary';
+import { withPermission } from '../../containers/PageAccess';
+import LogsBreadCrumb from './BreadCrumb';
+import LogsTable from './logs_table';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -15,17 +15,18 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const DataExportLogs = (props) => {
+const Logs = (props) => {
   const classes = useStyles();
+  const [service, setService] = useState('data-export');
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <LogsBreadCrumb category="Data Export" />
-        <DataExportLogsTable />
+        <LogsBreadCrumb category={service} />
+        <LogsTable />
       </div>
     </ErrorBoundary>
   );
 };
-const usrsStateConnector = usersStateConnector(DataExportLogs);
+const usrsStateConnector = usersStateConnector(Logs);
 export default withPermission(usrsStateConnector, 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS');
