@@ -288,6 +288,7 @@ DeviceRecentFeedView.propTypes = {
 export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
+  const [recallType, setRecallType] = useState((deviceData.recallType && String(deviceData.recallType)) || '');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
@@ -382,48 +383,56 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
       setDeployLoading(false);
       return;
     }
-
-    const deployData = {
-      mountType: installationType,
-      height: height,
-      powerType: power,
-      date: new Date(deploymentDate).toISOString(),
-      isPrimaryInLocation: primaryChecked,
-      isUsedForCollocation: collocationChecked,
-      site_id: site.value
-    };
-
-    await deployDeviceApi(deviceData.name, deployData)
-      .then((responseData) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-        if (!isEmpty(activeNetwork)) {
-          dispatch(loadDevicesData(activeNetwork.net_name));
-          dispatch(loadSitesData(activeNetwork.net_name));
-        }
-
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: 'success'
-          })
-        );
-        setDeployed(true);
-        setInputErrors(false);
-      })
-      .catch((err) => {
-        const errors = (err.response && err.response.data && err.response.data.errors) || {};
-        setErrors(errors);
-        dispatch(
-          updateMainAlert({
-            message: err.response.data.message,
-            show: true,
-            severity: 'error'
-          })
-        );
-      });
+  
+    try {
+      const user = await getUserDetails(userId); 
+  
+      const deployData = {
+        mountType: installationType,
+        height: height,
+        powerType: power,
+        date: new Date(deploymentDate).toISOString(),
+        isPrimaryInLocation: primaryChecked,
+        isUsedForCollocation: collocationChecked,
+        site_id: site.value,
+        userName: user.email, 
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
+  
+      const responseData = await deployDeviceApi(deviceData.name, deployData);
+  
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+  
+      dispatch(
+        updateMainAlert({
+          message: responseData.message,
+          show: true,
+          severity: 'success'
+        })
+      );
+      setDeployed(true);
+      setInputErrors(false);
+    } catch (err) {
+      const errors = (err.response && err.response.data && err.response.data.errors) || {};
+      setErrors(errors);
+      dispatch(
+        updateMainAlert({
+          message: err.response.data.message,
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+  
     setDeployLoading(false);
   };
+  
 
   const handleRecallSubmit = async () => {
     setRecallOpen(!recallOpen);
@@ -431,8 +440,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
   
     try {
       const user = await getUserDetails(userId); 
+
+      const recallData = {
+        recallType: recallType,
+        userName: user.email, 
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
   
-      const responseData = await recallDeviceApi(deviceData.name, user); 
+      const responseData = await recallDeviceApi(deviceData.name, recallData); 
   
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
