@@ -267,7 +267,7 @@ extension InsightExt on Insight {
       return AppLocalizations.of(context)!
           .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon;
     }
-    // TODO translate this
+
     switch (airQuality) {
       case AirQuality.good:
         if (dateTime.isAPastDate()) {
@@ -331,6 +331,31 @@ extension InsightExt on Insight {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyHazardous(name);
         }
+    }
+  }
+
+  String forecastMessage(BuildContext context, String name) {
+    AirQuality? airQuality = forecastAirQuality;
+
+    if (airQuality == null) {
+      return AppLocalizations.of(context)!
+          .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
+    }
+
+    switch (airQuality) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.expectConditionsToBeGood;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.expectConditionsToBeModerate;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!
+            .expectConditionsToBeUnhealthyForSensitiveGroups;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.expectConditionsToBeVeryUnhealthy;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
     }
   }
 }

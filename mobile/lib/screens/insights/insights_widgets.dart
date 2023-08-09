@@ -184,6 +184,9 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String message = insight.airQuality != null
+        ? insight.message(context, name)
+        : insight.forecastMessage(context, name);
     return Container(
       padding: const EdgeInsets.all(8),
       height: 64,
@@ -193,7 +196,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
         children: [
           Expanded(
             child: AutoSizeText(
-              insight.message(context, name),
+              message,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -492,7 +495,7 @@ class ForecastContainer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AutoSizeText(
-                      insight.message(context, name),
+                      insight.forecastMessage(context, name),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(

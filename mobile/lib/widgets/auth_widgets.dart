@@ -8,11 +8,11 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../screens/home_page.dart';
-import '../screens/email_authentication/email_auth_screen.dart';
-import '../screens/phone_authentication/phone_auth_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import '../screens/email_authentication/email_auth_screen.dart';
+import '../screens/home_page.dart';
+import '../screens/phone_authentication/phone_auth_screen.dart';
 
 class AuthOrSeparator extends StatelessWidget {
   const AuthOrSeparator({super.key});
@@ -166,7 +166,7 @@ class ChangeAuthCredentials extends StatelessWidget {
           Navigator.of(context).popUntil((route) => route.isFirst);
         },
         child: Text(
-          authMethod.editEntryText,
+          authMethod.getEditEntryText(context),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: CustomColors.appColorBlue,
