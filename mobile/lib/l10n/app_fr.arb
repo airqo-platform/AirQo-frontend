@@ -283,6 +283,8 @@
   "and":"et",
   "youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt":"Vous ne pourrez pas vous connecter avec votre ancien numéro de téléphone après l'avoir modifié.",
   "youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt":"Vous ne pourrez pas vous connecter avec votre ancienne adresse e-mail après l'avoir modifiée.",
-  "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} n'a pas d'implémentation de message de mise à jour"
+  "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} n'a pas d'implémentation de message de mise à jour",
+  "loginWithAMobileNumberInstead":"Connectez-vous avec un numéro de mobile à la place",
+    "signUpWithAMobileNumberInstead":"Inscrivez-vous avec un numéro de mobile à la place"
 
 }

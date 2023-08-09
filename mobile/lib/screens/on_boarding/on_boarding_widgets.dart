@@ -259,7 +259,7 @@ class TitleDropDown extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    profile.getTitle().abbr,
+                    profile.getTitle().getAbbr(context),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),

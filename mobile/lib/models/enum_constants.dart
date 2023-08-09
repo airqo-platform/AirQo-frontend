@@ -69,6 +69,7 @@ enum FeedbackStep {
   typeStep,
   formStep;
 }
+
 // TODO remove this enum
 enum FirebaseAuthError {
   noInternetConnection(
@@ -412,10 +413,10 @@ enum AuthMethod {
         return procedure == AuthProcedure.login
             ? AppLocalizations.of(context)!.loginWithAnEmailInstead
             : AppLocalizations.of(context)!.signUpWithAnEmailInstead;
-      case AuthMethod.email: // TODO translate this
+      case AuthMethod.email:
         return procedure == AuthProcedure.login
-            ? 'Login with a mobile number instead'
-            : 'Sign up with a mobile number instead';
+            ? AppLocalizations.of(context)!.loginWithAMobileNumberInstead
+            : AppLocalizations.of(context)!.signUpWithAMobileNumberInstead;
       default:
         throw UnimplementedError(
           '$name does’nt have options button text implementation',
@@ -460,14 +461,12 @@ enum AuthProcedure {
     confirmationCancelText: '',
   ),
   deleteAccount(
-    // TODO translate this
     confirmationTitle: 'Heads up!!!.. you are about to delete your account!',
     confirmationBody: 'You will lose all your saved places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   ),
   logout(
-    // TODO translate this
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
         'You will miss out on notifications and won’t be able to save favourite places',
@@ -499,6 +498,51 @@ enum AuthProcedure {
         return "AppLocalizations.of(context)!.deleteAccountConfirmationTitle";
       case AuthProcedure.logout:
         return "AppLocalizations.of(context)!.logoutConfirmationTitle";
+    }
+  }
+
+  String getConfirmationBody(BuildContext context) {
+    switch (this) {
+      case AuthProcedure.login:
+        return "AppLocalizations.of(context)!.loginConfirmationBody";
+      case AuthProcedure.signup:
+        return " AppLocalizations.of(context)!.signupConfirmationBody";
+      case AuthProcedure.anonymousLogin:
+        return "AppLocalizations.of(context)!.anonymousLoginConfirmationBody";
+      case AuthProcedure.deleteAccount:
+        return "AppLocalizations.of(context)!.deleteAccountConfirmationBody";
+      case AuthProcedure.logout:
+        return "AppLocalizations.of(context)!.logoutConfirmationBody";
+    }
+  }
+
+  String getConfirmationOkayText(BuildContext context) {
+    switch (this) {
+      case AuthProcedure.login:
+        return "AppLocalizations.of(context)!.loginConfirmationOkayText";
+      case AuthProcedure.signup:
+        return " AppLocalizations.of(context)!.signupConfirmationOkayText";
+      case AuthProcedure.anonymousLogin:
+        return "AppLocalizations.of(context)!.anonymousLoginConfirmationOkayText";
+      case AuthProcedure.deleteAccount:
+        return "AppLocalizations.of(context)!.deleteAccountConfirmationOkayText";
+      case AuthProcedure.logout:
+        return "AppLocalizations.of(context)!.logoutConfirmationOkayText";
+    }
+  }
+
+  String getConfirmationCancelText(BuildContext context) {
+    switch (this) {
+      case AuthProcedure.login:
+        return "AppLocalizations.of(context)!.loginConfirmationCancelText";
+      case AuthProcedure.signup:
+        return " AppLocalizations.of(context)!.signupConfirmationCancelText";
+      case AuthProcedure.anonymousLogin:
+        return "AppLocalizations.of(context)!.anonymousLoginConfirmationCancelText";
+      case AuthProcedure.deleteAccount:
+        return "AppLocalizations.of(context)!.deleteAccountConfirmationCancelText";
+      case AuthProcedure.logout:
+        return "AppLocalizations.of(context)!.logoutConfirmationCancelText";
     }
   }
 }
@@ -642,13 +686,13 @@ enum Pollutant {
 }
 
 enum TitleOptions {
-  ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'), // TODO translate this
-  mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'), // TODO translate this
+  ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'),
+  mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'),
   undefined(
     value: 'Rather Not Say',
     displayValue: 'Rather Not Say',
     abbr: 'Ra.',
-  ); // TODO translate this
+  ); 
 
   const TitleOptions({
     required this.value,
@@ -660,16 +704,38 @@ enum TitleOptions {
   final String displayValue;
   final String abbr;
 
-  // String getValue(BuildContext context) {
-  //   switch (this) {
-  //     case TitleOptions.ms:
-  //       return AppLocalizations.of(context)!.ms;
-  //     case TitleOptions.mr:
-  //       return AppLocalizations.of(context)!.mr;
-  //     case TitleOptions.undefined:
-  //       return AppLocalizations.of(context)!.ratherNotSay;
-  //   }
-  // }
+  String getValue(BuildContext context) {
+    switch (this) {
+      case TitleOptions.ms:
+        return AppLocalizations.of(context)!.ms;
+      case TitleOptions.mr:
+        return AppLocalizations.of(context)!.mr;
+      case TitleOptions.undefined:
+        return AppLocalizations.of(context)!.ratherNotSay;
+    }
+  }
+
+  String getAbbr(BuildContext context) {
+    switch (this) {
+      case TitleOptions.ms:
+        return AppLocalizations.of(context)!.ms;
+      case TitleOptions.mr:
+        return AppLocalizations.of(context)!.mr;
+      case TitleOptions.undefined:
+        return AppLocalizations.of(context)!.ratherNotSay;
+    }
+  }
+
+  String getDisplayValue(BuildContext context) {
+    switch (this) {
+      case TitleOptions.ms:
+        return AppLocalizations.of(context)!.ms;
+      case TitleOptions.mr:
+        return AppLocalizations.of(context)!.mr;
+      case TitleOptions.undefined:
+        return AppLocalizations.of(context)!.ratherNotSay;
+    }
+  }
 }
 
 enum ToolTipType {

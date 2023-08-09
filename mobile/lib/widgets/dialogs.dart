@@ -686,7 +686,7 @@ class AuthProcedureDialog extends StatelessWidget {
       content: Padding(
         padding: const EdgeInsets.all(10),
         child: Text(
-          authProcedure.confirmationBody,
+          authProcedure.getConfirmationBody(context),
           textAlign: TextAlign.center,
         ),
       ),
@@ -698,7 +698,7 @@ class AuthProcedureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: true,
           child: Text(
-            authProcedure.confirmationCancelText,
+            authProcedure.getConfirmationCancelText(context),
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -710,7 +710,7 @@ class AuthProcedureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            authProcedure.confirmationOkayText,
+            authProcedure.getConfirmationOkayText(context),
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),

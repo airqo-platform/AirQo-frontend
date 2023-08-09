@@ -283,5 +283,7 @@
     "and":"and",
     "youWillNotBeAbleToSignInWithYourPreviousPhoneNumberAfterChangingIt":"You will not be able to sign in with your previous phone number after changing it.",
     "youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt":"You will not be able to sign in with your previous email address changing it.",
-    "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} does’nt have update message implementation"
+    "thisNameDoesntHaveUpdateMessageImplementation":"{placeholder} does’nt have update message implementation",
+    "loginWithAMobileNumberInstead":"Login with a mobile number instead",
+    "signUpWithAMobileNumberInstead":"Sign up with a mobile number instead"
 }
