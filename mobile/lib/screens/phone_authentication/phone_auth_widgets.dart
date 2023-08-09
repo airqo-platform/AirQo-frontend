@@ -230,7 +230,7 @@ class PhoneVerificationSubTitle extends StatelessWidget {
             subtitle = 'Sure you read it correctly? Pro Tip: Copy & Paste';
             break;
           case AuthenticationStatus.success:
-            subtitle = 'Pheww, almost done, hold in there.';
+            subtitle = 'Pheww, almost done, hang in there.';
             break;
         }
 
