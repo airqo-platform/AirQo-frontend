@@ -40,7 +40,9 @@ const LogsTable = ({ service }) => {
   };
 
   useEffect(() => {
-    fetchLogs();
+    if (service !== '') {
+      fetchLogs();
+    }
   }, [service]);
 
   return (
