@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { makeStyles } from '@material-ui/core';
+import { Box, makeStyles } from '@material-ui/core';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { ErrorBoundary } from '../../ErrorBoundary';
 import { withPermission } from '../../containers/PageAccess';
 import LogsBreadCrumb from './BreadCrumb';
 import LogsTable from './logs_table';
+import ServiceDropdown from './ServiceDropdown';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -15,14 +16,45 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const SERVICES = [
+  'site-registry',
+  'device-registry',
+  'airqloud-registry',
+  'device-maintenance',
+  'device-deployment',
+  'device-recall',
+  'auth',
+  'incentives',
+  'calibrate',
+  'locate',
+  'fault-detection',
+  'data-export-download',
+  'data-export-scheduling'
+];
+
+const SERVICE_ARR = SERVICES.map((service) => ({
+  label: service.replace(/-/g, ' '), // Replace dashes with spaces
+  value: service
+}));
+
 const Logs = (props) => {
   const classes = useStyles();
-  const [service, setService] = useState('data-export');
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <LogsBreadCrumb category={service} />
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems={'center'}
+          paddingBottom={'30px'}
+        >
+          <LogsBreadCrumb
+          // category={service}
+          />
+          <ServiceDropdown services={SERVICE_ARR} />
+        </Box>
+
         <LogsTable />
       </div>
     </ErrorBoundary>
