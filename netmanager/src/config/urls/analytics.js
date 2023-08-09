@@ -33,3 +33,5 @@ export const GET_NETWORKS_URI = `${BASE_ANALYTICS_URL_V2}/users/networks`;
 export const GET_PERMISSIONS_URI = `${BASE_ANALYTICS_URL_V2}/users/permissions`;
 
 export const GENERATE_AIRQLOUD_DATA_SUMMARY_URI = `${BASE_ANALYTICS_URL_V2}/analytics/data/summary`;
+
+export const GENERATE_ACCESS_TOKEN = `${BASE_ANALYTICS_URL_V2}/users/tokens`;

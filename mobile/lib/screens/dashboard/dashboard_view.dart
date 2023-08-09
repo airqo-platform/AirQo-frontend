@@ -109,7 +109,7 @@ class _DashboardViewState extends State<DashboardView>
                 maxHeight: 40,
               ),
             ),
-            SliverAppBar(
+            SliverAppBar( 
               titleSpacing: 0,
               stretch: true,
               toolbarHeight: 80,
@@ -516,7 +516,14 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    await WidgetService.sendAndUpdate();
+    try {
+      await WidgetService.sendAndUpdate();
+    } catch (e, stackTrace) {
+      await logException(
+        e,
+        stackTrace,
+      );
+    }
   }
 
   Future<void> _startShowcase() async {
