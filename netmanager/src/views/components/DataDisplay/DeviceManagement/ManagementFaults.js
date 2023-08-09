@@ -23,26 +23,69 @@ const faultColumns = [
     field: 'Device Name',
     render: (rowData) => {
       return rowData ? rowData.device_name : '';
-    }
+    },
+    cellStyle: { width: '25%' },
+    headerStyle: { textAlign: 'left' }
+  },
+
+  {
+    title: 'Correlation Fault',
+    field: 'Correlation Fault',
+    render: (rowData) => {
+      return rowData ? rowData.correlation_fault : '';
+    },
+    cellStyle: { fontFamily: 'Open Sans', width: '25%', textAlign: 'center' },
+    headerStyle: { textAlign: 'center' }
   },
   {
-    title: 'Fault',
-    field: 'Fault',
+    title: 'Missing Data Fault',
+    field: 'Missing Data Fault',
     render: (rowData) => {
       return rowData ? rowData.missing_data_fault : '';
-    }
+    },
+    cellStyle: { width: '25%', textAlign: 'center' },
+    headerStyle: { textAlign: 'center' }
   },
   {
     title: 'Date',
     field: 'Date',
     render: (rowData) => {
-      return rowData ? rowData.created_at : '';
-    }
+      if (rowData) {
+        const date = new Date(rowData.created_at);
+        return date.toLocaleString();
+      } else {
+        return '';
+      }
+    },
+    cellStyle: { width: '25%' },
+    headerStyle: { textAlign: 'center' }
+  }
+];
+
+const faultData = [
+  {
+    device_name: 'Device 1',
+    correlation_fault: '0',
+    missing_data_fault: '1',
+    created_at: '2020-07-01 12:00:00'
   },
   {
-    title: 'Action',
-    field: 'Action',
-    cellStyle: { fontFamily: 'Open Sans', width: '20%' }
+    device_name: 'Device 2',
+    correlation_fault: '1',
+    missing_data_fault: '0',
+    created_at: '2020-07-01 12:00:00'
+  },
+  {
+    device_name: 'Device 3',
+    correlation_fault: '1',
+    missing_data_fault: '1',
+    created_at: '2020-07-01 12:00:00'
+  },
+  {
+    device_name: 'Device 4',
+    correlation_fault: '0',
+    missing_data_fault: '0',
+    created_at: '2020-07-01 12:00:00'
   }
 ];
 
@@ -55,8 +98,8 @@ const ManagementFaults = () => {
     const fetchData = async () => {
       const result = await getFaultsApi();
       setFaults(result);
-      setLoading(false);
     };
+    setLoading(false);
     fetchData();
 
     console.log('faults', faults);
@@ -71,7 +114,7 @@ const ManagementFaults = () => {
           title="Faults"
           userPreferencePaginationKey={'faults'}
           columns={faultColumns}
-          data={faults}
+          data={faultData}
           isLoading={loading}
           onRowClick={(event, rowData) => {
             event.preventDefault();
