@@ -153,7 +153,7 @@ class PhoneAuthTitle extends StatelessWidget {
         switch (state.status) {
           case AuthenticationStatus.initial:
             message =
-                AuthMethod.phone.optionsText(state.authProcedure, context);
+                AuthMethod.phone.getOptionsText(state.authProcedure, context);
             break;
           case AuthenticationStatus.error:
             message =

@@ -364,35 +364,24 @@ enum AuthMethod {
   phone(
     updateMessage:
         'You will not be able to sign in with your previous phone number after changing it',
-    codeVerificationText: 'Enter the 6 digits code sent to',
     editEntryText: 'Change your number',
-    invalidInputErrorMessage: 'Looks like you missed a digit.',
-    invalidInputMessage: 'Oops, Something’s wrong with your phone number',
   ),
   email(
     updateMessage:
         'You will not be able to sign in with your previous email address after changing it',
-    codeVerificationText: 'Enter the 6 digits code sent to',
     editEntryText: 'Change your email',
-    invalidInputErrorMessage: 'Looks like you missed a letter',
-    invalidInputMessage: 'Oops, Something’s wrong with your email',
   );
 
   const AuthMethod({
     required this.updateMessage,
-    required this.codeVerificationText,
     required this.editEntryText,
-    required this.invalidInputErrorMessage,
-    required this.invalidInputMessage,
+
   });
 
   final String updateMessage;
-  final String codeVerificationText; // TODO remove this
   final String editEntryText;
-  final String invalidInputErrorMessage; // TODO remove this
-  final String invalidInputMessage; // TODO remove this
 
-  String optionsText(AuthProcedure procedure, BuildContext context) {
+  String getOptionsText(AuthProcedure procedure, BuildContext context) {
     switch (this) {
       case AuthMethod.phone:
         return procedure == AuthProcedure.login
@@ -417,10 +406,6 @@ enum AuthMethod {
         return procedure == AuthProcedure.login
             ? AppLocalizations.of(context)!.loginWithAMobileNumberInstead
             : AppLocalizations.of(context)!.signUpWithAMobileNumberInstead;
-      default:
-        throw UnimplementedError(
-          '$name does’nt have options button text implementation',
-        );
     }
   }
 
@@ -432,27 +417,15 @@ enum AuthMethod {
       case AuthMethod.email:
         return AppLocalizations.of(context)!
             .youWillNotBeAbleToSignInWithYourPreviousEmailAddressAfterChangingIt;
-      default:
-        throw UnimplementedError(
-          '$name does’nt have update message implementation',
-        );
     }
   }
 //TODO - translate this
-  String getEditEntryText(AuthProcedure procedure,BuildContext context) {
+  String getEditEntryText(BuildContext context) {
     switch (this) {
       case AuthMethod.phone:
-        return procedure == AuthProcedure.login
-            ? AppLocalizations.of(context)!.changeYourNumber
-            : AppLocalizations.of(context)!.changeYourNumber;
+        return  AppLocalizations.of(context)!.changeYourNumber;
       case AuthMethod.email:
-        return procedure == AuthProcedure.login
-            ? AppLocalizations.of(context)!.changeYourEmail
-            : AppLocalizations.of(context)!.changeYourEmail;
-      default:
-        throw UnimplementedError(
-          '$name does’nt have edit entry text implementation',
-        );
+        return  AppLocalizations.of(context)!.changeYourEmail;
     }
   }
 }

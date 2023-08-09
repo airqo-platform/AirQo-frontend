@@ -166,7 +166,7 @@ class ChangeAuthCredentials extends StatelessWidget {
           Navigator.of(context).popUntil((route) => route.isFirst);
         },
         child: Text(
-          authMethod.editEntryText,
+          authMethod.getEditEntryText(context),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: CustomColors.appColorBlue,

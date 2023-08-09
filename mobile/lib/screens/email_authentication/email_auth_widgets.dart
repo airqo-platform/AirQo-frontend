@@ -152,7 +152,7 @@ class EmailAuthTitle extends StatelessWidget {
         switch (state.status) {
           case AuthenticationStatus.initial:
             message =
-                AuthMethod.email.optionsText(state.authProcedure, context);
+                AuthMethod.email.getOptionsText(state.authProcedure, context);
             break;
           case AuthenticationStatus.error:
             message =
