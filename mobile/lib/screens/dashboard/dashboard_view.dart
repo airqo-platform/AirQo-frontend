@@ -199,7 +199,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  AppLocalizations.of(context)!.actualDate(DateTime.now()),
+                  AppLocalizations.of(context)!.actualDate(DateTime.now()).toUpperCase(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
