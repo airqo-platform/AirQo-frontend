@@ -109,7 +109,7 @@ class _DashboardViewState extends State<DashboardView>
                 maxHeight: 40,
               ),
             ),
-            SliverAppBar( 
+            SliverAppBar(
               titleSpacing: 0,
               stretch: true,
               toolbarHeight: 80,
@@ -461,7 +461,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
-    HomeWidget.registerBackgroundCallback(backgroundCallback);
+    _updateWidget();
   }
 
   @override
@@ -516,14 +516,7 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    try {
-      await WidgetService.sendAndUpdate();
-    } catch (e, stackTrace) {
-      await logException(
-        e,
-        stackTrace,
-      );
-    }
+    _updateWidget();
   }
 
   Future<void> _startShowcase() async {
@@ -565,6 +558,18 @@ class _DashboardViewState extends State<DashboardView>
           });
         }
       });
+    }
+  }
+
+  Future<void> _updateWidget() async {
+    try {
+      await WidgetService.sendAndUpdate();
+      HomeWidget.registerBackgroundCallback(backgroundCallback);
+    } catch (e, stackTrace) {
+      await logException(
+        e,
+        stackTrace,
+      );
     }
   }
 }

@@ -1,60 +1,69 @@
 import 'package:home_widget/home_widget.dart';
+import 'package:app/utils/utils.dart';
 import '../models/models.dart';
 import 'services.dart';
 
 class WidgetService {
   static Future<void> sendData() async {
-    CurrentLocation? currentLocation =
-        await LocationService.getCurrentLocation();
-    AirQualityReading? airQualityReading;
-    if (currentLocation != null) {
-      airQualityReading = await LocationService.getNearestSite(
-            currentLocation.latitude,
-            currentLocation.longitude,
-          ) ??
-          (await LocationService.getSurroundingSites(
-            latitude: currentLocation.latitude,
-            longitude: currentLocation.longitude,
-          ))
-              .firstOrNull;
-    }
-    if (airQualityReading == null) {
-      String userId = CustomAuth.getUserId();
-      List<FavouritePlace> favouritePlaces = [];
-      List<LocationHistory> locationHistory = [];
-      String widgetLocation = '';
-      favouritePlaces = await AirqoApiClient().fetchFavoritePlaces(userId)
-        ..shuffle();
-
-      if (favouritePlaces.isNotEmpty) {
-        widgetLocation = (favouritePlaces.first).placeId;
+    try {
+      CurrentLocation? currentLocation =
+          await LocationService.getCurrentLocation();
+      AirQualityReading? airQualityReading;
+      if (currentLocation != null) {
+        airQualityReading = await LocationService.getNearestSite(
+              currentLocation.latitude,
+              currentLocation.longitude,
+            ) ??
+            (await LocationService.getSurroundingSites(
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+            ))
+                .firstOrNull;
       }
-
-      if (widgetLocation == '') {
-        locationHistory = await AirqoApiClient().fetchLocationHistory(userId)
+      if (airQualityReading == null) {
+        String userId = CustomAuth.getUserId();
+        List<FavouritePlace> favouritePlaces = [];
+        List<LocationHistory> locationHistory = [];
+        String widgetLocation = '';
+        favouritePlaces = await AirqoApiClient().fetchFavoritePlaces(userId)
           ..shuffle();
-        if (locationHistory.isNotEmpty) {
-          widgetLocation = (locationHistory.first).placeId;
+
+        if (favouritePlaces.isNotEmpty) {
+          widgetLocation = (favouritePlaces.first).placeId;
+        }
+
+        if (widgetLocation == '') {
+          locationHistory = await AirqoApiClient().fetchLocationHistory(userId)
+            ..shuffle();
+          if (locationHistory.isNotEmpty) {
+            widgetLocation = (locationHistory.first).placeId;
+          }
+        }
+
+        if (widgetLocation != '') {
+          airQualityReading = await getAirQuality(widgetLocation);
         }
       }
+      airQualityReading ??=
+          HiveService().getNearbyAirQualityReadings().isNotEmpty
+              ? (HiveService().getNearbyAirQualityReadings()..shuffle()).first
+              : null;
 
-      if (widgetLocation != '') {
-        airQualityReading = await getAirQuality(widgetLocation);
-      }
+      airQualityReading ??= HiveService().getAirQualityReadings().isNotEmpty
+          ? (HiveService().getAirQualityReadings()..shuffle()).first
+          : null;
+      final widgetData =
+          WidgetData.initializeFromAirQualityReading(airQualityReading!);
+      await Future.wait(widgetData.idMapping().entries.map(
+            (entry) =>
+                HomeWidget.saveWidgetData<String>(entry.key, entry.value),
+          ));
+    } catch (e, stackTrace) {
+      await logException(
+        e,
+        stackTrace,
+      );
     }
-    airQualityReading ??= HiveService().getNearbyAirQualityReadings().isNotEmpty
-        ? (HiveService().getNearbyAirQualityReadings()..shuffle()).first
-        : null;
-
-    airQualityReading ??= HiveService().getAirQualityReadings().isNotEmpty
-        ? (HiveService().getAirQualityReadings()..shuffle()).first
-        : null;
-    airQualityReading = null;
-    final widgetData =
-        WidgetData.initializeFromAirQualityReading(airQualityReading!);
-    await Future.wait(widgetData.idMapping().entries.map(
-          (entry) => HomeWidget.saveWidgetData<String>(entry.key, entry.value),
-        ));
   }
 
   static Future<void> updateWidget() async {
