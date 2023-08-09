@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 
-const LogsTable = () => {
+const LogsTable = ({ service }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -16,7 +16,7 @@ const LogsTable = () => {
     setLoading(true);
 
     const params = {
-      service: 'data-export'
+      service
     };
 
     await getLogsApi(params)
@@ -41,7 +41,7 @@ const LogsTable = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, []);
+  }, [service]);
 
   return (
     <CustomMaterialTable
@@ -67,11 +67,7 @@ const LogsTable = () => {
         {
           title: 'Username',
           render: (logs) => {
-            return (
-              <Typography variant="body1" style={{ textTransform: 'capitalize' }}>
-                {logs.meta.username}
-              </Typography>
-            );
+            return <Typography variant="body1">{logs.meta.username}</Typography>;
           }
         },
         {

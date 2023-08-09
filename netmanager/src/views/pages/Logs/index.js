@@ -6,6 +6,7 @@ import { withPermission } from '../../containers/PageAccess';
 import LogsBreadCrumb from './BreadCrumb';
 import LogsTable from './logs_table';
 import ServiceDropdown from './ServiceDropdown';
+import { useSelector } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,6 +40,7 @@ const SERVICE_ARR = SERVICES.map((service) => ({
 
 const Logs = (props) => {
   const classes = useStyles();
+  const activeService = useSelector((state) => state.logs.activeService);
 
   return (
     <ErrorBoundary>
@@ -49,13 +51,11 @@ const Logs = (props) => {
           alignItems={'center'}
           paddingBottom={'30px'}
         >
-          <LogsBreadCrumb
-          // category={service}
-          />
+          <LogsBreadCrumb category={activeService} />
           <ServiceDropdown services={SERVICE_ARR} />
         </Box>
 
-        <LogsTable />
+        <LogsTable service={activeService} />
       </div>
     </ErrorBoundary>
   );

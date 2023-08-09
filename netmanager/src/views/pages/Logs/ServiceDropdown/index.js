@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import ListItemText from '@material-ui/core/ListItemText';
 import { Button, Menu, MenuItem, Tooltip } from '@material-ui/core';
 import { ArrowDropDown } from '@material-ui/icons';
 import 'assets/css/dropdown.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { setActiveService } from 'redux/Logs/operations';
 
 const StyledMenu = withStyles({
   paper: {
@@ -54,8 +56,13 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const ServiceDropdown = ({ services }) => {
+  const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedService, setSelectedService] = useState(services[0]);
+
+  useEffect(() => {
+    dispatch(setActiveService(selectedService.value));
+  }, []);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -67,7 +74,7 @@ const ServiceDropdown = ({ services }) => {
 
   const handleSelect = (service) => {
     setSelectedService(service);
-    // ACTION
+    dispatch(setActiveService(service.value));
     handleClose();
   };
   return (
