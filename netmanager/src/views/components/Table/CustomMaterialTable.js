@@ -11,6 +11,7 @@ import {
   getPaginationOptionIndexMapper
 } from 'utils/pagination';
 import { updateUserPreferenceData } from 'redux/UserPreference/operators';
+import { LargeCircularLoader } from '../Loader/CircularLoader';
 
 const useStyles = makeStyles((theme) => ({
   tableWrapper: {
@@ -78,7 +79,13 @@ export default function CustomMaterialTable({
     >
       <PerfectScrollbar>
         <div className={classes.tableWrapper}>
-          <MaterialTable {...props} />
+          {props.loading ? (
+            <div>
+              <LargeCircularLoader />
+            </div>
+          ) : (
+            <MaterialTable {...props} />
+          )}
         </div>
       </PerfectScrollbar>
     </div>
