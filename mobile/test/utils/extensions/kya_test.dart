@@ -1,7 +1,9 @@
-import 'package:app/utils/extensions.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:app/models/models.dart';
+import 'package:app/utils/extensions.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   KyaLesson kyaLesson = const KyaLesson(
@@ -21,46 +23,178 @@ void main() {
     completionMessage: 'Lesson completed!',
   );
   group('KyaExt', () {
-    setUpAll(() {});
-    test('startButtonText returns "Begin" when activeTask is 1', () {
-      final buttonText = kyaLesson.startButtonText();
+    testWidgets('startButtonText returns "Begin" when activeTask is 1',
+        (WidgetTester tester) async {
+      final key = GlobalKey();
 
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+
+      final buttonText = kyaLesson.startButtonText(buildContext);
       expect(buttonText, 'Begin');
     });
 
-    test('startButtonText returns "Resume" when activeTask is not 1', () {
+    testWidgets('startButtonText returns "Resume" when activeTask is not 1',
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+
       kyaLesson = kyaLesson.copyWith(activeTask: 2);
 
-      final buttonText = kyaLesson.startButtonText();
+      final buttonText = kyaLesson.startButtonText(buildContext);
 
       expect(buttonText, 'Resume');
     });
 
-    test('getKyaMessage returns "Start learning" for KyaLessonStatus.todo', () {
-      final message = kyaLesson.getKyaMessage();
+    testWidgets(
+        'getKyaMessage returns "Start learning" for KyaLessonStatus.todo',
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+
+      final message = kyaLesson.getKyaMessage(buildContext);
 
       expect(message, 'Start learning');
     });
 
-    test(
+    testWidgets(
         'getKyaMessage returns "Complete! Move to For You" for KyaLessonStatus.pendingCompletion',
-        () {
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+
       kyaLesson = kyaLesson.copyWith(status: KyaLessonStatus.pendingCompletion);
 
-      final message = kyaLesson.getKyaMessage();
+      final message = kyaLesson.getKyaMessage(buildContext);
 
       expect(message, 'Complete! Move to For You');
     });
 
-    test(
+    testWidgets(
         'getKyaMessage returns "Continue" for KyaLessonStatus.complete and activeTask is not 1',
-        () {
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+
       kyaLesson = kyaLesson.copyWith(
         status: KyaLessonStatus.complete,
         activeTask: 2,
       );
 
-      final message = kyaLesson.getKyaMessage();
+      final message = kyaLesson.getKyaMessage(buildContext);
 
       expect(message, 'Continue');
     });
