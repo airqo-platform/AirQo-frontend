@@ -380,7 +380,7 @@ enum AuthMethod {
   final String updateMessage;
   final String editEntryText;
 
-  String optionsText(AuthProcedure procedure, BuildContext context) {
+  String getOptionsText(AuthProcedure procedure, BuildContext context) {
     switch (this) {
       case AuthMethod.phone:
         return procedure == AuthProcedure.login
