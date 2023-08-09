@@ -34,6 +34,7 @@ import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { humanReadableDate } from 'utils/dateTime';
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { getUserDetails } from '../../../../redux/Join/actions';
 
 const titleStyles = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
@@ -47,7 +48,7 @@ const TableTitle = ({ deviceName }) => {
   );
 };
 
-const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoading }) => {
+const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoading, userId }) => {
   const dispatch = useDispatch();
   const maintenanceTypeMapper = {
     preventive: { value: 'preventive', label: 'Preventive' },
@@ -92,58 +93,71 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
-    const logData = {
-      deviceName,
-      locationName: deviceLocation,
-      date: selectedDate.toISOString(),
-      tags: extracted_tags,
-      description: description
-    };
+  
+    try {
+      const user = await getUserDetails(userId); // Fetch user details
+  
+      const logData = {
+        deviceName,
+        locationName: deviceLocation,
+        date: selectedDate.toISOString(),
+        tags: extracted_tags,
+        description: description,
+        userName: user.email, 
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
 
-    setLoading(true);
-    await updateMaintenanceLogApi(log._id, logData)
-      .then(async (responseData) => {
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: 'success'
-          })
-        );
-        setTimeout(
-          () =>
-            dispatch(
-              updateMainAlert({
-                message: 'reloading maintenance logs',
-                show: true,
-                severity: 'info'
-              })
-            ),
-          500
-        );
-        await dispatch(loadDeviceMaintenanceLogs(deviceName));
-        dispatch(
-          updateMainAlert({
-            message: 'reload successful',
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        dispatch(
-          updateMainAlert({
-            message:
-              (err.response && err.response.data && err.response.data.message) ||
-              'could not update log',
-            show: true,
-            severity: 'error'
-          })
-        );
-      });
+      };
+  
+      setLoading(true);
+      const responseData = await updateMaintenanceLogApi(log._id, logData);
+  
+      dispatch(
+        updateMainAlert({
+          message: responseData.message,
+          show: true,
+          severity: 'success'
+        })
+      );
+  
+      setTimeout(
+        () =>
+          dispatch(
+            updateMainAlert({
+              message: 'reloading maintenance logs',
+              show: true,
+              severity: 'info'
+            })
+          ),
+        500
+      );
+  
+      await dispatch(loadDeviceMaintenanceLogs(deviceName));
+  
+      dispatch(
+        updateMainAlert({
+          message: 'reload successful',
+          show: true,
+          severity: 'success'
+        })
+      );
+    } catch (err) {
+      dispatch(
+        updateMainAlert({
+          message:
+            (err.response && err.response.data && err.response.data.message) ||
+            'could not update log',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
+  
     setLoading(false);
     toggleShow();
   };
+  
 
   return (
     <Paper style={{ minHeight: '400px', padding: '5px 10px' }}>
