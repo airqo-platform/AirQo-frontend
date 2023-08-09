@@ -261,59 +261,75 @@ extension InsightExt on Insight {
 
     if (airQuality == null) {
       if (dateTime.isAFutureDate()) {
-        return 'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.';
+        return AppLocalizations.of(context)!
+            .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
       }
-      return "We’re having issues with our network no worries, we’ll be back up soon.";
+      return AppLocalizations.of(context)!
+          .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon;
     }
     // TODO translate this
     switch (airQuality) {
       case AirQuality.good:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was good.';
+          return AppLocalizations.of(context)!.theAirQualityInCityIsGood(name);
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be good';
+          return AppLocalizations.of(context)!.expectConditionsToBeGood;
         } else {
-          return 'The hourly air quality average in Kampala is currently good ';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyGood(name);
         }
       case AirQuality.moderate:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was moderate';
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasModerate(name);
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be moderate';
+          return AppLocalizations.of(context)!.expectConditionsToBeModerate;
         } else {
-          return 'The hourly air quality average in Kampala is currently moderate';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyModerate(name);
         }
       case AirQuality.ufsgs:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was ufsgs.';
+          return AppLocalizations.of(context)!
+              .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be ufsgs.';
+          return AppLocalizations.of(context)!
+              .expectConditionsToBeUnhealthyForSensitiveGroups;
         } else {
-          return 'The hourly air quality average in Kampala is currently ufsgs.';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthyForSensitiveGroups(
+                  name);
         }
       case AirQuality.unhealthy:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasUnhealthy(name);
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+          return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
         } else {
-          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy(name);
         }
       case AirQuality.veryUnhealthy:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasVeryUnhealthy(name);
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+          return AppLocalizations.of(context)!
+              .expectConditionsToBeVeryUnhealthy;
         } else {
-          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy(name);
         }
       case AirQuality.hazardous:
         if (dateTime.isAPastDate()) {
-          return 'The air quality in Kampala was good, moderate, ufsgs, hazardous, unhealthy, very unhealthy.';
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasHazardous(name);
         } else if (dateTime.isAFutureDate()) {
-          return 'Expect conditions to be good, moderate, ufsgs, hazardous, unhealthy, very unhealthy';
+          return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
         } else {
-          return 'The hourly air quality average in Kampala is currently good, moderate, ufsgs, hazardous, unhealthy, very unhealthy ';
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyHazardous(name);
         }
     }
   }

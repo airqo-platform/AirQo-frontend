@@ -438,6 +438,23 @@ enum AuthMethod {
         );
     }
   }
+//TODO - translate this
+  String getEditEntryText(AuthProcedure procedure,BuildContext context) {
+    switch (this) {
+      case AuthMethod.phone:
+        return procedure == AuthProcedure.login
+            ? AppLocalizations.of(context)!.changeYourNumber
+            : AppLocalizations.of(context)!.changeYourNumber;
+      case AuthMethod.email:
+        return procedure == AuthProcedure.login
+            ? AppLocalizations.of(context)!.changeYourEmail
+            : AppLocalizations.of(context)!.changeYourEmail;
+      default:
+        throw UnimplementedError(
+          '$name does’nt have edit entry text implementation',
+        );
+    }
+  }
 }
 
 enum AuthProcedure {
@@ -692,7 +709,7 @@ enum TitleOptions {
     value: 'Rather Not Say',
     displayValue: 'Rather Not Say',
     abbr: 'Ra.',
-  ); 
+  );
 
   const TitleOptions({
     required this.value,

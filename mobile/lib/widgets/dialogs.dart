@@ -738,7 +738,7 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
       content: Padding(
         padding: const EdgeInsets.all(10),
         child: Text(
-          authMethod.updateMessage,
+          authMethod.updateMessageText(context),
           textAlign: TextAlign.center,
         ),
       ),
