@@ -14,7 +14,8 @@ import {
   PUBLICATIONS_URL,
   EVENTS_URL,
   CITIES_URL,
-  PRESS_URL
+  PRESS_URL,
+  LOCATIONS_TRACKING_URL
 } from '../config/urls';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
@@ -74,3 +75,16 @@ export const getAllEventsApi = async () =>
 // African Cities endpoint
 export const getAllCitiesApi = async () =>
   await axios.get(CITIES_URL).then((response) => response.data);
+
+// Locations Tracking endpoint
+export const getUserCountryApi = async (latitude, longitude) => {
+  try {
+    const response = await axios.get(
+      `${LOCATIONS_TRACKING_URL}reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user country:', error);
+    throw error;
+  }
+};
