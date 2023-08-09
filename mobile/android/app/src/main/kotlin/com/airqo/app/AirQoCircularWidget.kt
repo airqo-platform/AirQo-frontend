@@ -37,7 +37,7 @@ class AirQoCircularWidget : HomeWidgetProvider() {
 
                 for (i in dataKeys.indices) {
                     val dataValue = if (i == 0) {
-                        "Tap above to fetch data" 
+                        widgetData.getString(dataKeys[i], null) ?: "Tap above to fetch data" 
                     } else {
                         widgetData.getString(dataKeys[i], null) ?: "--"
                     }
