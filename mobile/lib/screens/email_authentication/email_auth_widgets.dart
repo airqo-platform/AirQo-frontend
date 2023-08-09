@@ -236,7 +236,7 @@ class EmailVerificationSubTitle extends StatelessWidget {
                 .sureYouReadItCorrectlyProTipCopyPaste;
             break;
           case AuthenticationStatus.success:
-            subtitle = AppLocalizations.of(context)!.phewwAlmostDoneHoldInThere;
+            subtitle = AppLocalizations.of(context)!.phewwAlmostDoneHangInThere;
             break;
         }
 
