@@ -47,6 +47,7 @@ const Logs = (props) => {
       <div className={classes.root}>
         <Box
           display="flex"
+          flexDirection={{ xs: 'column', sm: 'row', md: 'row', lg: 'row', xl: 'row' }}
           justifyContent="space-between"
           alignItems={'center'}
           paddingBottom={'30px'}
