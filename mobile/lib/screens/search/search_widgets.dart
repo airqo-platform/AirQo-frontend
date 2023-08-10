@@ -9,6 +9,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../insights/insights_page.dart';
 
@@ -195,7 +196,7 @@ class SearchPageFilterTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  airQuality.title.toTitleCase(),
+                  airQuality.getTitle(context).toTitleCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context),
@@ -423,7 +424,7 @@ class ExploreAfricanCitiesSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Explore African Cities',
+                AppLocalizations.of(context)!.exploreAfricanCities,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: CustomTextStyle.headline8(context)?.copyWith(
@@ -646,7 +647,8 @@ class SearchInputField extends StatelessWidget {
             focusedBorder: border,
             enabledBorder: border,
             border: border,
-            hintText: 'Search for Air Quality by location',
+            hintText:
+                AppLocalizations.of(context)!.searchForAirQualityByLocation,
             hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: CustomColors.appColorBlack.withOpacity(0.32),
                   fontSize: 14,
@@ -772,7 +774,7 @@ class CustomSearchBar extends StatelessWidget implements PreferredSizeWidget {
                 Row(
                   children: [
                     Text(
-                      'Filter By Air Quality Range',
+                      AppLocalizations.of(context)!.filterByAirQualityRange,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.headline8(context)?.copyWith(

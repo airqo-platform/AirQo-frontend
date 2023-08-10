@@ -1,8 +1,10 @@
 import 'package:app/themes/theme.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../screens/home_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({
@@ -43,8 +45,8 @@ class NextButton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              text ?? 'Next',
+            AutoSizeText(
+              text ?? AppLocalizations.of(context)!.next,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -190,7 +192,6 @@ class ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 48,
-      width: 197,
       decoration: BoxDecoration(
         color: CustomColors.appColorBlue,
         borderRadius: const BorderRadius.all(
@@ -201,7 +202,7 @@ class ActionButton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          AutoSizeText(
             text,
             style: const TextStyle(
               color: Colors.white,

@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import 'email_auth_widgets.dart';
 import 'email_verification_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class _EmailAuthWidget extends StatefulWidget {
   const _EmailAuthWidget({
@@ -77,7 +78,8 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
                       return TextFormField(
                         validator: (value) {
                           if (value == null || !value.isValidEmail()) {
-                            return 'Please enter a valid email';
+                            return AppLocalizations.of(context)!
+                                .pleaseEnterAValidEmail;
                           }
 
                           return null;
@@ -162,9 +164,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
     }
 
     if (!hasConnection) {
-      context.read<EmailAuthBloc>().add(const SetEmailAuthStatus(
+      context.read<EmailAuthBloc>().add(SetEmailAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Check your internet connection',
+            errorMessage:
+                AppLocalizations.of(context)!.checkYourInternetConnection,
           ));
 
       return;
@@ -214,9 +217,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
         context.read<EmailAuthBloc>().state.authProcedure;
     if (!exists && authProcedure == AuthProcedure.login) {
       Navigator.pop(context);
-      context.read<EmailAuthBloc>().add(const SetEmailAuthStatus(
+      context.read<EmailAuthBloc>().add(SetEmailAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Email not found. Did you sign up?',
+            errorMessage:
+                AppLocalizations.of(context)!.emailNotFoundDidYouSignUp,
           ));
 
       return;
@@ -224,9 +228,10 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
 
     if (exists && authProcedure == AuthProcedure.signup) {
       Navigator.pop(context);
-      context.read<EmailAuthBloc>().add(const SetEmailAuthStatus(
+      context.read<EmailAuthBloc>().add(SetEmailAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Email already registered. Please log in',
+            errorMessage:
+                AppLocalizations.of(context)!.emailAlreadyRegisteredPleaseLogIn,
           ));
 
       return;
@@ -270,7 +275,7 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
 
       showSnackBar(
         context,
-        'Tap again to cancel !',
+        AppLocalizations.of(context)!.tapAgainToCancel,
       );
 
       return Future.value(false);

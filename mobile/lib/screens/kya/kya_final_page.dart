@@ -5,6 +5,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kyaLesson, {super.key});
@@ -42,7 +43,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'Congrats!',
+                  AppLocalizations.of(context)!.congrats,
                   style: CustomTextStyle.headline11(context),
                 ),
               ),

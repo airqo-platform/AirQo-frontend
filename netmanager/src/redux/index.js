@@ -15,8 +15,9 @@ import siteRegistryReducer from './SiteRegistry/reducers';
 import activityLogsReducer from './ActivityLogs/reducers';
 import airQloudReducer from './AirQloud/reducers';
 import accessControlReducer from './AccessControl/reducers';
-import deviceOverviewReducer from './DeviceOverview/OverviewSlice'
+import deviceOverviewReducer from './DeviceOverview/OverviewSlice';
 import googlePlacesReducer from './GooglePlaces/reducer';
+import LogsReducer from './Logs/reducer';
 
 export default combineReducers({
   auth: authReducer,
@@ -36,5 +37,6 @@ export default combineReducers({
   airqloudRegistry: airQloudReducer,
   accessControl: accessControlReducer,
   deviceOverviewData: deviceOverviewReducer,
-  googlePlaces: googlePlacesReducer
+  googlePlaces: googlePlacesReducer,
+  logs: LogsReducer
 });

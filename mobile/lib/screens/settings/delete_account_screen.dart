@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import 'account_deletion_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> openDeleteAccountScreen(
   BuildContext context, {
@@ -80,16 +81,17 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
                 child: TextFormField(
                   validator: (value) {
                     if (value == null) {
-                      return 'Please enter the code';
+                      return AppLocalizations.of(context)!.pleaseEnterTheCode;
                     }
 
                     if (value.length < 6) {
-                      return 'Please enter all the digits';
+                      return AppLocalizations.of(context)!
+                          .pleaseEnterAllTheDigits;
                     }
 
                     if (widget.emailAuthModel != null) {
                       if (widget.emailAuthModel?.token.toString() != value) {
-                        return 'Invalid code';
+                        return AppLocalizations.of(context)!.invalidCode;
                       }
                     }
 
@@ -181,7 +183,8 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
     }
 
     if (authCredential == null) {
-      showSnackBar(context, "Failed to delete account. Try again later");
+      showSnackBar(context,
+          AppLocalizations.of(context)!.failedToDeleteAccountTryAgainLater);
 
       return;
     }
@@ -189,13 +192,16 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
     try {
       await CustomAuth.reAuthenticate(authCredential).then((success) async {
         if (!success) {
-          showSnackBar(context, "Failed to re authenticate. Try again later");
-
+          showSnackBar(context,
+              AppLocalizations.of(context)!.failedToDeleteAccountTryAgainLater);
           return;
         }
         await CustomAuth.deleteAccount().then((success) async {
           if (!success) {
-            showSnackBar(context, "Failed to delete account. Try again later");
+            showSnackBar(
+                context,
+                AppLocalizations.of(context)!
+                    .failedToDeleteAccountTryAgainLater);
           } else {
             await AppService.postSignOutActions(context).then((_) async {
               await Navigator.pushAndRemoveUntil(
@@ -215,9 +221,10 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
           CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
       if (firebaseAuthError == FirebaseAuthError.invalidAuthCode) {
-        showSnackBar(context, "Invalid code");
+        showSnackBar(context, AppLocalizations.of(context)!.invalidCode);
       } else if (firebaseAuthError == FirebaseAuthError.authSessionTimeout) {
-        showSnackBar(context, "Code expired. try again later");
+        showSnackBar(
+            context, AppLocalizations.of(context)!.codeExpiredTryAgainLater);
       } else {
         await showDialog<void>(
           context: context,

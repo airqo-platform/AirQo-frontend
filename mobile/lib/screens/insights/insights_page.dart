@@ -6,6 +6,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
@@ -66,14 +67,16 @@ class InsightsPage extends StatelessWidget {
                 width: 40,
               ),
             ),
-            Text('More Insights', style: CustomTextStyle.headline8(context)),
+            Text(AppLocalizations.of(context)!.moreInsights,
+                style: CustomTextStyle.headline8(context)),
             FutureBuilder<Uri>(
               future: ShareService.createShareLink(
                 airQualityReading: airQualityReading,
               ),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
+                  showSnackBar(context,
+                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
                 }
                 if (snapshot.hasData) {
                   return InkWell(
@@ -102,7 +105,8 @@ class InsightsPage extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
+                    showSnackBar(context,
+                        AppLocalizations.of(context)!.creatingShareLink);
                   },
                   child: const Center(
                     child: LoadingIcon(radius: 20),
@@ -139,7 +143,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.shortDate(),
+                      selectedInsight.shortDate(context),
                       style: CustomTextStyle.headline8(context)
                           ?.copyWith(fontSize: 20),
                     ),
@@ -150,7 +154,8 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.dateTime.timelineString(),
+                      AppLocalizations.of(context)!
+                          .actualDate(selectedInsight.dateTime).toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
@@ -163,7 +168,10 @@ class InsightsPage extends StatelessWidget {
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,
-                    child: ForecastContainer(selectedInsight),
+                    child: ForecastContainer(
+                      selectedInsight,
+                      airQualityReading.name,
+                    ),
                   ),
                   HealthTipsWidget(selectedInsight),
                   const SizedBox(
