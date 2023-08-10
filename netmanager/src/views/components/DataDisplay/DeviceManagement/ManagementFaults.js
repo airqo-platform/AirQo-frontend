@@ -57,7 +57,7 @@ const faultColumns = [
         return '';
       }
     },
-    cellStyle: { width: '25%' },
+    cellStyle: { width: '25%', textAlign: 'center' },
     headerStyle: { textAlign: 'center' }
   }
 ];
