@@ -23,7 +23,7 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
-import LocationTracker from './LocationTracker';
+// import LocationTracker from './LocationTracker';
 
 const style = {
   position: 'absolute',
@@ -110,7 +110,7 @@ const Footer = () => {
   return (
     <footer className="footer-wrapper">
       <div className="Footer">
-        <LocationTracker countries={countries} />
+        {/* <LocationTracker countries={countries} /> */}
         <div className="body-section">
           <div className="logo">
             <AirQo />
