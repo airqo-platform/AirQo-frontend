@@ -12,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -124,7 +125,7 @@ class AirQualityChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       backgroundColor: airQuality.color.withOpacity(0.3),
-      label: Text(airQuality.title),
+      label: Text(airQuality.getTitle(context)),
       labelStyle: CustomTextStyle.airQualityChip(context),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.all(2),
@@ -265,9 +266,8 @@ class AqiStringContainer extends StatelessWidget {
       ),
       child: AutoSizeText(
         Pollutant.pm2_5
-            .stringValue(
-              airQualityReading.pm2_5,
-            )
+            .airQuality(airQualityReading.pm2_5)
+            .getTitle(context)
             .trimEllipsis(),
         maxFontSize: 14,
         maxLines: 1,
@@ -300,8 +300,8 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Padding(
         padding: const EdgeInsets.only(top: 10),
-        child: Text(
-          'Know Your Air',
+        child: AutoSizeText(
+          AppLocalizations.of(context)!.knowYourair,
           style:
               CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),
         ),
@@ -489,7 +489,10 @@ class _AirQualityActionsState extends State<AirQualityActions> {
             ),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                showSnackBar(context, 'Could not create a share link.');
+                showSnackBar(
+                  context,
+                  AppLocalizations.of(context)!.couldNotCreateAShareLink,
+                );
               }
               if (snapshot.hasData) {
                 Uri? link = snapshot.data;
@@ -526,7 +529,7 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                           ),
                           semanticsLabel: 'Share',
                         ),
-                        text: 'Share',
+                        text: AppLocalizations.of(context)!.share,
                       ),
                     ),
                   );
@@ -536,7 +539,8 @@ class _AirQualityActionsState extends State<AirQualityActions> {
               return OutlinedButton(
                 style: _leftButtonStyle,
                 onPressed: () {
-                  showSnackBar(context, 'Creating share link. Hold on tight');
+                  showSnackBar(
+                      context, AppLocalizations.of(context)!.creatingShareLink);
                 },
                 child: const Center(
                   child: LoadingIcon(radius: 14),
@@ -557,7 +561,7 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                   showAnimation: _showHeartAnimation,
                   placeId: widget.airQualityReading.placeId,
                 ),
-                text: 'Favorite',
+                text: AppLocalizations.of(context)!.favorite,
               ),
             ),
           ),
@@ -733,7 +737,7 @@ class CustomShowcaseWidget extends StatelessWidget {
                     color: Colors.white,
                   ),
                   child: IconButton(
-                    tooltip: "Skip Showcase",
+                    tooltip: AppLocalizations.of(context)!.skipShowCase,
                     icon: const Icon(Icons.skip_next),
                     onPressed: () async {
                       ShowCaseWidget.of(context).dismiss();

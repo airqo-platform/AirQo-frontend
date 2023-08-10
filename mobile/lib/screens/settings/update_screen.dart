@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> openUpdateScreen(
   BuildContext context,
@@ -69,7 +70,7 @@ Future<void> openUpdateScreen(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 60.0),
               child: Text(
-                "A new update is now available",
+                AppLocalizations.of(context)!.aNewUpdateIsNowAvailable,
                 style: CustomTextStyle.errorTitle(context),
                 textAlign: TextAlign.center,
               ),
@@ -80,7 +81,9 @@ Future<void> openUpdateScreen(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50.0),
               child: Text(
-                "AirQo version ${appStoreVersion.version} is now available to keep you up to date on the latest air quality data.",
+                AppLocalizations.of(context)!
+                    .airQoversionIsNowAvailableToKeepYouUpToDateOnTheLatestAirQualityData(
+                        appStoreVersion.version),
                 style: CustomTextStyle.errorSubTitle(context),
                 textAlign: TextAlign.center,
               ),
@@ -121,7 +124,7 @@ Future<void> openUpdateScreen(
                   });
                 },
                 child: Text(
-                  "Update now",
+                  AppLocalizations.of(context)!.updateNow,
                   style: CustomTextStyle.errorTitle(context)?.copyWith(
                     fontSize: 14,
                     color: Colors.white,

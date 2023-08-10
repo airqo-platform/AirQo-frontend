@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -54,7 +55,7 @@ class _SignOutButtonState extends State<SignOutButton> {
           foregroundColor: CustomColors.appColorBlue.withOpacity(0.1),
         ),
         child: Text(
-          'Log Out',
+          AppLocalizations.of(context)!.logout,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: CustomColors.appColorBlue,
               ),
@@ -118,7 +119,7 @@ class SignUpSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: AutoSizeText(
-              'Personalise your\nexperience',
+              AppLocalizations.of(context)!.personaliseYourExperience,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -132,18 +133,18 @@ class SignUpSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 55.0),
             child: AutoSizeText(
-              'Create your account today and enjoy air quality'
-              ' updates and health tips.',
-              maxLines: 6,
+              AppLocalizations.of(context)!
+                  .createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips,
+              maxLines: 5,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.4),
                   ),
             ),
           ),
           const SizedBox(
-            height: 24,
+            height: 4,
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 32),
@@ -189,9 +190,9 @@ class SignUpButton extends StatelessWidget {
           backgroundColor: CustomColors.appColorBlue,
           foregroundColor: CustomColors.appColorBlue,
         ),
-        child: const Text(
-          'Sign Up',
-          style: TextStyle(
+        child: Text(
+          AppLocalizations.of(context)!.signUp,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 14,
             height: 22 / 14,
@@ -249,7 +250,7 @@ class SettingsButton extends StatelessWidget {
           ),
         ),
         title: AutoSizeText(
-          'Settings',
+          AppLocalizations.of(context)!.settings,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
@@ -503,7 +504,7 @@ class ProfileSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CardSection(
-            text: 'Profile',
+            text: AppLocalizations.of(context)!.profile,
             materialIcon: Icons.person_rounded,
             iconColor: CustomColors.appColorBlue,
             nextPage: const ProfileEditPage(),
@@ -514,7 +515,7 @@ class ProfileSection extends StatelessWidget {
             height: 0,
           ),
           CardSection(
-            text: 'Favorites',
+            text: AppLocalizations.of(context)!.favorites,
             icon: 'assets/icon/heart.svg',
             iconColor: CustomColors.appColorRed,
             nextPage: const FavouritePlacesPage(),
@@ -524,7 +525,7 @@ class ProfileSection extends StatelessWidget {
             height: 0,
           ),
           CardSection(
-            text: 'For you',
+            text: AppLocalizations.of(context)!.forYou,
             icon: 'assets/icon/sparkles.svg',
             iconColor: CustomColors.appColorBlue,
             nextPage: const ForYouPage(analytics: false),
@@ -534,7 +535,7 @@ class ProfileSection extends StatelessWidget {
             height: 0,
           ),
           CardSection(
-            text: 'Send Feedback',
+            text: AppLocalizations.of(context)!.sendFeedback,
             iconColor: CustomColors.appColorBlue,
             nextPage: const FeedbackPage(),
             materialIcon: Icons.chat,
@@ -574,13 +575,13 @@ class ProfileViewAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ViewProfilePicture(),
                 const SizedBox(height: 4),
                 AutoSizeText(
-                  profile.displayName(),
+                  profile.displayName(context),
                   maxLines: 2,
                   style: CustomTextStyle.headline9(context),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Edit profile',
+                  AppLocalizations.of(context)!.editProfile,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),
@@ -796,7 +797,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                         : CustomColors.appColorBlue,
                   ),
                   child: Text(
-                    'Save',
+                    AppLocalizations.of(context)!.save,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: previousProfile == profile
@@ -833,7 +834,9 @@ class EditCredentialsField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          authMethod == AuthMethod.email ? 'Email' : 'Phone Number',
+          authMethod == AuthMethod.email
+              ? AppLocalizations.of(context)!.email
+              : AppLocalizations.of(context)!.phoneNumber,
           style: TextStyle(
             fontSize: 12,
             color: CustomColors.inactiveColor,
@@ -945,7 +948,7 @@ class GuestProfileView extends StatelessWidget {
               height: 5,
             ),
             Text(
-              'Guest',
+              AppLocalizations.of(context)!.guest,
               style: CustomTextStyle.headline9(context),
             ),
           ],

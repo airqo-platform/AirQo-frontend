@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 class InsightAirQualityWidget extends StatelessWidget {
@@ -52,8 +53,8 @@ class InsightAirQualityWidget extends StatelessWidget {
                 ),
                 AutoSizeText(
                   insight.isEmpty
-                      ? 'No air quality data available'
-                      : '${insight.airQuality?.title}',
+                      ? AppLocalizations.of(context)!.noAirQualityDataAvailable
+                      : '${insight.airQuality?.getTitle(context)}',
                   maxLines: 1,
                   minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
@@ -112,18 +113,20 @@ class InsightAirQualityWidget extends StatelessWidget {
 }
 
 class InsightAirQualityMessageWidget extends StatelessWidget {
-  InsightAirQualityMessageWidget(this.insight, {super.key});
+  InsightAirQualityMessageWidget(this.insight, this.name, {super.key});
 
   final Insight insight;
+  final String name;
   final ScrollController _scrollController = ScrollController();
 
-  List<Widget> aqiDialogWidgets() {
+  List<Widget> aqiDialogWidgets(BuildContext context) {
     List<Widget> aqiDialogWidgets = [];
     aqiDialogWidgets.add(
       Padding(
         padding: const EdgeInsets.only(top: 10.0),
-        child: Text(
-          'The Air Quality Index (AQI) colors can be used to show how polluted the air is. ',
+        child: AutoSizeText(
+          AppLocalizations.of(context)!
+              .theAirQualityIndexColorsCanbBeUsedToShowHowPollutedTheAirIs,
           style: TextStyle(
             fontSize: 8,
             fontWeight: FontWeight.w500,
@@ -150,7 +153,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: "${airQuality.title}. ",
+                        text: "${airQuality.getTitle(context)}. ",
                         style: TextStyle(
                           fontSize: 8,
                           fontWeight: FontWeight.w500,
@@ -159,7 +162,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: airQuality.description,
+                        text: airQuality.getDescription(context),
                         style: TextStyle(
                           color: CustomColors.appColorBlack.withOpacity(0.7),
                           fontSize: 8,
@@ -181,6 +184,9 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String message = insight.airQuality != null
+        ? insight.message(context, name)
+        : insight.forecastMessage(context, name);
     return Container(
       padding: const EdgeInsets.all(8),
       height: 64,
@@ -190,9 +196,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
         children: [
           Expanded(
             child: AutoSizeText(
-              insight.isFutureData
-                  ? insight.forecastMessage
-                  : insight.airQualityMessage,
+              message,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -234,7 +238,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(left: 16),
                               child: Text(
-                                'Know Your Air',
+                                AppLocalizations.of(context)!.knowYourair,
                                 style: CustomTextStyle.headline10(
                                   context,
                                 )?.copyWith(
@@ -277,7 +281,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                             child: ListView(
                               padding: EdgeInsets.zero,
                               controller: _scrollController,
-                              children: aqiDialogWidgets(),
+                              children: aqiDialogWidgets(context),
                             ),
                           ),
                         ),
@@ -418,7 +422,10 @@ class InsightsCalendar extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                       ),
-                      child: InsightAirQualityMessageWidget(selectedInsight),
+                      child: InsightAirQualityMessageWidget(
+                        selectedInsight,
+                        airQualityReading.name,
+                      ),
                     ),
                   ],
                 ),
@@ -440,8 +447,8 @@ class InsightsCalendar extends StatelessWidget {
 }
 
 class ForecastContainer extends StatelessWidget {
-  const ForecastContainer(this.insight, {super.key});
-
+  const ForecastContainer(this.insight, this.name, {super.key});
+  final String name;
   final Insight insight;
 
   @override
@@ -458,7 +465,7 @@ class ForecastContainer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0),
             child: Text(
-              'Forecast',
+              AppLocalizations.of(context)!.forecast,
               style: CustomTextStyle.headline8(context)?.copyWith(fontSize: 20),
             ),
           ),
@@ -485,7 +492,7 @@ class ForecastContainer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AutoSizeText(
-                      insight.forecastMessage,
+                      insight.forecastMessage(context, name),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -556,7 +563,7 @@ class _HealthTipsWidgetState extends State<HealthTipsWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              widget.insight.healthTipsTitle(),
+              widget.insight.healthTipsTitle(context),
               textAlign: TextAlign.left,
               style: CustomTextStyle.headline7(context),
             ),

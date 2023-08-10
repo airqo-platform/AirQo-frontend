@@ -4,6 +4,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'profile_widgets.dart';
 
@@ -46,7 +47,7 @@ class ProfileEditPage extends StatelessWidget {
                   height: 16,
                 ),
                 Text(
-                  'First Name',
+                  AppLocalizations.of(context)!.firstName,
                   style: TextStyle(
                     fontSize: 12,
                     color: CustomColors.inactiveColor,
@@ -65,7 +66,7 @@ class ProfileEditPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Last Name',
+                  AppLocalizations.of(context)!.lastName,
                   style: TextStyle(
                     fontSize: 12,
                     color: CustomColors.inactiveColor,

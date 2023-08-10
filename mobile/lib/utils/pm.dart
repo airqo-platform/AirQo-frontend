@@ -4,41 +4,6 @@ import 'package:app/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-String pmToInfoDialog(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'Air quality is safe for everyone!';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'Unusually sensitive people should consider reducing '
-        'prolonged or intense outdoor activities.'
-        '';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'The elderly and children should limit intense outdoor activities.'
-        'Sensitive people should reduce prolonged or '
-        'intense outdoor activities.';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'People with respiratory or heart disease,'
-        ' the elderly and children should avoid '
-        'intense outdoor activities.'
-        'Everyone else should limit intense outdoor activities.';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'People with respiratory or heart disease, '
-        'the elderly and children should avoid any outdoor activity.'
-        'Everyone else should limit intense outdoor activities.';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'Everyone should avoid any intense outdoor activities. '
-        'People with respiratory or heart disease,'
-        ' the elderly and children should remain indoors.';
-  } else {
-    return '';
-  }
-}
-
 Future<BitmapDescriptor> pmToMarker({
   required double pm2_5,
   required int itemsSize,
