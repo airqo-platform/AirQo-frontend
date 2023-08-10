@@ -14,7 +14,8 @@ import {
   PUBLICATIONS_URL,
   EVENTS_URL,
   CITIES_URL,
-  PRESS_URL
+  PRESS_URL,
+  LOCATIONS_TRACKING_URL
 } from '../config/urls';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
