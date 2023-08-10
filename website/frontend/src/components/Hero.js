@@ -3,14 +3,14 @@ import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import useWindowSize from 'utils/customHooks';
 import { Link } from 'react-router-dom';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import CloseIcon from '@mui/icons-material/Close';
 import { Modal, Box, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import vid from '../assets/video/opening.mp4';
+import vid from '../assets/video/opening.mov';
 import ReactPlayer from 'react-player/lazy';
 import { border, borderRadius } from '@mui/system';
-const VideoURL = 'https://youtu.be/52C8A3FUaqI';
+const VideoURL = 'https://youtu.be/2NebAd1F8x8';
 
 const breakPoint = 580;
 
@@ -50,7 +50,7 @@ const Hero = () => {
           <div className="video-overlay">
             <video src={vid} autoPlay muted loop id="myVideo" />
             <div className="play-button" onClick={openModal}>
-              <PlayCircleOutlineIcon fontSize="large" color="primary" />
+              <PlayCircleFilledIcon />
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ const Hero = () => {
               config={{
                 file: {
                   attributes: {
-                    controlsList: 'nodownload' // Disable download button
+                    controlsList: 'nodownload'
                   }
                 }
               }}

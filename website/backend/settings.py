@@ -15,10 +15,10 @@ from pathlib import Path
 import cloudinary
 import dj_database_url
 
-# import os
-# from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 
 # Read environment
