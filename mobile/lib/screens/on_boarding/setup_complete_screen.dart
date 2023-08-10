@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'on_boarding_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({super.key});
@@ -27,12 +28,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'All Set!',
+                  AppLocalizations.of(context)!.allSet,
                   textAlign: TextAlign.center,
                   style: _setUpCompleteTextStyle(),
                 ),
                 Text(
-                  'Breathe',
+                  AppLocalizations.of(context)!.breathe,
                   textAlign: TextAlign.center,
                   style: _setUpCompleteTextStyle()?.copyWith(
                     color: CustomColors.appColorBlue,

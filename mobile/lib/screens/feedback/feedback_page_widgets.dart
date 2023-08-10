@@ -2,9 +2,11 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FeedbackStartButton extends StatelessWidget {
   const FeedbackStartButton({
@@ -36,10 +38,10 @@ class FeedbackStartButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Spacer(),
-                const Text(
-                  'Next',
+                Text(
+                  AppLocalizations.of(context)!.next,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                   ),
@@ -95,7 +97,7 @@ class FeedbackBackButton extends StatelessWidget {
             }
           },
           child: FeedbackNavigationButton(
-            text: 'Back',
+            text: AppLocalizations.of(context)!.back,
             buttonColor: CustomColors.appColorBlue.withOpacity(0.1),
             textColor: CustomColors.appColorBlue,
           ),
@@ -115,7 +117,7 @@ class FeedbackNextButton extends StatelessWidget {
     return BlocBuilder<FeedbackBloc, FeedbackState>(
       builder: (context, state) {
         Color buttonColor = CustomColors.appColorBlue;
-        String buttonText = 'Next';
+        String buttonText = AppLocalizations.of(context)!.next;
         String? svg = 'assets/icon/next_arrow.svg';
 
         switch (state.step) {
@@ -131,7 +133,7 @@ class FeedbackNextButton extends StatelessWidget {
             }
             break;
           case FeedbackStep.formStep:
-            buttonText = 'Send';
+            buttonText = AppLocalizations.of(context)!.send;
             svg = null;
             if (state.feedback.isEmpty) {
               buttonColor = CustomColors.appColorBlue.withOpacity(0.24);
@@ -284,9 +286,9 @@ class FeedbackCard extends StatelessWidget {
           const SizedBox(
             width: 16,
           ),
-          Text(
+          AutoSizeText(
             title,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
@@ -303,7 +305,7 @@ class FeedbackForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Go Ahead, Tell Us More?',
+          AppLocalizations.of(context)!.goAheadTellUsMore,
           style: CustomTextStyle.headline9(context),
         ),
         const SizedBox(
@@ -346,7 +348,7 @@ class FeedbackForm extends StatelessWidget {
                   decoration: InputDecoration(
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
-                    hintText: 'Please tell us the details',
+                    hintText: AppLocalizations.of(context)!.tellUsDetails,
                     hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: CustomColors.appColorBlack.withOpacity(0.32),
                         ),
@@ -435,7 +437,7 @@ class FeedbackTypeStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'What Type Of Feedback?',
+            AppLocalizations.of(context)!.feedBackType,
             style: CustomTextStyle.headline9(context),
           ),
           const SizedBox(
@@ -446,7 +448,7 @@ class FeedbackTypeStep extends StatelessWidget {
               _updateType(context, FeedbackType.reportAirPollution);
             },
             child: FeedbackCard(
-              title: FeedbackType.reportAirPollution.toString(),
+              title: FeedbackType.reportAirPollution.getStringValue(context),
               active: state.feedbackType == FeedbackType.reportAirPollution,
             ),
           ),
@@ -458,7 +460,7 @@ class FeedbackTypeStep extends StatelessWidget {
               _updateType(context, FeedbackType.inquiry);
             },
             child: FeedbackCard(
-              title: FeedbackType.inquiry.toString(),
+              title: FeedbackType.inquiry.getStringValue(context),
               active: state.feedbackType == FeedbackType.inquiry,
             ),
           ),
@@ -470,7 +472,7 @@ class FeedbackTypeStep extends StatelessWidget {
               _updateType(context, FeedbackType.suggestion);
             },
             child: FeedbackCard(
-              title: FeedbackType.suggestion.toString(),
+              title: FeedbackType.suggestion.getStringValue(context),
               active: state.feedbackType == FeedbackType.suggestion,
             ),
           ),
@@ -482,7 +484,7 @@ class FeedbackTypeStep extends StatelessWidget {
               _updateType(context, FeedbackType.appBugs);
             },
             child: FeedbackCard(
-              title: FeedbackType.appBugs.toString(),
+              title: FeedbackType.appBugs.getStringValue(context),
               active: state.feedbackType == FeedbackType.appBugs,
             ),
           ),
@@ -508,7 +510,7 @@ class FeedbackChannelStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Send Us Feedback Via Email',
+          AppLocalizations.of(context)!.sendFeedbackEmail,
           style: CustomTextStyle.headline9(context),
         ),
         const SizedBox(
@@ -579,7 +581,7 @@ class FeedbackChannelStep extends StatelessWidget {
                         const BorderSide(color: Colors.white, width: 1.0),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  hintText: 'Enter your email',
+                  hintText: AppLocalizations.of(context)!.enterYourEmail,
                   hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.32),
                       ),
