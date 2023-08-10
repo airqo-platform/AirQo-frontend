@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'custom_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhoneNumberInputFormatter extends TextInputFormatter {
   @override
@@ -71,7 +72,9 @@ class CountryCodePickerField extends StatelessWidget {
         ),
       ),
       child: CountryListPick(
-        appBar: const AppTopBar('Select Country'),
+        appBar: AppTopBar(
+          AppLocalizations.of(context)!.selectCountry,
+        ),
         theme: CountryTheme(
           isShowFlag: true,
           isShowTitle: false,

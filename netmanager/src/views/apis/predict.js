@@ -1,12 +1,7 @@
 import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
 
-let token = localStorage.jwtToken;
-if (token) {
-  axios.defaults.headers.common.Authorization = token;
-} else {
-  axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
-}
+axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
 const API_TOKEN = process.env.REACT_APP_API_TOKEN
 

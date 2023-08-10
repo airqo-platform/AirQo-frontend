@@ -15,6 +15,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -72,9 +74,6 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => ProfileBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => KyaProgressCubit(),
-        ),
-        BlocProvider(
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
@@ -95,8 +94,21 @@ class AirQoApp extends StatelessWidget {
         BlocProvider(
           create: (BuildContext context) => DashboardBloc(),
         ),
+        BlocProvider(
+          create: (BuildContext context) => SearchHistoryBloc(),
+        ),
       ],
       child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('fr'),
+        ],
         navigatorKey: navigatorKey,
         navigatorObservers: [
           FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),

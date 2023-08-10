@@ -2,16 +2,13 @@
 import {
   LOAD_ALL_DEVICES_SUCCESS,
   LOAD_MAINTENANCE_LOGS_SUCCESS,
-  LOAD_DEVICE_COMPONENTS_SUCCESS,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
-  INSERT_NEW_COMPONENT_SUCCESS,
   INSERT_NEW_DEVICE_SUCCESS,
   RESET_DEVICE_SUCCESS,
   RESET_DEVICE_COMPONENTS_SUCCESS,
   RESET_MAINTENANCE_LOGS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
   UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
-  UPDATE_SINGLE_COMPONENT_SUCCESS,
   DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
@@ -21,12 +18,7 @@ import {
   LOAD_DEVICE_SENSOR_CORRELATION_FAILURE
 } from './actions';
 import { transformArray } from '../utils';
-import {
-  getAllDevicesApi,
-  getActivitiesApi,
-  getDeviceComponentsApi,
-  deleteDeviceApi
-} from 'views/apis/deviceRegistry';
+import { getAllDevicesApi, getActivitiesApi, deleteDeviceApi } from 'views/apis/deviceRegistry';
 import {
   getDeviceUptimeApi,
   getDeviceBatteryVoltageApi,
@@ -89,24 +81,6 @@ export const forcedLoadDeviceMaintenanceLogs = (deviceName) => {
   };
 };
 
-export const loadDeviceComponentsData = (deviceName) => {
-  return async (dispatch) => {
-    return await getDeviceComponentsApi(deviceName)
-      .then((responseData) => {
-        if (isEmpty(responseData.components || [])) return;
-        const indexedComponent = [];
-        responseData.components.map((comp, tableIndex) =>
-          indexedComponent.push({ ...comp, tableIndex })
-        );
-        dispatch({
-          type: LOAD_DEVICE_COMPONENTS_SUCCESS,
-          payload: { [deviceName]: indexedComponent }
-        });
-      })
-      .catch((err) => console.log(err));
-  };
-};
-
 export const resetDeviceRegistryState = () => (dispatch) => {
   dispatch({ type: RESET_DEVICE_SUCCESS });
   dispatch({ type: RESET_DEVICE_COMPONENTS_SUCCESS });
@@ -134,20 +108,6 @@ export const deleteMaintenanceLog = (deviceName, index) => (dispatch) => {
   });
 };
 
-export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
-  dispatch({
-    type: INSERT_NEW_COMPONENT_SUCCESS,
-    payload: { deviceName, component }
-  });
-};
-
-export const updateDeviceComponent = (deviceName, index, component) => (dispatch) => {
-  dispatch({
-    type: UPDATE_SINGLE_COMPONENT_SUCCESS,
-    payload: { deviceName, index, component }
-  });
-};
-
 export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
   return await getDeviceUptimeApi(params)
     .then((responseData) => {
@@ -164,8 +124,8 @@ export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
     });
 };
 
-export const loadDeviceBatteryVoltage = (deviceName) => async (dispatch) => {
-  return await getDeviceBatteryVoltageApi({ device_name: deviceName })
+export const loadDeviceBatteryVoltage = (params) => async (dispatch) => {
+  return await getDeviceBatteryVoltageApi(params)
     .then((responseData) => {
       if (typeof responseData.success !== 'undefined' && !responseData.success) {
         dispatch({
@@ -175,7 +135,7 @@ export const loadDeviceBatteryVoltage = (deviceName) => async (dispatch) => {
       }
       dispatch({
         type: LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
-        payload: { deviceName, data: responseData }
+        payload: responseData.data
       });
     })
     .catch(() => {

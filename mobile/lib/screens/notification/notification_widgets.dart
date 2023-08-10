@@ -5,6 +5,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NotificationView extends StatelessWidget {
   const NotificationView({
@@ -195,7 +196,7 @@ class NotificationCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'New',
+                AppLocalizations.of(context)!.neW,
                 style: CustomTextStyle.newNotification(context),
               ),
             ),
@@ -245,7 +246,7 @@ class EmptyNotifications extends StatelessWidget {
             ),
             const SizedBox(height: 53),
             Text(
-              'No notifications',
+              AppLocalizations.of(context)!.noNortifications,
               textAlign: TextAlign.center,
               style: CustomTextStyle.headline7(context)?.copyWith(
                 fontSize: 21,
@@ -259,7 +260,8 @@ class EmptyNotifications extends StatelessWidget {
                     fontSize: 15.0,
                     color: CustomColors.emptyNotificationScreenTextColor,
                   ),
-              'Here you’ll find all updates on our Air Quality network.',
+              AppLocalizations.of(context)!
+                  .hereYoullFindAllUpdatesOnOurAirQualityNetwork,
             ),
             const Spacer(),
           ],

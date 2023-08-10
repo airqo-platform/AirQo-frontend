@@ -10,7 +10,6 @@ const LogsBreadCrumb = ({ category }) => {
       fontSize={'24px'}
       fontWeight={600}
       fontFamily={'sans-serif'}
-      paddingBottom={'30px'}
     >
       <Box fontWeight={'300'}>Logs</Box>
       <Box paddingLeft={'10px'} paddingRight={'10px'} fontWeight={'300'}>

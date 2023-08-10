@@ -17,7 +17,7 @@ const AccountCreationPage2 = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
-  const userEmail = useSelector((state) => state.account.userData.email);
+  const userEmail = useSelector((state) => state.creation.userData.email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

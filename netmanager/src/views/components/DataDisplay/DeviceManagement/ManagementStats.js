@@ -49,7 +49,6 @@ function ManagementStat() {
   });
   const [leaderboardDateMenu, toggleLeaderboardDateMenu] = useState(false);
   const [leaderboardDateRange, setLeaderboardDateRange] = useState('1');
-  const [isLoading, setLoading] = useState(false);
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
@@ -103,7 +102,7 @@ function ManagementStat() {
       dispatch(
         loadNetworkUptimeData({
           startDate: roundToStartOfDay(
-            moment(new Date()).subtract(7, 'days').toISOString()
+            moment(new Date()).subtract(3, 'days').toISOString()
           ).toISOString(),
           endDate: roundToEndOfDay(new Date().toISOString()).toISOString()
         })
@@ -166,7 +165,6 @@ function ManagementStat() {
 
   const updateLeaderboardDateRange = (e) => {
     e.preventDefault();
-    setLoading(true);
     const { value } = e.target;
 
     setLeaderboardDateRange(value);
@@ -188,7 +186,6 @@ function ManagementStat() {
         })
       );
     }
-    setLoading(false);
   };
 
   return (
@@ -205,8 +202,8 @@ function ManagementStat() {
           <ApexChart
             options={timeSeriesChartOptions({
               stroke: {
-                width: 1,
-              },
+                width: 1.5
+              }
             })}
             title={'Network uptime'}
             series={series}
@@ -229,7 +226,6 @@ function ManagementStat() {
             title={`Leaderboard in the last ${
               leaderboardDateRange === '1' ? '24 hours' : `${leaderboardDateRange} days`
             }`}
-            loading={isLoading}
             controller={
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {devicesUptimeDescending ? (
@@ -274,7 +270,7 @@ function ManagementStat() {
             }
             blue
           >
-            <div>
+            <div style={{ overflow: 'auto', height: '100%' }}>
               <div className={`m-device-uptime-row uptime-table-header`}>
                 <span>device name</span>
                 <span>downtime (%)</span>

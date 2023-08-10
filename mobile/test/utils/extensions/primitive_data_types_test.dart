@@ -1,5 +1,8 @@
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
@@ -149,7 +152,6 @@ void main() {
     final DateTime tomorrow = today.add(day);
 
     final fixedDate1 = DateTime(2023, 5, 4);
-    final fixedDate2 = DateTime(2023, 5, 4, 15, 30);
     final fixedDate3 = DateTime(2023, 5, 4, 8, 45, 53);
 
     test(
@@ -160,21 +162,79 @@ void main() {
       expect(today.isSameDay(today), isTrue);
     });
 
-    test('analyticsCardString returns correct string for yesterday', () {
+    testWidgets('analyticsCardString returns correct string for yesterday',
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Text(
+            key: key,
+            'analyticsCardString returns correct string for yesterday',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
       String expected1 =
           'Updated yesterday at ${DateFormat('hh:mm a').format(yesterday)}';
       String expected2 =
           'Updated today at ${DateFormat('hh:mm a').format(today)}';
       String expected3 = 'Tomorrow, ${DateFormat('hh:mm a').format(tomorrow)}';
       String expected4 = '4 May, 08:45 AM';
-      expect(yesterday.analyticsCardString(), expected1);
-      expect(today.analyticsCardString(), expected2);
-      expect(tomorrow.analyticsCardString(), expected3);
-      expect(fixedDate3.analyticsCardString(), expected4);
+      expect(yesterday.analyticsCardString(buildContext), expected1);
+      expect(today.analyticsCardString(buildContext), expected2);
+      expect(tomorrow.analyticsCardString(buildContext), expected3);
+      expect(fixedDate3.analyticsCardString(buildContext), expected4);
     });
 
-    test('timelineString should return a formatted date string', () {
-      expect(fixedDate1.timelineString(), 'THURSDAY 4, MAY');
+    testWidgets('timelineString should return a formatted date string',
+        (WidgetTester tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('fr'),
+          ],
+          home: Text(
+            key: key,
+            'timelineString should return a formatted date string',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      BuildContext? buildContext = key.currentContext;
+      expect(buildContext, isNotNull);
+
+      if (buildContext == null) {
+        return;
+      }
+      expect(fixedDate1.timelineString(buildContext), 'THURSDAY 4, MAY');
     });
 
     test(

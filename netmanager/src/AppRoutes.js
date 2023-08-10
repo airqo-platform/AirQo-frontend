@@ -33,12 +33,13 @@ const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUse
 const CandidateList = lazy(() => import('./views/pages/CandidateList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
+const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
 const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'));
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
 const AirQloudRegistry = lazy(() => import('./views/components/AirQlouds/AirQloudRegistry'));
 const AirQloudView = lazy(() => import('./views/components/AirQlouds/AirQloudView'));
 const Organisation = lazy(() => import('./views/pages/Organisation'));
-const DataExportLogs = lazy(() => import('./views/pages/Logs/DataExport'));
+const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
 
@@ -93,6 +94,12 @@ const AppRoutes = () => {
               component={ManagerStats}
               layout={MainLayout}
             />
+            <PrivateRoute
+              exact
+              path="/manager/activities"
+              component={SiteActivities}
+              layout={MainLayout}
+            />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute
@@ -121,12 +128,7 @@ const AppRoutes = () => {
               layout={MainLayout}
             />
             <PrivateRoute exact path="/registry" component={Devices} layout={MainLayout} />
-            <PrivateRoute
-              exact
-              path="/logs/data-export"
-              component={DataExportLogs}
-              layout={MainLayout}
-            />
+            <PrivateRoute exact path="/logs" component={Logs} layout={MainLayout} />
             <PrivateRoute
               component={PermissionDenied}
               exact

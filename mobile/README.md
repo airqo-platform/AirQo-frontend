@@ -150,10 +150,8 @@ flutter run --flavor airqo -t lib/main.dart --release
 
 ```bash
 bash upgrade-dependencies.sh
-flutter packages pub run build_runner build --delete-conflicting-outputs
-dart fix --dry-run
-dart fix --apply
-dart format lib/
+dart run build_runner build --delete-conflicting-outputs
+dart fix --dry-run && dart fix --apply && dart format lib/
 flutter pub run dart_code_metrics:metrics analyze lib --reporter=html
 flutter pub run dart_code_metrics:metrics check-unused-files lib
 flutter pub run dart_code_metrics:metrics check-unused-code lib
@@ -168,6 +166,7 @@ flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
+ flutter gen-l10n
 ```
 
 ## **Security Guidelines**

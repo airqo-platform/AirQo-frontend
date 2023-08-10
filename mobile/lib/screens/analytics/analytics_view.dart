@@ -15,13 +15,8 @@ class AnalyticsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LocationHistoryBloc, List<LocationHistory>>(
-      buildWhen: (previous, current) {
-        return previous != current;
-      },
       builder: (context, state) {
-        if (state.isEmpty) {
-          context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-        }
+        context.read<LocationHistoryBloc>().add(const SyncLocationHistory());   
 
         List<LocationHistory> locationHistory = state;
         locationHistory.sortByDateTime();

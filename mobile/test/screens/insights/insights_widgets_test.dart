@@ -4,6 +4,7 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,8 +22,6 @@ void main() {
     );
 
     insight = Insight(
-      forecastMessage: "forecastMessage",
-      airQualityMessage: "airQualityMessage",
       dateTime: DateTime.now(),
       pm2_5: 5,
       healthTips: List.generate(
@@ -30,6 +29,8 @@ void main() {
         (index) => healthTip,
       ),
       airQuality: Pollutant.pm2_5.airQuality(5),
+      forecastPm2_5: null,
+      forecastAirQuality: null,
     );
     name = "Makerere";
   });
@@ -77,8 +78,8 @@ void main() {
     });
     testWidgets('Tests empty insight', (tester) async {
       Insight emptyInsight = Insight(
-        forecastMessage: "forecastMessage",
-        airQualityMessage: "airQualityMessage",
+        forecastPm2_5: null,
+        forecastAirQuality: null,
         dateTime: DateTime.now(),
         pm2_5: null,
         healthTips: List.generate(
@@ -108,6 +109,16 @@ void main() {
   testWidgets('Health tip widget', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('fr'),
+        ],
+        theme: customTheme(),
         home: HealthTipContainer(healthTip),
       ),
     );
@@ -122,26 +133,27 @@ void main() {
   testWidgets('Forecast widget', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: ForecastContainer(insight),
+        home: Scaffold(
+          body: ForecastContainer(insight, "Makerere"),
+        ),
       ),
     );
 
     final titleFinder = find.text('Forecast');
-    final messageFinder = find.text(insight.forecastMessage);
     expect(titleFinder, findsOneWidget);
-    expect(messageFinder, findsOneWidget);
   });
 
   group('Insight AirQuality Widget tests', () {
     testWidgets('Test active insight', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-            home: Scaffold(
-          body: InsightsDayReading(
-            insight,
-            isActive: true,
+          home: Scaffold(
+            body: InsightsDayReading(
+              insight,
+              isActive: true,
+            ),
           ),
-        )),
+        ),
       );
 
       final weekDayFinder = find
