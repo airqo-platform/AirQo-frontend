@@ -70,7 +70,7 @@ class SearchingAirQuality extends StatelessWidget {
       child: AutoSizeText(
         maxLines: 2,
         minFontSize: 1,
-        AppLocalizations.of(context)!.searchingForAirQualityNearYouHoldOnTight,
+        AppLocalizations.of(context)!.searchingForAirQualityNearYouHangOnTight,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: CustomColors.appColorBlue,
