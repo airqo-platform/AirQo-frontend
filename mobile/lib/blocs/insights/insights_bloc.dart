@@ -80,24 +80,35 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     required List<Forecast> forecast,
     required AirQualityReading airQualityReading,
   }) {
-    List<Forecast> forecasts = forecast
-      ..sortByDateTime()
-      ..take(6).toList();
+    Set<Insight> data = List.of(insights.toList()).toSet();
+    Insight todayInsight = insights.firstWhere(
+      (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
+    );
 
-    for (Forecast forecast in forecasts) {
-      if (forecast.time.isSameDay(airQualityReading.dateTime)) continue;
+    if (forecast.isNotEmpty) {
+      data.removeWhere((element) => element != todayInsight);
 
-      insights.addOrUpdate(Insight.fromForecast(forecast));
+      List<Forecast> forecasts = List.of(forecast);
+      forecasts.removeWhere((element) =>
+          element.time.isSameDay(todayInsight.dateTime) ||
+          element.time.isBefore(todayInsight.dateTime));
+
+      forecasts.sortByDateTime();
+      forecasts = forecasts.take(6).toList();
+
+      for (Forecast forecast in forecasts) {
+        data.addOrUpdate(Insight.fromForecast(forecast));
+      }
     }
+
+    List<Insight> insightsData = data.toList();
+    insightsData.sortByDateTime();
+    insightsData = insightsData.take(7).toList();
 
     return emit(
       state.copyWith(
-        selectedInsight: insights.firstWhere(
-          (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
-        ),
-        insights: insights.toList()
-          ..sortByDateTime()
-          ..take(7).toList(),
+        selectedInsight: todayInsight,
+        insights: insightsData,
       ),
     );
   }
