@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, CircularProgress, Grid, Paper, TextField } from '@material-ui/core';
+import { 
+  Button, 
+  CircularProgress, 
+  Grid, 
+  Paper, 
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Select,
+  MenuItem
+
+} from '@material-ui/core';
 import Tooltip from '@material-ui/core/Tooltip';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -30,6 +44,7 @@ import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
 import { getUserDetails } from '../../../../redux/Join/actions';
+import { deviceRecallSubmit } from './DeviceRecall';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
@@ -179,6 +194,53 @@ RecallDevice.propTypes = {
   toggleOpen: PropTypes.func.isRequired
 };
 
+const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
+  const [recallType, setRecallType] = useState('');
+
+  const handleConfirmRecall = () => {
+    // Call handleRecall with the selected recallType
+    handleRecall(recallType);
+    // Close the dialog
+    toggleOpen();
+  };
+
+  return (
+    <Dialog open={open} onClose={toggleOpen} aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">Recall Device</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Select the recall type for device {deviceData.name}.
+        </DialogContentText>
+        <Select
+          value={recallType}
+          onChange={(e) => setRecallType(e.target.value)}
+          fullWidth
+        >
+          <MenuItem value="">Select Recall Type</MenuItem>
+          <MenuItem value="Type A">Type A</MenuItem>
+          <MenuItem value="Type B">Type B</MenuItem>
+          <MenuItem value="Type C">Type C</MenuItem>
+        </Select>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={toggleOpen} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleConfirmRecall} color="primary">
+          Recall
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+RecallDeviceDialog.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+  handleRecall: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  toggleOpen: PropTypes.func.isRequired
+};
+
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(
@@ -288,7 +350,7 @@ DeviceRecentFeedView.propTypes = {
 export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
-  const [recallType, setRecallType] = useState((deviceData.recallType && String(deviceData.recallType)) || '');
+  const [recallType, setRecallType] = useState('');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
@@ -435,18 +497,21 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
   
 
   const handleRecallSubmit = async () => {
-    setRecallOpen(!recallOpen);
+    setRecallOpen(false); 
     setrecallLoading(true);
+
+    const { user } =  mappedAuth;
   
     try {
-      const user = await getUserDetails(userId); 
+
+      const userData = await getUserDetails(user._id); 
 
       const recallData = {
         recallType: recallType,
-        userName: user.email, 
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
+        userName: userData.email, 
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName
       };
   
       const responseData = await recallDeviceApi(deviceData.name, recallData); 
@@ -549,10 +614,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
         </span>
       </div>
 
-      <RecallDevice
+      <RecallDeviceDialog
         deviceData={deviceData}
         open={recallOpen}
         toggleOpen={() => setRecallOpen(!recallOpen)}
+        recallType={recallType}
+        setRecallType={setRecallType}
         handleRecall={handleRecallSubmit}
       />
 
