@@ -5,15 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> main() async {
-  late Map<String, String> headers;
-
   group('searchHistory', () {
     setUpAll(() async {
       await dotenv.load(fileName: Config.environmentFile);
-      headers = {
-        'Authorization': 'JWT ${Config.airqoJWTToken}',
-        'service': ApiService.auth.serviceName,
-      };
     });
 
     test('successfully get search History', () async {
