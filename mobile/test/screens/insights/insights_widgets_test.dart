@@ -23,12 +23,12 @@ void main() {
 
     insight = Insight(
       dateTime: DateTime.now(),
-      pm2_5: 5,
+      currentPm2_5: 5,
       healthTips: List.generate(
         5,
         (index) => healthTip,
       ),
-      airQuality: Pollutant.pm2_5.airQuality(5),
+      currentAirQuality: Pollutant.pm2_5.airQuality(5),
       forecastPm2_5: null,
       forecastAirQuality: null,
     );
@@ -44,8 +44,10 @@ void main() {
       );
 
       final nameFinder = find.text(name);
-      final airQualityTextFinder = find.text('${insight.airQuality?.title}');
-      final airQualityValueFinder = find.text("${insight.pm2_5?.toInt()}");
+      final airQualityTextFinder =
+          find.text('${insight.currentAirQuality?.title}');
+      final airQualityValueFinder =
+          find.text("${insight.currentPm2_5?.toInt()}");
 
       expect(nameFinder, findsOneWidget);
       expect(airQualityTextFinder, findsOneWidget);
@@ -68,7 +70,7 @@ void main() {
               widget.colorFilter ==
                   ColorFilter.mode(
                     Pollutant.pm2_5.textColor(
-                      value: insight.pm2_5,
+                      value: insight.currentPm2_5,
                     ),
                     BlendMode.srcIn,
                   ),
@@ -81,12 +83,12 @@ void main() {
         forecastPm2_5: null,
         forecastAirQuality: null,
         dateTime: DateTime.now(),
-        pm2_5: null,
+        currentPm2_5: null,
         healthTips: List.generate(
           5,
           (index) => healthTip,
         ),
-        airQuality: null,
+        currentAirQuality: null,
       );
 
       await tester.pumpWidget(

@@ -1,13 +1,11 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
 
@@ -49,74 +47,7 @@ class InsightsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.appBodyColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
-        centerTitle: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            InkWell(
-              onTap: () async {
-                await popNavigation(context);
-              },
-              child: SvgPicture.asset(
-                'assets/icon/close.svg',
-                height: 40,
-                width: 40,
-              ),
-            ),
-            Text(AppLocalizations.of(context)!.moreInsights,
-                style: CustomTextStyle.headline8(context)),
-            FutureBuilder<Uri>(
-              future: ShareService.createShareLink(
-                airQualityReading: airQualityReading,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  showSnackBar(context,
-                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
-                }
-                if (snapshot.hasData) {
-                  return InkWell(
-                    onTap: () async {
-                      Uri? link = snapshot.data;
-                      if (link != null) {
-                        await ShareService.shareLink(
-                          link,
-                          context,
-                          airQualityReading: airQualityReading,
-                        );
-                      }
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      theme: SvgTheme(currentColor: CustomColors.greyColor),
-                      colorFilter: ColorFilter.mode(
-                        CustomColors.greyColor,
-                        BlendMode.srcIn,
-                      ),
-                      height: 26,
-                      width: 26,
-                    ),
-                  );
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    showSnackBar(context,
-                        AppLocalizations.of(context)!.creatingShareLink);
-                  },
-                  child: const Center(
-                    child: LoadingIcon(radius: 20),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: InsightsPageAppBar(airQualityReading),
       body: AppSafeArea(
         child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
@@ -155,7 +86,8 @@ class InsightsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
                       AppLocalizations.of(context)!
-                          .actualDate(selectedInsight.dateTime).toUpperCase(),
+                          .actualDate(selectedInsight.dateTime)
+                          .toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),

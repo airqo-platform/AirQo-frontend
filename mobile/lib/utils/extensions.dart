@@ -257,13 +257,9 @@ extension InsightExt on Insight {
   }
 
   String message(BuildContext context, String name) {
-    AirQuality? airQuality = this.airQuality;
+    AirQuality? airQuality = this.currentAirQuality;
 
     if (airQuality == null) {
-      if (dateTime.isAFutureDate()) {
-        return AppLocalizations.of(context)!
-            .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
-      }
       return AppLocalizations.of(context)!
           .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon;
     }
@@ -272,8 +268,6 @@ extension InsightExt on Insight {
       case AirQuality.good:
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!.theAirQualityInCityIsGood(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeGood;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyGood(name);
@@ -282,8 +276,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasModerate(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeModerate;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyModerate(name);
@@ -292,9 +284,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!
-              .expectConditionsToBeUnhealthyForSensitiveGroups;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthyForSensitiveGroups(
@@ -304,8 +293,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasUnhealthy(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy(name);
@@ -314,9 +301,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasVeryUnhealthy(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!
-              .expectConditionsToBeVeryUnhealthy;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy(name);
@@ -325,8 +309,6 @@ extension InsightExt on Insight {
         if (dateTime.isAPastDate()) {
           return AppLocalizations.of(context)!
               .theAirQualityInCityWasHazardous(name);
-        } else if (dateTime.isAFutureDate()) {
-          return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
         } else {
           return AppLocalizations.of(context)!
               .theHourlyAirQualityAverageInCityIsCurrentlyHazardous(name);

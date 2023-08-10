@@ -25,6 +25,6 @@ class InsightsState extends Equatable {
   @override
   List<Object?> get props => [
         selectedInsight,
-        insights.map((e) => e.pm2_5).toList(),
+        insights.map((e) => e.currentPm2_5).toList(),
       ];
 }
