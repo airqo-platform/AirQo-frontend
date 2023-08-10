@@ -351,15 +351,38 @@ void bottomSheet2(BuildContext context) {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const QuizAppBackButton(),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.58,
-                    ),
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: InkWell(
+                        onTap: () async {
+                          await popNavigation(context);
                         },
-                        icon: const Icon(Icons.close))
+                        child: SvgPicture.asset(
+                          'assets/icon/previous_arrow.svg',
+                          height: 25,
+                          theme: const SvgTheme(
+                            currentColor: Colors.black,
+                          ),
+                          width: 20,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.60,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: InkWell(
+                        onTap: () async {
+                          await popNavigation(context);
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icon/close.svg',
+                          height: 37,
+                          width: 40,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -369,32 +392,4 @@ void bottomSheet2(BuildContext context) {
       );
     },
   );
-}
-
-class QuizAppBackButton extends StatelessWidget {
-  const QuizAppBackButton({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-        onTap: () async {
-          await popNavigation(context);
-        },
-        child: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 248, 7, 7),
-                  borderRadius: BorderRadius.circular(60)),
-              child: const Icon(Icons.arrow_back_ios, size: 25),
-            ),
-          ),
-        ));
-  }
 }
