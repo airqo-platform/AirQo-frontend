@@ -200,7 +200,9 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  AppLocalizations.of(context)!.actualDate(DateTime.now()).toUpperCase(),
+                  AppLocalizations.of(context)!
+                      .actualDate(DateTime.now())
+                      .toUpperCase(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
@@ -324,18 +326,20 @@ class _DashboardViewState extends State<DashboardView>
                         return const SizedBox();
                       }
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: CustomShowcaseWidget(
-                          showcaseKey: _kyaShowcaseKey,
-                          descriptionHeight: screenSize.height * 0.14,
-                          description: AppLocalizations.of(context)!
-                              .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                          child: KyaCardWidget(
-                            inCompleteLessons.first,
-                          ),
-                        ),
-                      );
+                      return const QuizCardWidget();
+
+                      //Padding(
+                      //   padding: const EdgeInsets.only(top: 16),
+                      //   child: CustomShowcaseWidget(
+                      //     showcaseKey: _kyaShowcaseKey,
+                      //     descriptionHeight: screenSize.height * 0.14,
+                      //     description: AppLocalizations.of(context)!
+                      //         .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                      //     child: KyaCardWidget(
+                      //       inCompleteLessons.first,
+                      //     ),
+                      //   ),
+                      // );
                     },
                   ),
                   BlocConsumer<DashboardBloc, DashboardState>(

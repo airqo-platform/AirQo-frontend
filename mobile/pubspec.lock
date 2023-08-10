@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.2"
+  animated_text_kit:
+    dependency: "direct dev"
+    description:
+      name: animated_text_kit
+      sha256: "5e6bf696c1db94fae17ef0527a17cef82f3100daebb53a3bdeb1c34f6b2ccdcc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.1"
   animations:
     dependency: "direct main"
     description:
