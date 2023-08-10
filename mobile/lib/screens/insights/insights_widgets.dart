@@ -56,7 +56,7 @@ class InsightAirQualityWidget extends StatelessWidget {
                   insight.hasAirQuality
                       ? '${insight.airQuality?.getTitle(context)}'
                       : AppLocalizations.of(context)!.noAirQualityDataAvailable,
-                  maxLines: 1,
+                  maxLines: 2,
                   minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context)?.copyWith(
@@ -204,6 +204,9 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
                 color: CustomColors.appColorBlack.withOpacity(0.3),
               ),
             ),
+          ),
+          const SizedBox(
+            width: 5,
           ),
           Visibility(
             visible: insight.hasAirQuality,
@@ -385,12 +388,11 @@ class InsightsCalendar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(
-                      height: 12,
+                      height: 24,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 30,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -415,9 +417,6 @@ class InsightsCalendar extends StatelessWidget {
                         selectedInsight,
                         name: state.name,
                       ),
-                    ),
-                    const SizedBox(
-                      height: 21,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(

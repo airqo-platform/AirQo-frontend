@@ -66,7 +66,7 @@ class Insight extends Equatable {
   AirQuality? get airQuality => currentAirQuality ?? forecastAirQuality;
 
   bool get hasAirQuality =>
-      currentAirQuality == null || forecastAirQuality == null;
+      currentAirQuality != null || forecastAirQuality != null;
 
   @override
   List<Object> get props => [dateTime.day];
