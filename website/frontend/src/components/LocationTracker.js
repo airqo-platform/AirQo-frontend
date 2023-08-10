@@ -25,7 +25,7 @@ const LocationTracker = ({ countries }) => {
   const updateUserCountry = async (latitude, longitude) => {
     try {
       const response = await axios.get(
-        `${LOCATIONS_TRACKING_URL}reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        `${LOCATIONS_TRACKING_URL}?latitude=${latitude}&longitude=${longitude}}&localityLanguage=en`
       );
       const { countryName } = response.data;
       console.log('countryName', countryName);

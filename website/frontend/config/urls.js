@@ -2,9 +2,7 @@ import { stripTrailingSlash } from './utils';
 
 const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL);
 
-const BASE_AIRQLOUDS_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL
-);
+const BASE_AIRQLOUDS_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL);
 
 const LOCATION_TRACKER_URL = stripTrailingSlash(
   process.env.REACT_APP_GEO_LOCATION_URL || process.env.REACT_NETMANAGER_BASE_URL
@@ -68,4 +66,4 @@ export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`;
 export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
 
 // Location tracking url
-export const LOCATIONS_TRACKING_URL = `${LOCATION_TRACKER_URL}/data/`;
+export const LOCATIONS_TRACKING_URL = `${LOCATION_TRACKER_URL}/data/reverse-geocode-client`;
