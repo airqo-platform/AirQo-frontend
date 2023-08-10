@@ -424,7 +424,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "${AirQoUrls.kya}/sync/$userId",
+          "${AirQoUrls.kya}/progress/sync/$userId",
         ),
         headers: headers,
         body: jsonEncode({
