@@ -23,7 +23,6 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
-import Geolocate from './Geolocate';
 
 const style = {
   position: 'absolute',
@@ -109,7 +108,6 @@ const Footer = () => {
 
   return (
     <footer className="footer-wrapper">
-      {/* <Geolocate countries={countries} /> */}
       <div className="Footer">
         <div className="body-section">
           <div className="logo">
