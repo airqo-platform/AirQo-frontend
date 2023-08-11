@@ -672,10 +672,12 @@ const DeviceHosts = ({ deviceData }) => {
       setIsLoading(true);
       const response = await getAllDeviceHosts();
       const { hosts } = response;
-      setHosts(hosts);
+      const deviceHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
+      setHosts(deviceHosts);
       setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
   };
 
