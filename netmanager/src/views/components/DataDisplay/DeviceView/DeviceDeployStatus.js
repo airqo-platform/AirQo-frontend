@@ -306,7 +306,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     error: false
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-  console.log('Device', deviceData.site);
   const [site, setSite] = useState(filterSite(siteOptions, deviceData.site && deviceData.site._id));
   const [deployLoading, setDeployLoading] = useState(false);
   const [deployed, setDeployed] = useState(false);

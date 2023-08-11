@@ -12,6 +12,7 @@ import { DeviceToolBar, DeviceToolBarContainer } from './DeviceToolBar';
 import DeviceEdit from './DeviceEdit';
 import DeviceLogs from './DeviceLogs';
 import DevicePhotos from './DevicePhotos';
+import DeviceHosts from './DeviceHosts';
 import DeviceOverview from './DeviceOverview/DeviceOverview';
 import { useInitScrollTop } from 'utils/customHooks';
 import { withPermission } from '../../../containers/PageAccess';
@@ -71,6 +72,11 @@ const DeviceView = () => {
             exact
             path={`${match.url}/photos`}
             component={() => <DevicePhotos deviceData={deviceData} />}
+          />
+          <Route
+            exact
+            path={`${match.url}/hosts`}
+            component={() => <DeviceHosts deviceData={deviceData} />}
           />
           <Redirect to={`${match.url}/overview`} />
         </Switch>
