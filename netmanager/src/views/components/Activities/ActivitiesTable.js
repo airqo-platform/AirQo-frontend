@@ -10,7 +10,7 @@ import { loadActivitiesData} from 'redux/ActivityLogs/operations';
 import { useActivitiesSummaryData } from 'redux/ActivityLogs/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import { formatDateString } from 'utils/dateTime';
-import { maintainPostData, recallPostData, deployPostData } from 'views/apis/activities';
+
 import { getUserDetails } from "redux/Join/actions";
 
 
@@ -29,29 +29,6 @@ const ActivitiesTable = () => {
   const site_activities = useActivitiesSummaryData();
   const userDetails = getUserDetails();
 
-
-  const handleActivity = async (rowData) => {
-    const { activityType, device } = rowData;
-  
-    try {
-      switch (activityType) {
-        case 'maintenance':
-          await maintainPostData(userDetails, device);
-          console.log('Maintenance successful');
-          break;
-        case 'recallment':
-          await recallPostData(userDetails, device);
-          console.log('Recall successful');
-          break;
-        default:
-          await deployPostData(userDetails, device);
-          console.log('Deployment successful');
-          break;
-      }
-    } catch (error) {
-      console.error('Error:', error.message);
-    }
-  };
 
   // for horizontal loader
   const [loading, setLoading] = useState(false);
@@ -80,12 +57,16 @@ const ActivitiesTable = () => {
           pointerCursor
           userPreferencePaginationKey={'site_activities'}
           title="Site Activities"
-          onRowClick={(event, rowData) => handleActivity(rowData)}
           columns={[
             {
               title: 'Device Name',
               field: 'device',
               render: renderCell('device')
+            },
+            {
+              title: 'Name',
+              field: 'userName',
+              render: renderCell('userName')
             },
             {
               title: 'Tags',

@@ -43,8 +43,6 @@ import { filterSite } from 'utils/sites';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
-import { getUserDetails } from '../../../../redux/Join/actions';
-import { deviceRecallSubmit } from './DeviceRecall';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
@@ -217,9 +215,8 @@ const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
           fullWidth
         >
           <MenuItem value="">Select Recall Type</MenuItem>
-          <MenuItem value="Type A">Type A</MenuItem>
-          <MenuItem value="Type B">Type B</MenuItem>
-          <MenuItem value="Type C">Type C</MenuItem>
+          <MenuItem value="errors">Errors</MenuItem>
+          <MenuItem value="disconnected">Disconnected</MenuItem>
         </Select>
       </DialogContent>
       <DialogActions>
@@ -438,7 +435,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
     return false;
   };
 
-  const handleDeploySubmit = async () => {
+  const handleDeploySubmit = async (userFormData) => {
     setDeployLoading(true);
     if (checkErrors()) {
       setInputErrors(true);
@@ -447,7 +444,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
     }
   
     try {
-      const user = await getUserDetails(userId); 
   
       const deployData = {
         mountType: installationType,
@@ -457,13 +453,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
         isPrimaryInLocation: primaryChecked,
         isUsedForCollocation: collocationChecked,
         site_id: site.value,
-        userName: user.email, 
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
       };
   
-      const responseData = await deployDeviceApi(deviceData.name, deployData);
+      const responseData = await deployDeviceApi(deviceData.name, deployData, userFormData);
   
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
@@ -496,25 +488,17 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
   };
   
 
-  const handleRecallSubmit = async () => {
+  const handleRecallSubmit = async (userFormData) => {
     setRecallOpen(false); 
     setrecallLoading(true);
 
-    const { user } =  mappedAuth;
   
     try {
-
-      const userData = await getUserDetails(user._id); 
-
       const recallData = {
         recallType: recallType,
-        userName: userData.email, 
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName
       };
   
-      const responseData = await recallDeviceApi(deviceData.name, recallData); 
+      const responseData = await recallDeviceApi(deviceData.name, recallData, userFormData); 
   
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
