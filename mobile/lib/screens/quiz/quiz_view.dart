@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app/themes/theme.dart';
 //import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -10,6 +12,8 @@ import '../../widgets/buttons.dart';
 //import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+
+import 'package:confetti/confetti.dart';
 
 class QuizMessageChip extends StatelessWidget {
   const QuizMessageChip({super.key});
@@ -768,24 +772,24 @@ void bottomSheet3(BuildContext context) {
                                       fontSize: 14,
                                       fontFamily: 'Inter',
                                       fontWeight: FontWeight.w500,
-                                      //height: 1.50,
                                     ),
                                     child: AnimatedTextKit(
                                       totalRepeatCount: 1,
                                       animatedTexts: [
                                         TypewriterAnimatedText(
-                                            'Living next to a busy road tends to \n'
-                                            'increase ones exposure to air pollution.\n'
-                                            'Only open the windows that face the\n'
-                                            'road during hours when there is less\n'
-                                            'traffic. You can also plant trees or a \n'
-                                            'hedge around your home to act as a \n'
-                                            'barrier between you and the emissions.\n'
-                                            'Street with little traffic - Your exposure\n'
-                                            'to air pollution is limited since there are \n'
-                                            'less vehicle emissions.\n',
-                                            speed: const Duration(
-                                                milliseconds: 40)),
+                                          'Living next to a busy road tends to \n'
+                                          'increase ones exposure to air pollution.\n'
+                                          'Only open the windows that face the\n'
+                                          'road during hours when there is less\n'
+                                          'traffic. You can also plant trees or a \n'
+                                          'hedge around your home to act as a \n'
+                                          'barrier between you and the emissions.\n'
+                                          'Street with little traffic - Your exposure\n'
+                                          'to air pollution is limited since there are \n'
+                                          'less vehicle emissions.\n',
+                                          speed:
+                                              const Duration(milliseconds: 40),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -806,7 +810,9 @@ void bottomSheet3(BuildContext context) {
                                       showIcon: false,
                                       buttonColor: CustomColors.appColorBlue,
                                       text: 'Next',
-                                      callBack: () {},
+                                      callBack: () {
+                                        bottomSheet4(context);
+                                      },
                                     ),
                                   ),
                                 ],
@@ -825,4 +831,1041 @@ void bottomSheet3(BuildContext context) {
       );
     },
   );
+}
+
+void bottomSheet4(BuildContext context) {
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: QuizProgressBar(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 25,
+                    child: AutoSizeText(
+                      'Home environment',
+                      style: TextStyle(
+                        color: Color.fromARGB(117, 0, 0, 0),
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        //height: 1.50,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AutoSizeText(
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          'What cooking method do you use at home?',
+                          style: TextStyle(
+                            color: Color.fromARGB(200, 0, 0, 0),
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            //height: 1.50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.60,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'A charcoal stove',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.55,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'Gas cooker ',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.64,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {
+                        bottomSheet5(context);
+                      },
+                      text: 'None of the above ',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void bottomSheet5(BuildContext context) {
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: QuizProgressBar(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 25,
+                    child: AutoSizeText(
+                      'Home environment',
+                      style: TextStyle(
+                        color: Color.fromARGB(117, 0, 0, 0),
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        //height: 1.50,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AutoSizeText(
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          'How often do you dust your home or living space?',
+                          style: TextStyle(
+                            color: Color.fromARGB(200, 0, 0, 0),
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            //height: 1.50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.60,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'Every week',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.55,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'Once a month',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.64,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {
+                        bottomSheet6(context);
+                      },
+                      text: 'After 4 months',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void bottomSheet6(BuildContext context) {
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: QuizProgressBar(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 25,
+                    child: AutoSizeText(
+                      'Home environment',
+                      style: TextStyle(
+                        color: Color.fromARGB(117, 0, 0, 0),
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        //height: 1.50,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AutoSizeText(
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          'How do you dispose of rubbish at home?',
+                          style: TextStyle(
+                            color: Color.fromARGB(200, 0, 0, 0),
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            //height: 1.50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.52,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'Burn it',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.66,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'At a waste disposal site',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.58,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {
+                        bottomSheet7(context);
+                      },
+                      text: 'None of the above',
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void bottomSheet7(BuildContext context) {
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: QuizProgressBar(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 25,
+                    child: AutoSizeText(
+                      'Home environment',
+                      style: TextStyle(
+                        color: Color.fromARGB(117, 0, 0, 0),
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        //height: 1.50,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AutoSizeText(
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          'What is your most frequently used mode of transport?',
+                          style: TextStyle(
+                            color: Color.fromARGB(200, 0, 0, 0),
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            //height: 1.50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.30,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'A car',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.42,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'Taxi/Bus',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.63,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {
+                        bottomSheet8(context);
+                      },
+                      text: 'Boda Boda/motorcycle',
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void bottomSheet8(BuildContext context) {
+  bool isPlaying = true;
+
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: QuizProgressBar(),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 25,
+                    child: AutoSizeText(
+                      'Home environment',
+                      style: TextStyle(
+                        color: Color.fromARGB(117, 0, 0, 0),
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        //height: 1.50,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AutoSizeText(
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          'What kind of road do you frequently use?',
+                          style: TextStyle(
+                            color: Color.fromARGB(200, 0, 0, 0),
+                            fontSize: 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            //height: 1.50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.42,
+                    child: OptionsButton(
+                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                      callBack: () {},
+                      text: 'A dusty road',
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    child: OptionsButton(
+                        buttonColor: const Color.fromARGB(69, 70, 168, 248),
+                        callBack: () async {
+                          //   await Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) {
+                          //         return const FinalPage();
+                          //       },
+                          //     ),
+                          //   );
+                          bottomSheet9(context);
+                          const Confetti();
+                        },
+                        text: 'Tarmacked road (little to no dust)'),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void bottomSheet9(BuildContext context) {
+  showModalBottomSheet(
+    isScrollControlled: true,
+    enableDrag: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    isDismissible: false,
+    context: context,
+    builder: (context) {
+      return OutlinedButton(
+        onPressed: () {
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
+        },
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.9,
+          width: MediaQuery.of(context).size.width,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 1,
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.87,
+                  height: MediaQuery.of(context).size.height * 0.87,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 23),
+                  decoration: const ShapeDecoration(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(31, 10, 31, 31),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 40,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFFD1FADF),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.check_circle,
+                              color: Color.fromARGB(188, 7, 77, 50),
+                              size: 80,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              child: AutoSizeText(
+                                'You have completed the quiz!',
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 31, 35, 45),
+                                  fontSize: 24,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.70,
+                                  letterSpacing: -0.90,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            SizedBox(
+                              //width: 307,
+                              //height: 89,
+                              child: AutoSizeText(
+                                'Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey.',
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                style: TextStyle(
+                                  color: Color(0xFF6F87A1),
+                                  fontSize: 20,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.50,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class Confetti extends StatefulWidget {
+  const Confetti({super.key});
+
+  @override
+  State<Confetti> createState() => _ConfettiState();
+}
+
+class _ConfettiState extends State<Confetti> {
+  final _controller = ConfettiController();
+  bool isPlaying = true;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Center(
+          child: ConfettiWidget(
+            confettiController: _controller,
+            blastDirection: pi / 2,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            colors: const [
+              Colors.green,
+              Colors.blue,
+              Colors.pink,
+              Colors.orange,
+              Colors.purple
+            ],
+            maxBlastForce: 5,
+            minBlastForce: 2,
+            emissionFrequency: 0.05,
+            numberOfParticles: 50,
+            gravity: 0.1,
+          ),
+        ),
+      ],
+    );
+  }
 }
