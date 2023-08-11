@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GenerateToken renders correctly 1`] = `
+<ContextProvider
+  value={null}
+>
+  <GenerateToken
+    fetchCandidates={[Function]}
+    fetchDefaults={[Function]}
+    mappedAddUser={[Function]}
+    mappedApproveConfirmUser={[Function]}
+    mappedConfirmDeleteUser={[Function]}
+    mappedEditUser={[Function]}
+    mappedHideAddDialog={[Function]}
+    mappedHideConfirmDialog={[Function]}
+    mappedHideDeleteDialog={[Function]}
+    mappedShowAddDialog={[Function]}
+    mappedShowConfirmDialog={[Function]}
+    mappedShowDeleteDialog={[Function]}
+    mappedUpdateAuthenticatedUser={[Function]}
+    mappedUpdatePassword={[Function]}
+    mappedhideEditDialog={[Function]}
+    mappedshowEditDialog={[Function]}
+    store={
+      Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      }
+    }
+  />
+</ContextProvider>
+`;

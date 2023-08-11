@@ -11,6 +11,7 @@ import 'package:flutter_svg/svg.dart';
 
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
@@ -26,6 +27,7 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
+  late int lessonIndex;
 
   @override
   void dispose() {
@@ -36,13 +38,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<KyaBloc>().add(
-          UpdateKyaProgress(
-            widget.kyaLesson.copyWith(
-              activeTask: 1,
-            ),
-          ),
-        );
+    lessonIndex = widget.kyaLesson.activeTask;
   }
 
   @override
@@ -72,7 +68,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               future: ShareService.createShareLink(kya: widget.kyaLesson),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
+                  showSnackBar(context,
+                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
                 }
                 if (snapshot.hasData) {
                   return InkWell(
@@ -100,7 +97,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
 
                 return GestureDetector(
                   onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
+                    showSnackBar(context,
+                        AppLocalizations.of(context)!.creatingShareLink);
                   },
                   child: const Center(
                     child: LoadingIcon(radius: 20),
@@ -129,7 +127,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: AutoSizeText(
-                          'Swipe Left Or Right to Move to Next Card',
+                          AppLocalizations.of(context)!
+                              .swipeLeftOrRightToMoveToNextCard,
                           maxLines: 2,
                           style: CustomTextStyle.headline7(context)?.copyWith(
                             color: CustomColors.appColorBlue,
@@ -189,7 +188,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       width: 38,
                     ),
                     GestureDetector(
-                      onTap: () => _swipeController.swipe(),
+                      onTap: () => _swipeController.swipeLeft(),
                       child: const CircularKyaButton(
                         icon: 'assets/icon/next_arrow.svg',
                       ),
@@ -235,17 +234,22 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     );
   }
 
-  Future<void> _onSwipe(int previousTaskIndex, AppinioSwiperDirection _) async {
-    int activeTask = previousTaskIndex + 1;
-    KyaLesson kyaLesson = context
-        .read<KyaBloc>()
-        .state
-        .lessons
-        .firstWhere((element) => element == widget.kyaLesson);
+  Future<void> _onSwipe(int previousTaskIndex,
+      AppinioSwiperDirection appinioSwiperDirection) async {
+    if (appinioSwiperDirection == AppinioSwiperDirection.left) {
+      int activeTask = ++lessonIndex;
+      KyaLesson kyaLesson = context
+          .read<KyaBloc>()
+          .state
+          .lessons
+          .firstWhere((element) => element == widget.kyaLesson);
 
-    context
-        .read<KyaBloc>()
-        .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
+      context
+          .read<KyaBloc>()
+          .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
+    } else if (appinioSwiperDirection == AppinioSwiperDirection.right) {
+      _onUnSwipe(true);
+    }
   }
 
   void _onUnSwipe(bool unSwiped) {
@@ -254,9 +258,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         .state
         .lessons
         .firstWhere((element) => element == widget.kyaLesson);
-    int previousTask = kyaLesson.activeTask - 1;
 
-    if (unSwiped && previousTask > 0) {
+    if (unSwiped && kyaLesson.activeTask > 1) {
+      int previousTask = --lessonIndex;
       context
           .read<KyaBloc>()
           .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: previousTask)));

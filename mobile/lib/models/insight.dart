@@ -1,15 +1,15 @@
 import 'package:app/models/models.dart';
-import 'package:equatable/equatable.dart';
 import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 
 class Insight extends Equatable {
   const Insight({
-    required this.forecastMessage,
-    required this.airQualityMessage,
     required this.dateTime,
     required this.pm2_5,
+    required this.forecastPm2_5,
     required this.healthTips,
     required this.airQuality,
+    required this.forecastAirQuality,
   });
 
   factory Insight.fromAirQualityReading(
@@ -21,28 +21,21 @@ class Insight extends Equatable {
         : airQualityReading.healthTips;
 
     return Insight(
-      forecastMessage: forecast != null
-          ? forecast.message.isEmpty
-              ? forecast.tempMessage
-              : forecast.message
-          : "Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.",
-      airQualityMessage: airQualityReading.insightsMessage(),
       pm2_5: airQualityReading.pm2_5,
+      forecastPm2_5: null,
       airQuality: airQualityReading.airQuality,
+      forecastAirQuality: null,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
     );
   }
 
   factory Insight.fromForecast(Forecast forecast) {
-    String message =
-        forecast.message.isEmpty ? forecast.tempMessage : forecast.message;
-
     return Insight(
-      forecastMessage: message,
-      airQualityMessage: message,
-      pm2_5: forecast.pm2_5,
-      airQuality: forecast.airQuality,
+      pm2_5: null,
+      forecastPm2_5: forecast.pm2_5,
+      airQuality: null,
+      forecastAirQuality: forecast.airQuality,
       healthTips: forecast.healthTips,
       dateTime: forecast.time,
     );
@@ -50,21 +43,19 @@ class Insight extends Equatable {
 
   factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
-      forecastMessage:
-          'Forecast is temporarily unavailable. We’re working to restore this feature as soon as possible.',
-      airQualityMessage:
-          'We’re having issues with our network no worries, we’ll be back up soon.',
       pm2_5: null,
+      forecastPm2_5: null,
       airQuality: null,
+      forecastAirQuality: null,
       healthTips: const [],
       dateTime: dateTime,
     );
   }
 
-  final String airQualityMessage;
-  final String forecastMessage;
   final double? pm2_5;
+  final double? forecastPm2_5;
   final AirQuality? airQuality;
+  final AirQuality? forecastAirQuality;
   final List<HealthTip> healthTips;
   final DateTime dateTime;
 
