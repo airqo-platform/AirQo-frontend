@@ -48,7 +48,7 @@ const TableTitle = ({ deviceName }) => {
   );
 };
 
-const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoading, userId }) => {
+const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoading }) => {
   const dispatch = useDispatch();
   const maintenanceTypeMapper = {
     preventive: { value: 'preventive', label: 'Preventive' },
@@ -93,71 +93,58 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log, loading, setLoad
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
-  
-    try {
-      const user = await getUserDetails(userId); // Fetch user details
-  
-      const logData = {
-        deviceName,
-        locationName: deviceLocation,
-        date: selectedDate.toISOString(),
-        tags: extracted_tags,
-        description: description,
-        userName: user.email, 
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
+    const logData = {
+      deviceName,
+      locationName: deviceLocation,
+      date: selectedDate.toISOString(),
+      tags: extracted_tags,
+      description: description
+    };
 
-      };
-  
-      setLoading(true);
-      const responseData = await updateMaintenanceLogApi(log._id, logData);
-  
-      dispatch(
-        updateMainAlert({
-          message: responseData.message,
-          show: true,
-          severity: 'success'
-        })
-      );
-  
-      setTimeout(
-        () =>
-          dispatch(
-            updateMainAlert({
-              message: 'reloading maintenance logs',
-              show: true,
-              severity: 'info'
-            })
-          ),
-        500
-      );
-  
-      await dispatch(loadDeviceMaintenanceLogs(deviceName));
-  
-      dispatch(
-        updateMainAlert({
-          message: 'reload successful',
-          show: true,
-          severity: 'success'
-        })
-      );
-    } catch (err) {
-      dispatch(
-        updateMainAlert({
-          message:
-            (err.response && err.response.data && err.response.data.message) ||
-            'could not update log',
-          show: true,
-          severity: 'error'
-        })
-      );
-    }
-  
+    setLoading(true);
+    await updateMaintenanceLogApi(log._id, logData)
+      .then(async (responseData) => {
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: 'success'
+          })
+        );
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: 'reloading maintenance logs',
+                show: true,
+                severity: 'info'
+              })
+            ),
+          500
+        );
+        await dispatch(loadDeviceMaintenanceLogs(deviceName));
+        dispatch(
+          updateMainAlert({
+            message: 'reload successful',
+            show: true,
+            severity: 'success'
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message:
+              (err.response && err.response.data && err.response.data.message) ||
+              'could not update log',
+            show: true,
+            severity: 'error'
+          })
+        );
+      });
     setLoading(false);
     toggleShow();
   };
-  
 
   return (
     <Paper style={{ minHeight: '400px', padding: '5px 10px' }}>
@@ -260,10 +247,23 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
+    const storedData = localStorage.getItem('currentUser'); 
+    if (!storedData) {
+      console.error("Error: No user data found in local storage");
+      return;
+    }
+
+    const parsedData = JSON.parse(storedData);
+
+
     const logData = {
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description
+      description: description,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
     };
 
     setLoading(true);
