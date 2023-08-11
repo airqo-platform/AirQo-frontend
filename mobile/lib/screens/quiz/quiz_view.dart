@@ -1519,8 +1519,6 @@ void bottomSheet7(BuildContext context) {
 }
 
 void bottomSheet8(BuildContext context) {
-  bool isPlaying = true;
-
   showModalBottomSheet(
     isScrollControlled: true,
     enableDrag: false,
@@ -1676,7 +1674,6 @@ void bottomSheet8(BuildContext context) {
                           //     ),
                           //   );
                           bottomSheet9(context);
-                          const Confetti();
                         },
                         text: 'Tarmacked road (little to no dust)'),
                   ),
@@ -1703,122 +1700,136 @@ void bottomSheet9(BuildContext context) {
     isDismissible: false,
     context: context,
     builder: (context) {
-      return OutlinedButton(
-        onPressed: () {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.pop(context);
-        },
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.9,
-          width: MediaQuery.of(context).size.width,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 1,
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.87,
-                  height: MediaQuery.of(context).size.height * 0.87,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 23),
-                  decoration: const ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
-                      ),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(31, 10, 31, 31),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 40,
-                        ),
-                        SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: ShapeDecoration(
-                              color: const Color(0xFFD1FADF),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.check_circle,
-                              color: Color.fromARGB(188, 7, 77, 50),
-                              size: 80,
-                            ),
+      return Stack(
+        children: [
+          Positioned.fill(
+            left : 0,
+            right: 0,
+            top: 1,
+            bottom: 0,
+            child: Confetti(
+              key: UniqueKey(),
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.9,
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.87,
+                      height: MediaQuery.of(context).size.height * 0.87,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 23),
+                      decoration: const ShapeDecoration(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(32),
+                            topRight: Radius.circular(32),
                           ),
                         ),
-                        const SizedBox(height: 32),
-                        const Column(
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(31, 10, 31, 31),
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              child: AutoSizeText(
-                                'You have completed the quiz!',
-                                maxLines: 2,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 31, 35, 45),
-                                  fontSize: 24,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.70,
-                                  letterSpacing: -0.90,
+                            Column(
+                              children: [
+                                const SizedBox(
+                                  height: 40,
                                 ),
-                              ),
+                                SizedBox(
+                                  width: 120,
+                                  height: 120,
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: ShapeDecoration(
+                                      color: const Color(0xFFD1FADF),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_circle,
+                                      color: Color.fromARGB(188, 7, 77, 50),
+                                      size: 80,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 24),
-                            SizedBox(
-                              //width: 307,
-                              //height: 89,
-                              child: AutoSizeText(
-                                'Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey.',
-                                textAlign: TextAlign.center,
-                                maxLines: 3,
-                                style: TextStyle(
-                                  color: Color(0xFF6F87A1),
-                                  fontSize: 20,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.50,
+                            const SizedBox(height: 32),
+                            const Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  child: AutoSizeText(
+                                    'You have completed the quiz!',
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 31, 35, 45),
+                                      fontSize: 24,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.70,
+                                      letterSpacing: -0.90,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SizedBox(height: 24),
+                                SizedBox(
+                                  //width: 307,
+                                  //height: 89,
+                                  child: AutoSizeText(
+                                    'Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey.',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 3,
+                                    style: TextStyle(
+                                      color: Color(0xFF6F87A1),
+                                      fontSize: 20,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.50,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       );
     },
   );
@@ -1832,11 +1843,19 @@ class Confetti extends StatefulWidget {
 }
 
 class _ConfettiState extends State<Confetti> {
-  final _controller = ConfettiController();
-  bool isPlaying = true;
+  late ConfettiController _controllerTopCenter;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllerTopCenter =
+        ConfettiController(duration: const Duration(seconds: 20));
+    _controllerTopCenter.play();
+  }
+
   @override
   void dispose() {
-    _controller.dispose();
+    _controllerTopCenter.dispose();
     super.dispose();
   }
 
@@ -1845,24 +1864,18 @@ class _ConfettiState extends State<Confetti> {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Center(
+        Align(
+          alignment: Alignment.topCenter,
           child: ConfettiWidget(
-            confettiController: _controller,
-            blastDirection: pi / 2,
+            confettiController: _controllerTopCenter,
             blastDirectionality: BlastDirectionality.explosive,
-            shouldLoop: false,
-            colors: const [
-              Colors.green,
-              Colors.blue,
-              Colors.pink,
-              Colors.orange,
-              Colors.purple
-            ],
-            maxBlastForce: 5,
-            minBlastForce: 2,
+            blastDirection: pi,
+            maxBlastForce: 5, // set a lower max blast force
+            minBlastForce: 2, // set a lower min blast force
             emissionFrequency: 0.05,
-            numberOfParticles: 50,
-            gravity: 0.1,
+            numberOfParticles: 100, // a lot of particles at once
+            gravity: 0.5,
+            shouldLoop: false,
           ),
         ),
       ],
