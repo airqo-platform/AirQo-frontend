@@ -13,7 +13,7 @@ import Alert from '@material-ui/lab/Alert';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import SendIcon from '@material-ui/icons/Send';
 import { makeStyles } from '@material-ui/styles';
-import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
+import ErrorBoundary from '../../../ErrorBoundary/ErrorBoundary';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
 import HorizontalLoader from '../../HorizontalLoader/HorizontalLoader';
 import {
@@ -25,7 +25,7 @@ import {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(3)
+    padding: '10px 20px'
   },
   modelWidth: {
     minWidth: 450
