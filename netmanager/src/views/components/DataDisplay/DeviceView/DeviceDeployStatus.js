@@ -172,71 +172,6 @@ EmptyDeviceTest.propTypes = {
   onClick: PropTypes.func.isRequired
 };
 
-const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
-  return (
-    <ConfirmDialog
-      open={open}
-      close={toggleOpen}
-      message={`Are you sure you want to recall device ${deviceData.name}?`}
-      title={'Recall device'}
-      confirm={handleRecall}
-      confirmBtnMsg={'Recall'}
-    />
-  );
-};
-
-RecallDevice.propTypes = {
-  deviceData: PropTypes.object.isRequired,
-  handleRecall: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  toggleOpen: PropTypes.func.isRequired
-};
-
-const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
-  const [recallType, setRecallType] = useState('');
-
-  const handleConfirmRecall = () => {
-    // Call handleRecall with the selected recallType
-    handleRecall(recallType);
-    // Close the dialog
-    toggleOpen();
-  };
-
-  return (
-    <Dialog open={open} onClose={toggleOpen} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Recall Device</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Select the recall type for device {deviceData.name}.
-        </DialogContentText>
-        <Select
-          value={recallType}
-          onChange={(e) => setRecallType(e.target.value)}
-          fullWidth
-        >
-          <MenuItem value="">Select Recall Type</MenuItem>
-          <MenuItem value="errors">Errors</MenuItem>
-          <MenuItem value="disconnected">Disconnected</MenuItem>
-        </Select>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={toggleOpen} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleConfirmRecall} color="primary">
-          Recall
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-RecallDeviceDialog.propTypes = {
-  deviceData: PropTypes.object.isRequired,
-  handleRecall: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  toggleOpen: PropTypes.func.isRequired
-};
 
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
@@ -344,14 +279,57 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired
 };
 
-export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) {
+export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
-  const [recallType, setRecallType] = useState('');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
+  const [recallType, setRecallType] = useState('');
+
+  const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
+  
+    const handleConfirmRecall = () => {
+      handleRecall(recallType);
+      toggleOpen();
+    };
+  
+    return (
+      <Dialog open={open} onClose={toggleOpen} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Recall Device</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Select the recall type for device {deviceData.name}.
+          </DialogContentText>
+          <Select
+            value={recallType}
+            onChange={(e) => setRecallType(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="">Select Recall Type</MenuItem>
+            <MenuItem value="errors">Errors</MenuItem>
+            <MenuItem value="disconnected">Disconnected</MenuItem>
+          </Select>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={toggleOpen} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmRecall} color="primary">
+            Recall
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+  
+  RecallDeviceDialog.propTypes = {
+    deviceData: PropTypes.object.isRequired,
+    handleRecall: PropTypes.func.isRequired,
+    open: PropTypes.bool.isRequired,
+    toggleOpen: PropTypes.func.isRequired
+  };
 
   const checkColocation = () => {
     if (typeof deviceData.isPrimaryInLocation === 'boolean') {
@@ -442,27 +420,38 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
       setDeployLoading(false);
       return;
     }
+
+    const storedData = localStorage.getItem('currentUser'); 
+    if (!storedData) {
+      console.error("Error: No user data found in local storage");
+      return;
+    }
+
+    const parsedData = JSON.parse(storedData);
   
-    try {
   
-      const deployData = {
-        mountType: installationType,
-        height: height,
-        powerType: power,
-        date: new Date(deploymentDate).toISOString(),
-        isPrimaryInLocation: primaryChecked,
-        isUsedForCollocation: collocationChecked,
-        site_id: site.value,
-      };
-  
-      const responseData = await deployDeviceApi(deviceData.name, deployData, userFormData);
-  
+    const deployData = {
+      mountType: installationType,
+      height: height,
+      powerType: power,
+      date: new Date(deploymentDate).toISOString(),
+      isPrimaryInLocation: primaryChecked,
+      isUsedForCollocation: collocationChecked,
+      site_id: site.value,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
+    };
+
+    await deployDeviceApi(deviceData.name, deployData)
+    .then((responseData) => {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
         dispatch(loadSitesData(activeNetwork.net_name));
       }
-  
+
       dispatch(
         updateMainAlert({
           message: responseData.message,
@@ -472,7 +461,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
       );
       setDeployed(true);
       setInputErrors(false);
-    } catch (err) {
+    })
+    .catch((err) => {
       const errors = (err.response && err.response.data && err.response.data.errors) || {};
       setErrors(errors);
       dispatch(
@@ -482,30 +472,39 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
           severity: 'error'
         })
       );
-    }
-  
+    });
     setDeployLoading(false);
   };
-  
 
-  const handleRecallSubmit = async (userFormData) => {
+
+  const handleRecallSubmit = async () => {
     setRecallOpen(false); 
     setrecallLoading(true);
+    const storedData = localStorage.getItem('currentUser'); 
+    if (!storedData) {
+      console.error("Error: No user data found in local storage");
+      return;
+    }
 
-  
-    try {
-      const recallData = {
-        recallType: recallType,
-      };
-  
-      const responseData = await recallDeviceApi(deviceData.name, recallData, userFormData); 
-  
+    const parsedData = JSON.parse(storedData);
+
+
+    const responseData = {
+      recallType: recallType,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
+    };
+
+    await recallDeviceApi(deviceData.name, responseData)
+    .then((responseData) => {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
         dispatch(loadSitesData(activeNetwork.net_name));
       }
-  
+
       dispatch(
         updateMainAlert({
           message: responseData.message,
@@ -513,7 +512,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
           severity: 'success'
         })
       );
-    } catch (err) {
+    })
+    .catch((err) => {
       dispatch(
         updateMainAlert({
           message: err.response && err.response.data && err.response.data.message,
@@ -521,8 +521,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions, userId }) 
           severity: 'error'
         })
       );
-    }
-  
+    });
     setrecallLoading(false);
   };
 
