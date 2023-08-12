@@ -27,8 +27,6 @@ const ActivitiesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
   const site_activities = useActivitiesSummaryData();
-  const userDetails = getUserDetails();
-
 
   // for horizontal loader
   const [loading, setLoading] = useState(false);
@@ -64,11 +62,6 @@ const ActivitiesTable = () => {
               render: renderCell('device')
             },
             {
-              title: 'Name',
-              field: 'userName',
-              render: renderCell('userName')
-            },
-            {
               title: 'Tags',
               field: 'tags',
               render: renderCell('tags'),
@@ -88,8 +81,8 @@ const ActivitiesTable = () => {
             },
             {
               title: 'Date',
-              field: 'date',
-              render: renderCell('date'),
+              field: 'createdAt',
+              render: renderCell('createdAt'),
               cellStyle: { fontFamily: 'Open Sans' }
             }
           ]}

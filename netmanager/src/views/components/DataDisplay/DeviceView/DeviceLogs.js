@@ -34,7 +34,6 @@ import ConfirmDialog from 'views/containers/ConfirmDialog';
 import { humanReadableDate } from 'utils/dateTime';
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
-import { getUserDetails } from '../../../../redux/Join/actions';
 
 const titleStyles = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'

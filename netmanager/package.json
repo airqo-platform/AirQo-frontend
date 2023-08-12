@@ -83,7 +83,7 @@
     "react-map-gl": "^6.1.17",
     "react-perfect-scrollbar": "^1.5.8",
     "react-plotly.js": "^2.6.0",
-    "react-redux": "^7.2.0",
+    "react-redux": "^8.1.2",
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.3",
     "react-select": "^3.1.0",
