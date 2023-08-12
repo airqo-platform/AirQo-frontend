@@ -5,6 +5,9 @@ import DeviceDeployStatus from '../views/components/DataDisplay/DeviceView/Devic
 jest.mock('react-redux', () => ({
     useDispatch: () => jest.fn(),
   }));
+
+  // i have used the DeviceDeployStatus for the tests because all the functions for the recall an deploy are in 
+  // this component
   
   describe('DeviceDeployStatus', () => {
     it('renders without errors', () => {

@@ -9,10 +9,6 @@ import { Parser } from 'json2csv';
 import { loadActivitiesData} from 'redux/ActivityLogs/operations';
 import { useActivitiesSummaryData } from 'redux/ActivityLogs/selectors';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
-import { formatDateString } from 'utils/dateTime';
-
-import { getUserDetails } from "redux/Join/actions";
-
 
 // css
 import 'assets/css/location-registry.css';
@@ -62,10 +58,30 @@ const ActivitiesTable = () => {
               render: renderCell('device')
             },
             {
+              title: 'User Name',
+              field: 'userName',
+              render: renderCell('userName')
+            },
+            {
+              title: 'Last Name',
+              field: 'lastName',
+              render: renderCell('lastName')
+            },
+            {
+              title: 'Email',
+              field: 'email',
+              render: renderCell('email')
+            },
+            {
               title: 'Tags',
               field: 'tags',
               render: renderCell('tags'),
               cellStyle: { fontFamily: 'Open Sans' }
+            },
+            {
+              title: 'Device Name',
+              field: 'device',
+              render: renderCell('device')
             },
             {
               title: 'Description',
