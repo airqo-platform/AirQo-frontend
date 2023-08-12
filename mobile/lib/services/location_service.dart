@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/services.dart';
@@ -78,51 +77,11 @@ class LocationService {
     return null;
   }
 
-  static Future<AirQualityReading?> getNearestSite(Point point) async {
-    List<AirQualityReading> sites = HiveService().getAirQualityReadings();
-
-    sites = sites
-        .map(
-          (element) => element.copyWith(
-            distanceToReferenceSite: point.distanceTo(
-              Point(
-                element.latitude,
-                element.longitude,
-              ),
-            ),
-          ),
-        )
-        .where((element) =>
-            element.distanceToReferenceSite < Config.searchRadius.toDouble())
-        .toList();
-
-    sites.sortByDistanceToReferenceSite();
-
-    return sites.firstOrNull;
-  }
-
-  static Future<List<AirQualityReading>> getSurroundingSites(
-      Point point) async {
+  static List<AirQualityReading> getSurroundingSites(Point point) {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
-
-    airQualityReadings = airQualityReadings
-        .map(
-          (element) => element.copyWith(
-            distanceToReferenceSite: point.distanceTo(
-              Point(
-                element.latitude,
-                element.longitude,
-              ),
-            ),
-          ),
-        )
-        .where((element) =>
-            element.distanceToReferenceSite < Config.searchRadius.toDouble())
-        .toList();
-
+    airQualityReadings = airQualityReadings.getAirQualityNearPoint(point);
     airQualityReadings.sortByDistanceToReferenceSite();
-
     return airQualityReadings;
   }
 
@@ -136,12 +95,12 @@ class LocationService {
       return null;
     }
 
-    AirQualityReading? airQualityReading = await LocationService.getNearestSite(
+    AirQualityReading? airQualityReading = LocationService.getSurroundingSites(
       Point(
         searchResult.latitude,
         searchResult.longitude,
       ),
-    );
+    ).firstOrNull;
 
     if (airQualityReading != null) {
       airQualityReading = airQualityReading.copyWith(

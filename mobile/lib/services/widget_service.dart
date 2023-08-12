@@ -13,17 +13,10 @@ class WidgetService {
           await LocationService.getCurrentLocation();
       AirQualityReading? airQualityReading;
       if (currentLocation != null) {
-        airQualityReading = await LocationService.getNearestSite(Point(
-              currentLocation.latitude,
-              currentLocation.longitude,
-            )) ??
-            (await LocationService.getSurroundingSites(
-              Point(
-                currentLocation.latitude,
-                currentLocation.longitude,
-              ),
-            ))
-                .firstOrNull;
+        airQualityReading = LocationService.getSurroundingSites(Point(
+          currentLocation.latitude,
+          currentLocation.longitude,
+        )).firstOrNull;
       }
       if (airQualityReading == null) {
         String userId = CustomAuth.getUserId();

@@ -166,33 +166,33 @@ class SearchTile extends StatelessWidget {
     )
         .then((place) async {
       if (place != null) {
-        await LocationService.getNearestSite(
+        final nearestSite = LocationService.getSurroundingSites(
           Point(
             place.latitude,
             place.longitude,
           ),
-        ).then((nearestSite) async {
-          Navigator.pop(context);
-          if (nearestSite == null) {
-            showSnackBar(
-              context,
-              AppLocalizations.of(context)!
-                  .oopsWeDontHaveAirQualityReadingsFor(searchResult.name),
-              durationInSeconds: 3,
-            );
-          } else {
-            await navigateToInsights(
-              context,
-              nearestSite.copyWith(
-                name: searchResult.name,
-                location: searchResult.location,
-                placeId: searchResult.id,
-                latitude: place.latitude,
-                longitude: place.longitude,
-              ),
-            );
-          }
-        });
+        ).firstOrNull;
+
+        Navigator.pop(context);
+        if (nearestSite == null) {
+          showSnackBar(
+            context,
+            AppLocalizations.of(context)!
+                .oopsWeDontHaveAirQualityReadingsFor(searchResult.name),
+            durationInSeconds: 3,
+          );
+        } else {
+          await navigateToInsights(
+            context,
+            nearestSite.copyWith(
+              name: searchResult.name,
+              location: searchResult.location,
+              placeId: searchResult.id,
+              latitude: place.latitude,
+              longitude: place.longitude,
+            ),
+          );
+        }
       } else {
         showSnackBar(
           context,

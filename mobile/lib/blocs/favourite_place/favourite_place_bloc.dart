@@ -101,12 +101,12 @@ class FavouritePlaceBloc
     Set<FavouritePlace> updatedFavouritePlaces = {};
 
     for (final favPlace in favouritePlaces) {
-      final nearestSite = await LocationService.getNearestSite(
+      final nearestSite = LocationService.getSurroundingSites(
         Point(
           favPlace.latitude,
           favPlace.longitude,
         ),
-      );
+      ).firstOrNull;
 
       if (nearestSite != null) {
         updatedFavouritePlaces

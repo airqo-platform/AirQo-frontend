@@ -81,12 +81,12 @@ class NearbyLocationBloc
       return;
     }
 
-    AirQualityReading? nearestSite = await LocationService.getNearestSite(
+    AirQualityReading? nearestSite = LocationService.getSurroundingSites(
       Point(
         newLocation.latitude,
         newLocation.longitude,
       ),
-    );
+    ).firstOrNull;
 
     if (nearestSite == null) {
       newLocation = newLocation.copyWith(referenceSite: "");
@@ -116,7 +116,7 @@ class NearbyLocationBloc
     while (surroundingSites.length < 5 &&
         surroundingSitesRadius <
             Config.surroundingsSitesMaxRadiusInKilometres) {
-      surroundingSites = await LocationService.getSurroundingSites(Point(
+      surroundingSites = LocationService.getSurroundingSites(Point(
         newLocation.latitude,
         newLocation.longitude,
       ));
