@@ -5,7 +5,6 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'insights_widgets.dart';
 
@@ -85,9 +84,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      AppLocalizations.of(context)!
-                          .actualDate(selectedInsight.dateTime)
-                          .toUpperCase(),
+                      selectedInsight.dateTime.timelineString(context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
@@ -100,10 +97,7 @@ class InsightsPage extends StatelessWidget {
                   Visibility(
                     visible: selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,
-                    child: ForecastContainer(
-                      selectedInsight,
-                      airQualityReading.name,
-                    ),
+                    child: ForecastContainer(selectedInsight),
                   ),
                   HealthTipsWidget(selectedInsight),
                   const SizedBox(

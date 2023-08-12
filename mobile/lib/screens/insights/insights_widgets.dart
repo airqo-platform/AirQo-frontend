@@ -187,7 +187,7 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     String message = insight.currentAirQuality != null
         ? insight.message(context, name)
-        : insight.forecastMessage(context, name);
+        : insight.forecastMessage(context);
     return Container(
       padding: const EdgeInsets.all(8),
       height: 64,
@@ -335,20 +335,22 @@ class InsightsDayReading extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  insight.dateTime.getWeekday().characters.first.toUpperCase(),
+                  insight.dateTime
+                      .getWeekday(context)
+                      .characters
+                      .first
+                      .toUpperCase(),
                   style: TextStyle(
                     color: isActive ? Colors.white : color,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 13, 0, 0),
-              child: Container(
-                child: SvgIcons.airQualityEmoji(
-                  insight.airQuality,
-                ),
-              ),
+            const SizedBox(
+              height: 13,
+            ),
+            SvgIcons.airQualityEmoji(
+              insight.airQuality,
             ),
           ],
         ),
@@ -528,8 +530,7 @@ class InsightsPageAppBar extends StatelessWidget
 }
 
 class ForecastContainer extends StatelessWidget {
-  const ForecastContainer(this.insight, this.name, {super.key});
-  final String name;
+  const ForecastContainer(this.insight, {super.key});
   final Insight insight;
 
   @override
@@ -573,7 +574,7 @@ class ForecastContainer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AutoSizeText(
-                      insight.forecastMessage(context, name),
+                      insight.forecastMessage(context),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(

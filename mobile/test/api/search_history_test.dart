@@ -15,7 +15,8 @@ Future<void> main() async {
       List<SearchHistory> histories =
           await AirqoApiClient().fetchSearchHistory(userId);
 
-      expect(histories, isA<List<SearchHistory>>());
+      expect(
+          histories, isA<List<SearchHistory>>()); // TODO test with mocked data
       for (SearchHistory history in histories) {
         expect(history.location, "testLocation");
         expect(history.name, "testName");

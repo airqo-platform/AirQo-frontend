@@ -250,14 +250,14 @@ extension InsightExt on Insight {
 
     if (dateTime.isAFutureDate()) {
       return AppLocalizations.of(context)!
-          .thisDatesHealthTips(dateTime.getWeekday().toTitleCase());
+          .thisDatesHealthTips(dateTime.getWeekday(context).toTitleCase());
     }
 
     return '';
   }
 
   String message(BuildContext context, String name) {
-    AirQuality? airQuality = this.currentAirQuality;
+    AirQuality? airQuality = currentAirQuality;
 
     if (airQuality == null) {
       return AppLocalizations.of(context)!
@@ -316,7 +316,7 @@ extension InsightExt on Insight {
     }
   }
 
-  String forecastMessage(BuildContext context, String name) {
+  String forecastMessage(BuildContext context) {
     AirQuality? airQuality = forecastAirQuality;
 
     if (airQuality == null) {
@@ -482,16 +482,17 @@ extension DateTimeExt on DateTime {
           .updatedYesterdayAtDateString(dateString);
     } else if (isToday()) {
       return AppLocalizations.of(context)!.updatedTodayAtDateString(dateString);
-    } else if (isTomorrow()) {
-      return AppLocalizations.of(context)!.tomorrowDateString(dateString);
     } else {
       return DateFormat(dateTimeFormat).format(this);
     }
   }
 
   String timelineString(BuildContext context) {
-    return AppLocalizations.of(context)!.tomorrowDateString(
-        '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'.toUpperCase());
+    final locale = Localizations.localeOf(context);
+    final monthFormat = DateFormat.MMMM(locale.toString());
+    return AppLocalizations.of(context)!.dateString(
+        '${getWeekday(context)} $day, ${monthFormat.format(this)}'
+            .toUpperCase());
   }
 
   DateTime getDateOfFirstDayOfWeek() {
@@ -562,23 +563,10 @@ extension DateTimeExt on DateTime {
     return timeZoneOffset.inHours;
   }
 
-  String getWeekday() {
-    final weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    if (weekday < 1 || weekday > 7) {
-      throw UnimplementedError(
-        '$weekday does not have a weekday string implementation',
-      );
-    }
-
-    return weekdays[weekday - 1];
+  String getWeekday(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final dateFormat = DateFormat.EEEE(locale.toString());
+    return dateFormat.format(this);
   }
 
   bool isWithInCurrentWeek() {

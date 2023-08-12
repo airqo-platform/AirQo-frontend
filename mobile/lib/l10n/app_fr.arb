@@ -96,7 +96,7 @@
   "lastName": "Nom de famille",
   "logout": "Se déconnecter",
   "personaliseYourExperience": "Personnalisez votre\n expérience",
-  "createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips": "Créez votre compte aujourd'hui et profitez des mises \nà jour de la qualité de l'air et des conseils de santé",
+  "createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips": "Créez votre compte aujourd'hui et profitez des mises à jour de la qualité de l'air et des conseils de santé",
   "profile": "Profil",
   "editProfile": "Modifier le profil",
   "failedToUpdateProfilePic": "Échec de la mise à jour de la photo de profil",
@@ -235,7 +235,7 @@
   "helloYourName": "Bonjour {placeholder}",
   "updatedYesterdayAtDateString": "Mis à jour hier à {placeholder}",
   "updatedTodayAtDateString": "Mis à jour aujourd'hui à {placeholder}",
-  "tomorrowDateString": "{date}",
+  "dateString": "{date}",
   "goodQualityAirAroundYou": "Bonne qualité de l'air autour de vous",
   "moderateQualityAirAroundYou": "Qualité de l'air modérée autour de vous",
   "nearbyLocationsWithAirQualityUnhealthyForSensitiveGroups": "Lieux à proximité avec une qualité de l'air malsaine pour les groupes sensibles",
@@ -321,6 +321,5 @@
   "headsUpYouAreAboutToLogout": "Attention! Vous êtes sur le point de vous déconnecter!",
   "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
   "selectCountry": "Sélectionnez un pays",
-  "phoneNumber":"Numéro de téléphone",
-  "actualDate":"{date}"
+  "phoneNumber":"Numéro de téléphone"
 }

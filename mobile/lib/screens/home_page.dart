@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
@@ -12,6 +14,8 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,7 +23,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dashboard/dashboard_view.dart';
 import 'for_you_page.dart';
 import 'map/map_view.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -206,7 +209,15 @@ class _HomePageState extends State<HomePage> {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AirqoApiClient().getAppVersion().then((version) async {
+        final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+        await AirqoApiClient()
+            .getAppVersion(
+          currentVersion: packageInfo.version,
+          bundleId: Platform.isIOS ? packageInfo.packageName : null,
+          packageName: Platform.isAndroid ? packageInfo.packageName : null,
+        )
+            .then((version) async {
           if (version != null && mounted && !version.isUpdated) {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);

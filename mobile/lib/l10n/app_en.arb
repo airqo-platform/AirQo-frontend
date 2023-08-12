@@ -96,7 +96,7 @@
     "lastName": "Last Name",
     "logout": "Log Out",
     "personaliseYourExperience": "Personalise your\nexperience",
-    "createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips": "Create your account today and enjoy air quality\nupdates and health tips.",
+    "createYourAccountTodayAndEnjoyAirQualityUpdatesAndHealthTips": "Create your account today and enjoy air quality updates and health tips.",
     "profile": "Profile",
     "editProfile": "Edit profile",
     "failedToUpdateProfilePic": "Failed to update profile pic",
@@ -235,7 +235,6 @@
     "helloYourName": "Hello {placeholder}",
     "updatedYesterdayAtDateString": "Updated yesterday at {placeholder}",
     "updatedTodayAtDateString": "Updated today at {placeholder}",
-    "tomorrowDateString": "{date}",
     "goodQualityAirAroundYou": "Good Quality Air around you",
     "moderateQualityAirAroundYou": "Moderate Quality Air around you",
     "nearbyLocationsWithAirQualityUnhealthyForSensitiveGroups": "Nearby locations with air quality Unhealthy For Sensitive Groups",
@@ -322,14 +321,5 @@
     "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"You will miss out on notifications and won’t be able to save favourite places",
     "selectCountry": "Select Country",
     "phoneNumber":"Phone Number",
-    "actualDate":"{date}",
-    "@actualDate":{
-        "description": "Actual date",
-        "placeholders": {
-            "date": {
-                "type": "DateTime",
-                "format":"yMMMMEEEEd"
-            }
-        }
-    }
+    "dateString": "{date}"
 }

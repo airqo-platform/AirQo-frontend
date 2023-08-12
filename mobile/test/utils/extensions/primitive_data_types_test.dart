@@ -196,11 +196,9 @@ void main() {
           'Updated yesterday at ${DateFormat('hh:mm a').format(yesterday)}';
       String expected2 =
           'Updated today at ${DateFormat('hh:mm a').format(today)}';
-      String expected3 = 'Tomorrow, ${DateFormat('hh:mm a').format(tomorrow)}';
       String expected4 = '4 May, 08:45 AM';
       expect(yesterday.analyticsCardString(buildContext), expected1);
       expect(today.analyticsCardString(buildContext), expected2);
-      expect(tomorrow.analyticsCardString(buildContext), expected3);
       expect(fixedDate3.analyticsCardString(buildContext), expected4);
     });
 
@@ -310,9 +308,39 @@ void main() {
       expect(DateTime.utc(2023, 5, 3).getUtcOffset(), 0);
     });
 
-    test('getWeekday should return the weekday name', () {
-      expect(fixedDate1.getWeekday(), 'Thursday');
-      expect(fixedDate1.add(day).getWeekday(), 'Friday');
+    testWidgets('getWeekday should return the weekday name', (tester) async {
+      final key = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('fr'), // French
+          ],
+          home: Placeholder(key: key),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final locale = Localizations.localeOf(key.currentContext!);
+      final dateFormat = DateFormat.EEEE(locale.toString());
+
+      List<DateTime> dates = List.generate(
+        7,
+        (index) => DateTime.now().add(Duration(days: index)),
+      );
+
+      for (DateTime dateTime in dates) {
+        expect(
+          dateTime.getWeekday(key.currentContext!),
+          dateFormat.format(dateTime),
+        );
+      }
     });
 
     test('isWithInCurrentWeek returns true for dates within the current week',

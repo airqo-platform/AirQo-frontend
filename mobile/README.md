@@ -166,7 +166,7 @@ flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
- flutter gen-l10n
+flutter gen-l10n
 ```
 
 ## **Security Guidelines**

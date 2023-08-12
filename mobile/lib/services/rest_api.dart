@@ -63,15 +63,17 @@ class AirqoApiClient {
     )
     ..putIfAbsent('Content-Type', () => 'application/json');
 
-  Future<AppStoreVersion?> getAppVersion() async {
+  Future<AppStoreVersion?> getAppVersion({
+    required String currentVersion,
+    String? packageName,
+    String? bundleId,
+  }) async {
     try {
-      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-      Map<String, String> queryParams = {"version": packageInfo.version};
-      if (Platform.isAndroid) {
-        queryParams["packageName"] = packageInfo.packageName;
-      } else if (Platform.isIOS) {
-        queryParams["bundleId"] = packageInfo.packageName;
+      Map<String, String> queryParams = {"version": currentVersion};
+      if (packageName != null) {
+        queryParams["packageName"] = packageName;
+      } else if (bundleId != null) {
+        queryParams["bundleId"] = bundleId;
       }
 
       final body = await _performGetRequest(
@@ -92,6 +94,7 @@ class AirqoApiClient {
   }
 
   Future<String> getCarrier(String phoneNumber) async {
+    // TODO Transfer this to the backend
     try {
       Map<String, String> headers = Map.from(postHeaders);
       headers["service"] = ApiService.metaData.serviceName;
