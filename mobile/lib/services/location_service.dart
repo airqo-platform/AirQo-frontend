@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -77,57 +78,45 @@ class LocationService {
     return null;
   }
 
-  static Future<AirQualityReading?> getNearestSite(
-    double latitude,
-    double longitude,
-  ) async {
-    List<AirQualityReading> nearestSites =
-        HiveService().getAirQualityReadings();
+  static Future<AirQualityReading?> getNearestSite(Point point) async {
+    List<AirQualityReading> sites = HiveService().getAirQualityReadings();
 
-    nearestSites = nearestSites.map((element) {
-      final double distanceInMeters = metersToKmDouble(
-        Geolocator.distanceBetween(
-          element.latitude,
-          element.longitude,
-          latitude,
-          longitude,
-        ),
-      );
-
-      return element.copyWith(distanceToReferenceSite: distanceInMeters);
-    }).toList();
-
-    nearestSites = nearestSites
+    sites = sites
+        .map(
+          (element) => element.copyWith(
+            distanceToReferenceSite: point.distanceTo(
+              Point(
+                element.latitude,
+                element.longitude,
+              ),
+            ),
+          ),
+        )
         .where((element) =>
             element.distanceToReferenceSite < Config.searchRadius.toDouble())
         .toList();
 
-    nearestSites.sortByDistanceToReferenceSite();
+    sites.sortByDistanceToReferenceSite();
 
-    return nearestSites.isEmpty ? null : nearestSites.first;
+    return sites.firstOrNull;
   }
 
-  static Future<List<AirQualityReading>> getSurroundingSites({
-    required double latitude,
-    required double longitude,
-  }) async {
+  static Future<List<AirQualityReading>> getSurroundingSites(
+      Point point) async {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
-    airQualityReadings = airQualityReadings.map((element) {
-      final double distanceInMeters = metersToKmDouble(
-        Geolocator.distanceBetween(
-          element.latitude,
-          element.longitude,
-          latitude,
-          longitude,
-        ),
-      );
-
-      return element.copyWith(distanceToReferenceSite: distanceInMeters);
-    }).toList();
-
     airQualityReadings = airQualityReadings
+        .map(
+          (element) => element.copyWith(
+            distanceToReferenceSite: point.distanceTo(
+              Point(
+                element.latitude,
+                element.longitude,
+              ),
+            ),
+          ),
+        )
         .where((element) =>
             element.distanceToReferenceSite < Config.searchRadius.toDouble())
         .toList();
@@ -148,8 +137,10 @@ class LocationService {
     }
 
     AirQualityReading? airQualityReading = await LocationService.getNearestSite(
-      searchResult.latitude,
-      searchResult.longitude,
+      Point(
+        searchResult.latitude,
+        searchResult.longitude,
+      ),
     );
 
     if (airQualityReading != null) {

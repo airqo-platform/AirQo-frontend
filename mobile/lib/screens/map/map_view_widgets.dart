@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
@@ -10,10 +11,10 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../insights/insights_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DraggingHandle extends StatelessWidget {
   const DraggingHandle({super.key});
@@ -166,8 +167,10 @@ class SearchTile extends StatelessWidget {
         .then((place) async {
       if (place != null) {
         await LocationService.getNearestSite(
-          place.latitude,
-          place.longitude,
+          Point(
+            place.latitude,
+            place.longitude,
+          ),
         ).then((nearestSite) async {
           Navigator.pop(context);
           if (nearestSite == null) {

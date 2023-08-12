@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -170,10 +171,10 @@ extension SearchHistoryListExt on List<SearchHistory> {
     List<SearchHistory> history = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
-          await LocationService.getNearestSite(
+          await LocationService.getNearestSite(Point(
         searchHistory.latitude,
         searchHistory.longitude,
-      );
+      ));
       if (airQualityReading != null) {
         airQualityReading = airQualityReading.copyWith(
           name: searchHistory.name,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -101,8 +102,10 @@ class FavouritePlaceBloc
 
     for (final favPlace in favouritePlaces) {
       final nearestSite = await LocationService.getNearestSite(
-        favPlace.latitude,
-        favPlace.longitude,
+        Point(
+          favPlace.latitude,
+          favPlace.longitude,
+        ),
       );
 
       if (nearestSite != null) {

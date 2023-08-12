@@ -1,5 +1,8 @@
-import 'package:home_widget/home_widget.dart';
+import 'dart:math';
+
 import 'package:app/utils/utils.dart';
+import 'package:home_widget/home_widget.dart';
+
 import '../models/models.dart';
 import 'services.dart';
 
@@ -10,13 +13,15 @@ class WidgetService {
           await LocationService.getCurrentLocation();
       AirQualityReading? airQualityReading;
       if (currentLocation != null) {
-        airQualityReading = await LocationService.getNearestSite(
+        airQualityReading = await LocationService.getNearestSite(Point(
               currentLocation.latitude,
               currentLocation.longitude,
-            ) ??
+            )) ??
             (await LocationService.getSurroundingSites(
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
+              Point(
+                currentLocation.latitude,
+                currentLocation.longitude,
+              ),
             ))
                 .firstOrNull;
       }

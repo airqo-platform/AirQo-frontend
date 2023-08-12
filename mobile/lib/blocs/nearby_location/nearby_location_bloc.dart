@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -80,8 +82,10 @@ class NearbyLocationBloc
     }
 
     AirQualityReading? nearestSite = await LocationService.getNearestSite(
-      newLocation.latitude,
-      newLocation.longitude,
+      Point(
+        newLocation.latitude,
+        newLocation.longitude,
+      ),
     );
 
     if (nearestSite == null) {
@@ -112,10 +116,10 @@ class NearbyLocationBloc
     while (surroundingSites.length < 5 &&
         surroundingSitesRadius <
             Config.surroundingsSitesMaxRadiusInKilometres) {
-      surroundingSites = await LocationService.getSurroundingSites(
-        latitude: newLocation.latitude,
-        longitude: newLocation.longitude,
-      );
+      surroundingSites = await LocationService.getSurroundingSites(Point(
+        newLocation.latitude,
+        newLocation.longitude,
+      ));
       surroundingSitesRadius = surroundingSitesRadius * 2;
     }
 
