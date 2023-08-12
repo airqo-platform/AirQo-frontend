@@ -421,7 +421,7 @@ const EditHostDialog = ({
             label="Phone Number"
             variant="outlined"
             type="tel"
-            value={'+' + host.phone_number}
+            value={host.phone_number}
             onChange={handleHostChange('phone_number')}
             required
             error={!!errors.phone_number}
@@ -514,7 +514,7 @@ const MobileMoneyDialog = ({
   };
 
   const handleMobileMoneyConfirmation = () => {
-    if (amount.amount > 500) {
+    if (amount.amount >= 500) {
       setConfirmation(true);
       setMobileMoneyDialog(false);
     } else {
@@ -528,7 +528,6 @@ const MobileMoneyDialog = ({
       setLoading(true);
       const response = await sendMoneyToHost(hostID, amount);
       setLoading(false);
-      console.log(response);
       if (response.success === true) {
         handleCloseDialog();
         setShowSuccess(true);
@@ -723,6 +722,7 @@ const DeviceHosts = ({ deviceData }) => {
           exportButton: false,
           searchFieldAlignment: 'left',
           showTitle: false,
+          searchFieldVariant: 'outlined',
           searchFieldStyle: {
             fontFamily: 'Open Sans'
           },
