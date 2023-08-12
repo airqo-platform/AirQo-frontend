@@ -287,12 +287,15 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
   const [recallType, setRecallType] = useState('');
+  const [ isLoading, setIsLoading ] = useState(false)
 
   const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
   
     const handleConfirmRecall = () => {
+      setIsLoading(true)
       handleRecall(recallType);
       toggleOpen();
+      setIsLoading(false)
     };
   
     return (
@@ -413,7 +416,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     return false;
   };
 
-  const handleDeploySubmit = async (userFormData) => {
+  const handleDeploySubmit = async () => {
     setDeployLoading(true);
     if (checkErrors()) {
       setInputErrors(true);
@@ -474,6 +477,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       );
     });
     setDeployLoading(false);
+    setIsLoading(false)
   };
 
 
