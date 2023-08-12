@@ -279,7 +279,31 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired
 };
 
-export default function DeviceDeployStatus({ deviceData, siteOptions }) {
+// const RecallDeviceDropdown = ({ deviceData, handleRecall }) => {
+//   const [recallType, setRecallType] = useState('');
+
+//   const handleRecallChange = (e) => {
+//     const selectedRecallType = e.target.value;
+//     setRecallType(selectedRecallType);
+//     handleRecall(selectedRecallType);
+//   };
+
+//   return (
+//     <div>
+//       <Select
+//         value={recallType}
+//         onChange={handleRecallChange}
+//         fullWidth
+//       >
+//         <MenuItem value="">Select Recall Type</MenuItem>
+//         <MenuItem value="errors">Errors</MenuItem>
+//         <MenuItem value="disconnected">Disconnected</MenuItem>
+//       </Select>
+//     </div>
+//   );
+// };
+
+export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptions }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
@@ -289,50 +313,132 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [recallType, setRecallType] = useState('');
   const [ isLoading, setIsLoading ] = useState(false)
 
-  const RecallDeviceDialog = ({ deviceData, handleRecall, open, toggleOpen }) => {
+  const RecallButton = ({ handleRecall, recallLoading }) => {
+    const [selectedRecallType, setSelectedRecallType] = useState('');
   
-    const handleConfirmRecall = () => {
-      setIsLoading(true)
-      handleRecall(recallType);
-      toggleOpen();
-      setIsLoading(false)
+    const handleRecallChange = (e) => {
+      setSelectedRecallType(e.target.value);
+    };
+  
+    const handleRecallClick = async () => {
+      if (selectedRecallType) {
+        setrecallLoading(true);
+        await handleRecall(selectedRecallType);
+        setrecallLoading(false);
+      }
     };
   
     return (
-      <Dialog open={open} onClose={toggleOpen} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Recall Device</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Select the recall type for device {deviceData.name}.
-          </DialogContentText>
-          <Select
-            value={recallType}
-            onChange={(e) => setRecallType(e.target.value)}
-            fullWidth
-          >
-            <MenuItem value="">Select Recall Type</MenuItem>
-            <MenuItem value="errors">Errors</MenuItem>
-            <MenuItem value="disconnected">Disconnected</MenuItem>
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={toggleOpen} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmRecall} color="primary">
-            Recall
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <div>
+        <Tooltip
+          arrow
+          title={recallLoading ? 'Recalling' : 'Recall Device'}
+          placement="top"
+          disableFocusListener={false}
+          disableHoverListener={false}
+          disableTouchListener={false}
+        >
+          <span>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!deviceData.isActive || recallLoading}
+              onClick={handleRecallClick}
+            >
+              {recallLoading ? 'Recalling' : 'Recall Device'}
+            </Button>
+            <Select
+              value={selectedRecallType}
+              onChange={handleRecallChange}
+              fullWidth
+              disabled={recallLoading}
+            >
+              <MenuItem value="errors">Errors</MenuItem>
+              <MenuItem value="disconnected">Disconnected</MenuItem>
+            </Select>
+          </span>
+        </Tooltip>
+      </div>
     );
   };
+
+
+  // const RecallButton = ({ handleRecall, recallLoading }) => {
+  //   const [selectedRecallType, setSelectedRecallType] = useState('');
+  //   const [dropdownOpen, setDropdownOpen] = useState(false);
   
-  RecallDeviceDialog.propTypes = {
-    deviceData: PropTypes.object.isRequired,
-    handleRecall: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired,
-    toggleOpen: PropTypes.func.isRequired
-  };
+  //   const handleRecallChange = async (e) => {
+  //     const selectedType = e.target.value;
+  //     setSelectedRecallType(selectedType);
+  //     setDropdownOpen(false);
+  
+  //     if (selectedType) {
+  //       setrecallLoading(true);
+  //       await handleRecall(selectedType);
+  //       setrecallLoading(false);
+  //     }
+  //   };
+  
+  //   const handleRecallClick = () => {
+  //     setDropdownOpen(!dropdownOpen);
+  //   };
+  
+  //   return (
+  //     <div>
+  //       <Tooltip
+  //         arrow
+  //         title={recallLoading ? 'Recalling' : 'Recall Device'}
+  //         placement="top"
+  //         disableFocusListener={false}
+  //         disableHoverListener={false}
+  //         disableTouchListener={false}
+  //       >
+  //         <span>
+  //           <Button
+  //             variant="contained"
+  //             color="primary"
+  //             disabled={!deviceData.isActive || recallLoading}
+  //             onClick={handleRecallClick}
+  //           >
+  //             {recallLoading ? 'Recalling' : 'Recall Device'}
+  //           </Button>
+  //         </span>
+  //       </Tooltip>
+  //       {dropdownOpen && (
+  //         <div
+  //           style={{
+  //             // position: 'absolute',
+  //             // top: '100%',
+  //             // zIndex: 1,
+  //             backgroundColor: 'white',
+  //             border: '1px solid #ccc',
+  //             borderRadius: '5px',
+  //             marginTop: '5px',
+  //             padding: '5px',
+  //             width: '100%',
+  //           }}
+  //         >
+  //           <MenuItem
+  //             value="errors"
+  //             onClick={handleRecallChange}
+  //             style={{ cursor: 'pointer' }}
+  //           >
+  //             Errors
+  //           </MenuItem>
+  //           <MenuItem
+  //             value="disconnected"
+  //             onClick={handleRecallChange}
+  //             style={{ cursor: 'pointer' }}
+  //           >
+  //             Disconnected
+  //           </MenuItem>
+  //         </div>
+  //       )}
+  //     </div>
+  //   );
+  // };
+  
+  
 
   const checkColocation = () => {
     if (typeof deviceData.isPrimaryInLocation === 'boolean') {
@@ -481,7 +587,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   };
 
 
-  const handleRecallSubmit = async () => {
+  const handleRecallSubmit = async (recallType) => {
     setRecallOpen(false); 
     setrecallLoading(true);
     const storedData = localStorage.getItem('currentUser'); 
@@ -582,33 +688,13 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               {deviceStatus}
             </span>
           </span>
-          <Tooltip
-            arrow
-            title={'Device is not yet deployed'}
-            disableTouchListener={deviceData.isActive}
-            disableHoverListener={deviceData.isActive}
-            disableFocusListener={deviceData.isActive}>
-            <span>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={!deviceData.isActive}
-                onClick={() => setRecallOpen(!recallOpen)}>
-                {recallLoading ? 'Recalling' : 'Recall Device'}
-              </Button>
-            </span>
-          </Tooltip>
+          <RecallButton
+            handleRecall={handleRecallSubmit}
+            recallLoading={recallLoading}
+          />
+
         </span>
       </div>
-
-      <RecallDeviceDialog
-        deviceData={deviceData}
-        open={recallOpen}
-        toggleOpen={() => setRecallOpen(!recallOpen)}
-        recallType={recallType}
-        setRecallType={setRecallType}
-        handleRecall={handleRecallSubmit}
-      />
 
       <Paper
         style={{
