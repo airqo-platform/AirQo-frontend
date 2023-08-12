@@ -9,43 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
-class InsightsLoadingWidget extends StatelessWidget {
-  const InsightsLoadingWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: 6,
-      itemBuilder: (BuildContext context, int index) {
-        double height;
-        switch (index) {
-          case 0:
-            height = 50;
-            break;
-          case 1:
-            height = 75;
-            break;
-          case 2:
-            height = 100;
-            break;
-          default:
-            height = 251;
-            break;
-        }
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: ContainerLoadingAnimation(
-            radius: 16,
-            height: height,
-          ),
-        );
-      },
-    );
-  }
-}
-
 class InsightAirQualityWidget extends StatelessWidget {
   const InsightAirQualityWidget(this.insight, {super.key, required this.name});
 
@@ -449,7 +412,7 @@ class InsightsCalendar extends StatelessWidget {
                       ),
                       child: InsightAirQualityWidget(
                         selectedInsight,
-                        name: airQualityReading.name,
+                        name: state.name,
                       ),
                     ),
                     const SizedBox(

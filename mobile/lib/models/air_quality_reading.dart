@@ -71,51 +71,6 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     );
   }
 
-  factory AirQualityReading.fromAirQualityEstimate(
-    AirQualityEstimate estimate,
-  ) {
-    return AirQualityReading(
-      distanceToReferenceSite: 0.0,
-      dateTime: estimate.time,
-      placeId: "",
-      referenceSite: "",
-      latitude: 0.0,
-      longitude: 0.0,
-      country: "",
-      region: "",
-      source: "",
-      pm2_5: estimate.pm2_5,
-      pm10: null,
-      name: "",
-      location: "",
-      shareLink: "",
-      healthTips: estimate.healthTips,
-    );
-  }
-
-  factory AirQualityReading.fromAirQualityEstimateSearch(
-    AirQualityEstimate estimate, {
-    required SearchResult searchResult,
-  }) {
-    return AirQualityReading(
-      distanceToReferenceSite: 0.0,
-      dateTime: estimate.time,
-      placeId: searchResult.id,
-      referenceSite: "",
-      latitude: searchResult.latitude,
-      longitude: searchResult.longitude,
-      country: "",
-      region: "",
-      source: "",
-      pm2_5: estimate.pm2_5,
-      pm10: null,
-      name: searchResult.name,
-      location: searchResult.location,
-      shareLink: "",
-      healthTips: estimate.healthTips,
-    );
-  }
-
   factory AirQualityReading.fromDynamicLink(
     PendingDynamicLinkData dynamicLinkData,
   ) {

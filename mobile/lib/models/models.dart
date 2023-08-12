@@ -17,5 +17,4 @@ export 'insight.dart';
 export 'health_tip.dart';
 export 'phone_auth_model.dart';
 export 'current_location.dart';
-export 'air_quality_estimate.dart';
 export 'address.dart';

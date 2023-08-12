@@ -2,7 +2,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/services/services.dart';
+import 'package:app/services/location_service.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -478,52 +478,27 @@ class AutoCompleteResultsWidget extends StatefulWidget {
 
 class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
   Future<void> getAirQuality(SearchResult searchResult) async {
-    await hasNetworkConnection().then((hasConnection) async {
-      if (!hasConnection) {
-        context.read<SearchBloc>().add(const NoSearchInternetConnection());
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      if (!mounted) return;
+      context.read<SearchBloc>().add(const NoSearchInternetConnection());
 
-        return;
-      }
+      return;
+    }
 
-      loadingScreen(context);
+    if (!mounted) return;
 
-      await SearchApiClient()
-          .getPlaceDetails(searchResult)
-          .then((placeDetails) async {
-        if (placeDetails == null) {
-          context
-              .read<SearchBloc>()
-              .add(GetSearchRecommendations(searchResult));
-          Navigator.pop(context);
+    loadingScreen(context);
 
-          return;
-        }
+    AirQualityReading? airQualityReading =
+        await LocationService.getSearchAirQuality(searchResult);
 
-        await LocationService.getNearestSite(
-          placeDetails.latitude,
-          placeDetails.longitude,
-        ).then((airQualityReading) async {
-          if (airQualityReading != null) {
-            Navigator.pop(context);
-            await Future.wait([
-              HiveService().updateSearchHistory(airQualityReading),
-              navigateToInsights(context, airQualityReading),
-            ]);
+    if (!mounted) return;
 
-            return;
-          }
+    Navigator.pop(context);
 
-          await AirqoApiClient()
-              .getEstimatedAirQuality(
-            latitude: placeDetails.latitude,
-            longitude: placeDetails.longitude,
-          )
-              .then((estimate) async {
-            if (estimate == null) {
-              context
-                  .read<SearchBloc>()
-                  .add(GetSearchRecommendations(placeDetails));
-              Navigator.pop(context);
+    if (airQualityReading == null) {
+      context.read<SearchBloc>().add(GetSearchRecommendations(searchResult));
 
       return;
     }

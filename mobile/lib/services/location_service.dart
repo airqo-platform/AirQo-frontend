@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -10,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'hive_service.dart';
+import 'rest_api.dart';
 
 class LocationService {
   static Future<bool> locationGranted() async {
@@ -105,48 +105,6 @@ class LocationService {
     nearestSites.sortByDistanceToReferenceSite();
 
     return nearestSites.isEmpty ? null : nearestSites.first;
-  }
-
-  static Future<AirQualityReading?> getAirQuality(
-    double latitude,
-    double longitude,
-  ) async {
-    List<AirQualityReading> nearestSites =
-        HiveService().getAirQualityReadings();
-
-    nearestSites = nearestSites.map((element) {
-      final double distanceInMeters = metersToKmDouble(
-        Geolocator.distanceBetween(
-          element.latitude,
-          element.longitude,
-          latitude,
-          longitude,
-        ),
-      );
-
-      return element.copyWith(distanceToReferenceSite: distanceInMeters);
-    }).toList();
-
-    nearestSites = nearestSites
-        .where((element) =>
-            element.distanceToReferenceSite < Config.searchRadius.toDouble())
-        .toList();
-
-    nearestSites.sortByDistanceToReferenceSite();
-
-    AirQualityReading? airQualityReading =
-        nearestSites.isEmpty ? null : nearestSites.first;
-
-    if (airQualityReading != null) {
-      AirQualityEstimate? airQualityEstimate = await AirqoApiClient()
-          .getEstimatedAirQuality(latitude: latitude, longitude: longitude);
-      if (airQualityEstimate != null) {
-        airQualityReading =
-            AirQualityReading.fromAirQualityEstimate(airQualityEstimate);
-      }
-    }
-
-    return airQualityReading;
   }
 
   static Future<List<AirQualityReading>> getSurroundingSites({

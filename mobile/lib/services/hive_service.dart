@@ -68,10 +68,6 @@ class HiveService {
     List<Forecast> forecast,
     String siteId,
   ) async {
-    if (siteId.isEmpty || forecast.isEmpty) {
-      return;
-    }
-
     try {
       await Hive.box<List<Forecast>>(_forecast).put(
         siteId,

@@ -91,31 +91,6 @@ class AirqoApiClient {
     return null;
   }
 
-  Future<AirQualityEstimate?> getEstimatedAirQuality({
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      final body = await _performGetRequest(
-        {
-          "latitude": latitude,
-          "longitude": longitude,
-        },
-        AirQoUrls.searchAirQuality,
-        apiService: ApiService.predict,
-      );
-
-      return AirQualityEstimate.fromJson(body['data'] as Map<String, dynamic>);
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return null;
-  }
-
   Future<String> getCarrier(String phoneNumber) async {
     try {
       Map<String, String> headers = Map.from(postHeaders);
@@ -207,10 +182,6 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
-
-    if (siteId.isEmpty) {
-      return forecasts;
-    }
 
     try {
       final body = await _performGetRequest(

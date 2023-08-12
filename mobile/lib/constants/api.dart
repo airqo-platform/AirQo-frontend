@@ -12,8 +12,6 @@ class AirQoUrls {
   static String get appVersion =>
       '${Config.airqoApi}/v2/view/mobile-app/version-info';
 
-  static String get searchAirQuality => '${Config.airqoApi}/v2/predict/search';
-
   static String get measurements => '${Config.airqoApi}/v2/devices/events';
 
   static String get emailReAuthentication =>
@@ -43,7 +41,6 @@ enum ApiService {
   auth('auth'),
   view('view'),
   metaData('meta-data'),
-  predict('predict'),
   forecast('forecast');
 
   const ApiService(this.serviceName);

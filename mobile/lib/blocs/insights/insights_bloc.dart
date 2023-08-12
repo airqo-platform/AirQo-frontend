@@ -8,7 +8,7 @@ part 'insights_event.dart';
 part 'insights_state.dart';
 
 class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
-  InsightsBloc() : super(const InsightsState()) {
+  InsightsBloc() : super(const InsightsState("")) {
     on<InitializeInsightsPage>(_onInitializeInsightsPage);
     on<SwitchInsight>(_onSwitchInsight);
   }
@@ -23,29 +23,12 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
   ) async {
-    AirQualityReading airQualityReading = event.airQualityReading.copyWith();
-
-    String siteId = airQualityReading.referenceSite;
-    if (siteId.isEmpty) {
-      AirQualityEstimate? airQualityEstimate =
-          await AirqoApiClient().getEstimatedAirQuality(
-        latitude: airQualityReading.latitude,
-        longitude: airQualityReading.longitude,
-      );
-      if (airQualityEstimate == null) {
-        return emit(const InsightsState(status: InsightsStateStatus.noData));
-      }
-      airQualityReading = airQualityReading.copyWith(
-        pm2_5: airQualityEstimate.pm2_5,
-        healthTips: airQualityEstimate.healthTips,
-        dateTime: airQualityEstimate.time,
-      );
-    }
-
+    emit(InsightsState(event.airQualityReading.name));
+    String siteId = event.airQualityReading.referenceSite;
     Set<Insight> insights = List<Insight>.generate(
       7,
       (int index) => Insight.initializeEmpty(
-        airQualityReading.dateTime.add(Duration(days: index)),
+        event.airQualityReading.dateTime.add(Duration(days: index)),
       ),
     ).toSet();
 
@@ -65,7 +48,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
     insights.addOrUpdate(
       Insight.fromAirQualityReading(
-        airQualityReading,
+        event.airQualityReading,
         forecast: todayForecast,
       ),
     );
@@ -74,7 +57,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       emit,
       insights: insights,
       forecast: forecast,
-      airQualityReading: airQualityReading,
+      airQualityReading: event.airQualityReading,
     );
 
     forecast = await AirqoApiClient().fetchForecast(siteId);
@@ -85,7 +68,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       emit,
       insights: insights,
       forecast: forecast,
-      airQualityReading: airQualityReading,
+      airQualityReading: event.airQualityReading,
     );
 
     HiveService().saveForecast(forecast, siteId);
@@ -109,7 +92,6 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
     return emit(
       state.copyWith(
-        status: InsightsStateStatus.ready,
         selectedInsight: insights.firstWhere(
           (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
         ),
