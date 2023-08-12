@@ -5,7 +5,7 @@ class AirQoUrls {
       'https://docs.airqo.net/#/mobile_app/privacy_policy';
 
   static String get firebaseLookup =>
-      '${Config.airqoApi}/v1/users/firebase/lookup';
+      '${Config.airqoApi}/v2/users/firebase/lookup';
 
   static String get forecast => '${Config.airqoApi}/v2/predict/daily-forecast';
 
@@ -17,12 +17,12 @@ class AirQoUrls {
   static String get measurements => '${Config.airqoApi}/v2/devices/events';
 
   static String get emailReAuthentication =>
-      '${Config.airqoApi}/v1/users/emailAuth';
+      '${Config.airqoApi}/v2/users/emailAuth';
 
   static String get emailVerification =>
-      '${Config.airqoApi}/v1/users/emailLogin';
+      '${Config.airqoApi}/v2/users/emailLogin';
 
-  static String get feedback => '${Config.airqoApi}/v1/users/feedback';
+  static String get feedback => '${Config.airqoApi}/v2/users/feedback';
 
   static String get mobileCarrier =>
       '${Config.airqoApi}/v2/meta-data/mobile-carrier';
@@ -33,6 +33,9 @@ class AirQoUrls {
       '${Config.airqoApi}/v2/users/locationHistory';
 
   static String get kya => '${Config.airqoApi}/v2/devices/kya';
+
+  static String get searchHistory =>
+      '${Config.airqoApi}/v2/users/searchHistory';
 }
 
 enum ApiService {

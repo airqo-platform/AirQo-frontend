@@ -4,6 +4,7 @@ import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AccountDeletionTitle extends StatelessWidget {
   const AccountDeletionTitle({super.key});
@@ -13,7 +14,7 @@ class AccountDeletionTitle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
       child: AutoSizeText(
-        "Enter code to delete account",
+        AppLocalizations.of(context)!.enterCodeToDeleteAccount,
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -38,7 +39,8 @@ class AccountDeletionSubTitle extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
           child: AutoSizeText(
-            "Enter the 6 digits code sent to\n$credentials",
+            AppLocalizations.of(context)!
+                .enterThe6DigitsCodeSentTo(credentials),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

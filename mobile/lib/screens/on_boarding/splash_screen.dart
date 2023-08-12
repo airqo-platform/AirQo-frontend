@@ -5,7 +5,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
-import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
+import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -19,6 +19,7 @@ import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen(this.initialLink, {super.key});
@@ -69,6 +70,7 @@ class SplashScreenState extends State<SplashScreen> {
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<NotificationBloc>().add(const SyncNotifications());
     context.read<DashboardBloc>().add(const RefreshDashboard(reload: true));
+    context.read<SearchHistoryBloc>().add(const SyncSearchHistory());
     _dynamicLinkSubscription =
         FirebaseDynamicLinks.instance.onLink.listen((linkData) async {
       BuildContext? navigatorBuildContext = navigatorKey.currentContext;
@@ -191,7 +193,7 @@ class TaglineWidget extends StatelessWidget {
               alignment: Alignment.center,
             ),
             Text(
-              'Breathe\nClean.',
+              AppLocalizations.of(context)!.breatheClean,
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
@@ -218,7 +220,7 @@ class LogoWidget extends StatelessWidget {
           children: [
             SvgPicture.asset(
               'assets/icon/splash_image.svg',
-              semanticsLabel: 'Share',
+              semanticsLabel: AppLocalizations.of(context)!.share,
               // height: 118,
               // width: 81,
             ),

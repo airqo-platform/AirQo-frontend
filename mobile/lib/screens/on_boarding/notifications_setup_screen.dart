@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
   const NotificationsSetupScreen({super.key});
@@ -40,7 +41,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'Know your air in real time',
+                  AppLocalizations.of(context)!.knowYourAirInRealTime,
                   textAlign: TextAlign.center,
                   style: CustomTextStyle.headline7(context),
                 ),
@@ -51,7 +52,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'Get notified when air quality is getting better or worse',
+                  AppLocalizations.of(context)!
+                      .getNotifiedWhenAirQualityIsGettingBetterOrWorse,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -60,7 +62,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: NextButton(
-                  text: 'Yes, keep me updated',
+                  text: AppLocalizations.of(context)!.yesKeepMeUpdated,
                   buttonColor: CustomColors.appColorBlue,
                   callBack: () async {
                     await _allowNotifications();
@@ -114,7 +116,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
 
       showSnackBar(
         context,
-        'Tap again to exit !',
+        AppLocalizations.of(context)!.tapAgainToExit,
       );
 
       return Future.value(false);

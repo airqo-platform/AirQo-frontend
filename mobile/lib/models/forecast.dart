@@ -58,9 +58,6 @@ class Forecast extends HiveObject with EquatableMixin {
   @JsonKey(defaultValue: "")
   final String message;
 
-  String get tempMessage =>
-      "Expect conditions to be ${Pollutant.pm2_5.airQuality(pm2_5).title}";
-
   @HiveField(4, defaultValue: [])
   @JsonKey(defaultValue: [], name: "health_tips")
   final List<HealthTip> healthTips;

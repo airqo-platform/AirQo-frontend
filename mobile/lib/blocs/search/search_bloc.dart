@@ -12,21 +12,12 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc() : super(const SearchState()) {
     on<InitializeSearchView>(_onInitializeSearchView);
-    on<ClearSearchHistory>(_onClearSearchHistory);
     on<NoSearchInternetConnection>(_onNoSearchInternetConnection);
     on<GetSearchRecommendations>(_onGetSearchRecommendations);
     on<SearchTermChanged>(
       _onSearchTermChanged,
       transformer: debounce(const Duration(milliseconds: 300)),
     );
-  }
-
-  Future<void> _onClearSearchHistory(
-    ClearSearchHistory _,
-    Emitter<SearchState> emit,
-  ) async {
-    emit(const SearchState());
-    await HiveService().deleteSearchHistory();
   }
 
   void _onLoadCountries(Emitter<SearchState> emit) {
@@ -44,13 +35,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   ) async {
     List<AirQualityReading> airQualityReadings =
         HiveService().getNearbyAirQualityReadings();
-
-    List<SearchHistory> searchHistory = HiveService().getSearchHistory();
-
-    List<AirQualityReading> searchHistoryReadings =
-        await searchHistory.attachedAirQualityReadings();
-
-    airQualityReadings.addAll(searchHistoryReadings);
 
     if (airQualityReadings.isEmpty) {
       List<AirQualityReading> readings = HiveService().getAirQualityReadings();
@@ -77,10 +61,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           .contains(e.placeId));
       airQualityReadings.addAll(readings);
     }
-
-    emit(const SearchState().copyWith(
-      searchHistory: airQualityReadings,
-    ));
 
     _onLoadCountries(emit);
 
@@ -197,17 +177,6 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
     await _initialize(emit);
   }
 
-  Future<void> _loadSearchHistory(Emitter<SearchFilterState> emit) async {
-    List<SearchHistory> searchHistory = HiveService().getSearchHistory();
-    searchHistory = searchHistory
-      ..sortByDateTime()
-      ..take(3).toList();
-    List<AirQualityReading> recentSearches =
-        await searchHistory.attachedAirQualityReadings();
-
-    return emit(state.copyWith(recentSearches: recentSearches));
-  }
-
   Future<void> _onReloadSearchFilter(
     ReloadSearchFilter _,
     Emitter<SearchFilterState> emit,
@@ -298,10 +267,6 @@ class SearchFilterBloc extends Bloc<SearchEvent, SearchFilterState> {
       africanCities: africanCities,
       status: SearchFilterStatus.initial,
     ));
-
-    await _loadSearchHistory(emit);
-
-    return;
   }
 }
 

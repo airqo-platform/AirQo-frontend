@@ -21,7 +21,7 @@ const ImpactNumbers = () => {
     {
       icon: <MonitorIcon />,
       name: 'Monitor Installations',
-      numbers: '120+'
+      numbers: '200+'
     },
     {
       icon: <RecordsIcon />,
@@ -44,11 +44,11 @@ const ImpactNumbers = () => {
       <div className="impact-numbers-wrapper">
         {numbers.map((number, key) => (
           <div key={key} className="impact-card">
-            <div>{number.icon}</div>
             <div>
               <p className="numbers">{number.numbers}</p>
               <p className="category">{number.name}</p>
             </div>
+            <div>{number.icon}</div>
           </div>
         ))}
       </div>

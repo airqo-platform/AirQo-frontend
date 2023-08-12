@@ -17,7 +17,6 @@ class SearchState extends Equatable {
     this.status = SearchStatus.initial,
     this.recommendations = const [],
     this.countries = const [],
-    this.searchHistory = const [],
   });
 
   SearchState copyWith({
@@ -26,7 +25,6 @@ class SearchState extends Equatable {
     AirQualityReading? searchAirQuality,
     SearchStatus? status,
     List<AirQualityReading>? recommendations,
-    List<AirQualityReading>? searchHistory,
     List<String>? countries,
   }) {
     return SearchState(
@@ -36,13 +34,11 @@ class SearchState extends Equatable {
       status: status ?? this.status,
       recommendations: recommendations ?? this.recommendations,
       countries: countries ?? this.countries,
-      searchHistory: searchHistory ?? this.searchHistory,
     );
   }
 
   final String searchTerm;
   final List<SearchResult> searchResults;
-  final List<AirQualityReading> searchHistory;
   final List<AirQualityReading> recommendations;
   final List<String> countries;
   final AirQualityReading? searchAirQuality;
@@ -52,7 +48,6 @@ class SearchState extends Equatable {
   List<Object?> get props => [
         searchTerm,
         searchResults,
-        searchHistory,
         recommendations,
         countries,
         status,

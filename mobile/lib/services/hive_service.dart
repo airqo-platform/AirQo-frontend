@@ -9,7 +9,6 @@ class HiveService {
   HiveService._internal();
   static final HiveService _instance = HiveService._internal();
 
-  final String _searchHistory = 'searchHistory';
   final String _forecast = 'forecast';
   final String _airQualityReadings = 'airQualityReadings-v1';
   final String _nearByAirQualityReadings = 'nearByAirQualityReading-v1';
@@ -19,21 +18,13 @@ class HiveService {
     await Hive.initFlutter();
 
     Hive
-      ..registerAdapter<SearchHistory>(SearchHistoryAdapter())
       ..registerAdapter(ForecastAdapter())
       ..registerAdapter<HealthTip>(HealthTipAdapter())
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
     await Future.wait([
-      Hive.openBox<SearchHistory>(_searchHistory),
       Hive.openBox<List<Forecast>>(_forecast),
       Hive.openBox<AirQualityReading>(_airQualityReadings),
       Hive.openBox<AirQualityReading>(_nearByAirQualityReadings),
-    ]);
-  }
-
-  Future<void> clearUserData() async {
-    await Future.wait([
-      Hive.box<SearchHistory>(_searchHistory).clear(),
     ]);
   }
 
@@ -121,38 +112,10 @@ class HiveService {
     return airQualityReadings.removeInvalidData();
   }
 
-  List<SearchHistory> getSearchHistory() {
-    List<SearchHistory> searchHistory =
-        Hive.box<SearchHistory>(_searchHistory).values.toList();
-    searchHistory.sortByDateTime();
-
-    return searchHistory;
-  }
-
   List<AirQualityReading> getNearbyAirQualityReadings() {
     return Hive.box<AirQualityReading>(
       _nearByAirQualityReadings,
     ).values.toList();
-  }
-
-  Future<void> updateSearchHistory(
-    AirQualityReading airQualityReading,
-  ) async {
-    List<SearchHistory> searchHistoryList =
-        Hive.box<SearchHistory>(_searchHistory).values.toList();
-    searchHistoryList
-        .add(SearchHistory.fromAirQualityReading(airQualityReading));
-    searchHistoryList = searchHistoryList
-      ..sortByDateTime()
-      ..take(10).toList();
-
-    final searchHistoryMap = <String, SearchHistory>{};
-    for (final searchHistory in searchHistoryList) {
-      searchHistoryMap[searchHistory.placeId] = searchHistory;
-    }
-
-    await Hive.box<SearchHistory>(_searchHistory).clear();
-    await Hive.box<SearchHistory>(_searchHistory).putAll(searchHistoryMap);
   }
 
   Future<void> updateNearbyAirQualityReadings(
@@ -169,9 +132,5 @@ class HiveService {
     await Hive.box<AirQualityReading>(_nearByAirQualityReadings).clear();
     await Hive.box<AirQualityReading>(_nearByAirQualityReadings)
         .putAll(airQualityReadingsMap);
-  }
-
-  Future<void> deleteSearchHistory() async {
-    await Hive.box<SearchHistory>(_searchHistory).clear();
   }
 }

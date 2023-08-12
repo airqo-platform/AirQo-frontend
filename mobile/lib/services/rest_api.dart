@@ -16,9 +16,8 @@ import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   Map<String, dynamic> params = queryParams;
-  params.remove("TOKEN");
-  String formattedUrl = '$url?TOKEN=${Config.airqoApiV2Token}';
-  params.forEach((key, value) => formattedUrl = "$formattedUrl&$key=$value");
+  String formattedUrl = '$url?';
+  params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
   return formattedUrl;
 }
@@ -301,7 +300,7 @@ class AirqoApiClient {
             stackTrace,
           );
         }
-      }  
+      }
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -321,7 +320,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          historyList.map((e) => e.toJson()).toList();
+          historyList.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -388,8 +387,8 @@ class AirqoApiClient {
         )}T00:00:00Z',
       )
       ..putIfAbsent('frequency', () => 'hourly')
-      ..putIfAbsent('tenant', () => 'airqo');
-
+      ..putIfAbsent('tenant', () => 'airqo')
+      ..putIfAbsent('token', () => Config.airqoApiV2Token);
     try {
       final body = await _performGetRequest(
         queryParams,
@@ -454,7 +453,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "${AirQoUrls.kya}/sync/$userId",
+          "${AirQoUrls.kya}/progress/sync/$userId",
         ),
         headers: headers,
         body: jsonEncode({
@@ -528,7 +527,7 @@ class AirqoApiClient {
       headers["service"] = ApiService.auth.serviceName;
 
       List<Map<String, dynamic>> body =
-          favorites.map((e) => e.toAPiJson(userId)).toList();
+          favorites.map((e) => e.toAPIJson(userId)).toList();
 
       String url = addQueryParameters(
         {},
@@ -584,6 +583,75 @@ class AirqoApiClient {
     return false;
   }
 
+  Future<List<SearchHistory>> fetchSearchHistory(String userId) async {
+    final searchHistory = <SearchHistory>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        "${AirQoUrls.searchHistory}/users/$userId",
+        apiService: ApiService.auth,
+      );
+
+      for (final history in body['search_history'] as List<dynamic>) {
+        try {
+          searchHistory.add(
+            SearchHistory.fromJson(
+              history as Map<String, dynamic>,
+            ),
+          );
+        } catch (exception, stackTrace) {
+          await logException(
+            exception,
+            stackTrace,
+          );
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return searchHistory;
+  }
+
+  Future<bool> syncSearchHistory(
+    List<SearchHistory> searchHistory,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.auth.serviceName;
+
+      List<Map<String, dynamic>> body =
+          searchHistory.map((e) => e.toAPIJson(userId)).toList();
+
+      String url = addQueryParameters(
+        {},
+        "${AirQoUrls.searchHistory}/syncSearchHistory/$userId",
+      );
+
+      final response = await client.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'search_histories': body}),
+      );
+
+      return response.statusCode == 200;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<dynamic> _performGetRequest(
     Map<String, dynamic> queryParams,
     String url, {
@@ -592,7 +660,6 @@ class AirqoApiClient {
   }) async {
     try {
       Map<String, dynamic> params = queryParams;
-      params["TOKEN"] = Config.airqoApiV2Token;
 
       url = addQueryParameters(params, url);
 
@@ -674,6 +741,7 @@ class SearchApiClient {
     required String url,
   }) async {
     try {
+      queryParams["TOKEN"] = Config.airqoApiV2Token;
       url = addQueryParameters(queryParams, url);
 
       final response = await retryClient.get(

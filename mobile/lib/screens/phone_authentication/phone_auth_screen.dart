@@ -17,6 +17,7 @@ import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'phone_auth_widgets.dart';
 import 'phone_verification_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class _PhoneAuthWidget extends StatefulWidget {
   const _PhoneAuthWidget({
@@ -98,9 +99,11 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                 if (!phoneNumber.join().isValidPhoneNumber()) {
                                   context
                                       .read<PhoneAuthBloc>()
-                                      .add(const SetPhoneAuthStatus(
+                                      .add(SetPhoneAuthStatus(
                                         AuthenticationStatus.error,
-                                        errorMessage: "Invalid Phone number",
+                                        errorMessage:
+                                            AppLocalizations.of(context)!
+                                                .invalidPhoneNumber,
                                       ));
 
                                   return '';
@@ -263,9 +266,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
     }
 
     if (!hasConnection) {
-      context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
+      context.read<PhoneAuthBloc>().add(SetPhoneAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Check your internet connection',
+            errorMessage:
+                AppLocalizations.of(context)!.checkYourInternetConnection,
           ));
 
       return;
@@ -316,9 +320,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
         context.read<PhoneAuthBloc>().state.authProcedure;
     if (!exists && authProcedure == AuthProcedure.login) {
       Navigator.pop(context);
-      context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
+      context.read<PhoneAuthBloc>().add(SetPhoneAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Phone number not found. Did you sign up?',
+            errorMessage:
+                AppLocalizations.of(context)!.phoneNumberNotFoundDidYouSignUp,
           ));
 
       return;
@@ -326,9 +331,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
 
     if (exists && authProcedure == AuthProcedure.signup) {
       Navigator.pop(context);
-      context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
+      context.read<PhoneAuthBloc>().add(SetPhoneAuthStatus(
             AuthenticationStatus.error,
-            errorMessage: 'Phone number already registered. Please log in',
+            errorMessage: AppLocalizations.of(context)!
+                .phoneNumberAlreadyRegisteredPleaseLogIn,
           ));
 
       return;
@@ -352,9 +358,9 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
         );
 
         if (firebaseAuthError == FirebaseAuthError.invalidPhoneNumber) {
-          context.read<PhoneAuthBloc>().add(const SetPhoneAuthStatus(
+          context.read<PhoneAuthBloc>().add(SetPhoneAuthStatus(
                 AuthenticationStatus.error,
-                errorMessage: "Invalid Phone number",
+                errorMessage: AppLocalizations.of(context)!.invalidPhoneNumber,
               ));
         } else {
           await showDialog<void>(
@@ -404,10 +410,7 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
       _exitTime = now;
 
-      showSnackBar(
-        context,
-        'Tap again to cancel !',
-      );
+      showSnackBar(context, AppLocalizations.of(context)!.tapAgainToCancel);
 
       return Future.value(false);
     }

@@ -1,7 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
+import 'package:app/screens/on_boarding/setup_complete_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'on_boarding_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LocationSetupScreen extends StatefulWidget {
   const LocationSetupScreen({super.key});
@@ -39,7 +40,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 57),
                 child: Text(
-                  'Enable locations',
+                  AppLocalizations.of(context)!.enableLocations,
                   textAlign: TextAlign.center,
                   style: CustomTextStyle.headline7(context),
                 ),
@@ -50,8 +51,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 45),
                 child: Text(
-                  'Allow AirQo to send you location air '
-                  'quality update for your work place, home',
+                  AppLocalizations.of(context)!
+                      .allowAirQoToSendYouLocationAirQualityUpdateForYourWorkPlaceHome,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -60,7 +61,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: NextButton(
-                  text: 'Yes, keep me safe',
+                  text: AppLocalizations.of(context)!.yesKeepMeSafe,
                   buttonColor: CustomColors.appColorBlue,
                   callBack: () async {
                     await _allowLocation();
@@ -114,7 +115,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
       showSnackBar(
         context,
-        'Tap again to exit !',
+        AppLocalizations.of(context)!.tapAgainToExit,
       );
 
       return Future.value(false);
