@@ -124,7 +124,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               Point(
                 e.latitude,
                 e.longitude,
-              ).distanceTo(Point(
+              ).geoKmDistanceTo(Point(
                 event.searchResult.latitude,
                 event.searchResult.longitude,
               )) <=

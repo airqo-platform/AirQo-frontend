@@ -80,7 +80,7 @@ class LocationService {
   static List<AirQualityReading> getSurroundingSites(Point point) {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
-    airQualityReadings = airQualityReadings.getAirQualityNearPoint(point);
+    airQualityReadings = airQualityReadings.getNearbyAirQuality(point);
     airQualityReadings.sortByDistanceToReferenceSite();
     return airQualityReadings;
   }

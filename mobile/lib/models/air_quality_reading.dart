@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:equatable/equatable.dart';
@@ -217,6 +219,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
 
   @HiveField(15, defaultValue: [])
   final List<HealthTip> healthTips;
+
+  Point get point => Point(latitude, longitude);
 
   AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 

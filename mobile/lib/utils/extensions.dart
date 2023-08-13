@@ -152,6 +152,18 @@ extension AppNotificationListExt on List<AppNotification> {
   }
 }
 
+extension PointExt on Point {
+  double geoKmDistanceTo(Point point) {
+    return Geolocator.distanceBetween(
+          x as double,
+          y as double,
+          point.x as double,
+          point.y as double,
+        ) /
+        1000;
+  }
+}
+
 extension LocationHistoryExt on List<LocationHistory> {
   void sortByDateTime() {
     sort(
@@ -374,15 +386,10 @@ extension SearchResultExt on SearchResult {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> getAirQualityNearPoint(Point point) {
+  List<AirQualityReading> getNearbyAirQuality(Point point) {
     return map(
       (element) => element.copyWith(
-        distanceToReferenceSite: point.distanceTo(
-          Point(
-            element.latitude,
-            element.longitude,
-          ),
-        ),
+        distanceToReferenceSite: point.geoKmDistanceTo(element.point),
       ),
     )
         .where((element) =>
