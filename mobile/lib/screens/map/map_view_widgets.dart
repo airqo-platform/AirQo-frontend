@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
@@ -167,10 +166,7 @@ class SearchTile extends StatelessWidget {
         .then((place) async {
       if (place != null) {
         final nearestSite = LocationService.getSurroundingSites(
-          Point(
-            place.latitude,
-            place.longitude,
-          ),
+          place.point,
         ).firstOrNull;
 
         Navigator.pop(context);

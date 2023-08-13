@@ -552,6 +552,7 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
   }
 
   void sortByDistanceToReferenceSite() {
+    // TODO review this
     sort(
       (x, y) {
         return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);

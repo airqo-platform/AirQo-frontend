@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/utils/utils.dart';
 import 'package:home_widget/home_widget.dart';
 
@@ -13,10 +11,9 @@ class WidgetService {
           await LocationService.getCurrentLocation();
       AirQualityReading? airQualityReading;
       if (currentLocation != null) {
-        airQualityReading = LocationService.getSurroundingSites(Point(
-          currentLocation.latitude,
-          currentLocation.longitude,
-        )).firstOrNull;
+        airQualityReading = LocationService.getSurroundingSites(
+          currentLocation.point,
+        ).firstOrNull;
       }
       if (airQualityReading == null) {
         String userId = CustomAuth.getUserId();

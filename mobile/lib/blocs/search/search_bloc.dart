@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -121,13 +119,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<AirQualityReading> recommendations = airQualityReadings
         .where(
           (e) =>
-              Point(
-                e.latitude,
-                e.longitude,
-              ).geoKmDistanceTo(Point(
-                event.searchResult.latitude,
-                event.searchResult.longitude,
-              )) <=
+              e.point.geoKmDistanceTo(event.searchResult.point) <=
               Config.searchRadius * 2,
         )
         .toList();
