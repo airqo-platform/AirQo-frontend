@@ -15,7 +15,7 @@ tasks:
     desc: Runs tests
     aliases: ['t']
     cmds:
-      - flutter test --coverage
+      - flutter test test/ --coverage test
 
   build-android:
     desc: Build android for release
@@ -24,7 +24,7 @@ tasks:
     preconditions:
       - flutter clean
     cmds:
-      - flutter build appbundle --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build appbundle --build-name=$APP_VERSION --build-number=$APP_BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
 
   build-ios:
     desc: Build ios for release
@@ -35,7 +35,7 @@ tasks:
       - sed -i '' "s/GOOGLE_API_KEY/$IOS_GOOGLE_API_KEY/g" ios/Runner/AppDelegate.swift
       - flutter clean
     cmds:
-      - flutter build ipa --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build ipa --build-name=$APP_VERSION --build-number=$APP_BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
       - defer: { task: ios-build-cleanup }
 
   ios-build-cleanup:
