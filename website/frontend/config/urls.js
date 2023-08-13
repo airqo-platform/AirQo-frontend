@@ -2,7 +2,10 @@ import { stripTrailingSlash } from './utils';
 
 const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL);
 
-const BASE_AIRQLOUDS_URL = process.env.REACT_APP_BASE_AIRQLOUDS_URL;
+const BASE_AIRQLOUDS_URL =
+  process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL;
+
+const BASE_LOCATIONS_TRACKING_URL = process.env.REACT_APP_GEO_LOCATION_URL;
 
 export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/airqlouds/summary?tenant=airqo`;
 
@@ -35,9 +38,8 @@ export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
 export const NETMANAGER_URL = stripTrailingSlash(
-  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', '')
+  (process.env.REACT_NETMANAGER_BASE_URL || '').replace('/api/v1/', '')
 );
-
 // highlights urls
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
 
@@ -60,3 +62,6 @@ export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`;
 
 // African Cities url
 export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
+
+// Locations Tracking url
+export const LOCATIONS_TRACKING_URL = `${BASE_LOCATIONS_TRACKING_URL}`;

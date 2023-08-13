@@ -75,3 +75,7 @@ export const getAllEventsApi = async () =>
 // African Cities endpoint
 export const getAllCitiesApi = async () =>
   await axios.get(CITIES_URL).then((response) => response.data);
+
+// Locations Tracking endpoint
+export const getAllLocationsTrackingApi = async (IP) =>
+  await axios.get(`${LOCATIONS_TRACKING_URL}/country_name/`).then((response) => response.data);

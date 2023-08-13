@@ -23,7 +23,7 @@ import Cameroon from 'icons/africanCities/countries/cameroon.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
 import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
-import LocationTracker from './LocationTracker';
+import LocationTracker from './LoctionTracker/LocationTracker';
 
 const style = {
   position: 'absolute',
