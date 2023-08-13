@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String notificationIconFromJson(dynamic json) {
   switch ('$json'.toLowerCase()) {
     case 'location_icon':
@@ -17,7 +19,13 @@ String notificationIconToJson(String assetPath) {
 }
 
 DateTime dateTimeFromUtcString(dynamic object) {
-  return DateTime.parse(object as String).toLocal();
+  try {
+    return DateTime.parse(object as String).toLocal();
+  } catch (e) {
+    return DateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'")
+        .parseUTC(object as String)
+        .toLocal();
+  }
 }
 
 String dateTimeToUtcString(DateTime dateTime) {

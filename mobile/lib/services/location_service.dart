@@ -96,11 +96,12 @@ class LocationService {
     }
 
     AirQualityReading? airQualityReading = LocationService.getSurroundingSites(
-      Point(
-        searchResult.latitude,
-        searchResult.longitude,
-      ),
+      searchResult.point,
     ).firstOrNull;
+
+    airQualityReading ??= await AirqoApiClient().searchAirQuality(
+      searchResult.point,
+    );
 
     if (airQualityReading != null) {
       airQualityReading = airQualityReading.copyWith(

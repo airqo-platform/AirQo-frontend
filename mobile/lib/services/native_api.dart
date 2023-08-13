@@ -65,7 +65,6 @@ class RateService {
 }
 
 class ShareService {
-  // TODO : transfer to backend: Reference: https://firebase.google.com/docs/reference/dynamic-links/link-shortener
   static Future<Uri> createShareLink({
     KyaLesson? kya,
     AirQualityReading? airQualityReading,

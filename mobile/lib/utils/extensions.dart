@@ -155,13 +155,17 @@ extension AppNotificationListExt on List<AppNotification> {
 extension PointExt on Point {
   double geoKmDistanceTo(Point point) {
     return Geolocator.distanceBetween(
-          x as double,
-          y as double,
-          point.x as double,
-          point.y as double,
+          latitude,
+          longitude,
+          point.latitude,
+          point.longitude,
         ) /
         1000;
   }
+
+  double get latitude => x.toDouble();
+
+  double get longitude => y.toDouble();
 }
 
 extension LocationHistoryExt on List<LocationHistory> {

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -30,6 +31,41 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     required this.shareLink,
     required this.healthTips,
   });
+
+  factory AirQualityReading.fromSearchAPI(
+    Map<String, dynamic> json,
+    Point point,
+  ) {
+    DateTime dateTime = dateTimeFromUtcString(json["timestamp"]);
+    List<HealthTip> healthTips = [];
+    dynamic jsonHealthTips = json['health_tips'];
+
+    if (jsonHealthTips != null) {
+      for (final healthTip in jsonHealthTips as List<dynamic>) {
+        try {
+          healthTips.add(HealthTip.fromJson(healthTip as Map<String, dynamic>));
+        } catch (_, __) {}
+      }
+    }
+
+    return AirQualityReading(
+      distanceToReferenceSite: 0.0,
+      dateTime: dateTime,
+      placeId: "",
+      referenceSite: "",
+      latitude: point.latitude,
+      longitude: point.longitude,
+      country: "",
+      region: "",
+      source: "AirQo",
+      pm2_5: json["pm2_5"] as double,
+      pm10: null,
+      name: "",
+      location: "",
+      shareLink: "",
+      healthTips: healthTips,
+    );
+  }
 
   factory AirQualityReading.fromAPI(Map<String, dynamic> json) {
     DateTime dateTime = dateTimeFromUtcString(json["time"]);
