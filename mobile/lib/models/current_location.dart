@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -41,6 +43,8 @@ class CurrentLocation extends Equatable {
   final double longitude;
   final String name;
   final String location;
+
+  Point get point => Point(latitude, longitude);
 
   @override
   List<Object?> get props => [latitude, longitude];

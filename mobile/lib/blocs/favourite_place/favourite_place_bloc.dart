@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -101,12 +100,8 @@ class FavouritePlaceBloc
     Set<FavouritePlace> updatedFavouritePlaces = {};
 
     for (final favPlace in favouritePlaces) {
-      final nearestSite = LocationService.getSurroundingSites(
-        Point(
-          favPlace.latitude,
-          favPlace.longitude,
-        ),
-      ).firstOrNull;
+      final nearestSite =
+          LocationService.getSurroundingSites(favPlace.point).firstOrNull;
 
       if (nearestSite != null) {
         updatedFavouritePlaces

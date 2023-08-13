@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -81,12 +79,8 @@ class NearbyLocationBloc
       return;
     }
 
-    AirQualityReading? nearestSite = LocationService.getSurroundingSites(
-      Point(
-        newLocation.latitude,
-        newLocation.longitude,
-      ),
-    ).firstOrNull;
+    AirQualityReading? nearestSite =
+        LocationService.getSurroundingSites(newLocation.point).firstOrNull;
 
     if (nearestSite == null) {
       newLocation = newLocation.copyWith(referenceSite: "");
@@ -116,10 +110,7 @@ class NearbyLocationBloc
     while (surroundingSites.length < 5 &&
         surroundingSitesRadius <
             Config.surroundingsSitesMaxRadiusInKilometres) {
-      surroundingSites = LocationService.getSurroundingSites(Point(
-        newLocation.latitude,
-        newLocation.longitude,
-      ));
+      surroundingSites = LocationService.getSurroundingSites(newLocation.point);
       surroundingSitesRadius = surroundingSitesRadius * 2;
     }
 

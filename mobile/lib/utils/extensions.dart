@@ -387,14 +387,10 @@ extension SearchResultExt on SearchResult {
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
   List<AirQualityReading> getNearbyAirQuality(Point point) {
-    return map(
-      (element) => element.copyWith(
-        distanceToReferenceSite: point.geoKmDistanceTo(element.point),
-      ),
-    )
-        .where((element) =>
-            element.distanceToReferenceSite < Config.searchRadius.toDouble())
-        .toList();
+    return where(
+      (element) =>
+          point.geoKmDistanceTo(element.point) < Config.searchRadius.toDouble(),
+    ).toList();
   }
 
   void sortByAirQuality({bool sortCountries = false}) {

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app/models/air_quality_reading.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -87,6 +89,8 @@ class FavouritePlace extends Equatable {
     disallowNullValue: false,
   )
   final AirQualityReading? airQualityReading;
+
+  Point get point => Point(latitude, longitude);
 
   @override
   List<Object?> get props => [placeId];

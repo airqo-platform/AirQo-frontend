@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -79,12 +78,8 @@ class LocationHistoryBloc
 
     Set<LocationHistory> updatedLocationHistory = {};
     for (final place in locationHistory) {
-      final nearestSite = LocationService.getSurroundingSites(
-        Point(
-          place.latitude,
-          place.longitude,
-        ),
-      ).firstOrNull;
+      final nearestSite =
+          LocationService.getSurroundingSites(place.point).firstOrNull;
 
       if (nearestSite != null) {
         updatedLocationHistory
