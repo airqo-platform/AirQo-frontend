@@ -108,6 +108,10 @@ keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -sto
 flutter run
 ```
 
+```bash
+task r
+```
+
 ### **To run the staging environment, Use the following:**
 
 #### **Staging in debug mode.**

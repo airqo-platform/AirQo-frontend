@@ -4,6 +4,7 @@ tasks:
 
   run:
     desc: Runs the app in dev mode
+    aliases: ['r']
     dotenv: ['.env.dev']
     preconditions:
       - flutter gen-l10n
@@ -12,26 +13,39 @@ tasks:
 
   tests:
     desc: Runs tests
+    aliases: ['t']
     cmds:
       - flutter test --coverage
 
   build-android:
     desc: Build android for release
+    aliases: ['ba']
     dotenv: ['.env.prod']
     preconditions:
       - flutter clean
     cmds:
-      - flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build appbundle --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
 
   build-ios:
     desc: Build ios for release
+    aliases: ['bi']
+    platforms: [darwin]
     dotenv: ['.env.prod']
     preconditions:
+      - sed -i '' "s/GOOGLE_API_KEY/$IOS_GOOGLE_API_KEY/g" ios/Runner/AppDelegate.swift
       - flutter clean
     cmds:
-      - flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build ipa --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
+      - defer: { task: ios-build-cleanup }
+
+  ios-build-cleanup:
+    desc: Performs cleaning after building iOS
+    dotenv: ['.env.prod']
+    cmds:
+      - sed -i '' "s/$IOS_GOOGLE_API_KEY/GOOGLE_API_KEY/g" ios/Runner/AppDelegate.swift
 
   upgrade-depedencies:
+    aliases: ['ud']
     desc: Upgrades dependencies
     preconditions:
       - flutter clean
