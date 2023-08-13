@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
+import Select from 'react-select';
 import {
   Button,
-  CircularProgress,
   Grid,
   Paper,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Select,
-  MenuItem
 } from '@material-ui/core';
 import Tooltip from '@material-ui/core/Tooltip';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
@@ -45,6 +38,21 @@ import { purple } from '@material-ui/core/colors';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import 'assets/css/dropdown.css';
+
+const customStyles = {
+  control: (baseStyles, state) => ({
+    ...baseStyles,
+    borderColor: '#175df5'
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#0560c9',
+    fontWeight: 'bold', // Increase the font weight
+    textAlign: 'center',
+    justifyContent: 'center'
+  })
+};
 
 const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
@@ -282,30 +290,6 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired
 };
 
-// const RecallDeviceDropdown = ({ deviceData, handleRecall }) => {
-//   const [recallType, setRecallType] = useState('');
-
-//   const handleRecallChange = (e) => {
-//     const selectedRecallType = e.target.value;
-//     setRecallType(selectedRecallType);
-//     handleRecall(selectedRecallType);
-//   };
-
-//   return (
-//     <div>
-//       <Select
-//         value={recallType}
-//         onChange={handleRecallChange}
-//         fullWidth
-//       >
-//         <MenuItem value="">Select Recall Type</MenuItem>
-//         <MenuItem value="errors">Errors</MenuItem>
-//         <MenuItem value="disconnected">Disconnected</MenuItem>
-//       </Select>
-//     </div>
-//   );
-// };
-
 export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptions }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
@@ -313,15 +297,20 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
-  const [recallType, setRecallType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const RecallButton = ({ handleRecall, recallLoading }) => {
     const [selectedRecallType, setSelectedRecallType] = useState('');
+
+    const options = [
+      { value: 'errors', label: 'Errors' },
+      { value: 'disconnected', label: 'Disconnected' },
+    ];
   
-    const handleRecallChange = (e) => {
-      setSelectedRecallType(e.target.value);
+  
+    const handleRecallChange = (selectedOption) => {
+      setSelectedRecallType(selectedOption);
     };
+    
   
     const handleRecallClick = async () => {
       if (selectedRecallType) {
@@ -332,7 +321,22 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
     };
 
     return (
-      <div>
+      <div 
+        style={{
+          maxWidth: '500px',
+          width: '100%',
+        }}
+      >
+        <div className="dropdown-rapper-recall">
+        <Select
+          value={selectedRecallType}
+          onChange={handleRecallChange}
+          options={options}
+          styles={customStyles}
+          isClearable
+          placeholder="Select Recall Type"
+        />
+        </div>
         <Tooltip
           arrow
           title={recallLoading ? 'Recalling' : 'Recall Device'}
@@ -350,97 +354,11 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
             >
               {recallLoading ? 'Recalling' : 'Recall Device'}
             </Button>
-            <Select
-              value={selectedRecallType}
-              onChange={handleRecallChange}
-              fullWidth
-              disabled={recallLoading}
-            >
-              <MenuItem value="errors">Errors</MenuItem>
-              <MenuItem value="disconnected">Disconnected</MenuItem>
-            </Select>
           </span>
         </Tooltip>
       </div>
     );
   };
-
-
-  // const RecallButton = ({ handleRecall, recallLoading }) => {
-  //   const [selectedRecallType, setSelectedRecallType] = useState('');
-  //   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
-  //   const handleRecallChange = async (e) => {
-  //     const selectedType = e.target.value;
-  //     setSelectedRecallType(selectedType);
-  //     setDropdownOpen(false);
-  
-  //     if (selectedType) {
-  //       setrecallLoading(true);
-  //       await handleRecall(selectedType);
-  //       setrecallLoading(false);
-  //     }
-  //   };
-  
-  //   const handleRecallClick = () => {
-  //     setDropdownOpen(!dropdownOpen);
-  //   };
-  
-  //   return (
-  //     <div>
-  //       <Tooltip
-  //         arrow
-  //         title={recallLoading ? 'Recalling' : 'Recall Device'}
-  //         placement="top"
-  //         disableFocusListener={false}
-  //         disableHoverListener={false}
-  //         disableTouchListener={false}
-  //       >
-  //         <span>
-  //           <Button
-  //             variant="contained"
-  //             color="primary"
-  //             disabled={!deviceData.isActive || recallLoading}
-  //             onClick={handleRecallClick}
-  //           >
-  //             {recallLoading ? 'Recalling' : 'Recall Device'}
-  //           </Button>
-  //         </span>
-  //       </Tooltip>
-  //       {dropdownOpen && (
-  //         <div
-  //           style={{
-  //             // position: 'absolute',
-  //             // top: '100%',
-  //             // zIndex: 1,
-  //             backgroundColor: 'white',
-  //             border: '1px solid #ccc',
-  //             borderRadius: '5px',
-  //             marginTop: '5px',
-  //             padding: '5px',
-  //             width: '100%',
-  //           }}
-  //         >
-  //           <MenuItem
-  //             value="errors"
-  //             onClick={handleRecallChange}
-  //             style={{ cursor: 'pointer' }}
-  //           >
-  //             Errors
-  //           </MenuItem>
-  //           <MenuItem
-  //             value="disconnected"
-  //             onClick={handleRecallChange}
-  //             style={{ cursor: 'pointer' }}
-  //           >
-  //             Disconnected
-  //           </MenuItem>
-  //         </div>
-  //       )}
-  //     </div>
-  //   );
-  // };
-  
   
 
   const checkColocation = () => {
@@ -587,9 +505,10 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   };
 
 
-  const handleRecallSubmit = async (recallType) => {
+  const handleRecallSubmit = async (selectedOption) => {
     setRecallOpen(false); 
     setrecallLoading(true);
+    console.log('Selected recallType:', selectedOption.value);
     const storedData = localStorage.getItem('currentUser');
     if (!storedData) {
       console.error('Error: No user data found in local storage');
@@ -599,7 +518,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
     const parsedData = JSON.parse(storedData);
 
     const responseData = {
-      recallType: recallType,
+      recallType: selectedOption.value,
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
@@ -646,7 +565,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          maxWidth: '1500px',
+          // maxWidth: '2500px',
           padding: '40px 0px 10px 0px',
           margin: '0 auto',
           alignItems: 'baseline',
