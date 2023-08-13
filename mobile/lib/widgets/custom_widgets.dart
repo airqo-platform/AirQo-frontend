@@ -380,10 +380,12 @@ class HeartIcon extends StatelessWidget {
     super.key,
     required this.showAnimation,
     required this.placeId,
+    required this.isEnabled,
   });
 
   final bool showAnimation;
   final String placeId;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -404,14 +406,28 @@ class HeartIcon extends StatelessWidget {
     return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
       builder: (context, state) {
         final placesIds = state.map((e) => e.placeId).toList();
-
-        return SvgPicture.asset(
-          placesIds.contains(placeId)
-              ? 'assets/icon/heart.svg'
-              : 'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
+        return Stack(
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                placesIds.contains(placeId)
+                    ? 'assets/icon/heart.svg'
+                    : 'assets/icon/heart_dislike.svg',
+                semanticsLabel: 'Favorite',
+                height: isEnabled ? 16.67 : 20,
+                width: isEnabled ? 16.67 : 20,
+              ),
+            ),
+            if (!isEnabled)
+              Align(
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.block,
+                  color: CustomColors.appColorRed,
+                ),
+              ),
+          ],
         );
       },
     );
@@ -541,13 +557,16 @@ class _AirQualityActionsState extends State<AirQualityActions> {
           child: OutlinedButton(
             style: _rightButtonStyle,
             onPressed: () {
-              _updateFavPlace(context);
+              if (widget.airQualityReading.referenceSite.isNotEmpty) {
+                _updateFavPlace(context);
+              }
             },
             child: Center(
               child: IconTextButton(
                 iconWidget: HeartIcon(
                   showAnimation: _showHeartAnimation,
                   placeId: widget.airQualityReading.placeId,
+                  isEnabled: widget.airQualityReading.referenceSite.isNotEmpty,
                 ),
                 text: AppLocalizations.of(context)!.favorite,
               ),
