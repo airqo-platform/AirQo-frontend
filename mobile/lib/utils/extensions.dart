@@ -4,10 +4,13 @@ import 'dart:math';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -118,6 +121,62 @@ extension KyaExt on KyaLesson {
         if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
         return AppLocalizations.of(context)!.continu;
     }
+  }
+
+  Future<Uri> createShareLink() async {
+    if (shareLink != null &&
+        shareLink!.isNotEmpty &&
+        shareLink!.length < Config.shareLinkMaxLength) {
+      return Uri.parse(shareLink!);
+    }
+
+    String params = '${shareLinkParams()}&page=kya';
+
+    const uriPrefix = 'https://airqo.page.link';
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse('https://airqo.net/?$params'),
+      uriPrefix: uriPrefix,
+      androidParameters: AndroidParameters(
+        packageName: Platform.isAndroid
+            ? packageInfo.packageName
+            : Config.androidPackageName,
+        minimumVersion: Config.androidMinimumShareVersion,
+        fallbackUrl: Uri.parse(
+          'https://play.google.com/store/apps/details?id=com.airqo.app',
+        ),
+      ),
+      iosParameters: IOSParameters(
+        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
+        fallbackUrl: Uri.parse(
+          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
+        ),
+        appStoreId: Config.iosStoreId,
+        minimumVersion: Config.iosMinimumShareVersion,
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: 'airqo-app',
+        medium: 'social',
+        campaign: 'KYA Sharing',
+        content: 'KYA Sharing',
+        term: 'KYA Sharing',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: title,
+        description: 'Know Your Air',
+        imageUrl: Uri.parse(imageUrl),
+      ),
+    );
+
+    if (await hasNetworkConnection()) {
+      final ShortDynamicLink shortDynamicLink =
+          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      return shortDynamicLink.shortUrl;
+    }
+
+    return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
   }
 }
 
@@ -234,6 +293,69 @@ extension AirQualityReadingExt on AirQualityReading {
         .toSet()
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
+  }
+
+  Future<Uri> createShareLink() async {
+    if (referenceSite.isEmpty) {
+      throw Exception("Site not provided");
+    }
+
+    if (shareLink.isNotEmpty && shareLink.length < Config.shareLinkMaxLength) {
+      return Uri.parse(shareLink);
+    }
+
+    String params = '${shareLinkParams()}&page=insights';
+
+    const uriPrefix = 'https://airqo.page.link';
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse('https://airqo.net/?$params'),
+      uriPrefix: uriPrefix,
+      androidParameters: AndroidParameters(
+        packageName: Platform.isAndroid
+            ? packageInfo.packageName
+            : Config.androidPackageName,
+        minimumVersion: Config.androidMinimumShareVersion,
+        fallbackUrl: Uri.parse(
+          'https://play.google.com/store/apps/details?id=com.airqo.app',
+        ),
+      ),
+      iosParameters: IOSParameters(
+        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
+        fallbackUrl: Uri.parse(
+          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
+        ),
+        appStoreId: Config.iosStoreId,
+        minimumVersion: Config.iosMinimumShareVersion,
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: 'airqo-app',
+        medium: 'social',
+        campaign: 'Air Quality Sharing',
+        content: 'Air Quality Sharing',
+        term: 'Air Quality Sharing',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: name,
+        description: location,
+        imageUrl: Uri.parse(Config.airqoSecondaryLogo),
+      ),
+    );
+
+    if (await hasNetworkConnection()) {
+      final ShortDynamicLink shortDynamicLink =
+          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      Uri shortLink = shortDynamicLink.shortUrl;
+      await HiveService().updateAirQualityReading(copyWith(
+        shareLink: shortLink.toString(),
+      ));
+
+      return shortLink;
+    }
+
+    return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
   }
 }
 

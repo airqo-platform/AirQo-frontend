@@ -2,16 +2,17 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
@@ -65,11 +66,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             FutureBuilder<Uri>(
-              future: ShareService.createShareLink(kya: widget.kyaLesson),
+              future: widget.kyaLesson.createShareLink(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context,
-                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
+                  return SvgIcons.share(isEnabled: false);
                 }
                 if (snapshot.hasData) {
                   return InkWell(

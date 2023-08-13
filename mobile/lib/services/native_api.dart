@@ -17,7 +17,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
@@ -65,112 +64,6 @@ class RateService {
 }
 
 class ShareService {
-  static Future<Uri> createShareLink({
-    KyaLesson? kya,
-    AirQualityReading? airQualityReading,
-  }) async {
-    if (airQualityReading != null && kya != null) {
-      throw Exception('One model should be provided');
-    }
-
-    try {
-      if (airQualityReading != null &&
-          airQualityReading.shareLink.isNotEmpty &&
-          airQualityReading.shareLink.length < Config.shareLinkMaxLength) {
-        return Uri.parse(airQualityReading.shareLink);
-      }
-
-      if (kya != null &&
-          kya.shareLink!.isNotEmpty &&
-          kya.shareLink!.length < Config.shareLinkMaxLength) {
-        return Uri.parse(kya.shareLink ?? '');
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    String params = '';
-    String? title;
-    String? description;
-    Uri? shareImage;
-
-    if (airQualityReading != null) {
-      params = '${airQualityReading.shareLinkParams()}&page=insights';
-      title = airQualityReading.name;
-      description = airQualityReading.location;
-      shareImage = Uri.parse(Config.airqoSecondaryLogo);
-    }
-
-    if (kya != null) {
-      params = '${kya.shareLinkParams()}&page=kya';
-      title = kya.title;
-      description = 'Breathe Clean';
-      shareImage = Uri.parse(kya.imageUrl);
-    }
-
-    const uriPrefix = 'https://airqo.page.link';
-
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
-      link: Uri.parse('https://airqo.net/?$params'),
-      uriPrefix: uriPrefix,
-      androidParameters: AndroidParameters(
-        packageName: Platform.isAndroid
-            ? packageInfo.packageName
-            : Config.androidPackageName,
-        minimumVersion: Config.androidMinimumShareVersion,
-        fallbackUrl: Uri.parse(
-          'https://play.google.com/store/apps/details?id=com.airqo.app',
-        ),
-      ),
-      iosParameters: IOSParameters(
-        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
-        fallbackUrl: Uri.parse(
-          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
-        ),
-        appStoreId: Config.iosStoreId,
-        minimumVersion: Config.iosMinimumShareVersion,
-      ),
-      googleAnalyticsParameters: const GoogleAnalyticsParameters(
-        source: 'airqo-app',
-        medium: 'social',
-        campaign: 'Air Quality Sharing',
-        content: 'Air Quality Sharing',
-        term: 'Air Quality Sharing',
-      ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-        title: title,
-        description: description,
-        imageUrl: shareImage,
-      ),
-    );
-
-    if (await hasNetworkConnection()) {
-      try {
-        final ShortDynamicLink shortDynamicLink = await FirebaseDynamicLinks
-            .instance
-            .buildShortLink(dynamicLinkParams);
-        Uri shareLink = shortDynamicLink.shortUrl;
-        if (airQualityReading != null) {
-          await HiveService()
-              .updateAirQualityReading(airQualityReading.copyWith(
-            shareLink: shareLink.toString(),
-          ));
-        }
-
-        return shareLink;
-      } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
-      }
-    }
-
-    return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
-  }
-
   static Future<void> navigateToSharedFeature({
     required PendingDynamicLinkData linkData,
     required BuildContext context,

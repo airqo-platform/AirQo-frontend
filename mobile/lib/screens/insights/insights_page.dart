@@ -67,39 +67,29 @@ class InsightsPage extends StatelessWidget {
                 width: 40,
               ),
             ),
-            Text(AppLocalizations.of(context)!.moreInsights,
-                style: CustomTextStyle.headline8(context)),
+            Text(
+              AppLocalizations.of(context)!.moreInsights,
+              style: CustomTextStyle.headline8(context),
+            ),
             FutureBuilder<Uri>(
-              future: ShareService.createShareLink(
-                airQualityReading: airQualityReading,
-              ),
+              future: airQualityReading.createShareLink(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context,
-                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
+                  return SvgIcons.share(isEnabled: false);
                 }
+
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {
-                      Uri? link = snapshot.data;
-                      if (link != null) {
+                      if (snapshot.data != null) {
                         await ShareService.shareLink(
-                          link,
+                          snapshot.data!,
                           context,
                           airQualityReading: airQualityReading,
                         );
                       }
                     },
-                    child: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      theme: SvgTheme(currentColor: CustomColors.greyColor),
-                      colorFilter: ColorFilter.mode(
-                        CustomColors.greyColor,
-                        BlendMode.srcIn,
-                      ),
-                      height: 26,
-                      width: 26,
-                    ),
+                    child: SvgIcons.share(),
                   );
                 }
 
@@ -155,7 +145,8 @@ class InsightsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
                       AppLocalizations.of(context)!
-                          .actualDate(selectedInsight.dateTime).toUpperCase(),
+                          .actualDate(selectedInsight.dateTime)
+                          .toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),

@@ -12,6 +12,28 @@ class SvgIcons {
     );
   }
 
+  static Widget share({bool isEnabled = true}) {
+    return Stack(
+      children: [
+        SvgPicture.asset(
+          'assets/icon/share_icon.svg',
+          theme: SvgTheme(currentColor: CustomColors.greyColor),
+          colorFilter: ColorFilter.mode(
+            CustomColors.greyColor,
+            BlendMode.srcIn,
+          ),
+          height: 26,
+          width: 26,
+        ),
+        if (!isEnabled)
+          Icon(
+            Icons.block,
+            color: CustomColors.appColorRed,
+          ),
+      ],
+    );
+  }
+
   static Widget airQualityEmoji(
     AirQuality? airQuality, {
     double height = 18,

@@ -6,7 +6,7 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,9 +17,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
-
-import 'buttons.dart';
-import 'custom_shimmer.dart';
 
 class HealthTipContainer extends StatelessWidget {
   const HealthTipContainer(this.healthTip, {super.key});
@@ -484,14 +481,18 @@ class _AirQualityActionsState extends State<AirQualityActions> {
       children: [
         Expanded(
           child: FutureBuilder<Uri>(
-            future: ShareService.createShareLink(
-              airQualityReading: widget.airQualityReading,
-            ),
+            future: widget.airQualityReading.createShareLink(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                showSnackBar(
-                  context,
-                  AppLocalizations.of(context)!.couldNotCreateAShareLink,
+                return OutlinedButton(
+                  style: _leftButtonStyle,
+                  onPressed: () {},
+                  child: Center(
+                    child: IconTextButton(
+                      iconWidget: SvgIcons.share(isEnabled: false),
+                      text: AppLocalizations.of(context)!.share,
+                    ),
+                  ),
                 );
               }
               if (snapshot.hasData) {
@@ -505,19 +506,6 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                         context,
                         airQualityReading: widget.airQualityReading,
                       );
-                      // disabling copying to clipboard
-                      // if (link.toString().length > Config.shareLinkMaxLength) {
-                      //   await Clipboard.setData(
-                      //     ClipboardData(text: link.toString()),
-                      //   ).then((_) {
-                      //     showSnackBar(context, 'Copied to your clipboard !');
-                      //   });
-                      // } else {
-                      //   await ShareService.shareLink(
-                      //     link,
-                      //     airQualityReading: widget.airQualityReading,
-                      //   );
-                      // }
                     },
                     child: Center(
                       child: IconTextButton(
