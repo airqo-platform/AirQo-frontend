@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'favourite_places_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FavouritePlacesPage extends StatelessWidget {
   const FavouritePlacesPage({super.key});
@@ -13,7 +14,7 @@ class FavouritePlacesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppTopBar('Favorites'),
+      appBar: AppTopBar(AppLocalizations.of(context)!.favorites),
       body: AppSafeArea(
         horizontalPadding: 16,
         child: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(

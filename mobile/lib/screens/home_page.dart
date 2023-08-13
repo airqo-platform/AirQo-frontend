@@ -19,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dashboard/dashboard_view.dart';
 import 'for_you_page.dart';
 import 'map/map_view.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -103,11 +104,12 @@ class _HomePageState extends State<HomePage> {
                     icon: CustomShowcaseWidget(
                       customize: ShowcaseOptions.up,
                       showcaseKey: _homeShowcaseKey,
-                      description: 'Explore air quality here',
+                      description:
+                          AppLocalizations.of(context)!.exploreAirQualityHere,
                       child: BottomNavIcon(
                         selectedIndex: _selectedIndex,
                         icon: Icons.home_rounded,
-                        label: 'Home',
+                        label: AppLocalizations.of(context)!.home,
                         index: 0,
                       ),
                     ),
@@ -119,11 +121,12 @@ class _HomePageState extends State<HomePage> {
                       showcaseKey: _mapShowcaseKey,
                       descriptionWidth: screenSize.width * 0.3,
                       descriptionHeight: screenSize.height * 0.09,
-                      description: 'See readings from our monitors here',
+                      description: AppLocalizations.of(context)!
+                          .seeReadingsFromOurMonitorsHere,
                       child: BottomNavIcon(
                         icon: Icons.location_on_rounded,
                         selectedIndex: _selectedIndex,
-                        label: 'AirQo Map',
+                        label: AppLocalizations.of(context)!.airQoMap,
                         index: 1,
                       ),
                     ),
@@ -137,12 +140,12 @@ class _HomePageState extends State<HomePage> {
                           showcaseKey: _profileShowcaseKey,
                           descriptionHeight: screenSize.height * 0.13,
                           descriptionWidth: screenSize.width * 0.23,
-                          description:
-                              'Change your preferences and settings here',
+                          description: AppLocalizations.of(context)!
+                              .changeYourPreferencesAndSettingsHere,
                           child: BottomNavIcon(
                             icon: Icons.person_rounded,
                             selectedIndex: _selectedIndex,
-                            label: 'Profile',
+                            label: AppLocalizations.of(context)!.profile,
                             index: 2,
                           ),
                         ),
@@ -275,7 +278,7 @@ class _HomePageState extends State<HomePage> {
 
       showSnackBar(
         context,
-        'Tap again to exit !',
+        AppLocalizations.of(context)!.tapAgainToExit,
       );
 
       return Future.value(false);

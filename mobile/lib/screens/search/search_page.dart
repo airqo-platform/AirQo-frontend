@@ -5,6 +5,7 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'search_widgets.dart';
 
@@ -68,17 +69,19 @@ class SearchFilterView extends StatelessWidget {
             return ListView(
               children: [
                 SearchSection(
-                  title: state.filteredAirQuality?.searchNearbyLocationsText
+                  title: state.filteredAirQuality
+                          ?.getSearchNearbyLocationsText(context)
                           .toTitleCase() ??
                       '',
                   airQualityReadings: state.nearbyLocations,
                 ),
                 SearchSection(
                   title: state.nearbyLocations.isEmpty
-                      ? state.filteredAirQuality?.searchOtherLocationsText
+                      ? state.filteredAirQuality
+                              ?.getSearchOtherLocationsText(context)
                               .toTitleCase() ??
                           ''
-                      : 'Other ${state.filteredAirQuality?.searchOtherLocationsText}'
+                      : 'Other ${state.filteredAirQuality?.getSearchOtherLocationsText(context)}'
                           .toTitleCase(),
                   airQualityReadings: state.otherLocations,
                 ),
@@ -96,7 +99,7 @@ class SearchFilterView extends StatelessWidget {
 
                   return SearchSection(
                     maximumElements: 3,
-                    title: 'Recent Searches',
+                    title: AppLocalizations.of(context)!.recentSearches,
                     airQualityReadings: data,
                   );
                 }),
@@ -104,9 +107,9 @@ class SearchFilterView extends StatelessWidget {
               ],
             );
           case SearchFilterStatus.filterFailed:
-            return const NoSearchResultsWidget(
-              message:
-                  'Try adjusting your filters to find what you’re looking for.',
+            return NoSearchResultsWidget(
+              message: AppLocalizations.of(context)!
+                  .tryAdjustingYourFiltersToFindWhatYoureLookingFor,
             );
         }
       },
@@ -148,7 +151,7 @@ class SearchView extends StatelessWidget {
                 .map((e) => e.airQualityReading as AirQualityReading)
                 .toList();
             widget = SearchSection(
-              title: 'Suggestions',
+              title: AppLocalizations.of(context)!.suggestions,
               airQualityReadings: data,
             );
             break;
@@ -156,8 +159,9 @@ class SearchView extends StatelessWidget {
             widget = state.recommendations.isEmpty
                 ? const NoSearchResultsWidget()
                 : SearchSection(
-                    title:
-                        'Can\'t find air quality of ${state.searchTerm}?\nExplore these locations related to your search.',
+                    title: AppLocalizations.of(context)!
+                        .cantFindAirQualityOfExploreTheseLocationsRelateToYourSearch(
+                            state.searchTerm),
                     airQualityReadings: state.recommendations,
                   );
             break;

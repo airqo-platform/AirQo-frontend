@@ -139,7 +139,7 @@ class _PageScaffoldState extends State<PageScaffold> {
                 bottom: 32,
               ),
               child: NextButton(
-                text: widget.kyaLesson.startButtonText(),
+                text: widget.kyaLesson.startButtonText(context),
                 buttonColor: CustomColors.appColorBlue,
                 callBack: () {
                   Navigator.pushReplacement(

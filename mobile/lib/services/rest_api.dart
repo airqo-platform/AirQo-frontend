@@ -16,7 +16,6 @@ import 'package:uuid/uuid.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   Map<String, dynamic> params = queryParams;
-  params.remove("TOKEN");
   String formattedUrl = '$url?';
   params.forEach((key, value) => formattedUrl = "$formattedUrl$key=$value&");
 
@@ -359,8 +358,8 @@ class AirqoApiClient {
         )}T00:00:00Z',
       )
       ..putIfAbsent('frequency', () => 'hourly')
-      ..putIfAbsent('tenant', () => 'airqo');
-
+      ..putIfAbsent('tenant', () => 'airqo')
+      ..putIfAbsent('token', () => Config.airqoApiV2Token);
     try {
       final body = await _performGetRequest(
         queryParams,
@@ -425,7 +424,7 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "${AirQoUrls.kya}/sync/$userId",
+          "${AirQoUrls.kya}/progress/sync/$userId",
         ),
         headers: headers,
         body: jsonEncode({
