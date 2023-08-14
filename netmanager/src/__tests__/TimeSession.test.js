@@ -3,9 +3,11 @@ import { shallow } from 'enzyme';
 import  AppRoutes  from '../AppRoutes'; 
 
 describe('AppRoutes Component', () => {
-  it('renders without crashing', () => {
-    const auth = { isAuthenticated: true }; 
-    const logoutUser = jest.fn(); 
-    shallow(<AppRoutes auth={auth} logoutUser={logoutUser} />);
+
+  it('matches snapshot', () => {
+    const auth = { isAuthenticated: true }; // Adjust this based on your test scenario
+    const logoutUser = jest.fn(); // A mock function for logoutUser
+    const wrapper = shallow(<AppRoutes auth={auth} logoutUser={logoutUser} />);
+    expect(wrapper).toMatchSnapshot();
   });
 });
