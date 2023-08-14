@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import AirQualityImg from 'assets/img/AirQuality.png'
+import React, { useState } from 'react';
+import AirQualityImg from 'assets/img/AirQuality.png';
 
 const AfricanCities = () => {
     const [selectedCard, setSelectedCard] = useState('card1')
