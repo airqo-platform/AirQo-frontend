@@ -566,7 +566,7 @@ extension DateTimeExt on DateTime {
   String getWeekday(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final dateFormat = DateFormat.EEEE(locale.toString());
-    return dateFormat.format(this);
+    return  AppLocalizations.of(context)!.getWeekday(dateFormat.format(this));
   }
 
   bool isWithInCurrentWeek() {
