@@ -298,7 +298,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
   const [isLoading, setIsLoading] = useState(false);
-  const RecallButton = ({ handleRecall, recallLoading, open, toggleOpen }) => {
+  const RecallButton = ({ handleRecall, recallLoading }) => {
     const [selectedRecallType, setSelectedRecallType] = useState('');
     const [selectVisible, setSelectVisible] = useState(false);
   
@@ -316,7 +316,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       if (selectedRecallType) {
         setSelectVisible(false); // Hide the select
         setrecallLoading(true);
-        toggleOpen();
         await handleRecall(selectedRecallType);
         setrecallLoading(false);
         setSelectedRecallType(''); // Clear the selected recall type
@@ -325,8 +324,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   
     return (
       <div
-        open={open}
-        onClose={toggleOpen}
         style={{
           maxWidth: '500px',
           width: '100%',
@@ -356,7 +353,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
             <Button
               variant="contained"
               color="primary"
-              disabled={!deviceData.isActive || recallLoading || selectVisible}
+              disabled={!deviceData.isActive || recallLoading }
               onClick={handleRecallClick}
             >
               {recallLoading ? 'Recalling' : 'Recall Device'}
