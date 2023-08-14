@@ -60,7 +60,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
     inactivityTimer = setTimeout(() => {
       setSessionExpired(true);
       logoutUser(); 
-    }, sessionTimeoutInSeconds * 1000);
+    }, sessionTimeoutInSeconds* 60 * 1000);
   };
 
   const handleUserActivity = () => {
