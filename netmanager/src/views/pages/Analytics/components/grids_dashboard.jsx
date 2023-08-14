@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GridsDashboardView = () => {
+const GridsDashboardView = ({ grid }) => {
   const classes = useStyles();
 
   const currentAirQloud = useCurrentAirQloudData();
@@ -163,7 +163,7 @@ const GridsDashboardView = () => {
         </Grid>
 
         <Grid container spacing={4}>
-          <AveragesChart classes={classes} />
+          <AveragesChart classes={classes} analyticsSites={grid.sites} isGrids={true} />
 
           <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
             <ExceedancesChart

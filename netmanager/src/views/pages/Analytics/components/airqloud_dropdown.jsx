@@ -3,13 +3,9 @@ import ReloadIcon from '@material-ui/icons/Replay';
 import { Box, Tooltip, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
-import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
-import { setCurrentAirQloudData } from 'redux/AirQloud/operations';
-import { resetDefaultGraphData } from 'redux/Dashboard/operations';
-import { refreshAirQloud } from 'redux/AirQloud/operations';
 import 'assets/css/dropdown.css';
 import { isEmpty } from 'underscore';
-import { fetchDashboardAirQloudsData, loadGridsAndCohortsSummary } from 'redux/AirQloud/operations';
+import { setActiveGrid } from 'redux/Analytics/operations';
 
 const customStyles = {
   control: (defaultStyles) => ({
@@ -44,43 +40,26 @@ const customStyles = {
   })
 };
 
-const AnalyticsAirqloudsDropDown = ({ isCohort }) => {
-  const currentAirqQloud = useCurrentAirQloudData();
+const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
   const dispatch = useDispatch();
-  const combinedGridAndCohortsSummary = useSelector(
-    (state) => state.airqloudRegistry.combinedGridAndCohortsSummary
-  );
-  const airqlouds = isCohort
-    ? combinedGridAndCohortsSummary.cohorts
-    : combinedGridAndCohortsSummary.grids;
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+  const activeGrid = useSelector((state) => state.analytics.activeGrid);
 
   const handleAirQloudChange = (selectedOption) => {
     const airqloud = selectedOption ? selectedOption.value : null;
-    dispatch(setCurrentAirQloudData(airqloud));
-    dispatch(resetDefaultGraphData());
+    if (!isCohort) {
+      dispatch(setActiveGrid(airqloud));
+    }
+    // dispatch(resetDefaultGraphData());
   };
 
   const handleAirQloudRefresh = (event) => {
     event.stopPropagation();
-    dispatch(refreshAirQloud(currentAirqQloud.long_name, currentAirqQloud._id));
+    // dispatch(refreshAirQloud(currentAirqQloud.long_name, currentAirqQloud._id));
   };
 
-  useEffect(() => {
-    if (isEmpty(airqlouds)) {
-      dispatch(fetchDashboardAirQloudsData());
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
-      dispatch(loadGridsAndCohortsSummary(activeNetwork.net_name));
-    }
-  }, []);
-
   const options =
-    !isEmpty(airqlouds) &&
-    airqlouds.map((airqloud) => ({
+    !isEmpty(airqloudsData) &&
+    airqloudsData.map((airqloud) => ({
       value: airqloud,
       label: (
         <div className="site">
@@ -117,6 +96,7 @@ const AnalyticsAirqloudsDropDown = ({ isCohort }) => {
     <div className="dropdown">
       <div className="dropdown-wrapper">
         <Select
+          value={{ value: activeGrid, label: activeGrid.name }}
           options={options}
           onChange={handleAirQloudChange}
           isSearchable={true}
@@ -125,7 +105,6 @@ const AnalyticsAirqloudsDropDown = ({ isCohort }) => {
           styles={customStyles}
           className="basic-single"
           classNamePrefix="select"
-          placeholder={`Select ${isCohort ? 'Cohort' : 'Grid'}`}
         />
         <Tooltip title="Refresh AirQloud">
           <div className="dd-reload" onClick={handleAirQloudRefresh}>

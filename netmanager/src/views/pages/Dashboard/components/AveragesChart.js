@@ -27,7 +27,7 @@ import palette from 'theme/palette';
 import axios from 'axios';
 import { DAILY_MEAN_AVERAGES_URI } from 'config/urls/analytics';
 import { roundToEndOfDay, roundToStartOfDay } from 'utils/dateTime';
-import { unzip, zip } from 'underscore';
+import { isEmpty, unzip, zip } from 'underscore';
 import moment from 'moment';
 import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
 import { flattenSiteOptions } from 'utils/sites';
@@ -43,13 +43,14 @@ function appendLeadingZeroes(n) {
   return n;
 }
 
-const AveragesChart = ({ classes }) => {
+const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
   const rootContainerId = 'widget-container';
   const iconButton = 'exportIconButton';
   const airqloud = useCurrentAirQloudData();
   const filter = (node) => node.id !== iconButton;
   const endDate = moment(new Date()).toISOString();
   const startDate = moment(endDate).subtract(28, 'days').toISOString();
+  const [averageChartSites, setAverageChartSites] = useState([]);
   const [displayedLocations, setDisplayedLocations] = useState([]);
   const [allLocations, setAllLocations] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -71,6 +72,19 @@ const AveragesChart = ({ classes }) => {
   );
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isGrids) {
+      const siteOptions = [];
+      !isEmpty(analyticsSites) &&
+        analyticsSites.map((site) => {
+          siteOptions.push(site._id);
+        });
+      setAverageChartSites(siteOptions);
+    } else {
+      setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
+    }
+  }, [analyticsSites]);
 
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
@@ -332,7 +346,7 @@ const AveragesChart = ({ classes }) => {
           startDate: roundToStartOfDay(startDate).toISOString(),
           endDate: roundToEndOfDay(endDate).toISOString(),
           pollutant: pollutant.value,
-          sites: flattenSiteOptions(airqloud.siteOptions)
+          sites: averageChartSites
         },
         { params: { token: BASE_AUTH_TOKEN } }
       )
@@ -526,8 +540,10 @@ const AveragesChart = ({ classes }) => {
     fetchAndSetAverages(tempPollutant);
   };
   useEffect(() => {
-    fetchAndSetAverages(pollutant);
-  }, [airqloud, modalOpen]);
+    if (!isEmpty(averageChartSites)) {
+      fetchAndSetAverages(pollutant);
+    }
+  }, [averageChartSites, modalOpen]);
 
   const handleSeeMoreClick = () => {
     setDisplayedLocations(allLocations);
@@ -579,6 +595,17 @@ const AveragesChart = ({ classes }) => {
                 }}
               >
                 loading...
+              </div>
+            ) : isEmpty(locationsGraphData.labels) ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '30vh'
+                }}
+              >
+                No data found
               </div>
             ) : (
               <Bar data={locationsGraphData} options={options_main} />
