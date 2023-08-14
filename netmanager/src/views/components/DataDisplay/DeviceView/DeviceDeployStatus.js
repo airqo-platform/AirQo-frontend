@@ -317,6 +317,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
         setSelectVisible(false); // Hide the select
         setrecallLoading(true);
         await handleRecall(selectedRecallType);
+        window.location.reload();
         setrecallLoading(false);
         setSelectedRecallType(''); // Clear the selected recall type
       }
