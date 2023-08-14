@@ -297,12 +297,6 @@ void main() {
           DateTime.parse('2023-04-30T00:00:00Z'));
     });
 
-    test('getMonthString should return the month name or abbreviation', () {
-      expect(fixedDate1.getMonthString(), 'May');
-      expect(fixedDate1.getMonthString(abbreviate: true), 'May');
-      expect(fixedDate1.add(const Duration(days: 31)).getMonthString(), 'June');
-    });
-
     test('getUtcOffset should return the time zone offset in hours', () {
       expect(fixedDate1.getUtcOffset(), fixedDate1.timeZoneOffset.inHours);
       expect(DateTime.utc(2023, 5, 3).getUtcOffset(), 0);

@@ -534,31 +534,6 @@ extension DateTimeExt on DateTime {
     return lastDate.getDateOfFirstHourOfDay();
   }
 
-  String getMonthString({bool abbreviate = false}) {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    if (month < 1 || month > 12) {
-      throw UnimplementedError(
-        '$month does not have a month string implementation',
-      );
-    }
-    final monthString = months[month - 1];
-
-    return abbreviate ? monthString.substring(0, 3) : monthString;
-  }
-
   int getUtcOffset() {
     return timeZoneOffset.inHours;
   }
