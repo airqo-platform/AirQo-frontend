@@ -508,7 +508,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   const handleRecallSubmit = async (selectedOption) => {
     setRecallOpen(false); 
     setrecallLoading(true);
-    console.log('Selected recallType:', selectedOption.value);
     const storedData = localStorage.getItem('currentUser');
     if (!storedData) {
       console.error('Error: No user data found in local storage');
