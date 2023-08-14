@@ -192,11 +192,11 @@ const AppRoutes = ({ auth, logoutUser }) => {
         {sessionExpired && (
           <ConfirmDialog
             open={sessionExpired}
-            close={() => setSessionExpired(false)}
+            close={() => window.location.replace('/')}
             title="Session Expired"
             message="Your session has expired due to inactivity. Please log in again."
             confirmBtnMsg="Log In"
-            // confirm={() => window.location.replace('/login')}
+            confirm={() => setSessionExpired(false)}
             error={false} 
           />
         )}
