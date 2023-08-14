@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Button, CircularProgress, Grid, Paper, TextField } from '@material-ui/core';
+import Select from 'react-select';
+import {
+  Button,
+  Grid,
+  Paper,
+  TextField,
+} from '@material-ui/core';
 import Tooltip from '@material-ui/core/Tooltip';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -32,6 +38,21 @@ import { purple } from '@material-ui/core/colors';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import 'assets/css/dropdown.css';
+
+const customStyles = {
+  control: (baseStyles, state) => ({
+    ...baseStyles,
+    borderColor: '#175df5'
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#0560c9',
+    fontWeight: 'bold', // Increase the font weight
+    textAlign: 'center',
+    justifyContent: 'center'
+  })
+};
 
 const DEPLOYMENT_STATUSES = {
   deployed: 'deployed',
@@ -144,7 +165,8 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
           color="primary"
           disabled={loading}
           onClick={onClick}
-          style={{ textTransform: 'lowercase' }}>
+          style={{ textTransform: 'lowercase' }}
+        >
           run
         </Button>{' '}
         to initiate the test
@@ -156,26 +178,6 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
 EmptyDeviceTest.propTypes = {
   loading: PropTypes.bool.isRequired,
   onClick: PropTypes.func.isRequired
-};
-
-const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
-  return (
-    <ConfirmDialog
-      open={open}
-      close={toggleOpen}
-      message={`Are you sure you want to recall device ${deviceData.name}?`}
-      title={'Recall device'}
-      confirm={handleRecall}
-      confirmBtnMsg={'Recall'}
-    />
-  );
-};
-
-RecallDevice.propTypes = {
-  deviceData: PropTypes.object.isRequired,
-  handleRecall: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  toggleOpen: PropTypes.func.isRequired
 };
 
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
@@ -201,13 +203,15 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               justifyContent: 'center',
               width: '100%',
               marginBottom: '30px'
-            }}>
+            }}
+          >
             <span>
               Device last pushed data{' '}
               {isDateInPast(recentFeed.created_at) ? (
                 <>
                   <span
-                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}>
+                    className={elapsedDurationSeconds > elapseLimit ? classes.error : classes.root}
+                  >
                     {getFirstNDurations(elapsedDurationMapper, 2)}
                   </span>{' '}
                   ago.
@@ -230,7 +234,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               alignItems: 'center',
               margin: '10px 30px',
               color: elapsedDurationSeconds > elapseLimit ? 'grey' : 'inherit'
-            }}>
+            }}
+          >
             {feedKeys.map((key, index) => (
               <div style={senorListStyle} key={index}>
                 {isValidSensorValue(
@@ -270,7 +275,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             margin: '10px 30px',
             height: '70%',
             color: 'red'
-          }}>
+          }}
+        >
           <ErrorIcon className={classes.error} /> Device test has failed, please cross check the
           functionality of device
         </div>
@@ -284,13 +290,76 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired
 };
 
-export default function DeviceDeployStatus({ deviceData, siteOptions }) {
+export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptions }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState((deviceData.height && String(deviceData.height)) || '');
   const [power, setPower] = useState(capitalize(deviceData.powerType || ''));
   const [installationType, setInstallationType] = useState(deviceData.mountType || '');
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
+  const [isLoading, setIsLoading] = useState(false);
+  const RecallButton = ({ handleRecall, recallLoading }) => {
+    const [selectedRecallType, setSelectedRecallType] = useState('');
+
+    const options = [
+      { value: 'errors', label: 'Errors' },
+      { value: 'disconnected', label: 'Disconnected' },
+    ];
+  
+  
+    const handleRecallChange = (selectedOption) => {
+      setSelectedRecallType(selectedOption);
+    };
+    
+  
+    const handleRecallClick = async () => {
+      if (selectedRecallType) {
+        setrecallLoading(true);
+        await handleRecall(selectedRecallType);
+        setrecallLoading(false);
+      }
+    };
+
+    return (
+      <div 
+        style={{
+          maxWidth: '500px',
+          width: '100%',
+        }}
+      >
+        <div className="dropdown-rapper-recall">
+        <Select
+          value={selectedRecallType}
+          onChange={handleRecallChange}
+          options={options}
+          styles={customStyles}
+          isClearable
+          placeholder="Select Recall Type"
+        />
+        </div>
+        <Tooltip
+          arrow
+          title={recallLoading ? 'Recalling' : 'Recall Device'}
+          placement="top"
+          disableFocusListener={false}
+          disableHoverListener={false}
+          disableTouchListener={false}
+        >
+          <span>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!deviceData.isActive || recallLoading}
+              onClick={handleRecallClick}
+            >
+              {recallLoading ? 'Recalling' : 'Recall Device'}
+            </Button>
+          </span>
+        </Tooltip>
+      </div>
+    );
+  };
+  
 
   const checkColocation = () => {
     if (typeof deviceData.isPrimaryInLocation === 'boolean') {
@@ -306,7 +375,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     error: false
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-  console.log('Device', deviceData.site);
   const [site, setSite] = useState(filterSite(siteOptions, deviceData.site && deviceData.site._id));
   const [deployLoading, setDeployLoading] = useState(false);
   const [deployed, setDeployed] = useState(false);
@@ -382,6 +450,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       return;
     }
 
+    const storedData = localStorage.getItem('currentUser');
+    if (!storedData) {
+      console.error('Error: No user data found in local storage');
+      return;
+    }
+
+    const parsedData = JSON.parse(storedData);
+
     const deployData = {
       mountType: installationType,
       height: height,
@@ -389,17 +465,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       date: new Date(deploymentDate).toISOString(),
       isPrimaryInLocation: primaryChecked,
       isUsedForCollocation: collocationChecked,
-      site_id: site.value
+      site_id: site.value,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName
     };
 
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-        if (!isEmpty(activeNetwork)) {
-          dispatch(loadDevicesData(activeNetwork.net_name));
-          dispatch(loadSitesData(activeNetwork.net_name));
-        }
-
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -409,6 +484,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         );
         setDeployed(true);
         setInputErrors(false);
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       })
       .catch((err) => {
         const errors = (err.response && err.response.data && err.response.data.errors) || {};
@@ -422,20 +501,32 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         );
       });
     setDeployLoading(false);
+    setIsLoading(false);
   };
 
-  const handleRecallSubmit = async () => {
-    setRecallOpen(!recallOpen);
+
+  const handleRecallSubmit = async (selectedOption) => {
+    setRecallOpen(false); 
     setrecallLoading(true);
+    console.log('Selected recallType:', selectedOption.value);
+    const storedData = localStorage.getItem('currentUser');
+    if (!storedData) {
+      console.error('Error: No user data found in local storage');
+      return;
+    }
 
-    await recallDeviceApi(deviceData.name)
+    const parsedData = JSON.parse(storedData);
+
+    const responseData = {
+      recallType: selectedOption.value,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName
+    };
+
+    await recallDeviceApi(deviceData.name, responseData)
       .then((responseData) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-        if (!isEmpty(activeNetwork)) {
-          dispatch(loadDevicesData(activeNetwork.net_name));
-          dispatch(loadSitesData(activeNetwork.net_name));
-        }
-
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -443,6 +534,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: 'success'
           })
         );
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       })
       .catch((err) => {
         dispatch(
@@ -471,25 +565,28 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          maxWidth: '1500px',
+          // maxWidth: '2500px',
           padding: '40px 0px 10px 0px',
           margin: '0 auto',
           alignItems: 'baseline',
           justifyContent: 'flex-end'
-        }}>
+        }}
+      >
         <span
           style={{
             display: 'flex',
             alignItems: 'bottom',
             justifyContent: 'flex-end'
-          }}>
+          }}
+        >
           <span
             style={{
               display: 'flex',
               alignItems: 'center',
               fontSize: '1.2rem',
               marginRight: '10px'
-            }}>
+            }}
+          >
             <span
               style={{
                 fontSize: '0.7rem',
@@ -498,42 +595,26 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 border: '1px solid #ffffff',
                 borderRadius: '5px',
                 padding: '0 5px'
-              }}>
+              }}
+            >
               Deploy status
             </span>{' '}
             <span
               style={{
                 color: deviceStatus === 'deployed' ? 'green' : 'red',
                 textTransform: 'capitalize'
-              }}>
+              }}
+            >
               {deviceStatus}
             </span>
           </span>
-          <Tooltip
-            arrow
-            title={'Device is not yet deployed'}
-            disableTouchListener={deviceData.isActive}
-            disableHoverListener={deviceData.isActive}
-            disableFocusListener={deviceData.isActive}>
-            <span>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={!deviceData.isActive}
-                onClick={() => setRecallOpen(!recallOpen)}>
-                {recallLoading ? 'Recalling' : 'Recall Device'}
-              </Button>
-            </span>
-          </Tooltip>
+          <RecallButton
+            handleRecall={handleRecallSubmit}
+            recallLoading={recallLoading}
+          />
+
         </span>
       </div>
-
-      <RecallDevice
-        deviceData={deviceData}
-        open={recallOpen}
-        toggleOpen={() => setRecallOpen(!recallOpen)}
-        handleRecall={handleRecallSubmit}
-      />
 
       <Paper
         style={{
@@ -541,7 +622,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           minHeight: '400px',
           padding: '20px 20px',
           maxWidth: '1500px'
-        }}>
+        }}
+      >
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
             <div style={{ marginBottom: '15px' }}>
@@ -561,7 +643,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                     color: 'red',
                     textAlign: 'left',
                     fontSize: '0.7rem'
-                  }}>
+                  }}
+                >
                   {errors.site_id}
                 </div>
               )}
@@ -604,7 +687,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              variant="outlined">
+              variant="outlined"
+            >
               <option value="" />
               <option value="Mains">Mains</option>
               <option value="Solar">Solar</option>
@@ -632,7 +716,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 native: true,
                 style: { width: '100%', height: '50px' }
               }}
-              fullWidth>
+              fullWidth
+            >
               <option value="" />
               <option value="Faceboard">Faceboard</option>
               <option value="Pole">Pole</option>
@@ -699,7 +784,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -710,7 +796,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   color="primary"
                   disabled={deviceTestLoading}
                   onClick={runDeviceTest}
-                  style={{ marginLeft: '10px 10px' }}>
+                  style={{ marginLeft: '10px 10px' }}
+                >
                   Run device test
                 </Button>
               </Grid>
@@ -729,7 +816,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   justifyContent: 'center',
                   height: '100%',
                   color: 'red'
-                }}>
+                }}
+              >
                 Could not fetch device feeds
               </div>
             )}
@@ -751,14 +839,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               placement="top"
               disableFocusListener={runReport.successfulTestRun && !deviceData.isActive}
               disableHoverListener={runReport.successfulTestRun && !deviceData.isActive}
-              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}>
+              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}
+            >
               <span>
                 <Button
                   variant="contained"
                   color="primary"
                   disabled={weightedBool(deployLoading, deviceData.isActive || inputErrors)}
                   onClick={handleDeploySubmit}
-                  style={{ marginLeft: '10px' }}>
+                  style={{ marginLeft: '10px' }}
+                >
                   {deployLoading ? 'Deploying' : deployed ? 'Deployed' : 'Deploy'}
                 </Button>
               </span>
