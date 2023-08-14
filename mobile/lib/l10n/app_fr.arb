@@ -235,7 +235,6 @@
   "helloYourName": "Bonjour {placeholder}",
   "updatedYesterdayAtDateString": "Mis à jour hier à {placeholder}",
   "updatedTodayAtDateString": "Mis à jour aujourd'hui à {placeholder}",
-  "dateString": "{date}",
   "goodQualityAirAroundYou": "Bonne qualité de l'air autour de vous",
   "moderateQualityAirAroundYou": "Qualité de l'air modérée autour de vous",
   "nearbyLocationsWithAirQualityUnhealthyForSensitiveGroups": "Lieux à proximité avec une qualité de l'air malsaine pour les groupes sensibles",
@@ -321,5 +320,7 @@
   "headsUpYouAreAboutToLogout": "Attention! Vous êtes sur le point de vous déconnecter!",
   "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
   "selectCountry": "Sélectionnez un pays",
-  "phoneNumber":"Numéro de téléphone"
+  "phoneNumber":"Numéro de téléphone",
+  "actualDate":"{date}",
+  "dateString": "{date}"
 }
