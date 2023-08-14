@@ -34,13 +34,13 @@ packages:
     source: hosted
     version: "0.11.2"
   animated_text_kit:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: animated_text_kit
-      sha256: "5e6bf696c1db94fae17ef0527a17cef82f3100daebb53a3bdeb1c34f6b2ccdcc"
+      sha256: "37392a5376c9a1a503b02463c38bc0342ef814ddbb8f9977bc90f2a84b22fa92"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.1"
+    version: "4.2.2"
   animations:
     dependency: "direct main"
     description:

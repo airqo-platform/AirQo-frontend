@@ -75,6 +75,7 @@ dependencies:
   geocoding: ^2.1.0
   rating_dialog: ^2.0.4
   confetti: ^0.7.0
+  animated_text_kit: ^4.2.2
 
   # Drift previous database => airqo_app_db.sqlite
 
@@ -88,7 +89,6 @@ dev_dependencies:
   dart_code_metrics: ^5.5.0
   hive_generator: ^2.0.0
   bloc_test: ^9.1.1
-  animated_text_kit: <4.2.2
 
 flutter:
   uses-material-design: true

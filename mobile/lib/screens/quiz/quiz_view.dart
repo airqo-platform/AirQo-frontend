@@ -329,6 +329,14 @@ class QuizSkipButton extends StatelessWidget {
 
 void bottomSheet2(BuildContext context) {
   showModalBottomSheet(
+    useRootNavigator: true,
+    useSafeArea: true,
+    transitionAnimationController: AnimationController(
+      animationBehavior: AnimationBehavior.preserve,
+      vsync: Navigator.of(context).overlay!,
+      duration: const Duration(milliseconds: 500),
+      reverseDuration: const Duration(milliseconds: 500),
+    ),
     isScrollControlled: true,
     enableDrag: false,
     shape: const RoundedRectangleBorder(
@@ -1703,7 +1711,7 @@ void bottomSheet9(BuildContext context) {
       return Stack(
         children: [
           Positioned.fill(
-            left : 0,
+            left: 0,
             right: 0,
             top: 1,
             bottom: 0,
