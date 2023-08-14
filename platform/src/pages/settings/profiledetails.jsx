@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { useState } from 'react';
-import classNames from 'classnames';
+import ToggleButton from './togglebutton';
 import { BiEnvelope } from 'react-icons/bi';
 import { BiLock } from 'react-icons/bi';
 import { BiPhone } from 'react-icons/bi';
@@ -9,7 +9,8 @@ import { BiTimeFive } from 'react-icons/bi';
 import { BiTrash } from 'react-icons/bi';
 import { BiChevronDown } from 'react-icons/bi';
 import { CiSliderHorizontal } from 'react-icons/ci';
-import { CiCalendar } from "react-icons/ci";
+import { CiCalendar } from 'react-icons/ci';
+import ProgressIndicator from './circularprogressindicator';
 
 function ProfileDetails() {
   /* Tabs Toggling Function */
@@ -18,10 +19,19 @@ function ProfileDetails() {
   const toggleTab = (index) => {
     setToggleState(index);
   };
-  /* Button Settings Functions */
-  const [isSelected, setIsSelected] = useState(false);
-  const [isSelectedb, setIsSelectedb] = useState(false);
-  const [isSelectedc, setIsSelectedc] = useState(false);
+
+  /* Buttons Toggle and Count Function */
+  const [buttonStates, setButtonStates] = useState([false, false, false]);
+
+  const totalButtons = 3;
+
+  const toggleButton = (index) => {
+    const newButtonStates = [...buttonStates];
+    newButtonStates[index] = !newButtonStates[index];
+    setButtonStates(newButtonStates);
+  };
+
+  const toggledCount = buttonStates.filter((state) => state).length;
 
   return (
     <Layout>
@@ -48,12 +58,11 @@ function ProfileDetails() {
         </div>
         <div className='flex items-start pl-28 pr-6'>
           <button className='bg-blue-100 text-blue-500 text-sm font-medium py-2 px-3 mr-3 rounded'>
-          <div className='flex items-end'>
-          <CiCalendar className='mr-2 icon text-2xl text-blue-500'/>
-          Last 7 days
-          <BiChevronDown className='ml-2 icon text-2xl text-blue-500' />
-          </div>
-          
+            <div className='flex items-end'>
+              <CiCalendar className='mr-2 icon text-2xl text-blue-500' />
+              Last 7 days
+              <BiChevronDown className='ml-2 icon text-2xl text-blue-500' />
+            </div>
           </button>
           <button className='bg-gray-200 py-2 px-3 border border-none rounded'>
             <CiSliderHorizontal className=' icon text-2xl text-gray-500' />
@@ -308,9 +317,7 @@ function ProfileDetails() {
 
           <div className='flex items-center justify-between'>
             <div className='relative pr-4'>
-              <div className='w-14 h-14 rounded-full border-4 border-gray-300 flex justify-center items-center'>
-                <span className='text-gray-700 text-xl font-semibold leading-6'>0/3</span>
-              </div>
+              <ProgressIndicator toggledCount={toggledCount} total={totalButtons} />
             </div>
             <span className='flex-1 self-start'>
               <p className='text-2x1 font-medium self-stretch text-black leading-7 break-words'>
@@ -329,20 +336,7 @@ function ProfileDetails() {
           </div>
 
           <div className='pt-6 flex items-start justify-between'>
-            <div
-              onClick={() => setIsSelected(!isSelected)}
-              class={classNames(
-                'w-9 h-5 mt-1 bg-blue-500 rounded-full cursor-pointer transition-all duration-500 flex justify-end items-center',
-                { ' bg-gray-200 ': isSelected },
-              )}>
-              <span
-                className={classNames(
-                  'm-0.5 h-4 w-4 bg-white rounded-full transition-all duration-500',
-                  {
-                    'mr-5': isSelected,
-                  },
-                )}></span>
-            </div>
+            <ToggleButton isSelected={buttonStates[0]} onClick={() => toggleButton(0)} />
 
             <span className='pl-5 flex-1 self-start'>
               <p className='text-2x1 font-medium self-stretch text-black leading-7 break-words'>
@@ -355,20 +349,7 @@ function ProfileDetails() {
           </div>
 
           <div className='pt-6 flex items-start justify-between'>
-            <div
-              onClick={() => setIsSelectedb(!isSelectedb)}
-              class={classNames(
-                'w-9 h-5 mt-1 bg-blue-500 rounded-full cursor-pointer transition-all duration-500 flex justify-end items-center',
-                { ' bg-gray-200 ': isSelectedb },
-              )}>
-              <span
-                className={classNames(
-                  'm-0.5 h-4 w-4 bg-white rounded-full transition-all duration-500',
-                  {
-                    'mr-5': isSelectedb,
-                  },
-                )}></span>
-            </div>
+            <ToggleButton isSelected={buttonStates[1]} onClick={() => toggleButton(1)} />
             <span className='pl-5 flex-1 self-start'>
               <p className='text-2x1 font-medium self-stretch text-black leading-7 break-words'>
                 AirQo Updates and Announcements
@@ -380,20 +361,7 @@ function ProfileDetails() {
           </div>
 
           <div className='pt-6 flex items-start justify-between'>
-            <div
-              onClick={() => setIsSelectedc(!isSelectedc)}
-              class={classNames(
-                'w-9 h-5 mt-1 bg-blue-500 rounded-full cursor-pointer transition-all duration-500 flex justify-end items-center',
-                { ' bg-gray-200 ': isSelectedc },
-              )}>
-              <span
-                className={classNames(
-                  'm-0.5 h-4 w-4 bg-white rounded-full transition-all duration-500',
-                  {
-                    'mr-5': isSelectedc,
-                  },
-                )}></span>
-            </div>
+            <ToggleButton isSelected={buttonStates[2]} onClick={() => toggleButton(2)} />
             <span className='pl-5 flex-1 self-start'>
               <p className='text-2x1 font-medium self-stretch text-black leading-7 break-words'>
                 AirQo Newsletter
