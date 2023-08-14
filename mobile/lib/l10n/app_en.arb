@@ -321,5 +321,16 @@
     "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"You will miss out on notifications and won’t be able to save favourite places",
     "selectCountry": "Select Country",
     "phoneNumber":"Phone Number",
-    "dateString": "{date}"
+    "actualDate":"{date}",
+    "@actualDate":{
+        "description": "Actual date",
+        "placeholders": {
+            "date": {
+                "type": "DateTime",
+                "format":"yMMMMEEEEd"
+            }
+        }
+    },
+    "dateString": "{date}",
+    "getWeekday": "{date}"
 }
