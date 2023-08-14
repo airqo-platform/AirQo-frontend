@@ -246,10 +246,23 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
     evt.preventDefault();
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
+    const storedData = localStorage.getItem('currentUser'); 
+    if (!storedData) {
+      console.error("Error: No user data found in local storage");
+      return;
+    }
+
+    const parsedData = JSON.parse(storedData);
+
+
     const logData = {
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      description: description
+      description: description,
+      userName: parsedData.email,
+      email: parsedData.email,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
     };
 
     setLoading(true);
