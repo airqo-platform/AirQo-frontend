@@ -12,30 +12,53 @@ tasks:
       - flutter run --flavor=airqo
 
   tests:
-    desc: Runs tests
+    desc: Runs tests with coverage
     aliases: ['t']
     cmds:
-      - flutter test test/ --coverage test
+      - flutter test --coverage
+
+  coverage-report:
+    desc: Generates and opens test coverage report
+    cmds:
+      - genhtml coverage/lcov.info -o coverage/html
+      - open coverage/html/index.html
+
+  code-format:
+    desc: Code formatting
+    cmds:
+      - dart fix --dry-run
+      - dart fix --apply
+      - dart format lib/
+      - dart format test/
+
+  build-runner:
+    desc: Build runner
+    cmds:
+      - dart run build_runner build --delete-conflicting-outputs
+
+  configure-firebase:
+    desc: Configures firebase
+    cmds:
+      - flutterfire configure
 
   build-android:
-    desc: Build android for release
+    desc: Builds android for release
     aliases: ['ba']
     dotenv: ['.env.prod']
     preconditions:
       - flutter clean
     cmds:
-      - flutter build appbundle --build-name=$APP_VERSION --build-number=$APP_BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build appbundle --build-name=$VERSION --build-number=$BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
 
   build-ios:
-    desc: Build ios for release
+    desc: Builds ios for release
     aliases: ['bi']
     platforms: [darwin]
     dotenv: ['.env.prod']
     preconditions:
       - sed -i '' "s/GOOGLE_API_KEY/$IOS_GOOGLE_API_KEY/g" ios/Runner/AppDelegate.swift
-      - flutter clean
     cmds:
-      - flutter build ipa --build-name=$APP_VERSION --build-number=$APP_BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
+      - flutter build ipa --build-name=$VERSION --build-number=$BUILD_NUMBER --flavor=airqo --obfuscate --split-debug-info=${PWD}/obfuscate
       - defer: { task: ios-build-cleanup }
 
   ios-build-cleanup:

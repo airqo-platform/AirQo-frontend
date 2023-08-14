@@ -478,11 +478,12 @@ enum AuthProcedure {
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
-        return  '';
+        return '';
       case AuthProcedure.anonymousLogin:
         return '';
       case AuthProcedure.deleteAccount:
-        return AppLocalizations.of(context)!.headsUpYouAreAboutToDeleteYourAccount;
+        return AppLocalizations.of(context)!
+            .headsUpYouAreAboutToDeleteYourAccount;
       case AuthProcedure.logout:
         return AppLocalizations.of(context)!.headsUpYouAreAboutToLogout;
     }
@@ -493,13 +494,14 @@ enum AuthProcedure {
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
-        return  '';
+        return '';
       case AuthProcedure.anonymousLogin:
         return '';
       case AuthProcedure.deleteAccount:
         return AppLocalizations.of(context)!.youWillLoseAllYourSavedPlaces;
       case AuthProcedure.logout:
-        return AppLocalizations.of(context)!.youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces;
+        return AppLocalizations.of(context)!
+            .youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces;
     }
   }
 
@@ -508,7 +510,7 @@ enum AuthProcedure {
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
-        return  '';
+        return '';
       case AuthProcedure.anonymousLogin:
         return '';
       case AuthProcedure.deleteAccount:
@@ -523,7 +525,7 @@ enum AuthProcedure {
       case AuthProcedure.login:
         return '';
       case AuthProcedure.signup:
-        return  '';
+        return '';
       case AuthProcedure.anonymousLogin:
         return '';
       case AuthProcedure.deleteAccount:
