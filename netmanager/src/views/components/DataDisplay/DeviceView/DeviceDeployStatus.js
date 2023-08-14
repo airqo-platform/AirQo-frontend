@@ -314,12 +314,12 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
     const handleRecallClick = async () => {
       setSelectVisible(true);
       if (selectedRecallType) {
-        setSelectVisible(false); // Hide the select
+        setSelectVisible(false); 
         setrecallLoading(true);
         await handleRecall(selectedRecallType);
         window.location.reload();
         setrecallLoading(false);
-        setSelectedRecallType(''); // Clear the selected recall type
+        setSelectedRecallType(''); 
       }
     };
   
