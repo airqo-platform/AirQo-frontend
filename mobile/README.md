@@ -19,7 +19,7 @@
 ### **Add the configuration files**
 
 | File                          | Directory                                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+|-------------------------------|-------------------------------------------------------------------------------------------------|
 | [google-services.json]()      | `app` directory under android folder (`android/app/`)                                           |
 | [google-services.json]()      | `app/src/airqodev` directory under android folder (`android/app/`)(For the staging environment) |
 | [firebase_app_id_file.json]() | Android folder (`android/`)                                                                     |

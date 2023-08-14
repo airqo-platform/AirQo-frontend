@@ -490,9 +490,7 @@ extension DateTimeExt on DateTime {
   String timelineString(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final monthFormat = DateFormat.MMMM(locale.toString());
-    return AppLocalizations.of(context)!.dateString(
-        '${getWeekday(context)} $day, ${monthFormat.format(this)}'
-            .toUpperCase());
+    return '${getWeekday(context)} $day, ${monthFormat.format(this)}'.toUpperCase();
   }
 
   DateTime getDateOfFirstDayOfWeek() {
@@ -541,7 +539,7 @@ extension DateTimeExt on DateTime {
   String getWeekday(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final dateFormat = DateFormat.EEEE(locale.toString());
-    return  AppLocalizations.of(context)!.getWeekday(dateFormat.format(this));
+    return dateFormat.format(this);
   }
 
   bool isWithInCurrentWeek() {
