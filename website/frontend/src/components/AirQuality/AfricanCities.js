@@ -42,4 +42,4 @@ const AfricanCities = () => {
     )
 }
 
-export default AfricanCities
+export default AfricanCities;
