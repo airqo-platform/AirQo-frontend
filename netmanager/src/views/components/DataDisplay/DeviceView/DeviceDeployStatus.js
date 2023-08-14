@@ -298,44 +298,51 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
   const [deploymentDate, setDeploymentDate] = useState(getDateString(deviceData.deployment_date));
   const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation || false);
   const [isLoading, setIsLoading] = useState(false);
-  const RecallButton = ({ handleRecall, recallLoading }) => {
+  const RecallButton = ({ handleRecall, recallLoading, open, toggleOpen }) => {
     const [selectedRecallType, setSelectedRecallType] = useState('');
-
+    const [selectVisible, setSelectVisible] = useState(false);
+  
     const options = [
       { value: 'errors', label: 'Errors' },
       { value: 'disconnected', label: 'Disconnected' },
     ];
   
-  
     const handleRecallChange = (selectedOption) => {
       setSelectedRecallType(selectedOption);
     };
-    
   
     const handleRecallClick = async () => {
+      setSelectVisible(true);
       if (selectedRecallType) {
+        setSelectVisible(false); // Hide the select
         setrecallLoading(true);
+        toggleOpen();
         await handleRecall(selectedRecallType);
         setrecallLoading(false);
+        setSelectedRecallType(''); // Clear the selected recall type
       }
     };
-
+  
     return (
-      <div 
+      <div
+        open={open}
+        onClose={toggleOpen}
         style={{
           maxWidth: '500px',
           width: '100%',
         }}
       >
         <div className="dropdown-rapper-recall">
-        <Select
-          value={selectedRecallType}
-          onChange={handleRecallChange}
-          options={options}
-          styles={customStyles}
-          isClearable
-          placeholder="Select Recall Type"
-        />
+          {selectVisible && ( // Only render the select when selectVisible is true
+            <Select
+              value={selectedRecallType}
+              onChange={handleRecallChange}
+              options={options}
+              styles={customStyles}
+              isClearable
+              placeholder="Select Recall Type"
+            />
+          )}
         </div>
         <Tooltip
           arrow
@@ -349,7 +356,7 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
             <Button
               variant="contained"
               color="primary"
-              disabled={!deviceData.isActive || recallLoading}
+              disabled={!deviceData.isActive || recallLoading || selectVisible}
               onClick={handleRecallClick}
             >
               {recallLoading ? 'Recalling' : 'Recall Device'}
@@ -359,6 +366,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       </div>
     );
   };
+  
+  
   
 
   const checkColocation = () => {
