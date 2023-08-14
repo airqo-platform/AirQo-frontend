@@ -4,6 +4,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import AnalyticsAirqloudsDropDown from './components/airqloud_dropdown';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
 import GridsDashboardView from './components/grids_dashboard';
+import AnalyticsBreadCrumb from './components/breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,6 +23,7 @@ const Analytics = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
+        <AnalyticsBreadCrumb isCohort={isCohort} />
         <Box
           display={'flex'}
           flexDirection={{ xs: 'column', sm: 'column', md: 'row', lg: 'row', xl: 'row' }}
