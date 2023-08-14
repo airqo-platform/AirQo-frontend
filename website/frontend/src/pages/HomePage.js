@@ -13,12 +13,29 @@ import HighlightsSection from '../components/HighlightsSection';
 import SEO from 'utils/seo';
 // import TweetsComponent from '../components/Tweets';
 import ImpactNumbers from '../components/ImpactNumbers';
+import { useTranslation } from 'react-i18next'
 
 const HomePage = () => {
+
+    const { t, i18n } = useTranslation();
+  const lngs = {
+    en: { nativeName: 'English' },
+    fr: { nativeName: 'français' }
+  };
+
+
   useInitScrollTop();
   return (
     <Page>
       <div className="HomePage">
+
+        
+           {/* {Object.keys(lngs).map((lng) => (
+                    <button key={lng} style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }} type="submit" onClick={() => i18n.changeLanguage(lng)}>
+                    {lngs[lng].nativeName}
+                    </button>
+                ))} */}
+        
         <SEO
           title="AirQo Africa"
           siteTitle="Clean Air for all African Cities"

@@ -144,7 +144,7 @@ const Footer = () => {
                   <Link to="/products/monitor">Air quality Monitor</Link>
                 </span>
                 <span>
-                  <Link to="/products/analytics">Air quality Analytics</Link>
+                  <Link to="/products/analytics">Air quality Dashboard</Link>
                 </span>
                 <span>
                   <Link to="/products/api">Air quality API</Link>
@@ -152,6 +152,12 @@ const Footer = () => {
                 <span>
                   <Link to="/products/mobile-app">AirQo Mobile App</Link>
                 </span>
+
+                <span>
+                  <Link to="/products/calibrate">AirQalibrate</Link>
+                </span>
+
+
               </div>
             </span>
             <span className="content-tabs middle-tab">

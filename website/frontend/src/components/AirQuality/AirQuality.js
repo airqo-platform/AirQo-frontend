@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import AfricanCities from './AfricanCities';
 import Communities from './Communities';
 
+
 const AirQuality = () => {
+ 
   const [selectedTab, setSelectedTab] = useState('AfricanCities');
   const onClickTabItem = (tab) => setSelectedTab(tab);
 
@@ -10,10 +12,10 @@ const AirQuality = () => {
     <div className="airquality-section">
       <div className="backdrop">
         <div className="header">
-          <h2>Closing the air quality data gaps in Africa </h2>
+          <h2>Closing the air quality data gaps in Africa</h2>
           <p>
-            We provide accurate, hyperlocal, and timely air quality data to provide evidence of the
-            magnitude and scale of air pollution across Africa.
+          We provide accurate, hyperlocal, and timely air quality
+          data to provide evidence of the magnitude and scale of air pollution across Africa"
           </p>
           <div className="tabs">
             <div>

@@ -2,7 +2,11 @@ import React from 'react';
 import MonitorImg from 'assets/img/monitor.png';
 import { Link } from 'react-router-dom';
 
-const Monitor = () => (
+
+const Monitor = () => {
+    
+
+    return(
         <div className="Monitor">
             <div className="monitor-content">
                 <div className="label"><span>Air Quality Monitor</span></div>
@@ -15,5 +19,6 @@ const Monitor = () => (
             </div>
         </div>
 );
+    };
 
 export default Monitor;
