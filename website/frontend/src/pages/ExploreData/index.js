@@ -8,7 +8,7 @@ import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
 import SEO from 'utils/seo';
 import UserManual from 'assets/docs/AirQoAnalyticsPlatformUserGuide.pdf';
-import DownloadIcon from 'assets/svg/explore/download.svg'
+import DownloadIcon from 'assets/svg/explore/download.svg';
 import AirQo from 'icons/nav/AirQo';
 import AppleBtn from 'assets/svg/apple_app_store.svg';
 import GoogleplayBtn from 'assets/svg/android_play_store.svg';
@@ -72,7 +72,13 @@ export const ExploreApp = () => (
             target="_blank"
             href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091"
             rel="noreferrer">
-            <div style={{ marginBottom: '40px', background: '#000', borderRadius: '8px', padding: '5px' }}>
+            <div
+              style={{
+                marginBottom: '40px',
+                background: '#000',
+                borderRadius: '8px',
+                padding: '5px'
+              }}>
               <AppleBtn />
             </div>
           </a>
@@ -137,7 +143,7 @@ const ExploreData = () => {
               </div>
               <h6>An interactive air quality analytics platform</h6>
               <Link to={`${NETMANAGER_URL}`} target="_blank" rel="noopener noreferrer">
-                <button className="nav-button">Air Quality Dashboard</button>
+                <button className="nav-button">Air Quality Analytics</button>
               </Link>
             </div>
           </div>

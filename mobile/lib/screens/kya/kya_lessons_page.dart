@@ -11,6 +11,7 @@ import 'package:flutter_svg/svg.dart';
 
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
@@ -67,7 +68,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               future: ShareService.createShareLink(kya: widget.kyaLesson),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  showSnackBar(context, 'Could not create a share link.');
+                  showSnackBar(context,
+                      AppLocalizations.of(context)!.couldNotCreateAShareLink);
                 }
                 if (snapshot.hasData) {
                   return InkWell(
@@ -95,7 +97,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
 
                 return GestureDetector(
                   onTap: () {
-                    showSnackBar(context, 'Creating share link. Hold on tight');
+                    showSnackBar(context,
+                        AppLocalizations.of(context)!.creatingShareLink);
                   },
                   child: const Center(
                     child: LoadingIcon(radius: 20),
@@ -124,7 +127,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: AutoSizeText(
-                          'Swipe Left Or Right to Move to Next Card',
+                          AppLocalizations.of(context)!
+                              .swipeLeftOrRightToMoveToNextCard,
                           maxLines: 2,
                           style: CustomTextStyle.headline7(context)?.copyWith(
                             color: CustomColors.appColorBlue,

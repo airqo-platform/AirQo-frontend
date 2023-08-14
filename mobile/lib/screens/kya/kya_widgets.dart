@@ -12,6 +12,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
@@ -54,7 +55,7 @@ class KyaMessageChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget widget = AutoSizeText(
-      kya.getKyaMessage(),
+      kya.getKyaMessage(context),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
@@ -69,13 +70,13 @@ class KyaMessageChip extends StatelessWidget {
         text: TextSpan(
           children: [
             TextSpan(
-              text: 'Complete! Move to ',
+              text: AppLocalizations.of(context)!.completeMoveTo,
               style: CustomTextStyle.caption3(context)?.copyWith(
                 color: CustomColors.appColorBlack,
               ),
             ),
             TextSpan(
-              text: 'For You',
+              text: AppLocalizations.of(context)!.forYou,
               style: CustomTextStyle.caption3(context)?.copyWith(
                 color: CustomColors.appColorBlue,
               ),
@@ -179,7 +180,7 @@ class KyaCardWidget extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 2),
                   child: AutoSizeText(
                     kyaLesson.title,
-                    maxLines: 4,
+                    maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyle.headline10(context),
                   ),

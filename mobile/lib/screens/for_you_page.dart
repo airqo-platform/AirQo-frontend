@@ -5,6 +5,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
@@ -34,7 +35,7 @@ class _ForYouPageState extends State<ForYouPage>
     final Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: const AppTopBar('For You'),
+      appBar: AppTopBar(AppLocalizations.of(context)!.forYou),
       body: AppSafeArea(
         horizontalPadding: 16,
         child: Column(
@@ -84,9 +85,10 @@ class _ForYouPageState extends State<ForYouPage>
                         tabs: <Widget>[
                           CustomShowcaseWidget(
                             showcaseKey: _analyticsTabShowcaseKey,
-                            description: "This is the analytics Tab",
+                            description: AppLocalizations.of(context)!
+                                .thisIsTheAnalyticsTab,
                             child: TabButton(
-                              text: 'Analytics',
+                              text: AppLocalizations.of(context)!.analytics,
                               index: 0,
                               tabController: _tabController,
                             ),
@@ -95,10 +97,10 @@ class _ForYouPageState extends State<ForYouPage>
                             showcaseKey: _kyaTabShowcaseKey,
                             descriptionHeight: screenSize.height * 0.16,
                             descriptionWidth: screenSize.width * 0.3,
-                            description:
-                                "Do you want to know more about air quality? Know your air in this section",
+                            description: AppLocalizations.of(context)!
+                                .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
                             child: TabButton(
-                              text: 'Know your Air',
+                              text: AppLocalizations.of(context)!.knowYourair,
                               index: 1,
                               tabController: _tabController,
                             ),
