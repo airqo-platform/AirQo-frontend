@@ -60,7 +60,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
     inactivityTimer = setTimeout(() => {
       setSessionExpired(true);
       logoutUser(); 
-    }, sessionTimeoutInSeconds);
+    }, sessionTimeoutInSeconds * 1000);
   };
 
   const handleUserActivity = () => {
@@ -196,7 +196,7 @@ const AppRoutes = ({ auth, logoutUser }) => {
             title="Session Expired"
             message="Your session has expired due to inactivity. Please log in again."
             confirmBtnMsg="Log In"
-            confirm={() => window.location.replace('/login')}
+            // confirm={() => window.location.replace('/login')}
             error={false} 
           />
         )}
