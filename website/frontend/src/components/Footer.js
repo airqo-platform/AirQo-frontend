@@ -107,10 +107,15 @@ const Footer = () => {
     { name: 'Cameroon', flag: <Cameroon /> }
   ];
 
+  const userCountry = LocationTracker({ countries });
+
+  useEffect(() => {
+    dispatch(setCurrentAirQloudData(userCountry || 'Uganda'));
+  }, [dispatch, userCountry]);
+
   return (
     <footer className="footer-wrapper">
       <div className="Footer">
-        <LocationTracker countries={countries} />
         <div className="body-section">
           <div className="logo">
             <AirQo />

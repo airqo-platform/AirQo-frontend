@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
-import { setCurrentAirQloudData } from '../../../reduxStore/AirQlouds/operations';
 import { getAllLocationsTrackingApi } from '../../../apis';
 
 const LocationTracker = ({ countries }) => {
-  const dispatch = useDispatch();
   const [storedCountry, setStoredCountry] = useState(localStorage.getItem('userCountry'));
 
   const updateUserCountry = useCallback(async () => {
@@ -30,21 +27,21 @@ const LocationTracker = ({ countries }) => {
           : 'Uganda';
 
         if (selectedCountry !== storedCountry) {
-          dispatch(setCurrentAirQloudData(selectedCountry));
           setStoredCountry(selectedCountry);
           localStorage.setItem('userCountry', selectedCountry);
         }
+        return selectedCountry;
       }
     } catch (error) {
       console.error('Error fetching user country:', error);
     }
-  }, [countries, dispatch, storedCountry]);
+  }, [countries, storedCountry]);
 
   useEffect(() => {
     updateUserCountry();
   }, [updateUserCountry]);
 
-  return null;
+  return storedCountry;
 };
 
 export default LocationTracker;
