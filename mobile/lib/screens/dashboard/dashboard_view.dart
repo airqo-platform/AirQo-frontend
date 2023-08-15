@@ -13,6 +13,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -25,6 +26,10 @@ import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
+import 'dart:developer' as developer;
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/services.dart';
 
 @pragma("vm:entry-point")
 void backgroundCallback(Uri? _) async {
@@ -40,6 +45,10 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
   late GlobalKey _favToolTipKey;
   late GlobalKey _kyaToolTipKey;
   late GlobalKey _favoritesShowcaseKey;
@@ -199,7 +208,9 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  AppLocalizations.of(context)!.actualDate(DateTime.now()).toUpperCase(),
+                  AppLocalizations.of(context)!
+                      .actualDate(DateTime.now())
+                      .toUpperCase(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
@@ -445,6 +456,8 @@ class _DashboardViewState extends State<DashboardView>
     _locationServiceStream.cancel();
     _locationPositionStream.cancel();
     _scrollController.dispose();
+    _connectivitySubscription.cancel();
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -452,6 +465,10 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+
     _favToolTipKey = GlobalKey();
     _kyaToolTipKey = GlobalKey();
     _favoritesShowcaseKey = GlobalKey();
@@ -479,6 +496,47 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.detached:
         break;
     }
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      developer.log('Couldn\'t check connectivity status', error: e);
+      return;
+    }
+
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+
+    if (_connectionStatus == ConnectivityResult.none) {
+      _showNoInternetSnackbar(context);
+    }
+  }
+
+  void _showNoInternetSnackbar(BuildContext context) {
+    SnackBar snackBar = SnackBar(
+      backgroundColor: const Color.fromARGB(226, 244, 67, 54),
+      content: Text(AppLocalizations.of(context)!.noInternetConnection,
+          style: const TextStyle(color: Colors.white)),
+      duration: const Duration(seconds: 4),
+      dismissDirection: DismissDirection.down,
+      //behavior: SnackBarBehavior.floating,
+    );
+    ScaffoldMessenger.of(context)
+        .removeCurrentSnackBar(); // Clear existing snackbar
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _listenToStreams() {

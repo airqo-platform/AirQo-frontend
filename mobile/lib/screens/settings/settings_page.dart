@@ -18,11 +18,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 import 'delete_account_screen.dart';
-import 'dart:async';
-import 'dart:developer' as developer;
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/services.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -33,17 +28,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage>
     with WidgetsBindingObserver {
-  ConnectivityResult _connectionStatus = ConnectivityResult.none;
-  final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
-
   @override
   void initState() {
     super.initState();
-    initConnectivity();
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-
     WidgetsBinding.instance.addObserver(this);
     context.read<SettingsBloc>().add(const InitializeSettings());
     _appTourShowcaseKey = GlobalKey();
@@ -255,7 +242,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   void dispose() {
-    _connectivitySubscription.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -276,78 +262,6 @@ class _SettingsPageState extends State<SettingsPage>
     }
   }
 
-  Future<void> initConnectivity() async {
-    late ConnectivityResult result;
-
-    try {
-      result = await _connectivity.checkConnectivity();
-    } on PlatformException catch (e) {
-      developer.log('Couldn\'t check connectivity status', error: e);
-      return;
-    }
-
-    if (!mounted) {
-      return Future.value(null);
-    }
-
-    return _updateConnectionStatus(result);
-  }
-
-  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    setState(() {
-      _connectionStatus = result;
-    });
-
-    if (_connectionStatus == ConnectivityResult.none) {
-      _showNoInternetSnackbar(context);
-    } else if (_connectionStatus == ConnectivityResult.wifi) {
-      _showWifiSnackbar(context);
-    } else if (_connectionStatus == ConnectivityResult.mobile) {
-      _showMobileSnackbar(context);
-    }
-  }
-
-  void _showNoInternetSnackbar(BuildContext context) {
-    const snackBar = SnackBar(
-      elevation: 1,
-      backgroundColor: Colors.red,
-      content: Text('No internet connection.'),
-      duration: Duration(seconds: 3), // Adjust the duration as needed
-      //behavior: SnackBarBehavior.floating,
-    );
-
-    ScaffoldMessenger.of(context)
-        .removeCurrentSnackBar(); // Clear existing snackbar
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void _showWifiSnackbar(BuildContext context) {
-    const snackBar = SnackBar(
-      elevation: 1,
-      backgroundColor: Colors.green,
-      content: Text("You're on Wifi connection."),
-      duration: Duration(seconds: 3), // Adjust the duration as needed
-      //behavior: SnackBarBehavior.floating,
-    );
-
-    ScaffoldMessenger.of(context)
-        .removeCurrentSnackBar(); // Clear existing snackbar
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void _showMobileSnackbar(BuildContext context) {
-    const snackBar = SnackBar(
-      elevation: 1,
-      backgroundColor: Colors.green,
-      content: Text('Mobile connection.'),
-      duration: Duration(seconds: 3), // Adjust the duration as needed
-      //behavior: SnackBarBehavior.floating,
-    );
-
-    ScaffoldMessenger.of(context)
-        .removeCurrentSnackBar(); // Clear existing snackbar
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 
   Future<void> _startShowcase() async {
     final prefs = await SharedPreferences.getInstance();
