@@ -171,6 +171,8 @@ const GridsDashboardView = ({ grid }) => {
               date={dateValue}
               chartContainer={classes.chartContainer}
               idSuffix="exceedances"
+              analyticsSites={grid.sites}
+              isGrids={true}
             />
           </Grid>
 

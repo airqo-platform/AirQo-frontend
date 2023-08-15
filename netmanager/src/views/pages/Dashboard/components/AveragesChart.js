@@ -84,7 +84,7 @@ const AveragesChart = ({ classes, analyticsSites, isGrids }) => {
     } else {
       setAverageChartSites(flattenSiteOptions(airqloud.siteOptions));
     }
-  }, [analyticsSites]);
+  }, [analyticsSites, airqloud]);
 
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
