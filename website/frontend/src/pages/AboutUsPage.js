@@ -291,11 +291,10 @@ const AboutUsPage = () => {
                   partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
                     <tr key={key}>
                       {partnerGroup.map((partner) => (
-                        <td key={partner.id}>
+                        <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
                           <img
                             src={partner.partner_logo}
                             alt={partner.partner_name}
-                            onClick={onLogoClick(partner.unique_title)}
                           />
                         </td>
                       ))}
