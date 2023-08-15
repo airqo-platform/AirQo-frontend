@@ -1,4 +1,5 @@
 import {
+  LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
   LOAD_ACTIVE_GRID_SUCCESS,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS
 } from './actions';
@@ -6,7 +7,8 @@ import {
 const initialState = {
   combinedGridAndCohortsSummary: {},
   selectedGridSites: {},
-  activeGrid: {}
+  activeGrid: {},
+  activeGridDetails: {}
 };
 
 export default function (state = initialState, action) {
@@ -15,6 +17,8 @@ export default function (state = initialState, action) {
       return { ...state, combinedGridAndCohortsSummary: action.payload };
     case LOAD_ACTIVE_GRID_SUCCESS:
       return { ...state, activeGrid: action.payload };
+    case LOAD_ACTIVE_GRID_DETAILS_SUCCESS:
+      return { ...state, activeGridDetails: action.payload };
     default:
       return state;
   }

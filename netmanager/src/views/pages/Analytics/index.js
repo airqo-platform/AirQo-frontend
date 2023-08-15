@@ -6,7 +6,11 @@ import ImportExportIcon from '@material-ui/icons/ImportExport';
 import GridsDashboardView from './components/grids_dashboard';
 import AnalyticsBreadCrumb from './components/breadcrumb';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadGridsAndCohortsSummary, setActiveGrid } from 'redux/Analytics/operations';
+import {
+  loadGridsAndCohortsSummary,
+  setActiveGrid,
+  loadGridDetails
+} from 'redux/Analytics/operations';
 import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
@@ -24,6 +28,7 @@ const Analytics = () => {
     (state) => state.analytics.combinedGridAndCohortsSummary
   );
   const activeGrid = useSelector((state) => state.analytics.activeGrid);
+  const activeGridDetails = useSelector((state) => state.analytics.activeGridDetails);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const handleSwitchAirqloudTypeClick = () => {
@@ -46,6 +51,12 @@ const Analytics = () => {
       }
     }
   }, [combinedGridAndCohortsSummary, activeGrid]);
+
+  useEffect(() => {
+    if (!isEmpty(activeGrid)) {
+      dispatch(loadGridDetails(activeGrid._id));
+    }
+  }, [activeGrid]);
 
   return (
     <ErrorBoundary>
@@ -87,7 +98,7 @@ const Analytics = () => {
           </Button>
         </Box>
 
-        {!isCohort && <GridsDashboardView grid={activeGrid} />}
+        {!isCohort && <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />}
       </div>
     </ErrorBoundary>
   );

@@ -1,5 +1,7 @@
-import { getGridsAndCohortsSummaryApi } from 'views/apis/deviceRegistry';
+import { getGridsAndCohortsSummaryApi, getGridDetailsApi } from 'views/apis/deviceRegistry';
 import {
+  LOAD_ACTIVE_GRID_DETAILS_FAILURE,
+  LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
   LOAD_ACTIVE_GRID_SUCCESS,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_FAILURE,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS
@@ -26,4 +28,20 @@ export const setActiveGrid = (grid) => (dispatch) => {
     type: LOAD_ACTIVE_GRID_SUCCESS,
     payload: grid
   });
+};
+
+export const loadGridDetails = (gridID) => async (dispatch) => {
+  return await getGridDetailsApi(gridID)
+    .then((resData) => {
+      dispatch({
+        type: LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
+        payload: resData.grids[0]
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_ACTIVE_GRID_DETAILS_FAILURE,
+        payload: err
+      });
+    });
 };

@@ -70,7 +70,6 @@ export const addMaintenanceLogApi = async (deviceName, logData) => {
 };
 
 export const recallDeviceApi = async (deviceName, requestData) => {
-
   return await axios
     .post(RECALL_DEVICE_URI, requestData, { params: { deviceName, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
@@ -202,6 +201,12 @@ export const refreshAirQloudApi = async (params) => {
 export const getGridsAndCohortsSummaryApi = async (networkID) => {
   return await axios
     .get(`${GRIDS_COHORTS_COMBINED}/${networkID}/summary`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getGridDetailsApi = async (gridID) => {
+  return await axios
+    .get(`${GRIDS}/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 

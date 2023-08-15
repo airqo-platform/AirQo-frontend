@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-import { useDispatch } from 'react-redux';
 import 'chartjs-plugin-annotation';
 import { AveragesChart, ExceedancesChart } from '../../Dashboard/components';
 import GridSitesTable from './sites_table';
@@ -15,10 +14,28 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GridsDashboardView = ({ grid }) => {
+const GridsDashboardView = ({ grid, gridDetails }) => {
   const classes = useStyles();
 
-  const dispatch = useDispatch();
+  const [gridInfo, setGridInfo] = useState({
+    name: 'N/A',
+    admin_level: 'N/A',
+    numberOfSites: 0,
+    visibility: 'N/A',
+    sites: []
+  });
+
+  useEffect(() => {
+    if (gridDetails) {
+      setGridInfo({
+        name: gridDetails.name,
+        admin_level: gridDetails.admin_level,
+        numberOfSites: gridDetails.numberOfSites,
+        visibility: gridDetails.visibility,
+        sites: gridDetails.sites
+      });
+    }
+  }, [gridDetails]);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -41,25 +58,25 @@ const GridsDashboardView = ({ grid }) => {
       <Box marginTop={'40px'}>
         <Box marginBottom={'20px'}>
           <Grid container spacing={4} alignItems="center" justify="center">
-            <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Grid name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {grid.name}
+                {gridInfo.name}
               </Typography>
             </Grid>
-            <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Admin level</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {grid.admin_level}
+                {gridInfo.admin_level}
               </Typography>
             </Grid>
-            <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Number of sites</Typography>
-              <Typography variant="h2">{grid.numberOfSites}</Typography>
+              <Typography variant="h2">{gridInfo.numberOfSites}</Typography>
             </Grid>
-            <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Visibility</Typography>
-              <Typography variant="h2">{grid.visibility}</Typography>
+              <Typography variant="h2">{gridInfo.visibility}</Typography>
             </Grid>
           </Grid>
         </Box>
@@ -79,7 +96,7 @@ const GridsDashboardView = ({ grid }) => {
           </Grid>
 
           <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <GridSitesTable />
+            <GridSitesTable sites={gridInfo.sites} />
           </Grid>
         </Grid>
       </Box>
