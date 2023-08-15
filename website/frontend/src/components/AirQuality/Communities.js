@@ -1,40 +1,54 @@
 import React, { useState } from 'react';
 import AirQualityImg from 'assets/img/ForCommunities.png';
 
+const Accordion = ({ children, title, selected, onClick }) => {
+  return (
+    <div className={selected ? 'card selected' : 'card'} onClick={onClick}>
+      <h4>{title}</h4>
+      {selected && <ol>{children}</ol>}
+    </div>
+  );
+};
+
 const Communities = () => {
   const [selectedCard, setSelectedCard] = useState('card1');
   const onClickCardItem = (card) => setSelectedCard(card);
   return (
     <>
       <div className="content-container">
-        <div
-          id="first"
-          className={selectedCard === 'card1' ? 'card selected' : 'card unselected'}
-          name="card1"
+        <Accordion
+          title="AirQommunity champions"
+          selected={selectedCard === 'card1'}
           onClick={() => onClickCardItem('card1')}>
-          <h4>AirQommunity champions</h4>
-          <ol>
-            <li>
-              <small>A growing network of individual change makers </small>
-            </li>
-            <li>
-              <small>Championing local leaders and demand action</small>
-            </li>
-          </ol>
-        </div>
-        <div
-          id="second"
-          className={selectedCard === 'card2' ? 'card selected' : 'card unselected'}
-          name="card2"
+          <li>
+            <small>A growing network of individual change makers</small>
+          </li>
+          <li>
+            <small>Championing local leaders and demand action</small>
+          </li>
+        </Accordion>
+        <Accordion
+          title="Free access to air quality information"
+          selected={selectedCard === 'card2'}
           onClick={() => onClickCardItem('card2')}>
-          <h4>Free access to air quality information</h4>
-        </div>
-        <div
-          className={selectedCard === 'card3' ? 'card selected' : 'card unselected'}
-          name="card3"
+          <li>
+            <small>A growing network of individual change makers</small>
+          </li>
+          <li>
+            <small>Championing local leaders and demand action</small>
+          </li>
+        </Accordion>
+        <Accordion
+          title="AirQo hosts"
+          selected={selectedCard === 'card3'}
           onClick={() => onClickCardItem('card3')}>
-          <h4>AirQo hosts</h4>
-        </div>
+          <li>
+            <small>A growing network of individual change makers</small>
+          </li>
+          <li>
+            <small>Championing local leaders and demand action</small>
+          </li>
+        </Accordion>
       </div>
       <div className="image">
         <img src={AirQualityImg} alt="AirQuality image" />
