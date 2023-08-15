@@ -3,7 +3,7 @@ const webpack = require('webpack');
 // const autoprefixer = require('autoprefixer');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -13,8 +13,16 @@ function stripLoaderConfig() {
   return {
     loader: 'strip-loader',
     options: {
-      strip: ['assert', 'typeCheck', 'log.log', 'log.debug', 'log.deprecate', 'log.info', 'log.warn'],
-    },
+      strip: [
+        'assert',
+        'typeCheck',
+        'log.log',
+        'log.debug',
+        'log.deprecate',
+        'log.info',
+        'log.warn'
+      ]
+    }
   };
 }
 
@@ -27,9 +35,9 @@ function postCSSLoader() {
     loader: 'postcss-loader',
     options: {
       postcssOptions: {
-        plugins: [['postcss-preset-env', {}]],
-      },
-    },
+        plugins: [['postcss-preset-env', {}]]
+      }
+    }
   };
 }
 
@@ -48,7 +56,9 @@ const config = () => {
 
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
-  const PUBLIC_PATH = strToBool(process.env.DEBUG) ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
+  const PUBLIC_PATH = strToBool(process.env.DEBUG)
+    ? `${STATIC_URL}/static/frontend/`
+    : `${STATIC_URL}/frontend/`;
 
   const STATIC_DIR = 'frontend/static/frontend';
 
@@ -137,7 +147,20 @@ const config = () => {
         // pdfs, gifs
         {
           test: /\.(pdf|gif)$/,
-          use: 'file-loader?name=[path][name].[ext]',
+          use: 'file-loader?name=[path][name].[ext]'
+        },
+
+        // video
+        {
+          test: /\.(mov|mp4)$/,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: '[path][name].[ext]'
+              }
+            }
+          ]
         }
       ]
     },
