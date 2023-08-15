@@ -13,12 +13,8 @@ import { loadMapEventsData } from 'redux/MapData/operations';
 import { useEventsMapData } from 'redux/MapData/selectors';
 import { PM_25_CATEGORY } from 'utils/categories';
 import { flattenSiteOptions, siteOptionsToObject } from 'utils/sites';
-import {
-  AddChart,
-  AveragesChart,
-  PollutantCategory,
-  ExceedancesChart
-} from '../../Dashboard/components';
+import { AveragesChart, PollutantCategory, ExceedancesChart } from '../../Dashboard/components';
+import GridSitesTable from './sites_table';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
@@ -187,8 +183,8 @@ const GridsDashboardView = ({ grid }) => {
               );
             })}
 
-          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-            <AddChart className={classes.customChartCard} />
+          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
+            <GridSitesTable />
           </Grid>
         </Grid>
       </Box>
