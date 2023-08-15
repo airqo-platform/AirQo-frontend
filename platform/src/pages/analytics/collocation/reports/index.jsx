@@ -4,10 +4,15 @@ import Box from '@/components/Collocation/Report/box';
 import ContentBox from '@/components/Layout/content_box';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
+import Head from 'next/head';
 
 const CollocationReports = () => {
   return (
     <Layout>
+      <Head>
+        <title>Collocation Reports</title>
+        <meta property='og:title' content='Collocation Reports' key='Collocation Reports' />
+      </Head>
       <HeaderNav category={'Collocation'} component={'Reports'}></HeaderNav>
       <div className='grid grid-cols-2'>
         <Box

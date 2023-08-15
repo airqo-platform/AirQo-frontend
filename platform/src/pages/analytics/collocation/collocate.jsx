@@ -19,6 +19,7 @@ import { isEmpty } from 'underscore';
 import EmptyState from '@/components/Collocation/Collocate/empty_state';
 import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -59,6 +60,10 @@ const Collocate = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Collocate | Collocation</title>
+        <meta property='og:title' content='Collocate | Collocation' key='Collocate | Collocation' />
+      </Head>
       <HeaderNav category={'Collocation'} component={'Collocate'}>
         {isError && (
           <Toast
