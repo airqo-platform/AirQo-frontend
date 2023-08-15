@@ -5,6 +5,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({super.key});
@@ -25,7 +26,9 @@ class _AboutAirQoState extends State<AboutAirQo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppTopBar('About'),
+      appBar: AppTopBar(
+        AppLocalizations.of(context)!.about,
+      ),
       body: AppSafeArea(
         child: Center(
           child: Column(
@@ -62,14 +65,16 @@ class _AboutAirQoState extends State<AboutAirQo> {
                       builder: (context) {
                         return WebViewScreen(
                           url: AirQoUrls.termsUrl,
-                          title: 'Terms & Privacy Policy',
+                          title:
+                              AppLocalizations.of(context)!.termsPrivacyPolicy,
                         );
                       },
                     ),
                   );
                 },
                 child: Text(
-                  'Terms & Privacy Policy',
+                  textAlign: TextAlign.center,
+                  AppLocalizations.of(context)!.termsPrivacyPolicy,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: CustomColors.appColorBlue,
                       ),

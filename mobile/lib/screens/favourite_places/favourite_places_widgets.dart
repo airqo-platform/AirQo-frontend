@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FavouritePlaceCard extends StatelessWidget {
   const FavouritePlaceCard(this.favouritePlace, {super.key});
@@ -43,7 +44,7 @@ class FavouritePlaceCard extends StatelessWidget {
                 builder: (BuildContext context) {
                   return CupertinoAlertDialog(
                     title: Text(
-                      "Confirm",
+                      AppLocalizations.of(context)!.confirm,
                       style: TextStyle(
                         color: CustomColors.appColorBlue,
                         fontSize: 16,
@@ -55,7 +56,8 @@ class FavouritePlaceCard extends StatelessWidget {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: "Are you sure you want to remove\n",
+                            text: AppLocalizations.of(context)!
+                                .areYouSureYouWantToRemove,
                             style: TextStyle(
                               color: CustomColors.appColorBlack,
                             ),
@@ -68,7 +70,8 @@ class FavouritePlaceCard extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: "\nfrom your favorites?",
+                            text:
+                                AppLocalizations.of(context)!.fromYourFavorites,
                             style: TextStyle(
                               color: CustomColors.appColorBlack,
                             ),
@@ -81,7 +84,7 @@ class FavouritePlaceCard extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop(true);
                         },
-                        child: Text("Yes",
+                        child: Text(AppLocalizations.of(context)!.yes,
                             style: TextStyle(
                               color: CustomColors.appColorBlue,
                               fontSize: 16,
@@ -93,7 +96,7 @@ class FavouritePlaceCard extends StatelessWidget {
                           Navigator.of(context).pop(false);
                         },
                         child: Text(
-                          "No",
+                          AppLocalizations.of(context)!.no,
                           style: TextStyle(
                             color: CustomColors.appColorBlue,
                             fontSize: 16,
@@ -225,7 +228,7 @@ class FavouritePlaceCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8.0),
                           Text(
-                            'View More Insights',
+                            AppLocalizations.of(context)!.viewMoreInsights,
                             style: CustomTextStyle.caption3(context)?.copyWith(
                               color: appColors.appColorBlue,
                             ),
@@ -273,8 +276,8 @@ class FavouritePlaceCard extends StatelessWidget {
     AirQualityReading? airQualityReading,
   ) async {
     if (airQualityReading == null) {
-      showSnackBar(context, 'No air quality for this place');
-
+      showSnackBar(
+          context, AppLocalizations.of(context)!.noAirQualityForThisPlace);
       return;
     }
     await navigateToInsights(context, airQualityReading);

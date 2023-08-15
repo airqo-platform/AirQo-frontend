@@ -1,7 +1,7 @@
-import React from "react";
-import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
-import { makeStyles, withStyles } from "@material-ui/styles";
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
+import { makeStyles, withStyles } from '@material-ui/styles';
 import {
   Card,
   CardContent,
@@ -13,64 +13,62 @@ import {
   DialogActions,
   DialogContent,
   IconButton,
-  TextField,
-} from "@material-ui/core";
-import { useEffect, useState } from "react";
-import DateFnsUtils from "@date-io/date-fns";
+  TextField
+} from '@material-ui/core';
+import { useEffect, useState } from 'react';
+import DateFnsUtils from '@date-io/date-fns';
 import {
   MuiPickersUtilsProvider,
   KeyboardTimePicker,
-  KeyboardDatePicker,
-} from "@material-ui/pickers";
-import axios from "axios";
-import "chartjs-plugin-annotation";
-import { CustomDisplayChart } from "../index";
-import palette from "theme/palette";
-import Typography from "@material-ui/core/Typography";
-import { MoreHoriz, Close } from "@material-ui/icons";
-import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import { GENERATE_CUSTOMISABLE_CHARTS_URI } from "config/urls/analytics";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import domtoimage from "dom-to-image";
-import JsPDF from "jspdf";
-import { isEmpty } from "underscore";
-import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
-import { formatDateString } from "utils/dateTime";
-import { omit } from "underscore";
-import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
-import { usePollutantsOptions } from "utils/customHooks";
-import {
-  deleteUserChartDefaultsApi,
-  updateUserChartDefaultsApi,
-} from "views/apis/authService";
-import { updateMainAlert } from "redux/MainAlert/operations";
-import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
+  KeyboardDatePicker
+} from '@material-ui/pickers';
+import axios from 'axios';
+import 'chartjs-plugin-annotation';
+import { CustomDisplayChart } from '../index';
+import palette from 'theme/palette';
+import Typography from '@material-ui/core/Typography';
+import { MoreHoriz, Close } from '@material-ui/icons';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import { GENERATE_CUSTOMISABLE_CHARTS_URI } from 'config/urls/analytics';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import domtoimage from 'dom-to-image';
+import JsPDF from 'jspdf';
+import { isEmpty } from 'underscore';
+import OutlinedSelect from 'views/components/CustomSelects/OutlinedSelect';
+import { formatDateString } from 'utils/dateTime';
+import { omit } from 'underscore';
+import { roundToStartOfDay, roundToEndOfDay } from 'utils/dateTime';
+import { usePollutantsOptions } from 'utils/customHooks';
+import { deleteUserChartDefaultsApi, updateUserChartDefaultsApi } from 'views/apis/authService';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { useCurrentAirQloudData } from 'redux/AirQloud/selectors';
+import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    height: "100%",
+    height: '100%'
   },
 
   avatar: {
     backgroundColor: theme.palette.success.main,
     height: 56,
-    width: 56,
+    width: 56
   },
 
   card: {
-    display: "flex",
+    display: 'flex'
   },
   cardHeader: {
-    display: "block",
-    overflow: "hidden",
+    display: 'block',
+    overflow: 'hidden'
   },
   cardHeaderRoot: {
-    overflow: "hidden",
+    overflow: 'hidden'
   },
   cardHeaderContent: {
-    overflow: "hidden",
-  },
+    overflow: 'hidden'
+  }
 }));
 
 const capitalize = (str) => {
@@ -88,20 +86,20 @@ const optionToList = (options) => {
 };
 
 const formatDate = (date) => {
-  return date.toISOString().split("T")[0];
+  return date.toISOString().split('T')[0];
 };
 
 const styles = (theme) => ({
   root: {
     margin: 0,
-    padding: theme.spacing(2),
+    padding: theme.spacing(2)
   },
   closeButton: {
-    position: "absolute",
+    position: 'absolute',
     right: theme.spacing(1),
     top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
+    color: theme.palette.grey[500]
+  }
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -110,11 +108,7 @@ const DialogTitle = withStyles(styles)((props) => {
     <MuiDialogTitle disableTypography className={classes.root} {...other}>
       <Typography variant="h6">{children}</Typography>
       {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
+        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
           <Close />
         </IconButton>
       ) : null}
@@ -133,31 +127,31 @@ const CustomisableChart = (props) => {
     isValid: false,
     values: {},
     touched: {},
-    errors: {},
+    errors: {}
   });
 
   const periodOptions = [
     {
-      value: "Last 30 days",
-      label: "Last 30 days",
+      value: 'Last 30 days',
+      label: 'Last 30 days',
       unitValue: 30,
-      unit: "day",
-      endDate: null,
+      unit: 'day',
+      endDate: null
     },
     {
-      value: "Last 90 days",
-      label: "Last 90 days",
+      value: 'Last 90 days',
+      label: 'Last 90 days',
       unitValue: 90,
-      unit: "day",
-      endDate: null,
+      unit: 'day',
+      endDate: null
     },
     {
-      value: "Custom range",
-      label: "Custom range",
+      value: 'Custom range',
+      label: 'Custom range',
       unitValue: 30,
-      unit: "day",
-      endDate: null,
-    },
+      unit: 'day',
+      endDate: null
+    }
   ];
 
   const initialPeriod = () => {
@@ -173,7 +167,7 @@ const CustomisableChart = (props) => {
   const [loading, setLoading] = useState(true);
 
   const isCustomPeriod = (period) => {
-    return period.label.toLowerCase() === "Custom range".toLowerCase();
+    return period.label.toLowerCase() === 'Custom range'.toLowerCase();
   };
 
   const generateStartAndEndDates = (period) => {
@@ -235,7 +229,7 @@ const CustomisableChart = (props) => {
   };
 
   const [values, setReactSelectValue] = useState({
-    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.sites)),
+    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.sites))
   });
 
   const [initialLoad, setInitialLoad] = useState(true);
@@ -243,7 +237,7 @@ const CustomisableChart = (props) => {
   useEffect(() => {
     const sites = sitesOptions.filter(siteFilter(defaultFilter.sites));
     setReactSelectValue({
-      selectedOption: sites,
+      selectedOption: sites
     });
     setTempState({ ...tempState, sites: { selectedOption: sites } });
     if (initialLoad && !isEmpty(sites)) {
@@ -255,15 +249,15 @@ const CustomisableChart = (props) => {
         chartType: selectedChart.value,
         frequency: selectedFrequency.value,
         pollutant: selectedPollutant.value,
-        organisation_name: "KCCA",
+        organisation_name: 'KCCA'
       });
     }
   }, [sitesOptions]);
 
   const chartTypeOptions = [
-    { value: "line", label: "Line" },
-    { value: "bar", label: "Bar" },
-    { value: "pie", label: "Pie" },
+    { value: 'line', label: 'Line' },
+    { value: 'bar', label: 'Bar' },
+    { value: 'pie', label: 'Pie' }
   ];
 
   const [selectedChart, setSelectedChartType] = useState(
@@ -277,19 +271,19 @@ const CustomisableChart = (props) => {
       ...formState,
       values: {
         ...formState.values,
-        chartType: selectedChartType.value,
+        chartType: selectedChartType.value
       },
       touched: {
         ...formState.touched,
-        chartType: true,
-      },
+        chartType: true
+      }
     }));
   };
 
   const frequencyOptions = [
-    { value: "hourly", label: "Hourly" },
-    { value: "daily", label: "Daily" },
-    { value: "monthly", label: "Monthly" },
+    { value: 'hourly', label: 'Hourly' },
+    { value: 'daily', label: 'Daily' },
+    { value: 'monthly', label: 'Monthly' }
   ];
 
   const [selectedFrequency, setSelectedFrequency] = useState(
@@ -303,20 +297,17 @@ const CustomisableChart = (props) => {
   const pollutantOptions = usePollutantsOptions();
 
   const labelMapper = {
-    pm2_5: "PM2.5 (µg/m3)",
-    pm10: "PM10 (µg/m3)",
-    no2: "NO2 (µg/m3)",
+    pm2_5: 'PM2.5 (µg/m3)',
+    pm10: 'PM10 (µg/m3)',
+    no2: 'NO2 (µg/m3)'
   };
 
   const setDefaulPollutant = (value) => {
-    if (value === "pm2_5" || value === "PM 2.5")
-      return { value: "pm2_5", label: "PM 2.5" };
-    if (value === "pm10" || value === "PM 10")
-      return { value: "pm10", label: "PM 10" };
-    if (value === "no2" || value === "NO2")
-      return { value: "no2", label: "NO2" };
+    if (value === 'pm2_5' || value === 'PM 2.5') return { value: 'pm2_5', label: 'PM 2.5' };
+    if (value === 'pm10' || value === 'PM 10') return { value: 'pm10', label: 'PM 10' };
+    if (value === 'no2' || value === 'NO2') return { value: 'no2', label: 'NO2' };
 
-    return { value: "pm2_5", label: "PM 2.5" };
+    return { value: 'pm2_5', label: 'PM 2.5' };
   };
 
   const [selectedPollutant, setSelectedPollutant] = useState(
@@ -330,16 +321,16 @@ const CustomisableChart = (props) => {
   const annotationMapper = {
     pm2_5: {
       value: 25,
-      label_content: "WHO AQG",
+      label_content: 'WHO AQG'
     },
     pm10: {
       value: 50,
-      label_content: "WHO AQG",
+      label_content: 'WHO AQG'
     },
     no2: {
       value: 40,
-      label_content: "WHO AQG",
-    },
+      label_content: 'WHO AQG'
+    }
   };
 
   const [customisedGraphLabel, setCustomisedGraphLabel] = useState(
@@ -350,12 +341,10 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
-  const title = `Mean ${selectedFrequency.label} ${
-    selectedPollutant.label
-  } from ${formatDate(selectedDate, "YYYY-MM-DD")} to ${formatDateString(
-    selectedEndDate,
-    "YYYY-MM-DD"
-  )}`;
+  const title = `Mean ${selectedFrequency.label} ${selectedPollutant.label} from ${formatDate(
+    selectedDate,
+    'YYYY-MM-DD'
+  )} to ${formatDateString(selectedEndDate, 'YYYY-MM-DD')}`;
 
   const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
 
@@ -364,7 +353,7 @@ const CustomisableChart = (props) => {
     sites: values,
     chartType: selectedChart,
     frequency: selectedFrequency,
-    pollutant: selectedPollutant,
+    pollutant: selectedPollutant
   });
 
   const transferFromTempState = () => {
@@ -381,7 +370,7 @@ const CustomisableChart = (props) => {
       sites: values,
       chartType: selectedChart,
       frequency: selectedFrequency,
-      pollutant: selectedPollutant,
+      pollutant: selectedPollutant
     });
   };
 
@@ -400,7 +389,7 @@ const CustomisableChart = (props) => {
     filter = {
       ...filter,
       startDate: roundToStartOfDay(filter.startDate).toISOString(),
-      endDate: roundToEndOfDay(filter.endDate).toISOString(),
+      endDate: roundToEndOfDay(filter.endDate).toISOString()
     };
 
     await setCustomisedGraphData({});
@@ -410,14 +399,15 @@ const CustomisableChart = (props) => {
         GENERATE_CUSTOMISABLE_CHARTS_URI,
         // JSON.stringify(filter),
         filter,
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { 'Content-Type': 'application/json' } },
+        { params: { token: BASE_AUTH_TOKEN } }
       )
       .then((res) => res.data)
       .then((chartData) => {
         setCustomisedGraphData(chartData.data);
       })
       .catch((err) => {
-        console.log("error", (err.response && err.response.data) || err);
+        console.log('error', (err.response && err.response.data) || err);
       });
   };
 
@@ -431,15 +421,12 @@ const CustomisableChart = (props) => {
     e.preventDefault();
     setOpen(false);
 
-    let period = omit(
-      { ...selectedPeriod, endDate: selectedEndDate },
-      "startDate"
-    );
+    let period = omit({ ...selectedPeriod, endDate: selectedEndDate }, 'startDate');
 
     period = {
       ...selectedPeriod,
       startDate: selectedDate.toISOString(),
-      endDate: selectedEndDate.toISOString(),
+      endDate: selectedEndDate.toISOString()
     };
 
     let newFilter = {
@@ -453,7 +440,7 @@ const CustomisableChart = (props) => {
       pollutant: tempState.pollutant.value,
       chartTitle: title,
       chartSubTitle: tempState.subTitle,
-      airqloud: airqloud._id,
+      airqloud: airqloud._id
     };
 
     transferFromTempState();
@@ -467,7 +454,7 @@ const CustomisableChart = (props) => {
     setFormState((formState) => ({
       ...formState,
       isValid: !!errors,
-      errors: errors || {},
+      errors: errors || {}
     }));
   }, [formState.values]);
 
@@ -476,13 +463,9 @@ const CustomisableChart = (props) => {
   }, []);
 
   const customisedGraphData = {
-    chart_type: isEmpty(customGraphData.results)
-      ? null
-      : customGraphData.results[0].chart_type,
-    labels: isEmpty(customGraphData.results)
-      ? null
-      : customGraphData.results[0].chart_data.labels,
-    datasets: customGraphData.datasets,
+    chart_type: isEmpty(customGraphData.results) ? null : customGraphData.results[0].chart_type,
+    labels: isEmpty(customGraphData.results) ? null : customGraphData.results[0].chart_data.labels,
+    datasets: customGraphData.datasets
   };
 
   const options = {
@@ -491,9 +474,9 @@ const CustomisableChart = (props) => {
         displayAnnotation === true
           ? [
               {
-                type: "line",
-                mode: "horizontal",
-                scaleID: "y-axis-0",
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
                 value: customisedAnnotation.value,
                 borderColor: palette.text.secondary,
                 borderWidth: 1,
@@ -503,11 +486,11 @@ const CustomisableChart = (props) => {
                   //backgroundColor: palette.white,
                   titleFontColor: palette.text.primary,
                   bodyFontColor: palette.text.primary,
-                  position: "right",
-                },
-              },
+                  position: 'right'
+                }
+              }
             ]
-          : [],
+          : []
     },
     responsive: true,
     maintainAspectRatio: false,
@@ -516,7 +499,7 @@ const CustomisableChart = (props) => {
     cornerRadius: 0,
     tooltips: {
       enabled: true,
-      mode: "index",
+      mode: 'index',
       intersect: false,
       borderWidth: 1,
       borderColor: palette.divider,
@@ -525,7 +508,7 @@ const CustomisableChart = (props) => {
       bodyFontColor: palette.text.secondary,
       footerFontColor: palette.text.secondary,
       callbacks:
-        customisedGraphData.chart_type === "pie"
+        customisedGraphData.chart_type === 'pie'
           ? {
               label: function (tooltipItem, data) {
                 let allData = data.datasets[tooltipItem.datasetIndex].data;
@@ -537,10 +520,10 @@ const CustomisableChart = (props) => {
                 }
                 let tooltipPercentage = Math.round((tooltipData / total) * 100);
                 console.log(tooltipPercentage);
-                return tooltipLabel + ": " + tooltipPercentage + "%";
-              },
+                return tooltipLabel + ': ' + tooltipPercentage + '%';
+              }
             }
-          : {},
+          : {}
     },
     layout: { padding: 0 },
     scales: {
@@ -551,24 +534,24 @@ const CustomisableChart = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary,
+            fontColor: palette.text.secondary
           },
           gridLines: {
             display: false,
-            drawBorder: false,
+            drawBorder: false
           },
           scaleLabel: {
             display: true,
-            labelString: "Date",
-          },
-        },
+            labelString: 'Date'
+          }
+        }
       ],
       yAxes: [
         {
           ticks: {
             fontColor: palette.text.secondary,
             beginAtZero: true,
-            min: 0,
+            min: 0
           },
           gridLines: {
             borderDash: [2],
@@ -577,19 +560,19 @@ const CustomisableChart = (props) => {
             drawBorder: false,
             zeroLineBorderDash: [2],
             zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
+            zeroLineColor: palette.divider
           },
           scaleLabel: {
             display: true,
-            labelString: customisedGraphLabel,
-          },
-        },
-      ],
-    },
+            labelString: customisedGraphLabel
+          }
+        }
+      ]
+    }
   };
 
-  const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
-  const iconButton = "exportIconButton";
+  const rootCustomChartContainerId = 'rootCustomChartContainerId' + idSuffix;
+  const iconButton = 'exportIconButton';
   const [anchorEl, setAnchorEl] = useState(null);
 
   const filter = (node) => node.id !== iconButton;
@@ -598,33 +581,33 @@ const CustomisableChart = (props) => {
   const paperProps = {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5,
-      width: 150,
-    },
+      width: 150
+    }
   };
 
   const exportToImage = async (chart, format, exportFunc) => {
     try {
       const dataUrl = await exportFunc(chart, { filter });
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       document.body.appendChild(link);
       link.download = `chart.${format}`;
       link.href = dataUrl;
       link.click();
       link.remove();
     } catch (err) {
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
   const exportToJpeg = (chart) => {
     setAnchorEl(null);
-    exportToImage(chart, "jpeg", domtoimage.toJpeg);
+    exportToImage(chart, 'jpeg', domtoimage.toJpeg);
   };
 
   const exportToPng = (chart) => {
     setAnchorEl(null);
 
-    exportToImage(chart, "png", domtoimage.toPng);
+    exportToImage(chart, 'png', domtoimage.toPng);
   };
 
   const exportToPdf = async (chart) => {
@@ -635,17 +618,17 @@ const CustomisableChart = (props) => {
     try {
       const dataUrl = await domtoimage.toJpeg(chart, { filter });
       const doc = new JsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [width, height],
+        orientation: 'landscape',
+        unit: 'px',
+        format: [width, height]
       });
       const pdfWidth = doc.internal.pageSize.getWidth();
       const pdfHeight = doc.internal.pageSize.getHeight();
-      doc.addImage(dataUrl, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      doc.save("chart");
+      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('chart');
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
@@ -653,18 +636,18 @@ const CustomisableChart = (props) => {
     setAnchorEl(null);
     try {
       const dataUrl = await domtoimage.toJpeg(chart, { filter });
-      let html = "<html><head><title></title></head>";
+      let html = '<html><head><title></title></head>';
       html += '<body style="width: 100%; padding: 0; margin: 0;"';
       html += ' onload="window.focus(); window.print(); window.close()">';
       html += `<img src="${dataUrl}" /></body></html>`;
 
-      const printWindow = window.open("", "print");
+      const printWindow = window.open('', 'print');
       printWindow.document.open();
       printWindow.document.write(html);
       printWindow.document.close();
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("oops, something went wrong!", err);
+      console.error('oops, something went wrong!', err);
     }
   };
 
@@ -679,34 +662,33 @@ const CustomisableChart = (props) => {
           updateMainAlert({
             show: true,
             message: responseData.message,
-            severity: "success",
+            severity: 'success'
           })
         );
       })
       .catch((err) => {
-        console.log("err", err.response.data);
+        console.log('err', err.response.data);
         dispatch(
           updateMainAlert({
             show: true,
-            message:
-              err.response && err.response.data && err.response.data.message,
-            severity: "error",
+            message: err.response && err.response.data && err.response.data.message,
+            severity: 'error'
           })
         );
       });
   };
 
   const menuOptions = [
-    { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
-    { key: "Print", action: print, text: "Print" },
-    { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
-    { key: "PNG", action: exportToPng, text: "Save as PNG" },
-    { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    { key: 'Customise', action: handleClickOpen, text: 'Customise Chart' },
+    { key: 'Print', action: print, text: 'Print' },
+    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
+    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
+    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' },
     {
-      key: "Delete",
+      key: 'Delete',
       action: deleteChart,
-      text: <span style={{ color: "red" }}>Delete Chart</span>,
-    },
+      text: <span style={{ color: 'red' }}>Delete Chart</span>
+    }
   ];
 
   const handleClick = (event) => {
@@ -717,11 +699,13 @@ const CustomisableChart = (props) => {
     setAnchorEl(null);
   };
 
-  const handleExportCustomChart = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
-    handleClose();
-    action(chart);
-  };
+  const handleExportCustomChart =
+    ({ action }) =>
+    () => {
+      const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+      handleClose();
+      action(chart);
+    };
 
   const openMenu = Boolean(anchorEl);
 
@@ -730,7 +714,7 @@ const CustomisableChart = (props) => {
     sites.map((site) => {
       formattedString.push(site.label);
     });
-    return formattedString.join(", ");
+    return formattedString.join(', ');
   };
 
   return (
@@ -742,7 +726,7 @@ const CustomisableChart = (props) => {
       xl={6}
       xs={12}
       key={`userDefaultGraphs-${props.key}`}
-      style={hidden ? { display: "none" } : {}}
+      style={hidden ? { display: 'none' } : {}}
     >
       <Card {...rest} className={className} id={rootCustomChartContainerId}>
         <CardHeader
@@ -764,10 +748,7 @@ const CustomisableChart = (props) => {
                 PaperProps={paperProps}
               >
                 {menuOptions.map((option) => (
-                  <MenuItem
-                    key={option.key}
-                    onClick={handleExportCustomChart(option)}
-                  >
+                  <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
                     {option.text}
                   </MenuItem>
                 ))}
@@ -777,17 +758,17 @@ const CustomisableChart = (props) => {
           title={title}
           subheader={
             <Typography noWrap>
-              for{" "}
-              <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
+              for{' '}
+              <span style={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
                 {tempState.subTitle}
-              </span>{" "}
+              </span>{' '}
               {!tempState.subTitle && sitesToString(values.selectedOption)}
             </Typography>
           }
-          style={{ textAlign: "center" }}
+          style={{ textAlign: 'center' }}
           classes={{
             root: classes.cardHeaderRoot,
-            content: classes.cardHeaderContent,
+            content: classes.cardHeaderContent
           }}
         />
 
@@ -804,11 +785,7 @@ const CustomisableChart = (props) => {
             </Grid>
 
             <Grid item lg={12} sm={12} xl={12} xs={12}>
-              <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="form-dialog-title"
-              >
+              <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title" onClose={handleClose}>
                   Customise Chart by Selecting the Various Options
                 </DialogTitle>
@@ -826,7 +803,7 @@ const CustomisableChart = (props) => {
                           onChange={(evt) =>
                             setTempState({
                               ...tempState,
-                              subTitle: evt.target.value,
+                              subTitle: evt.target.value
                             })
                           }
                           fullWidth
@@ -842,7 +819,7 @@ const CustomisableChart = (props) => {
                           onChange={handleMultiChange}
                           isMulti
                           scrollable
-                          height={"100px"}
+                          height={'100px'}
                         />
                       </Grid>
 
@@ -900,7 +877,7 @@ const CustomisableChart = (props) => {
                                 value={selectedDate}
                                 onChange={handleDateChange}
                                 KeyboardButtonProps={{
-                                  "aria-label": "change date",
+                                  'aria-label': 'change date'
                                 }}
                                 required
                                 disableFuture
@@ -916,7 +893,7 @@ const CustomisableChart = (props) => {
                                 value={selectedDate}
                                 onChange={handleDateChange}
                                 KeyboardButtonProps={{
-                                  "aria-label": "change time",
+                                  'aria-label': 'change time'
                                 }}
                                 //required
                               />
@@ -934,7 +911,7 @@ const CustomisableChart = (props) => {
                                 value={selectedEndDate}
                                 onChange={handleEndDateChange}
                                 KeyboardButtonProps={{
-                                  "aria-label": "change end date",
+                                  'aria-label': 'change end date'
                                 }}
                                 required
                                 disableFuture
@@ -950,7 +927,7 @@ const CustomisableChart = (props) => {
                                 value={selectedEndDate}
                                 onChange={handleEndDateChange}
                                 KeyboardButtonProps={{
-                                  "aria-label": "change end time",
+                                  'aria-label': 'change end time'
                                 }}
                                 required
                               />
@@ -963,11 +940,7 @@ const CustomisableChart = (props) => {
                 </DialogContent>
                 <Divider />
                 <DialogActions>
-                  <Button
-                    onClick={handleClose}
-                    color="primary"
-                    variant="outlined"
-                  >
+                  <Button onClick={handleClose} color="primary" variant="outlined">
                     Cancel
                   </Button>
                   <Button
@@ -993,7 +966,7 @@ const CustomisableChart = (props) => {
 CustomisableChart.propTypes = {
   className: PropTypes.string,
   defaultFilter: PropTypes.object,
-  idSuffix: PropTypes.string,
+  idSuffix: PropTypes.string
 };
 
 export default CustomisableChart;

@@ -31,6 +31,9 @@ class AirQoUrls {
       '${Config.airqoApi}/v2/users/locationHistory';
 
   static String get kya => '${Config.airqoApi}/v2/devices/kya';
+
+  static String get searchHistory =>
+      '${Config.airqoApi}/v2/users/searchHistory';
 }
 
 enum ApiService {

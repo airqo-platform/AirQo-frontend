@@ -6,12 +6,14 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
@@ -44,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage>
     final Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: const AppTopBar('Settings'),
+      appBar: AppTopBar(AppLocalizations.of(context)!.settings),
       body: AppSafeArea(
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
@@ -82,7 +84,7 @@ class _SettingsPageState extends State<SettingsPage>
                           tileColor: Colors.white,
                           shape: topBorder,
                           title: Text(
-                            'Location',
+                            AppLocalizations.of(context)!.location,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -105,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ListTile(
                           tileColor: Colors.white,
                           title: Text(
-                            'Notification',
+                            AppLocalizations.of(context)!.nortification,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           trailing: CupertinoSwitch(
@@ -137,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage>
                             );
                           },
                           title: Text(
-                            'Send feedback',
+                            AppLocalizations.of(context)!.sendFeedback,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -146,8 +148,8 @@ class _SettingsPageState extends State<SettingsPage>
                       CustomShowcaseWidget(
                         showcaseKey: _appTourShowcaseKey,
                         descriptionHeight: screenSize.height * 0.1,
-                        description:
-                            "You can always restart the App Tour from here anytime.",
+                        description: AppLocalizations.of(context)!
+                            .youCanAlwaysRestartTheAppTourFromHereAnytime,
                         child: Card(
                           margin: EdgeInsets.zero,
                           elevation: 0,
@@ -170,8 +172,8 @@ class _SettingsPageState extends State<SettingsPage>
                                 );
                               });
                             },
-                            title: Text(
-                              'Take a tour of the App',
+                            title: AutoSizeText(
+                              AppLocalizations.of(context)!.takeTour,
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
@@ -195,8 +197,8 @@ class _SettingsPageState extends State<SettingsPage>
                               }
                             });
                           },
-                          title: Text(
-                            'Rate the AirQo App',
+                          title: AutoSizeText(
+                            AppLocalizations.of(context)!.rateAirQoApp,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -219,8 +221,8 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                             );
                           },
-                          title: Text(
-                            'About',
+                          title: AutoSizeText(
+                            AppLocalizations.of(context)!.about,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -308,7 +310,7 @@ class DeleteAccountButton extends StatelessWidget {
             ),
             onTap: () => _deleteAccount(context),
             title: Text(
-              'Delete your account',
+              AppLocalizations.of(context)!.deleteAccount,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.6),
@@ -346,7 +348,7 @@ class DeleteAccountButton extends StatelessWidget {
                 if (emailAuthModel == null) {
                   showSnackBar(
                     context,
-                    "Can't delete account now. Try again later",
+                    AppLocalizations.of(context)!.unableDeleteAccount,
                   );
 
                   return;
