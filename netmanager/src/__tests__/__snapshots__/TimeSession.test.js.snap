@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfirmDialog Component renders without crashing 1`] = `
+<WithStyles(ForwardRef(Dialog))
+  aria-describedby="confirm-dialog-description"
+  aria-labelledby="confirm-dialog-title-del"
+  classes="confirm-dialog"
+  onClose={[Function]}
+  open={true}
+>
+  <div
+    className="confirm-dialog"
+  >
+    <div
+      className="confirm-dialog-title"
+    >
+      Session Expired
+    </div>
+    <div
+      className="confirm-dialog-message"
+    >
+      Your session has expired due to inactivity. Please log in again.
+    </div>
+    <div
+      className="confirm-dialog-controls"
+    >
+      <WithStyles(ForwardRef(Button))
+        onClick={[Function]}
+        variant="contained"
+      >
+        Cancel
+      </WithStyles(ForwardRef(Button))>
+      <WithStyles(ForwardRef(Button))
+        onClick={[Function]}
+        style={
+          Object {
+            "background": "#2f67e2",
+            "color": "white",
+          }
+        }
+        type="submit"
+        variant="contained"
+      >
+        Log In
+      </WithStyles(ForwardRef(Button))>
+    </div>
+  </div>
+</WithStyles(ForwardRef(Dialog))>
+`;
