@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { postUserCreationDetails } from '../../../../core/apis/Account';
+import { postUserCreationDetails } from '@/core/apis/Account';
 
 const initialState = {
   userData: { firstName: '', lastName: '', email: '' },
@@ -20,7 +20,7 @@ export const createUser = createAsyncThunk('account/creation', async (postData) 
 });
 
 export const createAccountSlice = createSlice({
-  name: 'account',
+  name: 'creation',
   initialState,
   reducers: {
     setUserEmail: (state, action) => {

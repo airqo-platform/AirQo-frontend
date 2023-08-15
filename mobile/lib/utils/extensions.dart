@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
@@ -96,75 +98,50 @@ extension ForecastListExt on List<Forecast> {
       where((element) => element.time.isAfterOrEqualToToday()).toList();
 }
 
-extension KyaExt on Kya {
-  String getKyaMessage() {
-    if (isInProgress()) {
-      return 'Continue';
-    } else if (isPendingCompletion()) {
-      return 'Complete! Move to For You';
-    } else {
-      return 'Start learning';
+extension KyaExt on KyaLesson {
+  String startButtonText(BuildContext context) {
+    if (activeTask == 1) {
+      return AppLocalizations.of(context)!.begin;
     }
+    return AppLocalizations.of(context)!.resume;
   }
 
-  bool isPendingCompletion() {
-    return progress == 1;
-  }
-
-  bool isComplete() {
-    return progress == -1;
-  }
-
-  bool isEmpty() {
-    return lessons.isEmpty;
-  }
-
-  bool isInProgress() {
-    return progress > 0 && progress < 1;
-  }
-
-  bool todo() {
-    return progress == 0;
-  }
-
-  double getProgress(int visibleCardIndex) {
-    return (visibleCardIndex + 1) / lessons.length;
+  String getKyaMessage(BuildContext context) {
+    switch (status) {
+      case KyaLessonStatus.todo:
+        return AppLocalizations.of(context)!.startLearning;
+      case KyaLessonStatus.pendingCompletion:
+        return AppLocalizations.of(context)!.completeMoveToForYou;
+      case KyaLessonStatus.inProgress:
+      case KyaLessonStatus.complete:
+        if (activeTask == 1) return AppLocalizations.of(context)!.startLearning;
+        return AppLocalizations.of(context)!.continu;
+    }
   }
 }
 
-extension KyaListExt on List<Kya> {
-  void sortByProgress() {
-    sort((x, y) {
-      if (x.progress == -1) return -1;
+extension KyaListExt on List<KyaLesson> {
+  List<KyaLesson> filterInCompleteLessons() {
+    List<KyaLesson> inCompleteLessons =
+        where((lesson) => lesson.status == KyaLessonStatus.pendingCompletion)
+            .take(3)
+            .toList();
 
-      if (y.progress == -1) return 1;
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.inProgress)
+              .take(3)
+              .toList();
+    }
 
-      return -(x.progress.compareTo(y.progress));
-    });
-  }
+    if (inCompleteLessons.isEmpty) {
+      inCompleteLessons =
+          where((lesson) => lesson.status == KyaLessonStatus.todo)
+              .take(3)
+              .toList();
+    }
 
-  List<Kya> filterInProgressKya() {
-    return where((element) {
-      return element.isInProgress();
-    }).toList();
-  }
-
-  List<Kya> filterToDo() {
-    return where((element) {
-      return element.todo();
-    }).toList();
-  }
-
-  List<Kya> filterPendingCompletion() {
-    return where((element) {
-      return element.isPendingCompletion();
-    }).toList();
-  }
-
-  List<Kya> filterComplete() {
-    return where((element) {
-      return element.isComplete();
-    }).toList();
+    return inCompleteLessons;
   }
 }
 
@@ -185,18 +162,12 @@ extension LocationHistoryExt on List<LocationHistory> {
 }
 
 extension SearchHistoryListExt on List<SearchHistory> {
-  void sortByDateTime({bool latestFirst = true}) {
-    sort((a, b) {
-      if (latestFirst) {
-        return -(a.dateTime.compareTo(b.dateTime));
-      }
-
-      return a.dateTime.compareTo(b.dateTime);
-    });
+  void sortByDateTime() {
+    sort((a, b) => -(a.dateTime.compareTo(b.dateTime)));
   }
 
-  Future<List<AirQualityReading>> attachedAirQualityReadings() async {
-    List<AirQualityReading> airQualityReadings = [];
+  Future<List<SearchHistory>> attachedAirQualityReadings() async {
+    List<SearchHistory> history = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
           await LocationService.getNearestSite(
@@ -204,18 +175,17 @@ extension SearchHistoryListExt on List<SearchHistory> {
         searchHistory.longitude,
       );
       if (airQualityReading != null) {
-        airQualityReadings.add(airQualityReading.copyWith(
+        airQualityReading = airQualityReading.copyWith(
           name: searchHistory.name,
           location: searchHistory.location,
+          placeId: searchHistory.placeId,
           latitude: searchHistory.latitude,
           longitude: searchHistory.longitude,
-          placeId: searchHistory.placeId,
-          dateTime: searchHistory.dateTime,
-        ));
+        );
       }
+      history.add(searchHistory.copyWith(airQualityReading: airQualityReading));
     }
-
-    return airQualityReadings;
+    return history;
   }
 }
 
@@ -248,76 +218,145 @@ extension AirQualityReadingExt on AirQualityReading {
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
   }
-
-  String insightsMessage() {
-    String message = '';
-    String verb = dateTime.isAPastDate() ? " was" : " is";
-    String dateAdverb = dateTime.isYesterday() ? " yesterday" : "";
-
-    switch (airQuality) {
-      case AirQuality.good:
-        message =
-            'The air quality$dateAdverb in $name$verb quite ${airQuality.title}.';
-        break;
-      case AirQuality.moderate:
-        message =
-            'The air quality$dateAdverb in $name$verb at a ${airQuality.title} level.';
-        break;
-      case AirQuality.ufsgs:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title}.';
-        break;
-      case AirQuality.unhealthy:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} for everyone';
-        break;
-      case AirQuality.veryUnhealthy:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} reaching levels of high alert.';
-        break;
-      case AirQuality.hazardous:
-        message =
-            'The air quality$dateAdverb in $name$verb ${airQuality.title} and can cause a health emergency.';
-        break;
-    }
-
-    return message;
-  }
 }
 
 extension InsightExt on Insight {
-  String shortDate() {
+  String shortDate(BuildContext context) {
     if (dateTime.isYesterday()) {
-      return 'Yesterday';
+      return AppLocalizations.of(context)!.yesterday;
     } else if (dateTime.isWithInPreviousWeek()) {
-      return 'Last Week';
+      return AppLocalizations.of(context)!.lastWeek;
     } else if (dateTime.isWithInNextWeek()) {
-      return 'Next Week';
+      return AppLocalizations.of(context)!.nextWeek;
     } else if (dateTime.isToday()) {
-      return 'Today';
+      return AppLocalizations.of(context)!.today;
     } else if (dateTime.isTomorrow()) {
-      return 'Tomorrow';
+      return AppLocalizations.of(context)!.tomorrow;
     } else if (dateTime.isWithInCurrentWeek()) {
-      return 'This week';
+      return AppLocalizations.of(context)!.thisWeek;
     }
 
     return '';
   }
 
-  String healthTipsTitle() {
+  String healthTipsTitle(BuildContext context) {
     if (dateTime.isToday()) {
-      return 'Today’s health tips';
+      return AppLocalizations.of(context)!.todaysHealthTips;
     }
 
     if (dateTime.isTomorrow()) {
-      return 'Tomorrow’s health tips';
+      return AppLocalizations.of(context)!.tomorrowsHealthTips;
     }
 
     if (dateTime.isAFutureDate()) {
-      return '${dateTime.getWeekday().toTitleCase()}’s health tips';
+      return AppLocalizations.of(context)!
+          .thisDatesHealthTips(dateTime.getWeekday().toTitleCase());
     }
 
     return '';
+  }
+
+  String message(BuildContext context, String name) {
+    AirQuality? airQuality = this.airQuality;
+
+    if (airQuality == null) {
+      if (dateTime.isAFutureDate()) {
+        return AppLocalizations.of(context)!
+            .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
+      }
+      return AppLocalizations.of(context)!
+          .wereHavingIssuesWithOurNetworkNoWorriesWellBeBackUpSoon;
+    }
+
+    switch (airQuality) {
+      case AirQuality.good:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!.theAirQualityInCityIsGood(name);
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!.expectConditionsToBeGood;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyGood(name);
+        }
+      case AirQuality.moderate:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasModerate(name);
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!.expectConditionsToBeModerate;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyModerate(name);
+        }
+      case AirQuality.ufsgs:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!
+              .theAirIsAcceptableButSensitiveGroupsMayExperienceSomeHealthEffects;
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!
+              .expectConditionsToBeUnhealthyForSensitiveGroups;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthyForSensitiveGroups(
+                  name);
+        }
+      case AirQuality.unhealthy:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasUnhealthy(name);
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyUnhealthy(name);
+        }
+      case AirQuality.veryUnhealthy:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasVeryUnhealthy(name);
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!
+              .expectConditionsToBeVeryUnhealthy;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyVeryUnhealthy(name);
+        }
+      case AirQuality.hazardous:
+        if (dateTime.isAPastDate()) {
+          return AppLocalizations.of(context)!
+              .theAirQualityInCityWasHazardous(name);
+        } else if (dateTime.isAFutureDate()) {
+          return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
+        } else {
+          return AppLocalizations.of(context)!
+              .theHourlyAirQualityAverageInCityIsCurrentlyHazardous(name);
+        }
+    }
+  }
+
+  String forecastMessage(BuildContext context, String name) {
+    AirQuality? airQuality = forecastAirQuality;
+
+    if (airQuality == null) {
+      return AppLocalizations.of(context)!
+          .forecastIsTemporarilyUnavailableWereWorkingToRestoreThisFeatureAsSoonAsPossible;
+    }
+
+    switch (airQuality) {
+      case AirQuality.good:
+        return AppLocalizations.of(context)!.expectConditionsToBeGood;
+      case AirQuality.moderate:
+        return AppLocalizations.of(context)!.expectConditionsToBeModerate;
+      case AirQuality.ufsgs:
+        return AppLocalizations.of(context)!
+            .expectConditionsToBeUnhealthyForSensitiveGroups;
+      case AirQuality.unhealthy:
+        return AppLocalizations.of(context)!.expectConditionsToBeUnhealthy;
+      case AirQuality.veryUnhealthy:
+        return AppLocalizations.of(context)!.expectConditionsToBeVeryUnhealthy;
+      case AirQuality.hazardous:
+        return AppLocalizations.of(context)!.expectConditionsToBeHazardous;
+    }
   }
 }
 
@@ -379,13 +418,13 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 }
 
 extension ProfileExt on Profile {
-  String displayName() {
+  String displayName(BuildContext context) {
     if (firstName != '') {
       return firstName.trim();
     } else if (lastName != '') {
       return lastName.trim();
     } else {
-      return 'Hello';
+      return AppLocalizations.of(context)!.hello;
     }
   }
 
@@ -428,22 +467,22 @@ extension ProfileExt on Profile {
     return initials.isEmpty ? 'A' : initials;
   }
 
-  String greetings() {
+  String greetings(BuildContext context) {
     final hour = DateTime.now().hour;
 
     if (00 <= hour && hour < 12) {
-      return 'Good morning $firstName'.trim();
+      return AppLocalizations.of(context)!.goodMorningName(firstName.trim());
     }
 
     if (12 <= hour && hour < 16) {
-      return 'Good afternoon $firstName'.trim();
+      return AppLocalizations.of(context)!.goodAfternoonName(firstName.trim());
     }
 
     if (16 <= hour && hour <= 23) {
-      return 'Good evening $firstName'.trim();
+      return AppLocalizations.of(context)!.goodEveningName(firstName.trim());
     }
 
-    return 'Hello $firstName'.trim();
+    return AppLocalizations.of(context)!.helloName(firstName.trim());
   }
 }
 
@@ -452,24 +491,25 @@ extension DateTimeExt on DateTime {
     return day == dateTime.day;
   }
 
-  String analyticsCardString() {
+  String analyticsCardString(BuildContext context) {
     const String timeFormat = 'hh:mm a';
     const String dateTimeFormat = 'd MMM, $timeFormat';
     String dateString = DateFormat(timeFormat).format(this);
     if (isYesterday()) {
-      return 'Updated yesterday at $dateString';
+      return AppLocalizations.of(context)!
+          .updatedYesterdayAtDateString(dateString);
     } else if (isToday()) {
-      return 'Updated today at $dateString';
+      return AppLocalizations.of(context)!.updatedTodayAtDateString(dateString);
     } else if (isTomorrow()) {
-      return 'Tomorrow, $dateString';
+      return AppLocalizations.of(context)!.tomorrowDateString(dateString);
     } else {
       return DateFormat(dateTimeFormat).format(this);
     }
   }
 
-  String timelineString() {
-    return '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'
-        .toUpperCase();
+  String timelineString(BuildContext context) {
+    return AppLocalizations.of(context)!.tomorrowDateString(
+        '${getWeekday()} ${DateFormat('d, MMMM').format(this)}'.toUpperCase());
   }
 
   DateTime getDateOfFirstDayOfWeek() {

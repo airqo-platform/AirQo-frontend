@@ -12,12 +12,14 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:home_widget/home_widget.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
+
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_widgets.dart';
@@ -68,7 +70,7 @@ class _DashboardViewState extends State<DashboardView>
         preferredSize: const Size.fromHeight(50.0),
         child: CustomShowcaseWidget(
           showcaseKey: _skipShowcaseKey,
-          description: "Click to Skip Tutorial",
+          description: AppLocalizations.of(context)!.clickToSkipTutorial,
           customize: ShowcaseOptions.skip,
           child: AppBar(
             automaticallyImplyLeading: false,
@@ -95,8 +97,7 @@ class _DashboardViewState extends State<DashboardView>
                 child: BlocBuilder<ProfileBloc, Profile>(
                   builder: (context, state) {
                     return AutoSizeText(
-                      // TODO refresh greetings
-                      state.greetings(),
+                      state.greetings(context),
                       maxLines: 1,
                       minFontSize: 24,
                       overflow: TextOverflow.ellipsis,
@@ -128,11 +129,11 @@ class _DashboardViewState extends State<DashboardView>
                           child: CustomShowcaseWidget(
                             showcaseKey: _favoritesShowcaseKey,
                             descriptionHeight: screenSize.height * 0.12,
-                            description:
-                                "Find the latest air quality from your favorite locations",
+                            description: AppLocalizations.of(context)!
+                                .findTheLatestAirQualityFromYourFavoriteLocations,
                             child: DashboardTopCard(
                               toolTipType: ToolTipType.favouritePlaces,
-                              title: 'Favorites',
+                              title: AppLocalizations.of(context)!.favorites,
                               widgetKey: _favToolTipKey,
                               nextScreenClickHandler: () async {
                                 await Navigator.push(
@@ -153,22 +154,25 @@ class _DashboardViewState extends State<DashboardView>
                     const SizedBox(
                       width: 16,
                     ),
-                    BlocBuilder<KyaBloc, List<Kya>>(
+                    BlocBuilder<KyaBloc, KyaState>(
                       builder: (context, state) {
-                        final kyaWidgets = completeKyaWidgets(
-                          state.filterComplete().take(3).toList(),
-                        );
+                        final completeLessons = state.lessons
+                            .where((lesson) =>
+                                lesson.status == KyaLessonStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(completeLessons);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
                             showcaseKey: _forYouShowcaseKey,
                             descriptionWidth: screenSize.width * 0.3,
                             descriptionHeight: screenSize.height * 0.17,
-                            description:
-                                "Find amazing content specifically designed for you here.",
+                            description: AppLocalizations.of(context)!
+                                .findAmazingContentSpecificallyDesignedForYouHere,
                             child: DashboardTopCard(
                               toolTipType: ToolTipType.forYou,
-                              title: 'For You',
+                              title: AppLocalizations.of(context)!.forYou,
                               widgetKey: _kyaToolTipKey,
                               nextScreenClickHandler: () async {
                                 await Navigator.push(
@@ -195,7 +199,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  DateTime.now().timelineString(),
+                  AppLocalizations.of(context)!.actualDate(DateTime.now()).toUpperCase(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
@@ -208,7 +212,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  'Today’s air quality',
+                  AppLocalizations.of(context)!.todayAirQuality,
                   style: CustomTextStyle.headline11(context),
                 ),
                 minHeight: 40,
@@ -246,10 +250,11 @@ class _DashboardViewState extends State<DashboardView>
 
                       if (currentLocation == null) {
                         return state.showErrorMessage
-                            ? const Padding(
-                                padding: EdgeInsets.only(top: 16),
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 16),
                                 child: NoLocationAirQualityMessage(
-                                  "We’re unable to get your current location. Explore locations below in the meantime.",
+                                  AppLocalizations.of(context)!
+                                      .unableToGetCurrentLocation,
                                 ),
                               )
                             : Container();
@@ -271,10 +276,11 @@ class _DashboardViewState extends State<DashboardView>
                             _nearbyLocationExists = false;
 
                             return state.showErrorMessage
-                                ? const Padding(
-                                    padding: EdgeInsets.only(top: 16),
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 16),
                                     child: NoLocationAirQualityMessage(
-                                      "We’re unable to get your location’s air quality. Explore locations below as we expand our network.",
+                                      AppLocalizations.of(context)!
+                                          .unableToGetAirQuality,
                                     ),
                                   )
                                 : Container();
@@ -294,8 +300,8 @@ class _DashboardViewState extends State<DashboardView>
                             child: CustomShowcaseWidget(
                               showcaseKey: _nearestLocationShowcaseKey,
                               descriptionHeight: screenSize.height * 0.17,
-                              description:
-                                  "This card shows the air quality of your nearest location",
+                              description: AppLocalizations.of(context)!
+                                  .thisCardShowsTheAirQualityOfYourNearestLocation,
                               child: AnalyticsCard(
                                 airQualityReading,
                                 false,
@@ -306,18 +312,12 @@ class _DashboardViewState extends State<DashboardView>
                       );
                     },
                   ),
-                  BlocBuilder<KyaBloc, List<Kya>>(
+                  BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      List<Kya> kya = state
-                        ..filterPendingCompletion()
-                        ..sortByProgress();
-                      if (kya.isEmpty) {
-                        kya = state.filterInProgressKya();
-                      }
-                      if (kya.isEmpty) {
-                        kya = state.filterToDo();
-                      }
-                      if (kya.isEmpty) {
+                      List<KyaLesson> inCompleteLessons =
+                          state.lessons.filterInCompleteLessons();
+
+                      if (inCompleteLessons.isEmpty) {
                         _kyaExists = false;
 
                         return const SizedBox();
@@ -328,10 +328,10 @@ class _DashboardViewState extends State<DashboardView>
                         child: CustomShowcaseWidget(
                           showcaseKey: _kyaShowcaseKey,
                           descriptionHeight: screenSize.height * 0.14,
-                          description:
-                              "Do you want to know more about air quality? Know your air in this section",
+                          description: AppLocalizations.of(context)!
+                              .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
                           child: KyaCardWidget(
-                            kya.first,
+                            inCompleteLessons.first,
                           ),
                         ),
                       );
@@ -394,8 +394,9 @@ class _DashboardViewState extends State<DashboardView>
                                             screenSize.height * 0.17,
                                         customize: ShowcaseOptions.up,
                                         showLine: false,
-                                        description:
-                                            "Find the air quality of different locations across Africa here.",
+                                        description: AppLocalizations.of(
+                                                context)!
+                                            .findTheAirQualityOfDifferentLocationsAcrossAfricaHere,
                                         child: AnalyticsCard(
                                           surroundingSites[index],
                                           false,
@@ -463,7 +464,7 @@ class _DashboardViewState extends State<DashboardView>
     WidgetsBinding.instance.addObserver(this);
     _listenToStreams();
     _refresh();
-    HomeWidget.registerBackgroundCallback(backgroundCallback);
+    _updateWidget();
   }
 
   @override
@@ -518,7 +519,7 @@ class _DashboardViewState extends State<DashboardView>
 
     context.read<FavouritePlaceBloc>().add(const SyncFavouritePlaces());
     context.read<LocationHistoryBloc>().add(const SyncLocationHistory());
-    await WidgetService.sendAndUpdate();
+    _updateWidget();
   }
 
   Future<void> _startShowcase() async {
@@ -560,6 +561,18 @@ class _DashboardViewState extends State<DashboardView>
           });
         }
       });
+    }
+  }
+
+  Future<void> _updateWidget() async {
+    try {
+      await WidgetService.sendAndUpdate();
+      HomeWidget.registerBackgroundCallback(backgroundCallback);
+    } catch (e, stackTrace) {
+      await logException(
+        e,
+        stackTrace,
+      );
     }
   }
 }

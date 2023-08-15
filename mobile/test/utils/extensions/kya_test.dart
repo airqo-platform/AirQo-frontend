@@ -1,126 +1,281 @@
 import 'package:app/models/models.dart';
-import 'package:app/utils/utils.dart';
+import 'package:app/utils/extensions.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('kyaExtension', () {
-    List<Kya> kyas = [];
+  KyaLesson kyaLesson = const KyaLesson(
+    title: 'Lesson Title',
+    imageUrl: 'https://example.com/image.jpg',
+    id: 'lesson_id',
+    tasks: [
+      KyaTask(
+        id: 'task_id',
+        title: 'Task Title',
+        imageUrl: 'https://example.com/task_image.jpg',
+        content: 'Task Content',
+      ),
+    ],
+    activeTask: 1,
+    status: KyaLessonStatus.todo,
+    completionMessage: 'Lesson completed!',
+  );
+  group('KyaExt', () {
+    testWidgets(
+      'startButtonText returns "Begin" when activeTask is 1',
+      (WidgetTester tester) async {
+        final key = GlobalKey();
 
-    setUp(() => {
-          kyas = List.generate(
-            4,
-            (index) => Kya(
-              progress: index == 0
-                  ? 1
-                  : index == 1
-                      ? 0.5
-                      : index == 2
-                          ? -1
-                          : 0,
-              completionMessage: 'Lesson ${index + 1} Completed',
-              id: (index + 1).toString(),
-              imageUrl: '',
-              lessons: const [],
-              secondaryImageUrl: '',
-              shareLink: '',
-              title: '',
-            ),
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+            ],
+            home: Placeholder(key: key),
           ),
-        });
+        );
+        await tester.pumpAndSettle();
 
-    group('sortByProgress', () {
-      test('Should sort Kyas in descending order by progress', () {
-        Kya kya = kyas[0];
+        BuildContext? buildContext = key.currentContext;
+        expect(buildContext, isNotNull);
 
-        List<Kya> testKyas = [
-          kya.copyWith(progress: 0),
-          kya.copyWith(progress: 0.6),
-          kya.copyWith(progress: -1),
-          kya.copyWith(progress: 0.4),
-          kya.copyWith(progress: -1)
-        ];
+        if (buildContext == null) {
+          return;
+        }
 
-        testKyas.sortByProgress();
+        final buttonText = kyaLesson.startButtonText(buildContext);
+        expect(buttonText, 'Begin');
+      },
+    );
+
+    testWidgets(
+      'startButtonText returns "Resume" when activeTask is not 1',
+      (WidgetTester tester) async {
+        final key = GlobalKey();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+            ],
+            home: Placeholder(key: key),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        BuildContext? buildContext = key.currentContext;
+        expect(buildContext, isNotNull);
+
+        if (buildContext == null) {
+          return;
+        }
+
+        kyaLesson = kyaLesson.copyWith(activeTask: 2);
+
+        final buttonText = kyaLesson.startButtonText(buildContext);
+
+        expect(buttonText, 'Resume');
+      },
+    );
+
+    testWidgets(
+      'getKyaMessage returns "Start learning" for KyaLessonStatus.todo',
+      (WidgetTester tester) async {
+        final key = GlobalKey();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+            ],
+            home: Placeholder(key: key),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        BuildContext? buildContext = key.currentContext;
+        expect(buildContext, isNotNull);
+
+        if (buildContext == null) {
+          return;
+        }
+
+        final message = kyaLesson.getKyaMessage(buildContext);
+
+        expect(message, 'Start learning');
+      },
+    );
+
+    testWidgets(
+      'getKyaMessage returns "Complete! Move to For You" for KyaLessonStatus.pendingCompletion',
+      (WidgetTester tester) async {
+        final key = GlobalKey();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+            ],
+            home: Placeholder(key: key),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        BuildContext? buildContext = key.currentContext;
+        expect(buildContext, isNotNull);
+
+        if (buildContext == null) {
+          return;
+        }
+
+        kyaLesson =
+            kyaLesson.copyWith(status: KyaLessonStatus.pendingCompletion);
+
+        final message = kyaLesson.getKyaMessage(buildContext);
+
+        expect(message, 'Complete! Move to For You');
+      },
+    );
+
+    testWidgets(
+      'getKyaMessage returns "Continue" for KyaLessonStatus.complete and activeTask is not 1',
+      (WidgetTester tester) async {
+        final key = GlobalKey();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+            ],
+            home: Placeholder(key: key),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        BuildContext? buildContext = key.currentContext;
+        expect(buildContext, isNotNull);
+
+        if (buildContext == null) {
+          return;
+        }
+
+        kyaLesson = kyaLesson.copyWith(
+          status: KyaLessonStatus.complete,
+          activeTask: 2,
+        );
+
+        final message = kyaLesson.getKyaMessage(buildContext);
+
+        expect(message, 'Continue');
+      },
+    );
+  });
+
+  group(
+    'kyaList Extension',
+    () {
+      List<KyaLesson> lessons = [];
+
+      setUp(() => {
+            lessons = List.generate(
+              4,
+              (index) => KyaLesson(
+                activeTask: index == 0
+                    ? 1
+                    : index == 1
+                        ? 5
+                        : index == 2
+                            ? 9
+                            : 0,
+                completionMessage: 'Lesson ${index + 1} Completed',
+                id: (index + 1).toString(),
+                imageUrl: '',
+                status: index == 0
+                    ? KyaLessonStatus.todo
+                    : index == 1
+                        ? KyaLessonStatus.inProgress
+                        : index == 2
+                            ? KyaLessonStatus.pendingCompletion
+                            : KyaLessonStatus.complete,
+                shareLink: '',
+                title: '',
+                tasks: const [],
+              ),
+            ),
+          });
+
+      test(
+          'filterInCompleteLessons returns pendingCompletion lessons if available',
+          () {
+        final result = lessons.filterInCompleteLessons();
 
         expect(
-            testKyas,
-            containsAllInOrder([
-              kya.copyWith(progress: -1),
-              kya.copyWith(progress: -1),
-              kya.copyWith(progress: 0.6),
-              kya.copyWith(progress: 0.4),
-              kya.copyWith(progress: 0),
-            ]));
+            result.every(
+                (lesson) => lesson.status == KyaLessonStatus.pendingCompletion),
+            true);
       });
-    });
 
-    group('Filter Complete', () {
-      test('returns empty list when all Kyas are not yet completed', () {
-        kyas = [kyas[0], kyas[1], kyas[3]];
+      test(
+          'filterInCompleteLessons returns inProgress lessons if pendingCompletion lessons are empty',
+          () {
+        lessons.removeWhere(
+            (lesson) => lesson.status == KyaLessonStatus.pendingCompletion);
+        final result = lessons.filterInCompleteLessons();
 
-        final filteredKyas = kyas.filterComplete();
-        expect(filteredKyas.isEmpty, true);
+        expect(
+            result
+                .every((lesson) => lesson.status == KyaLessonStatus.inProgress),
+            true);
       });
-      test('Should return only completed Lessons', () {
-        if (kyas.length == 1 && kyas.contains(kyas[2])) {
-          fail('Kyas already does not contain uncompleted lessons');
-        }
 
-        Set<Kya> unCompletedKyasSet = {kyas[1], kyas[0], kyas[3]};
+      test(
+          'filterInCompleteLessons returns todo lessons if both pendingCompletion and inProgress lessons are empty',
+          () {
+        lessons.removeWhere((lesson) =>
+            lesson.status == KyaLessonStatus.pendingCompletion ||
+            lesson.status == KyaLessonStatus.inProgress);
+        final result = lessons.filterInCompleteLessons();
 
-        final completedKyas = kyas.filterComplete();
-        expect(completedKyas.length, 1);
-        expect(completedKyas.contains(kyas[2]), isTrue);
-        expect(completedKyas.toSet().intersection(unCompletedKyasSet).isEmpty,
-            isTrue);
+        expect(result.every((lesson) => lesson.status == KyaLessonStatus.todo),
+            true);
       });
-    });
-
-    group('Filter ToDo', () {
-      test('Should return only elements that are to do', () {
-        if (kyas.length == 1 && kyas.contains(kyas[3])) {
-          fail('Kyas already does not contain ToDo lessons');
-        }
-
-        Set<Kya> toDoKyasSet = {kyas[3]};
-        Set<Kya> startedKyasSet = kyas.toSet().difference(toDoKyasSet);
-
-        final toDoKyas = kyas.filterToDo();
-        expect(toDoKyas.length, 1);
-        expect(toDoKyas.contains(kyas[3]), isTrue);
-        expect(toDoKyas.toSet().intersection(startedKyasSet).isEmpty, isTrue);
-      });
-    });
-
-    group('Filter Pending Completion', () {
-      test('Should return only elements that are pending completion', () {
-        if (kyas.length == 1 && kyas.contains(kyas[0])) {
-          fail('Kyas already does not contain pending completion lessons');
-        }
-        Set<Kya> pendingCompletionKyasSet = {kyas[0]};
-        Set<Kya> othersSet = kyas.toSet().difference(pendingCompletionKyasSet);
-
-        final pendingCompletionKyas = kyas.filterPendingCompletion();
-        expect(pendingCompletionKyas.length, 1);
-        expect(pendingCompletionKyas.contains(kyas[0]), isTrue);
-        expect(pendingCompletionKyas.toSet().intersection(othersSet).isEmpty,
-            isTrue);
-      });
-    });
-
-    group('Filter In Progress', () {
-      test('Should return only elements that are In Progress', () {
-        if (kyas.length == 1 && kyas.contains(kyas[1])) {
-          fail('Kyas already does not contain In Progress lessons');
-        }
-        Set<Kya> inProgressKyasSet = {kyas[1]};
-        Set<Kya> othersSet = kyas.toSet().difference(inProgressKyasSet);
-
-        final inProgressKyas = kyas.filterInProgressKya();
-        expect(inProgressKyas.length, 1);
-        expect(inProgressKyas.contains(kyas[1]), isTrue);
-        expect(inProgressKyas.toSet().intersection(othersSet).isEmpty, isTrue);
-      });
-    });
-  });
+    },
+  );
 }

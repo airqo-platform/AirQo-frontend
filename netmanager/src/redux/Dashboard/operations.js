@@ -2,8 +2,6 @@
 import axios from 'axios';
 import { isEmpty } from 'underscore';
 import {
-  REFRESH_FILTER_LOCATION_DATA_SUCCESS,
-  REFRESH_FILTER_LOCATION_DATA_ERROR,
   LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
   LOAD_USER_DEFAULT_GRAPHS_ERROR,
   SET_USER_DEFAULTS_GRAPHS_SUCCESS,
@@ -16,7 +14,6 @@ import {
   UPDATE_USER_DEFAULT_GRAPHS_FAILURE
 } from './actions';
 import { DEFAULTS_URI } from 'config/urls/authService';
-import { getMonitoringSitesLocationsApi } from 'views/apis/location';
 import { getUserChartDefaultsApi } from 'views/apis/authService';
 import { getSitesApi } from 'views/apis/analytics';
 import { transformArray } from '../utils';
@@ -36,24 +33,6 @@ export const loadSites = (networkID) => async (dispatch) => {
         payload: err
       });
     });
-};
-
-export const refreshFilterLocationData = () => {
-  return async (dispatch) => {
-    return await getMonitoringSitesLocationsApi()
-      .then((responseData) => {
-        dispatch({
-          type: REFRESH_FILTER_LOCATION_DATA_SUCCESS,
-          payload: responseData.airquality_monitoring_sites
-        });
-      })
-      .catch((err) => {
-        dispatch({
-          type: REFRESH_FILTER_LOCATION_DATA_ERROR,
-          payload: err
-        });
-      });
-  };
 };
 
 export const loadUserDefaultGraphData = () => {

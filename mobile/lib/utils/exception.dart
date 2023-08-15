@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:app/services/services.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 class NetworkConnectionException implements Exception {
@@ -26,21 +25,5 @@ Future<void> logException(
     return;
   }
 
-  try {
-    if (!Platform.isAndroid) {
-      if (fatal) {
-        await AirqoApiClient.sendErrorToSlack(exception as Object, stackTrace);
-      }
-
-      return;
-    }
-
-    await FirebaseCrashlytics.instance.recordError(
-      exception,
-      stackTrace,
-      fatal: fatal,
-    );
-  } catch (e) {
-    await AirqoApiClient.sendErrorToSlack(exception as Object, stackTrace);
-  }
+  await AirqoApiClient.sendErrorToSlack(exception as Object, stackTrace);
 }

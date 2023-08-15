@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../settings/settings_page.dart';
 import 'profile_widgets.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -29,7 +30,7 @@ class ProfileView extends StatelessWidget {
                 ProfileSection(profile),
                 const SizedBox(height: 16),
                 CardSection(
-                  text: 'Settings',
+                  text: AppLocalizations.of(context)!.settings,
                   materialIcon: Icons.settings_rounded,
                   iconColor: CustomColors.appColorBlue,
                   nextPage: const SettingsPage(),

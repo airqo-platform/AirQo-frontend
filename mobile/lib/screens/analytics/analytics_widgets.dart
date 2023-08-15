@@ -9,9 +9,11 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar(this.airQualityReading, {super.key});
+
   final AirQualityReading airQualityReading;
 
   @override
@@ -99,7 +101,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
           width: 8.0,
         ),
         Text(
-          'View More Insights',
+          AppLocalizations.of(context)!.viewMoreInsights,
           style: CustomTextStyle.caption4(context)?.copyWith(
             color: appColors.appColorBlue,
           ),
@@ -122,6 +124,7 @@ class AnalyticsCard extends StatelessWidget {
     this.showHelpTip, {
     super.key,
   });
+
   final AirQualityReading airQualityReading;
   final bool showHelpTip;
   final GlobalKey _infoToolTipKey = GlobalKey();
@@ -259,7 +262,7 @@ class AnalyticsCard extends StatelessWidget {
                                           ),
                                           child: Text(
                                             airQualityReading.dateTime
-                                                .analyticsCardString(),
+                                                .analyticsCardString(context),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -330,6 +333,7 @@ class MiniAnalyticsCard extends StatefulWidget {
     super.key,
     required this.animateOnClick,
   });
+
   final AirQualityReading airQualityReading;
   final bool animateOnClick;
 
@@ -413,7 +417,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         ),
                         child: HeartIcon(
                           showAnimation: _showHeartAnimation,
-                          airQualityReading: airQualityReading,
+                          placeId: airQualityReading.placeId,
                         ),
                       ),
                     ),
@@ -452,7 +456,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      'View More Insights',
+                      AppLocalizations.of(context)!.viewMoreInsights,
                       style: CustomTextStyle.caption3(context)?.copyWith(
                         color: appColors.appColorBlue,
                       ),

@@ -1,5 +1,3 @@
-import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -7,7 +5,7 @@ import 'air_quality_reading.dart';
 
 part 'location_history.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class LocationHistory extends Equatable {
   factory LocationHistory.fromAirQualityReading(
     AirQualityReading airQualityReading,
@@ -37,8 +35,10 @@ class LocationHistory extends Equatable {
     this.airQualityReading,
   });
 
+  @JsonKey(name: "place_id")
   final String placeId;
 
+  @JsonKey(name: "reference_site")
   final String site;
 
   final String name;
@@ -49,6 +49,7 @@ class LocationHistory extends Equatable {
 
   final double longitude;
 
+  @JsonKey(name: "date_time")
   final DateTime dateTime;
 
   @JsonKey(
@@ -77,27 +78,15 @@ class LocationHistory extends Equatable {
 
   Map<String, dynamic> toJson() => _$LocationHistoryToJson(this);
 
-  static LocationHistory? parseAnalytics(Map<String, dynamic> jsonBody) {
-    try {
-      return LocationHistory.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-
-      return null;
-    }
-  }
-
-  static List<LocationHistory> fromAirQualityReadings() {
-    return HiveService()
-        .getAirQualityReadings()
-        .map((airQualityReading) => LocationHistory.fromAirQualityReading(
-              airQualityReading,
-            ))
-        .toList();
+  Map<String, dynamic> toAPIJson(String firebaseUserId) {
+    return toJson()
+      ..addAll({
+        "firebase_user_id": firebaseUserId,
+      });
   }
 
   @override
-  List<Object?> get props => [name, location];
+  List<Object?> get props => [placeId];
 }
 
 @JsonSerializable(explicitToJson: true)

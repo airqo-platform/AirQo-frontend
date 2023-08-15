@@ -13,6 +13,7 @@ import '../../widgets/auth_widgets.dart';
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> verifyEmailAuthCode(BuildContext context) async {
   await Navigator.of(context).push(
@@ -82,16 +83,19 @@ class _EmailAuthVerificationWidgetState
                           validator: (value) {
                             String? error;
                             if (value == null) {
-                              error = 'Please enter the code';
+                              error = AppLocalizations.of(context)!
+                                  .pleaseEnterTheCode;
                             }
 
                             if (value != null && value.length < 6) {
-                              error = 'Please enter all the digits';
+                              error = AppLocalizations.of(context)!
+                                  .pleaseEnterAllTheDigits;
                             }
 
                             if (value !=
                                 state.emailAuthModel.token.toString()) {
-                              error = 'Please enter all the digits';
+                              error = AppLocalizations.of(context)!
+                                  .pleaseEnterAllTheDigits;
                             }
 
                             if (error != null) {
@@ -254,7 +258,7 @@ class _EmailAuthVerificationWidgetState
 
       showSnackBar(
         context,
-        'Tap again to cancel!',
+        AppLocalizations.of(context)!.tapAgainToCancel,
       );
 
       return Future.value(false);
