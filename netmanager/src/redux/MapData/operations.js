@@ -11,7 +11,6 @@ import { heatmapPredictApi } from "views/apis/predict";
 import { getMonitoringSitesInfoApi } from "views/apis/analytics";
 import { transformDataToGeoJson } from "views/pages/Map/utils";
 import { getEventsApi } from "views/apis/deviceRegistry";
-import { transformDataToGeoJsonType } from "../../views/pages/Map/utils";
 
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
