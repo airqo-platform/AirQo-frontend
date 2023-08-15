@@ -459,7 +459,7 @@ export const OverlayMap = ({ center, zoom, heatMapData, monitoringSiteData }) =>
         const reducerFactory = (key) => (accumulator, feature) =>
           accumulator + parseFloat(feature.properties[key]);
         let average_predicted_value =
-          features.reduce(reducerFactory('predicted_value'), 0) / features.length;
+          features.reduce(reducerFactory('pm2_5'), 0) / features.length;
 
         let average_confidence_int =
           features.reduce(reducerFactory('interval'), 0) / features.length;
@@ -639,7 +639,6 @@ const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
   const monitoringSiteData = useEventsMapData();
-  console.log(heatMapData)
 
   useEffect(() => {
     if (isEmpty(heatMapData.features)) {
@@ -667,7 +666,7 @@ const MapContainer = () => {
         {heatMapData ? (
           <OverlayMap
             center={[22.5600613, 0.8341424]}
-            zoom={2}
+            zoom={2.4}
             heatMapData={heatMapData}
             monitoringSiteData={monitoringSiteData}
           />
