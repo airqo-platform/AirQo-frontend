@@ -317,29 +317,15 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      List<KyaLesson> inCompleteLessons =
-                          state.lessons.filterInCompleteLessons();
-
-                      if (inCompleteLessons.isEmpty) {
+                      List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
+                      inCompleteQuizzes.add(Quiz.initialize());
+                      if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
 
                         return const SizedBox();
                       }
 
-                      return const QuizCardWidget();
-
-                      //Padding(
-                      //   padding: const EdgeInsets.only(top: 16),
-                      //   child: CustomShowcaseWidget(
-                      //     showcaseKey: _kyaShowcaseKey,
-                      //     descriptionHeight: screenSize.height * 0.14,
-                      //     description: AppLocalizations.of(context)!
-                      //         .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                      //     child: KyaCardWidget(
-                      //       inCompleteLessons.first,
-                      //     ),
-                      //   ),
-                      // );
+                      return QuizCardWidget(inCompleteQuizzes.first);
                     },
                   ),
                   BlocConsumer<DashboardBloc, DashboardState>(

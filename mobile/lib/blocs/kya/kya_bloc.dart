@@ -11,7 +11,7 @@ part 'kya_event.dart';
 part 'kya_state.dart';
 
 class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
-  KyaBloc() : super(const KyaState(lessons: [])) {
+  KyaBloc() : super(const KyaState(lessons: [], quizzes: [])) {
     on<UpdateKyaProgress>(_onUpdateKyaProgress);
     on<ClearKya>(_onClearKya);
     on<FetchKya>(_onFetchKya);
@@ -38,7 +38,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .toList();
     }
 
-    emit(KyaState(lessons: kyaLessons));
+    emit(KyaState(lessons: kyaLessons, quizzes: []));
   }
 
   Future<void> _onUpdateKyaProgress(
