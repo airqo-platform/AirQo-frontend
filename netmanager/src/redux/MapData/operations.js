@@ -16,8 +16,8 @@ import { transformDataToGeoJsonType } from "../../views/pages/Map/utils";
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const res = responseData.data
-      const payload = transformDataToGeoJsonType(res)
+      const res = responseData.data.predictions
+      const payload = res;
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload

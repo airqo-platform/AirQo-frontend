@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
-
 const API_TOKEN = process.env.REACT_APP_API_TOKEN
 
 export const heatmapPredictApi = async () => {
