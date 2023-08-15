@@ -69,9 +69,10 @@ export const addMaintenanceLogApi = async (deviceName, logData) => {
     .then((response) => response.data);
 };
 
-export const recallDeviceApi = async (deviceName) => {
+export const recallDeviceApi = async (deviceName, requestData) => {
+
   return await axios
-    .post(RECALL_DEVICE_URI, {}, { params: { deviceName, token: BASE_AUTH_TOKEN } })
+    .post(RECALL_DEVICE_URI, requestData, { params: { deviceName, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 
