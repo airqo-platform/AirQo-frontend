@@ -20,7 +20,6 @@ import 'about_page.dart';
 import 'delete_account_screen.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 
