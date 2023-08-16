@@ -48,7 +48,7 @@ const Hero = () => {
       <span>
         <div className="video-container">
           <div className="video-overlay">
-            <video src={vid} autoPlay muted loop id="myVideo" />
+            <video src={vid} autoPlay muted loop />
             <div className="play-button" onClick={openModal}>
               <PlayCircleFilledIcon />
             </div>
