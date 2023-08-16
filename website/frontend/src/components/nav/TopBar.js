@@ -87,6 +87,12 @@ const TopBar = () => {
                       <h4>Access raw and calibrated data</h4>
                     </Link>
                   </div>
+                  <div className="dropdown-list-item">
+                    <Link to="/products/calibrate" style={{ textDecoration: 'none' }}>
+                      <h3>AirQalibrate</h3>
+                      <h4>Discover the quality of air around you</h4>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
