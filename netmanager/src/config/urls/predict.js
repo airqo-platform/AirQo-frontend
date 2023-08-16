@@ -9,3 +9,7 @@ const BASE_ANALYTICS_URL_V2 = stripTrailingSlash(process.env.REACT_APP_BASE_URL_
 export const GET_HEATMAP_DATA = `${BASE_PREDICT_URL}/predict/heatmap`;
 
 export const GET_GEOCOORDINATES_DATA = `${BASE_ANALYTICS_URL_V2}/predict/search`;
+
+export const GET_FAULTS = `${BASE_ANALYTICS_URL_V2}/predict/faulty-devices`;
+
+// export const GET_FAULTS = 'https://platform.airqo.net/api/v2/predict/faulty-devices';

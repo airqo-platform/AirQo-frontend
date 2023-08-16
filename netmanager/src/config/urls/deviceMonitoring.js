@@ -21,5 +21,3 @@ export const DEVICES_UPTIME = `${BASE_DEVICE_MONITORING_URL_V2}/monitor/devices/
 export const GET_ONLINE_OFFLINE_MAINTENANCE_STATUS = `${BASE_DEVICE_MONITORING_URL_V2}/monitor/devices/online_offline`;
 
 export const GENERATE_AIRQLOUD_UPTIME_SUMMARY_URI = `${BASE_DEVICE_MONITORING_URL_V2}/monitor/uptime`;
-
-export const GET_FAULTS = `${BASE_FAULT_DETECTION_URL}/predict/faulty-devices`;

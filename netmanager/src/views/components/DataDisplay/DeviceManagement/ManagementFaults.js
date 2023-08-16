@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/styles';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import CustomMaterialTable from '../../Table/CustomMaterialTable';
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
-import { getFaultsApi } from 'views/apis/deviceMonitoring';
+import { faultsPredictApi } from 'views/apis/predict';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
 const faultColumns = [
   {
     title: 'Device Name',
-    field: 'Device Name',
+    field: 'device_name',
     render: (rowData) => {
       return rowData ? rowData.device_name : '';
     },
@@ -30,7 +30,7 @@ const faultColumns = [
 
   {
     title: 'Correlation Fault',
-    field: 'Correlation Fault',
+    field: 'correlation_fault',
     render: (rowData) => {
       return rowData ? rowData.correlation_fault : '';
     },
@@ -39,7 +39,7 @@ const faultColumns = [
   },
   {
     title: 'Missing Data Fault',
-    field: 'Missing Data Fault',
+    field: 'Missing_data_fault',
     render: (rowData) => {
       return rowData ? rowData.missing_data_fault : '';
     },
@@ -96,13 +96,13 @@ const ManagementFaults = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await getFaultsApi();
-      setFaults(result);
+      const response = await faultsPredictApi();
+      if (response) {
+        setFaults(response);
+      }
+      setLoading(false);
     };
-    setLoading(false);
     fetchData();
-
-    console.log('faults', faults);
   }, []);
 
   return (
@@ -121,7 +121,7 @@ const ManagementFaults = () => {
           }}
           options={{
             search: true,
-            exportButton: true,
+            exportButton: false,
             searchFieldAlignment: 'left',
             showTitle: false,
             searchFieldStyle: {

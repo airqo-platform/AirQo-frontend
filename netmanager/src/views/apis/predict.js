@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA } from 'config/urls/predict';
+import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA, GET_FAULTS } from 'config/urls/predict';
 
 axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
@@ -9,4 +9,12 @@ export const heatmapPredictApi = async () => {
 
 export const geocoordinatesPredictApi = async (params) => {
   return await axios.get(GET_GEOCOORDINATES_DATA, { params }).then((response) => response.data);
+};
+
+export const faultsPredictApi = async () => {
+  return await axios
+    .get(GET_FAULTS, {
+      params: { token: process.env.REACT_APP_AUTH_TOKEN }
+    })
+    .then((response) => response.data);
 };
