@@ -14,7 +14,8 @@ import {
   PUBLICATIONS_URL,
   EVENTS_URL,
   CITIES_URL,
-  PRESS_URL
+  PRESS_URL,
+  IMPACT_URL
 } from '../config/urls';
 
 const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN
@@ -94,3 +95,6 @@ export const getAllEventsApi = async () =>
 // African Cities endpoint
 export const getAllCitiesApi = async () =>
   await axios.get(CITIES_URL).then((response) => response.data);
+
+// Impact Numbers endpoint
+export const getAllImpactNumbersApi = async () => await axios.get(IMPACT_URL).then(response => response.data)

@@ -7,10 +7,11 @@ import {
 import { transformDataToGeoJson } from "views/pages/Map/utils";
 
 const initialState = {
-  pm25HeatMapData: transformDataToGeoJson([], {
-    longitude: "longitude",
-    latitude: "latitude",
-  }),
+  // pm25HeatMapData: transformDataToGeoJson([], {
+  //   longitude: "longitude",
+  //   latitude: "latitude",
+  // }),
+  pm25HeatMapData:[],
   pm25SensorData: transformDataToGeoJson([], {
     longitude: "Longitude",
     latitude: "Latitude",

@@ -1,41 +1,8 @@
 export const circlePointPaint = {
-  // "circle-radius": [
-  //   "interpolate",
-  //   ["linear"],
-  //   ["zoom"],
-  //   9,
-  //   7,
-  //   10,
-  //   14,
-  //   11,
-  //   28,
-  //   12,
-  //   56,
-  //   13,
-  //   112,
-  //   14,
-  //   224,
-  //   15,
-  //   448,
-  //   16,
-  //   896,
-  //   17,
-  //   1792,
-  //   18,
-  //   3584,
-  //   19,
-  //   9000,
-  //   20,
-  //   14336,
-  //   21,
-  //   28697,
-  //   22,
-  //   57344,
-  // ],
   "circle-stroke-color": [
     "interpolate",
     ["linear"],
-    ["get", "predicted_value"],
+    ["get", "pm2_5"],
     0,
     "rgba(236,222,239,0)",
     0.001,
@@ -63,20 +30,19 @@ export const circlePointPaint = {
     500.4,
     "#990014",
   ],
-  "circle-radius": {
-    property: "dbh",
-    type: "exponential",
-    stops: [
-      [{ zoom: 15, value: 1 }, 5],
-      [{ zoom: 15, value: 500 }, 10],
-      [{ zoom: 22, value: 1 }, 20],
-      [{ zoom: 22, value: 500 }, 50],
-    ],
-  },
+  "circle-radius": [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    9,
+    2,
+    22,
+    16
+  ],
   "circle-color": [
     "interpolate",
     ["linear"],
-    ["get", "predicted_value"],
+    ["get", "pm2_5"],
     0,
     "rgba(236,222,239,0)",
     0.001,
@@ -104,7 +70,7 @@ export const circlePointPaint = {
     500.4,
     "#81202e",
   ],
-  "circle-stroke-width": 1,
+  "circle-stroke-width": 0.8,
   "circle-blur": [
     "interpolate",
     ["linear"],
@@ -118,17 +84,20 @@ export const circlePointPaint = {
     49,
     2,
   ],
-  "circle-opacity": {
-    stops: [
-      [14, 0],
-      [15, 1],
-    ],
-  },
+  "circle-opacity": [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    7,
+    0,
+    8,
+    1
+  ],
 };
 
 export const heatMapPaint = {
   "heatmap-weight": {
-    property: "predicted_value",
+    property: "pm2_5",
     type: "exponential",
     stops: [
       [1, 0],
@@ -146,22 +115,20 @@ export const heatMapPaint = {
     ["linear"],
     ["heatmap-density"],
     0,
-    "rgba(217, 217, 217,0)",
-    0.2,
-    "rgba(208,209,230,0.2)",
+    "rgba(255, 255, 255, 0)",
+    0.1,
+    "rgba(208, 209, 230, 0.2)",
     0.4,
     "rgb(255, 230, 240)",
-    0.6,
-    "rgb(255, 230, 240)",
-    0.8,
-    "rgb(255, 179, 209)",
+    0.7,
+    "rgb(255, 204, 224)",
     1,
     "rgb(255, 204, 224)",
   ],
   "heatmap-radius": {
     stops: [
       [1, 12],
-      [12, 18],
+      [12, 20],
     ],
   },
   "heatmap-opacity": {
@@ -172,3 +139,4 @@ export const heatMapPaint = {
     ],
   },
 };
+
