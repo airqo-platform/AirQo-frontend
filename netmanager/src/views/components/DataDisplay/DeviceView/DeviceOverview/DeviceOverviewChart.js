@@ -23,7 +23,7 @@ const DeviceOverviewCharts = ({ deviceName }) => {
     if (deviceName) {
       dispatch(
         loadSingleDeviceUptime({
-          device_name: deviceName,
+          devices: deviceName,
           startDate: roundToStartOfDay(
             moment(new Date()).subtract(3, 'days').toISOString()
           ).toISOString(),

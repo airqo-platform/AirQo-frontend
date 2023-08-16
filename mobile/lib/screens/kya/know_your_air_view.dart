@@ -5,6 +5,7 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'kya_title_page.dart';
 import 'kya_widgets.dart';
@@ -34,7 +35,10 @@ class KnowYourAirView extends StatelessWidget {
           return NoCompleteKyaWidget(
             callBack: () async {
               if (inCompleteLessons.isEmpty) {
-                showSnackBar(context, 'Oops.. No Lessons at the moment');
+                showSnackBar(
+                  context,
+                  AppLocalizations.of(context)!.oopsNoLessonsAtTheMoment,
+                );
               } else {
                 await _startKyaLessons(context, inCompleteLessons.first);
               }

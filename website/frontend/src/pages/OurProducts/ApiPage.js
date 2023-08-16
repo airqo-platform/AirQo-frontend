@@ -29,18 +29,22 @@ const ApiPage = () => {
                 Unlock Air Quality <span className="blue">Insights</span>
               </h2>
               <p className="right">
-                The AirQo API provides open access to a vast repository of over 2 million records of raw and calibrated real-time, historical, and forecast air quality data. 
+                The AirQo API provides open access to a vast repository of over 2 million records of
+                raw and calibrated real-time, historical, and forecast air quality data.
               </p>
             </div>
             <div className="overlap-section">
               <div className="lapping-left card larger-top" style={{ backgroundColor: '#F2F1F6' }}>
-                <h5>Defining data access</h5>
+                <h5>Redefining data access</h5>
                 <p>
-                  The API uses AI and data analysis techniques to provide accurate air quality measurements.
-                  It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the most common pollutants in African cities.
+                  The API uses AI and data analysis techniques to provide accurate air quality
+                  measurements. It offers PM<sub>2.5</sub> and PM<sub>10</sub> measurements, the
+                  most common pollutants in African cities.
                   <br />
                   <br />
-                  Our comprehensive datasets include information from both our air quality and reference-grade monitors strategically deployed in major African Cities. 
+                  Our comprehensive air quality datasets include data from our low-cost air quality
+                  monitors as well as reference-grade monitors strategically deployed in major
+                  African Cities.
                 </p>
               </div>
               <div className="lapping-left image" id="section-1">
@@ -53,10 +57,13 @@ const ApiPage = () => {
               <div className="lapping-right card" style={{ backgroundColor: '#FFFCE1' }}>
                 <h5>Start empowering your audience</h5>
                 <p>
-                  The AirQo API is not only about air quality data — it's about empowering users to take action to protect themselves against air pollution.
+                  The AirQo API is not only about air quality data — it's about empowering users to
+                  take action to protect themselves against air pollution.
                   <br /> <br />
-                  Integrate air quality information in your Open Source Projects, Browser Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
-                  <br/><br/>
+                  Integrate air quality information in your Open Source Projects, Browser
+                  Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
+                  <br />
+                  <br />
                   Help users take charge of their health and join the movement for cleaner air!
                 </p>
               </div>
@@ -74,9 +81,11 @@ const ApiPage = () => {
                 <span className="blue">How</span> it works
               </h2>
               <p className="right">
-                With our API, you have access to comprehensive documentation to enable you seamlessly integrate the data, and a dedicated support team to assist you at every step of the integration process.
+                With our API, you have access to comprehensive documentation to enable you
+                seamlessly integrate the data, and a dedicated support team to assist you at every
+                step of the integration process.
               </p>
-              <div className='cta-button'>
+              <div className="cta-button">
                 <NavTab
                   text="Read Docs"
                   path="https://docs.airqo.net/airqo-rest-api-documentation/"
@@ -97,4 +106,3 @@ const ApiPage = () => {
 };
 
 export default ApiPage;
- 

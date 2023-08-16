@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rating_dialog/rating_dialog.dart';
@@ -81,7 +82,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                   Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: Text(
-                      'Know Your Air',
+                      AppLocalizations.of(context)!.knowYourair,
                       style: CustomTextStyle.headline10(context)
                           ?.copyWith(color: CustomColors.appColorBlue),
                     ),
@@ -148,7 +149,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       text: TextSpan(
                         children: <TextSpan>[
                           TextSpan(
-                            text: 'Particulate matter(PM) ',
+                            text:
+                                AppLocalizations.of(context)!.particulateMatter,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -157,8 +159,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'is a complex mixture of extremely'
-                                ' small particles and liquid droplets.',
+                            text: AppLocalizations.of(context)!
+                                .isAComplexMixtureOfExtremelySmallParticlesAndLiquidDroplets,
                             style: TextStyle(
                               color:
                                   CustomColors.appColorBlack.withOpacity(0.7),
@@ -176,8 +178,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       text: TextSpan(
                         children: <TextSpan>[
                           TextSpan(
-                            text: 'When measuring particles there are two '
-                                'size categories commonly used: ',
+                            text: AppLocalizations.of(context)!
+                                .whenMeasuringParticlesThereAreTwoSizeCategoriesCommonlyUsed,
                             style: TextStyle(
                               color:
                                   CustomColors.appColorBlack.withOpacity(0.7),
@@ -186,7 +188,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'PM',
+                            text: ' PM',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -203,7 +205,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: ' and ',
+                            text: AppLocalizations.of(context)!.and,
                             style: TextStyle(
                               fontSize: 10,
                               color:
@@ -248,7 +250,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                         ),
                       ),
                       child: AutoSizeText(
-                        Pollutant.pm2_5.stringValue(pm2_5),
+                        Pollutant.pm2_5.airQuality(pm2_5).getTitle(context),
                         maxLines: 2,
                         minFontSize: 10,
                         maxFontSize: 10,
@@ -268,7 +270,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '${Pollutant.pm2_5.stringValue(pm2_5)}'
+                            text:
+                                '${Pollutant.pm2_5.airQuality(pm2_5).getTitle(context)}'
                                 ' means; ',
                             style: TextStyle(
                               fontSize: 10,
@@ -278,7 +281,8 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: pmToInfoDialog(pm2_5),
+                            text:
+                                Pollutant.pm2_5.infoDialogText(pm2_5, context),
                             style: TextStyle(
                               color:
                                   CustomColors.appColorBlack.withOpacity(0.7),
@@ -414,8 +418,9 @@ void showFavouritePlaceSnackBar(
         Expanded(
           child: AutoSizeText(
             user != null
-                ? "${airQualityReading.name} has been added to your favorites"
-                : "Please Sign in to save your favorites",
+                ? AppLocalizations.of(context)!
+                    .hasBeenAddedToYourFavorites(airQualityReading.name)
+                : AppLocalizations.of(context)!.pleaseSignInToSaveYourFavorites,
             maxLines: 1,
             minFontSize: 1,
             overflow: TextOverflow.ellipsis,
@@ -438,7 +443,8 @@ class AuthFailureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
       title: Text(
-        'Authentication is currently unavailable. You will be able to signup/sign in later.',
+        AppLocalizations.of(context)!
+            .authenticationIsCurrentlyUnavailableYouWillBeAbleToSignupSignInLater,
         textAlign: TextAlign.center,
         style: CustomTextStyle.headline8(context),
       ),
@@ -450,7 +456,7 @@ class AuthFailureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            'Proceed as Guest',
+            AppLocalizations.of(context)!.proceedAsGuest,
             style: CustomTextStyle.button2(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -462,7 +468,8 @@ class AuthFailureDialog extends StatelessWidget {
   Future<void> _guestSignIn(BuildContext context) async {
     await hasNetworkConnection().then((hasConnection) async {
       if (!hasConnection) {
-        showSnackBar(context, "No internet connection");
+        showSnackBar(
+            context, AppLocalizations.of(context)!.noInternetConnection);
 
         return;
       }
@@ -510,7 +517,7 @@ class SettingsDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: true,
           child: Text(
-            'Cancel',
+            AppLocalizations.of(context)!.cancel,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -522,7 +529,7 @@ class SettingsDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            'Proceed',
+            AppLocalizations.of(context)!.proceed,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -546,8 +553,8 @@ class AuthMethodDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget title = Text(
       authMethod == AuthMethod.email
-          ? 'Confirm Email Address'
-          : 'Confirm Phone Number',
+          ? AppLocalizations.of(context)!.confirmEmailAddress
+          : AppLocalizations.of(context)!.confirmPhoneNumber,
       textAlign: TextAlign.center,
     );
 
@@ -571,8 +578,8 @@ class AuthMethodDialog extends StatelessWidget {
         ),
         Text(
           authMethod == AuthMethod.email
-              ? 'Is the email address above correct?'
-              : 'Is the phone number above correct?',
+              ? AppLocalizations.of(context)!.isTheEmailAddressAboveCorrect
+              : AppLocalizations.of(context)!.isThePhoneNumberAboveCorrect,
           textAlign: TextAlign.center,
         ),
       ],
@@ -586,7 +593,7 @@ class AuthMethodDialog extends StatelessWidget {
         isDefaultAction: true,
         isDestructiveAction: true,
         child: Text(
-          'Edit',
+          AppLocalizations.of(context)!.edit,
           style: CustomTextStyle.caption4(context)
               ?.copyWith(color: CustomColors.appColorBlue),
         ),
@@ -598,7 +605,7 @@ class AuthMethodDialog extends StatelessWidget {
         isDefaultAction: true,
         isDestructiveAction: false,
         child: Text(
-          'Yes',
+          AppLocalizations.of(context)!.yes,
           style: CustomTextStyle.caption4(context)
               ?.copyWith(color: CustomColors.appColorBlue),
         ),
@@ -619,14 +626,15 @@ class SignOutDeletionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: const Text(
-        "Re authentication is required",
+      title: Text(
+        AppLocalizations.of(context)!.reAuthenticationIsRequired,
         textAlign: TextAlign.center,
       ),
-      content: const Padding(
-        padding: EdgeInsets.all(10),
+      content: Padding(
+        padding: const EdgeInsets.all(10),
         child: Text(
-          "You are required to sign in again inorder to delete your account. Do you want to proceed?",
+          AppLocalizations.of(context)!
+              .youAreRequiredToSignInAgainInorderToDeleteYourAccountDoYouWantToProceed,
           textAlign: TextAlign.center,
         ),
       ),
@@ -638,7 +646,7 @@ class SignOutDeletionDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: true,
           child: Text(
-            "Cancel",
+            AppLocalizations.of(context)!.cancel,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -650,7 +658,7 @@ class SignOutDeletionDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            "Yes",
+            AppLocalizations.of(context)!.yes,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -672,13 +680,13 @@ class AuthProcedureDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
       title: Text(
-        authProcedure.confirmationTitle,
+        authProcedure.getConfirmationTitle(context),
         textAlign: TextAlign.center,
       ),
       content: Padding(
         padding: const EdgeInsets.all(10),
         child: Text(
-          authProcedure.confirmationBody,
+          authProcedure.getConfirmationBody(context),
           textAlign: TextAlign.center,
         ),
       ),
@@ -690,7 +698,7 @@ class AuthProcedureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: true,
           child: Text(
-            authProcedure.confirmationCancelText,
+            authProcedure.getConfirmationCancelText(context),
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -702,7 +710,7 @@ class AuthProcedureDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            authProcedure.confirmationOkayText,
+            authProcedure.getConfirmationOkayText(context),
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -723,14 +731,14 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: const Text(
-        'Warning !!!',
+      title: Text(
+        AppLocalizations.of(context)!.warning,
         textAlign: TextAlign.center,
       ),
       content: Padding(
         padding: const EdgeInsets.all(10),
         child: Text(
-          authMethod.updateMessage,
+          authMethod.updateMessageText(context),
           textAlign: TextAlign.center,
         ),
       ),
@@ -742,7 +750,7 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: true,
           child: Text(
-            'Cancel',
+            AppLocalizations.of(context)!.cancel,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -754,7 +762,7 @@ class ChangeAuthCredentialsDialog extends StatelessWidget {
           isDefaultAction: true,
           isDestructiveAction: false,
           child: Text(
-            'Update',
+            AppLocalizations.of(context)!.update,
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
@@ -778,19 +786,20 @@ Future<void> showRatingDialog(BuildContext context) async {
         ),
         enableComment: false,
         initialRating: 1.0,
-        message: const Text(
-          'Thank you for using the AirQo app! We would greatly appreciate it if you could take a moment to rate your experience.',
+        message: Text(
+          AppLocalizations.of(context)!
+              .thankYouForUsingTheAirQoAppWeWouldGreatlyAppreciateItIfYouCouldTakeAMomentToRateYourExperience,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 19),
+          style: const TextStyle(fontSize: 19),
         ),
-        title: const Text(
-          'Enjoying AirQo app',
+        title: Text(
+          AppLocalizations.of(context)!.enjoyingAirQoApp,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 22,
           ),
         ),
-        submitButtonText: '\nRate\n',
+        submitButtonText: AppLocalizations.of(context)!.rate,
         onSubmitted: (response) {
           Profile profile = context.read<ProfileBloc>().state;
           profile = profile.copyWith(lastRated: DateTime.now());
@@ -802,13 +811,14 @@ Future<void> showRatingDialog(BuildContext context) async {
               barrierDismissible: false,
               builder: (BuildContext context) {
                 return CupertinoAlertDialog(
-                  content: const Column(
+                  content: Column(
                     children: [
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       Text(
-                        'We value your feedback.\nPlease share your thoughts and suggestions on our feedback page by clicking OK.',
+                        AppLocalizations.of(context)!
+                            .weValueYourFeedbackPleaseShareYourThoughtsAndSuggestionsOnOurFeedbackPageByClickingOK,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 17,
                         ),
                       ),

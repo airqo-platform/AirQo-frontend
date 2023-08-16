@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 // ignore: depend_on_referenced_packages, required by package
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WebViewLoadingCubit extends Cubit<int> {
   WebViewLoadingCubit() : super(0);
@@ -48,7 +49,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
               } catch (e) {
                 showSnackBar(
                   context,
-                  'Failed to reload. Try again later',
+                  AppLocalizations.of(context)!
+                      .failedToDeleteAccountTryAgainLater,
                 );
               }
             },

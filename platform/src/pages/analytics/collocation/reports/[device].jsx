@@ -18,6 +18,7 @@ import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 const Reports = () => {
   const router = useRouter();
@@ -114,6 +115,10 @@ const Reports = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Collocation Reports</title>
+        <meta property='og:title' content='Collocation Reports' key='Collocation Reports' />
+      </Head>
       <NavigationBreadCrumb navTitle={'Reports'} />
       {(isFetchCollocationResultsError || collocationStatisticsError) && (
         <Toast

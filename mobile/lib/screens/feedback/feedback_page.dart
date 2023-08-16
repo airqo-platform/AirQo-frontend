@@ -3,6 +3,7 @@ import 'package:app/models/models.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'feedback_page_widgets.dart';
 
@@ -13,7 +14,7 @@ class FeedbackPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: const AppTopBar('Send Feedback'),
+      appBar: AppTopBar(AppLocalizations.of(context)!.sendFeedback),
       body: AppSafeArea(
         horizontalPadding: 16,
         verticalPadding: 20,
@@ -54,7 +55,8 @@ class FeedbackPage extends StatelessWidget {
                 ),
                 BlocListener<FeedbackBloc, FeedbackState>(
                   listener: (context, _) {
-                    showSnackBar(context, 'Thanks for your feedback.');
+                    showSnackBar(
+                        context, AppLocalizations.of(context)!.thanksFeedback);
                     context.read<FeedbackBloc>().add(
                           InitializeFeedback(context.read<ProfileBloc>().state),
                         );
