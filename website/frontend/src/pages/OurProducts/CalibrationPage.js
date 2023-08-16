@@ -7,7 +7,7 @@ import Section1Image from '../../assets/img/OurProducts/Calibration/section-1.jp
 import Section2Image from '../../assets/img/OurProducts/Calibration/section-2.jpg';
 import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.png';
 import NavTab from '../../components/nav/NavTab';
-//import NextTabIcon from '../../assets/svg/next_tab.svg'
+import { NextTab } from '../../components/NextTabIcon/NextTab.js';
 
 const CalibrationPage = () => {
   useInitScrollTop();
@@ -65,7 +65,7 @@ const CalibrationPage = () => {
                 data follow simple steps and calibrate your data. 
                 The results are automatically downloaded when the calibration process is completed.
                  <br/>
-                <a href='https://airqalibrate.airqo.net/' target='_blank' className='download-button'> Calibrate your data </a>
+                <a href='https://airqalibrate.airqo.net/' target='_blank' className='download-button'> Calibrate your data <NextTab /></a>
                 </p>
 
               </div>
