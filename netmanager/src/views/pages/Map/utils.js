@@ -40,3 +40,11 @@ export const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
 export const streetMapStyle = "mapbox://styles/mapbox/streets-v11";
 
 export const satelliteMapStyle = "mapbox://styles/mapbox/satellite-v9";
+
+export const transformDataToGeoJsonType = (data)=>{
+  let features = data
+  return {
+    type: "FeatureCollection",
+    features,
+  }
+}
