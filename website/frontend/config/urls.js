@@ -65,3 +65,6 @@ export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
 
 // Locations Tracking url
 export const LOCATIONS_TRACKING_URL = `${BASE_LOCATIONS_TRACKING_URL}`;
+
+// Impact Number url
+export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`;

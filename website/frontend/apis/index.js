@@ -15,25 +15,56 @@ import {
   EVENTS_URL,
   CITIES_URL,
   PRESS_URL,
-  LOCATIONS_TRACKING_URL
+  LOCATIONS_TRACKING_URL,
+  IMPACT_URL
 } from '../config/urls';
 
-axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
+const API_TOKEN = process.env.REACT_APP_AUTHORIZATION_TOKEN;
 
 export const getAirQloudSummaryApi = async () =>
-  await axios.get(AIRQLOUD_SUMMARY).then((response) => response.data);
+  await axios
+    .get(AIRQLOUD_SUMMARY, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const newsletterSubscriptionApi = async (data) =>
-  await axios.post(NEWSLETTER_SUBSCRIPTION, data).then((response) => response.data);
+  await axios
+    .post(NEWSLETTER_SUBSCRIPTION, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const contactUsApi = async (data) =>
-  await axios.post(INQUIRY_URL, data).then((response) => response.data);
+  await axios
+    .post(INQUIRY_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const sendInquiryApi = async (data) =>
-  await axios.post(INQUIRY_URL, data).then((response) => response.data);
+  await axios
+    .post(INQUIRY_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 export const requestDataAccessApi = async (data) =>
-  await axios.post(EXPLORE_DATA_URL, data).then((response) => response.data);
+  await axios
+    .post(EXPLORE_DATA_URL, data, {
+      params: {
+        token: API_TOKEN
+      }
+    })
+    .then((response) => response.data);
 
 // Careers endpoints
 export const getAllCareersApi = async () =>
@@ -79,3 +110,7 @@ export const getAllCitiesApi = async () =>
 // Locations Tracking endpoint
 export const getAllLocationsTrackingApi = async (IP) =>
   await axios.get(`${LOCATIONS_TRACKING_URL}/country_name/`).then((response) => response.data);
+
+// Impact Numbers endpoint
+export const getAllImpactNumbersApi = async () =>
+  await axios.get(IMPACT_URL).then((response) => response.data);

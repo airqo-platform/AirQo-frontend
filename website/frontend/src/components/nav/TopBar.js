@@ -80,12 +80,6 @@ const TopBar = () => {
                     <h4>Discover the quality of air around you</h4>
                   </Link>
                 </div>
-                <div className="dropdown-list-item">
-                  <Link to="/products/api" style={{ textDecoration: 'none' }}>
-                    <h3>Air Quality API</h3>
-                    <h4>Access raw and calibrated data</h4>
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
@@ -97,13 +91,13 @@ const TopBar = () => {
                 <div className="dropdown-list-item">
                   <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
                     <h3>For African Cities</h3>
-                    <h4>Advancing air quality management in African cities</h4>
+                    <h4>Air quality analytics for city councils</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
                     <h3>For Communities</h3>
-                    <h4>Empowering communities with air quality information</h4>
+                    <h4>Recruiting locals to drive awareness</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">

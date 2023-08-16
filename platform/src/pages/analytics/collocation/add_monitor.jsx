@@ -19,6 +19,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -95,6 +96,14 @@ const AddMonitor = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Add Monitors | Collocation</title>
+        <meta
+          property='og:title'
+          content='Add Monitors | Collocation'
+          key='Add Monitors | Collocation'
+        />
+      </Head>
       {(isFetchRunningDevicesError || isCollocateDeviceError) && (
         <Toast
           type={'error'}

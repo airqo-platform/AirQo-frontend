@@ -1,5 +1,5 @@
-@import "lib/variables";
-@import "lib/colors";
+@import 'lib/variables';
+@import 'lib/colors';
 
 .button-hero {
   display: flex;
@@ -13,7 +13,7 @@
 
   background: $aq-blue-0;
   border: none;
-  
+
   font-style: normal;
   font-weight: 500;
   font-size: $buttonFont;
@@ -64,7 +64,6 @@
   background: $aq-white-0;
 }
 
-
 .Hero {
   display: flex;
   flex-wrap: wrap;
@@ -76,19 +75,64 @@
   margin: 0 auto;
   padding: 80px 0;
 
-  >span {
+  > span {
+    display: inline-block;
     position: relative;
-    padding: 0;
-    >img {
-      width: 360px;
-      height: 235px;
-       z-index: 5;
-    }
+    overflow: hidden;
 
-    .air-quality-reading {
-      display: none;
+    .video-container {
+      position: relative;
+
+      .video-overlay {
+        padding: 0;
+        margin: 0;
+        position: relative;
+
+        video {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          aspect-ratio: 555 / 464;
+          object-fit: cover;
+          border-radius: 16px;
+        }
+        .play-button {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+
+          &::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            z-index: -1;
+          }
+
+          svg {
+            width: 90px;
+            height: 90px;
+            fill: $aq-blue-0;
+
+            &:hover {
+              fill: $aq-blue-6;
+            }
+          }
+        }
+      }
     }
   }
+
   .hero-title {
     width: 464px;
     font-style: normal;
@@ -109,9 +153,9 @@
     line-height: 28px;
     margin: 0;
     .fact {
-        color: $aq-blue-0;
-        font-weight: 600;
-      }
+      color: $aq-blue-0;
+      font-weight: 600;
+    }
   }
 
   .hero-buttons {
@@ -129,19 +173,15 @@
   }
 }
 
-@media (min-width: $mainBreakPoint){
+@media (min-width: $mainBreakPoint) {
   .Hero {
     align-items: center;
     justify-content: space-between;
 
-    >span {
-      > img {
-        position: relative;
-        width: 555px;
-        height: 464px;
-        border-radius: 16px;
-        margin: 0;
-        z-index: 5;
+    > span {
+      .video-container {
+        width: 535px;
+        height: auto;
       }
 
       .air-quality-reading {
@@ -163,7 +203,8 @@
           justify-content: space-between;
           align-items: center;
 
-          .name-wrapper, .time-wrapper {
+          .name-wrapper,
+          .time-wrapper {
             display: flex;
             align-items: center;
           }
@@ -327,26 +368,31 @@
     margin-top: 0;
     margin-left: 24px;
   }
-
 }
 
-@media (max-width: $mainBreakPoint){
+@media (max-width: $mainBreakPoint) {
   .Hero {
     align-items: center;
     justify-content: space-between;
     width: 100%;
     height: 100%;
     margin: 0;
-    padding:20px 0 0 0;
+    padding: 20px 0 0 0;
 
-    >span {
+    > span {
       position: relative;
       padding: 0 16px;
       margin-bottom: 30px;
-      >img {
-        width: 100%;
-        height: 100%;
-        border-radius: 16px;
+      width: 100%;
+      height: 100%;
+      .video-container {
+        width: auto;
+        height: auto;
+        .video-overlay {
+          video {
+            height: 100%;
+          }
+        }
       }
     }
 
@@ -378,14 +424,15 @@
       margin: 0 auto;
     }
   }
-  .button-hero{
+  .button-hero {
     display: flex;
     align-content: center;
     justify-content: center;
     width: 100%;
   }
 
-  .button-hero, .button-get-involved {
+  .button-hero,
+  .button-get-involved {
     width: 100%;
     padding: 16px auto;
     box-sizing: border-box;
@@ -396,44 +443,43 @@
   }
 }
 
-@media(max-width: 411px) {
+@media (max-width: 411px) {
   .hero-buttons {
     max-width: 328px;
     width: 100%;
     margin: 0;
   }
-
 }
 
-@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
-  .Hero{
+@media screen and(min-width:$mainBreakPoint) and(max-width: $tabBreakPoint) {
+  .Hero {
     flex-flow: column-reverse wrap;
     align-items: flex-start;
     justify-content: center;
-    padding:80px 20px;
-    >span{
-      >img{
-        width: 100%;
-        height: 100%;
+    padding: 80px 20px;
+    > span {
+      .video-container {
+        width: auto;
+        height: auto;
       }
     }
-    .hero-content{
+    .hero-content {
       width: 100%;
       max-width: none;
       height: auto;
       text-align: center;
     }
-    .hero-title{
+    .hero-title {
       width: auto;
       height: auto;
       padding-top: 30px;
     }
-    .hero-sub{
+    .hero-sub {
       width: auto;
       margin-bottom: 0;
       text-align: center;
     }
-    .hero-buttons{
+    .hero-buttons {
       width: auto;
       justify-content: center;
     }
