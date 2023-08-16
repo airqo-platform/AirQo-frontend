@@ -18,6 +18,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 import 'delete_account_screen.dart';
+import 'dart:async';
+import 'dart:developer' as developer;
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/services.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
