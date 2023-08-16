@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import CustomMaterialTable from '../../Table/CustomMaterialTable';
-import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { faultsPredictApi } from 'views/apis/predict';
 
 const useStyles = makeStyles((theme) => ({
@@ -62,33 +61,6 @@ const faultColumns = [
   }
 ];
 
-const faultData = [
-  {
-    device_name: 'Device 1',
-    correlation_fault: '0',
-    missing_data_fault: '1',
-    created_at: '2020-07-01 12:00:00'
-  },
-  {
-    device_name: 'Device 2',
-    correlation_fault: '1',
-    missing_data_fault: '0',
-    created_at: '2020-07-01 12:00:00'
-  },
-  {
-    device_name: 'Device 3',
-    correlation_fault: '1',
-    missing_data_fault: '1',
-    created_at: '2020-07-01 12:00:00'
-  },
-  {
-    device_name: 'Device 4',
-    correlation_fault: '0',
-    missing_data_fault: '0',
-    created_at: '2020-07-01 12:00:00'
-  }
-];
-
 const ManagementFaults = () => {
   const classes = useStyles();
   const [loading, setLoading] = useState(true);
@@ -107,14 +79,13 @@ const ManagementFaults = () => {
 
   return (
     <ErrorBoundary>
-      <HorizontalLoader loading={loading} />
       <br />
       <div className={classes.root}>
         <CustomMaterialTable
           title="Faults"
           userPreferencePaginationKey={'faults'}
           columns={faultColumns}
-          data={faultData}
+          data={faults}
           isLoading={loading}
           onRowClick={(event, rowData) => {
             event.preventDefault();
