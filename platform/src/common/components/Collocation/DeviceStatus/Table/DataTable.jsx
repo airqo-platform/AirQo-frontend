@@ -9,13 +9,12 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 import Toast from '@/components/Toast';
 import { useGetCollocationResultsQuery } from '@/lib/store/services/collocation';
-import Dropdown from '../../../Dropdowns/Dropdown';
+import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
-import Modal from '../../../Modal/Modal';
+import Modal from '@/components/Modal/Modal';
 import axios from 'axios';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 import ReportDetailCard from '../ReportDetailPopup';
-import { set } from 'date-fns';
 
 const STATUS_COLOR_CODES = {
   passed: 'bg-green-200',
