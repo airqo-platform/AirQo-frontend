@@ -1,11 +1,12 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kyaLesson, {super.key});
@@ -80,6 +81,15 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           ),
         );
     _initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      List<KyaLesson> completeLessons =
+          context.read<KyaBloc>().state.lessons.filterInCompleteLessons();
+      Profile profile = context.read<ProfileBloc>().state;
+      bool rateApp = profile.requiresRating();
+      if (completeLessons.length > 5 && rateApp) {
+        await showRatingDialog(context);
+      }
+    });
   }
 
   Future<void> _initialize() async {

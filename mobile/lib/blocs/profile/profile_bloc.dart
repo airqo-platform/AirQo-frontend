@@ -15,22 +15,18 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
   }
 
   void _onClearProfile(ClearProfile _, Emitter<Profile> emit) {
-    emit(
-      Profile.initialize().copyWith(
-        lastRated: state.lastRated,
-      ),
-    );
+    emit(Profile.initialize());
   }
 
   Future<void> _onFetchProfile(FetchProfile _, Emitter<Profile> emit) async {
-    Profile? profile = await CloudStore.getProfile();
-    profile ??= Profile.initialize();
+    Profile profile = await CloudStore.getProfile();
     emit(profile);
     await CloudStore.updateProfile(profile);
   }
 
   Future<void> _onSyncProfile(SyncProfile _, Emitter<Profile> emit) async {
-    Profile profile = Profile.initialize();
+    Profile profile = await CloudStore.getProfile();
+
     profile = profile.copyWith(
       title: state.title,
       firstName: state.firstName,
@@ -40,12 +36,10 @@ class ProfileBloc extends HydratedBloc<ProfileEvent, Profile> {
       location: state.location,
       aqShares: state.aqShares,
       lastRated: state.lastRated,
+      utcOffset: DateTime.now().getUtcOffset(),
     );
     emit(profile);
 
-    String? device = await CloudMessaging.getDeviceToken();
-    profile = profile.copyWith(device: device);
-    emit(profile);
     await CloudStore.updateProfile(profile);
   }
 

@@ -1,7 +1,5 @@
-import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'profile.g.dart';
@@ -12,26 +10,10 @@ class Profile extends Equatable {
       _$ProfileFromJson(json);
 
   factory Profile.initialize() {
-    String userId = "";
-    String emailAddress = "";
-    String phoneNumber = "";
-    bool isAnonymous = true;
-    DateTime lastRated = DateTime.now();
-
-    final User? user = CustomAuth.getUser();
-
-    if (user != null) {
-      phoneNumber = user.phoneNumber ?? "";
-      emailAddress = user.email ?? "";
-      userId = user.uid;
-      isAnonymous = user.isAnonymous;
-      lastRated = user.metadata.creationTime ?? DateTime.now();
-    }
-
     return Profile(
-      userId: userId,
-      emailAddress: emailAddress,
-      phoneNumber: phoneNumber,
+      userId: "userId",
+      emailAddress: "emailAddress",
+      phoneNumber: "",
       device: "",
       lastName: "",
       title: "",
@@ -41,9 +23,9 @@ class Profile extends Equatable {
       notifications: false,
       location: false,
       aqShares: 0,
-      isAnonymous: isAnonymous,
-      isSignedIn: user != null,
-      lastRated: lastRated,
+      isAnonymous: true,
+      isSignedIn: false,
+      lastRated: null,
     );
   }
 
@@ -108,7 +90,14 @@ class Profile extends Equatable {
   final bool isSignedIn;
 
   @JsonKey(required: false, name: "last_rated")
-  final DateTime lastRated;
+  final DateTime? lastRated;
+
+  DateTime get nextRatingDate {
+    Duration duration = const Duration(days: 180);
+    return lastRated == null
+        ? DateTime.now().add(duration)
+        : lastRated!.add(duration);
+  }
 
   Profile copyWith({
     String? title,

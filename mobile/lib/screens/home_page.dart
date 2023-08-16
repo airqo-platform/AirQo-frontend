@@ -222,18 +222,6 @@ class _HomePageState extends State<HomePage> {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);
             });
-          } else {
-            await displayRatingDialog(context).then((showDialog) async {
-              if (showDialog) {
-                await showRatingDialog(context);
-              }
-            });
-          }
-        });
-      } else {
-        await displayRatingDialog(context).then((showDialog) async {
-          if (showDialog) {
-            await showRatingDialog(context);
           }
         });
       }

@@ -466,6 +466,16 @@ extension ProfileExt on Profile {
 
     return AppLocalizations.of(context)!.helloName(firstName.trim());
   }
+
+  bool requiresRating() {
+    DateTime? lastRated = this.lastRated;
+
+    if (lastRated == null) {
+      return false;
+    }
+    DateTime now = DateTime.now().getDate();
+    return nextRatingDate.isBefore(now);
+  }
 }
 
 extension DateTimeExt on DateTime {
@@ -490,7 +500,8 @@ extension DateTimeExt on DateTime {
   String timelineString(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final monthFormat = DateFormat.MMMM(locale.toString());
-    return '${getWeekday(context)} $day, ${monthFormat.format(this)}'.toUpperCase();
+    return '${getWeekday(context)} $day, ${monthFormat.format(this)}'
+        .toUpperCase();
   }
 
   DateTime getDateOfFirstDayOfWeek() {
@@ -540,6 +551,11 @@ extension DateTimeExt on DateTime {
     final locale = Localizations.localeOf(context);
     final dateFormat = DateFormat.EEEE(locale.toString());
     return dateFormat.format(this);
+  }
+
+  DateTime getDate() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return formatter.parse(formatter.format(this));
   }
 
   bool isWithInCurrentWeek() {

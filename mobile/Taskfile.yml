@@ -40,6 +40,8 @@ tasks:
     desc: Configures firebase
     cmds:
       - flutterfire configure
+      - mv ios/Runner/GoogleService-Info.plist ios/config/airqo/GoogleService-Info.plist
+      - mv android/app/google-services.json android/app/src/airqo/google-services.json
 
   build-android:
     desc: Builds android for release

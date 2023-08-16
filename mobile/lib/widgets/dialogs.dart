@@ -799,6 +799,14 @@ Future<void> showRatingDialog(BuildContext context) async {
             fontSize: 22,
           ),
         ),
+        onCancelled: () {
+          Profile profile = context.read<ProfileBloc>().state;
+          DateTime? lastRated = profile.lastRated ?? DateTime.now();
+          profile = profile.copyWith(
+            lastRated: lastRated.add(const Duration(days: 5)),
+          );
+          context.read<ProfileBloc>().add(UpdateProfile(profile));
+        },
         submitButtonText: AppLocalizations.of(context)!.rate,
         onSubmitted: (response) {
           Profile profile = context.read<ProfileBloc>().state;
@@ -829,7 +837,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Cancel'),
+                      child: Text(AppLocalizations.of(context)!.cancel),
                     ),
                     CupertinoDialogAction(
                       onPressed: () {
@@ -843,7 +851,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                         );
                       },
                       isDefaultAction: true,
-                      child: const Text('OK'),
+                      child: Text(AppLocalizations.of(context)!.oK),
                     ),
                   ],
                 );
