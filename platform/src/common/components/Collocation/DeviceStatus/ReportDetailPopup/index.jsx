@@ -1,10 +1,15 @@
 import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
 import { useRouter } from 'next/router';
+import Button from '@/components/Button';
 
 const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
   const router = useRouter();
-  // Adjust correlation & offset functionality
+
+  const downloadBatchReport = (batchId) => () => {
+    // functionality does here
+  };
+
   return (
     <dialog id='report_detail_popup' className={`modal ${open && 'modal-open'} w-screen h-screen`}>
       <form
@@ -13,9 +18,17 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
       >
         <div className='flex justify-between items-center p-5 border-b border-b-gray-200'>
           <div className='text-black text-base font-medium'>Status summary</div>
-          <button onClick={closeModal} className='btn btn-sm btn-circle btn-ghost'>
-            ✕
-          </button>
+          <span className='flex items-center gap-3'>
+            <Button
+              className='bg-blue-900 text-white text-sm'
+              onClick={downloadBatchReport(batchId)}
+            >
+              Download batch report
+            </Button>
+            <button onClick={closeModal} className='btn btn-sm btn-circle btn-ghost'>
+              ✕
+            </button>
+          </span>
         </div>
         <div className='self-stretch px-5 pt-4 sm:pb-20 pb-10 flex-col items-start gap-3.5 flex h-full overflow-y-auto'>
           {!isEmpty(data) ? (
