@@ -1,44 +1,56 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import NetworkIcon from 'assets/svg/ImpactNumbers/Network.svg';
 import CommunityIcon from 'assets/svg/ImpactNumbers/Community.svg';
 import MonitorIcon from 'assets/svg/ImpactNumbers/Monitor.svg';
 import ResearchIcon from 'assets/svg/ImpactNumbers/Publications.svg';
 import PartnerIcon from 'assets/svg/ImpactNumbers/Partners.svg';
 import RecordsIcon from 'assets/svg/ImpactNumbers/Records.svg';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllImpactNumbers } from '../../../reduxStore/ImpactNumbers/ImpactSlice';
+import { isEmpty } from 'underscore';
 
 const ImpactNumbers = () => {
+  const dispatch = useDispatch()
+  const numbersData = useSelector((state) => state.impactData.numbers)
   const numbers = [
     {
       icon: <NetworkIcon />,
       name: 'African cities',
-      numbers: '8+'
+      numbers: `${numbersData.map((numbers) => numbers.african_cities)}+`
     },
     {
       icon: <CommunityIcon />,
       name: 'Community Champions',
-      numbers: '1500+'
+      numbers: `${numbersData.map((numbers) => numbers.champions)}+`
     },
     {
       icon: <MonitorIcon />,
       name: 'Monitor Installations',
-      numbers: '200+'
+      numbers: `${numbersData.map((numbers) => numbers.deployed_monitors)}+`
     },
     {
       icon: <RecordsIcon />,
       name: 'Data records',
-      numbers: '67M+'
+      numbers: `${numbersData.map((numbers) => numbers.data_records)}M+`
     },
     {
       icon: <ResearchIcon />,
       name: 'Research papers',
-      numbers: '10+'
+      numbers: `${numbersData.map((numbers) => numbers.research_papers)}+`
     },
     {
       icon: <PartnerIcon />,
       name: 'Partners',
-      numbers: '300+'
+      numbers: `${numbersData.map((numbers) => numbers.partners)}+`
     }
   ];
+
+  useEffect(() => {
+    if (isEmpty(numbersData)) {
+      dispatch(getAllImpactNumbers());
+    }
+  }, [dispatch]);
+  
   return (
     <div className="impact-numbers">
       <div className="impact-numbers-wrapper">

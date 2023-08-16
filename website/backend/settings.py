@@ -103,7 +103,8 @@ INSTALLED_APPS = [
     'backend.publications.apps.PublicationsConfig',
     'backend.event.apps.EventConfig',
     'backend.africancities.apps.AfricanCitiesConfig',
-    'backend.press.apps.PressConfig'
+    'backend.press.apps.PressConfig',
+    'backend.impact.apps.ImpactConfig'
 ]
 
 MIDDLEWARE = [
