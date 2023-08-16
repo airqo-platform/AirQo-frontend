@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
@@ -115,7 +116,9 @@ class AirQoApp extends StatelessWidget {
         ],
         title: config.appTitle,
         theme: customTheme(),
-        home: SplashScreen(initialLink),
+        home: OfflineBanner(
+          child: SplashScreen(initialLink),
+        ),
       ),
     );
   }
