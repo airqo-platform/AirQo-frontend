@@ -78,16 +78,10 @@
   > span {
     display: inline-block;
     position: relative;
-    width: auto;
-    height: 540px;
     overflow: hidden;
 
     .video-container {
       position: relative;
-      height: 100%;
-      width: 540px;
-      overflow: hidden;
-      border-radius: 20px;
 
       .video-overlay {
         padding: 0;
@@ -95,9 +89,14 @@
         position: relative;
 
         video {
+          display: flex;
+          justify-content: center;
+          align-items: center;
           width: 100%;
-          height: 539px;
+          height: 100%;
+          aspect-ratio: 555 / 464;
           object-fit: cover;
+          border-radius: 16px;
         }
         .play-button {
           position: absolute;

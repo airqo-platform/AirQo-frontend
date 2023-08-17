@@ -57,100 +57,98 @@ const TopBar = () => {
           </Link>
         </div>
         <div className="nav-center" id="nav-center">
-          <div className="nav-wrapper">
-            <div className="nav-dropdown-item">
-              <NavTab text="Products" onClick={() => handleClick('Products')} />
-              <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
-                <h3 className="title">Products</h3>
-                <div className="dropdown-list">
-                  <div className="dropdown-list-item">
-                    <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
-                      <h3>Binos Monitor</h3>
-                      <h4>Built in Africa for African cities</h4>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
-                      <h3>Analytics Dashboard</h3>
-                      <h4>Air quality analytics for African Cities</h4>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
-                      <h3>Mobile App</h3>
-                      <h4>Discover the quality of air around you</h4>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/products/api" style={{ textDecoration: 'none' }}>
-                      <h3>Air Quality API</h3>
-                      <h4>Access raw and calibrated data</h4>
-                    </Link>
-                  </div>
+          <div className="nav-dropdown-item">
+            <NavTab text="Products" onClick={() => handleClick('Products')} />
+            <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
+              <h3 className="title">Products</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
+                    <h3>Binos Monitor</h3>
+                    <h4>Built in Africa for African cities</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
+                    <h3>Analytics Dashboard</h3>
+                    <h4>Access and visualise air quality data</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
+                    <h3>Mobile App</h3>
+                    <h4>Discover the quality of air around you</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/api" style={{ textDecoration: 'none' }}>
+                    <h3>Air Quality API</h3>
+                    <h4>Access raw and calibrated data</h4>
+                  </Link>
                 </div>
               </div>
             </div>
-            <div className="nav-dropdown-item">
-              <NavTab text="Solutions" onClick={() => handleClick('Solutions')} />
-              <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
-                <h3 className="title">Solutions</h3>
-                <div className="dropdown-list">
-                  <div className="dropdown-list-item">
-                    <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
-                      <h3>For African Cities</h3>
-                      <h4>Advancing air quality management in African cities</h4>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
-                      <h3>For Communities</h3>
-                      <h4>Empowering communities with air quality information</h4>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
-                      <h3>For Research</h3>
-                      <h4>Free access to air quality analytics</h4>
-                    </Link>
-                  </div>
+          </div>
+          <div className="nav-dropdown-item">
+            <NavTab text="Solutions" onClick={() => handleClick('Solutions')} />
+            <div className="dropdown" id={openItem === 'Solutions' ? 'solutions-dropdown' : ''}>
+              <h3 className="title">Solutions</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
+                    <h3>For African Cities</h3>
+                    <h4>Air quality analytics for city councils</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
+                    <h3>For Communities</h3>
+                    <h4>Recruiting locals to drive awareness</h4>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/solutions/research" style={{ textDecoration: 'none' }}>
+                    <h3>For Research</h3>
+                    <h4>Free access to air quality analytics</h4>
+                  </Link>
                 </div>
               </div>
             </div>
-            <div className="nav-dropdown-item single-links">
-              <NavTab text="About" onClick={() => handleClick('About')} />
-              <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
-                <h3 className="title">About AirQo</h3>
-                <div className="dropdown-list">
-                  <div className="dropdown-list-item">
-                    <Link to="/about-us">
-                      <h3>About Us</h3>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/contact">
-                      <h3>Contact Us</h3>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/careers">
-                      <h3>Careers</h3>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/events">
-                      <h3>Events</h3>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/publications">
-                      <h3>Publications</h3>
-                    </Link>
-                  </div>
-                  <div className="dropdown-list-item">
-                    <Link to="/press">
-                      <h3>Press</h3>
-                    </Link>
-                  </div>
+          </div>
+          <div className="nav-dropdown-item single-links">
+            <NavTab text="About" onClick={() => handleClick('About')} />
+            <div className="dropdown" id={openItem === 'About' ? 'solutions-dropdown' : ''}>
+              <h3 className="title">About AirQo</h3>
+              <div className="dropdown-list">
+                <div className="dropdown-list-item">
+                  <Link to="/about-us">
+                    <h3>About Us</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/contact">
+                    <h3>Contact Us</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/careers">
+                    <h3>Careers</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/events">
+                    <h3>Events</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/publications">
+                    <h3>Publications</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/press">
+                    <h3>Press</h3>
+                  </Link>
                 </div>
               </div>
             </div>
