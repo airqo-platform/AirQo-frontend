@@ -237,9 +237,10 @@ class CustomAuth {
       return true;
     }
 
-    userCredential = await FirebaseAuth.instance.signInAnonymously();
+    //userCredential = await FirebaseAuth.instance.signInAnonymously();
 
-    return userCredential.user != null;
+    //return userCredential.user != null;
+    return true;
   }
 
   static Future<bool> signOut() async {
