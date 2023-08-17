@@ -1,66 +1,12 @@
 import 'dart:math';
-
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-//import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
-//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-//import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-//import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
-
 import '../../widgets/buttons.dart';
-
-class QuizMessageChip extends StatelessWidget {
-  const QuizMessageChip({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    Widget widget = AutoSizeText(
-      "Take Quiz",
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: CustomTextStyle.caption3(context)?.copyWith(
-        color: CustomColors.appColorBlue,
-      ),
-    );
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        widget,
-        Icon(
-          Icons.chevron_right_rounded,
-          size: 17,
-          color: CustomColors.appColorBlue,
-        ),
-        Visibility(
-          visible: false,
-          child: Chip(
-            shadowColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            label: widget,
-            elevation: 0,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            padding: EdgeInsets.zero,
-            labelPadding: EdgeInsets.zero,
-            deleteIconColor: CustomColors.appColorBlue,
-            labelStyle: null,
-            deleteIcon: Icon(
-              Icons.chevron_right_rounded,
-              size: 17,
-              color: CustomColors.appColorBlue,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class QuizCardWidget extends StatelessWidget {
   const QuizCardWidget(this.quiz, {super.key});
@@ -853,6 +799,54 @@ class _ConfettiState extends State<Confetti> {
   }
 }
 
+
+class QuizMessageChip extends StatelessWidget {
+  const QuizMessageChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget widget = AutoSizeText(
+      "Take Quiz",
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: CustomTextStyle.caption3(context)?.copyWith(
+        color: CustomColors.appColorBlue,
+      ),
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        widget,
+        Icon(
+          Icons.chevron_right_rounded,
+          size: 17,
+          color: CustomColors.appColorBlue,
+        ),
+        Visibility(
+          visible: false,
+          child: Chip(
+            shadowColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            label: widget,
+            elevation: 0,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: EdgeInsets.zero,
+            labelPadding: EdgeInsets.zero,
+            deleteIconColor: CustomColors.appColorBlue,
+            labelStyle: null,
+            deleteIcon: Icon(
+              Icons.chevron_right_rounded,
+              size: 17,
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 
 

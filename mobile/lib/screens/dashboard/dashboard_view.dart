@@ -24,7 +24,7 @@ import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 //import '../kya/kya_widgets.dart';
 //import '../quiz/quiz_view.dart';
-import '../quiz/quiz_page.dart';
+import '../quiz/quiz_view.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 

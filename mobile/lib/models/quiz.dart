@@ -95,7 +95,7 @@ class Quiz extends Equatable {
   Quiz copyWith({
     String? shareLink,
     QuizStatus? status,
-    int? activeQuestion,
+    int? activeQuestion, required List<QuizQuestion> questions,
   }) {
     return Quiz(
       title: title,
