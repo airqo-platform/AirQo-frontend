@@ -416,7 +416,24 @@ class InsightsCalendar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(
-                      height: 21,
+                      height: 9,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Data Provider: ${airQualityReading.dataProvider}",
+                          style: CustomTextStyle.bodyText4(context)?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.3),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 9,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(

@@ -18,7 +18,7 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
     };
     return AirQualityReading(
       referenceSite: fields[0] == null ? '' : fields[0] as String,
-      source: fields[5] == null ? '' : fields[5] as String,
+      dataProvider: fields[5] == null ? '' : fields[5] as String,
       latitude: fields[1] as double,
       longitude: fields[2] as double,
       country: fields[3] == null ? '' : fields[3] as String,
@@ -51,7 +51,7 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(4)
       ..write(obj.name)
       ..writeByte(5)
-      ..write(obj.source)
+      ..write(obj.dataProvider)
       ..writeByte(6)
       ..write(obj.location)
       ..writeByte(8)
@@ -114,7 +114,7 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     searchLocation: json['location_name'] as String? ?? '',
     country: json['country'] as String? ?? '',
     region: json['region'] as String? ?? '',
-    source: json['network'] as String? ?? '',
+    dataProvider: json['network'] as String? ?? '',
     shareLinks: json['share_links'] as Map<String, dynamic>? ?? {},
   );
 }
