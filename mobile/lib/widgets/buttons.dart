@@ -220,7 +220,7 @@ class ActionButton extends StatelessWidget {
           foregroundColor: buttonColor ?? CustomColors.appColorBlue,
           padding: const EdgeInsets.symmetric(
             vertical: 5,
-            horizontal: 10,
+            horizontal: 15,
           ),
         ),
         child: Row(

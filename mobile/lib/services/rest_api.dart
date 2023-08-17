@@ -460,8 +460,7 @@ class AirqoApiClient {
         "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
-      print("${AirQoUrls.favourites}/users/$userId");
-      print(body['favorites']);
+
       for (final favorite in body['favorites'] as List<dynamic>) {
         try {
           favoritePlaces.add(
