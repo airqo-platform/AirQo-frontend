@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
+import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -45,6 +46,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => WebViewLoadingCubit(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => CurrentQuizQuestionCubit(),
         ),
         BlocProvider(
           create: (BuildContext context) => MapSearchBloc(),

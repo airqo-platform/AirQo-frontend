@@ -6,10 +6,16 @@ import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../widgets/buttons.dart';
+
+class CurrentQuizQuestionCubit extends Cubit<QuizQuestion?> {
+  CurrentQuizQuestionCubit() : super(null);
+  void setQuestion(QuizQuestion? question) => emit(question);
+}
 
 class QuizCardWidget extends StatelessWidget {
   const QuizCardWidget(this.quiz, {super.key});
@@ -35,11 +41,22 @@ class QuizCardWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        dynamic response = await bottomSheetQuizTitle(quiz, context);
-        if (response != null && response == true) {
-          response = await bottomSheetQuizQuestion(quiz, context);
+        QuizQuestion? question = context.read<CurrentQuizQuestionCubit>().state;
+        if (question != null) {
+          dynamic response = await bottomSheetQuizQuestion(quiz, context);
           if (response != null && response == true) {
             response = await bottomSheetQuizConffeti(quiz, context);
+          }
+        } else {
+          context
+              .read<CurrentQuizQuestionCubit>()
+              .setQuestion(quiz.questions.first);
+          dynamic response = await bottomSheetQuizTitle(quiz, context);
+          if (response != null && response == true) {
+            response = await bottomSheetQuizQuestion(quiz, context);
+            if (response != null && response == true) {
+              response = await bottomSheetQuizConffeti(quiz, context);
+            }
           }
         }
       },
@@ -308,28 +325,53 @@ Future<dynamic> bottomSheetQuizQuestion(Quiz quiz, BuildContext context) {
     isDismissible: false,
     context: context,
     builder: (context) {
-      return BottomSheetQuizContent(
-        quiz.questions.first,
-        parentContent: context,
-      );
+      return QuizQuestionsWidget(quiz);
     },
   );
 }
 
-class BottomSheetQuizContent extends StatefulWidget {
-  const BottomSheetQuizContent(
-    this.quizQuestion, {
-    super.key,
-    required this.parentContent,
-  });
-  final BuildContext parentContent;
-  final QuizQuestion quizQuestion;
-
+class QuizQuestionsWidget extends StatefulWidget {
+  const QuizQuestionsWidget(this.quiz, {super.key});
+  final Quiz quiz;
   @override
-  State<BottomSheetQuizContent> createState() => _BottomSheetQuizContentState();
+  State<QuizQuestionsWidget> createState() => _QuizQuestionsWidgetState();
 }
 
-class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
+class _QuizQuestionsWidgetState extends State<QuizQuestionsWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CurrentQuizQuestionCubit, QuizQuestion?>(
+      builder: (context, state) {
+        if (state == null) {
+          Navigator.pop(context, true);
+          return const Text("No questions");
+        }
+        return QuizQuestionWidget(
+          state,
+          parentContent: context,
+          quiz: widget.quiz,
+        );
+      },
+    );
+  }
+}
+
+class QuizQuestionWidget extends StatefulWidget {
+  const QuizQuestionWidget(
+    this.currentQuestion, {
+    super.key,
+    required this.parentContent,
+    required this.quiz,
+  });
+  final BuildContext parentContent;
+  final QuizQuestion currentQuestion;
+  final Quiz quiz;
+
+  @override
+  State<QuizQuestionWidget> createState() => _QuizQuestionWidgetState();
+}
+
+class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
   bool showAnswer = false;
 
   @override
@@ -404,7 +446,21 @@ class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
             ),
             Visibility(
               visible: showAnswer,
-              child: const QuizAnswerWidget(),
+              child: QuizAnswerWidget(widget.currentQuestion, quiz: widget.quiz,
+                  nextButtonClickCallback: () {
+                int currentIndex =
+                    widget.quiz.questions.indexOf(widget.currentQuestion);
+                if (currentIndex + 1 == widget.quiz.questions.length) {
+                  context.read<CurrentQuizQuestionCubit>().setQuestion(null);
+                } else {
+                  QuizQuestion nextQuestion =
+                      widget.quiz.questions[currentIndex + 1];
+                  context
+                      .read<CurrentQuizQuestionCubit>()
+                      .setQuestion(nextQuestion);
+                }
+                setState(() => showAnswer = false);
+              }),
             ),
             Visibility(
               visible: !showAnswer,
@@ -415,7 +471,7 @@ class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
                   SizedBox(
                     height: 25,
                     child: AutoSizeText(
-                      widget.quizQuestion.category,
+                      widget.currentQuestion.category,
                       style: const TextStyle(
                         color: Color.fromARGB(117, 0, 0, 0),
                         fontSize: 10,
@@ -436,11 +492,10 @@ class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
                         AutoSizeText(
                           textAlign: TextAlign.center,
                           maxLines: 2,
-                          widget.quizQuestion.title,
+                          widget.currentQuestion.title,
                           style: const TextStyle(
                             color: Color.fromARGB(200, 0, 0, 0),
                             fontSize: 20,
-                            fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                             //height: 1.50,
                           ),
@@ -455,7 +510,7 @@ class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
                     shrinkWrap: true,
                     itemBuilder: (context, index) {
                       QuizQuestionOption option =
-                          widget.quizQuestion.options[index];
+                          widget.currentQuestion.options[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 10,
@@ -475,7 +530,7 @@ class _BottomSheetQuizContentState extends State<BottomSheetQuizContent> {
                         ),
                       );
                     },
-                    itemCount: widget.quizQuestion.options.length,
+                    itemCount: widget.currentQuestion.options.length,
                   ),
                   const SizedBox(
                     height: 10,
@@ -506,166 +561,7 @@ Future<dynamic> bottomSheetQuizConffeti(Quiz quiz, BuildContext parentContext) {
     isDismissible: false,
     context: parentContext,
     builder: (context) {
-      return SizedBox(
-        height: MediaQuery.of(context).size.height * 0.9,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 1,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: SizedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const AppBackButton(),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: QuizDraggingHandle(),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: InkWell(
-                          onTap: () async {
-                            Navigator.pop(context);
-                          },
-                          child: SvgPicture.asset(
-                            'assets/icon/close.svg',
-                            height: 35,
-                            width: 35,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 25,
-                child: AutoSizeText(
-                  'Air Quality Quiz',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w500,
-                    //height: 1.50,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: QuizProgressBar(),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 25,
-                    child: AutoSizeText(
-                      'Home environment',
-                      style: TextStyle(
-                        color: Color.fromARGB(117, 0, 0, 0),
-                        fontSize: 10,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                        //height: 1.50,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AutoSizeText(
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          'Where is your home environment situated?',
-                          style: TextStyle(
-                            color: Color.fromARGB(200, 0, 0, 0),
-                            fontSize: 20,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500,
-                            //height: 1.50,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.62,
-                    child: OptionsButton(
-                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
-                      callBack: () {},
-                      text: 'Next to busy roads',
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.66,
-                    child: OptionsButton(
-                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
-                      callBack: () {},
-                      text: 'Next to industrial areas',
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.70,
-                    child: OptionsButton(
-                      buttonColor: const Color.fromARGB(69, 70, 168, 248),
-                      callBack: () {},
-                      text: 'On a street with little traffic',
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.50,
-                    child: OptionsButton(
-                      buttonColor: const Color.fromARGB(127, 70, 168, 248),
-                      callBack: () {},
-                      text: 'No neither',
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
+      return const Confetti();
     },
   );
 }
@@ -858,7 +754,11 @@ class QuizMessageChip extends StatelessWidget {
 }
 
 class QuizAnswerWidget extends StatelessWidget {
-  const QuizAnswerWidget({super.key});
+  const QuizAnswerWidget(this.currentQuestion,
+      {super.key, required this.quiz, required this.nextButtonClickCallback});
+  final QuizQuestion currentQuestion;
+  final Quiz quiz;
+  final Function() nextButtonClickCallback;
 
   @override
   Widget build(BuildContext context) {
@@ -986,7 +886,9 @@ class QuizAnswerWidget extends StatelessWidget {
                             buttonColor: CustomColors.appColorBlue,
                             text: 'Next',
                             callBack: () {
-                              bottomSheet4(context);
+                              nextButtonClickCallback();
+
+                              // bottomSheet4(context);
                             },
                           ),
                         ),
