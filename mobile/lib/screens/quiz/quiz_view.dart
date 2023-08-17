@@ -888,13 +888,14 @@ class QuizAnswerWidget extends StatelessWidget {
   }
 }
 
-Future<dynamic> bottomSheetQuizConffeti(Quiz quiz, BuildContext parentContext) {
-  return showModalBottomSheet(
+Future<dynamic> bottomSheetQuizConffeti(
+    Quiz quiz, BuildContext parentContext) async {
+  final bottomSheet = showModalBottomSheet(
     useRootNavigator: true,
     useSafeArea: true,
     transitionAnimationController: bottomSheetTransition(parentContext),
     isScrollControlled: true,
-    enableDrag: false,
+    //enableDrag: false,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(16),
@@ -1013,7 +1014,11 @@ Future<dynamic> bottomSheetQuizConffeti(Quiz quiz, BuildContext parentContext) {
       );
     },
   );
+  Future.delayed(const Duration(seconds: 6), () {
+    Navigator.pop(bottomSheet as BuildContext);
+  });
 }
+
 
 // class QuizCompletionSheetContent extends StatelessWidget {
 //   const QuizCompletionSheetContent({super.key});
