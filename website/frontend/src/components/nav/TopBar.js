@@ -94,6 +94,12 @@ const TopBar = () => {
                     </Link>
                   </div>
                 </div>
+                <div className="dropdown-list-item">
+                  <Link to="/products/api" style={{ textDecoration: 'none' }}>
+                    <h3>Air Quality API</h3>
+                    <h4>Access raw and calibrated data</h4>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
