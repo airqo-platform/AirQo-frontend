@@ -7,7 +7,7 @@ import Section1Image from '../../assets/img/OurProducts/Calibration/section-1.jp
 import Section2Image from '../../assets/img/OurProducts/Calibration/section-2.jpg';
 import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.png';
 import NavTab from '../../components/nav/NavTab';
-import { NextTab } from '../../components/NextTabIcon/NextTab.js';
+import { OpenInNew } from '@mui/icons-material';
 
 const CalibrationPage = () => {
   useInitScrollTop();
@@ -64,7 +64,7 @@ const CalibrationPage = () => {
                 Upload a CSV file containing your low-cost sensor  PM<sub>2.5</sub> and PM<sub>10</sub>  data, follow a few simple steps and calibrate your data. 
                 The results are automatically downloaded when the calibration process is completed.
                  <br/>
-                <a href='https://airqalibrate.airqo.net/' target='_blank' className='download-button'> Calibrate your data <NextTab /></a>
+                <a href='https://airqalibrate.airqo.net/' target='_blank' className='download-button'> Calibrate your data <OpenInNew /></a>
                 </p>
 
               </div>
