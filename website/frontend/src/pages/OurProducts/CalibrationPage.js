@@ -43,10 +43,10 @@ const CalibrationPage = () => {
                 AirQalibrate is a Machine Learning based calibration tool that eliminates the need for reference grade monitor 
                 or on-site monitor calibration.<br />
                 <br />
-                AirQalibrate enables users without access to reference grade monitors or technical expertise 
+                It enables users without access to reference grade monitors or technical expertise 
                 to calibrate data from their low-cost monitors and improve performance and build trust in the air quality network.<br />
                 <br />
-                It reduces operational costs of monitoring thereby enabling the expansion of monitoring systems 
+                This reduces operational costs involved in monitoring thereby enabling the expansion of monitoring systems 
                 to create a dense air quality monitoring and management network.
                 </p>
               </div>
@@ -61,8 +61,7 @@ const CalibrationPage = () => {
               <div className="lapping-right card" style={{ backgroundColor: '#E6E6FA', marginTop: '30px' }}>
                 <h5>Calibrate your data</h5>
                 <p>
-                Upload a CSV containing your low-cost sensor  PM<sub>2.5</sub> and PM<sub>10</sub> 
-                data follow simple steps and calibrate your data. 
+                Upload a CSV file containing your low-cost sensor  PM<sub>2.5</sub> and PM<sub>10</sub>  data, follow a few simple steps and calibrate your data. 
                 The results are automatically downloaded when the calibration process is completed.
                  <br/>
                 <a href='https://airqalibrate.airqo.net/' target='_blank' className='download-button'> Calibrate your data <NextTab /></a>
