@@ -449,8 +449,6 @@ class AirqoApiClient {
 
   Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
     final favoritePlaces = <FavouritePlace>[];
-    final queryParams = <String, String>{}
-      ..putIfAbsent('tenant', () => 'airqo');
 
     if (userId.isEmpty) {
       return [];
@@ -458,11 +456,12 @@ class AirqoApiClient {
 
     try {
       final body = await _performGetRequest(
-        queryParams,
+        {},
         "${AirQoUrls.favourites}/users/$userId",
         apiService: ApiService.auth,
       );
-
+      print("${AirQoUrls.favourites}/users/$userId");
+      print(body['favorites']);
       for (final favorite in body['favorites'] as List<dynamic>) {
         try {
           favoritePlaces.add(

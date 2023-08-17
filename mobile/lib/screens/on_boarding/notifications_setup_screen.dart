@@ -59,12 +59,15 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 ),
               ),
               const Spacer(),
-              NextButton(
-                text: AppLocalizations.of(context)!.yesKeepMeUpdated,
-                buttonColor: CustomColors.appColorBlue,
-                callBack: () async {
-                  await _allowNotifications();
-                },
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: NextButton(
+                  text: AppLocalizations.of(context)!.yesKeepMeUpdated,
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () async {
+                    await _allowNotifications();
+                  },
+                ),
               ),
               const SkipOnboardScreen(LocationSetupScreen()),
             ],

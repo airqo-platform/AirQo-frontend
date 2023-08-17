@@ -20,8 +20,8 @@ class NextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      stepHeight: 48,
+    return SizedBox(
+      width: double.infinity,
       child: OutlinedButton(
         onPressed: () {
           callBack();
@@ -39,7 +39,7 @@ class NextButton extends StatelessWidget {
           backgroundColor: buttonColor ?? CustomColors.appColorBlue,
           foregroundColor: buttonColor ?? CustomColors.appColorBlue,
           padding: const EdgeInsets.symmetric(
-            vertical: 5,
+            vertical: 15,
             horizontal: 10,
           ),
         ),
@@ -48,15 +48,13 @@ class NextButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Text(
-                text ?? AppLocalizations.of(context)!.next,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  letterSpacing: 16 * -0.022,
-                ),
+            Text(
+              text ?? AppLocalizations.of(context)!.next,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                letterSpacing: 16 * -0.022,
               ),
             ),
             Visibility(
