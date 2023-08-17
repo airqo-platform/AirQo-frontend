@@ -1,29 +1,27 @@
 import 'package:app/themes/theme.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../screens/home_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({
     super.key,
-    required this.buttonColor,
+    this.buttonColor,
     required this.callBack,
     this.text,
     this.showIcon = true,
   });
   final String? text;
   final bool showIcon;
-  final Color buttonColor;
+  final Color? buttonColor;
   final Function callBack;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      width: double.infinity,
+    return IntrinsicWidth(
+      stepHeight: 48,
       child: OutlinedButton(
         onPressed: () {
           callBack();
@@ -38,19 +36,27 @@ class NextButton extends StatelessWidget {
               Radius.circular(8),
             ),
           ),
-          backgroundColor: buttonColor,
-          foregroundColor: buttonColor,
+          backgroundColor: buttonColor ?? CustomColors.appColorBlue,
+          foregroundColor: buttonColor ?? CustomColors.appColorBlue,
+          padding: const EdgeInsets.symmetric(
+            vertical: 5,
+            horizontal: 10,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            AutoSizeText(
-              text ?? AppLocalizations.of(context)!.next,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                letterSpacing: 16 * -0.022,
+            Expanded(
+              child: Text(
+                text ?? AppLocalizations.of(context)!.next,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  letterSpacing: 16 * -0.022,
+                ),
               ),
             ),
             Visibility(
@@ -184,41 +190,70 @@ class ActionButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.text,
+    required this.callBack,
+    this.buttonColor,
+    this.showIcon = true,
   });
   final String text;
   final IconData icon;
+  final Function callBack;
+  final Color? buttonColor;
+  final bool showIcon;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: CustomColors.appColorBlue,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AutoSizeText(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              letterSpacing: 16 * -0.022,
+    return IntrinsicWidth(
+      stepHeight: 48,
+      child: OutlinedButton(
+        onPressed: () {
+          callBack();
+        },
+        style: OutlinedButton.styleFrom(
+          elevation: 0,
+          side: const BorderSide(
+            color: Colors.transparent,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(8),
             ),
           ),
-          const SizedBox(
-            width: 6,
+          backgroundColor: buttonColor ?? CustomColors.appColorBlue,
+          foregroundColor: buttonColor ?? CustomColors.appColorBlue,
+          padding: const EdgeInsets.symmetric(
+            vertical: 5,
+            horizontal: 10,
           ),
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 21,
-          ),
-        ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  letterSpacing: 16 * -0.022,
+                ),
+              ),
+            ),
+            Visibility(
+              visible: showIcon,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 11),
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 21,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

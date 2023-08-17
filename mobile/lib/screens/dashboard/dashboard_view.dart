@@ -211,12 +211,14 @@ class _DashboardViewState extends State<DashboardView>
             ),
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
-                child: Text(
+                child: AutoSizeText(
                   AppLocalizations.of(context)!.todayAirQuality,
                   style: CustomTextStyle.headline11(context),
+                  maxLines: 1,
+                  minFontSize: 1,
                 ),
-                minHeight: 40,
-                maxHeight: 40,
+                minHeight: 25,
+                maxHeight: 25,
               ),
             ),
           ],

@@ -134,8 +134,6 @@ class _PageScaffoldState extends State<PageScaffold> {
             alignment: AlignmentDirectional.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.only(
-                left: 24,
-                right: 24,
                 bottom: 32,
               ),
               child: NextButton(

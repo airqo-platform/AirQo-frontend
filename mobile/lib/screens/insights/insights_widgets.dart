@@ -575,7 +575,7 @@ class ForecastContainer extends StatelessWidget {
                   Expanded(
                     child: AutoSizeText(
                       insight.forecastMessage(context),
-                      maxLines: 2,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.3),
