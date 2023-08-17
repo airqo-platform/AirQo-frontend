@@ -16,15 +16,15 @@ class Quiz extends Equatable {
         imageUrl: "imageUrl",
         id: "id",
         questions: List.generate(
-          2,
+          3,
           (index) => QuizQuestion(
-            id: "${index}",
-            title: "Where is your home environment situated? ${index}",
+            id: "$index",
+            title: "Where is your home environment situated?",
             category: "Home environment",
             options: List.generate(
               4,
               (_index) => QuizQuestionOption(
-                id: "${index}",
+                id: "$index",
                 title: "Next to a busy roads",
                 answer:
                     "Living next to a busy road tends to increase one’s exposure to air pollution. Only open the windows that face the road during hours when there is less traffic. You can also plant trees or a hedge around your home to act as a barrier between you and the emissions. Street with little traffic - Your exposure to air pollution is limited since there are less vehicle emissions.",

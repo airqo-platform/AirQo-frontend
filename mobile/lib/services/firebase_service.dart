@@ -240,6 +240,7 @@ class CustomAuth {
     //userCredential = await FirebaseAuth.instance.signInAnonymously();
 
     //return userCredential.user != null;
+    
     return true;
   }
 
