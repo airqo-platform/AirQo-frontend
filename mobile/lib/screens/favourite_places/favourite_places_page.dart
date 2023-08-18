@@ -25,13 +25,7 @@ class _FavouritePlacesPageState extends State<FavouritePlacesPage> {
         horizontalPadding: 16,
         child: BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
           builder: (context, state) {
-            if (state.isEmpty) {
-              context
-                  .read<FavouritePlaceBloc>()
-                  .add(const SyncFavouritePlaces());
-
-              return const NoFavouritePlacesWidget();
-            }
+            if (state.isEmpty) return const NoFavouritePlacesWidget();
 
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
