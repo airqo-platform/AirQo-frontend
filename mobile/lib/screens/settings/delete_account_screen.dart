@@ -145,7 +145,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
               height: 10,
             ),
             NextButton(
-              text: "Cancel",
+              text: AppLocalizations.of(context)!.cancel,
               showIcon: false,
               buttonColor: CustomColors.appColorBlue,
               callBack: () async {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/screens/home_page.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,7 @@ class OfflineBanner extends StatefulWidget {
 
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOnline = true;
+  bool isVisible = true;
   ConnectivityResult connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -51,16 +53,57 @@ class _OfflineBannerState extends State<OfflineBanner> {
               top: 0,
               left: 0,
               right: 0,
-              child: Container(
-                color: Colors.red,
-                height: 30,
-                alignment: Alignment.center,
-                child: Text(
-                  AppLocalizations.of(context)!.noInternetConnection,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
+              child: Visibility(
+                visible: isVisible,
+                child: SizedBox(
+                  height: 50,
+                  child: Container(
+                    color: const Color.fromARGB(195, 244, 67, 54),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            isVisible = false;
+                          });
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              width: 25,
+                            ),
+                            Container(
+                              alignment: Alignment.center,
+                              child: Text(
+                                AppLocalizations.of(context)!
+                                    .internetConnectionLost,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 55,
+                            ),
+                            Container(
+                              color: const Color.fromARGB(0, 0, 0, 0),
+                              alignment: Alignment.center,
+                              child: Text(
+                                AppLocalizations.of(context)!.dismiss,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -94,6 +137,7 @@ class _OfflineBannerState extends State<OfflineBanner> {
     if (connectionStatus == ConnectivityResult.none) {
       setState(() {
         _isOnline = false;
+        isVisible = true;
       });
     } else {
       setState(() {

@@ -331,5 +331,7 @@
                 "format":"yMMMMEEEEd"
             }
         }
-    }
+    },
+    "dismiss": "DISMISS",
+    "internetConnectionLost": "Internet Connection Lost"
 }
