@@ -15,23 +15,49 @@ class Quiz extends Equatable {
             "Tell us more about Air Quality conditions in your environment & get personalised tips.",
         imageUrl: "imageUrl",
         id: "id",
+        // questions: List.generate(
+        //   3,
+        //   (index) => QuizQuestion(
+        //     id: "$index",
+        //     title: "Where is your home environment situated?",
+        //     category: "Home environment",
+        //     options: List.generate(
+        //       4,
+        //       (_index) => QuizQuestionOption(
+        //         id: "$index",
+        //         title: "Next to a busy roads",
+        //         answer:
+        //             "Living next to a busy road tends to increase one’s exposure to air pollution. Only open the windows that face the road during hours when there is less traffic. You can also plant trees or a hedge around your home to act as a barrier between you and the emissions. Street with little traffic - Your exposure to air pollution is limited since there are less vehicle emissions.",
+        //       ),
+        //     ),
+        //   ),
+        // ),
         questions: List.generate(
-          3,
-          (index) => QuizQuestion(
-            id: "$index",
-            title: "Where is your home environment situated?",
-            category: "Home environment",
+          2,
+          (questionIndex) => QuizQuestion(
+            id: '$questionIndex',
+            title: "Where is your home located?",
+            category: "Location",
             options: List.generate(
               4,
-              (_index) => QuizQuestionOption(
-                id: "$index",
-                title: "Next to a busy roads",
-                answer:
-                    "Living next to a busy road tends to increase one’s exposure to air pollution. Only open the windows that face the road during hours when there is less traffic. You can also plant trees or a hedge around your home to act as a barrier between you and the emissions. Street with little traffic - Your exposure to air pollution is limited since there are less vehicle emissions.",
-              ),
+              (optionIndex) => QuizQuestionOption(
+                  id: '$questionIndex-$optionIndex',
+                  title: [
+                    'Next to a busy road',
+                    'In a rural area',
+                    'Near factories',
+                    'Next to a park'
+                  ][optionIndex],
+                  answer: [
+                    'Roads cause more pollution exposure and hence more health risks when compared to rural areas',
+                    'Rural areas have cleaner air than urban areas yet they are not completely  free from air pollution',
+                    'Factories emit harmful pollutants into the air and can cause health problems',
+                    'Parks absorb some pollution and can help reduce air pollution in the area'
+                  ][optionIndex]),
             ),
           ),
         ),
+
         activeQuestion: 1,
         status: QuizStatus.todo,
         completionMessage: "You have completed the quiz!",

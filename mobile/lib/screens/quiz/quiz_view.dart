@@ -4,12 +4,15 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../services/native_api.dart';
 import '../../widgets/buttons.dart';
 
 class CurrentQuizQuestionCubit extends Cubit<QuizQuestion?> {
@@ -98,8 +101,10 @@ class QuizCardWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0),
               image: const DecorationImage(
                 fit: BoxFit.cover,
-                image: NetworkImage(
-                    "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
+                image: AssetImage('assets/images/splash-image.png'),
+                //   image: NetworkImage(
+                //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
+                // ),
               ),
             ),
           ),
@@ -157,8 +162,9 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                         // color: Colors.red,
                         image: const DecorationImage(
                           fit: BoxFit.cover,
-                          image: NetworkImage(
-                              "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
+                          image: AssetImage('assets/images/splash-image.png'),
+                          //   image: NetworkImage(
+                          //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
                         ),
                       ),
                     ),
@@ -376,6 +382,13 @@ class QuizQuestionWidget extends StatefulWidget {
 
 class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
   bool showAnswer = false;
+  late QuizQuestionOption selectedOption;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedOption = widget.currentQuestion.options[0];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +462,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
             ),
             Visibility(
               visible: showAnswer,
-              child: QuizAnswerWidget(widget.currentQuestion, quiz: widget.quiz,
+              child: QuizAnswerWidget(selectedOption, quiz: widget.quiz,
                   nextButtonClickCallback: () {
                 int currentIndex =
                     widget.quiz.questions.indexOf(widget.currentQuestion);
@@ -525,7 +538,12 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             buttonColor: const Color.fromARGB(69, 70, 168, 248),
                             callBack: () {
                               if (option.answer.isNotEmpty) {
-                                setState(() => showAnswer = true);
+                                setState(() {
+                                  selectedOption = option;
+                                  widget.currentQuestion.options[index] =
+                                      option;
+                                  showAnswer = true;
+                                });
                               }
                             },
                             text: option.title,
@@ -736,9 +754,9 @@ class QuizMessageChip extends StatelessWidget {
 }
 
 class QuizAnswerWidget extends StatelessWidget {
-  const QuizAnswerWidget(this.currentQuestion,
+  const QuizAnswerWidget(this.selectedOption,
       {super.key, required this.quiz, required this.nextButtonClickCallback});
-  final QuizQuestion currentQuestion;
+  final QuizQuestionOption selectedOption;
   final Quiz quiz;
   final Function() nextButtonClickCallback;
 
@@ -838,16 +856,7 @@ class QuizAnswerWidget extends StatelessWidget {
                             totalRepeatCount: 1,
                             animatedTexts: [
                               TypewriterAnimatedText(
-                                'Living next to a busy road tends to \n'
-                                'increase ones exposure to air pollution.\n'
-                                'Only open the windows that face the\n'
-                                'road during hours when there is less\n'
-                                'traffic. You can also plant trees or a \n'
-                                'hedge around your home to act as a \n'
-                                'barrier between you and the emissions.\n'
-                                'Street with little traffic - Your exposure\n'
-                                'to air pollution is limited since there are \n'
-                                'less vehicle emissions.\n',
+                                selectedOption.answer,
                                 speed: const Duration(milliseconds: 40),
                               ),
                             ],
