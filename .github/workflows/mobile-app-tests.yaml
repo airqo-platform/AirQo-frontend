@@ -2,10 +2,7 @@ name: mobile-app-code-tests
 
 on:
   pull_request:
-    branches:
-      - main
-      - staging
-      - master
+
 
 jobs:
   check:
@@ -76,3 +73,8 @@ jobs:
         
       - name: Run tests
         run: flutter test --coverage
+
+      - name: Upload coverage to codecov
+        run: curl -s https://codecov.io/bash
+        shell: bash
+
