@@ -322,5 +322,10 @@
   "youWillMissOutOnNotificationAndWontBeAbleToSaveFavouritePlaces":"Vous manquerez les notifications et ne pourrez pas enregistrer vos endroits préférés",
   "selectCountry": "Sélectionnez un pays",
   "phoneNumber":"Numéro de téléphone",
-  "actualDate":"{date}"
+  "actualDate":"{date}",
+  "leavingNearBusyRoads":"Vivre près de routes très fréquentées",
+  "takeQuiz":"Prendre un quiz",
+  "noQuestions":"Pas de questions",
+  "skipThisForLater":"Ignorer cela pour plus tard",
+  "takeAirQualityQuiz":"Prenez le quiz sur la qualité de l'air"
 }

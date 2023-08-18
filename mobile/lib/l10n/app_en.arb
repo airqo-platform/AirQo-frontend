@@ -331,5 +331,11 @@
                 "format":"yMMMMEEEEd"
             }
         }
-    }
+    },
+    "leavingNearBusyRoads":"Leaving near busy roads",
+    "takeQuiz":"Take Quiz",
+    "noQuestions":"No questions",
+    "skipThisForLater":"Skip this for later",
+    "takeAirQualityQuiz":"Take Air Quality Quiz"
+
 }

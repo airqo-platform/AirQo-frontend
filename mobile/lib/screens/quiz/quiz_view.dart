@@ -4,15 +4,12 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../services/native_api.dart';
 import '../../widgets/buttons.dart';
 
 class CurrentQuizQuestionCubit extends Cubit<QuizQuestion?> {
@@ -101,7 +98,7 @@ class QuizCardWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0),
               image: const DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage('assets/images/splash-image.png'),
+                image: AssetImage('assets/images/quizImage.png'),
                 //   image: NetworkImage(
                 //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
                 // ),
@@ -162,7 +159,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                         // color: Colors.red,
                         image: const DecorationImage(
                           fit: BoxFit.cover,
-                          image: AssetImage('assets/images/splash-image.png'),
+                          image: AssetImage('assets/images/quizImage.png'),
                           //   image: NetworkImage(
                           //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
                         ),
@@ -213,9 +210,9 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                         onTap: () async {
                           Navigator.pop(context, true);
                         },
-                        child: const QuizActionButton(
+                        child: QuizActionButton(
                           text:
-                              'Take Air Quality Quiz', // TODO: use localizations
+                              AppLocalizations.of(context)!.takeAirQualityQuiz,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -223,9 +220,8 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                         onTap: () async {
                           Navigator.pop(context, false);
                         },
-                        child: const QuizSkipButton(
-                          text:
-                              'Skip this for later', // TODO: use localizations
+                        child: QuizSkipButton(
+                          text: AppLocalizations.of(context)!.skipThisForLater,
                         ),
                       ),
                     ],
@@ -353,7 +349,9 @@ class _QuizQuestionsWidgetState extends State<QuizQuestionsWidget> {
       builder: (context, state) {
         if (state == null) {
           Navigator.pop(context, true);
-          return const Text("No questions");
+          return Text(
+            AppLocalizations.of(context)!.noQuestions,
+          );
         }
         return QuizQuestionWidget(
           state,
@@ -711,7 +709,7 @@ class QuizMessageChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget widget = AutoSizeText(
-      "Take Quiz",
+      AppLocalizations.of(context)!.takeQuiz,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
@@ -777,11 +775,11 @@ class QuizAnswerWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(8.0),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              'Leaving near busy roads ',
-              style: TextStyle(
+              AppLocalizations.of(context)!.leavingNearBusyRoads,
+              style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
                 fontSize: 20,
                 fontFamily: 'Inter',
@@ -876,7 +874,7 @@ class QuizAnswerWidget extends StatelessWidget {
                           child: NextButton(
                             showIcon: false,
                             buttonColor: CustomColors.appColorBlue,
-                            text: 'Next',
+                            text: AppLocalizations.of(context)!.next,
                             callBack: () {
                               nextButtonClickCallback();
 
