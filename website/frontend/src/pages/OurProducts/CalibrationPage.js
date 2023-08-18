@@ -83,7 +83,13 @@ const CalibrationPage = () => {
               Our calibration tool features a user-friendly interface that simplifies the calibration process. 
               Even without technical expertise, you can easily navigate the tool and calibrate the data from air quality monitors. 
               </p>
-              <NavTab text="Calibration guide" path="https://wiki.airqo.net/#/calibration/ml_based_approach" hideArrow filled />
+              <NavTab
+                  text="Calibration guide"
+                  path="https://wiki.airqo.net/#/calibration/ml_based_approach"
+                  externalLink
+                  hideArrow
+                  filled
+                />
             </div>
             <div className="image">
               <img src={Section3Image} alt="" />
