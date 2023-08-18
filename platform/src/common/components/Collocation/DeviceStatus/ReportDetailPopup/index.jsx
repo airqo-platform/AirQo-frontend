@@ -2,13 +2,44 @@ import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
 import { useRouter } from 'next/router';
 import Button from '@/components/Button';
+import { useEffect, useState } from 'react';
+import { useGetCollocationBatchResultsQuery } from '@/lib/store/services/collocation';
+import { saveAs } from 'file-saver';
+import { pdf } from '@react-pdf/renderer';
+import ExportStatusReport from '../../BatchReport';
 
 const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
   const router = useRouter();
+  const [skip, setSkip] = useState(true);
+  const [collocationBatchId, setCollocationBatchId] = useState('');
+  const [exportData, setExportData] = useState([]);
+
+  const {
+    isLoading,
+    isError,
+    isSuccess,
+    data: collocationBatchResults,
+  } = useGetCollocationBatchResultsQuery(collocationBatchId, { skip: skip });
+  const collocationBatchResultsData = collocationBatchResults ? collocationBatchResults.data : null;
 
   const downloadBatchReport = (batchId) => () => {
-    // functionality does here
+    if (batchId !== '') {
+      setCollocationBatchId(batchId);
+      setSkip(false);
+    }
   };
+
+  useEffect(() => {
+    if (collocationBatchResultsData && isSuccess) {
+      // setExportData(collocationBatchResultsData);
+      const blob = new Blob([<ExportStatusReport batchData={collocationBatchResultsData} />], {
+        type: 'application/pdf',
+      });
+      saveAs(blob, 'collocation_batch_results.pdf');
+      setSkip(true);
+      setCollocationBatchId('');
+    }
+  }, [collocationBatchResultsData, isSuccess]);
 
   return (
     <dialog id='report_detail_popup' className={`modal ${open && 'modal-open'} w-screen h-screen`}>
@@ -20,8 +51,9 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
           <div className='text-black text-base font-medium'>Status summary</div>
           <span className='flex items-center gap-3'>
             <Button
-              className='bg-blue-900 text-white text-sm'
+              className={`bg-blue-900 text-white text-sm ${isEmpty(data) && 'opacity-50'}}`}
               onClick={downloadBatchReport(batchId)}
+              disabled={isEmpty(data)}
             >
               Download batch report
             </Button>
