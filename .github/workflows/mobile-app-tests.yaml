@@ -75,6 +75,5 @@ jobs:
         run: flutter test --coverage
 
       - name: Upload coverage to codecov
-        run: curl -s https://codecov.io/bash
+        run: curl -s https://codecov.io/bash -t $
         shell: bash
-
