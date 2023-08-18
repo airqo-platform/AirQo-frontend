@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../offline_banner.dart';
+
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage(this.kyaLesson, {super.key});
 
@@ -21,46 +23,48 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          toolbarHeight: 0,
-          backgroundColor: CustomColors.appBodyColor,
-        ),
-        body: AppSafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/icon/learn_complete.svg',
-                height: 133,
-                width: 221,
-              ),
-              const SizedBox(
-                height: 33.61,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  AppLocalizations.of(context)!.congrats,
-                  style: CustomTextStyle.headline11(context),
+      child: OfflineBanner(
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            toolbarHeight: 0,
+            backgroundColor: CustomColors.appBodyColor,
+          ),
+          body: AppSafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/icon/learn_complete.svg',
+                  height: 133,
+                  width: 221,
                 ),
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 60),
-                child: Text(
-                  widget.kyaLesson.completionMessage,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.5),
-                      ),
+                const SizedBox(
+                  height: 33.61,
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    AppLocalizations.of(context)!.congrats,
+                    style: CustomTextStyle.headline11(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8.0,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 60),
+                  child: Text(
+                    widget.kyaLesson.completionMessage,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

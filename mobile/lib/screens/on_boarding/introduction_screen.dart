@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../offline_banner.dart';
 import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -26,71 +27,73 @@ class IntroductionScreenState extends State<IntroductionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const OnBoardingTopBar(),
-      body: WillPopScope(
-        onWillPop: onWillPop,
-        child: AppSafeArea(
-          horizontalPadding: 24,
-          verticalPadding: 10,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AutoSizeText(
-                maxLines: 3,
-                minFontSize: 1,
-                //overflow: TextOverflow.ellipsis,
-                AppLocalizations.of(context)!.welcomeTo,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              Text(
-                'AirQo',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-              ),
-              const SizedBox(
-                height: 21,
-              ),
-              WelcomeSection(
-                header: AppLocalizations.of(context)!.saveYourFavoritePlaces,
-                body: AppLocalizations.of(context)!
-                    .keepTrackOfAirQualityInLocationsThatMatterToYou,
-                svg: 'assets/icon/onboarding_fav.svg',
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              WelcomeSection(
-                header: AppLocalizations.of(context)!.newExperiencesForYou,
-                body: AppLocalizations.of(context)!
-                    .accessAnalyticsAndContentCuratedJustForYou,
-                svg: 'assets/icon/onboarding_hash_tag.svg',
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              WelcomeSection(
-                header: AppLocalizations.of(context)!.knowYourAirOnTheGo,
-                body: AppLocalizations.of(context)!
-                    .anEasyWayToPlanYourOutdoorActivitiesToMinimiseexcessiveExposureToBadAirQuality,
-                svg: 'assets/icon/onboarding_profile_icon.svg',
-              ),
-              const Spacer(),
-              NextButton(
-                text: AppLocalizations.of(context)!.letsGo,
-                buttonColor: CustomColors.appColorBlue,
-                callBack: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const PhoneSignUpScreen();
-                    }),
-                    (r) => false,
-                  );
-                },
-              ),
-            ],
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const OnBoardingTopBar(),
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: AppSafeArea(
+            horizontalPadding: 24,
+            verticalPadding: 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AutoSizeText(
+                  maxLines: 3,
+                  minFontSize: 1,
+                  //overflow: TextOverflow.ellipsis,
+                  AppLocalizations.of(context)!.welcomeTo,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Text(
+                  'AirQo',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+                const SizedBox(
+                  height: 21,
+                ),
+                WelcomeSection(
+                  header: AppLocalizations.of(context)!.saveYourFavoritePlaces,
+                  body: AppLocalizations.of(context)!
+                      .keepTrackOfAirQualityInLocationsThatMatterToYou,
+                  svg: 'assets/icon/onboarding_fav.svg',
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                WelcomeSection(
+                  header: AppLocalizations.of(context)!.newExperiencesForYou,
+                  body: AppLocalizations.of(context)!
+                      .accessAnalyticsAndContentCuratedJustForYou,
+                  svg: 'assets/icon/onboarding_hash_tag.svg',
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                WelcomeSection(
+                  header: AppLocalizations.of(context)!.knowYourAirOnTheGo,
+                  body: AppLocalizations.of(context)!
+                      .anEasyWayToPlanYourOutdoorActivitiesToMinimiseexcessiveExposureToBadAirQuality,
+                  svg: 'assets/icon/onboarding_profile_icon.svg',
+                ),
+                const Spacer(),
+                NextButton(
+                  text: AppLocalizations.of(context)!.letsGo,
+                  buttonColor: CustomColors.appColorBlue,
+                  callBack: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) {
+                        return const PhoneSignUpScreen();
+                      }),
+                      (r) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

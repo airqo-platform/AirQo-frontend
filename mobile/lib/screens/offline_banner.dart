@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OfflineBanner extends StatefulWidget {
   const OfflineBanner({super.key, required this.child});
@@ -11,16 +15,22 @@ class OfflineBanner extends StatefulWidget {
 
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOnline = true;
+  ConnectivityResult connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    checkConnectivity();
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      setState(() {
-        _isOnline = result != ConnectivityResult.none;
-      });
-    });
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   Future<void> checkConnectivity() async {
@@ -45,10 +55,10 @@ class _OfflineBannerState extends State<OfflineBanner> {
                 color: Colors.red,
                 height: 30,
                 alignment: Alignment.center,
-                child: const Text(
-                  'No Internet Connection',
+                child: Text(
+                  AppLocalizations.of(context)!.noInternetConnection,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                   ),
@@ -58,5 +68,37 @@ class _OfflineBannerState extends State<OfflineBanner> {
         ],
       ),
     );
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      return;
+    }
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      connectionStatus = result;
+    });
+
+    if (connectionStatus == ConnectivityResult.none) {
+      setState(() {
+        _isOnline = false;
+      });
+    } else {
+      setState(() {
+        _isOnline = true;
+      });
+    }
   }
 }

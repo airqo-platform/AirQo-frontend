@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../offline_banner.dart';
 import 'search_widgets.dart';
 
 class SearchPage extends StatelessWidget {
@@ -20,19 +21,21 @@ class SearchPage extends StatelessWidget {
       context.read<SearchFilterBloc>().add(const InitializeSearchFilter());
     });
 
-    return Scaffold(
-      appBar: const CustomSearchBar(),
-      body: AppSafeArea(
-        horizontalPadding: 18,
-        child: BlocBuilder<SearchPageCubit, SearchPageState>(
-          builder: (context, state) {
-            switch (state) {
-              case SearchPageState.filtering:
-                return const SearchFilterView();
-              case SearchPageState.searching:
-                return const SearchView();
-            }
-          },
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const CustomSearchBar(),
+        body: AppSafeArea(
+          horizontalPadding: 18,
+          child: BlocBuilder<SearchPageCubit, SearchPageState>(
+            builder: (context, state) {
+              switch (state) {
+                case SearchPageState.filtering:
+                  return const SearchFilterView();
+                case SearchPageState.searching:
+                  return const SearchView();
+              }
+            },
+          ),
         ),
       ),
     );
