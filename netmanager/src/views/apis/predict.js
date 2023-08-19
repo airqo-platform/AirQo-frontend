@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { GET_HEATMAP_DATA, GET_GEOCOORDINATES_DATA, GET_FAULTS } from 'config/urls/predict';
 
-const API_TOKEN = process.env.REACT_APP_API_TOKEN
+const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
 export const heatmapPredictApi = async () => {
-  let allHeatMapData =[];
-  let page = 1
+  let allHeatMapData = [];
+  let page = 1;
   let response;
   let MAX_PAGES;
   do {
@@ -14,24 +14,24 @@ export const heatmapPredictApi = async () => {
         params: {
           token: API_TOKEN
         }
-      })
+      });
       MAX_PAGES = response.data.pages;
-      allHeatMapData.push(axios.get(`${GET_HEATMAP_DATA}?page=${page}`, {
-        params: {
-          token: API_TOKEN
-        }
-      }))
+      allHeatMapData.push(
+        axios.get(`${GET_HEATMAP_DATA}?page=${page}`, {
+          params: {
+            token: API_TOKEN
+          }
+        })
+      );
       let resolvedPromises = await Promise.all(allHeatMapData);
-      for (let i = 0; i < resolvedPromises.length; i++){
-        allHeatMapData = resolvedPromises[i]
+      for (let i = 0; i < resolvedPromises.length; i++) {
+        allHeatMapData = resolvedPromises[i];
       }
-      page++  
-    }
-    catch (error) {
+      page++;
+    } catch (error) {
       break;
     }
-  }
-  while (page <= MAX_PAGES);
+  } while (page <= MAX_PAGES);
   return allHeatMapData;
 };
 
@@ -42,7 +42,7 @@ export const geocoordinatesPredictApi = async (params) => {
 export const faultsPredictApi = async () => {
   return await axios
     .get(GET_FAULTS, {
-      params: { token: process.env.REACT_APP_AUTH_TOKEN }
+      params: { token: API_TOKEN }
     })
     .then((response) => response.data);
 };
