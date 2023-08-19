@@ -51,3 +51,5 @@ export const CREATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hos
 export const UPDATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
 
 export const SEND_DEVICE_HOST_MONEY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/hosts/`;
+
+export const GET_TRANSACTION_HISTORY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/payments/`;

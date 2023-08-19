@@ -19,7 +19,8 @@ import {
   ALL_DEVICE_HOSTS,
   CREATE_DEVICE_HOST,
   UPDATE_DEVICE_HOST,
-  SEND_DEVICE_HOST_MONEY
+  SEND_DEVICE_HOST_MONEY,
+  GET_TRANSACTION_HISTORY
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
@@ -230,6 +231,13 @@ export const updateDeviceHost = async (id, params) => {
 export const sendMoneyToHost = async (id, amount) => {
   return await axios
     .post(`${SEND_DEVICE_HOST_MONEY}${id}/payments`, amount)
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
+};
+
+export const getTransactionDetails = async (id) => {
+  return await axios
+    .get(`${GET_TRANSACTION_HISTORY}${id}`)
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };

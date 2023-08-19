@@ -42,6 +42,7 @@ const Organisation = lazy(() => import('./views/pages/Organisation'));
 const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
+const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -100,6 +101,7 @@ const AppRoutes = () => {
               component={SiteActivities}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute
@@ -148,8 +150,7 @@ const AppRoutes = () => {
             right: 0,
             marginRight: '10px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
           <div id="jira-help-desk" />
         </div>
       </div>
