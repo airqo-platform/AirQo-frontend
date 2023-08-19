@@ -133,7 +133,7 @@
     "resume":"Resume",
     "begin" : "Begin",
     "completeMoveTo": "Complete! Move to",
-    "oopsWeDontHaveAirQualityReadingsFor": "Oops!!.. We don’t have air quality readings for{placeholder}",
+    "oopsWeDontHaveAirQualityReadingsFor": "Oops!!.. We don’t have air quality readings for {placeholder}",
     "tryAgainLater": "Try again later",
     "termsPrivacyPolicy": "Terms & Privacy Policy",
     "noResultsFound": "No results found",
