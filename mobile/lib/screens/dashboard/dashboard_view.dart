@@ -478,6 +478,7 @@ class _DashboardViewState extends State<DashboardView>
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
     }
