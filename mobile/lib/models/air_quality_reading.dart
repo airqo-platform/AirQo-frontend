@@ -221,7 +221,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 
   @override
-  List<Object?> get props => [placeId, dateTime];
+  List<Object> get props => [name, dateTime];
 }
 
 @JsonSerializable(createToJson: false)
