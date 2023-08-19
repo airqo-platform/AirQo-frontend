@@ -780,6 +780,7 @@ Future<void> showRatingDialog(BuildContext context) async {
     barrierDismissible: false,
     builder: (BuildContext context) {
       return RatingDialog(
+        starColor: CustomColors.appColorBlue,
         image: SvgPicture.asset(
           'assets/icon/airqo_logo.svg',
           height: 30,
@@ -794,6 +795,11 @@ Future<void> showRatingDialog(BuildContext context) async {
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 19),
         ),
+        submitButtonTextStyle:
+            Theme.of(context).textTheme.titleMedium!.copyWith(
+                  color: CustomColors.appColorBlue,
+                  fontWeight: FontWeight.bold,
+                ),
         title: Text(
           AppLocalizations.of(context)!.enjoyingAirQoApp,
           textAlign: TextAlign.center,
@@ -803,9 +809,8 @@ Future<void> showRatingDialog(BuildContext context) async {
         ),
         onCancelled: () {
           Profile profile = context.read<ProfileBloc>().state;
-          DateTime? lastRated = profile.lastRated ?? DateTime.now();
           profile = profile.copyWith(
-            lastRated: lastRated.add(const Duration(days: 5)),
+            lastRated: DateTime.now().add(const Duration(days: 7)),
           );
           context.read<ProfileBloc>().add(UpdateProfile(profile));
         },

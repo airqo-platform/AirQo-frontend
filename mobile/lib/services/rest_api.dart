@@ -567,7 +567,7 @@ class AirqoApiClient {
         apiService: ApiService.auth,
       );
 
-      for (final history in body['search_history'] as List<dynamic>) {
+      for (final history in body['search_histories'] as List<dynamic>) {
         try {
           searchHistory.add(
             SearchHistory.fromJson(

@@ -60,7 +60,12 @@ class _FavouritePlacesPageState extends State<FavouritePlacesPage> {
       Profile profile = context.read<ProfileBloc>().state;
       bool rateApp = profile.requiresRating();
       if (favouritePlaces.length > 5 && rateApp) {
-        await showRatingDialog(context);
+        await Future.delayed(const Duration(milliseconds: 1000))
+            .then((_) async {
+          if (mounted) {
+            await showRatingDialog(context);
+          }
+        });
       }
     });
   }
