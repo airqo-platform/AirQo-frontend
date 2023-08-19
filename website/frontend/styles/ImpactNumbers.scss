@@ -14,7 +14,7 @@
     align-items: center;
   }
   .impact-numbers-wrapper {
-    padding: 0 40px;
+    padding: 20px 40px;
     .impact-card {
       flex: 1;
       margin: 10px;
@@ -36,6 +36,7 @@
         line-height: 28px;
       }
       .category {
+        margin-top: 10px;
         font-size: 16px;
         font-weight: 400;
         line-height: 24px;
