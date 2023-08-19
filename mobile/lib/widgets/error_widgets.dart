@@ -187,7 +187,7 @@ class NoFavouritePlacesWidget extends StatelessWidget {
             textAlign: TextAlign.center,
             text: TextSpan(children: [
               TextSpan(
-                text: AppLocalizations.of(context)!.tapThe,
+                text: "${AppLocalizations.of(context)!.tapThe} ",
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               WidgetSpan(
@@ -199,8 +199,8 @@ class NoFavouritePlacesWidget extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: AppLocalizations.of(context)!
-                    .favoriteIconOnAnyLocationToAddItToYourFavorites,
+                text:
+                    " ${AppLocalizations.of(context)!.favoriteIconOnAnyLocationToAddItToYourFavorites}",
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ]),

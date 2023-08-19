@@ -135,6 +135,8 @@ class _PageScaffoldState extends State<PageScaffold> {
             child: Padding(
               padding: const EdgeInsets.only(
                 bottom: 32,
+                left: 24,
+                right: 24,
               ),
               child: NextButton(
                 text: widget.kyaLesson.startButtonText(context),

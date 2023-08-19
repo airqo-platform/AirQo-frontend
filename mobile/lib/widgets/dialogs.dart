@@ -326,6 +326,7 @@ void showSnackBar(
     ),
     backgroundColor: CustomColors.snackBarBgColor,
   );
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
@@ -433,6 +434,7 @@ void showFavouritePlaceSnackBar(
     ),
     backgroundColor: CustomColors.appColorBlack,
   );
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
