@@ -291,8 +291,6 @@ const HostsTable = () => {
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [addHostDialog, setAddHostDialog] = useState(false);
-  const [editHostDialog, setEditHostDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState([]);
   const [refreshData, setRefreshData] = useState(false);
 
   const getHosts = async () => {

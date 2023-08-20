@@ -533,18 +533,18 @@ const DeviceHosts = ({ deviceData }) => {
     }
   };
 
-  const getTransactionHistory = async () => {
-    try {
-      setIsLoading(true);
-      const response = await getTransactionDetails();
-      const { transactions } = response;
-      setTransactions(transactions);
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-      setIsLoading(false);
-    }
-  };
+  // const getTransactionHistory = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await getTransactionDetails();
+  //     const { transactions } = response;
+  //     setTransactions(transactions);
+  //     setIsLoading(false);
+  //   } catch (error) {
+  //     console.log(error);
+  //     setIsLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     if (isEmpty(sites)) {
