@@ -21,100 +21,90 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ));
   }
 
+  List<Insight> _onAddForecastData(
+    List<Insight> insights,
+    List<Forecast> forecast,
+  ) {
+    if (forecast.isEmpty) {
+      return insights;
+    }
+
+    Insight todayInsight = insights.first;
+    List<Insight> latestInsights = [];
+
+    try {
+      Forecast todayForecast = forecast.firstWhere(
+        (element) => element.time.isSameDay(todayInsight.dateTime),
+      );
+      todayInsight = todayInsight.copyWithForecast(
+        forecastAirQuality: todayForecast.airQuality,
+        forecastPm2_5: todayForecast.pm2_5,
+      );
+    } catch (_) {}
+
+    latestInsights.add(todayInsight);
+    List<Forecast> forecastInsights = List.of(forecast);
+    forecastInsights.sort((a, b) => a.time.compareTo(b.time));
+    forecastInsights = forecast
+        .where((element) => element.time.isAfter(todayInsight.dateTime))
+        .take(6)
+        .toList();
+
+    latestInsights.addAll(
+      forecastInsights.map((e) => Insight.fromForecast(e)).toList(),
+    );
+
+    while (latestInsights.length < 7) {
+      latestInsights.add(
+        Insight.initializeEmpty(
+          latestInsights.last.dateTime.add(
+            const Duration(days: 1),
+          ),
+        ),
+      );
+    }
+
+    return latestInsights;
+  }
+
   Future<void> _onInitializeInsightsPage(
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
   ) async {
+    List<Insight> insights = [];
+
+    Insight todayInsight = Insight.fromAirQualityReading(
+      event.airQualityReading,
+    );
+    insights.add(todayInsight);
+    insights.addAll(List<Insight>.generate(
+      6,
+      (int index) => Insight.initializeEmpty(
+        todayInsight.dateTime.add(Duration(days: index + 1)),
+      ),
+    ).toList());
+
     emit(InsightsState(
       event.airQualityReading.name,
-      selectedInsight: state.selectedInsight,
+      selectedInsight: todayInsight,
+      insights: insights.toList(),
     ));
+
     String siteId = event.airQualityReading.referenceSite;
-    Set<Insight> insights = List<Insight>.generate(
-      7,
-      (int index) => Insight.initializeEmpty(
-        event.airQualityReading.dateTime.add(Duration(days: index)),
-      ),
-    ).toSet();
-
     List<Forecast> forecast = await HiveService().getForecast(siteId);
-    Forecast? todayForecast;
-
-    if (DateTime.now().hour < 12) {
-      List<Forecast> todayForecasts = forecast
-          .where(
-            (element) => element.time.day == DateTime.now().day,
-          )
-          .toList();
-      if (todayForecasts.isNotEmpty) {
-        todayForecast = todayForecasts.first;
-      }
-    }
-
-    insights.addOrUpdate(
-      Insight.fromAirQualityReading(
-        event.airQualityReading,
-        forecast: todayForecast,
-      ),
-    );
-
-    setInsights(
-      emit,
-      insights: insights,
-      forecast: forecast,
-      airQualityReading: event.airQualityReading,
-    );
+    insights = _onAddForecastData(insights, forecast);
+    emit(state.copyWith(
+      selectedInsight: todayInsight,
+      insights: insights.toList(),
+    ));
 
     forecast = await AirqoApiClient().fetchForecast(siteId);
-    if (forecast.isEmpty) return;
-
-    forecast = forecast.removeInvalidData();
-    setInsights(
-      emit,
-      insights: insights,
-      forecast: forecast,
-      airQualityReading: event.airQualityReading,
-    );
+    insights = _onAddForecastData(insights, forecast);
+    emit(state.copyWith(
+      selectedInsight: todayInsight,
+      insights: insights.toList(),
+    ));
 
     HiveService().saveForecast(forecast, siteId);
-  }
-
-  void setInsights(
-    Emitter<InsightsState> emit, {
-    required Set<Insight> insights,
-    required List<Forecast> forecast,
-    required AirQualityReading airQualityReading,
-  }) {
-    Set<Insight> data = List.of(insights.toList()).toSet();
-    Insight todayInsight = insights.firstWhere(
-      (element) => element.dateTime.isSameDay(airQualityReading.dateTime),
-    );
-
-    if (forecast.isNotEmpty) {
-      data.removeWhere((element) => element != todayInsight);
-
-      List<Forecast> forecasts = List.of(forecast);
-      forecasts.removeWhere((element) =>
-          element.time.isSameDay(todayInsight.dateTime) ||
-          element.time.isBefore(todayInsight.dateTime));
-
-      forecasts.sortByDateTime();
-      forecasts = forecasts.take(6).toList();
-
-      for (Forecast forecast in forecasts) {
-        data.addOrUpdate(Insight.fromForecast(forecast));
-      }
-    }
-
-    List<Insight> insightsData = data.toList();
-    insightsData.sortByDateTime();
-    insightsData = insightsData.take(7).toList();
-
-    return emit(
-      state.copyWith(
-        selectedInsight: todayInsight,
-        insights: insightsData,
-      ),
-    );
   }
 }

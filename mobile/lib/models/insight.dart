@@ -52,6 +52,20 @@ class Insight extends Equatable {
     );
   }
 
+  Insight copyWithForecast({
+    required AirQuality forecastAirQuality,
+    required double forecastPm2_5,
+  }) {
+    return Insight(
+      currentPm2_5: currentPm2_5,
+      forecastPm2_5: forecastPm2_5,
+      currentAirQuality: currentAirQuality,
+      forecastAirQuality: forecastAirQuality,
+      healthTips: healthTips,
+      dateTime: dateTime,
+    );
+  }
+
   final double? currentPm2_5;
   final double? forecastPm2_5;
   final AirQuality? currentAirQuality;
