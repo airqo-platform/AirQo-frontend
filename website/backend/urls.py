@@ -30,6 +30,7 @@ from .publications import views as publication_views
 from .event import views as event_views
 from .africancities import views as city_views
 from .press import views as press_views
+from .impact import views as impact_views
 
 # Config Admin Panel
 admin.site.site_header = "AirQo Website Administration"
@@ -52,6 +53,7 @@ api_router.register(r'publications', publication_views.PublicationViewSet)
 api_router.register(r'event', event_views.EventViewSet)
 api_router.register(r'african_city', city_views.AfricanCityViewSet)
 api_router.register(r'press', press_views.PressViewSet)
+api_router.register(r'impact', impact_views.ImpactViewSet)
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(

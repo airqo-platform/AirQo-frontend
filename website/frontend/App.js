@@ -63,7 +63,6 @@ const App = () => {
             <Route path="/products/mobile-app" element={<MobileAppPage />} />
             <Route path="/products/api" element={<APIPage />} />
             <Route path="/download-apps" element={<QRCodeRedirectPage />} />
-            <Route path="/products/api" element={<APIPage />} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </Suspense>
