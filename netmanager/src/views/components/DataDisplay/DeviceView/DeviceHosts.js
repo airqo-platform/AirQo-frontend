@@ -227,6 +227,7 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
             {errorMessage}
           </Alert>
         )}
+
         <form className={classes.modelWidth}>
           <TextField
             autoFocus
@@ -333,7 +334,6 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
   const [mobileMoney, setMobileMoney] = useState(mobileMoneyInitialState);
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
-  const hostID = data?._id;
 
   useEffect(() => {
     setMobileMoney({
@@ -375,7 +375,7 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
   const handleMobileMoney = async () => {
     try {
       setLoading(true);
-      const response = await sendMoneyToHost(hostID, amount);
+      const response = await sendMoneyToHost(data._id, amount);
       setLoading(false);
       if (response.success === true) {
         handleCloseDialog();
@@ -389,11 +389,12 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
       } else {
         setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
         setShowError(true);
+        setLoading(false);
       }
     } catch (error) {
-      console.log(error);
       setErrorMessage('An error occurred. Please try again.');
       setShowError(true);
+      setLoading(false);
     }
   };
 
@@ -557,22 +558,10 @@ const DeviceHosts = ({ deviceData }) => {
 
   useEffect(() => {
     getHosts();
-    getTransactionHistory();
   }, [refreshData]);
 
   const matchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
   return (
     <ErrorBoundary>
       <HorizontalLoader loading={loading} />
@@ -600,40 +589,38 @@ const DeviceHosts = ({ deviceData }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {matchingHosts.length !== 0 ? (
-                matchingHosts
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((host) => (
-                    <TableRow key={host._id}>
-                      <TableCell style={{ padding: '10px' }}>
-                        {host.first_name} {host.last_name}
-                      </TableCell>
-                      <TableCell style={{ padding: '10px' }}>{host.phone_number}</TableCell>
-                      <TableCell style={{ padding: '10px' }}>{host.email}</TableCell>
-                      <TableCell style={{ padding: '10px' }}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => {
-                            setSelectedItem(host);
-                            setEditHostDialog(true);
-                          }}>
-                          <EditIcon />
-                        </Button>
-                      </TableCell>
-                      <TableCell style={{ padding: '10px' }}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => {
-                            setSelectedItem(host);
-                            setMobileMoneyDialog(true);
-                          }}>
-                          Send
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+              {matchingHosts.length > 0 ? (
+                matchingHosts.map((host) => (
+                  <TableRow key={host._id}>
+                    <TableCell style={{ padding: '10px' }}>
+                      {host.first_name} {host.last_name}
+                    </TableCell>
+                    <TableCell style={{ padding: '10px' }}>{host.phone_number}</TableCell>
+                    <TableCell style={{ padding: '10px' }}>{host.email}</TableCell>
+                    <TableCell style={{ padding: '10px' }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {
+                          setSelectedItem(host);
+                          setEditHostDialog(true);
+                        }}>
+                        <EditIcon />
+                      </Button>
+                    </TableCell>
+                    <TableCell style={{ padding: '10px' }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {
+                          setSelectedItem(host);
+                          setMobileMoneyDialog(true);
+                        }}>
+                        Send
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
