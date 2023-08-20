@@ -114,7 +114,7 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     searchLocation: json['location_name'] as String? ?? '',
     country: json['country'] as String? ?? '',
     region: json['region'] as String? ?? '',
-    dataProvider: json['network'] as String? ?? '',
+    dataProvider: json['data_provider'] as String? ?? '',
     shareLinks: json['share_links'] as Map<String, dynamic>? ?? {},
   );
 }
