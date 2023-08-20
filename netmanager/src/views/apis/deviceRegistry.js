@@ -70,7 +70,6 @@ export const addMaintenanceLogApi = async (deviceName, logData) => {
 };
 
 export const recallDeviceApi = async (deviceName, requestData) => {
-
   return await axios
     .post(RECALL_DEVICE_URI, requestData, { params: { deviceName, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
@@ -217,7 +216,7 @@ export const getAllDeviceHosts = async () => {
 
 export const createDeviceHost = async (params) => {
   return await axios
-    .post(CREATE_DEVICE_HOST, params)
+    .post(CREATE_DEVICE_HOST, params, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };
@@ -229,16 +228,16 @@ export const updateDeviceHost = async (id, params) => {
     .catch((error) => error.response.data);
 };
 
-export const sendMoneyToHost = async (id, amount) => {
+export const sendMoneyToHost = async (id, params) => {
   return await axios
-    .post(`${SEND_DEVICE_HOST_MONEY}${id}/payments`, amount)
+    .post(`${SEND_DEVICE_HOST_MONEY}/${id}/payments`, params)
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };
 
 export const getTransactionDetails = async (id) => {
   return await axios
-    .get(`${GET_TRANSACTION_HISTORY}${id}`)
+    .get(`${GET_TRANSACTION_HISTORY}/${id}`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };

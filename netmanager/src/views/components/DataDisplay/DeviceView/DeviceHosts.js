@@ -11,8 +11,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow,
-  TablePagination
+  TableRow
 } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
@@ -320,18 +319,15 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
 };
 
 const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading }) => {
-  const dispatch = useDispatch();
   const classes = useStyles();
-  const [amount, setAmount] = useState({
-    amount: 0
-  });
+  const dispatch = useDispatch();
+  const [amount, setAmount] = useState(0);
   const [confirmation, setConfirmation] = useState(false);
-  const mobileMoneyInitialState = {
+  const [mobileMoney, setMobileMoney] = useState({
     firstName: '',
     lastName: '',
     phoneNumber: ''
-  };
-  const [mobileMoney, setMobileMoney] = useState(mobileMoneyInitialState);
+  });
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
 
@@ -353,8 +349,8 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
     }
   }, [errorMessage]);
 
-  const handleAmountChange = (prop) => (event) => {
-    setAmount({ ...amount, [prop]: event.target.value });
+  const handleAmountChange = (event) => {
+    setAmount(event.target.value);
   };
 
   const handleCloseDialog = () => {
@@ -363,19 +359,20 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
   };
 
   const handleMobileMoneyConfirmation = () => {
-    if (amount.amount >= 500) {
+    if (amount >= 500) {
       setConfirmation(true);
       setMobileMoneyDialog(false);
     } else {
-      setErrorMessage('Please enter a valid amount. Minimum amount is UGX 500.');
-      setShowError(true);
+      setError('Please enter a valid amount. Minimum amount is UGX 500.');
     }
   };
+
+  console.log('ppp', data);
 
   const handleMobileMoney = async () => {
     try {
       setLoading(true);
-      const response = await sendMoneyToHost(data._id, amount);
+      const response = await sendMoneyToHost(data?._id, amount);
       setLoading(false);
       if (response.success === true) {
         handleCloseDialog();
@@ -387,15 +384,17 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
           })
         );
       } else {
-        setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
-        setShowError(true);
-        setLoading(false);
+        setError(response.errors?.message || 'An error occurred. Please try again.');
       }
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
-      setShowError(true);
+      setError('An error occurred. Please try again.');
       setLoading(false);
     }
+  };
+
+  const setError = (message) => {
+    setErrorMessage(message);
+    setShowError(true);
   };
 
   return (
@@ -408,7 +407,6 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Send Mobile Money
         </DialogTitle>
-
         <DialogContent>
           {showError && (
             <Alert style={{ marginBottom: 10 }} severity="error">
@@ -421,33 +419,29 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
               margin="dense"
               label="Amount"
               variant="outlined"
-              value={amount.amount}
+              value={amount}
               type="number"
-              onChange={handleAmountChange('amount')}
+              onChange={handleAmountChange}
               fullWidth
               required
             />
           </form>
         </DialogContent>
-
         <DialogActions>
           <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
-            <Button variant="contained" type="button" onClick={handleCloseDialog}>
+            <Button variant="contained" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button
               variant="contained"
               color="primary"
-              type="submit"
               onClick={handleMobileMoneyConfirmation}
               style={{ margin: '0 15px' }}>
               Next
             </Button>
           </Grid>
-          <br />
         </DialogActions>
       </Dialog>
-      {/* confirmation dialog */}
       <Dialog
         open={confirmation}
         onClose={handleCloseDialog}
@@ -456,7 +450,6 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
         <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
           Confirmation
         </DialogTitle>
-
         <DialogContent>
           {showError && (
             <Alert style={{ marginBottom: 10 }} severity="error">
@@ -474,17 +467,15 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
                 {mobileMoney.phoneNumber}
               </span>
               <span className={classes.confirm_field}>
-                <span className={classes.confirm_field_title}>Amount:</span> UGX {amount.amount}
+                <span className={classes.confirm_field_title}>Amount:</span> UGX {amount}
               </span>
             </div>
           </form>
         </DialogContent>
-
         <DialogActions>
           <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
             <Button
               variant="contained"
-              type="button"
               onClick={() => {
                 setConfirmation(false);
                 setMobileMoneyDialog(true);
@@ -494,13 +485,11 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
             <Button
               variant="contained"
               color="primary"
-              type="submit"
               onClick={handleMobileMoney}
               style={{ margin: '0 15px' }}>
               Send
             </Button>
           </Grid>
-          <br />
         </DialogActions>
       </Dialog>
     </>

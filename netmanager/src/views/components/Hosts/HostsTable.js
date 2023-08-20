@@ -10,7 +10,7 @@ import {
   Tooltip
 } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/styles';
@@ -19,6 +19,7 @@ import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader
 import { getAllDeviceHosts, createDeviceHost } from '../../apis/deviceRegistry';
 import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
 import { loadSitesSummary } from 'redux/SiteRegistry/operations';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -103,7 +104,8 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
     first_name: false,
     last_name: false,
     phone_number: false,
-    email: false
+    email: false,
+    site_id: false
   });
 
   const [host, setHost] = useState(hostInitialState);
@@ -142,6 +144,13 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       setLoading(false);
       if (response.success === true) {
         handleCloseDialog();
+        dispatch(
+          updateMainAlert({
+            severity: 'success',
+            message: response.message,
+            show: true
+          })
+        );
         onHostAdded();
       } else {
         setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
