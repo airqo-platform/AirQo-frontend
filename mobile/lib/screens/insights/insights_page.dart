@@ -51,17 +51,10 @@ class InsightsPage extends StatelessWidget {
         child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
-              Insight? selectedInsight = state.selectedInsight;
-
-              if (selectedInsight == null) {
-                return NoAirQualityDataWidget(callBack: () {
-                  context
-                      .read<InsightsBloc>()
-                      .add(InitializeInsightsPage(airQualityReading));
-                });
-              }
               AirQualityReading selectedAirQualityReading =
-                  airQualityReading.copyWith(pm2_5: selectedInsight.pm2_5);
+                  airQualityReading.copyWith(
+                pm2_5: state.selectedInsight.pm2_5,
+              );
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -73,7 +66,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.shortDate(context),
+                      state.selectedInsight.shortDate(context),
                       style: CustomTextStyle.headline8(context)
                           ?.copyWith(fontSize: 20),
                     ),
@@ -84,7 +77,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.dateTime.timelineString(context),
+                      state.selectedInsight.dateTime.timelineString(context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
@@ -95,11 +88,11 @@ class InsightsPage extends StatelessWidget {
                   ),
                   InsightsCalendar(selectedAirQualityReading),
                   Visibility(
-                    visible: selectedInsight.dateTime.isToday() &&
+                    visible: state.selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,
-                    child: ForecastContainer(selectedInsight),
+                    child: ForecastContainer(state.selectedInsight),
                   ),
-                  HealthTipsWidget(selectedInsight),
+                  HealthTipsWidget(state.selectedInsight),
                   const SizedBox(
                     height: 21,
                   ),

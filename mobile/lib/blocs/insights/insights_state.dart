@@ -4,7 +4,7 @@ class InsightsState extends Equatable {
   const InsightsState(
     this.name, {
     this.insights = const [],
-    this.selectedInsight,
+    required this.selectedInsight,
   });
 
   InsightsState copyWith({
@@ -18,7 +18,7 @@ class InsightsState extends Equatable {
     );
   }
 
-  final Insight? selectedInsight;
+  final Insight selectedInsight;
   final String name;
   final List<Insight> insights;
 

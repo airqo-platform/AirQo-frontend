@@ -8,7 +8,9 @@ part 'insights_event.dart';
 part 'insights_state.dart';
 
 class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
-  InsightsBloc() : super(const InsightsState("")) {
+  InsightsBloc()
+      : super(InsightsState("",
+            selectedInsight: Insight.initializeEmpty(DateTime.now()))) {
     on<InitializeInsightsPage>(_onInitializeInsightsPage);
     on<SwitchInsight>(_onSwitchInsight);
   }
@@ -23,7 +25,10 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     InitializeInsightsPage event,
     Emitter<InsightsState> emit,
   ) async {
-    emit(InsightsState(event.airQualityReading.name));
+    emit(InsightsState(
+      event.airQualityReading.name,
+      selectedInsight: state.selectedInsight,
+    ));
     String siteId = event.airQualityReading.referenceSite;
     Set<Insight> insights = List<Insight>.generate(
       7,

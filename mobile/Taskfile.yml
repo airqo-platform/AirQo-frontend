@@ -70,7 +70,7 @@ tasks:
     cmds:
       - sed -i '' "s/$IOS_GOOGLE_API_KEY/GOOGLE_API_KEY/g" ios/Runner/AppDelegate.swift
 
-  upgrade-depedencies:
+  upgrade-dependencies:
     aliases: ['ud']
     desc: Upgrades dependencies
     preconditions:

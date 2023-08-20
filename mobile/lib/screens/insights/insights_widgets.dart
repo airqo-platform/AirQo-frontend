@@ -368,11 +368,6 @@ class InsightsCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
-        Insight? selectedInsight = state.selectedInsight;
-        if (selectedInsight == null) {
-          return Container();
-        }
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
           child: Column(
@@ -402,7 +397,7 @@ class InsightsCalendar extends StatelessWidget {
                             .map(
                               (e) => InsightsDayReading(
                                 e,
-                                isActive: e == selectedInsight,
+                                isActive: e == state.selectedInsight,
                               ),
                             )
                             .toList(),
@@ -416,7 +411,7 @@ class InsightsCalendar extends StatelessWidget {
                         horizontal: 16,
                       ),
                       child: InsightAirQualityWidget(
-                        selectedInsight,
+                        state.selectedInsight,
                         name: state.name,
                       ),
                     ),
@@ -425,7 +420,7 @@ class InsightsCalendar extends StatelessWidget {
                         horizontal: 16,
                       ),
                       child: InsightAirQualityMessageWidget(
-                        selectedInsight,
+                        state.selectedInsight,
                         airQualityReading.name,
                       ),
                     ),
