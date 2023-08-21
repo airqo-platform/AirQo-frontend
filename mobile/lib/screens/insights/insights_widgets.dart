@@ -1,5 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -23,9 +24,9 @@ class InsightAirQualityWidget extends StatelessWidget {
         vertical: 11,
       ),
       decoration: BoxDecoration(
-        color: insight.isEmpty
-            ? CustomColors.greyColor.withOpacity(0.2)
-            : insight.airQuality?.color.withOpacity(0.2),
+        color: insight.hasAirQuality
+            ? insight.airQuality?.color.withOpacity(0.2)
+            : CustomColors.greyColor.withOpacity(0.2),
         borderRadius: const BorderRadius.all(
           Radius.circular(16.0),
         ),
@@ -52,10 +53,10 @@ class InsightAirQualityWidget extends StatelessWidget {
                   height: 7,
                 ),
                 AutoSizeText(
-                  insight.isEmpty
-                      ? AppLocalizations.of(context)!.noAirQualityDataAvailable
-                      : '${insight.airQuality?.getTitle(context)}',
-                  maxLines: 1,
+                  insight.hasAirQuality
+                      ? '${insight.airQuality?.getTitle(context)}'
+                      : AppLocalizations.of(context)!.noAirQualityDataAvailable,
+                  maxLines: 2,
                   minFontSize: 1,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline8(context)?.copyWith(
@@ -184,9 +185,9 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String message = insight.airQuality != null
+    String message = insight.currentAirQuality != null
         ? insight.message(context, name)
-        : insight.forecastMessage(context, name);
+        : insight.forecastMessage(context);
     return Container(
       padding: const EdgeInsets.all(8),
       height: 64,
@@ -204,8 +205,11 @@ class InsightAirQualityMessageWidget extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(
+            width: 7,
+          ),
           Visibility(
-            visible: insight.isNotEmpty,
+            visible: insight.hasAirQuality,
             child: PopupMenuButton<bool>(
               padding: EdgeInsets.zero,
               tooltip: 'AQI info',
@@ -310,7 +314,7 @@ class InsightsDayReading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color = insight.isNotEmpty
+    Color color = insight.hasAirQuality
         ? CustomColors.appColorBlack
         : CustomColors.greyColor;
 
@@ -331,20 +335,22 @@ class InsightsDayReading extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  insight.dateTime.getWeekday().characters.first.toUpperCase(),
+                  insight.dateTime
+                      .getWeekday(context)
+                      .characters
+                      .first
+                      .toUpperCase(),
                   style: TextStyle(
                     color: isActive ? Colors.white : color,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 13, 0, 0),
-              child: Container(
-                child: SvgIcons.airQualityEmoji(
-                  insight.airQuality,
-                ),
-              ),
+            const SizedBox(
+              height: 13,
+            ),
+            SvgIcons.airQualityEmoji(
+              insight.airQuality,
             ),
           ],
         ),
@@ -362,11 +368,6 @@ class InsightsCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
-        Insight? selectedInsight = state.selectedInsight;
-        if (selectedInsight == null) {
-          return Container();
-        }
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
           child: Column(
@@ -384,12 +385,11 @@ class InsightsCalendar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(
-                      height: 12,
+                      height: 24,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 30,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -397,7 +397,7 @@ class InsightsCalendar extends StatelessWidget {
                             .map(
                               (e) => InsightsDayReading(
                                 e,
-                                isActive: e == selectedInsight,
+                                isActive: e == state.selectedInsight,
                               ),
                             )
                             .toList(),
@@ -411,19 +411,16 @@ class InsightsCalendar extends StatelessWidget {
                         horizontal: 16,
                       ),
                       child: InsightAirQualityWidget(
-                        selectedInsight,
+                        state.selectedInsight,
                         name: state.name,
                       ),
-                    ),
-                    const SizedBox(
-                      height: 21,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                       ),
                       child: InsightAirQualityMessageWidget(
-                        selectedInsight,
+                        state.selectedInsight,
                         airQualityReading.name,
                       ),
                     ),
@@ -446,9 +443,89 @@ class InsightsCalendar extends StatelessWidget {
   }
 }
 
+class InsightsPageAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  const InsightsPageAppBar(this.airQualityReading, {super.key});
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      elevation: 0,
+      backgroundColor: CustomColors.appBodyColor,
+      centerTitle: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          InkWell(
+            onTap: () async {
+              await popNavigation(context);
+            },
+            child: SvgPicture.asset(
+              'assets/icon/close.svg',
+              height: 40,
+              width: 40,
+            ),
+          ),
+          Text(AppLocalizations.of(context)!.moreInsights,
+              style: CustomTextStyle.headline8(context)),
+          FutureBuilder<Uri>(
+            future: ShareService.createShareLink(
+              airQualityReading: airQualityReading,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                showSnackBar(context,
+                    AppLocalizations.of(context)!.couldNotCreateAShareLink);
+              }
+              if (snapshot.hasData) {
+                return InkWell(
+                  onTap: () async {
+                    Uri? link = snapshot.data;
+                    if (link != null) {
+                      await ShareService.shareLink(
+                        link,
+                        context,
+                        airQualityReading: airQualityReading,
+                      );
+                    }
+                  },
+                  child: SvgPicture.asset(
+                    'assets/icon/share_icon.svg',
+                    theme: SvgTheme(currentColor: CustomColors.greyColor),
+                    colorFilter: ColorFilter.mode(
+                      CustomColors.greyColor,
+                      BlendMode.srcIn,
+                    ),
+                    height: 26,
+                    width: 26,
+                  ),
+                );
+              }
+
+              return GestureDetector(
+                onTap: () {
+                  showSnackBar(
+                      context, AppLocalizations.of(context)!.creatingShareLink);
+                },
+                child: const Center(
+                  child: LoadingIcon(radius: 20),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
+}
+
 class ForecastContainer extends StatelessWidget {
-  const ForecastContainer(this.insight, this.name, {super.key});
-  final String name;
+  const ForecastContainer(this.insight, {super.key});
   final Insight insight;
 
   @override
@@ -492,8 +569,8 @@ class ForecastContainer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AutoSizeText(
-                      insight.forecastMessage(context, name),
-                      maxLines: 2,
+                      insight.forecastMessage(context),
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(
                         color: CustomColors.appColorBlack.withOpacity(0.3),

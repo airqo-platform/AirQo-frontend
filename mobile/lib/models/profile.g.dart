@@ -21,7 +21,9 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       aqShares: json['aqShares'] as int? ?? 0,
       isAnonymous: json['isAnonymous'] as bool? ?? false,
       isSignedIn: json['isSignedIn'] as bool? ?? false,
-      lastRated: DateTime.parse(json['last_rated'] as String),
+      lastRated: json['last_rated'] == null
+          ? null
+          : DateTime.parse(json['last_rated'] as String),
     );
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
@@ -39,5 +41,5 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'aqShares': instance.aqShares,
       'isAnonymous': instance.isAnonymous,
       'isSignedIn': instance.isSignedIn,
-      'last_rated': instance.lastRated.toIso8601String(),
+      'last_rated': instance.lastRated?.toIso8601String(),
     };

@@ -9,11 +9,11 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
 import 'email_auth_widgets.dart';
 import 'email_verification_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class _EmailAuthWidget extends StatefulWidget {
   const _EmailAuthWidget({
@@ -112,34 +112,34 @@ class _EmailAuthWidgetState<T extends _EmailAuthWidget> extends State<T> {
               const EmailAuthErrorMessage(),
               const EmailAuthSwitchButton(),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: NextButton(
-                  buttonColor: emailAddress.isValidEmail()
-                      ? CustomColors.appColorBlue
-                      : CustomColors.appColorDisabled,
-                  callBack: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
+              NextButton(
+                buttonColor: emailAddress.isValidEmail()
+                    ? CustomColors.appColorBlue
+                    : CustomColors.appColorDisabled,
+                callBack: () async {
+                  FocusScope.of(context).requestFocus(FocusNode());
 
-                    switch (context.read<EmailAuthBloc>().state.status) {
-                      case AuthenticationStatus.initial:
-                      case AuthenticationStatus.error:
-                        FormState? formState = _formKey.currentState;
-                        if (formState == null) {
-                          return;
-                        }
+                  switch (context.read<EmailAuthBloc>().state.status) {
+                    case AuthenticationStatus.initial:
+                    case AuthenticationStatus.error:
+                      FormState? formState = _formKey.currentState;
+                      if (formState == null) {
+                        return;
+                      }
 
-                        if (formState.validate()) {
-                          formState.save();
-                          await _sendAuthCode();
-                        }
-                        break;
-                      case AuthenticationStatus.success:
-                        await verifyEmailAuthCode(context);
-                        break;
-                    }
-                  },
-                ),
+                      if (formState.validate()) {
+                        formState.save();
+                        await _sendAuthCode();
+                      }
+                      break;
+                    case AuthenticationStatus.success:
+                      await verifyEmailAuthCode(context);
+                      break;
+                  }
+                },
+              ),
+              const SizedBox(
+                height: 16,
               ),
               Visibility(
                 visible: !_keyboardVisible,

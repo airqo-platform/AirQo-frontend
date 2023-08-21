@@ -1,5 +1,8 @@
-import 'package:home_widget/home_widget.dart';
+import 'dart:io';
+
 import 'package:app/utils/utils.dart';
+import 'package:home_widget/home_widget.dart';
+
 import '../models/models.dart';
 import 'services.dart';
 
@@ -83,8 +86,10 @@ class WidgetService {
   }
 
   static Future<void> sendAndUpdate() async {
-    await sendData();
-    await updateWidget();
+    if (Platform.isAndroid) {
+      await sendData();
+      await updateWidget();
+    }
   }
 
   static Future<AirQualityReading> getAirQuality(String placeId) async {

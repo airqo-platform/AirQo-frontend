@@ -5,11 +5,11 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import 'account_deletion_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> openDeleteAccountScreen(
   BuildContext context, {
@@ -126,7 +126,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
             ),
             const Spacer(),
             NextButton(
-              text: "Confirm",
+              text: AppLocalizations.of(context)!.confirm,
               showIcon: false,
               buttonColor: _inputCode.length >= 6
                   ? CustomColors.appColorInvalid
@@ -145,7 +145,7 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
               height: 10,
             ),
             NextButton(
-              text: "Cancel",
+              text: AppLocalizations.of(context)!.cancel,
               showIcon: false,
               buttonColor: CustomColors.appColorBlue,
               callBack: () async {
