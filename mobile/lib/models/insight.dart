@@ -5,10 +5,10 @@ import 'package:equatable/equatable.dart';
 class Insight extends Equatable {
   const Insight({
     required this.dateTime,
-    required this.pm2_5,
+    required this.currentPm2_5,
     required this.forecastPm2_5,
     required this.healthTips,
-    required this.airQuality,
+    required this.currentAirQuality,
     required this.forecastAirQuality,
   });
 
@@ -21,9 +21,9 @@ class Insight extends Equatable {
         : airQualityReading.healthTips;
 
     return Insight(
-      pm2_5: airQualityReading.pm2_5,
+      currentPm2_5: airQualityReading.pm2_5,
       forecastPm2_5: null,
-      airQuality: airQualityReading.airQuality,
+      currentAirQuality: airQualityReading.airQuality,
       forecastAirQuality: null,
       healthTips: healthTips,
       dateTime: airQualityReading.dateTime,
@@ -32,9 +32,9 @@ class Insight extends Equatable {
 
   factory Insight.fromForecast(Forecast forecast) {
     return Insight(
-      pm2_5: null,
+      currentPm2_5: null,
       forecastPm2_5: forecast.pm2_5,
-      airQuality: null,
+      currentAirQuality: null,
       forecastAirQuality: forecast.airQuality,
       healthTips: forecast.healthTips,
       dateTime: forecast.time,
@@ -43,27 +43,44 @@ class Insight extends Equatable {
 
   factory Insight.initializeEmpty(DateTime dateTime) {
     return Insight(
-      pm2_5: null,
+      currentPm2_5: null,
       forecastPm2_5: null,
-      airQuality: null,
+      currentAirQuality: null,
       forecastAirQuality: null,
       healthTips: const [],
       dateTime: dateTime,
     );
   }
 
-  final double? pm2_5;
+  Insight copyWithForecast({
+    required AirQuality forecastAirQuality,
+    required double forecastPm2_5,
+  }) {
+    return Insight(
+      currentPm2_5: currentPm2_5,
+      forecastPm2_5: forecastPm2_5,
+      currentAirQuality: currentAirQuality,
+      forecastAirQuality: forecastAirQuality,
+      healthTips: healthTips,
+      dateTime: dateTime,
+    );
+  }
+
+  final double? currentPm2_5;
   final double? forecastPm2_5;
-  final AirQuality? airQuality;
+  final AirQuality? currentAirQuality;
   final AirQuality? forecastAirQuality;
   final List<HealthTip> healthTips;
   final DateTime dateTime;
 
   bool get isFutureData => dateTime.isAFutureDate();
 
-  bool get isEmpty => pm2_5 == null || airQuality == null;
+  double? get pm2_5 => currentPm2_5 ?? forecastPm2_5;
 
-  bool get isNotEmpty => pm2_5 != null && airQuality != null;
+  AirQuality? get airQuality => currentAirQuality ?? forecastAirQuality;
+
+  bool get hasAirQuality =>
+      currentAirQuality != null || forecastAirQuality != null;
 
   @override
   List<Object> get props => [dateTime.day];

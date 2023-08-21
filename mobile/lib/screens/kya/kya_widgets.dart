@@ -9,10 +9,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'kya_title_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
@@ -74,6 +74,9 @@ class KyaMessageChip extends StatelessWidget {
               style: CustomTextStyle.caption3(context)?.copyWith(
                 color: CustomColors.appColorBlack,
               ),
+            ),
+            const TextSpan(
+              text: " ",
             ),
             TextSpan(
               text: AppLocalizations.of(context)!.forYou,
