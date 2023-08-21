@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -12,14 +14,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../feedback/feedback_page.dart';
 import 'about_page.dart';
 import 'delete_account_screen.dart';
-import 'dart:async';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -76,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage>
                         bottomRight: Radius.circular(8),
                       ),
                     );
-    
+
                     return Column(
                       children: <Widget>[
                         Card(
@@ -262,10 +263,10 @@ class _SettingsPageState extends State<SettingsPage>
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
         break;
     }
   }
-
 
   Future<void> _startShowcase() async {
     final prefs = await SharedPreferences.getInstance();

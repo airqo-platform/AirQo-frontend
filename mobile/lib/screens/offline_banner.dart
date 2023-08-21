@@ -3,7 +3,14 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+class InternetConnectionBannerCubit extends Cubit<bool> {
+  InternetConnectionBannerCubit() : super(true);
+  void hideBanner() => emit(false);
+  void showBanner() => emit(true);
+}
 
 class OfflineBanner extends StatefulWidget {
   const OfflineBanner({super.key, required this.child});
@@ -15,7 +22,6 @@ class OfflineBanner extends StatefulWidget {
 
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOnline = true;
-  bool isVisible = true;
   ConnectivityResult connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -47,66 +53,66 @@ class _OfflineBannerState extends State<OfflineBanner> {
       body: Stack(
         children: [
           widget.child,
-          if (!_isOnline)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Visibility(
-                visible: isVisible,
+          BlocBuilder<InternetConnectionBannerCubit, bool>(
+            builder: (context, state) {
+              if (!state || _isOnline) {
+                return const SizedBox.shrink();
+              }
+              return Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
                 child: SizedBox(
                   height: 50,
                   child: Container(
-                    color: const Color.fromARGB(195, 244, 67, 54),
+                    color: CustomColors.appColorRed,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
                       child: InkWell(
                         onTap: () {
-                          setState(() {
-                            isVisible = false;
-                          });
+                          context
+                              .read<InternetConnectionBannerCubit>()
+                              .hideBanner();
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              width: 25,
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              child: Text(
-                                AppLocalizations.of(context)!
-                                    .internetConnectionLost,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  AppLocalizations.of(context)!
+                                      .internetConnectionLost,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(
-                              width: 55,
-                            ),
-                            Container(
-                              color: const Color.fromARGB(0, 0, 0, 0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                AppLocalizations.of(context)!.dismiss,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color.fromARGB(255, 255, 255, 255),
-                                  fontSize: 12,
+                              Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  AppLocalizations.of(context)!.dismiss,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -132,16 +138,15 @@ class _OfflineBannerState extends State<OfflineBanner> {
     setState(() {
       connectionStatus = result;
     });
-
     if (connectionStatus == ConnectivityResult.none) {
       setState(() {
         _isOnline = false;
-        isVisible = true;
       });
     } else {
       setState(() {
         _isOnline = true;
       });
+      context.read<InternetConnectionBannerCubit>().showBanner();
     }
   }
 }
