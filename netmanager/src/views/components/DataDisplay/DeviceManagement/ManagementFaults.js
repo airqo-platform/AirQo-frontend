@@ -70,7 +70,11 @@ const ManagementFaults = () => {
     const fetchData = async () => {
       const response = await faultsPredictApi();
       if (response) {
-        setFaults(response);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filteredFaults = response.filter(
+          (fault) => fault.created_at.split('T')[0] === currentDate
+        );
+        setFaults(filteredFaults);
       }
       setLoading(false);
     };
@@ -87,9 +91,6 @@ const ManagementFaults = () => {
           columns={faultColumns}
           data={faults}
           isLoading={loading}
-          onRowClick={(event, rowData) => {
-            event.preventDefault();
-          }}
           options={{
             search: true,
             exportButton: false,
