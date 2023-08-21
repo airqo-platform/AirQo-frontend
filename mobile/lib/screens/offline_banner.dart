@@ -136,41 +136,39 @@ class _OfflineBannerState extends State<OfflineBanner> {
     return _updateConnectionStatus(result);
   }
 
+  // Add this variable to track if user was previously offline
+
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     setState(() {
       connectionStatus = result;
     });
-    if (connectionStatus == ConnectivityResult.none) {
-      setState(
-        () {
-          _isOnline = false;
-          wasOffline = true;
-        },
-      );
-      if (connectionStatus != ConnectivityResult.none) {
-        setState(
-          () {
-            _isOnline = true;
-          },
-        );
 
-        if (wasOffline) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('You are back online!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          setState(() {
-            wasOffline = false;
-          });
-        }
-      }
+    if (result == ConnectivityResult.none) {
+      // Went offline
+      setState(() {
+        _isOnline = false;
+        wasOffline = true;
+      });
     } else {
+      // Back online
       setState(() {
         _isOnline = true;
       });
-      context.read<InternetConnectionBannerCubit>().showBanner();
+
+      if (wasOffline) {
+        // Show green banner
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You are back online!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Reset offline flag
+        setState(() {
+          wasOffline = false;
+        });
+      }
     }
   }
 }

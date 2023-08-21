@@ -263,7 +263,7 @@ class _SettingsPageState extends State<SettingsPage>
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-      //case AppLifecycleState.hidden: TODOS 
+      case AppLifecycleState.hidden: 
         break;
     }
   }
