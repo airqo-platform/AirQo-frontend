@@ -118,7 +118,9 @@ class NearbyLocationBloc
       );
       surroundingSitesRadius = surroundingSitesRadius * 2;
     }
-
+    surroundingSites = surroundingSites.toSet().toList();
+    surroundingSites.removeWhere(
+        (element) => element.name.equalsIgnoreCase(newLocation!.name));
     surroundingSites = surroundingSites.take(10).toList();
 
     emit(state.copyWith(

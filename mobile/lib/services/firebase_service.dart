@@ -137,23 +137,22 @@ class CloudStore {
     return [];
   }
 
-  static Future<Profile?> getProfile() async {
-    try {
-      final userId = CustomAuth.getUserId();
-      if (userId.isEmpty) {
-        return null;
-      }
+  static Future<Profile> getProfile() async {
+    final userId = CustomAuth.getUserId();
+    Profile profile = Profile.initialize();
+    if (userId.isEmpty) {
+      return profile;
+    }
 
+    try {
       final userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(userId)
           .get();
 
-      return Profile.fromJson(
+      profile = Profile.fromJson(
         userJson.data()!,
       );
-    } on FirebaseException catch (_) {
-      return null;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -161,7 +160,28 @@ class CloudStore {
       );
     }
 
-    return null;
+    final User? user = CustomAuth.getUser();
+    profile = profile.copyWith(isSignedIn: user != null);
+
+    if (user != null) {
+      profile = profile.copyWith(
+        phoneNumber: user.phoneNumber ?? "",
+        emailAddress: user.email ?? "",
+        userId: user.uid,
+        isAnonymous: user.isAnonymous,
+      );
+
+      if (profile.lastRated == null) {
+        profile = profile.copyWith(
+          lastRated: user.metadata.creationTime ?? DateTime.now(),
+        );
+      }
+    }
+
+    String? device = await CloudMessaging.getDeviceToken();
+    profile = profile.copyWith(device: device);
+
+    return profile;
   }
 
   static Future<bool> updateProfile(Profile profile) async {
