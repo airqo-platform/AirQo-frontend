@@ -444,6 +444,65 @@ class AirqoApiClient {
     return false;
   }
 
+  Future<List<Quiz>> fetchQuizzes(String userId) async {
+    final quizzes = <Quiz>[];
+    final queryParams = <String, String>{}
+      ..putIfAbsent('tenant', () => 'airqo');
+    String url = "${AirQoUrls.kya}/lessons/users/$userId";
+    if (userId.isEmpty) {
+      url = "${AirQoUrls.kya}/lessons";
+    }
+
+    try {
+      final body = await _performGetRequest(
+        queryParams,
+        url,
+        apiService: ApiService.deviceRegistry,
+      );
+      for (dynamic quiz in body['quizzes'] as List<dynamic>) {
+        Quiz apiQuiz = Quiz.fromJson(quiz as Map<String, dynamic>);
+        quizzes.add(apiQuiz);
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return quizzes;
+  }
+
+  Future<bool> syncQuizProgress(
+    List<Quiz> quizzes,
+    String userId,
+  ) async {
+    try {
+      Map<String, String> headers = Map.from(postHeaders);
+      headers["service"] = ApiService.deviceRegistry.serviceName;
+
+      final response = await client.post(
+        Uri.parse(
+          "https://platform.airqo.net/api/v2/devices/kya/quizzes/progress/sync/{userId}",
+        ),
+        headers: headers,
+        body: jsonEncode({
+          'quiz_user_progress': quizzes.map((e) => e.toJson()).toList(),
+        }),
+      );
+      final responseBody = json.decode(response.body);
+
+      return responseBody['success'] as bool;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return false;
+  }
+
   Future<List<FavouritePlace>> fetchFavoritePlaces(String userId) async {
     final favoritePlaces = <FavouritePlace>[];
     final queryParams = <String, String>{}

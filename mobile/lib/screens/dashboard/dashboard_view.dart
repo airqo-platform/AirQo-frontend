@@ -5,6 +5,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -319,14 +320,14 @@ class _DashboardViewState extends State<DashboardView>
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
                       List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
-                      inCompleteQuizzes.add(Quiz.initialize());
+                      //inCompleteQuizzes.add(Quiz.initialize());
                       if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
 
                         return const SizedBox();
                       }
 
-                      return QuizCardWidget(inCompleteQuizzes.first);
+                      return QuizCard(inCompleteQuizzes.first);
                     },
                   ),
                   BlocConsumer<DashboardBloc, DashboardState>(
@@ -470,6 +471,8 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
         break;
+      case AppLifecycleState.hidden:
+      // TODO: Handle this case.
     }
   }
 
