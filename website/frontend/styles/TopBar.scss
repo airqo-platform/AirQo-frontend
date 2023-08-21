@@ -40,102 +40,94 @@ h4 {
     .nav-center {
       justify-content: space-between;
 
-      .nav-wrapper {
-        display: flex;
-        align-items: center;
-        margin-right: 16px;
+      .nav-dropdown-item {
+        position: relative;
+        .dropdown {
+          display: none;
+          margin-top: 0px;
+          position: absolute;
+          left: 40px;
+          width: 590px;
+          height: 274px;
+          border-radius: 8px;
+          background-color: $aq-white-0;
+          box-shadow: 0px 8px 16px #cccccc40;
+          box-sizing: border-box;
 
-        .nav-dropdown-item {
-          width: 100%;
-          position: relative;
+          .title {
+            font-size: $linkFont;
+            line-height: 22px;
+            font-weight: 400;
+            color: $aq-blue-2;
+            padding-bottom: 20px;
+            padding-top: 34px;
+            padding-left: 30px;
+            opacity: 0.4;
+          }
 
-          .dropdown {
-            display: none;
-            margin-top: 0px;
-            position: absolute;
-            left: 40px;
-            width: 590px;
-            height: 274px;
-            border-radius: 8px;
-            background-color: $aq-white-0;
-            box-shadow: 0px 8px 16px #cccccc40;
-            box-sizing: border-box;
+          .dropdown-list {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: 16px;
 
-            .title {
-              font-size: $linkFont;
-              line-height: 22px;
-              font-weight: 400;
-              color: $aq-blue-2;
-              padding-bottom: 20px;
-              padding-top: 34px;
-              padding-left: 30px;
-              opacity: 0.4;
-            }
+            .dropdown-list-item {
+              margin-bottom: 22px;
+              margin-right: 20px;
+              width: 260px;
+              padding: 8px 16px;
+              cursor: pointer;
 
-            .dropdown-list {
-              display: flex;
-              flex-wrap: wrap;
-              margin-left: 16px;
-
-              .dropdown-list-item {
-                margin-bottom: 22px;
-                margin-right: 20px;
-                width: 260px;
-                padding: 8px 16px;
-                cursor: pointer;
-
-                h3 {
-                  font-weight: 500;
-                  font-size: 16px;
-                  color: $aq-blue-2;
-                }
-
-                h4 {
-                  font-weight: 400;
-                  font-size: 14px;
-                  line-height: 20px;
-                  color: $aq-blue-2;
-                  letter-spacing: -0.022em;
-                }
+              h3 {
+                font-weight: 500;
+                font-size: 16px;
+                color: $aq-blue-2;
               }
 
-              .dropdown-list-item:hover {
-                background-color: $aq-blue-5;
-                border-radius: 8px;
+              h4 {
+                font-weight: 400;
+                font-size: 14px;
+                line-height: 20px;
+                color: $aq-blue-2;
+                letter-spacing: -0.022em;
+              }
+            }
 
-                h3,
-                h4 {
-                  color: $aq-blue-4;
-                }
+            .dropdown-list-item:hover {
+              background-color: $aq-blue-5;
+              border-radius: 8px;
+
+              h3,
+              h4 {
+                color: $aq-blue-4;
               }
             }
           }
         }
+      }
 
-        // id used to target the dropdowns in the nav
-        #solutions-dropdown {
+      // id used to target the dropdowns in the nav
+      #solutions-dropdown {
+        display: block;
+      }
+
+      // hover only on desktop view
+      @media (min-width: 1025px) {
+        .nav-dropdown-item:hover .dropdown {
           display: block;
         }
+      }
 
-        // hover only on desktop view
-        @media (min-width: 1025px) {
-          .nav-dropdown-item:hover .dropdown {
-            display: block;
-          }
+      .nav-dropdown-item.single-links {
+        .dropdown {
+          left: 40px;
+          width: 430px;
+          height: 274px;
         }
-
-        .nav-dropdown-item.single-links {
-          .dropdown {
-            left: 40px;
-            width: 430px;
-            height: 274px;
-          }
-          .dropdown-list {
-            .dropdown-list-item {
-              width: 180px;
-              padding: 8px 12px;
-              margin-bottom: 14px;
-            }
+        .dropdown-list {
+          .dropdown-list-item {
+            width: 180px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
           }
         }
       }
@@ -201,42 +193,36 @@ h4 {
         padding-top: 44px;
         margin-bottom: 44px;
 
-        .nav-wrapper {
-          flex-direction: column;
-          align-items: flex-start;
-          margin-right: 0;
+        .nav-dropdown-item {
+          .dropdown {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin-left: 0;
+            box-shadow: none;
+            height: 100%;
 
-          .nav-dropdown-item {
-            .dropdown {
-              position: relative;
-              display: flex;
-              flex-direction: column;
+            .title {
+              display: none;
+            }
+
+            .dropdown-list {
               margin-left: 0;
-              box-shadow: none;
-              height: 100%;
-
-              .title {
-                display: none;
-              }
-
-              .dropdown-list {
-                margin-left: 0;
-                width: 100%;
-                .dropdown-list-item {
-                  margin-right: 0;
-                }
+              width: 100%;
+              .dropdown-list-item {
+                margin-right: 0;
               }
             }
           }
+        }
 
-          .nav-dropdown-item .dropdown {
-            display: none;
-          }
-          .nav-dropdown-item.nav-dropdown-item.single-links .dropdown {
-            height: 100%;
-            width: 90%;
-            margin-bottom: 20px;
-          }
+        .nav-dropdown-item .dropdown {
+          display: none;
+        }
+        .nav-dropdown-item.nav-dropdown-item.single-links .dropdown {
+          height: 100%;
+          width: 90%;
+          margin-bottom: 20px;
         }
       }
     }
@@ -275,16 +261,14 @@ h4 {
         margin: 0 auto;
         transition: all 0.5s ease;
         width: 100%;
-        .nav-wrapper {
-          .nav-dropdown-item {
-            .dropdown {
-              .dropdown-list {
-                flex-direction: column;
-                flex-wrap: nowrap;
-                margin-left: 0;
-                .dropdown-list-item {
-                  padding: 8px 5px;
-                }
+        .nav-dropdown-item {
+          .dropdown {
+            .dropdown-list {
+              flex-direction: column;
+              flex-wrap: nowrap;
+              margin-left: 0;
+              .dropdown-list-item {
+                padding: 8px 5px;
               }
             }
           }
