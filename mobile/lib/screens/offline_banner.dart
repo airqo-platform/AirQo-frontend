@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/themes/theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,7 @@ class OfflineBanner extends StatefulWidget {
 
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOnline = true;
+  bool wasOffline = false;
   ConnectivityResult connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -139,9 +141,31 @@ class _OfflineBannerState extends State<OfflineBanner> {
       connectionStatus = result;
     });
     if (connectionStatus == ConnectivityResult.none) {
-      setState(() {
-        _isOnline = false;
-      });
+      setState(
+        () {
+          _isOnline = false;
+          wasOffline = true;
+        },
+      );
+      if (connectionStatus != ConnectivityResult.none) {
+        setState(
+          () {
+            _isOnline = true;
+          },
+        );
+
+        if (wasOffline) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('You are back online!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          setState(() {
+            wasOffline = false;
+          });
+        }
+      }
     } else {
       setState(() {
         _isOnline = true;
