@@ -507,31 +507,55 @@ const DeviceHosts = ({ deviceData }) => {
   const [refreshData, setRefreshData] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
-  const matchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
-  const hostsIds = matchingHosts.map((host) => host._id);
+  const [matchingHosts, setMatchingHosts] = useState([]);
+  const [hostsIds, setHostsIds] = useState([]);
 
-  const getTransactions = async () => {
-    try {
-      const response = await getTransactionDetails(hostsIds);
-      setTransactions(response);
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  useEffect(() => {
+    const newMatchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
+    setMatchingHosts(newMatchingHosts);
+    setHostsIds(newMatchingHosts.map((host) => host._id));
+  }, [hosts, deviceData]);
 
-  const getHosts = async () => {
-    try {
-      setIsLoading(true);
-      const response = await getAllDeviceHosts();
-      const { hosts } = response;
-      setHosts(hosts);
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    const getTransactions = async () => {
+      try {
+        const response = await getTransactionDetails(hostsIds);
+
+        const tranData = response.map((t) =>
+          t.transaction.map((transaction) => {
+            // find the matching host from the matchingHosts array
+            const matchingHost = matchingHosts.find((host) => host._id === transaction._id);
+            // return an object with the transaction data and the host name
+            return {
+              amount: transaction.amount,
+              createdAt: transaction.createdAt,
+              _id: transaction._id
+              // use a template literal to concatenate the first and last name of the host
+              // hostName: `${matchingHost.first_name} ${matchingHost.last_name}`
+            };
+          })
+        );
+        setTransactions(tranData);
+        setIsLoading(false);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getTransactions();
+  }, [hostsIds, matchingHosts]);
+
+  useEffect(() => {
+    const getHosts = async () => {
+      try {
+        const response = await getAllDeviceHosts();
+        const { hosts } = response;
+        setHosts(hosts);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getHosts();
+  }, [refreshData]);
 
   useEffect(() => {
     if (isEmpty(sites)) {
@@ -541,12 +565,7 @@ const DeviceHosts = ({ deviceData }) => {
       }
       setLoading(false);
     }
-  }, [dispatch]);
-
-  useEffect(() => {
-    getHosts();
-    getTransactions();
-  }, [refreshData]);
+  }, []);
 
   return (
     <ErrorBoundary>
@@ -634,11 +653,6 @@ const DeviceHosts = ({ deviceData }) => {
               }
             },
             {
-              title: 'Phone Number',
-              field: 'phoneNumber',
-              render: (rowData) => `${rowData.phone_number}`
-            },
-            {
               title: 'Amount Sent',
               field: 'amount',
               render: (rowData) => `${rowData.amount}`
@@ -646,11 +660,14 @@ const DeviceHosts = ({ deviceData }) => {
             {
               title: 'Date',
               field: 'date',
-              render: (rowData) => `${rowData.date}`
+              render: (rowData) => `${rowData.createdAt}`
             }
           ]}
           data={transactions}
           isLoading={isLoading}
+          onRowClick={(event, rowData) => {
+            console.log(rowData);
+          }}
           options={{
             search: true,
             exportButton: false,
