@@ -1,0 +1,30 @@
+name: Flutter tests coverage
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Test codeCov
+    steps:
+    - uses: actions/checkout@v3
+
+
+    - name: Install Flutter
+      uses: subosito/flutter-action@v2.10.0
+      with:
+          channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+        
+    - name: Run tests
+      run: |
+          cd mobile
+          flutter test --coverage
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      
+    
