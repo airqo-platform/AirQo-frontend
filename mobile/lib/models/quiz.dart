@@ -9,42 +9,41 @@ part 'quiz.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Quiz extends Equatable {
   factory Quiz.fromJson(Map<String, dynamic> json) => _$QuizFromJson(json);
-  // factory Quiz.initialize() => Quiz(
-  //       title: "Get personalised air recommendations",
-  //       subTitle:
-  //           "Tell us more about Air Quality conditions in your environment & get personalised tips.",
-  //       imageUrl: "imageUrl",
-  //       id: "id",
-  //       questions: List.generate(
-  //         2,
-  //         (questionIndex) => QuizQuestion(
-  //           id: '$questionIndex',
-  //           title: "Where is your home located?",
-  //           category: "Location",
-  //           options: List.generate(
-  //             4,
-  //             (optionIndex) => QuizQuestionOption(
-  //                 id: '$questionIndex-$optionIndex',
-  //                 title: [
-  //                   'Next to a busy road',
-  //                   'In a rural area',
-  //                   'Near factories',
-  //                   'Next to a park'
-  //                 ][optionIndex],
-  //                 answer: [
-  //                   'Roads cause more pollution exposure and hence more health risks when compared to rural areas',
-  //                   'Rural areas have cleaner air than urban areas yet they are not completely  free from air pollution',
-  //                   'Factories emit harmful pollutants into the air and can cause health problems',
-  //                   'Parks absorb some pollution and can help reduce air pollution in the area'
-  //                 ][optionIndex]),
-  //           ),
-  //         ),
-  //       ),
-
-  //       activeQuestion: 1,
-  //       status: QuizStatus.todo,
-  //       completionMessage: "You have completed the quiz!",
-  //     );
+  factory Quiz.initialize() => Quiz(
+        title: "Get personalised air recommendations",
+        subTitle:
+            "Tell us more about Air Quality conditions in your environment & get personalised tips.",
+        imageUrl: "imageUrl",
+        id: "id",
+        questions: List.generate(
+          2,
+          (questionIndex) => QuizQuestion(
+            id: '$questionIndex',
+            title: "Where is your home located?",
+            category: "Location",
+            options: List.generate(
+              4,
+              (optionIndex) => QuizQuestionOption(
+                  id: '$questionIndex-$optionIndex',
+                  title: [
+                    'Next to a busy road',
+                    'In a rural area',
+                    'Near factories',
+                    'Next to a park'
+                  ][optionIndex],
+                  answer: [
+                    'Roads cause more pollution exposure and hence more health risks when compared to rural areas',
+                    'Rural areas have cleaner air than urban areas yet they are not completely  free from air pollution',
+                    'Factories emit harmful pollutants into the air and can cause health problems',
+                    'Parks absorb some pollution and can help reduce air pollution in the area'
+                  ][optionIndex]),
+            ),
+          ),
+        ),
+        activeQuestion: 1,
+        status: QuizStatus.todo,
+        completionMessage: "You have completed the quiz!",
+      );
   const Quiz({
     required this.title,
     required this.subTitle,

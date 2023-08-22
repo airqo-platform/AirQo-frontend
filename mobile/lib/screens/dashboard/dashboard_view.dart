@@ -25,7 +25,6 @@ import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 //import '../kya/kya_widgets.dart';
 //import '../quiz/quiz_view.dart';
-import '../quiz/quiz_view.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -320,7 +319,7 @@ class _DashboardViewState extends State<DashboardView>
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
                       List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
-                      //inCompleteQuizzes.add(Quiz.initialize());
+                      inCompleteQuizzes.add(Quiz.initialize());
                       if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
 
