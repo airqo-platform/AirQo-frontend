@@ -319,7 +319,6 @@ class _DashboardViewState extends State<DashboardView>
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
                       List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
-                      inCompleteQuizzes.add(Quiz.initialize());
                       if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
 

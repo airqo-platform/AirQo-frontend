@@ -9,41 +9,6 @@ part 'quiz.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Quiz extends Equatable {
   factory Quiz.fromJson(Map<String, dynamic> json) => _$QuizFromJson(json);
-  factory Quiz.initialize() => Quiz(
-        title: "Get personalised air recommendations",
-        subTitle:
-            "Tell us more about Air Quality conditions in your environment & get personalised tips.",
-        imageUrl: "imageUrl",
-        id: "id",
-        questions: List.generate(
-          2,
-          (questionIndex) => QuizQuestion(
-            id: '$questionIndex',
-            title: "Where is your home located?",
-            category: "Location",
-            options: List.generate(
-              4,
-              (optionIndex) => QuizQuestionOption(
-                  id: '$questionIndex-$optionIndex',
-                  title: [
-                    'Next to a busy road',
-                    'In a rural area',
-                    'Near factories',
-                    'Next to a park'
-                  ][optionIndex],
-                  answer: [
-                    'Roads cause more pollution exposure and hence more health risks when compared to rural areas',
-                    'Rural areas have cleaner air than urban areas yet they are not completely  free from air pollution',
-                    'Factories emit harmful pollutants into the air and can cause health problems',
-                    'Parks absorb some pollution and can help reduce air pollution in the area'
-                  ][optionIndex]),
-            ),
-          ),
-        ),
-        activeQuestion: 1,
-        status: QuizStatus.todo,
-        completionMessage: "You have completed the quiz!",
-      );
   const Quiz({
     required this.title,
     required this.subTitle,
@@ -61,7 +26,7 @@ class Quiz extends Equatable {
   @JsonKey()
   final String title;
 
-  @JsonKey()
+  @JsonKey(name: 'description')
   final String subTitle;
 
   @JsonKey()
@@ -73,7 +38,7 @@ class Quiz extends Equatable {
   @JsonKey(name: '_id')
   final String id;
 
-  @JsonKey(name: 'active_task', defaultValue: 1)
+  @JsonKey(name: 'active_question', defaultValue: 1)
   final int activeQuestion;
 
   @JsonKey(defaultValue: QuizStatus.todo)
@@ -152,7 +117,7 @@ class QuizQuestion extends Equatable {
   @JsonKey(name: 'context')
   final String category;
 
-  @JsonKey()
+  @JsonKey(name: 'answers')
   final List<QuizQuestionOption> options;
 
   Map<String, dynamic> toJson() => _$QuizQuestionToJson(this);
@@ -178,6 +143,7 @@ class QuizQuestionOption extends Equatable {
 
   final String title;
 
+  @JsonKey(name: 'content')
   final String answer;
 
   Map<String, dynamic> toJson() => _$QuizQuestionOptionToJson(this);

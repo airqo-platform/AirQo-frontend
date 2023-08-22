@@ -448,9 +448,9 @@ class AirqoApiClient {
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}
       ..putIfAbsent('tenant', () => 'airqo');
-    String url = "${AirQoUrls.kya}/lessons/users/$userId";
+    String url = "${AirQoUrls.kya}/quizzes/users/$userId";
     if (userId.isEmpty) {
-      url = "${AirQoUrls.kya}/lessons";
+      url = "${AirQoUrls.kya}/quizzes";
     }
 
     try {
@@ -459,7 +459,7 @@ class AirqoApiClient {
         url,
         apiService: ApiService.deviceRegistry,
       );
-      for (dynamic quiz in body['quizzes'] as List<dynamic>) {
+      for (dynamic quiz in body['kya_quizzes'] as List<dynamic>) {
         Quiz apiQuiz = Quiz.fromJson(quiz as Map<String, dynamic>);
         quizzes.add(apiQuiz);
       }
@@ -483,11 +483,11 @@ class AirqoApiClient {
 
       final response = await client.post(
         Uri.parse(
-          "https://platform.airqo.net/api/v2/devices/kya/quizzes/progress/sync/{userId}",
+          "${AirQoUrls.kya}/quizzes/progress/sync/$userId",
         ),
         headers: headers,
         body: jsonEncode({
-          'quiz_user_progress': quizzes.map((e) => e.toJson()).toList(),
+          'kya_quiz_user_progress': quizzes.map((e) => e.toJson()).toList(),
         }),
       );
       final responseBody = json.decode(response.body);
