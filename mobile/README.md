@@ -19,7 +19,7 @@
 ### **Add the configuration files**
 
 | File                          | Directory                                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+|-------------------------------|-------------------------------------------------------------------------------------------------|
 | [google-services.json]()      | `app` directory under android folder (`android/app/`)                                           |
 | [google-services.json]()      | `app/src/airqodev` directory under android folder (`android/app/`)(For the staging environment) |
 | [firebase_app_id_file.json]() | Android folder (`android/`)                                                                     |
@@ -108,6 +108,10 @@ keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -sto
 flutter run
 ```
 
+```bash
+task r
+```
+
 ### **To run the staging environment, Use the following:**
 
 #### **Staging in debug mode.**
@@ -166,7 +170,7 @@ flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
- flutter gen-l10n
+flutter gen-l10n
 ```
 
 ## **Security Guidelines**

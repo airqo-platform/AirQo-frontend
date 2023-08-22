@@ -1,13 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'insights_widgets.dart';
 
@@ -49,79 +46,15 @@ class InsightsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.appBodyColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
-        centerTitle: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            InkWell(
-              onTap: () async {
-                await popNavigation(context);
-              },
-              child: SvgPicture.asset(
-                'assets/icon/close.svg',
-                height: 40,
-                width: 40,
-              ),
-            ),
-            Text(
-              AppLocalizations.of(context)!.moreInsights,
-              style: CustomTextStyle.headline8(context),
-            ),
-            FutureBuilder<Uri>(
-              future: airQualityReading.createShareLink(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return SvgIcons.share(isEnabled: false);
-                }
-
-                if (snapshot.hasData) {
-                  return InkWell(
-                    onTap: () async {
-                      if (snapshot.data != null) {
-                        await ShareService.shareLink(
-                          snapshot.data!,
-                          context,
-                          airQualityReading: airQualityReading,
-                        );
-                      }
-                    },
-                    child: SvgIcons.share(),
-                  );
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    showSnackBar(context,
-                        AppLocalizations.of(context)!.creatingShareLink);
-                  },
-                  child: const Center(
-                    child: LoadingIcon(radius: 20),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: InsightsPageAppBar(airQualityReading),
       body: AppSafeArea(
         child: SingleChildScrollView(
           child: BlocBuilder<InsightsBloc, InsightsState>(
             builder: (context, state) {
-              Insight? selectedInsight = state.selectedInsight;
-
-              if (selectedInsight == null) {
-                return NoAirQualityDataWidget(callBack: () {
-                  context
-                      .read<InsightsBloc>()
-                      .add(InitializeInsightsPage(airQualityReading));
-                });
-              }
               AirQualityReading selectedAirQualityReading =
-                  airQualityReading.copyWith(pm2_5: selectedInsight.pm2_5);
+                  airQualityReading.copyWith(
+                pm2_5: state.selectedInsight.pm2_5,
+              );
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -133,7 +66,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      selectedInsight.shortDate(context),
+                      state.selectedInsight.shortDate(context),
                       style: CustomTextStyle.headline8(context)
                           ?.copyWith(fontSize: 20),
                     ),
@@ -144,9 +77,7 @@ class InsightsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      AppLocalizations.of(context)!
-                          .actualDate(selectedInsight.dateTime)
-                          .toUpperCase(),
+                      state.selectedInsight.dateTime.timelineString(context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black.withOpacity(0.5),
                           ),
@@ -157,14 +88,11 @@ class InsightsPage extends StatelessWidget {
                   ),
                   InsightsCalendar(selectedAirQualityReading),
                   Visibility(
-                    visible: selectedInsight.dateTime.isToday() &&
+                    visible: state.selectedInsight.dateTime.isToday() &&
                         DateTime.now().hour < 12,
-                    child: ForecastContainer(
-                      selectedInsight,
-                      airQualityReading.name,
-                    ),
+                    child: ForecastContainer(state.selectedInsight),
                   ),
-                  HealthTipsWidget(selectedInsight),
+                  HealthTipsWidget(state.selectedInsight),
                   const SizedBox(
                     height: 21,
                   ),

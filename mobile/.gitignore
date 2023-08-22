@@ -61,3 +61,4 @@ firebase_options_dev.dart
 metrics/
 obfuscate/
 coverage/
+!env.example

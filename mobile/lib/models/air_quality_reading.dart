@@ -16,7 +16,7 @@ part 'air_quality_reading.g.dart';
 class AirQualityReading extends HiveObject with EquatableMixin {
   AirQualityReading({
     required this.referenceSite,
-    required this.source,
+    required this.dataProvider,
     required this.latitude,
     required this.longitude,
     required this.country,
@@ -99,7 +99,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       longitude: site.longitude,
       country: site.country,
       region: site.region,
-      source: site.source,
+      dataProvider: site.dataProvider,
       pm2_5: pm2_5.displayValue()!,
       pm10: pm10.displayValue(),
       name: site.getName(),
@@ -126,7 +126,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       (element) => element.referenceSite == referenceSite,
       orElse: () {
         String country = dynamicLinkData.link.queryParameters['country'] ?? '';
-        String source = dynamicLinkData.link.queryParameters['source'] ?? '';
+        String dataProvider =
+            dynamicLinkData.link.queryParameters['dataProvider'] ?? '';
         String shareLink =
             dynamicLinkData.link.queryParameters['shareLink'] ?? '';
         String region = dynamicLinkData.link.queryParameters['region'] ?? '';
@@ -136,7 +137,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
 
         return AirQualityReading(
           referenceSite: referenceSite,
-          source: source,
+          dataProvider: dataProvider,
           latitude: latitude as double,
           longitude: longitude as double,
           country: country,
@@ -171,7 +172,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
         '&latitude=$latitude'
         '&longitude=$longitude'
         '&country=$country'
-        '&source=$source'
+        '&dataProvider=$dataProvider'
         '&distanceToReferenceSite=$distanceToReferenceSite'
         '&region=$region';
   }
@@ -193,7 +194,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
-      source: source,
+      dataProvider: dataProvider,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       country: country ?? this.country,
@@ -227,7 +228,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   final String name;
 
   @HiveField(5, defaultValue: '')
-  final String source;
+  final String dataProvider;
 
   @HiveField(6, defaultValue: '')
   final String location;
@@ -261,7 +262,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);
 
   @override
-  List<Object?> get props => [placeId, dateTime];
+  List<Object> get props => [name, dateTime];
 }
 
 @JsonSerializable(createToJson: false)
@@ -310,7 +311,7 @@ class Site {
     required this.searchLocation,
     required this.country,
     required this.region,
-    required this.source,
+    required this.dataProvider,
     required this.shareLinks,
   });
 
@@ -341,8 +342,8 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   final String region;
 
-  @JsonKey(required: false, defaultValue: '', name: 'network')
-  final String source;
+  @JsonKey(required: false, defaultValue: '', name: 'data_provider')
+  final String dataProvider;
 
   @JsonKey(required: false, defaultValue: {}, name: "share_links")
   final Map<String, dynamic> shareLinks;

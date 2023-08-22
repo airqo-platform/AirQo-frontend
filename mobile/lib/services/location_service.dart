@@ -54,6 +54,16 @@ class LocationService {
   }
 
   static Future<CurrentLocation?> getCurrentLocation() async {
+    final locationGranted = await LocationService.locationGranted();
+    if (!locationGranted) {
+      return null;
+    }
+
+    final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return null;
+    }
+
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
