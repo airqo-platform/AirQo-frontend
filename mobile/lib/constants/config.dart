@@ -26,7 +26,7 @@ class Config {
   static String get automatedTestsPhoneNumber => "+256757800000";
 
   static String get guestLogInFailed =>
-      'Failed to login as guest. Try again later';
+      'Failed to login as guest. Try again later'; // TODO translate this
 
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
@@ -62,17 +62,17 @@ class Config {
 
   static String get androidPackageName => 'com.airqo.app';
 
-  static String get signOutFailed => 'Failed to sign out. Try again later';
+  static String get signOutFailed =>
+      'Failed to sign out. Try again later'; // TODO translate this
 
-  static String get connectionErrorMessage => 'No internet connection';
+  static String get connectionErrorMessage =>
+      'No internet connection'; // TODO translate this
 
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
   static int get locationChangeRadiusInMetres => 100;
 
   static int get searchRadius => 4;
-
-  static int get surroundingsSitesMaxRadiusInKilometres => 20;
 
   static int get shareLinkMaxLength => 56;
 

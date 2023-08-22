@@ -2,7 +2,7 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/services/location_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -477,7 +477,7 @@ class AutoCompleteResultsWidget extends StatefulWidget {
 }
 
 class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
-  Future<void> getAirQuality(SearchResult searchResult) async {
+  Future<void> getAirQuality(SearchResult rawSearchResult) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       if (!mounted) return;
@@ -487,21 +487,36 @@ class _AutoCompleteResultsWidgetState extends State<AutoCompleteResultsWidget> {
     }
 
     if (!mounted) return;
-
     loadingScreen(context);
 
-    AirQualityReading? airQualityReading =
-        await LocationService.getSearchAirQuality(searchResult);
+    SearchResult? searchResult =
+        await SearchApiClient().getPlaceDetails(rawSearchResult);
 
     if (!mounted) return;
 
-    Navigator.pop(context);
+    if (searchResult == null) {
+      context.read<SearchBloc>().add(GetSearchRecommendations(rawSearchResult));
+      Navigator.pop(context);
+      return;
+    }
+
+    AirQualityReading? airQualityReading =
+        await LocationService.getSearchAirQuality(searchResult.point);
+
+    if (!mounted) return;
 
     if (airQualityReading == null) {
       context.read<SearchBloc>().add(GetSearchRecommendations(searchResult));
-
       return;
     }
+
+    airQualityReading = airQualityReading.copyWith(
+      name: searchResult.name,
+      location: searchResult.location,
+      latitude: searchResult.latitude,
+      longitude: searchResult.longitude,
+    );
+
     context.read<SearchHistoryBloc>().add(AddSearchHistory(airQualityReading));
     await navigateToInsights(context, airQualityReading);
   }

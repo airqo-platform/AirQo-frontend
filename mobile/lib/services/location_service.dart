@@ -53,7 +53,7 @@ class LocationService {
     await Geolocator.openAppSettings();
   }
 
-  static Future<CurrentLocation?> getCurrentLocation() async {
+  static Future<AirQualityReading?> getLocationAirQuality() async {
     final locationGranted = await LocationService.locationGranted();
     if (!locationGranted) {
       return null;
@@ -69,8 +69,36 @@ class LocationService {
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
       ).timeout(const Duration(seconds: 60));
+      Point point = Point(
+        position.latitude,
+        position.longitude,
+      );
 
-      return CurrentLocation.fromPosition(position);
+      AirQualityReading? airQualityReading =
+          await LocationService.getSearchAirQuality(point);
+      if (airQualityReading == null) {
+        return null;
+      }
+
+      airQualityReading = airQualityReading.copyWith(
+        latitude: point.latitude,
+        longitude: point.longitude,
+        dateTime: DateTime.now(),
+      );
+
+      Address? address = await SearchApiClient().getAddress(
+        latitude: airQualityReading.latitude,
+        longitude: airQualityReading.longitude,
+      );
+
+      if (address != null) {
+        airQualityReading = airQualityReading.copyWith(
+          name: address.name,
+          location: address.location,
+        );
+      }
+
+      return airQualityReading;
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
       debugPrintStack(stackTrace: stackTrace);
@@ -87,40 +115,28 @@ class LocationService {
     return null;
   }
 
-  static List<AirQualityReading> getSurroundingSites(Point point) {
+  static List<AirQualityReading> getSurroundingSites(
+    Point point, {
+    double? radius,
+  }) {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
-    airQualityReadings = airQualityReadings.getNearbyAirQuality(point);
+    airQualityReadings = airQualityReadings.getNearbyAirQuality(
+      point,
+      radius: radius,
+    );
     airQualityReadings.sortByDistanceToReferenceSite();
     return airQualityReadings;
   }
 
   static Future<AirQualityReading?> getSearchAirQuality(
-    SearchResult result,
+    Point point,
   ) async {
-    final SearchResult? searchResult =
-        await SearchApiClient().getPlaceDetails(result);
-
-    if (searchResult == null) {
-      return null;
-    }
-
     AirQualityReading? airQualityReading = LocationService.getSurroundingSites(
-      searchResult.point,
+      point,
     ).firstOrNull;
 
-    airQualityReading ??= await AirqoApiClient().searchAirQuality(
-      searchResult.point,
-    );
-
-    if (airQualityReading != null) {
-      airQualityReading = airQualityReading.copyWith(
-        name: searchResult.name,
-        location: searchResult.location,
-        latitude: searchResult.latitude,
-        longitude: searchResult.longitude,
-      );
-    }
+    airQualityReading ??= await AirqoApiClient().searchAirQuality(point);
 
     return airQualityReading;
   }

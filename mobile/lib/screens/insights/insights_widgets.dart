@@ -494,31 +494,18 @@ class InsightsPageAppBar extends StatelessWidget
             future: airQualityReading.createShareLink(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                showSnackBar(context,
-                    AppLocalizations.of(context)!.couldNotCreateAShareLink);
+                return SvgIcons.share(isEnabled: false);
               }
               if (snapshot.hasData) {
                 return InkWell(
                   onTap: () async {
-                    Uri? link = snapshot.data;
-                    if (link != null) {
-                      await ShareService.shareLink(
-                        link,
-                        context,
-                        airQualityReading: airQualityReading,
-                      );
-                    }
+                    await ShareService.shareLink(
+                      snapshot.data!,
+                      context,
+                      airQualityReading: airQualityReading,
+                    );
                   },
-                  child: SvgPicture.asset(
-                    'assets/icon/share_icon.svg',
-                    theme: SvgTheme(currentColor: CustomColors.greyColor),
-                    colorFilter: ColorFilter.mode(
-                      CustomColors.greyColor,
-                      BlendMode.srcIn,
-                    ),
-                    height: 26,
-                    width: 26,
-                  ),
+                  child: SvgIcons.share(),
                 );
               }
 

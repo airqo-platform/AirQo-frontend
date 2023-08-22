@@ -300,15 +300,13 @@ class AirqoApiClient {
         apiService: ApiService.predict,
       );
       Map<String, dynamic> data = body['data'] as Map<String, dynamic>;
-
-      if (data.keys.isEmpty) {
-        return null;
-      }
-
-      return AirQualityReading.fromSearchAPI(
-        body['data'] as Map<String, dynamic>,
-        point,
-      );
+      print(body);
+      return data.keys.isEmpty
+          ? null
+          : AirQualityReading.fromSearchAPI(
+              body['data'] as Map<String, dynamic>,
+              point,
+            );
     } catch (exception, stackTrace) {
       await logException(
         exception,

@@ -18,19 +18,6 @@ extension DoubleExtension on double {
   }
 }
 
-extension CurrentLocationExt on CurrentLocation {
-  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
-    final double distance = Geolocator.distanceBetween(
-      latitude,
-      longitude,
-      newLocation.latitude,
-      newLocation.longitude,
-    );
-
-    return distance >= Config.locationChangeRadiusInMetres;
-  }
-}
-
 extension SetExt<T> on Set<T> {
   void addOrUpdate(T updatedItem) {
     if (contains(updatedItem)) {
@@ -266,6 +253,17 @@ extension SearchHistoryListExt on List<SearchHistory> {
 }
 
 extension AirQualityReadingExt on AirQualityReading {
+  bool isNear(AirQualityReading airQualityReading) {
+    final double distance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      airQualityReading.latitude,
+      airQualityReading.longitude,
+    );
+
+    return distance >= Config.locationChangeRadiusInMetres;
+  }
+
   List<String> getSearchTerms(String parameter) {
     List<String> searchTerms = [];
     switch (parameter) {
@@ -494,10 +492,14 @@ extension SearchResultExt on SearchResult {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
-  List<AirQualityReading> getNearbyAirQuality(Point point) {
+  List<AirQualityReading> getNearbyAirQuality(
+    Point point, {
+    double? radius,
+  }) {
     return where(
       (element) =>
-          point.geoKmDistanceTo(element.point) < Config.searchRadius.toDouble(),
+          point.geoKmDistanceTo(element.point) <
+          (radius ?? Config.searchRadius.toDouble()),
     ).toList();
   }
 

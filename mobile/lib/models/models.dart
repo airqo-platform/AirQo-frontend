@@ -1,7 +1,6 @@
 export 'address.dart';
 export 'air_quality_reading.dart';
 export 'app_store_version.dart';
-export 'current_location.dart';
 export 'email_auth_model.dart';
 export 'enum_constants.dart';
 export 'favourite_place.dart';

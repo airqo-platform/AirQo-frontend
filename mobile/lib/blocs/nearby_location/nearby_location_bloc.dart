@@ -21,8 +21,8 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) {
     return emit(state.copyWith(
+      state.locationAirQuality,
       showErrorMessage: false,
-      currentLocation: state.currentLocation,
     ));
   }
 
@@ -30,7 +30,9 @@ class NearbyLocationBloc
     final locationGranted = await LocationService.locationGranted();
     if (!locationGranted) {
       emit(state.copyWith(
+        null,
         blocStatus: NearbyLocationStatus.locationDisabled,
+        showErrorMessage: true,
       ));
 
       return false;
@@ -39,7 +41,9 @@ class NearbyLocationBloc
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       emit(state.copyWith(
+        null,
         blocStatus: NearbyLocationStatus.locationDisabled,
+        showErrorMessage: true,
       ));
 
       return false;
@@ -52,13 +56,10 @@ class NearbyLocationBloc
     SearchLocationAirQuality event,
     Emitter<NearbyLocationState> emit,
   ) async {
-    CurrentLocation? currentLocation = state.currentLocation;
+    AirQualityReading? previousLocationAirQuality = state.locationAirQuality;
 
-    emit(state.copyWith(
-      blocStatus: NearbyLocationStatus.searching,
-      showErrorMessage: true,
-      currentLocation: currentLocation,
-    ));
+    emit(state.copyWith(previousLocationAirQuality,
+        blocStatus: NearbyLocationStatus.searching));
 
     final bool isLocationEnabled = await _isLocationEnabled(emit);
     if (!isLocationEnabled) {
@@ -67,59 +68,39 @@ class NearbyLocationBloc
       return;
     }
 
-    CurrentLocation? newLocation =
-        event.newLocation ?? await LocationService.getCurrentLocation();
+    AirQualityReading? currentLocationAirQuality =
+        await LocationService.getLocationAirQuality();
 
-    if (newLocation == null) {
+    if (currentLocationAirQuality == null) {
+      emit(state.copyWith(
+        previousLocationAirQuality,
+        blocStatus: NearbyLocationStatus.searchComplete,
+        showErrorMessage: true,
+      ));
       return;
     }
 
-    if (currentLocation != null &&
-        !currentLocation.hasChangedCurrentLocation(newLocation)) {
+    if (previousLocationAirQuality != null &&
+        currentLocationAirQuality.isNear(previousLocationAirQuality)) {
+      emit(state.copyWith(
+        previousLocationAirQuality,
+        blocStatus: NearbyLocationStatus.searchComplete,
+      ));
       return;
     }
 
-    AirQualityReading? nearestSite =
-        LocationService.getSurroundingSites(newLocation.point).firstOrNull;
+    List<AirQualityReading> surroundingSites =
+        LocationService.getSurroundingSites(
+      currentLocationAirQuality.point,
+      radius: Config.searchRadius * 5,
+    ).toSet().toList();
 
-    if (nearestSite == null) {
-      newLocation = newLocation.copyWith(referenceSite: "");
-    } else {
-      newLocation = newLocation.copyWith(
-        referenceSite: nearestSite.referenceSite,
-      );
-
-      Address? address = await SearchApiClient().getAddress(
-        latitude: newLocation.latitude,
-        longitude: newLocation.longitude,
-      );
-      newLocation = address == null
-          ? newLocation.copyWith(
-              name: nearestSite.name,
-              location: nearestSite.location,
-            )
-          : newLocation.copyWith(
-              name: address.name,
-              location: address.location,
-            );
-    }
-
-    List<AirQualityReading> surroundingSites = [];
-    int surroundingSitesRadius = Config.searchRadius;
-
-    while (surroundingSites.length < 5 &&
-        surroundingSitesRadius <
-            Config.surroundingsSitesMaxRadiusInKilometres) {
-      surroundingSites = LocationService.getSurroundingSites(newLocation.point);
-      surroundingSitesRadius = surroundingSitesRadius * 2;
-    }
-    surroundingSites = surroundingSites.toSet().toList();
-    surroundingSites.removeWhere(
-        (element) => element.name.equalsIgnoreCase(newLocation!.name));
+    surroundingSites.removeWhere((element) =>
+        element.name.equalsIgnoreCase(currentLocationAirQuality.name));
     surroundingSites = surroundingSites.take(10).toList();
 
     emit(state.copyWith(
-      currentLocation: newLocation,
+      currentLocationAirQuality,
       blocStatus: NearbyLocationStatus.searchComplete,
       surroundingSites: surroundingSites,
     ));
