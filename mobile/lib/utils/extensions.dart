@@ -496,11 +496,27 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     Point point, {
     double? radius,
   }) {
-    return where(
-      (element) =>
-          point.geoKmDistanceTo(element.point) <
-          (radius ?? Config.searchRadius.toDouble()),
+    double searchRadius = radius ?? Config.searchRadius.toDouble();
+    List<AirQualityReading> airQualityReadings = map((element) {
+      double distanceToPoint = point.geoKmDistanceTo(element.point);
+      element.distanceToPoint = distanceToPoint;
+      return element;
+    }).where(
+      (element) {
+        if (element.distanceToPoint == null) {
+          return false;
+        }
+        return element.distanceToPoint! < searchRadius;
+      },
     ).toList();
+
+    airQualityReadings.sort(
+      (x, y) {
+        return x.distanceToPoint!.compareTo(y.distanceToPoint!);
+      },
+    );
+
+    return airQualityReadings;
   }
 
   void sortByAirQuality({bool sortCountries = false}) {
@@ -511,6 +527,21 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 
       return a.pm2_5.compareTo(b.pm2_5);
     });
+  }
+
+  List<AirQualityReading> getAirQualityForCountries({
+    int numberPerCountry = 2,
+  }) {
+    final List<String> countries = map((e) => e.country).toSet().toList();
+    List<AirQualityReading> airQualityReadings = <AirQualityReading>[];
+    for (final country in countries) {
+      List<AirQualityReading> countryReadings =
+          where((element) => element.country.equalsIgnoreCase(country))
+              .toList();
+      countryReadings.shuffle();
+      airQualityReadings.addAll(countryReadings.take(numberPerCountry));
+    }
+    return airQualityReadings;
   }
 
   List<AirQualityReading> shuffleByCountry() {
@@ -533,15 +564,6 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     }
 
     return shuffledData;
-  }
-
-  void sortByDistanceToReferenceSite() {
-    // TODO review this
-    sort(
-      (x, y) {
-        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-      },
-    );
   }
 
   List<AirQualityReading> removeInvalidData() => toSet()

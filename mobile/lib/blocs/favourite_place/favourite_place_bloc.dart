@@ -20,21 +20,16 @@ class FavouritePlaceBloc
     Set<FavouritePlace> data,
   ) async {
     Set<FavouritePlace> places = Set.of(data);
-    places = places
-        .map((place) async {
-          try {
-            AirQualityReading? airQualityReading =
-                await LocationService.getSearchAirQuality(place.point);
+    Set<FavouritePlace> placesWithAirQuality = Set.of(data);
+    for (FavouritePlace place in places) {
+      AirQualityReading? airQualityReading =
+          await LocationService.getSearchAirQuality(place.point);
+      placesWithAirQuality.add(place.copyWith(
+        airQualityReading: airQualityReading,
+      ));
+    }
 
-            return place.copyWith(airQualityReading: airQualityReading);
-          } catch (e) {
-            return place;
-          }
-        })
-        .cast<FavouritePlace>()
-        .toSet();
-
-    return places;
+    return placesWithAirQuality;
   }
 
   Future<void>? _onEmitFavouritePlaces(
@@ -49,10 +44,11 @@ class FavouritePlaceBloc
       clear: true,
     );
 
-    favouritePlaces = await _updateAirQuality(favouritePlaces);
-    favouritePlacesList = favouritePlaces.toList();
-    favouritePlacesList.sortByAirQuality();
-    emit(favouritePlacesList);
+    await _updateAirQuality(favouritePlaces).then((value) {
+      favouritePlacesList = value.toList();
+      favouritePlacesList.sortByAirQuality();
+      emit(favouritePlacesList);
+    });
   }
 
   Future<void> _onUpdateFavouritePlace(

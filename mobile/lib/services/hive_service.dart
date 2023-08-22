@@ -123,8 +123,6 @@ class HiveService {
   ) async {
     final airQualityReadingsMap = <String, AirQualityReading>{};
 
-    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
-
     for (final airQualityReading in nearbyAirQualityReadings) {
       airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }

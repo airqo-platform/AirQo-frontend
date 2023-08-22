@@ -300,7 +300,7 @@ class AirqoApiClient {
         apiService: ApiService.predict,
       );
       Map<String, dynamic> data = body['data'] as Map<String, dynamic>;
-      print(body);
+
       return data.keys.isEmpty
           ? null
           : AirQualityReading.fromSearchAPI(

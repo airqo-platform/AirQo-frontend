@@ -257,6 +257,8 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   @HiveField(15, defaultValue: [])
   final List<HealthTip> healthTips;
 
+  double? distanceToPoint;
+
   Point get point => Point(latitude, longitude);
 
   AirQuality get airQuality => Pollutant.pm2_5.airQuality(pm2_5);

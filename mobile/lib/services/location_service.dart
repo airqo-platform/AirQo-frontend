@@ -121,12 +121,11 @@ class LocationService {
   }) {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
-    airQualityReadings = airQualityReadings.getNearbyAirQuality(
+
+    return airQualityReadings.getNearbyAirQuality(
       point,
       radius: radius,
     );
-    airQualityReadings.sortByDistanceToReferenceSite();
-    return airQualityReadings;
   }
 
   static Future<AirQualityReading?> getSearchAirQuality(
