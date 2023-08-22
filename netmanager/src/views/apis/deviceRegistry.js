@@ -228,16 +228,21 @@ export const updateDeviceHost = async (id, params) => {
     .catch((error) => error.response.data);
 };
 
-export const sendMoneyToHost = async (id, params) => {
+export const sendMoneyToHost = async (id, amount) => {
   return await axios
-    .post(`${SEND_DEVICE_HOST_MONEY}/${id}/payments`, params)
+    .post(`${SEND_DEVICE_HOST_MONEY}/${id}/payments`, { amount })
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };
 
 export const getTransactionDetails = async (id) => {
-  return await axios
-    .get(`${GET_TRANSACTION_HISTORY}/${id}`, { params: { token: BASE_AUTH_TOKEN } })
-    .then((response) => response.data)
-    .catch((error) => error.response.data);
+  try {
+    const response = await axios.get(`${GET_TRANSACTION_HISTORY}/${id}`, {
+      params: { token: BASE_AUTH_TOKEN }
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return error.response.data;
+  }
 };

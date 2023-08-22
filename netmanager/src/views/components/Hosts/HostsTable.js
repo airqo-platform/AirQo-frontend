@@ -17,8 +17,8 @@ import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { getAllDeviceHosts, createDeviceHost } from '../../apis/deviceRegistry';
-import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
-import { loadSitesSummary } from 'redux/SiteRegistry/operations';
+import { useSitesSummaryData, useSitesData } from 'redux/SiteRegistry/selectors';
+import { loadSitesSummary, loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 
@@ -91,7 +91,7 @@ const useStyles = makeStyles((theme) => ({
 
 const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdded }) => {
   const dispatch = useDispatch();
-  const sites = useSitesSummaryData();
+  const sitesData = useSitesData();
   const classes = useStyles();
   const hostInitialState = {
     first_name: '',
@@ -173,10 +173,10 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
   };
 
   useEffect(() => {
-    if (isEmpty(sites)) {
+    if (isEmpty(sitesData)) {
       setLoading(true);
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name));
       }
       setLoading(false);
     }
@@ -260,7 +260,12 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
           <Select
             label="Sites"
             name="site_id"
-            options={sites.map((site) => ({ value: site._id, label: site.name }))}
+            options={
+              Object.values(sitesData).map((site) => ({
+                value: site._id,
+                label: site.name
+              })) || []
+            }
             value={selectedOption}
             onChange={onChangeDropdown}
             styles={customStyles}
@@ -293,7 +298,7 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
 
 const HostsTable = () => {
   const dispatch = useDispatch();
-  const sites = useSitesSummaryData();
+  const sitesdata = useSitesData();
   const history = useHistory();
   const classes = useStyles();
   const [hosts, setHosts] = useState([]);
@@ -316,10 +321,10 @@ const HostsTable = () => {
   };
 
   useEffect(() => {
-    if (isEmpty(sites)) {
+    if (isEmpty(sitesdata)) {
       setLoading(true);
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name));
       }
       setLoading(false);
     }
@@ -399,10 +404,27 @@ const HostsTable = () => {
         ]}
         onRowClick={(event, data) => {
           event.preventDefault();
-          const matchingSite = sites.find((site) => site._id === data.site_id);
+          const matchingSite = Object.values(sitesdata).find((site) => site._id === data.site_id);
           if (matchingSite) {
-            const deviceNames = matchingSite.devices.map((device) => device.name);
-            history.push(`/device/${deviceNames}/hosts`);
+            const deviceName =
+              matchingSite && matchingSite.devices
+                ? matchingSite.devices.map((device) => device.name)
+                : [];
+            const deviceStatus =
+              matchingSite && matchingSite.devices
+                ? matchingSite.devices.map((device) => device.status)
+                : [];
+            if (deviceStatus.includes('deployed')) {
+              history.push(`/device/${deviceName}/hosts`);
+            } else {
+              dispatch(
+                updateMainAlert({
+                  severity: 'error',
+                  message: 'Device for this host is not deployed.',
+                  show: true
+                })
+              );
+            }
           }
         }}
         data={hosts || []}

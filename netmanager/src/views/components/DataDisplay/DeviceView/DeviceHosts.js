@@ -18,7 +18,7 @@ import { makeStyles } from '@material-ui/styles';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
-import { isEmpty } from 'underscore';
+import { get, isEmpty } from 'underscore';
 
 import ErrorBoundary from '../../../ErrorBoundary/ErrorBoundary';
 import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
@@ -367,8 +367,6 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
     }
   };
 
-  console.log('ppp', data);
-
   const handleMobileMoney = async () => {
     try {
       setLoading(true);
@@ -509,6 +507,19 @@ const DeviceHosts = ({ deviceData }) => {
   const [refreshData, setRefreshData] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
+  const matchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
+  const hostsIds = matchingHosts.map((host) => host._id);
+
+  const getTransactions = async () => {
+    try {
+      const response = await getTransactionDetails(hostsIds);
+      setTransactions(response);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getHosts = async () => {
     try {
       setIsLoading(true);
@@ -522,19 +533,6 @@ const DeviceHosts = ({ deviceData }) => {
     }
   };
 
-  // const getTransactionHistory = async () => {
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await getTransactionDetails();
-  //     const { transactions } = response;
-  //     setTransactions(transactions);
-  //     setIsLoading(false);
-  //   } catch (error) {
-  //     console.log(error);
-  //     setIsLoading(false);
-  //   }
-  // };
-
   useEffect(() => {
     if (isEmpty(sites)) {
       setLoading(true);
@@ -543,13 +541,12 @@ const DeviceHosts = ({ deviceData }) => {
       }
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     getHosts();
+    getTransactions();
   }, [refreshData]);
-
-  const matchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
 
   return (
     <ErrorBoundary>

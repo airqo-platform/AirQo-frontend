@@ -19,7 +19,11 @@ import {
 import Collapse from '@material-ui/core/Collapse';
 import Link from '@material-ui/core/Link';
 import Hidden from '@material-ui/core/Hidden';
+import { isEmpty } from 'underscore';
+import { useDispatch, useSelector } from 'react-redux';
 import { useDeviceOverviewBackUrlsData } from 'redux/Urls/selectors';
+import { getOrgDevices } from '../../../../redux/DeviceOverview/OverviewSlice';
+
 import { last } from 'underscore';
 
 const a11yProps = (index) => {
@@ -91,7 +95,10 @@ const LinkTab = (props) => {
   );
 };
 
+const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+
 export const DeviceToolBar = ({ deviceName }) => {
+  const dispatch = useDispatch();
   const classes = useStyles();
   const match = useRouteMatch();
   const history = useHistory();
@@ -99,6 +106,13 @@ export const DeviceToolBar = ({ deviceName }) => {
   const [value, setValue] = React.useState(history.location.pathname);
   const [miniValue, setMiniValue] = React.useState(last(history.location.pathname.split('/')));
   const [show, setShow] = React.useState(false);
+  const devices = useSelector((state) => state.deviceOverviewData.devices);
+  let deviceData = {};
+
+  const selectedDevice = devices.filter((device) => device.name === deviceName);
+  selectedDevice.forEach((device) => {
+    deviceData = { ...device };
+  });
 
   const { pathname } = useLocation();
 
@@ -127,6 +141,12 @@ export const DeviceToolBar = ({ deviceName }) => {
     setMiniValue(value);
     history.push(url);
   };
+
+  useEffect(() => {
+    if (isEmpty(devices)) {
+      dispatch(getOrgDevices(activeNetwork.net_name));
+    }
+  }, []);
 
   return (
     <div className={`${classes.root} ${classes.margin}`}>
@@ -220,7 +240,8 @@ export const DeviceToolBar = ({ deviceName }) => {
                 label="Hosts"
                 icon={<PeopleOutline style={iconStyles} />}
                 value={`${match.url}/hosts`}
-                {...a11yProps(3)}
+                {...a11yProps(6)}
+                disabled={deviceData.status === 'deployed' ? false : true}
               />
             </Tabs>
           </div>
