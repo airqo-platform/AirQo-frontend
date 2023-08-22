@@ -491,9 +491,7 @@ class InsightsPageAppBar extends StatelessWidget
           Text(AppLocalizations.of(context)!.moreInsights,
               style: CustomTextStyle.headline8(context)),
           FutureBuilder<Uri>(
-            future: ShareService.createShareLink(
-              airQualityReading: airQualityReading,
-            ),
+            future: airQualityReading.createShareLink(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 showSnackBar(context,

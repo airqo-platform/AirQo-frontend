@@ -96,6 +96,7 @@ class FavouritePlaceCard extends StatelessWidget {
                             child: HeartIcon(
                               showAnimation: false,
                               placeId: favouritePlace.placeId,
+                              isEnabled: true,
                             ),
                           ),
                         ),

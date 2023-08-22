@@ -57,13 +57,13 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       longitude: point.longitude,
       country: "",
       region: "",
-      source: "AirQo",
       pm2_5: json["pm2_5"] as double,
       pm10: null,
       name: "",
       location: "",
       shareLink: "",
       healthTips: healthTips,
+      dataProvider: '',
     );
   }
 
