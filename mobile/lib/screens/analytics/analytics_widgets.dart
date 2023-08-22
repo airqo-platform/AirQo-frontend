@@ -410,9 +410,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     ),
                     InkWell(
                       onTap: () async {
-                        if (airQualityReading.referenceSite.isNotEmpty) {
-                          await _updateFavPlace();
-                        }
+                        await _updateFavPlace();
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -422,7 +420,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         child: HeartIcon(
                           showAnimation: _showHeartAnimation,
                           placeId: airQualityReading.placeId,
-                          isEnabled: airQualityReading.referenceSite.isNotEmpty,
                         ),
                       ),
                     ),

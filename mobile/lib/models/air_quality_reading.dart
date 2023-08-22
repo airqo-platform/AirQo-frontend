@@ -57,7 +57,7 @@ class AirQualityReading extends HiveObject with EquatableMixin {
       longitude: point.longitude,
       country: "",
       region: "",
-      pm2_5: json["pm2_5"] as double,
+      pm2_5: double.parse((json["pm2_5"] as double).toStringAsFixed(2)),
       pm10: null,
       name: "",
       location: "",

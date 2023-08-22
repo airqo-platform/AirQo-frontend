@@ -316,7 +316,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
     required this.airQualityReading,
   });
 
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -325,9 +325,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       width: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Pollutant.pm2_5.color(
-          airQualityReading.pm2_5,
-        ),
+        color: airQualityReading == null
+            ? CustomColors.greyColor
+            : Pollutant.pm2_5.color(
+                airQualityReading!.pm2_5,
+              ),
         border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
@@ -342,18 +344,23 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             height: 5,
             width: 32.45,
             colorFilter: ColorFilter.mode(
-              Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
+              airQualityReading == null
+                  ? CustomColors.greyColor
+                  : Pollutant.pm2_5.textColor(
+                      value: airQualityReading!.pm2_5,
+                    ),
               BlendMode.srcIn,
             ),
           ),
           AutoSizeText(
-            airQualityReading.pm2_5.toStringAsFixed(0),
+            airQualityReading == null
+                ? "--"
+                : airQualityReading!.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
-              value: airQualityReading.pm2_5,
+              value:
+                  airQualityReading == null ? null : airQualityReading!.pm2_5,
             )?.copyWith(fontSize: 20),
           ),
           SvgPicture.asset(
@@ -362,9 +369,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             height: 5,
             width: 32,
             colorFilter: ColorFilter.mode(
-              Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
+              airQualityReading == null
+                  ? CustomColors.greyColor
+                  : Pollutant.pm2_5.textColor(
+                      value: airQualityReading!.pm2_5,
+                    ),
               BlendMode.srcIn,
             ),
           ),
@@ -380,12 +389,10 @@ class HeartIcon extends StatelessWidget {
     super.key,
     required this.showAnimation,
     required this.placeId,
-    required this.isEnabled,
   });
 
   final bool showAnimation;
   final String placeId;
-  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -415,18 +422,10 @@ class HeartIcon extends StatelessWidget {
                     ? 'assets/icon/heart.svg'
                     : 'assets/icon/heart_dislike.svg',
                 semanticsLabel: 'Favorite',
-                height: isEnabled ? 16.67 : 20,
-                width: isEnabled ? 16.67 : 20,
+                height: 16.67,
+                width: 16.67,
               ),
             ),
-            if (!isEnabled)
-              Align(
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.block,
-                  color: CustomColors.appColorRed,
-                ),
-              ),
           ],
         );
       },
@@ -557,16 +556,13 @@ class _AirQualityActionsState extends State<AirQualityActions> {
           child: OutlinedButton(
             style: _rightButtonStyle,
             onPressed: () {
-              if (widget.airQualityReading.referenceSite.isNotEmpty) {
-                _updateFavPlace(context);
-              }
+              _updateFavPlace(context);
             },
             child: Center(
               child: IconTextButton(
                 iconWidget: HeartIcon(
                   showAnimation: _showHeartAnimation,
                   placeId: widget.airQualityReading.placeId,
-                  isEnabled: widget.airQualityReading.referenceSite.isNotEmpty,
                 ),
                 text: AppLocalizations.of(context)!.favorite,
               ),

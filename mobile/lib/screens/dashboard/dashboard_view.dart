@@ -58,7 +58,6 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
   final ScrollController _scrollController = ScrollController();
-  final HiveService _hiveService = HiveService();
 
   @override
   Widget build(BuildContext context) {

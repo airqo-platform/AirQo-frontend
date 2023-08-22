@@ -16,28 +16,31 @@ class FavouritePlaceBloc
     on<UpdateFavouritePlace>(_onUpdateFavouritePlace);
   }
 
-  Set<FavouritePlace> _updateAirQuality(Set<FavouritePlace> data) {
-    List<AirQualityReading> airQualityReadings =
-        HiveService().getAirQualityReadings();
+  Future<Set<FavouritePlace>> _updateAirQuality(
+    Set<FavouritePlace> data,
+  ) async {
+    Set<FavouritePlace> places = Set.of(data);
+    places = places
+        .map((place) async {
+          try {
+            AirQualityReading? airQualityReading =
+                await LocationService.getSearchAirQuality(place.point);
 
-    return Set.of(data).map((place) {
-      try {
-        AirQualityReading airQualityReading = airQualityReadings.firstWhere(
-          (element) => element.referenceSite == place.referenceSite,
-        );
+            return place.copyWith(airQualityReading: airQualityReading);
+          } catch (e) {
+            return place;
+          }
+        })
+        .cast<FavouritePlace>()
+        .toSet();
 
-        return place.copyWith(airQualityReading: airQualityReading);
-      } catch (e) {
-        return place;
-      }
-    }).toSet();
+    return places;
   }
 
   Future<void>? _onEmitFavouritePlaces(
     Set<FavouritePlace> favouritePlaces,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    favouritePlaces = _updateAirQuality(favouritePlaces);
     List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
     favouritePlacesList.sortByAirQuality();
     emit(favouritePlacesList);
@@ -45,6 +48,11 @@ class FavouritePlaceBloc
       favouritePlacesList,
       clear: true,
     );
+
+    favouritePlaces = await _updateAirQuality(favouritePlaces);
+    favouritePlacesList = favouritePlaces.toList();
+    favouritePlacesList.sortByAirQuality();
+    emit(favouritePlacesList);
   }
 
   Future<void> _onUpdateFavouritePlace(
@@ -75,7 +83,7 @@ class FavouritePlaceBloc
   ) async {
     List<FavouritePlace> favouritePlaces = List.of(state);
     emit([]);
-    await AirqoApiClient().syncFavouritePlaces(favouritePlaces);
+    await AirqoApiClient().syncFavouritePlaces(favouritePlaces, clear: true);
   }
 
   Future<void> _onSyncFavouritePlaces(
@@ -90,30 +98,12 @@ class FavouritePlaceBloc
 
     favouritePlaces.addAll(apiFavouritePlaces.toSet());
 
-    Set<FavouritePlace> updatedFavouritePlaces = {};
-
-    for (final favPlace in favouritePlaces) {
-      final nearestSite =
-          LocationService.getSurroundingSites(favPlace.point).firstOrNull;
-
-      if (nearestSite != null) {
-        updatedFavouritePlaces
-            .add(favPlace.copyWith(referenceSite: nearestSite.referenceSite));
-      } else {
-        updatedFavouritePlaces.add(favPlace);
-      }
-    }
-
-    _onEmitFavouritePlaces(updatedFavouritePlaces, emit);
+    _onEmitFavouritePlaces(favouritePlaces, emit);
   }
 
   @override
   List<FavouritePlace>? fromJson(Map<String, dynamic> json) {
-    List<FavouritePlace> favouritePlaces =
-        FavouritePlaceList.fromJson(json).data;
-    favouritePlaces = _updateAirQuality(favouritePlaces.toSet()).toList();
-
-    return favouritePlaces;
+    return FavouritePlaceList.fromJson(json).data;
   }
 
   @override
