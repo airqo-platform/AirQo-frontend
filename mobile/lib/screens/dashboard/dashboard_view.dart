@@ -447,7 +447,6 @@ class _DashboardViewState extends State<DashboardView>
     _locationServiceStream.cancel();
     _locationPositionStream.cancel();
     _scrollController.dispose();
-
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
