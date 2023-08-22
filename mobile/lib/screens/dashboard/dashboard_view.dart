@@ -454,7 +454,6 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
-
     _favToolTipKey = GlobalKey();
     _kyaToolTipKey = GlobalKey();
     _favoritesShowcaseKey = GlobalKey();
