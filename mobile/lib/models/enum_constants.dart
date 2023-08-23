@@ -716,11 +716,11 @@ enum TitleOptions {
   String getAbbr(BuildContext context) {
     switch (this) {
       case TitleOptions.ms:
-        return AppLocalizations.of(context)!.ms;
+        return AppLocalizations.of(context)!.msAbbr;
       case TitleOptions.mr:
-        return AppLocalizations.of(context)!.mr;
+        return AppLocalizations.of(context)!.mrAbbr;
       case TitleOptions.undefined:
-        return AppLocalizations.of(context)!.ratherNotSay;
+        return AppLocalizations.of(context)!.ratherNotSayAbbr;
     }
   }
 

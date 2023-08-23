@@ -36,14 +36,15 @@ class FavouritePlaceBloc
   Future<void>? _onEmitFavouritePlaces(
     Set<FavouritePlace> favouritePlaces,
     Emitter<List<FavouritePlace>> emit,
-  ) {
+  ) async {
     favouritePlaces = _updateAirQuality(favouritePlaces);
     List<FavouritePlace> favouritePlacesList = favouritePlaces.toList();
     favouritePlacesList.sortByAirQuality();
     emit(favouritePlacesList);
-    AirqoApiClient().syncFavouritePlaces(favouritePlacesList);
-
-    return null;
+    await AirqoApiClient().syncFavouritePlaces(
+      favouritePlacesList,
+      clear: true,
+    );
   }
 
   Future<void> _onUpdateFavouritePlace(
@@ -54,9 +55,6 @@ class FavouritePlaceBloc
 
     bool exists = favouritePlaces.contains(event.favouritePlace);
     if (exists) {
-      if (favouritePlaces.length == 1) {
-        _onClearFavouritePlaces(const ClearFavouritePlaces(), emit);
-      }
       favouritePlaces.remove(event.favouritePlace);
     } else {
       favouritePlaces.add(event.favouritePlace);
@@ -75,12 +73,9 @@ class FavouritePlaceBloc
     ClearFavouritePlaces _,
     Emitter<List<FavouritePlace>> emit,
   ) async {
-    await AirqoApiClient().syncFavouritePlaces(
-      [],
-      clear: true,
-    ).then((value) async {
-      await _onEmitFavouritePlaces({}, emit);
-    });
+    List<FavouritePlace> favouritePlaces = List.of(state);
+    emit([]);
+    await AirqoApiClient().syncFavouritePlaces(favouritePlaces);
   }
 
   Future<void> _onSyncFavouritePlaces(
@@ -94,8 +89,6 @@ class FavouritePlaceBloc
     Set<FavouritePlace> favouritePlaces = state.toSet();
 
     favouritePlaces.addAll(apiFavouritePlaces.toSet());
-
-    _onEmitFavouritePlaces(favouritePlaces, emit);
 
     Set<FavouritePlace> updatedFavouritePlaces = {};
 
@@ -112,8 +105,6 @@ class FavouritePlaceBloc
         updatedFavouritePlaces.add(favPlace);
       }
     }
-
-    updatedFavouritePlaces = _updateAirQuality(updatedFavouritePlaces);
 
     _onEmitFavouritePlaces(updatedFavouritePlaces, emit);
   }
