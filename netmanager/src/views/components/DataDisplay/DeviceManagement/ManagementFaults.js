@@ -63,20 +63,25 @@ const faultColumns = [
 
 const ManagementFaults = () => {
   const classes = useStyles();
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const [faults, setFaults] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await faultsPredictApi();
-      if (response) {
-        const currentDate = new Date().toISOString().split('T')[0];
-        const filteredFaults = response.filter(
-          (fault) => fault.created_at.split('T')[0] === currentDate
-        );
-        setFaults(filteredFaults);
+      try {
+        const response = await faultsPredictApi();
+        if (response) {
+          const currentDate = new Date().toISOString().split('T')[0];
+          const filteredFaults = response.filter(
+            (fault) => fault.created_at.split('T')[0] === currentDate
+          );
+          setFaults(filteredFaults);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, []);
@@ -90,7 +95,7 @@ const ManagementFaults = () => {
           userPreferencePaginationKey={'faults'}
           columns={faultColumns}
           data={faults}
-          isLoading={loading}
+          isLoading={isLoading}
           options={{
             search: true,
             exportButton: false,
