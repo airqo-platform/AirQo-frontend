@@ -41,3 +41,4 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         directory: mobile/coverage/
+        verbose: true
