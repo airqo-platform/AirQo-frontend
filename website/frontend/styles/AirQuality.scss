@@ -66,10 +66,13 @@
           border-radius: 8px;
           display: flex;
           flex-direction: column;
-          padding: 15px 20px 8px 30px;
+          padding: 24px 25px;
           width: 400px;
           height: auto;
-          // cursor: pointer;
+          gap: 4px;
+          cursor: pointer;
+          transition: all 0.2s linear;
+
           h4 {
             font-size: 20px;
             line-height: 30px;
@@ -90,22 +93,16 @@
           }
         }
         .selected {
-          // border: 2px solid $aq-blue-9;
-          //   border: 2px solid $aq-white-6;
-          // box-shadow: 0px 0px 0px 4px #ECF2FF;
-          // background-color: rgba(255, 255, 255, 0.16);
-        }
-        .unselected {
-          //   border: 2px solid $aq-white-6;
+          background-color: $aq-blue-12;
         }
         #first {
           margin-top: 24px;
-          background-color: $aq-blue-12;
         }
         #second {
           margin: 24px 0 24px 0;
         }
       }
+
       .image {
         img {
           height: 368px;
@@ -142,7 +139,7 @@
           .card {
             width: 85vw;
             height: fit-content;
-            padding: 12px 0 0 16px;
+            padding: 20px 5px 20px 5px;
             border: 2px solid #e8effc;
             h4 {
               margin-bottom: -14px;
@@ -157,8 +154,7 @@
             }
           }
           .selected {
-            border: 2px solid #e8effc;
-            box-shadow: none;
+            background-color: $aq-blue-12;
           }
           #second {
             margin: 15px 0 10px 0;

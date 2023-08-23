@@ -5,29 +5,18 @@ import {
   LOAD_PM25_SENSOR_DATA_SUCCESS,
   LOAD_PM25_SENSOR_DATA_FAILURE,
   LOAD_MAP_EVENTS_SUCCESS,
-  LOAD_MAP_EVENTS_FAILURE
-} from './actions';
-import { heatmapPredictApi } from 'views/apis/predict';
-import { getMonitoringSitesInfoApi } from 'views/apis/analytics';
-import { transformDataToGeoJson } from 'views/pages/Map/utils';
-import { getEventsApi } from 'views/apis/deviceRegistry';
+  LOAD_MAP_EVENTS_FAILURE,
+} from "./actions";
+import { heatmapPredictApi } from "views/apis/predict";
+import { getMonitoringSitesInfoApi } from "views/apis/analytics";
+import { transformDataToGeoJson } from "views/pages/Map/utils";
+import { getEventsApi } from "views/apis/deviceRegistry";
 
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const res = responseData.data.map((airqloud) => airqloud.values);
-      let values = [].concat(...res);
-      const heatMapValues = values.map((value) => value);
-
-      const payload = transformDataToGeoJson(
-        heatMapValues || [],
-        {
-          latitude: 'latitude',
-          longitude: 'longitude'
-        },
-        undefined,
-        (feature) => feature
-      );
+      const res = responseData.data.predictions
+      const payload = res;
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload
