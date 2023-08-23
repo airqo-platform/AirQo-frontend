@@ -272,49 +272,63 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   final double rightPadding;
   final FavouritePlace favouritePlace;
 
-  @override
-  Widget build(BuildContext context) {
-    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
-    if (airQualityReading == null) {
-      return Positioned(
-        right: rightPadding,
-        child: const CircularLoadingAnimation(
-          size: 32,
-        ),
-      );
+  Future<AirQualityReading?> getAirQuality() async {
+    if (favouritePlace.airQualityReading != null) {
+      return favouritePlace.airQualityReading;
     }
 
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
+    return LocationService.getSearchAirQuality(favouritePlace.point);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<AirQualityReading?>(
+        future: getAirQuality(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            AirQualityReading? airQualityReading = snapshot.data;
+            if (airQualityReading != null) {
+              return Positioned(
+                right: rightPadding,
+                child: Container(
+                  height: 32.0,
+                  width: 32.0,
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    border: Border.fromBorderSide(
+                      BorderSide(
+                        color: CustomColors.appBodyColor,
+                        width: 2,
+                      ),
+                    ),
+                    color: Pollutant.pm2_5.color(
+                      airQualityReading.pm2_5,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${airQualityReading.pm2_5}',
+                      style: TextStyle(
+                        fontSize: 7,
+                        color: Pollutant.pm2_5.textColor(
+                          value: airQualityReading.pm2_5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
+          return Positioned(
+            right: rightPadding,
+            child: const CircularLoadingAnimation(
+              size: 32,
             ),
-          ),
-          color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            '${airQualityReading.pm2_5}',
-            style: TextStyle(
-              fontSize: 7,
-              color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 
