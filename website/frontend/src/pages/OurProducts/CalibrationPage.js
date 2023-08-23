@@ -30,21 +30,20 @@ const CalibrationPage = () => {
                 <span className="blue"> Why calibrate</span> your low-cost sensor data?
               </h2>
               <p className="right">
-              Low cost sensors are relied on to increase the geographical coverage of air quality monitoring networks. 
-              However, they are sensitive to ambient conditions such as humidity and temperature which could affect 
-              the accuracy of air quality data and require field calibration to improve their performance.              
-              Calibration enhances the quality and reliability of air quality data from low-cost sensors
+              Low cost sensors are relied on to increase the geographical coverage of air quality monitoring networks but, they are sensitive to ambient conditions (humidity, temperature) which could affect 
+              the accuracy of air quality data.              
+              <br/>Calibration enhances the quality and reliability of air quality data from low-cost sensors.
               </p>
             </div>
             <div className="overlap-section">
               <div className="lapping-left card" /*card-sm larger-top*/  style={{ backgroundColor: '#FFFCE1' }}>
                 <h5>Cost effective and accessible</h5>
                 <p>
-                AirQalibrate is a Machine Learning based calibration tool that eliminates the need for reference grade monitor 
+                AirQalibrate is a Machine Learning based calibration tool that eliminates the need for reference grade monitors 
                 or on-site monitor calibration.<br />
                 <br />
                 It enables users without access to reference grade monitors or technical expertise 
-                to calibrate data from their low-cost monitors and improve performance and build trust in the air quality network.<br />
+                to calibrate data from their low-cost monitors, improve performance and build trust in the air quality network.<br />
                 <br />
                 This reduces operational costs involved in monitoring thereby enabling the expansion of monitoring systems 
                 to create a dense air quality monitoring and management network.
