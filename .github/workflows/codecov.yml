@@ -35,7 +35,7 @@ jobs:
         
     - name: Run tests
       run: |
-        cd mobile/test/screens/insights/insights_widgets_test.dart
+        cd test/screens/insights/insights_widgets_test.dart
         flutter test --coverage
 
     - name: Upload coverage to codecov
