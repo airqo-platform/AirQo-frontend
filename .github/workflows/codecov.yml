@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mobile/test/screens/insights/insights_widgets_test.dart
+        working-directory: mobile
     name: Test codeCov
     steps:
     - uses: actions/checkout@v3
@@ -34,7 +34,9 @@ jobs:
       run: flutter pub get
         
     - name: Run tests
-      run:  flutter test --coverage
+      run: |
+        cd mobile/test/screens/insights/insights_widgets_test.dart
+        flutter test --coverage
 
     - name: Upload coverage to codecov
       run: curl -s https://codecov.io/bash
