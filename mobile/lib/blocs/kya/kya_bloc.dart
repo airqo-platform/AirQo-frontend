@@ -17,7 +17,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     on<FetchKya>(_onFetchKya);
     on<FetchQuizzes>(_onFetchQuizzes);
     on<UpdateQuizProgress>(_onUpdateQuizProgress);
-    on<ClearQuizzes>(_onClearQuizzes as EventHandler<ClearQuizzes, KyaState>);
+    on<ClearQuizzes>(_onClearQuizzes);
     //
   }
 
@@ -71,7 +71,7 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     }
   }
 
-  Future<void> _onClearQuizzes(ClearKya _, Emitter<KyaState> emit) async {
+  Future<void> _onClearQuizzes(ClearQuizzes _, Emitter<KyaState> emit) async {
     final userId = CustomAuth.getUserId();
     List<Quiz> quizzes = await AirqoApiClient().fetchQuizzes(userId);
     if (quizzes.isEmpty) {
