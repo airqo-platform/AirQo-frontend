@@ -462,6 +462,7 @@ class AirqoApiClient {
         url,
         apiService: ApiService.deviceRegistry,
       );
+      print("iiiiiii");
       for (dynamic quiz in body['kya_quizzes'] as List<dynamic>) {
         Quiz apiQuiz = Quiz.fromJson(quiz as Map<String, dynamic>);
         quizzes.add(apiQuiz);
@@ -493,6 +494,8 @@ class AirqoApiClient {
           'kya_quiz_user_progress': quizzes.map((e) => e.toJson()).toList(),
         }),
       );
+      print("iiiiiiiiiii");
+
       final responseBody = json.decode(response.body);
 
       return responseBody['success'] as bool;
