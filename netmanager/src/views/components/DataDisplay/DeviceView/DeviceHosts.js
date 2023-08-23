@@ -672,7 +672,6 @@ const DeviceHosts = ({ deviceData }) => {
               render: (rowData) => `${rowData.createdAt}`
             }
           ]}
-          // THE DATA FROM THE DATABASE;
           data={transactions}
           isLoading={isLoading}
           options={{
