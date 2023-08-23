@@ -1,9 +1,11 @@
-
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
+import 'package:app/services/native_api.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
@@ -42,12 +44,17 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        // color: Colors.red,
-                        image: const DecorationImage(
+                        image: DecorationImage(
                           fit: BoxFit.cover,
-                          image: AssetImage('assets/images/quizImage.png'),
-                          //   image: NetworkImage(
-                          //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
+                          image: CachedNetworkImageProvider(
+                            quiz.imageUrl,
+                            cacheKey: quiz.imageUrlCacheKey(),
+                            cacheManager: CacheManager(
+                              CacheService.cacheConfig(
+                                quiz.imageUrlCacheKey(),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

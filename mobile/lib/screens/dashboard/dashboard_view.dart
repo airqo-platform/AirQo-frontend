@@ -350,6 +350,31 @@ class _DashboardViewState extends State<DashboardView>
 
                   //     return QuizCard(inCompleteQuizzes.first);
                   //   },
+                  // BlocBuilder<KyaBloc, KyaState>(
+                  //   builder: (context, state) {
+                  //     List<KyaLesson> inCompleteLessons =
+                  //         state.lessons.filterInCompleteLessons();
+
+                  //     if (inCompleteLessons.isEmpty) {
+                  //       _kyaExists = false;
+
+                  //       return const SizedBox();
+                  //     }
+
+                  //     return Padding(
+                  //       padding: const EdgeInsets.only(top: 16),
+                  //       child: CustomShowcaseWidget(
+                  //         showcaseKey: _kyaShowcaseKey,
+                  //         descriptionHeight: screenSize.height * 0.14,
+                  //         description: AppLocalizations.of(context)!
+                  //             .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                  //         child: KyaCardWidget(
+                  //           inCompleteLessons.first,
+                  //         ),
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
                   BlocConsumer<DashboardBloc, DashboardState>(
                     listener: (context, state) {
                       if (state.scrollToTop) {
