@@ -16,6 +16,13 @@ class SyncProfile extends ProfileEvent {
   List<Object?> get props => [];
 }
 
+class FetchProfile extends ProfileEvent {
+  const FetchProfile();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class UpdateProfile extends ProfileEvent {
   const UpdateProfile(this.profile);
   final Profile profile;
