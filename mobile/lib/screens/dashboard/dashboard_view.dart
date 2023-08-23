@@ -320,15 +320,12 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      List<Quiz> completeQuizzes = state.quizzes
+                      List<Quiz> inCompleteQuizzes = state.quizzes
                           .where((quiz) => quiz.status == QuizStatus.complete)
                           .toList();
-                      if (completeQuizzes.isEmpty) {
+                      if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
-
-                        return const KyaCardWidget(
-                         
-                        );
+                        return const SizedBox();
                       }
 
                       return CustomShowcaseWidget(
@@ -336,7 +333,7 @@ class _DashboardViewState extends State<DashboardView>
                         descriptionHeight: screenSize.height * 0.17,
                         description: AppLocalizations.of(context)!
                             .findAmazingContentSpecificallyDesignedForYouHere,
-                        child: QuizCard(completeQuizzes.first),
+                        child: QuizCard(inCompleteQuizzes.first),
                       );
                     },
                   ),
