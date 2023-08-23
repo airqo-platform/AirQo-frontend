@@ -75,9 +75,7 @@ jobs:
         run: flutter pub get
         
       - name: Run tests
-        run: |
-          cd mobile
-          flutter test --coverage
+        run: flutter test --coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
