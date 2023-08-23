@@ -5,6 +5,8 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
+import 'package:app/screens/kya/know_your_air_view.dart';
+import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -318,16 +320,38 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
-                      if (inCompleteQuizzes.isEmpty) {
+                      List<Quiz> completeQuizzes = state.quizzes
+                          .where((quiz) => quiz.status == QuizStatus.complete)
+                          .toList();
+                      if (completeQuizzes.isEmpty) {
                         _kyaExists = false;
 
-                        return const SizedBox();
+                        return const KyaCardWidget(
+                         
+                        );
                       }
 
-                      return QuizCard(inCompleteQuizzes.first);
+                      return CustomShowcaseWidget(
+                        showcaseKey: _kyaShowcaseKey,
+                        descriptionHeight: screenSize.height * 0.17,
+                        description: AppLocalizations.of(context)!
+                            .findAmazingContentSpecificallyDesignedForYouHere,
+                        child: QuizCard(completeQuizzes.first),
+                      );
                     },
                   ),
+
+                  // BlocBuilder<KyaBloc, KyaState>(
+                  //   builder: (context, state) {
+                  //     List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
+                  //     if (inCompleteQuizzes.isEmpty) {
+                  //       _kyaExists = false;
+
+                  //       return const SizedBox();
+                  //     }
+
+                  //     return QuizCard(inCompleteQuizzes.first);
+                  //   },
                   BlocConsumer<DashboardBloc, DashboardState>(
                     listener: (context, state) {
                       if (state.scrollToTop) {
