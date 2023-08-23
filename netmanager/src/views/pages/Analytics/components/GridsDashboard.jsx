@@ -4,7 +4,7 @@ import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
 import { AveragesChart, ExceedancesChart } from '../../Dashboard/components';
-import GridSitesTable from './sites_table';
+import GridSitesTable from './SitesTable';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
