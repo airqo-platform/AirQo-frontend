@@ -5,9 +5,9 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/screens/kya/know_your_air_view.dart';
-import 'package:app/screens/kya/kya_widgets.dart';
-import 'package:app/screens/quiz/quiz_widgets.dart';
+import 'package:app/screens/quiz/quiz_view.dart';
+//import 'package:app/screens/kya/know_your_air_view.dart';
+//import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -50,6 +50,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _forYouShowcaseKey;
   late GlobalKey _kyaShowcaseKey;
   late GlobalKey _analyticsShowcaseKey;
+  late GlobalKey _quizShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
   bool _kyaExists = true, _nearbyLocationExists = false;
@@ -330,7 +331,7 @@ class _DashboardViewState extends State<DashboardView>
                       }
 
                       return CustomShowcaseWidget(
-                        showcaseKey: _kyaShowcaseKey,
+                        showcaseKey: _quizShowcaseKey,
                         descriptionHeight: screenSize.height * 0.17,
                         description: AppLocalizations.of(context)!
                             .findAmazingContentSpecificallyDesignedForYouHere,
