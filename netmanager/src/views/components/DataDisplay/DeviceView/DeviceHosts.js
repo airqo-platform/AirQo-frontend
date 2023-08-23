@@ -681,7 +681,11 @@ const DeviceHosts = ({ deviceData }) => {
             {
               title: 'Date',
               field: 'createdAt',
-              render: (rowData) => `${rowData.createdAt}`
+              render: (rowData) => {
+                const date = new Date(rowData.createdAt);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+              }
             }
           ]}
           data={transactions}

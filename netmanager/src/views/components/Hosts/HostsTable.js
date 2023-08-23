@@ -395,7 +395,11 @@ const HostsTable = () => {
           {
             title: 'Date Added',
             field: 'date_added',
-            render: (rowData) => new Date(rowData.createdAt).toLocaleString(),
+            render: (rowData) => {
+              const date = new Date(rowData.createdAt);
+              const options = { year: 'numeric', month: 'long', day: 'numeric' };
+              return date.toLocaleDateString('en-US', options);
+            },
             cellStyle: {
               width: '20%',
               minWidth: '20%'
