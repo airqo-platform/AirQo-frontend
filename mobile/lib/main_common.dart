@@ -19,6 +19,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp(this.initialLink, {super.key});
@@ -128,6 +129,19 @@ class AppHttpOverrides extends HttpOverrides {
       ..badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
   }
+}
+
+Future<void> remoteConfigSetup() async {
+  final remoteConfig = FirebaseRemoteConfig.instance;
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: const Duration(minutes: 1),
+    minimumFetchInterval: const Duration(hours: 1),
+  ));
+  await remoteConfig.setDefaults(const {
+    "show_quiz": false,
+    "text": "AB de-activated",
+  });
+  await remoteConfig.fetchAndActivate();
 }
 
 Future<void> initializeMainMethod() async {
