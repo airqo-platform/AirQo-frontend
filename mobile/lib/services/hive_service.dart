@@ -10,9 +10,10 @@ class HiveService {
   static final HiveService _instance = HiveService._internal();
 
   final String _forecast = 'forecast';
-  final String _airQualityReadings = 'airQualityReadings-v1';
-  final String _nearByAirQualityReadings = 'nearByAirQualityReading-v1';
-  String get airQualityReadingsBox => _airQualityReadings;
+  final String _airQualityReadingsBox = 'airQualityReadings-v2';
+
+  final String _airQualityReadings = 'air-quality-readings';
+  final String _nearByAirQualityReadings = 'nearby-air-quality-readings';
 
   Future<void> initialize() async {
     await Hive.initFlutter();
@@ -23,45 +24,50 @@ class HiveService {
       ..registerAdapter<AirQualityReading>(AirQualityReadingAdapter());
     await Future.wait([
       Hive.openBox<List<Forecast>>(_forecast),
-      Hive.openBox<AirQualityReading>(_airQualityReadings),
-      Hive.openBox<AirQualityReading>(_nearByAirQualityReadings),
+      Hive.openBox<List<AirQualityReading>>(_airQualityReadingsBox),
     ]);
   }
 
   Future<void> updateAirQualityReading(
     AirQualityReading airQualityReading,
   ) async {
-    await Hive.box<AirQualityReading>(_airQualityReadings)
-        .put(airQualityReading.placeId, airQualityReading);
+    List<AirQualityReading> airQualityReadings = getAirQualityReadings();
+    airQualityReadings.removeWhere(
+      (element) => element.placeId == airQualityReading.placeId,
+    );
+    airQualityReadings.add(airQualityReading);
+    await updateAirQualityReadings(airQualityReadings);
   }
 
   Future<void> updateAirQualityReadings(
-    List<AirQualityReading> airQualityReadings, {
-    bool reload = false,
-  }) async {
-    final airQualityReadingsMap = <String, AirQualityReading>{};
-    final currentReadings = getAirQualityReadings();
+    List<AirQualityReading> airQualityReadings,
+  ) async {
+    await Hive.box<List<AirQualityReading>>(_airQualityReadingsBox)
+        .put(_airQualityReadings, airQualityReadings);
+  }
 
-    for (final reading in airQualityReadings) {
-      if (reading.shareLink.isEmpty) {
-        AirQualityReading airQualityReading = currentReadings.firstWhere(
-          (element) => element.placeId == reading.placeId,
-          orElse: () {
-            return reading;
-          },
-        );
-        airQualityReadingsMap[reading.placeId] =
-            reading.copyWith(shareLink: airQualityReading.shareLink);
-      } else {
-        airQualityReadingsMap[reading.placeId] = reading;
-      }
-    }
+  List<AirQualityReading> getAirQualityReadings() {
+    List<AirQualityReading> airQualityReadings =
+        Hive.box<List<AirQualityReading>>(
+              _airQualityReadingsBox,
+            ).get(_airQualityReadings, defaultValue: []) ??
+            [];
 
-    if (reload) {
-      await Hive.box<AirQualityReading>(_airQualityReadings).clear();
-    }
-    await Hive.box<AirQualityReading>(_airQualityReadings)
-        .putAll(airQualityReadingsMap);
+    return airQualityReadings.removeInvalidData();
+  }
+
+  List<AirQualityReading> getNearbyAirQualityReadings() {
+    return Hive.box<List<AirQualityReading>>(
+          _airQualityReadingsBox,
+        ).get(_nearByAirQualityReadings, defaultValue: []) ??
+        [];
+  }
+
+  Future<void> updateNearbyAirQualityReadings(
+    List<AirQualityReading> airQualityReadings,
+  ) async {
+    await Hive.box<List<AirQualityReading>>(_airQualityReadingsBox)
+        .put(_nearByAirQualityReadings, airQualityReadings);
   }
 
   Future<void> saveForecast(
@@ -102,33 +108,5 @@ class HiveService {
     }
 
     return forecast.removeInvalidData();
-  }
-
-  List<AirQualityReading> getAirQualityReadings() {
-    List<AirQualityReading> airQualityReadings = Hive.box<AirQualityReading>(
-      _airQualityReadings,
-    ).values.toList();
-
-    return airQualityReadings.removeInvalidData();
-  }
-
-  List<AirQualityReading> getNearbyAirQualityReadings() {
-    return Hive.box<AirQualityReading>(
-      _nearByAirQualityReadings,
-    ).values.toList();
-  }
-
-  Future<void> updateNearbyAirQualityReadings(
-    List<AirQualityReading> nearbyAirQualityReadings,
-  ) async {
-    final airQualityReadingsMap = <String, AirQualityReading>{};
-
-    for (final airQualityReading in nearbyAirQualityReadings) {
-      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
-    }
-
-    await Hive.box<AirQualityReading>(_nearByAirQualityReadings).clear();
-    await Hive.box<AirQualityReading>(_nearByAirQualityReadings)
-        .putAll(airQualityReadingsMap);
   }
 }
