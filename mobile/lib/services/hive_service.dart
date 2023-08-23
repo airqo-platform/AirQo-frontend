@@ -47,20 +47,28 @@ class HiveService {
   }
 
   List<AirQualityReading> getAirQualityReadings() {
-    List<AirQualityReading> airQualityReadings =
-        Hive.box<List<AirQualityReading>>(
-              _airQualityReadingsBox,
-            ).get(_airQualityReadings, defaultValue: []) ??
-            [];
+    try {
+      List<AirQualityReading> airQualityReadings =
+          Hive.box<List<AirQualityReading>>(
+                _airQualityReadingsBox,
+              ).get(_airQualityReadings, defaultValue: []) ??
+              [];
 
-    return airQualityReadings.removeInvalidData();
+      return airQualityReadings.removeInvalidData();
+    } catch (_) {
+      return [];
+    }
   }
 
   List<AirQualityReading> getNearbyAirQualityReadings() {
-    return Hive.box<List<AirQualityReading>>(
-          _airQualityReadingsBox,
-        ).get(_nearByAirQualityReadings, defaultValue: []) ??
-        [];
+    try {
+      return Hive.box<List<AirQualityReading>>(
+            _airQualityReadingsBox,
+          ).get(_nearByAirQualityReadings, defaultValue: []) ??
+          [];
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> updateNearbyAirQualityReadings(
@@ -81,10 +89,14 @@ class HiveService {
   }
 
   Future<List<Forecast>> getForecast(String siteId) async {
-    List<Forecast> forecast = Hive.box<List<Forecast>>(
-          _forecast,
-        ).get(siteId, defaultValue: []) ??
-        [];
-    return forecast.removeInvalidData();
+    try {
+      List<Forecast> forecast = Hive.box<List<Forecast>>(
+            _forecast,
+          ).get(siteId, defaultValue: []) ??
+          [];
+      return forecast.removeInvalidData();
+    } catch (_) {
+      return [];
+    }
   }
 }

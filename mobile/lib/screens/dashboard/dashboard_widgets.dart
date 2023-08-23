@@ -4,13 +4,13 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -215,51 +215,48 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: nextScreenClickHandler,
+    return OutlinedButton(
       key: widgetKey,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(56),
-          foregroundColor: CustomColors.appColorBlue,
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-            width: 0,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
-            ),
-          ),
-          backgroundColor: Colors.white,
-          padding: EdgeInsets.zero,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(56),
+        foregroundColor: CustomColors.appColorBlue,
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+          width: 0,
         ),
-        onPressed: nextScreenClickHandler,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 32,
-              width: getWidth(children.length),
-              child: Stack(
-                children: children,
-              ),
-            ),
-            const SizedBox(
-              width: 8,
-            ),
-            AutoSizeText(
-              maxLines: 2,
-              minFontSize: 1,
-              title,
-              style: CustomTextStyle.bodyText4(context)?.copyWith(
-                color: CustomColors.appColorBlue,
-              ),
-            ),
-          ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(8),
+          ),
         ),
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.zero,
+      ),
+      onPressed: nextScreenClickHandler,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 32,
+            width: getWidth(children.length),
+            child: Stack(
+              children: children,
+            ),
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          AutoSizeText(
+            maxLines: 2,
+            minFontSize: 1,
+            title,
+            style: CustomTextStyle.bodyText4(context)?.copyWith(
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ],
       ),
     );
   }
