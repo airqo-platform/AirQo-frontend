@@ -197,7 +197,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: '2.5',
+                            text: '2.5 ',
                             style: TextStyle(
                               fontSize: 7,
                               fontWeight: FontWeight.w800,
@@ -214,7 +214,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'PM',
+                            text: ' PM',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
