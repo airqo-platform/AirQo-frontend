@@ -69,7 +69,7 @@ class _OfflineBannerState extends State<OfflineBanner> {
                   child: Container(
                     color: CustomColors.appColorRed,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+                      padding: const EdgeInsets.only(top: 25),
                       child: InkWell(
                         onTap: () {
                           context
@@ -136,8 +136,6 @@ class _OfflineBannerState extends State<OfflineBanner> {
     return _updateConnectionStatus(result);
   }
 
-  // Add this variable to track if user was previously offline
-
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     setState(() {
       connectionStatus = result;
@@ -150,7 +148,6 @@ class _OfflineBannerState extends State<OfflineBanner> {
         wasOffline = true;
       });
     } else {
-      // Back online
       setState(() {
         _isOnline = true;
       });
@@ -164,7 +161,6 @@ class _OfflineBannerState extends State<OfflineBanner> {
           ),
         );
 
-        // Reset offline flag
         setState(() {
           wasOffline = false;
         });
