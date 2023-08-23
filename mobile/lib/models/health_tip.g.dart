@@ -55,3 +55,9 @@ HealthTip _$HealthTipFromJson(Map<String, dynamic> json) => HealthTip(
       description: json['description'] as String,
       image: json['image'] as String,
     );
+
+Map<String, dynamic> _$HealthTipToJson(HealthTip instance) => <String, dynamic>{
+      'title': instance.title,
+      'description': instance.description,
+      'image': instance.image,
+    };

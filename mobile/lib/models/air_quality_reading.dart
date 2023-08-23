@@ -12,6 +12,7 @@ import 'hive_type_id.dart';
 
 part 'air_quality_reading.g.dart';
 
+@JsonSerializable(explicitToJson: true)
 @HiveType(typeId: airQualityReadingTypeId)
 class AirQualityReading extends HiveObject with EquatableMixin {
   AirQualityReading({
@@ -31,6 +32,10 @@ class AirQualityReading extends HiveObject with EquatableMixin {
     required this.shareLink,
     required this.healthTips,
   });
+  factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
+      _$AirQualityReadingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
 
   factory AirQualityReading.fromSearchAPI(
     Map<String, dynamic> json,
@@ -213,48 +218,63 @@ class AirQualityReading extends HiveObject with EquatableMixin {
   }
 
   @HiveField(0, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String referenceSite;
 
   @HiveField(1)
+  @JsonKey()
   final double latitude;
 
   @HiveField(2)
+  @JsonKey()
   final double longitude;
 
   @HiveField(3, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String country;
 
   @HiveField(4, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String name;
 
   @HiveField(5, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String dataProvider;
 
   @HiveField(6, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String location;
 
   @HiveField(8)
+  @JsonKey()
   final DateTime dateTime;
 
   @HiveField(9)
+  @JsonKey()
   final double pm2_5;
 
   @HiveField(10)
+  @JsonKey()
   final double? pm10;
 
   @HiveField(11, defaultValue: 0.0)
+  @JsonKey(defaultValue: 0.0)
   final double distanceToReferenceSite;
 
   @HiveField(12, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String placeId;
 
   @HiveField(13, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String region;
 
   @HiveField(14, defaultValue: '')
+  @JsonKey(defaultValue: '')
   final String shareLink;
 
   @HiveField(15, defaultValue: [])
+  @JsonKey(defaultValue: [])
   final List<HealthTip> healthTips;
 
   double? distanceToPoint;

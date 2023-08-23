@@ -14,6 +14,10 @@ FavouritePlace _$FavouritePlaceFromJson(Map<String, dynamic> json) =>
       placeId: json['place_id'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      airQualityReading: json['airQualityReading'] == null
+          ? null
+          : AirQualityReading.fromJson(
+              json['airQualityReading'] as Map<String, dynamic>),
       id: json['_id'] as String?,
     );
 
@@ -26,6 +30,7 @@ Map<String, dynamic> _$FavouritePlaceToJson(FavouritePlace instance) =>
       'latitude': instance.latitude,
       'longitude': instance.longitude,
       '_id': instance.id,
+      'airQualityReading': instance.airQualityReading?.toJson(),
     };
 
 FavouritePlaceList _$FavouritePlaceListFromJson(Map<String, dynamic> json) =>

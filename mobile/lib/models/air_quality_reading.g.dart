@@ -87,6 +87,49 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
 // JsonSerializableGenerator
 // **************************************************************************
 
+AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
+    AirQualityReading(
+      referenceSite: json['referenceSite'] as String? ?? '',
+      dataProvider: json['dataProvider'] as String? ?? '',
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      country: json['country'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      location: json['location'] as String? ?? '',
+      region: json['region'] as String? ?? '',
+      dateTime: DateTime.parse(json['dateTime'] as String),
+      pm2_5: (json['pm2_5'] as num).toDouble(),
+      pm10: (json['pm10'] as num?)?.toDouble(),
+      distanceToReferenceSite:
+          (json['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
+      placeId: json['placeId'] as String? ?? '',
+      shareLink: json['shareLink'] as String? ?? '',
+      healthTips: (json['healthTips'] as List<dynamic>?)
+              ?.map((e) => HealthTip.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    )..distanceToPoint = (json['distanceToPoint'] as num?)?.toDouble();
+
+Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
+    <String, dynamic>{
+      'referenceSite': instance.referenceSite,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'country': instance.country,
+      'name': instance.name,
+      'dataProvider': instance.dataProvider,
+      'location': instance.location,
+      'dateTime': instance.dateTime.toIso8601String(),
+      'pm2_5': instance.pm2_5,
+      'pm10': instance.pm10,
+      'distanceToReferenceSite': instance.distanceToReferenceSite,
+      'placeId': instance.placeId,
+      'region': instance.region,
+      'shareLink': instance.shareLink,
+      'healthTips': instance.healthTips.map((e) => e.toJson()).toList(),
+      'distanceToPoint': instance.distanceToPoint,
+    };
+
 PollutantValue _$PollutantValueFromJson(Map<String, dynamic> json) =>
     PollutantValue(
       value: PollutantValue._valueFromJson(json['value']),

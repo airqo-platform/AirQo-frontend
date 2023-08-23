@@ -6,7 +6,7 @@ import 'hive_type_id.dart';
 
 part 'health_tip.g.dart';
 
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 @HiveType(typeId: healthTipsTypeId)
 class HealthTip extends HiveObject with EquatableMixin {
   HealthTip({
@@ -26,6 +26,8 @@ class HealthTip extends HiveObject with EquatableMixin {
   @JsonKey()
   @HiveField(2)
   final String image;
+
+  Map<String, dynamic> toJson() => _$HealthTipToJson(this);
 
   factory HealthTip.fromJson(Map<String, dynamic> json) =>
       _$HealthTipFromJson(json);
