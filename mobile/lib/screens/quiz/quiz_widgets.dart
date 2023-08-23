@@ -5,11 +5,14 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
 import 'package:app/screens/quiz/quiz_title_page.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -133,12 +136,17 @@ class QuizCard extends StatelessWidget {
             height: 112,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
-              image: const DecorationImage(
+              image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage('assets/images/quizImage.png'),
-                //   image: NetworkImage(
-                //       "https://images.pexels.com/photos/4778611/pexels-photo-4778611.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"),
-                // ),
+                image: CachedNetworkImageProvider(
+                  quiz.imageUrl,
+                  cacheKey: quiz.imageUrlCacheKey(),
+                  cacheManager: CacheManager(
+                    CacheService.cacheConfig(
+                      quiz.imageUrlCacheKey(),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -147,6 +155,7 @@ class QuizCard extends StatelessWidget {
     );
   }
 }
+
 class QuizActionButton extends StatelessWidget {
   const QuizActionButton({
     super.key,
@@ -185,6 +194,7 @@ class QuizActionButton extends StatelessWidget {
     );
   }
 }
+
 class QuizQuestionsWidget extends StatefulWidget {
   const QuizQuestionsWidget(this.quiz, {super.key});
   final Quiz quiz;
