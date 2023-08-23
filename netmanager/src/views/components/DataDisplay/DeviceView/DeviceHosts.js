@@ -318,7 +318,13 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
   );
 };
 
-const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading }) => {
+const MobileMoneyDialog = ({
+  mobileMoneyDialog,
+  setMobileMoneyDialog,
+  data,
+  setLoading,
+  onSent
+}) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [amount, setAmount] = useState(0);
@@ -330,6 +336,7 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
   });
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
     setMobileMoney({
@@ -369,9 +376,9 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
 
   const handleMobileMoney = async () => {
     try {
+      setDisabled(true);
       setLoading(true);
       const response = await sendMoneyToHost(data?._id, amount);
-      setLoading(false);
       if (response.success === true) {
         handleCloseDialog();
         dispatch(
@@ -381,12 +388,16 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
             show: true
           })
         );
+        onSent();
       } else {
         setError(response.errors?.message || 'An error occurred. Please try again.');
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
       setLoading(false);
+    } finally {
+      setLoading(false);
+      setDisabled(false);
     }
   };
 
@@ -474,6 +485,7 @@ const MobileMoneyDialog = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setL
           <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
             <Button
               variant="contained"
+              disabled={disabled}
               onClick={() => {
                 setConfirmation(false);
                 setMobileMoneyDialog(true);
@@ -695,6 +707,7 @@ const DeviceHosts = ({ deviceData }) => {
           setMobileMoneyDialog={setMobileMoneyDialog}
           setLoading={setLoading}
           data={selectedItem}
+          onSent={() => setRefreshData(!refreshData)}
         />
 
         <EditHostDialog
