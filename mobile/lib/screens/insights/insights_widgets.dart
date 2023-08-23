@@ -493,9 +493,6 @@ class InsightsPageAppBar extends StatelessWidget
           FutureBuilder<Uri>(
             future: airQualityReading.createShareLink(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return SvgIcons.share(isEnabled: false);
-              }
               if (snapshot.hasData) {
                 return InkWell(
                   onTap: () async {

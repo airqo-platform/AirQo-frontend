@@ -68,9 +68,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             FutureBuilder<Uri>(
               future: widget.kyaLesson.createShareLink(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return SvgIcons.share(isEnabled: false);
-                }
                 if (snapshot.hasData) {
                   return InkWell(
                     onTap: () async {

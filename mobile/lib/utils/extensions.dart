@@ -294,10 +294,6 @@ extension AirQualityReadingExt on AirQualityReading {
   }
 
   Future<Uri> createShareLink() async {
-    if (referenceSite.isEmpty) {
-      throw Exception("Site not provided");
-    }
-
     if (shareLink.isNotEmpty && shareLink.length < Config.shareLinkMaxLength) {
       return Uri.parse(shareLink);
     }

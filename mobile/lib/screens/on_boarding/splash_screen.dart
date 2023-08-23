@@ -11,6 +11,7 @@ import 'package:app/utils/utils.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../home_page.dart';
@@ -19,7 +20,6 @@ import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen(this.initialLink, {super.key});
@@ -220,7 +220,7 @@ class LogoWidget extends StatelessWidget {
           children: [
             SvgPicture.asset(
               'assets/icon/splash_image.svg',
-              semanticsLabel: AppLocalizations.of(context)!.share,
+              semanticsLabel: AppLocalizations.of(context)!.about,
               // height: 118,
               // width: 81,
             ),

@@ -498,18 +498,6 @@ class _AirQualityActionsState extends State<AirQualityActions> {
           child: FutureBuilder<Uri>(
             future: widget.airQualityReading.createShareLink(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return OutlinedButton(
-                  style: _leftButtonStyle,
-                  onPressed: () {},
-                  child: Center(
-                    child: IconTextButton(
-                      iconWidget: SvgIcons.share(isEnabled: false),
-                      text: AppLocalizations.of(context)!.share,
-                    ),
-                  ),
-                );
-              }
               if (snapshot.hasData) {
                 Uri? link = snapshot.data;
                 if (link != null) {
@@ -543,7 +531,9 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                 style: _leftButtonStyle,
                 onPressed: () {
                   showSnackBar(
-                      context, AppLocalizations.of(context)!.creatingShareLink);
+                    context,
+                    AppLocalizations.of(context)!.creatingShareLink,
+                  );
                 },
                 child: const Center(
                   child: LoadingIcon(radius: 14),

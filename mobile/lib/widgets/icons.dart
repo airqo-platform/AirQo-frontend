@@ -12,7 +12,7 @@ class SvgIcons {
     );
   }
 
-  static Widget share({bool isEnabled = true}) {
+  static Widget share() {
     return Stack(
       children: [
         SvgPicture.asset(
@@ -25,11 +25,6 @@ class SvgIcons {
           height: 26,
           width: 26,
         ),
-        if (!isEnabled)
-          Icon(
-            Icons.block,
-            color: CustomColors.appColorRed,
-          ),
       ],
     );
   }
