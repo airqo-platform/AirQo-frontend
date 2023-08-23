@@ -522,20 +522,29 @@ const DeviceHosts = ({ deviceData }) => {
         const response = await getTransactionDetails(hostsIds);
 
         const tranData = response.map((t) =>
-          t.transaction.map((transaction) => {
-            // find the matching host from the matchingHosts array
-            const matchingHost = matchingHosts.find((host) => host._id === transaction._id);
-            // return an object with the transaction data and the host name
-            return {
-              amount: transaction.amount,
-              createdAt: transaction.createdAt,
-              _id: transaction._id
-              // use a template literal to concatenate the first and last name of the host
-              // hostName: `${matchingHost.first_name} ${matchingHost.last_name}`
-            };
-          })
+          t.transaction.map((trans) => ({
+            amount: trans.amount,
+            createdAt: trans.createdAt,
+            _id: trans.host_id
+          }))
         );
-        setTransactions(tranData);
+
+        const data = tranData.reduce((acc, transaction) => {
+          const transWithHosts = transaction.map((tran) => {
+            const matchingHost = matchingHosts.find((host) => host._id === tran._id);
+            if (matchingHost) {
+              return {
+                ...tran,
+                hostFirstName: matchingHost.first_name,
+                hostLastName: matchingHost.last_name
+              };
+            }
+            return tran;
+          });
+          return [...acc, ...transWithHosts];
+        }, []);
+
+        setTransactions(data || []);
         setIsLoading(false);
       } catch (error) {
         console.log(error);
@@ -645,8 +654,8 @@ const DeviceHosts = ({ deviceData }) => {
           columns={[
             {
               title: 'Host Name',
-              render: (rowData) => `${rowData.first_name} ${rowData.last_name}`,
-              customSort: (a, b) => a.first_name.localeCompare(b.first_name),
+              render: (rowData) => `${rowData.hostFirstName} ${rowData.hostLastName}`,
+              customSort: (a, b) => a.hostFirstName.localeCompare(b.hostFirstName),
               cellStyle: {
                 width: '40%',
                 minWidth: '40%'
@@ -659,15 +668,12 @@ const DeviceHosts = ({ deviceData }) => {
             },
             {
               title: 'Date',
-              field: 'date',
+              field: 'createdAt',
               render: (rowData) => `${rowData.createdAt}`
             }
           ]}
           data={transactions}
           isLoading={isLoading}
-          onRowClick={(event, rowData) => {
-            console.log(rowData);
-          }}
           options={{
             search: true,
             exportButton: false,
