@@ -447,7 +447,6 @@ class _DashboardViewState extends State<DashboardView>
     _locationServiceStream.cancel();
     _locationPositionStream.cancel();
     _scrollController.dispose();
-
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -455,7 +454,6 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void initState() {
     super.initState();
-
     _favToolTipKey = GlobalKey();
     _kyaToolTipKey = GlobalKey();
     _favoritesShowcaseKey = GlobalKey();
@@ -481,7 +479,6 @@ class _DashboardViewState extends State<DashboardView>
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
         break;
     }
   }
