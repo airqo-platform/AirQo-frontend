@@ -432,9 +432,6 @@ class InsightsCalendar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 9,
-                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
