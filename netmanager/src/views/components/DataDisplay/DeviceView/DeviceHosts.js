@@ -664,7 +664,7 @@ const DeviceHosts = ({ deviceData }) => {
             {
               title: 'Amount Sent',
               field: 'amount',
-              render: (rowData) => `${rowData.amount}`
+              render: (rowData) => `UGX ${rowData.amount}`
             },
             {
               title: 'Date',
@@ -672,6 +672,7 @@ const DeviceHosts = ({ deviceData }) => {
               render: (rowData) => `${rowData.createdAt}`
             }
           ]}
+          // THE DATA FROM THE DATABASE;
           data={transactions}
           isLoading={isLoading}
           options={{
