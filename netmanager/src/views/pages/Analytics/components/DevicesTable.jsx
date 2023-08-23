@@ -18,16 +18,20 @@ const CohortDevicesTable = ({ devices }) => {
           field: 'name'
         },
         {
+          title: 'Description',
+          field: 'description'
+        },
+        {
+          title: 'Site',
+          field: 'site'
+        },
+        {
           title: 'Date created',
           field: 'createdAt'
         },
         {
           title: 'Deployment status',
           field: 'status'
-        },
-        {
-          title: 'Added by',
-          field: 'addedBy'
         }
       ]}
       data={devices || []}

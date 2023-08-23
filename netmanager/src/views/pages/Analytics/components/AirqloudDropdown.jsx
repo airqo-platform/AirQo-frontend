@@ -5,7 +5,7 @@ import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import 'assets/css/dropdown.css';
 import { isEmpty } from 'underscore';
-import { setActiveGrid } from 'redux/Analytics/operations';
+import { setActiveGrid, setActiveCohort } from 'redux/Analytics/operations';
 
 const customStyles = {
   control: (defaultStyles) => ({
@@ -43,11 +43,14 @@ const customStyles = {
 const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
   const dispatch = useDispatch();
   const activeGrid = useSelector((state) => state.analytics.activeGrid);
+  const activeCohort = useSelector((state) => state.analytics.activeCohort);
 
   const handleAirQloudChange = (selectedOption) => {
     const airqloud = selectedOption ? selectedOption.value : null;
     if (!isCohort) {
       dispatch(setActiveGrid(airqloud));
+    } else {
+      dispatch(setActiveCohort(airqloud));
     }
     // dispatch(resetDefaultGraphData());
   };
@@ -96,7 +99,10 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
     <div className="dropdown">
       <div className="dropdown-wrapper">
         <Select
-          value={{ value: activeGrid, label: activeGrid.name }}
+          value={{
+            value: isCohort ? activeCohort : activeGrid,
+            label: isCohort ? activeCohort.name : activeGrid.name
+          }}
           options={options}
           onChange={handleAirQloudChange}
           isSearchable={true}

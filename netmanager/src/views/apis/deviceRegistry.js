@@ -20,6 +20,7 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
 import {
+  COHORTS,
   GET_DEVICE_IMAGES,
   GRIDS,
   GRIDS_COHORTS_COMBINED,
@@ -207,6 +208,12 @@ export const getGridsAndCohortsSummaryApi = async (networkID) => {
 export const getGridDetailsApi = async (gridID) => {
   return await axios
     .get(`${GRIDS}/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getCohortDetailsApi = async (cohortID) => {
+  return await axios
+    .get(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
 };
 

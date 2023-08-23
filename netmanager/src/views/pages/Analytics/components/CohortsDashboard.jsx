@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const CohortsDashboardView = ({ cohort }) => {
+const CohortsDashboardView = ({ cohort, cohortDetails }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -25,18 +25,19 @@ const CohortsDashboardView = ({ cohort }) => {
   const [cohortDevices, setCohortDevices] = useState([]);
 
   useEffect(() => {
-    if (cohort) {
+    if (cohortDetails) {
       setCohortInfo({
-        name: cohort.name,
-        numberOfDevices: cohort.numberOfDevices,
-        visibility: cohort.visibility,
-        devices: cohort.devices
+        name: cohortDetails.name,
+        numberOfDevices: cohortDetails.numberOfDevices,
+        visibility: cohortDetails.visibility,
+        devices: cohortDetails.devices
       });
 
-      const deviceNames = cohort.devices && cohort.devices.map((device) => device.name);
+      const deviceNames =
+        cohortDetails.devices && cohortDetails.devices.map((device) => device.name);
       setCohortDevices(deviceNames);
     }
-  }, [cohort]);
+  }, [cohortDetails]);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {

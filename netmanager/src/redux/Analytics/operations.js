@@ -1,5 +1,12 @@
-import { getGridsAndCohortsSummaryApi, getGridDetailsApi } from 'views/apis/deviceRegistry';
 import {
+  getGridsAndCohortsSummaryApi,
+  getGridDetailsApi,
+  getCohortDetailsApi
+} from 'views/apis/deviceRegistry';
+import {
+  LOAD_ACTIVE_COHORT_DETAILS_FAILURE,
+  LOAD_ACTIVE_COHORT_DETAILS_SUCCESS,
+  LOAD_ACTIVE_COHORT_SUCCESS,
   LOAD_ACTIVE_GRID_DETAILS_FAILURE,
   LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
   LOAD_ACTIVE_GRID_SUCCESS,
@@ -41,6 +48,29 @@ export const loadGridDetails = (gridID) => async (dispatch) => {
     .catch((err) => {
       dispatch({
         type: LOAD_ACTIVE_GRID_DETAILS_FAILURE,
+        payload: err
+      });
+    });
+};
+
+export const setActiveCohort = (cohort) => (dispatch) => {
+  dispatch({
+    type: LOAD_ACTIVE_COHORT_SUCCESS,
+    payload: cohort
+  });
+};
+
+export const loadCohortDetails = (cohortID) => async (dispatch) => {
+  return await getCohortDetailsApi(cohortID)
+    .then((resData) => {
+      dispatch({
+        type: LOAD_ACTIVE_COHORT_DETAILS_SUCCESS,
+        payload: resData.cohorts[0]
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_ACTIVE_COHORT_DETAILS_FAILURE,
         payload: err
       });
     });

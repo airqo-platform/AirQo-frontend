@@ -9,7 +9,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   loadGridsAndCohortsSummary,
   setActiveGrid,
-  loadGridDetails
+  loadGridDetails,
+  loadCohortDetails,
+  setActiveCohort
 } from 'redux/Analytics/operations';
 import { isEmpty } from 'underscore';
 import CohortsDashboardView from './components/CohortsDashboard';
@@ -24,13 +26,15 @@ const Analytics = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(true);
-  const [activeCohort, setActiveCohort] = useState({});
 
   const combinedGridAndCohortsSummary = useSelector(
     (state) => state.analytics.combinedGridAndCohortsSummary
   );
   const activeGrid = useSelector((state) => state.analytics.activeGrid);
   const activeGridDetails = useSelector((state) => state.analytics.activeGridDetails);
+  const activeCohort = useSelector((state) => state.analytics.activeCohort);
+  const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
+
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const handleSwitchAirqloudTypeClick = () => {
@@ -59,7 +63,7 @@ const Analytics = () => {
       if (!isEmpty(combinedGridAndCohortsSummary)) {
         const cohortsList = combinedGridAndCohortsSummary.cohorts;
         if (!isEmpty(cohortsList)) {
-          setActiveCohort(cohortsList[0]);
+          dispatch(setActiveCohort(cohortsList[0]));
         }
       }
     }
@@ -70,6 +74,12 @@ const Analytics = () => {
       dispatch(loadGridDetails(activeGrid._id));
     }
   }, [activeGrid]);
+
+  useEffect(() => {
+    if (!isEmpty(activeCohort)) {
+      dispatch(loadCohortDetails(activeCohort._id));
+    }
+  }, [activeCohort]);
 
   return (
     <ErrorBoundary>
@@ -130,7 +140,9 @@ const Analytics = () => {
 
         {!isCohort && <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />}
 
-        {isCohort && <CohortsDashboardView cohort={activeCohort} />}
+        {isCohort && (
+          <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
+        )}
       </div>
     </ErrorBoundary>
   );
