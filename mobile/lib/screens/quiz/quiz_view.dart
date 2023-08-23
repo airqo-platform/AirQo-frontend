@@ -318,7 +318,6 @@ class QuizCard extends StatelessWidget {
         if (question != null) {
           dynamic response = await bottomSheetQuizQuestion(quiz, context);
           if (response != null && response == true) {
-            //response = await QuizCompletionSheetContent();
             response = await bottomSheetQuizConffeti(quiz, context);
           }
         } else {

@@ -179,102 +179,6 @@ class OptionsButton extends StatelessWidget {
   }
 }
 
-class Confetti extends StatefulWidget {
-  const Confetti({super.key});
-
-  @override
-  State<Confetti> createState() => _ConfettiState();
-}
-
-class _ConfettiState extends State<Confetti> {
-  late ConfettiController _controllerTopCenter;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllerTopCenter =
-        ConfettiController(duration: const Duration(seconds: 20));
-    _controllerTopCenter.play();
-  }
-
-  @override
-  void dispose() {
-    _controllerTopCenter.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        Align(
-          alignment: Alignment.topCenter,
-          child: ConfettiWidget(
-            confettiController: _controllerTopCenter,
-            blastDirectionality: BlastDirectionality.explosive,
-            blastDirection: pi,
-            maxBlastForce: 5, // set a lower max blast force
-            minBlastForce: 2, // set a lower min blast force
-            emissionFrequency: 0.05,
-            numberOfParticles: 100, // a lot of particles at once
-            gravity: 0.5,
-            shouldLoop: false,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class QuizMessageChip extends StatelessWidget {
-  const QuizMessageChip({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    Widget widget = AutoSizeText(
-      AppLocalizations.of(context)!.takeQuiz,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: CustomTextStyle.caption3(context)?.copyWith(
-        color: CustomColors.appColorBlue,
-      ),
-    );
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        widget,
-        Icon(
-          Icons.chevron_right_rounded,
-          size: 17,
-          color: CustomColors.appColorBlue,
-        ),
-        Visibility(
-          visible: false,
-          child: Chip(
-            shadowColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            label: widget,
-            elevation: 0,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            padding: EdgeInsets.zero,
-            labelPadding: EdgeInsets.zero,
-            deleteIconColor: CustomColors.appColorBlue,
-            labelStyle: null,
-            deleteIcon: Icon(
-              Icons.chevron_right_rounded,
-              size: 17,
-              color: CustomColors.appColorBlue,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class QuizAnswerWidget extends StatelessWidget {
   const QuizAnswerWidget(this.selectedOption,
       {super.key, required this.quiz, required this.nextButtonClickCallback});
@@ -415,6 +319,102 @@ class QuizAnswerWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class Confetti extends StatefulWidget {
+  const Confetti({super.key});
+
+  @override
+  State<Confetti> createState() => _ConfettiState();
+}
+
+class _ConfettiState extends State<Confetti> {
+  late ConfettiController _controllerTopCenter;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllerTopCenter =
+        ConfettiController(duration: const Duration(seconds: 20));
+    _controllerTopCenter.play();
+  }
+
+  @override
+  void dispose() {
+    _controllerTopCenter.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConfettiWidget(
+            confettiController: _controllerTopCenter,
+            blastDirectionality: BlastDirectionality.explosive,
+            blastDirection: pi,
+            maxBlastForce: 5, // set a lower max blast force
+            minBlastForce: 2, // set a lower min blast force
+            emissionFrequency: 0.05,
+            numberOfParticles: 100, // a lot of particles at once
+            gravity: 0.5,
+            shouldLoop: false,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class QuizMessageChip extends StatelessWidget {
+  const QuizMessageChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget widget = AutoSizeText(
+      AppLocalizations.of(context)!.takeQuiz,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: CustomTextStyle.caption3(context)?.copyWith(
+        color: CustomColors.appColorBlue,
+      ),
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        widget,
+        Icon(
+          Icons.chevron_right_rounded,
+          size: 17,
+          color: CustomColors.appColorBlue,
+        ),
+        Visibility(
+          visible: false,
+          child: Chip(
+            shadowColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            label: widget,
+            elevation: 0,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: EdgeInsets.zero,
+            labelPadding: EdgeInsets.zero,
+            deleteIconColor: CustomColors.appColorBlue,
+            labelStyle: null,
+            deleteIcon: Icon(
+              Icons.chevron_right_rounded,
+              size: 17,
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
