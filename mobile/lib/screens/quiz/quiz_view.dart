@@ -127,11 +127,11 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                   ),
                 ),
               ),
-              const SizedBox(
+              SizedBox(
                 height: 25,
                 child: AutoSizeText(
-                  'Air Quality Quiz',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.airQualityQuiz,
+                  style: const TextStyle(
                     color: Color.fromARGB(255, 0, 0, 0),
                     fontSize: 20,
                     fontWeight: FontWeight.w500,

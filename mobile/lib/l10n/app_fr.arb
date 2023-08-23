@@ -330,5 +330,6 @@
   "leavingNearBusyRoads":"Vivre près de routes très fréquentées",
   "takeQuiz": "Passer le quiz",
   "youHaveCompletedTheQuiz": "Vous avez terminé le quiz!",
-    "wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney":"Félicitations🎊 Vous avez déverrouillé des recommandations personnalisées sur la qualité de l'air pour vous aider dans votre parcours vers un air pur."
+  "wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney":"Félicitations🎊 Vous avez déverrouillé des recommandations personnalisées sur la qualité de l'air pour vous aider dans votre parcours vers un air pur.",
+  "airQualityQuiz": "Quiz sur la qualité de l'air"
 }

@@ -330,5 +330,6 @@
     "leavingNearBusyRoads":"Leaving near busy roads",
     "takeQuiz": "Take Quiz",
     "youHaveCompletedTheQuiz": "You have completed the quiz!",
-    "wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney":"Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey."
+    "wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney":"Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey.",
+    "airQualityQuiz": "Air Quality Quiz"
 }
