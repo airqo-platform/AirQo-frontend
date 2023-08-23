@@ -321,8 +321,9 @@ class _DashboardViewState extends State<DashboardView>
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
                       List<Quiz> inCompleteQuizzes = state.quizzes
-                          .where((quiz) => quiz.status == QuizStatus.complete)
+                          .where((quiz) => quiz.status != QuizStatus.complete)
                           .toList();
+
                       if (inCompleteQuizzes.isEmpty) {
                         _kyaExists = false;
                         return const SizedBox();
