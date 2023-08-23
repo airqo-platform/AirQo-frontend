@@ -1,3 +1,4 @@
+import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
 import 'package:app/screens/quiz/quiz_title_page.dart';
@@ -76,177 +77,189 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.93,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 1,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: SizedBox(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const AppBackButton(),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(4.0),
-                      child: QuizDraggingHandle(),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: InkWell(
-                        onTap: () async {
-                          Navigator.pop(widget.parentContent);
-                        },
-                        child: SvgPicture.asset(
-                          'assets/icon/close.svg',
-                          height: 35,
-                          width: 35,
+    return BlocBuilder<KyaBloc, KyaState>(builder: (context, state) {
+      Quiz quiz = state.quizzes.firstWhere(
+        (element) => element == widget.quiz,
+      );
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.93,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SizedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppBackButton(),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: QuizDraggingHandle(),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: InkWell(
+                          onTap: () async {
+                            Navigator.pop(widget.parentContent);
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 35,
+                            width: 35,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 25,
+                child: AutoSizeText(
+                  'Air Quality Quiz',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    //height: 1.50,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Visibility(
+                visible: quiz.activeQuestion > 1,
+                child: SizedBox(
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: QuizProgressBar(quiz),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Visibility(
+                visible: showAnswer,
+                child: QuizAnswerWidget(selectedOption, quiz: widget.quiz,
+                    nextButtonClickCallback: () {
+                  int currentIndex =
+                      widget.quiz.questions.indexOf(widget.currentQuestion);
+                  if (currentIndex + 1 == widget.quiz.questions.length) {
+                    context.read<CurrentQuizQuestionCubit>().setQuestion(null);
+                  } else {
+                    QuizQuestion nextQuestion =
+                        widget.quiz.questions[currentIndex + 1];
+                    context
+                        .read<CurrentQuizQuestionCubit>()
+                        .setQuestion(nextQuestion);
+                  }
+                  setState(() => showAnswer = false);
+                }),
+              ),
+              Visibility(
+                visible: !showAnswer,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 25,
+                      child: AutoSizeText(
+                        widget.currentQuestion.category,
+                        style: const TextStyle(
+                          color: Color.fromARGB(117, 0, 0, 0),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          //height: 1.50,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AutoSizeText(
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            widget.currentQuestion.title,
+                            style: const TextStyle(
+                              color: Color.fromARGB(200, 0, 0, 0),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              //height: 1.50,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        QuizQuestionOption option =
+                            widget.currentQuestion.options[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 50,
+                          ),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.62,
+                            child: OptionsButton(
+                              buttonColor:
+                                  const Color.fromARGB(69, 70, 168, 248),
+                              callBack: () {
+                                if (option.answer.isNotEmpty) {
+                                  setState(() {
+                                    selectedOption = option;
+                                    widget.currentQuestion.options[index] =
+                                        option;
+                                    showAnswer = true;
+                                  });
+                                }
+                              },
+                              text: option.title,
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: widget.currentQuestion.options.length,
+                    ),
+                    const SizedBox(
+                      height: 10,
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 25,
-              child: AutoSizeText(
-                'Air Quality Quiz',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 0, 0, 0),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  //height: 1.50,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: QuizProgressBar(),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Visibility(
-              visible: showAnswer,
-              child: QuizAnswerWidget(selectedOption, quiz: widget.quiz,
-                  nextButtonClickCallback: () {
-                int currentIndex =
-                    widget.quiz.questions.indexOf(widget.currentQuestion);
-                if (currentIndex + 1 == widget.quiz.questions.length) {
-                  context.read<CurrentQuizQuestionCubit>().setQuestion(null);
-                } else {
-                  QuizQuestion nextQuestion =
-                      widget.quiz.questions[currentIndex + 1];
-                  context
-                      .read<CurrentQuizQuestionCubit>()
-                      .setQuestion(nextQuestion);
-                }
-                setState(() => showAnswer = false);
-              }),
-            ),
-            Visibility(
-              visible: !showAnswer,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 25,
-                    child: AutoSizeText(
-                      widget.currentQuestion.category,
-                      style: const TextStyle(
-                        color: Color.fromARGB(117, 0, 0, 0),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        //height: 1.50,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AutoSizeText(
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          widget.currentQuestion.title,
-                          style: const TextStyle(
-                            color: Color.fromARGB(200, 0, 0, 0),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            //height: 1.50,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      QuizQuestionOption option =
-                          widget.currentQuestion.options[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 50,
-                        ),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.62,
-                          child: OptionsButton(
-                            buttonColor: const Color.fromARGB(69, 70, 168, 248),
-                            callBack: () {
-                              if (option.answer.isNotEmpty) {
-                                setState(() {
-                                  selectedOption = option;
-                                  widget.currentQuestion.options[index] =
-                                      option;
-                                  showAnswer = true;
-                                });
-                              }
-                            },
-                            text: option.title,
-                          ),
-                        ),
-                      );
-                    },
-                    itemCount: widget.currentQuestion.options.length,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -277,6 +290,7 @@ class _QuizQuestionsWidgetState extends State<QuizQuestionsWidget> {
     );
   }
 }
+
 class QuizCard extends StatelessWidget {
   const QuizCard(this.quiz, {super.key});
   final Quiz quiz;
