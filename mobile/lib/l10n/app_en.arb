@@ -328,5 +328,7 @@
     "skipThisForLater":"Skip this for later",
     "noQuestions":"No questions",
     "leavingNearBusyRoads":"Leaving near busy roads",
-    "takeQuiz": "Take Quiz"
+    "takeQuiz": "Take Quiz",
+    "youHaveCompletedTheQuiz": "You have completed the quiz!",
+    "wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney":"Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey."
 }

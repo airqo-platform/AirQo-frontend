@@ -2,6 +2,7 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<dynamic> bottomSheetQuizConffeti(
     Quiz quiz, BuildContext parentContext) async {
@@ -79,17 +80,18 @@ Future<dynamic> bottomSheetQuizConffeti(
                           ),
                         ),
                         const SizedBox(height: 32),
-                        const Column(
+                        Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             SizedBox(
                               child: AutoSizeText(
-                                'You have completed the quiz!',
+                                AppLocalizations.of(context)!
+                                    .youHaveCompletedTheQuiz,
                                 maxLines: 2,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color.fromARGB(255, 31, 35, 45),
                                   fontSize: 24,
                                   fontFamily: 'Inter',
@@ -99,15 +101,16 @@ Future<dynamic> bottomSheetQuizConffeti(
                                 ),
                               ),
                             ),
-                            SizedBox(height: 24),
+                            const SizedBox(height: 24),
                             SizedBox(
                               //width: 307,
                               //height: 89,
                               child: AutoSizeText(
-                                'Way to go🎊. You have unlocked personalised air quality recommendations to empower you on your clean air journey.',
+                                AppLocalizations.of(context)!
+                                    .wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney,
                                 textAlign: TextAlign.center,
                                 maxLines: 3,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFF6F87A1),
                                   fontSize: 20,
                                   fontFamily: 'Inter',
