@@ -18,7 +18,6 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
     on<FetchQuizzes>(_onFetchQuizzes);
     on<UpdateQuizProgress>(_onUpdateQuizProgress);
     on<ClearQuizzes>(_onClearQuizzes);
-    //
   }
 
   Future<void> _onFetchQuizzes(

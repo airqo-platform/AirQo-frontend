@@ -31,6 +31,11 @@ class KyaState extends Equatable {
     props.addAll(lessons.map((e) => e.tasks.length.toString()).toList());
     props.addAll(lessons.map((e) => e.status.toString()).toList());
     props.add(lessons.length.toString());
+    props.addAll(quizzes.map((e) => e.activeQuestion.toString()).toList());
+    props.addAll(quizzes.map((e) => e.id).toList());
+    props.addAll(quizzes.map((e) => e.questions.length.toString()).toList());
+    props.addAll(quizzes.map((e) => e.status.toString()).toList());
+    props.add(quizzes.length.toString());
     return props;
   }
 }
