@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
@@ -380,6 +381,147 @@ class QuizCard extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class QuizAnswerWidget extends StatelessWidget {
+  const QuizAnswerWidget(this.selectedOption,
+      {super.key, required this.quiz, required this.nextButtonClickCallback});
+  final QuizQuestionOption selectedOption;
+  final Quiz quiz;
+  final Function() nextButtonClickCallback;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9,
+      height: MediaQuery.of(context).size.height * 0.7,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 255, 255),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(61, 0, 0, 0),
+            blurRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: AutoSizeText(
+              '${quiz.activeQuestion}',
+              // AppLocalizations.of(context)!.leavingNearBusyRoads,
+              style: const TextStyle(
+                color: Color.fromARGB(255, 0, 0, 0),
+                fontSize: 20,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w500,
+                //height: 1.50,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: const Color.fromARGB(10, 0, 0, 0),
+                width: 1,
+              ),
+              color: const Color.fromARGB(61, 85, 181, 236),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            height: MediaQuery.of(context).size.height * 0.633,
+            width: MediaQuery.of(context).size.width * 0.845,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: InkWell(
+                        onTap: () async {},
+                        child: SvgPicture.asset(
+                          'assets/icon/sparkles.svg',
+                          height: 15,
+                          width: 15,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: AutoSizeText(
+                        'AIRQO',
+                        style: TextStyle(
+                          color: CustomColors.appColorBlue,
+                          fontSize: 15,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          //height: 1.50,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.40,
+                        child: DefaultTextStyle(
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0),
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                          ),
+                          child: AnimatedTextKit(
+                            displayFullTextOnTap: true,
+                            totalRepeatCount: 1,
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                selectedOption.answer,
+                                speed: const Duration(milliseconds: 40),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05,
+                          width: MediaQuery.of(context).size.width * 0.3,
+                          child: NextButton(
+                            showIcon: false,
+                            buttonColor: CustomColors.appColorBlue,
+                            text: AppLocalizations.of(context)!.next,
+                            callBack: () {
+                              nextButtonClickCallback();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              ],
             ),
           ),
         ],
