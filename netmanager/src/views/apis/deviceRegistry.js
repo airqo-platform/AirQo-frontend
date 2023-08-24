@@ -233,6 +233,12 @@ export const assignDevicesToCohort = async (cohortID, deviceIDs) => {
     .then((response) => response.data);
 };
 
+export const createGridApi = async (gridData) => {
+  return await axios
+    .post(GRIDS, gridData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const softCreateDevicePhoto = async (data) => {
   return await axios
     .post(SOFT_EDIT_DEVICE_IMAGE, data, { params: { token: BASE_AUTH_TOKEN } })

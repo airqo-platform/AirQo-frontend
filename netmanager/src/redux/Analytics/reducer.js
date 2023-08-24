@@ -1,4 +1,5 @@
 import {
+  ADD_POLYGON_SHAPE_SUCCESS,
   LOAD_ACTIVE_COHORT_DETAILS_SUCCESS,
   LOAD_ACTIVE_COHORT_SUCCESS,
   LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
@@ -12,7 +13,11 @@ const initialState = {
   activeGrid: {},
   activeGridDetails: {},
   activeCohort: {},
-  activeCohortDetails: {}
+  activeCohortDetails: {},
+  polygonShape: {
+    type: '',
+    coordinates: []
+  }
 };
 
 export default function (state = initialState, action) {
@@ -27,6 +32,8 @@ export default function (state = initialState, action) {
       return { ...state, activeCohort: action.payload };
     case LOAD_ACTIVE_COHORT_DETAILS_SUCCESS:
       return { ...state, activeCohortDetails: action.payload };
+    case ADD_POLYGON_SHAPE_SUCCESS:
+      return { ...state, polygonShape: action.payload };
     default:
       return state;
   }

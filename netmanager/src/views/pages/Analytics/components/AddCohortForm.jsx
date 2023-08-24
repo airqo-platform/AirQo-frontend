@@ -1,6 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/styles';
+import React, { useState } from 'react';
 import {
   Button,
   TextField,
@@ -88,13 +87,13 @@ const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
   };
   return (
     <Dialog
-      open={open}
+      open={open && isCohort}
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
       maxWidth="sm"
       scroll="paper"
     >
-      <DialogTitle id="form-dialog-title">Add {isCohort ? 'New Cohort' : 'New Grid'}</DialogTitle>
+      <DialogTitle id="form-dialog-title">Add New Cohort</DialogTitle>
       <DialogContent dividers={'paper'}>
         <TextField
           margin="dense"

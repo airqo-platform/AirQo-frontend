@@ -4,6 +4,7 @@ import {
   getCohortDetailsApi
 } from 'views/apis/deviceRegistry';
 import {
+  ADD_POLYGON_SHAPE_SUCCESS,
   LOAD_ACTIVE_COHORT_DETAILS_FAILURE,
   LOAD_ACTIVE_COHORT_DETAILS_SUCCESS,
   LOAD_ACTIVE_COHORT_SUCCESS,
@@ -74,4 +75,11 @@ export const loadCohortDetails = (cohortID) => async (dispatch) => {
         payload: err
       });
     });
+};
+
+export const loadPolygon = (shape) => (dispatch) => {
+  dispatch({
+    type: ADD_POLYGON_SHAPE_SUCCESS,
+    payload: shape
+  });
 };

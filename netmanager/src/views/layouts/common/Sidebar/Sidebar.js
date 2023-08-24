@@ -15,6 +15,7 @@ import EditLocationIcon from '@material-ui/icons/EditLocation';
 import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import AirQloudIcon from '@material-ui/icons/FilterDrama';
 import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import BusinessIcon from '@material-ui/icons/Business';
@@ -94,7 +95,7 @@ const allMainPages = [
   {
     title: 'Analytics',
     href: '/analytics',
-    icon: <DashboardIcon />
+    icon: <TimelineIcon />
   },
   {
     title: 'Export data',

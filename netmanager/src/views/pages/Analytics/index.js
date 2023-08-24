@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  Typography,
   makeStyles
 } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
@@ -27,6 +28,8 @@ import CohortsDashboardView from './components/CohortsDashboard';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import AddCohortToolbar from './components/AddCohortForm';
+import AddGridToolbar from './components/AddGridForm';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -50,6 +53,7 @@ const Analytics = () => {
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(true);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const devices = useDevicesData();
@@ -68,8 +72,10 @@ const Analytics = () => {
   };
 
   useEffect(() => {
+    setLoading(true);
     if (!isEmpty(activeNetwork)) {
       dispatch(loadGridsAndCohortsSummary(activeNetwork.net_name));
+      setLoading(false);
     }
   }, []);
 
@@ -187,9 +193,33 @@ const Analytics = () => {
           </Box>
         </Box>
 
-        {!isCohort && <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />}
+        {/* Shows create grid/cohort if no cohorts and grids exist*/}
+        {combinedGridAndCohortsSummary &&
+          (isEmpty(combinedGridAndCohortsSummary.grids) ||
+            isEmpty(combinedGridAndCohortsSummary.cohorts)) &&
+          !loading && (
+            <Box
+              display={'flex'}
+              flexDirection={'column'}
+              justifyContent={'center'}
+              alignItems={'center'}
+              width={'100%'}
+              height={'100%'}
+            >
+              <Box height={'100px'} />
+              <Typography variant={'h4'}>No {isCohort ? 'cohorts' : 'grids'} found</Typography>
+              <Box height={'20px'} />
+              <Typography variant={'subtitle1'}>
+                Create a new {isCohort ? 'cohorts' : 'grids'} to get started
+              </Typography>
+            </Box>
+          )}
 
-        {isCohort && (
+        {!isCohort && !isEmpty(activeGrid) && (
+          <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />
+        )}
+
+        {isCohort && !isEmpty(activeCohort) && (
           <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
         )}
 
@@ -197,13 +227,15 @@ const Analytics = () => {
         <AddCohortToolbar
           open={open}
           handleClose={handleClose}
-          handleClickOpen={handleClickOpen}
-          isCohort={isCohort}
           deviceOptions={deviceOptions}
+          isCohort={isCohort}
         />
+
+        {/* Shows add new grid dialog */}
+        <AddGridToolbar open={open} handleClose={handleClose} isCohort={isCohort} />
       </div>
     </ErrorBoundary>
   );
 };
 
-export default Analytics;
+export default withPermission(Analytics, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
