@@ -416,8 +416,7 @@ class QuizAnswerWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              '$selectedOption.title',
-              // AppLocalizations.of(context)!.leavingNearBusyRoads,
+              selectedOption.title,
               style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
                 fontSize: 20,
@@ -509,12 +508,11 @@ class QuizAnswerWidget extends StatelessWidget {
                                         speed: const Duration(milliseconds: 40),
                                       ),
                                     ],
-                                  ), 
+                                  ),
                                 ),
                               );
                             },
                           ),
-
                         ),
                       ),
                     ),
@@ -525,7 +523,7 @@ class QuizAnswerWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05,
+                          height: MediaQuery.of(context).size.height * 0.1,
                           width: MediaQuery.of(context).size.width * 0.3,
                           child: NextButton(
                             showIcon: false,
