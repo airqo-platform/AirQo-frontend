@@ -51,14 +51,14 @@ const GridSitesTable = ({ sites }) => {
       options={{
         search: true,
         exportButton: true,
-        searchFieldAlignment: 'right',
-        showTitle: true,
+        searchFieldAlignment: 'left',
+        showTitle: false,
         searchFieldStyle: {
           fontFamily: 'Open Sans'
         },
         headerStyle: {
           fontFamily: 'Open Sans',
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: 600
         }
       }}

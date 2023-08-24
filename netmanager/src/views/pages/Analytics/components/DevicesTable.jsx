@@ -23,15 +23,28 @@ const CohortDevicesTable = ({ devices }) => {
         },
         {
           title: 'Site',
-          field: 'site'
+          field: 'site',
+          render: (rowData) => {
+            return rowData.site ? rowData.site.name : 'N/A';
+          }
+        },
+        {
+          title: 'Deployment status',
+          field: 'status',
+          render: (rowData) => (
+            <span
+              style={{
+                color: rowData.status === 'deployed' ? 'green' : 'red',
+                textTransform: 'capitalize'
+              }}
+            >
+              {rowData.status}
+            </span>
+          )
         },
         {
           title: 'Date created',
           field: 'createdAt'
-        },
-        {
-          title: 'Deployment status',
-          field: 'status'
         }
       ]}
       data={devices || []}
@@ -43,14 +56,14 @@ const CohortDevicesTable = ({ devices }) => {
       options={{
         search: true,
         exportButton: true,
-        searchFieldAlignment: 'right',
-        showTitle: true,
+        searchFieldAlignment: 'left',
+        showTitle: false,
         searchFieldStyle: {
           fontFamily: 'Open Sans'
         },
         headerStyle: {
           fontFamily: 'Open Sans',
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: 600
         }
       }}

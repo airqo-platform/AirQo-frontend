@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, makeStyles } from '@material-ui/core';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  makeStyles
+} from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import AnalyticsAirqloudsDropDown from './components/AirqloudDropdown';
 import ImportExportIcon from '@material-ui/icons/ImportExport';
@@ -15,6 +24,9 @@ import {
 } from 'redux/Analytics/operations';
 import { isEmpty } from 'underscore';
 import CohortsDashboardView from './components/CohortsDashboard';
+import { loadDevicesData } from 'redux/DeviceRegistry/operations';
+import { useDevicesData } from 'redux/DeviceRegistry/selectors';
+import AddCohortToolbar from './components/AddCohortForm';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,10 +34,26 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const createDeviceOptions = (devices) => {
+  const options = [];
+  devices.map((device) => {
+    options.push({
+      value: device._id,
+      label: device.name
+    });
+  });
+  return options;
+};
+
 const Analytics = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(true);
+  const [open, setOpen] = useState(false);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
+
+  const devices = useDevicesData();
+  const [deviceOptions, setDeviceOptions] = useState([]);
 
   const combinedGridAndCohortsSummary = useSelector(
     (state) => state.analytics.combinedGridAndCohortsSummary
@@ -34,8 +62,6 @@ const Analytics = () => {
   const activeGridDetails = useSelector((state) => state.analytics.activeGridDetails);
   const activeCohort = useSelector((state) => state.analytics.activeCohort);
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
-
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
   const handleSwitchAirqloudTypeClick = () => {
     setIsCohort(!isCohort);
@@ -81,6 +107,29 @@ const Analytics = () => {
     }
   }, [activeCohort]);
 
+  useEffect(() => {
+    if (isEmpty(devices)) {
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadDevicesData(activeNetwork.net_name));
+      }
+    }
+  }, [devices]);
+
+  useEffect(() => {
+    if (!isEmpty(devices)) {
+      const deviceOptions = createDeviceOptions(Object.values(devices));
+      setDeviceOptions(deviceOptions);
+    }
+  }, [devices]);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <ErrorBoundary>
       <div className={classes.root}>
@@ -117,7 +166,7 @@ const Analytics = () => {
                 height: '44px'
               }}
               variant="outlined"
-              onClick={handleSwitchAirqloudTypeClick}
+              onClick={handleClickOpen}
             >
               <ImportExportIcon /> Add New {isCohort ? 'Cohort' : 'Grid'}
             </Button>
@@ -143,6 +192,15 @@ const Analytics = () => {
         {isCohort && (
           <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
         )}
+
+        {/* Shows add new cohort dialog */}
+        <AddCohortToolbar
+          open={open}
+          handleClose={handleClose}
+          handleClickOpen={handleClickOpen}
+          isCohort={isCohort}
+          deviceOptions={deviceOptions}
+        />
       </div>
     </ErrorBoundary>
   );

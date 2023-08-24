@@ -4,16 +4,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch } from 'react-redux';
 import CohortDevicesTable from './DevicesTable';
 
-const useStyles = makeStyles((theme) => ({
-  chartCard: {},
-  chartContainer: {
-    minHeight: 250,
-    position: 'relative'
-  }
-}));
-
 const CohortsDashboardView = ({ cohort, cohortDetails }) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
 
   const [cohortInfo, setCohortInfo] = useState({
@@ -22,20 +13,13 @@ const CohortsDashboardView = ({ cohort, cohortDetails }) => {
     devices: []
   });
 
-  const [cohortDevices, setCohortDevices] = useState([]);
-
   useEffect(() => {
     if (cohortDetails) {
       setCohortInfo({
         name: cohortDetails.name,
         numberOfDevices: cohortDetails.numberOfDevices,
-        visibility: cohortDetails.visibility,
         devices: cohortDetails.devices
       });
-
-      const deviceNames =
-        cohortDetails.devices && cohortDetails.devices.map((device) => device.name);
-      setCohortDevices(deviceNames);
     }
   }, [cohortDetails]);
 

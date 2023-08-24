@@ -199,6 +199,12 @@ export const refreshAirQloudApi = async (params) => {
     .then((response) => response.data);
 };
 
+export const createCohortApi = async (cohortData) => {
+  return await axios
+    .post(COHORTS, cohortData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const getGridsAndCohortsSummaryApi = async (networkID) => {
   return await axios
     .get(`${GRIDS_COHORTS_COMBINED}/${networkID}/summary`, { params: { token: BASE_AUTH_TOKEN } })
@@ -214,6 +220,16 @@ export const getGridDetailsApi = async (gridID) => {
 export const getCohortDetailsApi = async (cohortID) => {
   return await axios
     .get(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const assignDevicesToCohort = async (cohortID, deviceIDs) => {
+  return await axios
+    .post(
+      `${COHORTS}/${cohortID}/assign-devices`,
+      { device_ids: deviceIDs },
+      { params: { token: BASE_AUTH_TOKEN } }
+    )
     .then((response) => response.data);
 };
 
