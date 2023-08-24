@@ -416,8 +416,7 @@ class QuizAnswerWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              '${quiz.activeQuestion}',
-              // AppLocalizations.of(context)!.leavingNearBusyRoads,
+              selectedOption.title,
               style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
                 fontSize: 20,
