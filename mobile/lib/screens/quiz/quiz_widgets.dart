@@ -206,7 +206,8 @@ class QuizAnswerWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              AppLocalizations.of(context)!.leavingNearBusyRoads,
+              '${quiz.activeQuestion}',
+              // AppLocalizations.of(context)!.leavingNearBusyRoads,
               style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
                 fontSize: 20,
@@ -233,7 +234,6 @@ class QuizAnswerWidget extends StatelessWidget {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  //crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -305,8 +305,6 @@ class QuizAnswerWidget extends StatelessWidget {
                             text: AppLocalizations.of(context)!.next,
                             callBack: () {
                               nextButtonClickCallback();
-
-                              // bottomSheet4(context);
                             },
                           ),
                         ),

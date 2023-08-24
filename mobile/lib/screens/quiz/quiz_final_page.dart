@@ -103,11 +103,10 @@ Future<dynamic> bottomSheetQuizConffeti(
                             ),
                             const SizedBox(height: 24),
                             SizedBox(
-                              //width: 307,
-                              //height: 89,
                               child: AutoSizeText(
-                                AppLocalizations.of(context)!
-                                    .wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney,
+                                quiz.completionMessage,
+                                // AppLocalizations.of(context)!
+                                //     .wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney,
                                 textAlign: TextAlign.center,
                                 maxLines: 3,
                                 style: const TextStyle(
