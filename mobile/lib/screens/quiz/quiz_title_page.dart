@@ -78,8 +78,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                             color: Color.fromARGB(255, 31, 35, 45),
                             fontSize: 25,
                             fontWeight: FontWeight.w700,
-                            //height: 1.70,
-                            //letterSpacing: -0.90,
                           ),
                         ),
                       ),

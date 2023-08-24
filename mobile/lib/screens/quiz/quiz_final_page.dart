@@ -11,7 +11,6 @@ Future<dynamic> bottomSheetQuizConffeti(
     useSafeArea: true,
     transitionAnimationController: bottomSheetTransition(parentContext),
     isScrollControlled: true,
-    //enableDrag: false,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(16),
@@ -23,15 +22,6 @@ Future<dynamic> bottomSheetQuizConffeti(
     builder: (context) {
       return Stack(
         children: [
-          // Positioned.fill(
-          //   left: 0,
-          //   right: 0,
-          //   top: 0,
-          //   bottom: 0,
-          //   child: Confetti(
-          //     key: UniqueKey(),
-          //   ),
-          // ),
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.9,
             width: MediaQuery.of(context).size.width,
