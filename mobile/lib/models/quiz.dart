@@ -11,7 +11,7 @@ class Quiz extends Equatable {
   factory Quiz.fromJson(Map<String, dynamic> json) => _$QuizFromJson(json);
   const Quiz({
     required this.title,
-    required this.subTitle,
+    required this.description,
     required this.imageUrl,
     required this.id,
     required this.questions,
@@ -26,8 +26,8 @@ class Quiz extends Equatable {
   @JsonKey()
   final String title;
 
-  @JsonKey(name: 'description')
-  final String subTitle;
+  @JsonKey()
+  final String description;
 
   @JsonKey()
   final List<QuizQuestion> questions;
@@ -52,7 +52,7 @@ class Quiz extends Equatable {
 
     return Quiz(
       title: '',
-      subTitle: '',
+      description: '',
       imageUrl: '',
       id: id,
       questions: const [],
@@ -73,7 +73,7 @@ class Quiz extends Equatable {
   }) {
     return Quiz(
       title: title,
-      subTitle: subTitle,
+      description: description,
       completionMessage: completionMessage,
       imageUrl: imageUrl,
       id: id,
@@ -101,8 +101,8 @@ class QuizQuestion extends Equatable {
   const QuizQuestion({
     required this.id,
     required this.title,
-    required this.category,
-    required this.options,
+    required this.context,
+    required this.answers,
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
@@ -114,11 +114,11 @@ class QuizQuestion extends Equatable {
 
   final String title;
 
-  @JsonKey(name: 'context')
-  final String category;
+  @JsonKey()
+  final String context;
 
   @JsonKey(name: 'answers')
-  final List<QuizQuestionOption> options;
+  final List<QuizAnswer> answers;
 
   Map<String, dynamic> toJson() => _$QuizQuestionToJson(this);
 
@@ -127,14 +127,14 @@ class QuizQuestion extends Equatable {
 }
 
 @JsonSerializable(explicitToJson: true)
-class QuizQuestionOption extends Equatable {
-  const QuizQuestionOption({
+class QuizAnswer extends Equatable {
+  const QuizAnswer({
     required this.id,
     required this.title,
-    required this.answer,
+    required this.content,
   });
 
-  factory QuizQuestionOption.fromJson(Map<String, dynamic> json) {
+  factory QuizAnswer.fromJson(Map<String, dynamic> json) {
     return _$QuizQuestionOptionFromJson(json);
   }
 
@@ -144,7 +144,7 @@ class QuizQuestionOption extends Equatable {
   final String title;
 
   @JsonKey(name: 'content')
-  final String answer;
+  final List<String> content;
 
   Map<String, dynamic> toJson() => _$QuizQuestionOptionToJson(this);
 

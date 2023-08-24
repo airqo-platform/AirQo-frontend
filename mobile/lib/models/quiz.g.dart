@@ -8,7 +8,7 @@ part of 'quiz.dart';
 
 Quiz _$QuizFromJson(Map<String, dynamic> json) => Quiz(
       title: json['title'] as String,
-      subTitle: json['description'] as String,
+      description: json['description'] as String,
       imageUrl: json['image'] as String,
       id: json['_id'] as String,
       questions: (json['questions'] as List<dynamic>)
@@ -24,7 +24,7 @@ Quiz _$QuizFromJson(Map<String, dynamic> json) => Quiz(
 Map<String, dynamic> _$QuizToJson(Quiz instance) => <String, dynamic>{
       'image': instance.imageUrl,
       'title': instance.title,
-      'description': instance.subTitle,
+      'description': instance.description,
       'questions': instance.questions.map((e) => e.toJson()).toList(),
       'completion_message': instance.completionMessage,
       '_id': instance.id,
@@ -42,9 +42,9 @@ const _$QuizStatusEnumMap = {
 QuizQuestion _$QuizQuestionFromJson(Map<String, dynamic> json) => QuizQuestion(
       id: json['_id'] as String,
       title: json['title'] as String,
-      category: json['context'] as String,
-      options: (json['answers'] as List<dynamic>)
-          .map((e) => QuizQuestionOption.fromJson(e as Map<String, dynamic>))
+      context: json['context'] as String,
+      answers: (json['answers'] as List<dynamic>)
+          .map((e) => QuizAnswer.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -52,20 +52,20 @@ Map<String, dynamic> _$QuizQuestionToJson(QuizQuestion instance) =>
     <String, dynamic>{
       '_id': instance.id,
       'title': instance.title,
-      'context': instance.category,
-      'answers': instance.options.map((e) => e.toJson()).toList(),
+      'context': instance.context,
+      'answers': instance.answers.map((e) => e.toJson()).toList(),
     };
 
-QuizQuestionOption _$QuizQuestionOptionFromJson(Map<String, dynamic> json) =>
-    QuizQuestionOption(
+QuizAnswer _$QuizAnswerFromJson(Map<String, dynamic> json) => QuizAnswer(
       id: json['_id'] as String,
       title: json['title'] as String,
-      answer: json['content'] as String,
+      content:
+          (json['content'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
-Map<String, dynamic> _$QuizQuestionOptionToJson(QuizQuestionOption instance) =>
+Map<String, dynamic> _$QuizAnswerToJson(QuizAnswer instance) =>
     <String, dynamic>{
       '_id': instance.id,
       'title': instance.title,
-      'content': instance.answer,
+      'content': instance.content,
     };

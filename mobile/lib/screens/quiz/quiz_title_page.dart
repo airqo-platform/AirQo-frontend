@@ -85,7 +85,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.8,
                         child: AutoSizeText(
-                          quiz.subTitle,
+                          quiz.description,
                           textAlign: TextAlign.justify,
                           maxLines: 2,
                           style: const TextStyle(

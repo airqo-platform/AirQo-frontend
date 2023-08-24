@@ -68,12 +68,12 @@ class QuizQuestionWidget extends StatefulWidget {
 
 class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
   bool showAnswer = false;
-  late QuizQuestionOption selectedOption;
+  late QuizAnswer selectedOption;
 
   @override
   void initState() {
     super.initState();
-    selectedOption = widget.currentQuestion.options[0];
+    selectedOption = widget.currentQuestion.answers[0];
   }
 
   @override
@@ -182,7 +182,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     SizedBox(
                       height: 25,
                       child: AutoSizeText(
-                        widget.currentQuestion.category,
+                        widget.currentQuestion.context,
                         style: const TextStyle(
                           color: Color.fromARGB(117, 0, 0, 0),
                           fontSize: 10,
@@ -220,8 +220,8 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     ListView.builder(
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
-                        QuizQuestionOption option =
-                            widget.currentQuestion.options[index];
+                        QuizAnswer option =
+                            widget.currentQuestion.answers[index];
                         return Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 10,
@@ -233,10 +233,10 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                               buttonColor:
                                   const Color.fromARGB(69, 70, 168, 248),
                               callBack: () {
-                                if (option.answer.isNotEmpty) {
+                                if (option.content.isNotEmpty) {
                                   setState(() {
                                     selectedOption = option;
-                                    widget.currentQuestion.options[index] =
+                                    widget.currentQuestion.answers[index] =
                                         option;
                                     showAnswer = true;
                                   });
@@ -247,7 +247,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                           ),
                         );
                       },
-                      itemCount: widget.currentQuestion.options.length,
+                      itemCount: widget.currentQuestion.answers.length,
                     ),
                     const SizedBox(
                       height: 10,
@@ -392,7 +392,7 @@ class QuizCard extends StatelessWidget {
 class QuizAnswerWidget extends StatelessWidget {
   const QuizAnswerWidget(this.selectedOption,
       {super.key, required this.quiz, required this.nextButtonClickCallback});
-  final QuizQuestionOption selectedOption;
+  final QuizAnswer selectedOption;
   final Quiz quiz;
   final Function() nextButtonClickCallback;
 
@@ -416,7 +416,7 @@ class QuizAnswerWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              '${quiz.activeQuestion}',
+              '$selectedOption.title',
               // AppLocalizations.of(context)!.leavingNearBusyRoads,
               style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
@@ -487,16 +487,34 @@ class QuizAnswerWidget extends StatelessWidget {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                           ),
-                          child: AnimatedTextKit(
-                            displayFullTextOnTap: true,
-                            totalRepeatCount: 1,
-                            animatedTexts: [
-                              TypewriterAnimatedText(
-                                selectedOption.answer,
-                                speed: const Duration(milliseconds: 40),
-                              ),
-                            ],
+                          child: ListView.builder(
+                            itemCount: selectedOption.content.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: ListTile(
+                                  leading: Icon(Icons.circle,
+                                      size: 8, color: Colors.black),
+                                  title: AnimatedTextKit(
+                                    onNext: (int index, bool isLast) => {
+                                      Future.delayed(
+                                          const Duration(seconds: 3), () {})
+                                    },
+                                    displayFullTextOnTap: true,
+                                    totalRepeatCount: 1,
+                                    animatedTexts: [
+                                      TypewriterAnimatedText(
+                                        selectedOption.content[index],
+                                        speed: const Duration(milliseconds: 40),
+                                      ),
+                                    ],
+                                  ), 
+                                ),
+                              );
+                            },
                           ),
+
                         ),
                       ),
                     ),

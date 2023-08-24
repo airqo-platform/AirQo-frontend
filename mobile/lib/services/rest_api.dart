@@ -450,8 +450,7 @@ class AirqoApiClient {
   Future<List<Quiz>> fetchQuizzes(String userId) async {
     final quizzes = <Quiz>[];
     final queryParams = <String, String>{}
-      ..putIfAbsent('tenant', () => 'airqo')
-      ..putIfAbsent('limit', () => '1000');
+      ..putIfAbsent('tenant', () => 'airqo');
     String url = "${AirQoUrls.kya}/quizzes/users/$userId";
     if (userId.isEmpty) {
       url = "${AirQoUrls.kya}/quizzes";
