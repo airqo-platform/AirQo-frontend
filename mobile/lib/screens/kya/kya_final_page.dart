@@ -30,36 +30,61 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
         ),
         body: AppSafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                'assets/icon/learn_complete.svg',
-                height: 133,
-                width: 221,
-              ),
-              const SizedBox(
-                height: 33.61,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  AppLocalizations.of(context)!.congrats,
-                  style: CustomTextStyle.headline11(context),
-                ),
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 60),
-                child: Text(
-                  widget.kyaLesson.completionMessage,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: GestureDetector(
+                      onTap: () async {
+                        await popNavigation(context);
+                      },
+                      child: SvgPicture.asset(
+                        'assets/icon/close.svg',
+                        height: 40,
+                        width: 40,
                       ),
-                ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 85,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/learn_complete.svg',
+                    height: 133,
+                    width: 221,
+                  ),
+                  const SizedBox(
+                    height: 33.61,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      AppLocalizations.of(context)!.congrats,
+                      style: CustomTextStyle.headline11(context),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 60),
+                    child: Text(
+                      widget.kyaLesson.completionMessage,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: CustomColors.appColorBlack.withOpacity(0.5),
+                          ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
