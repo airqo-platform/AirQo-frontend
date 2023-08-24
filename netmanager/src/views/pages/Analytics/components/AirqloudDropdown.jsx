@@ -112,11 +112,11 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
           className="basic-single"
           classNamePrefix="select"
         />
-        <Tooltip title="Refresh AirQloud">
+        {/* <Tooltip title="Refresh AirQloud">
           <div className="dd-reload" onClick={handleAirQloudRefresh}>
             <ReloadIcon />
           </div>
-        </Tooltip>
+        </Tooltip> */}
       </div>
 
       {hoveredOption && hoveredOption.value && hoveredOption.value.sites && (
