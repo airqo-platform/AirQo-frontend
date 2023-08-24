@@ -50,7 +50,6 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _forYouShowcaseKey;
   late GlobalKey _kyaShowcaseKey;
   late GlobalKey _analyticsShowcaseKey;
-  late GlobalKey _quizShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
   bool _kyaExists = true, _nearbyLocationExists = false;
@@ -330,13 +329,8 @@ class _DashboardViewState extends State<DashboardView>
                         return const SizedBox();
                       }
 
-                      return CustomShowcaseWidget(
-                        showcaseKey: _quizShowcaseKey,
-                        descriptionHeight: screenSize.height * 0.17,
-                        description: AppLocalizations.of(context)!
-                            .findAmazingContentSpecificallyDesignedForYouHere,
-                        child: QuizCard(inCompleteQuizzes.first),
-                      );
+                      return QuizCard(inCompleteQuizzes.first);
+                      
                     },
                   ),
 
