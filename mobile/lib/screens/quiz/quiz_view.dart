@@ -38,9 +38,9 @@ Future<dynamic> bottomSheetQuizQuestion(Quiz quiz, BuildContext context) {
     isScrollControlled: true,
     enableDrag: false,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(16),
-        topRight: Radius.circular(16),
+      borderRadius: BorderRadius.horizontal(
+        left: Radius.circular(16),
+        right: Radius.circular(16),
       ),
     ),
     isDismissible: false,
@@ -388,6 +388,7 @@ class QuizCard extends StatelessWidget {
     );
   }
 }
+
 class QuizAnswerWidget extends StatelessWidget {
   const QuizAnswerWidget(this.selectedOption,
       {super.key, required this.quiz, required this.nextButtonClickCallback});
