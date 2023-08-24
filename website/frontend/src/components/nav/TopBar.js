@@ -57,28 +57,42 @@ const TopBar = () => {
           </Link>
         </div>
         <div className="nav-center" id="nav-center">
-          <div className="nav-dropdown-item">
-            <NavTab text="Products" onClick={() => handleClick('Products')} />
-            <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
-              <h3 className="title">Products</h3>
-              <div className="dropdown-list">
-                <div className="dropdown-list-item">
-                  <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
-                    <h3>Binos Monitor</h3>
-                    <h4>Built in Africa for African cities</h4>
-                  </Link>
-                </div>
-                <div className="dropdown-list-item">
-                  <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
-                    <h3>Analytics Dashboard</h3>
-                    <h4>Access and visualise air quality data</h4>
-                  </Link>
-                </div>
-                <div className="dropdown-list-item">
-                  <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
-                    <h3>Mobile App</h3>
-                    <h4>Discover the quality of air around you</h4>
-                  </Link>
+          <div className="nav-wrapper">
+            <div className="nav-dropdown-item">
+              <NavTab text="Products" onClick={() => handleClick('Products')} />
+              <div className="dropdown" id={openItem === 'Products' ? 'solutions-dropdown' : ''}>
+                <h3 className="title">Products</h3>
+                <div className="dropdown-list">
+                  <div className="dropdown-list-item">
+                    <Link to="/products/monitor" style={{ textDecoration: 'none' }}>
+                      <h3>Binos Monitor</h3>
+                      <h4>Built in Africa for African cities</h4>
+                    </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <Link to="/products/analytics" style={{ textDecoration: 'none' }}>
+                      <h3>Analytics Dashboard</h3>
+                      <h4>Air quality analytics for African Cities</h4>
+                    </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <Link to="/products/mobile-app" style={{ textDecoration: 'none' }}>
+                      <h3>Mobile App</h3>
+                      <h4>Discover the quality of air around you</h4>
+                    </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <Link to="/products/api" style={{ textDecoration: 'none' }}>
+                      <h3>Air Quality API</h3>
+                      <h4>Access raw and calibrated data</h4>
+                    </Link>
+                  </div>
+                  <div className="dropdown-list-item">
+                    <Link to="/products/calibrate" style={{ textDecoration: 'none' }}>
+                      <h3>AirQalibrate</h3>
+                      <h4>Calibrate your low-cost sensor data</h4>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

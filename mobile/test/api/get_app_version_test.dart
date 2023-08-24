@@ -3,120 +3,54 @@ import 'package:app/models/app_store_version.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'api.mocks.dart';
-
-@GenerateMocks([http.Client])
 Future<void> main() async {
-  late MockClient client;
-  late Map<String, String> headers;
-  late String packageName;
-  late String bundleId;
+  setUpAll(() async {
+    await dotenv.load(fileName: Config.environmentFile);
+  });
 
-  group('returnsCurrentAppVersion', () {
-    setUpAll(() async {
-      await dotenv.load(fileName: Config.environmentFile);
-      headers = {
-        'Authorization': 'JWT ${Config.airqoJWTToken}',
-        'service': ApiService.view.serviceName,
-      };
-      client = MockClient();
-      bundleId = "com.airqo.net";
-      packageName = "com.airqo.app";
-      PackageInfo.setMockInitialValues(
-        appName: "airqo",
-        packageName: "com.airqo.app",
-        version: "2.0.1",
-        buildNumber: "123",
-        buildSignature: "123",
-      );
-    });
+  test('return Android version from API', () async {
+    PackageInfo.setMockInitialValues(
+      appName: "airqo",
+      packageName: "com.airqo.app",
+      version: "2.0.1",
+      buildNumber: "123",
+      buildSignature: "123",
+    );
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    AirqoApiClient airqoApiClient = AirqoApiClient();
+    AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
+        currentVersion: packageInfo.version,
+        packageName: packageInfo.packageName);
+    expect(appVersion, isA<AppStoreVersion>());
+    expect(
+      appVersion?.url,
+      Uri.parse(
+        "https://play.google.com/store/apps/details?id=com.airqo.app",
+      ),
+    );
+  });
 
-    test('returns mocked AppVersion', () async {
-      when(
-        client.get(
-          Uri.parse(
-            '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}',
-          ),
-          headers: headers,
-        ),
-      ).thenAnswer(
-        (_) async => http.Response(
-          '{"data": {"version": "v1.0.0", "url": "https://api.airqo.net/version", "is_updated": true}}',
-          200,
-        ),
-      );
+  test('returns iOS version from API', () async {
+    PackageInfo.setMockInitialValues(
+      appName: "airqo",
+      packageName: "com.airqo.net",
+      version: "2.0.1",
+      buildNumber: "123",
+      buildSignature: "123",
+    );
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
-      AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
-
-      expect(await airqoApiClient.getAppVersion(), isA<AppStoreVersion>());
-    });
-
-    test('returns null if data not in response body', () async {
-      when(
-        client.get(
-            Uri.parse(
-              '${AirQoUrls.appVersion}?bundleId=$bundleId&packageName=$packageName&TOKEN=${Config.airqoApiV2Token}',
-            ),
-            headers: headers),
-      ).thenAnswer(
-        (_) async => http.Response(
-            '{"version": "v1.0.0", "url": "https://api.airqo.net/version", "is_updated": true}',
-            200),
-      );
-
-      AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
-
-      expect(
-        await airqoApiClient.getAppVersion(),
-        null,
-      );
-    });
-
-    test('returns null if an exception occurs', () async {
-      when(
-        client.get(
-          Uri.parse(
-            '${AirQoUrls.appVersion}?bundleId=""&packageName=""&TOKEN=${Config.airqoApiV2Token}',
-          ),
-          headers: headers,
-        ),
-      ).thenAnswer(
-        (_) async => http.Response('', 200),
-      );
-
-      AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
-
-      expect(
-        await airqoApiClient.getAppVersion(),
-        null,
-      );
-    });
-
-    test('return Android version from API', () async {
-      AirqoApiClient airqoApiClient = AirqoApiClient();
-      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion();
-      expect(appVersion, isA<AppStoreVersion>());
-      expect(
-        appVersion?.url,
-        Uri.parse(
-            "https://apps.apple.com/us/app/airqo-air-quality/id1337573091"),
-      );
-    });
-
-    test('returns iOS version from API', () async {
-      AirqoApiClient airqoApiClient = AirqoApiClient();
-      AppStoreVersion? appVersion = await airqoApiClient.getAppVersion();
-      expect(appVersion, isA<AppStoreVersion>());
-      expect(
-        appVersion?.url,
-        Uri.parse(
-            "https://play.google.com/store/apps/details?id=com.airqo.app"),
-      );
-    });
+    AirqoApiClient airqoApiClient = AirqoApiClient();
+    AppStoreVersion? appVersion = await airqoApiClient.getAppVersion(
+        currentVersion: packageInfo.version, bundleId: packageInfo.packageName);
+    expect(appVersion, isA<AppStoreVersion>());
+    expect(
+      appVersion?.url,
+      Uri.parse(
+        "https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091",
+      ),
+    );
   });
 }

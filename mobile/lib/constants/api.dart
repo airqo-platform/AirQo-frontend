@@ -46,7 +46,4 @@ enum ApiService {
   const ApiService(this.serviceName);
 
   final String serviceName;
-
-  @override
-  String toString() => serviceName;
 }
