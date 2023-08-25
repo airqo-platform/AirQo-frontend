@@ -1,4 +1,4 @@
-name: Flutter tests coverage
+name: Mobile-app test coverage
 
 on: [push, pull_request]
 
