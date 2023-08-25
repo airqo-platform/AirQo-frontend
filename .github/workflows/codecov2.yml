@@ -1,4 +1,4 @@
-name: Mobile-app test coverage
+name: Platform test coverage
 
 on: [push, pull_request]
 
@@ -24,6 +24,7 @@ jobs:
       run: |
         gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
         echo "INSTRUMENT_CODE=1" >> platform/.env
+      continue-on-error: true
 
     - name: Cypress run
       uses: cypress-io/github-action@v5
