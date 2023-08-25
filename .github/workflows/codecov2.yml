@@ -1,0 +1,44 @@
+name: Mobile-app test coverage
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    name: Test codeCov
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Google login
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+    - name: Setup Cloud SDK(gcloud)
+      uses: google-github-actions/setup-gcloud@v1
+
+    - name: Create .env file
+      run: |
+        gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+        echo "INSTRUMENT_CODE=1" >> platform/.env
+
+    - name: Cypress run
+      uses: cypress-io/github-action@v5
+      with:
+        working-directory: ./platform/
+        build: yarn build
+        start: yarn start
+        browser: chrome
+        record: true
+      env:
+        CYPRESS_RECORD_KEY: ${{ secrets.ANALYTICS_PLATFORM_CYPRESS_RECORD_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEBUG: code-coverage
+
+    - name: Deploy code coverage report 🚀
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./platform/coverage/lcov-report
