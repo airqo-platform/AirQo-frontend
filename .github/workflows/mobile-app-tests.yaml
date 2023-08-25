@@ -40,7 +40,7 @@ jobs:
 
           done < files.txt
 
-  drive:
+  build:
     name: App code tests
     needs: [check]
     if: needs.check.outputs.run_app_tests == 'true'
