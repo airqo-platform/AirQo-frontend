@@ -12,18 +12,13 @@ import {
   CloudUploadOutlined,
   PageviewOutlined,
   PhotoOutlined,
-  PeopleOutline,
   ExpandLess,
   ExpandMore
 } from '@material-ui/icons';
 import Collapse from '@material-ui/core/Collapse';
 import Link from '@material-ui/core/Link';
 import Hidden from '@material-ui/core/Hidden';
-import { isEmpty } from 'underscore';
-import { useDispatch, useSelector } from 'react-redux';
 import { useDeviceOverviewBackUrlsData } from 'redux/Urls/selectors';
-import { getOrgDevices } from '../../../../redux/DeviceOverview/OverviewSlice';
-
 import { last } from 'underscore';
 
 const a11yProps = (index) => {
@@ -95,10 +90,7 @@ const LinkTab = (props) => {
   );
 };
 
-const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-
 export const DeviceToolBar = ({ deviceName }) => {
-  const dispatch = useDispatch();
   const classes = useStyles();
   const match = useRouteMatch();
   const history = useHistory();
@@ -106,13 +98,6 @@ export const DeviceToolBar = ({ deviceName }) => {
   const [value, setValue] = React.useState(history.location.pathname);
   const [miniValue, setMiniValue] = React.useState(last(history.location.pathname.split('/')));
   const [show, setShow] = React.useState(false);
-  const devices = useSelector((state) => state.deviceOverviewData.devices);
-  let deviceData = {};
-
-  const selectedDevice = devices.filter((device) => device.name === deviceName);
-  selectedDevice.forEach((device) => {
-    deviceData = { ...device };
-  });
 
   const { pathname } = useLocation();
 
@@ -122,8 +107,7 @@ export const DeviceToolBar = ({ deviceName }) => {
     'maintenance-logs': <Update style={iconMiniStyles} />,
     'deploy-status': <CloudUploadOutlined style={iconMiniStyles} />,
     components: <AddOutlined style={iconMiniStyles} />,
-    photos: <PhotoOutlined style={iconMiniStyles} />,
-    hosts: <PeopleOutline style={iconMiniStyles} />
+    photos: <PhotoOutlined style={iconMiniStyles} />
   };
 
   useEffect(() => {
@@ -141,12 +125,6 @@ export const DeviceToolBar = ({ deviceName }) => {
     setMiniValue(value);
     history.push(url);
   };
-
-  useEffect(() => {
-    if (isEmpty(devices)) {
-      dispatch(getOrgDevices(activeNetwork.net_name));
-    }
-  }, []);
 
   return (
     <div className={`${classes.root} ${classes.margin}`}>
@@ -179,11 +157,6 @@ export const DeviceToolBar = ({ deviceName }) => {
               <Link onClick={handleDropdownChange(`${match.url}/photos`, 'photos')}>
                 <span>
                   <PhotoOutlined style={iconMiniStyles} /> Photos
-                </span>
-              </Link>
-              <Link onClick={handleDropdownChange(`${match.url}/hosts`, 'hosts')}>
-                <span>
-                  <PeopleOutline style={iconMiniStyles} /> Hosts
                 </span>
               </Link>
             </div>
@@ -235,13 +208,6 @@ export const DeviceToolBar = ({ deviceName }) => {
                 icon={<PhotoOutlined style={iconStyles} />}
                 value={`${match.url}/photos`}
                 {...a11yProps(5)}
-              />
-              <LinkTab
-                label="Hosts"
-                icon={<PeopleOutline style={iconStyles} />}
-                value={`${match.url}/hosts`}
-                {...a11yProps(6)}
-                disabled={deviceData.status === 'deployed' ? false : true}
               />
             </Tabs>
           </div>

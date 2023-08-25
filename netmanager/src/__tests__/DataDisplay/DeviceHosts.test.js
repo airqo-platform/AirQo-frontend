@@ -1,30 +1,54 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import DeviceHosts from '../../views/components/DataDisplay/DeviceView/DeviceHosts';
-import { getAllDeviceHosts } from '../../views/apis/deviceRegistry';
+import { render, screen, fireEvent } from '@testing-library/react';
+import EditHostDialog from '../../views/components/Hosts/HostView';
+import HostView from '../../views/components/Hosts/HostView';
 
-jest.mock('../../views/apis/deviceRegistry', () => ({
-  getAllDeviceHosts: jest.fn(() => Promise.resolve({ hosts: [] }))
-}));
+describe('EditHostDialog', () => {
+  it('renders with initial state', () => {
+    render(<EditHostDialog data={[]} setLoading={() => {}} onHostEdited={() => {}} />);
 
-describe('DeviceHosts Component', () => {
-  test('renders the component', async () => {
-    render(<DeviceHosts deviceData={{ site: { _id: 'site_id' } }} />);
+    const saveButton = screen.getByRole('button', { name: /Save Changes/i });
+    expect(saveButton).toBeDisabled();
 
-    expect(getAllDeviceHosts).toBeTruthy();
-
-    expect(screen.getByText('Add Host')).toBeTruthy();
+    const firstNameInput = screen.getByLabelText(/First Name/i);
+    const lastNameInput = screen.getByLabelText(/Last Name/i);
+    const phoneNumberInput = screen.getByLabelText(/Phone Number/i);
+    const emailInput = screen.getByLabelText(/Email Address/i);
+    const siteSelect = screen.getByLabelText(/Sites/i);
+    expect(firstNameInput).toBeInTheDocument();
+    expect(lastNameInput).toBeInTheDocument();
+    expect(phoneNumberInput).toBeInTheDocument();
+    expect(emailInput).toBeInTheDocument();
+    expect(siteSelect).toBeInTheDocument();
   });
 
-  test('opens and closes the Add Host Dialog', async () => {
-    render(<DeviceHosts deviceData={{ site: { _id: 'site_id' } }} />);
+  it('enables "Save Changes" button when input fields are changed', () => {
+    render(<EditHostDialog data={[]} setLoading={() => {}} onHostEdited={() => {}} />);
+    fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'paul' } });
+    fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'ochieng' } });
+    fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: '21982912821' } });
+    fireEvent.change(screen.getByLabelText(/Email Address/i), {
+      target: { value: 'ochieng@gmail.com' }
+    });
 
-    fireEvent.click(screen.getByText('Add Host'));
+    const saveButton = screen.getByRole('button', { name: /Save Changes/i });
+    expect(saveButton).toBeEnabled();
+  });
+});
 
-    expect(screen.getByText('Add a new host')).toBeTruthy();
+describe('HostView', () => {
+  it('renders with initial state', () => {
+    render(<HostView />);
 
-    fireEvent.click(screen.getByText('Cancel'));
+    const sendMoneyButton = screen.getByRole('button', { name: /Send Money/i });
+    expect(sendMoneyButton).toBeInTheDocument();
 
-    await waitFor(() => expect(screen.queryByText('Add a new host')).not.toBeTruthy());
+    const loadingIndicator = screen.queryByText(/Loading/i);
+    expect(loadingIndicator).toBeNull();
+
+    const transactionDetailsTable = screen.getByText(/Host Transaction Details/i);
+    const deviceDetailsTable = screen.getByText(/Host Device Details/i);
+    expect(transactionDetailsTable).toBeInTheDocument();
+    expect(deviceDetailsTable).toBeInTheDocument();
   });
 });

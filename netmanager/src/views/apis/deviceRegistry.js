@@ -235,14 +235,9 @@ export const sendMoneyToHost = async (id, amount) => {
     .catch((error) => error.response.data);
 };
 
-export const getTransactionDetails = async (ids) => {
-  const responses = await Promise.all(
-    ids.map((id) =>
-      axios
-        .get(`${GET_TRANSACTION_HISTORY}/${id}`)
-        .then((response) => response.data)
-        .catch((error) => error.response.data)
-    )
-  );
-  return responses;
+export const getTransactionDetails = async (id) => {
+  return await axios
+    .get(`${GET_TRANSACTION_HISTORY}/${id}`)
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
 };

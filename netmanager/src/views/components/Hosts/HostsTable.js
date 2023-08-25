@@ -6,9 +6,9 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Grid,
-  Tooltip
+  Grid
 } from '@material-ui/core';
+
 import { useHistory } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
@@ -17,8 +17,8 @@ import { makeStyles } from '@material-ui/styles';
 import CustomMaterialTable from '../Table/CustomMaterialTable';
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { getAllDeviceHosts, createDeviceHost } from '../../apis/deviceRegistry';
-import { useSitesSummaryData, useSitesData } from 'redux/SiteRegistry/selectors';
-import { loadSitesSummary, loadSitesData } from 'redux/SiteRegistry/operations';
+import { useSitesData } from 'redux/SiteRegistry/selectors';
+import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 
@@ -297,9 +297,9 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
 };
 
 const HostsTable = () => {
+  const history = useHistory();
   const dispatch = useDispatch();
   const sitesdata = useSitesData();
-  const history = useHistory();
   const classes = useStyles();
   const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -408,28 +408,7 @@ const HostsTable = () => {
         ]}
         onRowClick={(event, data) => {
           event.preventDefault();
-          const matchingSite = Object.values(sitesdata).find((site) => site._id === data.site_id);
-          if (matchingSite) {
-            const deviceName =
-              matchingSite && matchingSite.devices
-                ? matchingSite.devices.map((device) => device.name)
-                : [];
-            const deviceStatus =
-              matchingSite && matchingSite.devices
-                ? matchingSite.devices.map((device) => device.status)
-                : [];
-            if (deviceStatus.includes('deployed')) {
-              history.push(`/device/${deviceName}/hosts`);
-            } else {
-              dispatch(
-                updateMainAlert({
-                  severity: 'error',
-                  message: 'Device for this host is not deployed.',
-                  show: true
-                })
-              );
-            }
-          }
+          history.push(`/hosts/${data._id}`);
         }}
         data={hosts || []}
         isLoading={isLoading}

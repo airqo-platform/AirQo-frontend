@@ -7,23 +7,18 @@ import {
   DialogTitle,
   TextField,
   Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
+  Paper,
+  Typography
 } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
-import EditIcon from '@material-ui/icons/EditOutlined';
 import Alert from '@material-ui/lab/Alert';
 import Select from 'react-select';
-import { get, isEmpty } from 'underscore';
-
-import ErrorBoundary from '../../../ErrorBoundary/ErrorBoundary';
-import CustomMaterialTable from 'views/components/Table/CustomMaterialTable';
-import HorizontalLoader from '../../HorizontalLoader/HorizontalLoader';
-
+import { isEmpty } from 'underscore';
+import ErrorBoundary from '../../ErrorBoundary/ErrorBoundary';
+import HorizontalLoader from '../HorizontalLoader/HorizontalLoader';
+import { useHistory, useParams } from 'react-router-dom';
+import { ArrowBackIosRounded } from '@material-ui/icons';
 import {
   getTransactionDetails,
   getAllDeviceHosts,
@@ -31,9 +26,10 @@ import {
   sendMoneyToHost
 } from 'views/apis/deviceRegistry';
 
-import { useSitesSummaryData } from 'redux/SiteRegistry/selectors';
-import { loadSitesSummary } from 'redux/SiteRegistry/operations';
+import { useSitesSummaryData, useSitesData } from 'redux/SiteRegistry/selectors';
+import { loadSitesSummary, loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
+import DataTable from './Table';
 
 const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
@@ -101,7 +97,7 @@ const customStyles = {
   })
 };
 
-const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, onHostEdited }) => {
+const EditHost = ({ data, setLoading, onHostEdited }) => {
   const dispatch = useDispatch();
   const sites = useSitesSummaryData();
   const classes = useStyles();
@@ -122,18 +118,23 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [isChanged, setIsChanged] = useState(false);
+  const hosts_id = data.map((item) => item._id);
+  const [reset, setReset] = useState(false);
 
   useEffect(() => {
     if (data) {
-      setHost({
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        phone_number: data.phone_number || '',
-        email: data.email || '',
-        site_id: data.site_id || null
+      data.forEach((item) => {
+        setHost({
+          first_name: item.first_name,
+          last_name: item.last_name,
+          phone_number: item.phone_number,
+          email: item.email,
+          site_id: item.site_id
+        });
       });
     }
-  }, [data]);
+  }, [data, reset]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -149,10 +150,8 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
     const updatedHost = { ...host, [prop]: event.target.value };
     setHost(updatedHost);
     setErrors({ ...errors, [prop]: '' });
-  };
-
-  const handleCloseDialog = () => {
-    setEditHostDialog(false);
+    setIsChanged(true);
+    setReset(false);
   };
 
   const handleEditHost = async () => {
@@ -172,10 +171,9 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
         return;
       }
 
-      const response = await updateDeviceHost(data._id, host);
+      const response = await updateDeviceHost(hosts_id, host);
       setLoading(false);
       if (response.success === true) {
-        handleCloseDialog();
         onHostEdited();
         dispatch(
           updateMainAlert({
@@ -184,13 +182,16 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
             show: true
           })
         );
+        setIsChanged(false);
       } else {
         setErrorMessage(response.errors.message || 'An error occurred. Please try again.');
         setShowError(true);
+        setIsChanged(false);
       }
     } catch (error) {
       console.log(error);
       setErrorMessage(error.message || 'An error occurred. Please try again.');
+      setIsChanged(false);
       setShowError(true);
     }
   };
@@ -198,6 +199,8 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
   const onChangeDropdown = (selectedOption, { name }) => {
     setSelectedOption(selectedOption);
     setHost({ ...host, [name]: selectedOption.value });
+    setIsChanged(true);
+    setReset(false);
   };
 
   useEffect(() => {
@@ -211,140 +214,137 @@ const EditHostDialog = ({ editHostDialog, setEditHostDialog, data, setLoading, o
   }, []);
 
   return (
-    <Dialog
-      open={editHostDialog}
-      onClose={handleCloseDialog}
-      aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description">
-      <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
-        Edit host
-      </DialogTitle>
-
-      <DialogContent>
+    <Paper
+      style={{
+        margin: '0 auto',
+        padding: '20px 20px'
+      }}>
+      <Typography
+        style={{
+          margin: '0 0 20px 0',
+          color: '#3f51b5',
+          textTransform: 'uppercase',
+          fontWeight: 'bold',
+          display: 'flex',
+          justifyContent: 'flex-start'
+        }}>
+        Hosts Details
+      </Typography>
+      <form className={classes.modelWidth}>
         {showError && (
           <Alert style={{ marginBottom: 10 }} severity="error">
             {errorMessage}
           </Alert>
         )}
-
-        <form className={classes.modelWidth}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="First Name"
-            variant="outlined"
-            value={host.first_name}
-            onChange={handleHostChange('first_name')}
-            fullWidth
-            required
-            error={!!errors.first_name}
-            helperText={errors.first_name}
-          />
-
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Last Name"
-            variant="outlined"
-            value={host.last_name}
-            onChange={handleHostChange('last_name')}
-            required
-            error={!!errors.last_name}
-            helperText={errors.last_name}
-          />
-
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Phone Number"
-            variant="outlined"
-            type="tel"
-            value={host.phone_number}
-            onChange={handleHostChange('phone_number')}
-            required
-            error={!!errors.phone_number}
-            helperText={errors.phone_number}
-          />
-
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Email Address"
-            variant="outlined"
-            type="email"
-            value={host.email}
-            onChange={handleHostChange('email')}
-            required
-            error={!!errors.email}
-            helperText={errors.email}
-          />
-
-          <Select
-            label="Sites"
-            name="site_id"
-            options={sites.map((site) => ({ value: site._id, label: site.name }))}
-            value={
-              selectedOption || {
-                value: host.site_id,
-                label: sites.find((site) => site._id === host.site_id)?.name || ''
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="First Name"
+              variant="outlined"
+              value={host.first_name}
+              onChange={handleHostChange('first_name')}
+              fullWidth
+              required
+              error={!!errors.first_name}
+              helperText={errors.first_name}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Last Name"
+              variant="outlined"
+              value={host.last_name}
+              onChange={handleHostChange('last_name')}
+              required
+              error={!!errors.last_name}
+              helperText={errors.last_name}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Phone Number"
+              variant="outlined"
+              type="tel"
+              value={host.phone_number}
+              onChange={handleHostChange('phone_number')}
+              required
+              error={!!errors.phone_number}
+              helperText={errors.phone_number}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Email Address"
+              variant="outlined"
+              type="email"
+              value={host.email}
+              onChange={handleHostChange('email')}
+              required
+              error={!!errors.email}
+              helperText={errors.email}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Select
+              label="Sites"
+              name="site_id"
+              options={sites.map((site) => ({ value: site._id, label: site.name }))}
+              value={
+                selectedOption || {
+                  value: host.site_id,
+                  label: sites.find((site) => site._id === host.site_id)?.name || ''
+                }
               }
-            }
-            onChange={onChangeDropdown}
-            styles={customStyles}
-            isMulti={false}
-            fullWidth
-            placeholder="Select site"
-          />
-        </form>
-      </DialogContent>
+              onChange={onChangeDropdown}
+              styles={customStyles}
+              isMulti={false}
+              fullWidth
+              placeholder="Select site"
+            />
+          </Grid>
+        </Grid>
 
-      <DialogActions>
-        <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
-          <Button variant="contained" type="button" onClick={handleCloseDialog}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              setReset(true);
+              setIsChanged(false);
+            }}
+            style={{ marginRight: '8px' }}>
             Cancel
           </Button>
           <Button
             variant="contained"
             color="primary"
-            type="submit"
-            onClick={handleEditHost}
-            style={{ margin: '0 15px' }}>
-            Edit Host
+            disabled={!isChanged}
+            onClick={handleEditHost}>
+            Save Changes
           </Button>
-        </Grid>
-        <br />
-      </DialogActions>
-    </Dialog>
+        </div>
+      </form>
+    </Paper>
   );
 };
 
-const MobileMoneyDialog = ({
-  mobileMoneyDialog,
-  setMobileMoneyDialog,
-  data,
-  setLoading,
-  onSent
-}) => {
+const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading, onSent }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [amount, setAmount] = useState(0);
   const [confirmation, setConfirmation] = useState(false);
-  const [mobileMoney, setMobileMoney] = useState({
-    firstName: '',
-    lastName: '',
-    phoneNumber: ''
-  });
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
-
-  useEffect(() => {
-    setMobileMoney({
-      firstName: data.first_name,
-      lastName: data.last_name,
-      phoneNumber: data.phone_number
-    });
-  }, [data]);
+  const host_id = data.map((item) => item._id);
 
   useEffect(() => {
     if (errorMessage) {
@@ -378,7 +378,7 @@ const MobileMoneyDialog = ({
     try {
       setDisabled(true);
       setLoading(true);
-      const response = await sendMoneyToHost(data?._id, amount);
+      const response = await sendMoneyToHost(host_id, amount);
       if (response.success === true) {
         handleCloseDialog();
         dispatch(
@@ -466,19 +466,23 @@ const MobileMoneyDialog = ({
             </Alert>
           )}
           <form className={classes.modelWidth}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-              <span className={classes.confirm_field}>
-                <span className={classes.confirm_field_title}>Recipient:</span>
-                {mobileMoney.firstName} {mobileMoney.lastName}
-              </span>
-              <span className={classes.confirm_field}>
-                <span className={classes.confirm_field_title}>Phone Number:</span>+
-                {mobileMoney.phoneNumber}
-              </span>
-              <span className={classes.confirm_field}>
-                <span className={classes.confirm_field_title}>Amount:</span> UGX {amount}
-              </span>
-            </div>
+            {data.map((item) => (
+              <div
+                key={item._id}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
+                <span className={classes.confirm_field}>
+                  <span className={classes.confirm_field_title}>Recipient:</span>
+                  {item.first_name} {item.last_name}
+                </span>
+                <span className={classes.confirm_field}>
+                  <span className={classes.confirm_field_title}>Phone Number:</span>+
+                  {item.phone_number}
+                </span>
+                <span className={classes.confirm_field}>
+                  <span className={classes.confirm_field_title}>Amount:</span>UGX {amount}
+                </span>
+              </div>
+            ))}
           </form>
         </DialogContent>
         <DialogActions>
@@ -507,71 +511,70 @@ const MobileMoneyDialog = ({
   );
 };
 
-const DeviceHosts = ({ deviceData }) => {
+const HostView = () => {
+  let params = useParams();
   const dispatch = useDispatch();
-  const sites = useSitesSummaryData();
+  const history = useHistory();
   const classes = useStyles();
+  const sites = useSitesData();
   const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [editHostDialog, setEditHostDialog] = useState(false);
   const [mobileMoneyDialog, setMobileMoneyDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState([]);
   const [refreshData, setRefreshData] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
-  const [matchingHosts, setMatchingHosts] = useState([]);
-  const [hostsIds, setHostsIds] = useState([]);
-
-  useEffect(() => {
-    const newMatchingHosts = hosts.filter((host) => host.site_id === deviceData?.site?._id);
-    setMatchingHosts(newMatchingHosts);
-    setHostsIds(newMatchingHosts.map((host) => host._id));
-  }, [hosts, deviceData]);
+  const filteredData = [];
+  Object.values(sites).map((site) => {
+    hosts.forEach((host) => {
+      if (host.site_id === site._id) {
+        site.devices.forEach((device) => {
+          filteredData.push({
+            siteId: host.site_id,
+            deviceId: device._id,
+            deviceName: device.name,
+            deviceStatus: device.status,
+            createdAt: device.createdAt
+          });
+        });
+      }
+    });
+  });
 
   useEffect(() => {
     const getTransactions = async () => {
       try {
-        const response = await getTransactionDetails(hostsIds);
-
-        const tranData = response.map((t) =>
-          t.transaction.map((trans) => ({
-            amount: trans.amount,
-            createdAt: trans.createdAt,
-            _id: trans.host_id
-          }))
-        );
-
-        const data = tranData.reduce((acc, transaction) => {
-          const transWithHosts = transaction.map((tran) => {
-            const matchingHost = matchingHosts.find((host) => host._id === tran._id);
-            if (matchingHost) {
-              return {
-                ...tran,
-                hostFirstName: matchingHost.first_name,
-                hostLastName: matchingHost.last_name
-              };
-            }
-            return tran;
-          });
-          return [...acc, ...transWithHosts];
-        }, []);
-
-        setTransactions(data || []);
+        const response = await getTransactionDetails(params.id);
+        const { transaction } = response;
+        const hostsData = transaction.map((transaction) => {
+          const host = hosts.find((host) => transaction.host_id === host._id);
+          return {
+            ...transaction,
+            hostFirstName: host?.first_name || '',
+            hostLastName: host?.last_name || ''
+          };
+        });
+        setTransactions(hostsData);
         setIsLoading(false);
       } catch (error) {
         console.log(error);
       }
     };
     getTransactions();
-  }, [hostsIds, matchingHosts]);
+  }, [hosts]);
 
   useEffect(() => {
     const getHosts = async () => {
       try {
         const response = await getAllDeviceHosts();
         const { hosts } = response;
-        setHosts(hosts);
+        let hostsData = [];
+        hosts.forEach((host) => {
+          if (host._id === params.id) {
+            hostsData.push(host);
+          }
+        });
+        setHosts(hostsData);
       } catch (error) {
         console.log(error);
       }
@@ -581,11 +584,9 @@ const DeviceHosts = ({ deviceData }) => {
 
   useEffect(() => {
     if (isEmpty(sites)) {
-      setLoading(true);
       if (!isEmpty(activeNetwork)) {
-        dispatch(loadSitesSummary(activeNetwork.net_name));
+        dispatch(loadSitesData(activeNetwork.net_name));
       }
-      setLoading(false);
     }
   }, []);
 
@@ -593,139 +594,110 @@ const DeviceHosts = ({ deviceData }) => {
     <ErrorBoundary>
       <HorizontalLoader loading={loading} />
       <div className={classes.root}>
-        <h5
+        <div
           style={{
-            margin: '0 0 20px 0',
-            width: '100%',
-            textAlign: 'center',
-            color: '#3f51b5',
-            textTransform: 'uppercase',
-            fontWeight: 'bold'
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20
           }}>
-          Hosts Details
-        </h5>
-        <div className={classes.actionButtonContainer}>
-          <Table style={{ backgroundColor: 'white', boxShadow: '0px 2px 2px rgba(0, 0, 0, 0.2)' }}>
-            <TableHead style={{ backgroundColor: 'white' }}>
-              <TableRow>
-                <TableCell style={{ padding: '10px' }}>Host Name</TableCell>
-                <TableCell style={{ padding: '10px' }}>Phone Number</TableCell>
-                <TableCell style={{ padding: '10px' }}>Email Address</TableCell>
-                <TableCell style={{ padding: '10px' }}>Edit</TableCell>
-                <TableCell style={{ padding: '10px' }}>Mobile Money</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {matchingHosts.length > 0 ? (
-                matchingHosts.map((host) => (
-                  <TableRow key={host._id}>
-                    <TableCell style={{ padding: '10px' }}>
-                      {host.first_name} {host.last_name}
-                    </TableCell>
-                    <TableCell style={{ padding: '10px' }}>{host.phone_number}</TableCell>
-                    <TableCell style={{ padding: '10px' }}>{host.email}</TableCell>
-                    <TableCell style={{ padding: '10px' }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                          setSelectedItem(host);
-                          setEditHostDialog(true);
-                        }}>
-                        <EditIcon />
-                      </Button>
-                    </TableCell>
-                    <TableCell style={{ padding: '10px' }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                          setSelectedItem(host);
-                          setMobileMoneyDialog(true);
-                        }}>
-                        Send
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    No hosts found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <ArrowBackIosRounded
+            style={{ color: '#3f51b5', cursor: 'pointer' }}
+            onClick={() => history.push('/hosts')}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              // setSelectedItem(host);
+              setMobileMoneyDialog(true);
+            }}>
+            Send Money
+          </Button>
         </div>
 
+        <EditHost
+          setLoading={setLoading}
+          data={hosts}
+          onHostEdited={() => setRefreshData(!refreshData)}
+        />
+
         <br />
-        <CustomMaterialTable
-          pointerCursor
-          title="Host transactions"
-          userPreferencePaginationKey={'hosts'}
+        <DataTable
+          title="Host Transaction Details"
           columns={[
             {
-              title: 'Host Name',
-              render: (rowData) => `${rowData.hostFirstName} ${rowData.hostLastName}`,
-              customSort: (a, b) => a.hostFirstName.localeCompare(b.hostFirstName),
-              cellStyle: {
-                width: '40%',
-                minWidth: '40%'
-              }
+              id: 'hostName',
+              label: 'Host Name',
+              format: (value, row) => `${row.hostFirstName} ${row.hostLastName}`
             },
             {
-              title: 'Amount Sent',
-              field: 'amount',
-              render: (rowData) => `UGX ${rowData.amount}`
+              id: 'amount',
+              label: 'Amount',
+              format: (value, row) => `UGX ${row.amount}`
             },
             {
-              title: 'Date',
-              field: 'createdAt',
-              render: (rowData) => {
-                const date = new Date(rowData.createdAt);
+              id: 'createdAt',
+              label: 'Date',
+              format: (value) => {
+                const date = new Date(value);
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 return date.toLocaleDateString('en-US', options);
               }
             }
           ]}
-          data={transactions}
-          isLoading={isLoading}
-          options={{
-            search: true,
-            exportButton: false,
-            searchFieldAlignment: 'right',
-            showTitle: true,
-            searchFieldStyle: {
-              fontFamily: 'Open Sans'
-            },
-            headerStyle: {
-              fontFamily: 'Open Sans',
-              fontSize: 14,
-              fontWeight: 600
-            }
-          }}
+          rows={transactions}
+          loading={isLoading}
         />
 
-        <MobileMoneyDialog
+        <br />
+        <DataTable
+          title="Host Device Details"
+          onRowClick={(rowData) => {
+            return history.push(`/device/${rowData.deviceName}/overview`);
+          }}
+          columns={[
+            {
+              id: 'deviceName',
+              label: 'Device Name'
+            },
+            {
+              id: 'siteId',
+              label: 'Site ID'
+            },
+            {
+              id: 'deviceStatus',
+              label: 'Device Status',
+              format: (value, row) => (
+                <span style={{ color: row.deviceStatus === 'deployed' ? 'green' : 'red' }}>
+                  {row.deviceStatus}
+                </span>
+              )
+            },
+            {
+              id: 'createdAt',
+              label: 'Registered Date',
+              format: (value) => {
+                const date = new Date(value);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+              }
+            }
+          ]}
+          rows={filteredData}
+          loading={isLoading}
+        />
+
+        <MobileMoney
           mobileMoneyDialog={mobileMoneyDialog}
           setMobileMoneyDialog={setMobileMoneyDialog}
           setLoading={setLoading}
-          data={selectedItem}
+          data={hosts}
           onSent={() => setRefreshData(!refreshData)}
-        />
-
-        <EditHostDialog
-          editHostDialog={editHostDialog}
-          setEditHostDialog={setEditHostDialog}
-          setLoading={setLoading}
-          data={selectedItem}
-          deviceData={deviceData}
-          onHostEdited={() => setRefreshData(!refreshData)}
         />
       </div>
     </ErrorBoundary>
   );
 };
 
-export default DeviceHosts;
+export default HostView;
