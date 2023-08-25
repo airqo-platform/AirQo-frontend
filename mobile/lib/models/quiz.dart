@@ -135,7 +135,7 @@ class QuizAnswer extends Equatable {
   });
 
   factory QuizAnswer.fromJson(Map<String, dynamic> json) {
-    return _$QuizQuestionOptionFromJson(json);
+    return _$QuizAnswerFromJson(json);
   }
 
   @JsonKey(name: '_id')
@@ -146,7 +146,7 @@ class QuizAnswer extends Equatable {
   @JsonKey(name: 'content')
   final List<String> content;
 
-  Map<String, dynamic> toJson() => _$QuizQuestionOptionToJson(this);
+  Map<String, dynamic> toJson() => _$QuizAnswerToJson(this);
 
   @override
   List<Object> get props => [id];
