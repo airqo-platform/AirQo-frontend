@@ -74,10 +74,6 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
               <Typography variant="subtitle2">Number of sites</Typography>
               <Typography variant="h2">{gridInfo.numberOfSites}</Typography>
             </Grid>
-            <Grid item lg={3} sm={6} xl={3} xs={12}>
-              <Typography variant="subtitle2">Visibility</Typography>
-              <Typography variant="h2">{gridInfo.visibility}</Typography>
-            </Grid>
           </Grid>
         </Box>
 

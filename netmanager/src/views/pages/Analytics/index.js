@@ -215,11 +215,11 @@ const Analytics = () => {
             </Box>
           )}
 
-        {!isCohort && !isEmpty(activeGrid) && (
+        {!isCohort && !isEmpty(activeGrid) && activeGrid.name !== 'Empty' && (
           <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />
         )}
 
-        {isCohort && !isEmpty(activeCohort) && (
+        {isCohort && !isEmpty(activeCohort) && activeCohort.name !== 'Empty' && (
           <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
         )}
 

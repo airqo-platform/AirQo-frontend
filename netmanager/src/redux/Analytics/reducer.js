@@ -10,9 +10,15 @@ import {
 const initialState = {
   combinedGridAndCohortsSummary: {},
   selectedGridSites: {},
-  activeGrid: {},
+  activeGrid: {
+    name: 'Empty',
+    long_name: 'Empty'
+  },
   activeGridDetails: {},
-  activeCohort: {},
+  activeCohort: {
+    name: 'Empty',
+    long_name: 'Empty'
+  },
   activeCohortDetails: {},
   polygonShape: {
     type: '',
