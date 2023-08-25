@@ -141,20 +141,20 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                 ),
               ),
               const SizedBox(
-                height: 20,
+                height: 10,
               ),
               Visibility(
-                visible: quiz.activeQuestion > 1,
+                //visible: quiz.activeQuestion > 1,
                 child: SizedBox(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child: QuizProgressBar(quiz),
+                    child: QuizProgressBar(quiz), //TODO - NOT WORKING
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              // const SizedBox(
+              //   height: 3,
+              // ),
               Visibility(
                 visible: showAnswer,
                 child: QuizAnswerWidget(selectedOption, quiz: widget.quiz,
@@ -182,6 +182,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     SizedBox(
                       height: 25,
                       child: AutoSizeText(
+                        maxLines: 2,
                         widget.currentQuestion.context,
                         style: const TextStyle(
                           color: Color.fromARGB(117, 0, 0, 0),
@@ -400,7 +401,7 @@ class QuizAnswerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.7,
+      height: MediaQuery.of(context).size.height * 0.71,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(14),
@@ -419,7 +420,7 @@ class QuizAnswerWidget extends StatelessWidget {
               selectedOption.title,
               style: const TextStyle(
                 color: Color.fromARGB(255, 0, 0, 0),
-                fontSize: 20,
+                fontSize: 15,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
                 //height: 1.50,
@@ -435,7 +436,7 @@ class QuizAnswerWidget extends StatelessWidget {
               color: const Color.fromARGB(61, 85, 181, 236),
               borderRadius: BorderRadius.circular(14),
             ),
-            height: MediaQuery.of(context).size.height * 0.633,
+            height: MediaQuery.of(context).size.height * 0.62,
             width: MediaQuery.of(context).size.width * 0.845,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -486,39 +487,22 @@ class QuizAnswerWidget extends StatelessWidget {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                           ),
-                          child: ListView.builder(
-                            itemCount: selectedOption.content.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child:
-                                 ListTile(
-                                  // leading: Icon(Icons.circle,
-                                  //     size: 8, color: Colors.black),
-                                  title: AnimatedTextKit(
-                                    onNext: (int index, bool isLast) => {
-                                      Future.delayed(
-                                          const Duration(seconds: 3), () {})
-                                    },
-                                    displayFullTextOnTap: true,
-                                    totalRepeatCount: 1,
-                                    animatedTexts: [
-                                      TypewriterAnimatedText(
-                                        selectedOption.content[index],
-                                        speed: const Duration(milliseconds: 40),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                          child: AnimatedTextKit(
+                            displayFullTextOnTap: true,
+                            totalRepeatCount: 1,
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                speed: const Duration(milliseconds: 40),
+                                selectedOption
+                                    .content[selectedOption.content.length - 1],
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(
-                      height: 40,
+                      height: 30,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

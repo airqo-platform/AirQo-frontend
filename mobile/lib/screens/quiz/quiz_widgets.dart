@@ -6,7 +6,6 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-
 class QuizSkipButton extends StatelessWidget {
   const QuizSkipButton({
     super.key,
@@ -158,25 +157,18 @@ class OptionsButton extends StatelessWidget {
           backgroundColor: buttonColor,
           foregroundColor: buttonColor,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AutoSizeText(
-              maxLines: 2,
-              text ?? AppLocalizations.of(context)!.next,
-              style: TextStyle(
-                color: CustomColors.appColorBlue,
-                fontSize: 14,
-              ),
-            ),
-          ],
+        child: AutoSizeText(
+          maxLines: 2,
+          text ?? AppLocalizations.of(context)!.next,
+          style: TextStyle(
+            color: CustomColors.appColorBlue,
+            fontSize: 14,
+          ),
         ),
       ),
     );
   }
 }
-
 
 class Confetti extends StatefulWidget {
   const Confetti({super.key});
