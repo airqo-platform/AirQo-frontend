@@ -103,7 +103,7 @@ class AppBackButton extends StatelessWidget {
         await popNavigation(context);
       },
       child: SvgPicture.asset(
-        'assets/icon/back_button.svg',
+        'assets/icon/previous_arrow.svg',
         semanticsLabel: 'more',
         height: 40,
         width: 40,
@@ -111,6 +111,7 @@ class AppBackButton extends StatelessWidget {
     );
   }
 }
+
 
 class IconTextButton extends StatelessWidget {
   const IconTextButton({
