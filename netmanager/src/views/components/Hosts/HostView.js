@@ -344,7 +344,15 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
-  const host_id = data.map((item) => item._id);
+  const [host_id, setHostId] = useState('');
+
+  useEffect(() => {
+    if (data) {
+      data.forEach((item) => {
+        setHostId(item._id);
+      });
+    }
+  }, [data]);
 
   useEffect(() => {
     if (errorMessage) {

@@ -230,7 +230,11 @@ export const updateDeviceHost = async (id, params) => {
 
 export const sendMoneyToHost = async (id, amount) => {
   return await axios
-    .post(`${SEND_DEVICE_HOST_MONEY}/${id}/payments`, { amount })
+    .post(
+      `${SEND_DEVICE_HOST_MONEY}/${id}/payments`,
+      { amount },
+      { params: { token: BASE_AUTH_TOKEN } }
+    )
     .then((response) => response.data)
     .catch((error) => error.response.data);
 };
