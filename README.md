@@ -1,4 +1,6 @@
 # AirQo-frontend
+[![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
+
 <a href="https://github.com/airqo-platform/AirQo-frontend/actions">
 <img src="https://github.com/airqo-platform/AirQo-frontend/workflows/mobile-app-code-tests/badge.svg" alt="Build Status">
 </a>
