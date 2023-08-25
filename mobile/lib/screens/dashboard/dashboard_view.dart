@@ -320,6 +320,7 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
+                      context.read<KyaBloc>().add(const FetchQuizzes());
                       List<Quiz> inCompleteQuizzes = state.quizzes
                           .where((quiz) => quiz.status != QuizStatus.complete)
                           .toList();
@@ -330,46 +331,8 @@ class _DashboardViewState extends State<DashboardView>
                       }
 
                       return QuizCard(inCompleteQuizzes.first);
-                      
                     },
                   ),
-
-                  // BlocBuilder<KyaBloc, KyaState>(
-                  //   builder: (context, state) {
-                  //     List<Quiz> inCompleteQuizzes = List.of(state.quizzes);
-                  //     if (inCompleteQuizzes.isEmpty) {
-                  //       _kyaExists = false;
-
-                  //       return const SizedBox();
-                  //     }
-
-                  //     return QuizCard(inCompleteQuizzes.first);
-                  //   },
-                  // BlocBuilder<KyaBloc, KyaState>(
-                  //   builder: (context, state) {
-                  //     List<KyaLesson> inCompleteLessons =
-                  //         state.lessons.filterInCompleteLessons();
-
-                  //     if (inCompleteLessons.isEmpty) {
-                  //       _kyaExists = false;
-
-                  //       return const SizedBox();
-                  //     }
-
-                  //     return Padding(
-                  //       padding: const EdgeInsets.only(top: 16),
-                  //       child: CustomShowcaseWidget(
-                  //         showcaseKey: _kyaShowcaseKey,
-                  //         descriptionHeight: screenSize.height * 0.14,
-                  //         description: AppLocalizations.of(context)!
-                  //             .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
-                  //         child: KyaCardWidget(
-                  //           inCompleteLessons.first,
-                  //         ),
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
                   BlocConsumer<DashboardBloc, DashboardState>(
                     listener: (context, state) {
                       if (state.scrollToTop) {

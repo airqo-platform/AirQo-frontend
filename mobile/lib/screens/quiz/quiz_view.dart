@@ -492,9 +492,10 @@ class QuizAnswerWidget extends StatelessWidget {
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
-                                child: ListTile(
-                                  leading: Icon(Icons.circle,
-                                      size: 8, color: Colors.black),
+                                child:
+                                 ListTile(
+                                  // leading: Icon(Icons.circle,
+                                  //     size: 8, color: Colors.black),
                                   title: AnimatedTextKit(
                                     onNext: (int index, bool isLast) => {
                                       Future.delayed(
@@ -523,7 +524,7 @@ class QuizAnswerWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1,
+                          height: MediaQuery.of(context).size.height * 0.07,
                           width: MediaQuery.of(context).size.width * 0.3,
                           child: NextButton(
                             showIcon: false,
