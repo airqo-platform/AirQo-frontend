@@ -1,10 +1,12 @@
 import 'dart:math';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/widgets/buttons.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 
 class QuizSkipButton extends StatelessWidget {
   const QuizSkipButton({
@@ -262,6 +264,39 @@ class QuizMessageChip extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class CircularQuizButton extends StatelessWidget {
+  const CircularQuizButton({
+    super.key,
+    required this.icon,
+    this.isActive = true,
+  });
+
+  final String icon;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 35,
+      width: 35,
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: isActive
+            ? CustomColors.appColorBlue.withOpacity(0.20)
+            : CustomColors.appColorBlue.withOpacity(0.01),
+        shape: BoxShape.circle,
+      ),
+      child: SvgPicture.asset(
+        icon,
+        colorFilter: const ColorFilter.mode(
+          Color.fromRGBO(3, 47, 243, 1),
+          BlendMode.srcIn,
+        ),
+      ),
     );
   }
 }

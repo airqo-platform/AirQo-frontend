@@ -100,7 +100,11 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const AppBackButton(),
+                      const CircularQuizButton(
+                        isActive: true,
+                        icon: 'assets/icon/previous_arrow.svg',
+                        //isActive: quiz.activeTask > 1,
+                      ),
                       const SizedBox(
                         width: 10,
                       ),
