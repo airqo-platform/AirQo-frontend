@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/buttons.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
