@@ -617,8 +617,18 @@ const HostView = () => {
             variant="contained"
             color="primary"
             onClick={() => {
-              // setSelectedItem(host);
-              setMobileMoneyDialog(true);
+              const isDeployed = filteredData.some((item) => item.deviceStatus === 'deployed');
+              if (isDeployed) {
+                setMobileMoneyDialog(true);
+              } else {
+                dispatch(
+                  updateMainAlert({
+                    severity: 'error',
+                    message: 'No deployed devices for this host.',
+                    show: true
+                  })
+                );
+              }
             }}>
             Send Money
           </Button>

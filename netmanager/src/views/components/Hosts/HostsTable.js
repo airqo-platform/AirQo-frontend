@@ -98,7 +98,8 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
     last_name: '',
     phone_number: '',
     email: '',
-    site_id: null
+    site_id: null,
+    network: activeNetwork.net_name
   };
   const [errors, setErrors] = useState({
     first_name: false,
@@ -133,6 +134,7 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       if (!host.phone_number) newErrors.phone_number = 'Phone Number is required.';
       if (!host.email) newErrors.email = 'Email Address is required.';
       if (!host.site_id) newErrors.site_id = 'Site ID is required.';
+      if (!host.network) newErrors.network = 'Network is required.';
 
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -312,7 +314,8 @@ const HostsTable = () => {
       setIsLoading(true);
       const response = await getAllDeviceHosts();
       const { hosts } = response;
-      setHosts(hosts);
+      const filteredHosts = hosts.filter((host) => host.network === activeNetwork.net_name);
+      setHosts(filteredHosts);
       setIsLoading(false);
     } catch (error) {
       console.log(error);
