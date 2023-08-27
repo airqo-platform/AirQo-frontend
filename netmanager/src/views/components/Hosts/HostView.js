@@ -35,32 +35,39 @@ const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: '10px 20px'
+    padding: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1)
+    }
   },
   modelWidth: {
-    minWidth: 450
+    minWidth: 450,
+    [theme.breakpoints.down('sm')]: {
+      minWidth: '100%'
+    }
   },
   actionButtonContainer: {
     display: 'flex',
     justifyContent: 'flex-end',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: theme.spacing(2)
   },
   confirm_con: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'left',
     flexDirection: 'column',
-    padding: '20px'
+    padding: theme.spacing(2)
   },
   confirm_field: {
-    margin: '10px 0',
+    margin: theme.spacing(1, 0),
     fontSize: '16px'
   },
   confirm_field_title: {
     fontSize: '16px',
     fontWeight: 'bold',
     color: '#000000',
-    marginRight: '20px'
+    marginRight: theme.spacing(2)
   }
 }));
 
@@ -164,6 +171,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
       if (!host.phone_number) newErrors.phone_number = 'Phone Number is required.';
       if (!host.email) newErrors.email = 'Email Address is required.';
       if (!host.site_id) newErrors.site_id = 'Site is required.';
+      if (selectedOption === null) newErrors.site_id = 'Site is required.';
 
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -296,6 +304,7 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
             <Select
               label="Sites"
               name="site_id"
+              isLoading={isEmpty(sites)}
               options={sites.map((site) => ({ value: site._id, label: site.name }))}
               value={
                 selectedOption || {
@@ -307,7 +316,10 @@ const EditHost = ({ data, setLoading, onHostEdited }) => {
               styles={customStyles}
               isMulti={false}
               fullWidth
+              menuPlacement="auto"
+              menuPosition="fixed"
               placeholder="Select site"
+              required
             />
           </Grid>
         </Grid>
@@ -344,13 +356,15 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
-  const [host_id, setHostId] = useState('');
+  const [host_id, setHostId] = useState([]);
 
   useEffect(() => {
     if (data) {
+      let newHostId = [];
       data.forEach((item) => {
-        setHostId(item._id);
+        newHostId.push(item._id);
       });
+      setHostId(newHostId);
     }
   }, [data]);
 
@@ -386,7 +400,7 @@ const MobileMoney = ({ mobileMoneyDialog, setMobileMoneyDialog, data, setLoading
     try {
       setDisabled(true);
       setLoading(true);
-      const response = await sendMoneyToHost(host_id, amount);
+      const response = await sendMoneyToHost(host_id[0], amount);
       if (response.success === true) {
         handleCloseDialog();
         dispatch(
