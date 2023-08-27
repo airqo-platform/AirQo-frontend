@@ -1,133 +1,122 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Divider,
-  Button,
-  TextField,
-  InputAdornment,
-  IconButton
-} from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from 'views/components/Loader/CircularLoader';
 import PropTypes from 'prop-types';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import CloseIcon from '@material-ui/icons/Close';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
+import { makeStyles } from '@material-ui/core/styles';
 import { generateAccessTokenForUserApi } from '../../../../apis/accessControl';
+import {
+  Card,
+  CardHeader,
+  Divider,
+  CardActions,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions
+} from '@material-ui/core';
 
-const GenerateToken = (props) => {
-  const { className, mappedAuth, ...rest } = props;
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(2)
+  },
+  DialogTitle: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  DialogContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    minWidth: '380px'
+  },
+  DialogActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
+  DialogButton: {
+    margin: theme.spacing(1)
+  },
+  DialogButtonContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end'
+  }
+}));
 
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [apiResponse, setApiResponse] = useState(null);
-  const [showTokenInput, setShowTokenInput] = useState(true);
+const RegisterClient = (props) => {
+  const classes = useStyles();
+  const { open, onClose } = props;
+  const [clientName, setClientName] = useState('');
 
-  useEffect(() => {
-    if (apiResponse) {
-      setTimeout(() => setApiResponse(null), 1500);
-    }
-  }, [apiResponse]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const handleClose = () => {
-    setShowTokenInput(false);
-  };
-
-  const { user } = mappedAuth;
-
-  const generateToken = async () => {
-    setLoading(true);
-    try {
-      const response = await generateAccessTokenForUserApi(user._id);
-      setToken(response.created_token.token);
-      setApiResponse('Token created successfully!');
-      setShowTokenInput(true);
-    } catch (error) {
-      console.error(error);
-      setApiResponse('An error occurred while creating the token.');
-    }
-    setLoading(false);
+  const handleSubmit = () => {
+    // handle submission of client name here
+    onClose();
   };
 
   return (
-    <Card
-      style={{
-        margin: '30px 0'
-      }}>
-      <CardHeader subheader="Generate an access token" title="Access Token" />
-      {apiResponse && <Alert severity={token ? 'success' : 'error'}>{apiResponse}</Alert>}
-      {showTokenInput && token && (
-        <>
-          <Divider />
-          <CardContent>
-            <TextField
-              fullWidth
-              label="Access Token"
-              id="access-token"
-              type="text"
-              variant="outlined"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleCopy}>
-                      <FileCopyIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
-            {copied && (
-              <Alert severity="success" style={{ marginTop: '10px' }}>
-                Copied to clipboard!
-              </Alert>
-            )}
-          </CardContent>
-        </>
-      )}
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle className={classes.DialogTitle}>Register Client</DialogTitle>
+      <DialogContent className={classes.DialogContent}>
+        <TextField
+          label="Client Name"
+          value={clientName}
+          variant="outlined"
+          onChange={(e) => setClientName(e.target.value)}
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions className={classes.DialogActions}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={handleSubmit}
+          className={classes.DialogButton}>
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
-      <Divider />
+const GenerateToken = (props) => {
+  const { className, mappedAuth, ...rest } = props;
+  const [open, setOpen] = useState(false);
 
-      <CardActions>
-        {!loading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '100%'
-            }}>
-            <Button color="primary" variant="outlined" onClick={generateToken}>
-              Generate Token
-            </Button>
-            {showTokenInput && token && (
-              <IconButton onClick={handleClose}>
-                <CloseIcon />
-              </IconButton>
-            )}
-          </div>
-        ) : (
-          <div
-            style={{
-              width: '150px',
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-            <CircularLoader loading={loading} />
-          </div>
-        )}
-      </CardActions>
-    </Card>
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Card
+        style={{
+          margin: '30px 0'
+        }}>
+        <CardHeader
+          title="API Access"
+          subheader="Register your application to get an API access token."
+        />
+        <Divider />
+
+        <CardActions>
+          <Button color="primary" variant="outlined" onClick={handleOpen}>
+            Register Client
+          </Button>
+        </CardActions>
+      </Card>
+      <RegisterClient open={open} onClose={handleClose} />
+    </>
   );
 };
 
