@@ -27,6 +27,7 @@ const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 const customStyles = {
   control: (base, state) => ({
     ...base,
+    position: 'relative',
     height: '50px',
     marginTop: '10px',
     marginBottom: '10px',
@@ -34,13 +35,15 @@ const customStyles = {
     '&:hover': {
       borderColor: state.isFocused ? 'black' : 'black'
     },
-    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null
+    boxShadow: state.isFocused ? '0 0 1px 1px #3f51b5' : null,
+    zIndex: 999
   }),
   option: (provided, state) => ({
     ...provided,
     borderBottom: '1px dotted pink',
     color: state.isSelected ? 'white' : 'blue',
-    textAlign: 'left'
+    textAlign: 'left',
+    cursor: 'pointer'
   }),
   input: (provided, state) => ({
     ...provided,
@@ -53,39 +56,39 @@ const customStyles = {
   }),
   menu: (provided, state) => ({
     ...provided,
-    zIndex: 9999
+    width: '100%'
   })
 };
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: '0px'
-  },
-  modelWidth: {
-    minWidth: 450
+    padding: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1)
+    }
   },
   actionButtonContainer: {
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: '20px'
+    marginBottom: theme.spacing(2)
   },
   confirm_con: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'left',
     flexDirection: 'column',
-    padding: '20px'
+    padding: theme.spacing(2)
   },
   confirm_field: {
-    margin: '10px 0',
+    margin: theme.spacing(1, 0),
     fontSize: '16px'
   },
   confirm_field_title: {
     fontSize: '16px',
     fontWeight: 'bold',
     color: '#000000',
-    marginRight: '20px'
+    marginRight: theme.spacing(2)
   }
 }));
 
@@ -134,6 +137,7 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
       if (!host.phone_number) newErrors.phone_number = 'Phone Number is required.';
       if (!host.email) newErrors.email = 'Email Address is required.';
       if (!host.site_id) newErrors.site_id = 'Site ID is required.';
+      if (selectedOption === null) newErrors.site_id = 'Site ID is required.';
       if (!host.network) newErrors.network = 'Network is required.';
 
       if (Object.keys(newErrors).length > 0) {
@@ -204,80 +208,84 @@ const AddHostDialog = ({ addHostDialog, setAddHostDialog, setLoading, onHostAdde
         Add a new host
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent
+        style={{
+          maxHeight: 'auto'
+        }}>
         {showError && (
           <Alert style={{ marginBottom: 10 }} severity="error">
             {errorMessage}
           </Alert>
         )}
-        <form className={classes.modelWidth}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="First Name"
-            variant="outlined"
-            value={host.first_name}
-            onChange={handleHostChange('first_name')}
-            fullWidth
-            required
-            error={!!errors.first_name}
-            helperText={errors.first_name}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Last Name"
-            variant="outlined"
-            value={host.last_name}
-            onChange={handleHostChange('last_name')}
-            required
-            error={!!errors.last_name}
-            helperText={errors.last_name}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Phone Number"
-            variant="outlined"
-            type="tel"
-            placeholder='e.g. "+256xxxxxxxxx"'
-            value={host.phone_number}
-            onChange={handleHostChange('phone_number')}
-            required
-            error={!!errors.phone_number}
-            helperText={errors.phone_number}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Email Address"
-            variant="outlined"
-            type="email"
-            value={host.email}
-            onChange={handleHostChange('email')}
-            required
-            error={!!errors.email}
-            helperText={errors.email}
-          />
-          <Select
-            label="Sites"
-            name="site_id"
-            options={
-              Object.values(sitesData).map((site) => ({
-                value: site._id,
-                label: site.name
-              })) || []
-            }
-            value={selectedOption}
-            onChange={onChangeDropdown}
-            styles={customStyles}
-            isMulti={false}
-            fullWidth
-            placeholder="Select site"
-          />
-        </form>
+        <TextField
+          autoFocus
+          margin="dense"
+          label="First Name"
+          variant="outlined"
+          value={host.first_name}
+          onChange={handleHostChange('first_name')}
+          fullWidth
+          required
+          error={!!errors.first_name}
+          helperText={errors.first_name}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Last Name"
+          variant="outlined"
+          value={host.last_name}
+          onChange={handleHostChange('last_name')}
+          required
+          error={!!errors.last_name}
+          helperText={errors.last_name}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Phone Number"
+          variant="outlined"
+          type="tel"
+          placeholder='e.g. "+256xxxxxxxxx"'
+          value={host.phone_number}
+          onChange={handleHostChange('phone_number')}
+          required
+          error={!!errors.phone_number}
+          helperText={errors.phone_number}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Email Address"
+          variant="outlined"
+          type="email"
+          value={host.email}
+          onChange={handleHostChange('email')}
+          required
+          error={!!errors.email}
+          helperText={errors.email}
+        />
+        <Select
+          label="Sites"
+          name="site_id"
+          isLoading={isEmpty(sitesData)}
+          options={
+            Object.values(sitesData).map((site) => ({
+              value: site._id,
+              label: site.name
+            })) || []
+          }
+          value={selectedOption}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          onChange={onChangeDropdown}
+          styles={customStyles}
+          isMulti={false}
+          fullWidth
+          placeholder="Select site"
+          required
+        />
       </DialogContent>
-
       <DialogActions>
         <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
           <Button variant="contained" type="button" onClick={handleCloseDialog}>
