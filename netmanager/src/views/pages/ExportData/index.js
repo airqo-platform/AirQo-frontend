@@ -592,11 +592,6 @@ const ExportData = (props) => {
       });
   };
 
-  // tooltip
-  const FieldRef1 = React.useRef(null);
-  const FieldRef2 = React.useRef(null);
-  const FieldRef3 = React.useRef(null);
-
   // this is an array of the title and description for the features to be explained
   const steps = [
     {
