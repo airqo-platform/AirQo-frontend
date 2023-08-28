@@ -7,6 +7,7 @@ import CandidatesTable from './components/CandidatesTable';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { withPermission } from '../../containers/PageAccess';
 import { isEmpty } from 'underscore';
+import UsersListBreadCrumb from '../UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -21,6 +22,7 @@ const CandidateList = (props) => {
   const classes = useStyles();
 
   const candidates = props.mappeduserState.candidates;
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
@@ -32,6 +34,7 @@ const CandidateList = (props) => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
+        <UsersListBreadCrumb category="Candidates" usersTable={`${activeNetwork.net_name}`} />
         <div className={classes.content}>
           <CandidatesTable candidates={candidates} />
         </div>
