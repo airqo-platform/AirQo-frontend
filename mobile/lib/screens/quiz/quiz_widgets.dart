@@ -102,8 +102,10 @@ class QuizDraggingHandle extends StatelessWidget {
 }
 
 class QuizProgressBar extends StatelessWidget {
-  const QuizProgressBar(this.quiz, {super.key});
-  final Quiz quiz;
+  const QuizProgressBar(this.activeQuestion, this.totalQuestions, {super.key});
+  final int activeQuestion;
+  final int totalQuestions;
+
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +116,7 @@ class QuizProgressBar extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
           color: CustomColors.appColorBlue,
-          value: quiz.activeQuestion / quiz.questions.length,
+          value: activeQuestion / totalQuestions,
           backgroundColor: CustomColors.appColorBlue.withOpacity(0.24),
           valueColor: AlwaysStoppedAnimation<Color>(CustomColors.appColorBlue),
         ),

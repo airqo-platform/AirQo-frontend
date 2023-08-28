@@ -6,8 +6,8 @@ import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
-//import 'package:app/screens/kya/know_your_air_view.dart';
-//import 'package:app/screens/kya/kya_widgets.dart';
+import 'package:app/screens/kya/know_your_air_view.dart';
+import 'package:app/screens/kya/kya_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -25,8 +25,6 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-//import '../kya/kya_widgets.dart';
-//import '../quiz/quiz_view.dart';
 import '../search/search_page.dart';
 import 'dashboard_widgets.dart';
 
@@ -329,8 +327,33 @@ class _DashboardViewState extends State<DashboardView>
                         _kyaExists = false;
                         return const SizedBox();
                       }
+                      Quiz displayedQuiz = inCompleteQuizzes.first;
+                      return QuizCard(displayedQuiz);
+                    },
+                  ),
+                  BlocBuilder<KyaBloc, KyaState>(
+                    builder: (context, state) {
+                      List<KyaLesson> inCompleteLessons =
+                          state.lessons.filterInCompleteLessons();
 
-                      return QuizCard(inCompleteQuizzes.first);
+                      if (inCompleteLessons.isEmpty) {
+                        _kyaExists = false;
+
+                        return const SizedBox();
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _kyaShowcaseKey,
+                          descriptionHeight: screenSize.height * 0.14,
+                          description: AppLocalizations.of(context)!
+                              .doYouWantToKnowMoreAboutAirQualityKnowYourAirInThisSection,
+                          child: KyaCardWidget(
+                            inCompleteLessons.first,
+                          ),
+                        ),
+                      );
                     },
                   ),
                   BlocConsumer<DashboardBloc, DashboardState>(

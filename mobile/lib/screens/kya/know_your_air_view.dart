@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,11 @@ class KnowYourAirView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
-        if (state.lessons.isEmpty) {
+        if (state.lessons.isEmpty && state.quizzes.isEmpty) {
           return NoKyaWidget(
             callBack: () {
               context.read<KyaBloc>().add(const FetchKya());
+              context.read<KyaBloc>().add(const FetchQuizzes());
             },
           );
         }
@@ -28,8 +30,12 @@ class KnowYourAirView extends StatelessWidget {
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
             .take(3)
             .toList();
+        final completeQuizzes = state.quizzes
+            .where((quiz) => quiz.status == QuizStatus.complete)
+            .take(3)
+            .toList();
 
-        if (completeKya.isEmpty) {
+        if (completeKya.isEmpty && completeQuizzes.isEmpty) {
           List<KyaLesson> inCompleteLessons =
               state.lessons.filterInCompleteLessons();
           return NoCompleteKyaWidget(
@@ -55,8 +61,17 @@ class KnowYourAirView extends StatelessWidget {
                     index,
                   ),
                 ),
-                child: KyaCardWidget(
-                  completeKya[index],
+                child: Column(
+                  children: [
+                    KyaCardWidget(
+                      completeKya[index],
+                    ),
+                    completeQuizzes.isNotEmpty
+                        ? QuizCard(
+                            completeQuizzes[index],
+                          )
+                        : Container(),
+                  ],
                 ),
               );
             },
@@ -74,6 +89,7 @@ class KnowYourAirView extends StatelessWidget {
 
   void _refresh(BuildContext context) {
     context.read<KyaBloc>().add(const FetchKya());
+    context.read<KyaBloc>().add(const FetchQuizzes());
   }
 
   Future<void> _startKyaLessons(BuildContext context, KyaLesson kya) async {

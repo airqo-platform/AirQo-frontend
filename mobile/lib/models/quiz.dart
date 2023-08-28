@@ -69,7 +69,6 @@ class Quiz extends Equatable {
     String? shareLink,
     QuizStatus? status,
     int? activeQuestion,
-    required List<QuizQuestion> questions,
   }) {
     return Quiz(
       title: title,
@@ -103,6 +102,7 @@ class QuizQuestion extends Equatable {
     required this.title,
     required this.context,
     required this.answers,
+      required this.questionPosition
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
@@ -116,6 +116,9 @@ class QuizQuestion extends Equatable {
 
   @JsonKey()
   final String context;
+
+  @JsonKey(name: 'question_position')
+  final int questionPosition;
 
   @JsonKey(name: 'answers')
   final List<QuizAnswer> answers;
