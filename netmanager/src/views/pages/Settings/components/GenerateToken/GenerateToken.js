@@ -1,133 +1,431 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Divider,
-  Button,
-  TextField,
-  InputAdornment,
-  IconButton
-} from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from 'views/components/Loader/CircularLoader';
 import PropTypes from 'prop-types';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import CloseIcon from '@material-ui/icons/Close';
+import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
-import { generateAccessTokenForUserApi } from '../../../../apis/accessControl';
+import { makeStyles } from '@material-ui/core/styles';
+import { createClientApi, getClientsApi, generateTokenApi } from '../../../../apis/analytics';
+import { useDispatch } from 'react-redux';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import DataTable from './Table';
+import {
+  Card,
+  CardHeader,
+  Divider,
+  CardActions,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  CircularProgress
+} from '@material-ui/core';
+import CheckIcon from '@material-ui/icons/Check';
+import { getUserDetails } from '../../../../../redux/Join/actions';
+import { isEmpty, isEqual } from 'underscore';
 
-const GenerateToken = (props) => {
-  const { className, mappedAuth, ...rest } = props;
+const useStyles = makeStyles((theme) => ({
+  root: {
+    padding: theme.spacing(2)
+  },
+  DialogTitle: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  DialogContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    minWidth: '380px'
+  },
+  DialogActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
+  DialogButton: {
+    margin: theme.spacing(1)
+  },
+  DialogButtonContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end'
+  }
+}));
 
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [apiResponse, setApiResponse] = useState(null);
-  const [showTokenInput, setShowTokenInput] = useState(true);
+const RegisterClient = (props) => {
+  const dispatch = useDispatch();
+  const classes = useStyles();
+  const { open, onClose, data, onRegister } = props;
+  const [clientName, setClientName] = useState('');
+  const [clientNameError, setClientNameError] = useState(false);
+  const clientId = data.user._id;
 
-  useEffect(() => {
-    if (apiResponse) {
-      setTimeout(() => setApiResponse(null), 1500);
+  const handleSubmit = async () => {
+    if (!clientName) {
+      setClientNameError(true);
+      return;
     }
-  }, [apiResponse]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const handleClose = () => {
-    setShowTokenInput(false);
-  };
-
-  const { user } = mappedAuth;
-
-  const generateToken = async () => {
-    setLoading(true);
     try {
-      const response = await generateAccessTokenForUserApi(user._id);
-      setToken(response.created_token.token);
-      setApiResponse('Token created successfully!');
-      setShowTokenInput(true);
+      const data = {
+        name: clientName,
+        user_id: clientId
+      };
+      const response = await createClientApi(data);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Client registered successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        onClose();
+        onRegister();
+        setClientName('');
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Client registration failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
     } catch (error) {
       console.error(error);
-      setApiResponse('An error occurred while creating the token.');
+      dispatch(
+        updateMainAlert({
+          message: 'Client registration failed',
+          show: true,
+          severity: 'error'
+        })
+      );
     }
-    setLoading(false);
   };
 
   return (
-    <Card
-      style={{
-        margin: '30px 0'
-      }}>
-      <CardHeader subheader="Generate an access token" title="Access Token" />
-      {apiResponse && <Alert severity={token ? 'success' : 'error'}>{apiResponse}</Alert>}
-      {showTokenInput && token && (
-        <>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle className={classes.DialogTitle}>Register Client</DialogTitle>
+      <DialogContent className={classes.DialogContent}>
+        <TextField
+          label="Client Name"
+          value={clientName}
+          variant="outlined"
+          onChange={(e) => {
+            setClientName(e.target.value);
+            setClientNameError(false);
+          }}
+          error={clientNameError}
+          helperText={clientNameError && 'Please enter a client name'}
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions className={classes.DialogActions}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={handleSubmit}
+          className={classes.DialogButton}>
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const GenerateToken = (props) => {
+  const dispatch = useDispatch();
+  const { className, mappedAuth, ...rest } = props;
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [clientData, setClientData] = useState([]);
+  const [clientStaffData, setClientStaffData] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const clientId = mappedAuth?.user?._id;
+
+  useEffect(() => {
+    if (!isEmpty(mappedAuth?.user)) {
+      getUserDetails(clientId).then((res) => {
+        setClientData(res.users[0].clients);
+      });
+    }
+  }, [refresh, mappedAuth]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getClientsApi();
+        if (response.success === true) {
+          setClientStaffData(response.clients);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [refresh]);
+
+  // const result = clientStaffData
+  //   .filter((item) => item._id === clientId)
+  //   .flatMap((item) => item.access_token)
+  //   .map((token) => ({
+  //     clientName: token.name,
+  //     createdAt: token.createdAt,
+  //     expiresAt: token.expires,
+  //     token: token.token
+  //   }));
+
+  const result = [
+    {
+      clientName: 'test',
+      createdAt: '2021-08-10T09:00:00.000Z',
+      expiresAt: '2021-08-10T09:00:00.000Z',
+      token: 'testooooddd'
+    },
+    {
+      clientName: 'test2',
+      createdAt: '2021-08-10T09:00:00.000Z',
+      expiresAt: '2021-08-10T09:00:00.000Z',
+      token: 'test222oddd'
+    }
+  ];
+
+  const handleTokenGeneration = async (res) => {
+    try {
+      setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: true }));
+      const response = await generateTokenApi(res);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Token generated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        setGenerated((prevGenerated) => ({ ...prevGenerated, [res.client_id]: true }));
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Token generation failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Token generation failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    } finally {
+      setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: false }));
+    }
+  };
+
+  // future implementation
+  const handleDeleteToken = async (token) => {};
+
+  // future implementation
+  const handleDeleteClient = async (clientId) => {};
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <>
+      {clientData.length === 0 ? (
+        <Card>
+          <CardHeader
+            title="API Access"
+            subheader="Register your application to get an API access token."
+          />
           <Divider />
-          <CardContent>
-            <TextField
-              fullWidth
-              label="Access Token"
-              id="access-token"
-              type="text"
-              variant="outlined"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleCopy}>
-                      <FileCopyIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
+          <CardActions>
+            <Button color="primary" variant="outlined" onClick={handleOpen}>
+              Register Client
+            </Button>
+          </CardActions>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <DataTable
+              title="Registered Clients"
+              onButtonClick={handleOpen}
+              ButtonText="Add Client"
+              columns={[
+                {
+                  id: 'name',
+                  label: 'Client Name'
+                },
+                {
+                  id: '_id',
+                  label: 'Client ID'
+                },
+                {
+                  id: 'createdAt',
+                  label: 'Registered Date',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.createdAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'generateToken',
+                  label: 'Generate Token',
+                  cellStyle: { textAlign: 'center' },
+                  headerStyle: { textAlign: 'center' },
+                  format: (value, rowData) => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          let res = {
+                            name: rowData?.name,
+                            client_id: rowData?._id
+                          };
+                          handleTokenGeneration(res);
+                        }}>
+                        {loading[rowData._id] ? (
+                          <CircularProgress size={24} />
+                        ) : generated[rowData._id] ? (
+                          <CheckIcon />
+                        ) : (
+                          'Generate Token'
+                        )}
+                      </Button>
+                    );
+                  }
+                }
+                // {
+                //   id: 'actions',
+                //   label: 'Actions',
+                //   format: (value, rowData) => {
+                //     return (
+                //       <Button variant="outlined" color="primary" onClick={() => {}}>
+                //         <DeleteIcon />
+                //       </Button>
+                //     );
+                //   }
+                // }
+              ]}
+              rows={clientData}
+              loading={isLoading}
             />
-            {copied && (
-              <Alert severity="success" style={{ marginTop: '10px' }}>
-                Copied to clipboard!
-              </Alert>
-            )}
-          </CardContent>
+          </Card>
+          <br />
+          <Card>
+            <DataTable
+              title="Access Tokens"
+              columns={[
+                {
+                  id: 'clientName',
+                  label: 'Client Name'
+                },
+                {
+                  id: 'token',
+                  label: 'Token'
+                },
+                {
+                  id: 'createdAt',
+                  label: 'Created Date',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.createdAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'expiresAt',
+                  label: 'Expires At',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.expiresAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'copy',
+                  label: 'Copy',
+                  format: (value, rowData) => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(rowData.token);
+                          dispatch(
+                            updateMainAlert({
+                              message: 'Token copied to clipboard',
+                              show: true,
+                              severity: 'success'
+                            })
+                          );
+                        }}>
+                        <FileCopyIcon />
+                      </Button>
+                    );
+                  }
+                }
+                // {
+                //   id: 'delete',
+                //   label: 'Delete',
+                //   format: (value, rowData) => {
+                //     return (
+                //       <Button
+                //         variant="outlined"
+                //         color="primary"
+                //         onClick={() => {
+                //           handleDeleteToken(rowData._id);
+                //         }}>
+                //         <DeleteIcon />
+                //       </Button>
+                //     );
+                //   }
+                // }
+              ]}
+              rows={result}
+              loading={isLoading}
+            />
+          </Card>
         </>
       )}
-
-      <Divider />
-
-      <CardActions>
-        {!loading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '100%'
-            }}>
-            <Button color="primary" variant="outlined" onClick={generateToken}>
-              Generate Token
-            </Button>
-            {showTokenInput && token && (
-              <IconButton onClick={handleClose}>
-                <CloseIcon />
-              </IconButton>
-            )}
-          </div>
-        ) : (
-          <div
-            style={{
-              width: '150px',
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-            <CircularLoader loading={loading} />
-          </div>
-        )}
-      </CardActions>
-    </Card>
+      <RegisterClient
+        open={open}
+        onClose={handleClose}
+        data={mappedAuth}
+        onRegister={() => setRefresh(!refresh)}
+      />
+    </>
   );
 };
 
