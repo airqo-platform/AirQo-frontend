@@ -5,7 +5,8 @@ const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_U
 const BASE_AIRQLOUDS_URL =
   process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL;
 
-const BASE_LOCATIONS_TRACKING_URL = process.env.REACT_APP_GEO_LOCATION_URL || '';
+const BASE_LOCATIONS_TRACKING_URL =
+  process.env.REACT_APP_GEO_LOCATION_URL || process.env.REACT_NETMANAGER_BASE_URL;
 
 export const AIRQLOUD_SUMMARY = `${BASE_AIRQLOUDS_URL}/devices/airqlouds/summary?tenant=airqo`;
 
