@@ -22,6 +22,7 @@ const LocationTracker = ({ countries }) => {
 
       if (permissionResult) {
         const countryName = await getAllLocationsTrackingApi();
+        // const countryName = 'Uganda';
 
         const selectedCountry = countries.some((country) => countryName === country.name)
           ? countryName

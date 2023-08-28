@@ -109,7 +109,7 @@ export const getAllCitiesApi = async () =>
 
 // Locations Tracking endpoint
 export const getAllLocationsTrackingApi = async () =>
-  await axios.get(`${LOCATIONS_TRACKING_URL}/country_name/`).then((response) => response.data);
+  await axios.get(LOCATIONS_TRACKING_URL).then((response) => response.data);
 
 // Impact Numbers endpoint
 export const getAllImpactNumbersApi = async () =>
