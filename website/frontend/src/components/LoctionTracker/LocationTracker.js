@@ -4,6 +4,7 @@ import { getAllLocationsTrackingApi } from '../../../apis';
 const LocationTracker = ({ countries }) => {
   const [storedCountry, setStoredCountry] = useState(localStorage.getItem('userCountry'));
 
+  // function to update the users country
   const updateUserCountry = useCallback(async () => {
     try {
       const { geolocation } = navigator;
