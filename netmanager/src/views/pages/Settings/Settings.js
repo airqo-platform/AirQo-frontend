@@ -20,12 +20,12 @@ const Settings = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <Grid container spacing={4}>
-          <Grid item md={6} xs={12}>
+          <Grid item md={12}>
             <SettingsPassword />
-            <GenerateToken />
-          </Grid>
-          <Grid item md={6} xs={12}>
+            <br />
             <SettingsNotifications />
+            <br />
+            <GenerateToken />
           </Grid>
         </Grid>
       </div>

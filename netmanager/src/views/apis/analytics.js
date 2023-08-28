@@ -5,7 +5,10 @@ import {
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI,
   GENERATE_AIRQLOUD_DATA_SUMMARY_URI,
-  SCHEDULE_EXPORT_DATA
+  SCHEDULE_EXPORT_DATA,
+  CREATE_CLIENT_URI,
+  GET_CLIENTS_URI,
+  GENERATE_TOKEN_URI
 } from 'config/urls/analytics';
 import { BASE_AUTH_TOKEN } from 'utils/envVariables';
 
@@ -59,4 +62,27 @@ export const generateAirQloudDataSummaryApi = async (data) => {
   return await axios
     .post(GENERATE_AIRQLOUD_DATA_SUMMARY_URI, data, { params: { token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
+};
+
+export const createClientApi = async (data) => {
+  return await axios
+    .post(CREATE_CLIENT_URI, data, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const getClientsApi = async () => {
+  return await axios
+    .get(GET_CLIENTS_URI, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+export const generateTokenApi = async (data) => {
+  const response = await axios.post(
+    GENERATE_TOKEN_URI,
+    {
+      name: data.name,
+      client_id: data.client_id
+    },
+    { params: { token: BASE_AUTH_TOKEN } }
+  );
+  return response.data;
 };

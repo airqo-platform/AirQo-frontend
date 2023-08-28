@@ -3,10 +3,13 @@ import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from 'views/components/Loader/CircularLoader';
 import PropTypes from 'prop-types';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import CloseIcon from '@material-ui/icons/Close';
+import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
 import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { makeStyles } from '@material-ui/core/styles';
-import { generateAccessTokenForUserApi } from '../../../../apis/accessControl';
+import { createClientApi, getClientsApi, generateTokenApi } from '../../../../apis/analytics';
+import { useDispatch } from 'react-redux';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import DataTable from './Table';
 import {
   Card,
   CardHeader,
@@ -17,8 +20,12 @@ import {
   DialogTitle,
   DialogContent,
   TextField,
-  DialogActions
+  DialogActions,
+  CircularProgress
 } from '@material-ui/core';
+import CheckIcon from '@material-ui/icons/Check';
+import { getUserDetails } from '../../../../../redux/Join/actions';
+import { isEmpty, isEqual } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -50,13 +57,54 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const RegisterClient = (props) => {
+  const dispatch = useDispatch();
   const classes = useStyles();
-  const { open, onClose } = props;
+  const { open, onClose, data, onRegister } = props;
   const [clientName, setClientName] = useState('');
+  const [clientNameError, setClientNameError] = useState(false);
+  const clientId = data.user._id;
 
-  const handleSubmit = () => {
-    // handle submission of client name here
-    onClose();
+  const handleSubmit = async () => {
+    if (!clientName) {
+      setClientNameError(true);
+      return;
+    }
+    try {
+      const data = {
+        name: clientName,
+        user_id: clientId
+      };
+      const response = await createClientApi(data);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Client registered successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        onClose();
+        onRegister();
+        setClientName('');
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Client registration failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Client registration failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    }
   };
 
   return (
@@ -67,7 +115,12 @@ const RegisterClient = (props) => {
           label="Client Name"
           value={clientName}
           variant="outlined"
-          onChange={(e) => setClientName(e.target.value)}
+          onChange={(e) => {
+            setClientName(e.target.value);
+            setClientNameError(false);
+          }}
+          error={clientNameError}
+          helperText={clientNameError && 'Please enter a client name'}
           fullWidth
         />
       </DialogContent>
@@ -86,8 +139,107 @@ const RegisterClient = (props) => {
 };
 
 const GenerateToken = (props) => {
+  const dispatch = useDispatch();
   const { className, mappedAuth, ...rest } = props;
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [clientData, setClientData] = useState([]);
+  const [clientStaffData, setClientStaffData] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const clientId = mappedAuth?.user?._id;
+
+  useEffect(() => {
+    if (!isEmpty(mappedAuth?.user)) {
+      getUserDetails(clientId).then((res) => {
+        setClientData(res.users[0].clients);
+      });
+    }
+  }, [refresh, mappedAuth]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getClientsApi();
+        if (response.success === true) {
+          setClientStaffData(response.clients);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [refresh]);
+
+  // const result = clientStaffData
+  //   .filter((item) => item._id === clientId)
+  //   .flatMap((item) => item.access_token)
+  //   .map((token) => ({
+  //     clientName: token.name,
+  //     createdAt: token.createdAt,
+  //     expiresAt: token.expires,
+  //     token: token.token
+  //   }));
+
+  const result = [
+    {
+      clientName: 'test',
+      createdAt: '2021-08-10T09:00:00.000Z',
+      expiresAt: '2021-08-10T09:00:00.000Z',
+      token: 'testooooddd'
+    },
+    {
+      clientName: 'test2',
+      createdAt: '2021-08-10T09:00:00.000Z',
+      expiresAt: '2021-08-10T09:00:00.000Z',
+      token: 'test222oddd'
+    }
+  ];
+
+  const handleTokenGeneration = async (res) => {
+    try {
+      setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: true }));
+      const response = await generateTokenApi(res);
+      if (response.success === true) {
+        dispatch(
+          updateMainAlert({
+            message: 'Token generated successfully',
+            show: true,
+            severity: 'success'
+          })
+        );
+        setGenerated((prevGenerated) => ({ ...prevGenerated, [res.client_id]: true }));
+      } else {
+        dispatch(
+          updateMainAlert({
+            message: 'Token generation failed',
+            show: true,
+            severity: 'error'
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch(
+        updateMainAlert({
+          message: 'Token generation failed',
+          show: true,
+          severity: 'error'
+        })
+      );
+    } finally {
+      setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: false }));
+    }
+  };
+
+  // future implementation
+  const handleDeleteToken = async (token) => {};
+
+  // future implementation
+  const handleDeleteClient = async (clientId) => {};
 
   const handleOpen = () => {
     setOpen(true);
@@ -99,23 +251,180 @@ const GenerateToken = (props) => {
 
   return (
     <>
-      <Card
-        style={{
-          margin: '30px 0'
-        }}>
-        <CardHeader
-          title="API Access"
-          subheader="Register your application to get an API access token."
-        />
-        <Divider />
-
-        <CardActions>
-          <Button color="primary" variant="outlined" onClick={handleOpen}>
-            Register Client
-          </Button>
-        </CardActions>
-      </Card>
-      <RegisterClient open={open} onClose={handleClose} />
+      {clientData.length === 0 ? (
+        <Card>
+          <CardHeader
+            title="API Access"
+            subheader="Register your application to get an API access token."
+          />
+          <Divider />
+          <CardActions>
+            <Button color="primary" variant="outlined" onClick={handleOpen}>
+              Register Client
+            </Button>
+          </CardActions>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <DataTable
+              title="Registered Clients"
+              onButtonClick={handleOpen}
+              ButtonText="Add Client"
+              columns={[
+                {
+                  id: 'name',
+                  label: 'Client Name'
+                },
+                {
+                  id: '_id',
+                  label: 'Client ID'
+                },
+                {
+                  id: 'createdAt',
+                  label: 'Registered Date',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.createdAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'generateToken',
+                  label: 'Generate Token',
+                  cellStyle: { textAlign: 'center' },
+                  headerStyle: { textAlign: 'center' },
+                  format: (value, rowData) => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          let res = {
+                            name: rowData?.name,
+                            client_id: rowData?._id
+                          };
+                          handleTokenGeneration(res);
+                        }}>
+                        {loading[rowData._id] ? (
+                          <CircularProgress size={24} />
+                        ) : generated[rowData._id] ? (
+                          <CheckIcon />
+                        ) : (
+                          'Generate Token'
+                        )}
+                      </Button>
+                    );
+                  }
+                }
+                // {
+                //   id: 'actions',
+                //   label: 'Actions',
+                //   format: (value, rowData) => {
+                //     return (
+                //       <Button variant="outlined" color="primary" onClick={() => {}}>
+                //         <DeleteIcon />
+                //       </Button>
+                //     );
+                //   }
+                // }
+              ]}
+              rows={clientData}
+              loading={isLoading}
+            />
+          </Card>
+          <br />
+          <Card>
+            <DataTable
+              title="Access Tokens"
+              columns={[
+                {
+                  id: 'clientName',
+                  label: 'Client Name'
+                },
+                {
+                  id: 'token',
+                  label: 'Token'
+                },
+                {
+                  id: 'createdAt',
+                  label: 'Created Date',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.createdAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'expiresAt',
+                  label: 'Expires At',
+                  format: (value, rowData) => {
+                    const date = new Date(rowData.expiresAt);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    });
+                  }
+                },
+                {
+                  id: 'copy',
+                  label: 'Copy',
+                  format: (value, rowData) => {
+                    return (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(rowData.token);
+                          dispatch(
+                            updateMainAlert({
+                              message: 'Token copied to clipboard',
+                              show: true,
+                              severity: 'success'
+                            })
+                          );
+                        }}>
+                        <FileCopyIcon />
+                      </Button>
+                    );
+                  }
+                }
+                // {
+                //   id: 'delete',
+                //   label: 'Delete',
+                //   format: (value, rowData) => {
+                //     return (
+                //       <Button
+                //         variant="outlined"
+                //         color="primary"
+                //         onClick={() => {
+                //           handleDeleteToken(rowData._id);
+                //         }}>
+                //         <DeleteIcon />
+                //       </Button>
+                //     );
+                //   }
+                // }
+              ]}
+              rows={result}
+              loading={isLoading}
+            />
+          </Card>
+        </>
+      )}
+      <RegisterClient
+        open={open}
+        onClose={handleClose}
+        data={mappedAuth}
+        onRegister={() => setRefresh(!refresh)}
+      />
     </>
   );
 };

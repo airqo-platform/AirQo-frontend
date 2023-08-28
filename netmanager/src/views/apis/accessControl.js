@@ -120,17 +120,6 @@ export const getNetworkUsersListApi = async (networkID) => {
     .then((response) => response.data);
 };
 
-export const generateAccessTokenForUserApi = async (userId) => {
-  const url = `${GENERATE_ACCESS_TOKEN}`;
-  const data = { user_id: userId };
-  try {
-    const response = await axios.post(url, data);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 export const getNetworkListSummaryApi = async () => {
   return await axios
     .get(`${GET_NETWORKS_URI}/summary`, { params: { token: BASE_AUTH_TOKEN } })
