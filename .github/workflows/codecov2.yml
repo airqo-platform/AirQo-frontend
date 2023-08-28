@@ -27,7 +27,7 @@ jobs:
       continue-on-error: true
 
     - name: Cypress run
-      uses: cypress-io/github-action@v4
+      uses: cypress-io/github-action@v3
       with:
         working-directory: ./platform/
         install-command: yarn install 
