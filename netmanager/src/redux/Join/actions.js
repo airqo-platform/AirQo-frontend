@@ -525,8 +525,6 @@ export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
   localStorage.removeItem('currentUser');
   // Remove token from local storage
-  localStorage.removeItem('activeNetwork');
-  // Remove token from local storage
   localStorage.removeItem('userNetworks');
   // Remove token from local storage
   localStorage.removeItem('currentUserRole');
