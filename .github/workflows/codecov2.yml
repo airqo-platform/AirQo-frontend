@@ -30,7 +30,7 @@ jobs:
       uses: cypress-io/github-action@v3
       with:
         working-directory: ./platform/
-        build: yarn build
+        build: yarn run build
         start: yarn start
         browser: chrome
         record: true
