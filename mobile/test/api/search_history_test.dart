@@ -5,15 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> main() async {
-  late Map<String, String> headers;
-
   group('searchHistory', () {
     setUpAll(() async {
       await dotenv.load(fileName: Config.environmentFile);
-      headers = {
-        'Authorization': 'JWT ${Config.airqoJWTToken}',
-        'service': ApiService.auth.serviceName,
-      };
     });
 
     test('successfully get search History', () async {
@@ -21,7 +15,8 @@ Future<void> main() async {
       List<SearchHistory> histories =
           await AirqoApiClient().fetchSearchHistory(userId);
 
-      expect(histories, isA<List<SearchHistory>>());
+      expect(
+          histories, isA<List<SearchHistory>>()); // TODO test with mocked data
       for (SearchHistory history in histories) {
         expect(history.location, "testLocation");
         expect(history.name, "testName");

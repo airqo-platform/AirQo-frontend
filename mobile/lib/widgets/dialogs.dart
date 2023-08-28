@@ -197,7 +197,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: '2.5',
+                            text: '2.5 ',
                             style: TextStyle(
                               fontSize: 7,
                               fontWeight: FontWeight.w800,
@@ -214,7 +214,7 @@ void pmInfoDialog(BuildContext context, double pm2_5) {
                             ),
                           ),
                           TextSpan(
-                            text: 'PM',
+                            text: ' PM',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -326,6 +326,7 @@ void showSnackBar(
     ),
     backgroundColor: CustomColors.snackBarBgColor,
   );
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
@@ -433,6 +434,7 @@ void showFavouritePlaceSnackBar(
     ),
     backgroundColor: CustomColors.appColorBlack,
   );
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
@@ -778,6 +780,7 @@ Future<void> showRatingDialog(BuildContext context) async {
     barrierDismissible: false,
     builder: (BuildContext context) {
       return RatingDialog(
+        starColor: CustomColors.appColorBlue,
         image: SvgPicture.asset(
           'assets/icon/airqo_logo.svg',
           height: 30,
@@ -792,6 +795,11 @@ Future<void> showRatingDialog(BuildContext context) async {
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 19),
         ),
+        submitButtonTextStyle:
+            Theme.of(context).textTheme.titleMedium!.copyWith(
+                  color: CustomColors.appColorBlue,
+                  fontWeight: FontWeight.bold,
+                ),
         title: Text(
           AppLocalizations.of(context)!.enjoyingAirQoApp,
           textAlign: TextAlign.center,
@@ -799,6 +807,13 @@ Future<void> showRatingDialog(BuildContext context) async {
             fontSize: 22,
           ),
         ),
+        onCancelled: () {
+          Profile profile = context.read<ProfileBloc>().state;
+          profile = profile.copyWith(
+            lastRated: DateTime.now().add(const Duration(days: 7)),
+          );
+          context.read<ProfileBloc>().add(UpdateProfile(profile));
+        },
         submitButtonText: AppLocalizations.of(context)!.rate,
         onSubmitted: (response) {
           Profile profile = context.read<ProfileBloc>().state;
@@ -829,7 +844,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Cancel'),
+                      child: Text(AppLocalizations.of(context)!.cancel),
                     ),
                     CupertinoDialogAction(
                       onPressed: () {
@@ -843,7 +858,7 @@ Future<void> showRatingDialog(BuildContext context) async {
                         );
                       },
                       isDefaultAction: true,
-                      child: const Text('OK'),
+                      child: Text(AppLocalizations.of(context)!.oK),
                     ),
                   ],
                 );
