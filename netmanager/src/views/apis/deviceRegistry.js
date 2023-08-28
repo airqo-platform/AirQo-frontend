@@ -15,7 +15,12 @@ import {
   QRCODE,
   REFRESH_AIRQLOUD,
   SOFT_EDIT_DEVICE_URI,
-  DASHBOARD_AIRQLOUDS
+  DASHBOARD_AIRQLOUDS,
+  ALL_DEVICE_HOSTS,
+  CREATE_DEVICE_HOST,
+  UPDATE_DEVICE_HOST,
+  SEND_DEVICE_HOST_MONEY,
+  GET_TRANSACTION_HISTORY
 } from 'config/urls/deviceRegistry';
 import { DEVICE_MAINTENANCE_LOG_URI } from 'config/urls/deviceMonitoring';
 import { DEVICE_RECENT_FEEDS } from 'config/urls/dataManagement';
@@ -255,4 +260,40 @@ export const getDevicePhotos = async (params) => {
   return await axios
     .get(GET_DEVICE_IMAGES, { params: { device_id: params, token: BASE_AUTH_TOKEN } })
     .then((response) => response.data);
+};
+
+export const getAllDeviceHosts = async () => {
+  return await axios.get(ALL_DEVICE_HOSTS).then((response) => response.data);
+};
+
+export const createDeviceHost = async (params) => {
+  return await axios
+    .post(CREATE_DEVICE_HOST, params, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
+};
+
+export const updateDeviceHost = async (id, params) => {
+  return await axios
+    .put(`${UPDATE_DEVICE_HOST}/${id}`, params, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
+};
+
+export const sendMoneyToHost = async (id, amount) => {
+  return await axios
+    .post(
+      `${SEND_DEVICE_HOST_MONEY}/${id}/payments`,
+      { amount },
+      { params: { token: BASE_AUTH_TOKEN } }
+    )
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
+};
+
+export const getTransactionDetails = async (id) => {
+  return await axios
+    .get(`${GET_TRANSACTION_HISTORY}/${id}`)
+    .then((response) => response.data)
+    .catch((error) => error.response.data);
 };

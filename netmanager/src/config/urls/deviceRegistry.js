@@ -49,3 +49,13 @@ export const QRCODE = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/qrcode`;
 export const SOFT_EDIT_DEVICE_IMAGE = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/photos/soft?tenant=airqo`;
 
 export const GET_DEVICE_IMAGES = `${BASE_DEVICE_REGISTRY_URL_V2}/devices/photos?tenant=airqo`;
+
+export const ALL_DEVICE_HOSTS = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const CREATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const UPDATE_DEVICE_HOST = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/hosts`;
+
+export const SEND_DEVICE_HOST_MONEY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/hosts`;
+
+export const GET_TRANSACTION_HISTORY = `${BASE_DEVICE_REGISTRY_URL_V2}/incentives/transactions/payments/hosts`;

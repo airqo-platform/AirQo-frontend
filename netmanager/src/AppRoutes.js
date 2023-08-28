@@ -46,6 +46,8 @@ const Logs = lazy(() => import('./views/pages/Logs'));
 const ExportDownloads = lazy(() => import('./views/pages/ExportData/downloads'));
 const ExportData = lazy(() => import('./views/pages/ExportData'));
 const Analytics = lazy(() => import('./views/pages/Analytics'));
+const HostRegistry = lazy(() => import('./views/components/Hosts/HostRegistry'));
+const HostView = lazy(() => import('./views/components/Hosts/HostView'));
 
 const AppRoutes = ({ auth, logoutUser }) => {
   useJiraHelpDesk();
@@ -60,8 +62,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
       setSessionExpired(true);
-      logoutUser(); 
-    }, sessionTimeoutInSeconds* 60 * 1000);
+      logoutUser();
+    }, sessionTimeoutInSeconds * 60 * 1000);
   };
 
   const handleUserActivity = () => {
@@ -81,7 +83,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
       };
     }
   }, [auth.isAuthenticated]);
-
 
   return (
     <Router>
@@ -138,6 +139,8 @@ const AppRoutes = ({ auth, logoutUser }) => {
               component={SiteActivities}
               layout={MainLayout}
             />
+            <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
+            <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/sites/:id" component={SiteView} layout={MainLayout} />
             <PrivateRoute
@@ -199,10 +202,9 @@ const AppRoutes = ({ auth, logoutUser }) => {
             message="Your session has expired due to inactivity. Please log in again."
             confirmBtnMsg="Log In"
             confirm={() => setSessionExpired(false)}
-            error={false} 
+            error={false}
           />
         )}
-
       </div>
     </Router>
   );
