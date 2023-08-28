@@ -158,7 +158,10 @@ const SidebarNav = (props) => {
               </NestedMenuItem>
             );
           }
-          if (activeNetwork.net_name !== 'airqo' && page.title === 'Logs') {
+          if (
+            activeNetwork.net_name !== 'airqo' &&
+            (page.title === 'Logs' || page.title === 'AirQloud Registry')
+          ) {
             return;
           } else {
             return (
