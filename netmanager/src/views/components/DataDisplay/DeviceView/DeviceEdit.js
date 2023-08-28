@@ -19,6 +19,7 @@ import { filterSite } from 'utils/sites';
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
 import { getNetworkListSummaryApi } from '../../../apis/accessControl';
 import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
+import ConfirmDialog from '../../../containers/ConfirmDialog';
 
 const gridItemStyle = {
   padding: '5px'
@@ -63,6 +64,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const [errors, setErrors] = useState({});
 
   const [editLoading, setEditLoading] = useState(false);
+
+  const [open, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (deviceData) {
@@ -173,6 +176,18 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
       .catch((error) => {
         console.log('error', error);
       });
+  };
+
+  const confirmUpdate = () => {
+    setConfirmOpen(false);
+  };
+
+  const handleConfirmCancel = () => {
+    setEditData({
+      ...editData,
+      network: deviceData.network
+    });
+    setConfirmOpen(false);
   };
 
   useEffect(() => {
@@ -364,6 +379,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                   ...editData,
                   network: selected.value
                 });
+                setConfirmOpen(true);
               }}
               options={networkList}
               isSearchable
@@ -433,6 +449,15 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             </Button>
           </Grid>
         </Grid>
+
+        <ConfirmDialog
+          open={open}
+          close={handleConfirmCancel}
+          confirmBtnMsg={'Confirm'}
+          confirm={confirmUpdate}
+          title={'Confirm device network migration'}
+          message={`Are you sure you want to move this device to ${editData.network} organisation?`}
+        />
       </Paper>
     </div>
   );
