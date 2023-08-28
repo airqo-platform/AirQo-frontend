@@ -10,6 +10,7 @@ import RolesToolbar from './components/RolesToolbar';
 import { getNetworkPermissionsApi } from '../../apis/accessControl';
 import { loadRolesSummary } from 'redux/AccessControl/operations';
 import { withPermission } from '../../containers/PageAccess';
+import UsersListBreadCrumb from '../UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,6 +27,7 @@ const Roles = () => {
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(false);
   const roles = useSelector((state) => state.accessControl.rolesSummary);
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   useEffect(() => {
     setLoading(true);
@@ -61,6 +63,7 @@ const Roles = () => {
     <ErrorBoundary>
       <div className={classes.root}>
         <RolesToolbar permissions={permissions && permissions} />
+        <UsersListBreadCrumb category="Roles" usersTable={`${activeNetwork.net_name}`} />
         <div className={classes.content}>
           <RolesTable loading={loading} roles={roles} permissions={permissions && permissions} />
         </div>
