@@ -119,6 +119,7 @@ const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
   const location = useLocation();
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>
@@ -157,19 +158,23 @@ const SidebarNav = (props) => {
               </NestedMenuItem>
             );
           }
-          return (
-            <ListItem className={classes.item} disableGutters key={page.title}>
-              <Button
-                activeClassName={classes.active}
-                className={classes.button}
-                component={CustomRouterLink}
-                to={page.href}
-              >
-                <div className={classes.icon}>{page.icon}</div>
-                {page.title}
-              </Button>
-            </ListItem>
-          );
+          if (activeNetwork.net_name !== 'airqo' && page.title === 'Logs') {
+            return;
+          } else {
+            return (
+              <ListItem className={classes.item} disableGutters key={page.title}>
+                <Button
+                  activeClassName={classes.active}
+                  className={classes.button}
+                  component={CustomRouterLink}
+                  to={page.href}
+                >
+                  <div className={classes.icon}>{page.icon}</div>
+                  {page.title}
+                </Button>
+              </ListItem>
+            );
+          }
         })}
     </List>
   );
