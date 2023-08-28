@@ -78,6 +78,7 @@ const CandidatesTable = (props) => {
   const users = mappeduserState.candidates;
   const editCandidate = mappeduserState.userToEdit;
   const userToDelete = mappeduserState.userToDelete;
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   //the methods
   const hideEditDialog = () => {
@@ -267,7 +268,7 @@ const CandidatesTable = (props) => {
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
       <CustomMaterialTable
-        title={'candidate'}
+        title={`Candidates for ${activeNetwork.net_name}`}
         userPreferencePaginationKey={'candidates'}
         data={users}
         columns={[
@@ -410,8 +411,8 @@ const CandidatesTable = (props) => {
         ]}
         options={{
           search: true,
-          searchFieldAlignment: 'left',
-          showTitle: false
+          searchFieldAlignment: 'right',
+          showTitle: true
         }}
       />
 
