@@ -6,6 +6,7 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import CandidatesTable from './components/CandidatesTable';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { withPermission } from '../../containers/PageAccess';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,7 +23,10 @@ const CandidateList = (props) => {
   const candidates = props.mappeduserState.candidates;
 
   useEffect(() => {
-    props.fetchCandidates();
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      props.fetchCandidates(activeNetwork._id);
+    }
   }, []);
 
   return (

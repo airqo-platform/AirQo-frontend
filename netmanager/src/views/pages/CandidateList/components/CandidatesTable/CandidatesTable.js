@@ -35,6 +35,7 @@ import {
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import CandidateDrawer from '../CandidateDrawer';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -116,7 +117,10 @@ const CandidatesTable = (props) => {
   const classes = useStyles();
 
   useEffect(() => {
-    props.fetchCandidates();
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(activeNetwork)) {
+      props.fetchCandidates(activeNetwork._id);
+    }
   }, []);
 
   const toggleDrawer = (anchor, open) => (event) => {
@@ -143,7 +147,10 @@ const CandidatesTable = (props) => {
     setDrawerCandidate(null);
     return confirmCandidateApi(currentCandidate)
       .then((res) => {
-        props.fetchCandidates();
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          props.fetchCandidates(activeNetwork._id);
+        }
         dispatch(
           updateMainAlert({
             show: true,
@@ -170,7 +177,10 @@ const CandidatesTable = (props) => {
     setOpenDel(false);
     return deleteCandidateApi(currentCandidate._id)
       .then((res) => {
-        props.fetchCandidates();
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          props.fetchCandidates(activeNetwork._id);
+        }
         dispatch(
           updateMainAlert({
             show: true,
@@ -196,7 +206,10 @@ const CandidatesTable = (props) => {
     setDrawerCandidate(null);
     return updateCandidateApi(id, data)
       .then((res) => {
-        props.fetchCandidates();
+        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+        if (!isEmpty(activeNetwork)) {
+          props.fetchCandidates(activeNetwork._id);
+        }
         dispatch(
           updateMainAlert({
             show: true,
