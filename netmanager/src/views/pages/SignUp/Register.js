@@ -14,6 +14,7 @@ import AlertMinimal from '../../layouts/AlertsMininal';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
+import { getNetworkListSummaryApi } from '../../apis/accessControl';
 
 countries.registerLocale(enLocale);
 
@@ -33,6 +34,17 @@ const categoryOptions = categories.array.map(({ label }) => ({
   label,
   value: label
 }));
+
+const createNetworkOptions = (networksList) => {
+  const options = [];
+  networksList.map((network) => {
+    options.push({
+      value: network._id,
+      label: network.net_name
+    });
+  });
+  return options;
+};
 
 const customStyles = {
   control: (base, state) => ({
@@ -106,8 +118,21 @@ const Register = ({
     website: '',
     errors: {},
     isChecked: {},
-    country: ''
+    country: '',
+    network_id: ''
   });
+  const [networkList, setNetworkList] = useState([]);
+
+  const fetchNetworks = () => {
+    getNetworkListSummaryApi()
+      .then((res) => {
+        const { networks } = res;
+        setNetworkList(createNetworkOptions(networks));
+      })
+      .catch((error) => {
+        console.log('error', error);
+      });
+  };
 
   useEffect(() => {
     const anchorElem = document.createElement('link');
@@ -136,6 +161,10 @@ const Register = ({
     }
   }, [auth.registered, errors, history]);
 
+  useEffect(() => {
+    fetchNetworks();
+  }, []);
+
   const onChange = (e) => {
     e.preventDefault();
     const { id, value } = e.target;
@@ -154,14 +183,24 @@ const Register = ({
   };
 
   const onChangeDropdown = (selected, { name }) => {
-    const { label } = selected;
-    let updatedErrors = { ...state.errors };
-    updatedErrors[name] = label.length === 0 ? 'This field is required' : '';
-    setState((prevState) => ({
-      ...prevState,
-      errors: updatedErrors,
-      [name]: label
-    }));
+    if (name === 'network_id') {
+      let updatedErrors = { ...state.errors };
+      updatedErrors[name] = selected.value.length === 0 ? 'This field is required' : '';
+      setState((prevState) => ({
+        ...prevState,
+        errors: updatedErrors,
+        [name]: selected.value
+      }));
+    } else {
+      const { label } = selected;
+      let updatedErrors = { ...state.errors };
+      updatedErrors[name] = label.length === 0 ? 'This field is required' : '';
+      setState((prevState) => ({
+        ...prevState,
+        errors: updatedErrors,
+        [name]: label
+      }));
+    }
   };
 
   const handleCheck = (event) => {
@@ -182,7 +221,8 @@ const Register = ({
     website: '',
     errors: {},
     isChecked: {},
-    country: ''
+    country: '',
+    network_id: ''
   });
 
   const clearState = () => {
@@ -396,6 +436,17 @@ const Register = ({
                   error={!!errors.description}
                   helperText={errors.description}
                   InputLabelProps={{ style: { fontSize: '0.8rem' } }}
+                />
+
+                <Select
+                  value={networkList.find((option) => option.value === state.network_id)}
+                  onChange={onChangeDropdown}
+                  options={networkList}
+                  isSearchable
+                  placeholder="Choose the organisation you want to request access to"
+                  name="network_id"
+                  error={!!formErrors.network_id}
+                  styles={customStyles}
                 />
               </div>
 
