@@ -81,8 +81,6 @@ jobs:
 
       - name: Deploy code coverage report 🚀
         uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           directory: ./platform/coverage/lcov-report
 
