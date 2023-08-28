@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
-import { Button, Grid } from '@material-ui/core';
-import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
+import { Box, Button, Grid } from '@material-ui/core';
 import { isEmpty, isEqual, omit } from 'underscore';
 import { updateMainAlert } from 'redux/MainAlert/operations';
-import { updateDeviceDetails } from 'views/apis/deviceRegistry';
+import { updateDeviceDetails, softUpdateDeviceDetails } from 'views/apis/deviceRegistry';
 import { loadDevicesData } from 'redux/DeviceRegistry/operations';
 import { useSiteOptionsData } from 'redux/SiteRegistry/selectors';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
@@ -18,6 +17,8 @@ import { filterSite } from 'utils/sites';
 
 // horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import { getNetworkListSummaryApi } from '../../../apis/accessControl';
+import OutlinedSelect from '../../CustomSelects/OutlinedSelect';
 
 const gridItemStyle = {
   padding: '5px'
@@ -36,16 +37,40 @@ const EDIT_OMITTED_KEYS = [
   'pictures'
 ];
 
+const BASE_URL = process.env.REACT_APP_BASE_URL_V2;
+// check if base url value is staging and assign staging to active environment variable else asssign production
+const ACTIVE_ENVIRONMENT = BASE_URL.includes('staging') ? 'staging' : 'production';
+
+const createNetworkOptions = (networksList) => {
+  const options = [];
+  networksList.map((network) => {
+    options.push({
+      value: network.net_name,
+      label: network.net_name
+    });
+  });
+  return options;
+};
+
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const dispatch = useDispatch();
   // const [editData, setEditData] = useState({
   //   ...omit(deviceData, EDIT_OMITTED_KEYS),
   // });
   const [editData, setEditData] = useState({});
+  const [networkList, setNetworkList] = useState([]);
 
   const [errors, setErrors] = useState({});
 
   const [editLoading, setEditLoading] = useState(false);
+
+  useEffect(() => {
+    if (deviceData) {
+      setEditData({
+        ...omit(deviceData, EDIT_OMITTED_KEYS)
+      });
+    }
+  }, []);
 
   const handleTextFieldChange = (event) => {
     setEditData({
@@ -72,33 +97,63 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     if (editData.deployment_date)
       editData.deployment_date = new Date(editData.deployment_date).toISOString();
 
-    await updateDeviceDetails(deviceData._id, editData)
-      .then((responseData) => {
-        const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-        if (!isEmpty(activeNetwork)) {
-          dispatch(loadDevicesData(activeNetwork.net_name));
-        }
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: 'success'
-          })
-        );
-      })
-      .catch((err) => {
-        const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
-        setErrors(newErrors);
-        dispatch(
-          updateMainAlert({
-            message:
-              (err.response && err.response.data && err.response.data.message) ||
-              (err.response && err.response.message),
-            show: true,
-            severity: 'error'
-          })
-        );
-      });
+    if (ACTIVE_ENVIRONMENT === 'staging') {
+      await softUpdateDeviceDetails(deviceData._id, editData)
+        .then((responseData) => {
+          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          if (!isEmpty(activeNetwork)) {
+            dispatch(loadDevicesData(activeNetwork.net_name));
+          }
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((err) => {
+          const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
+          setErrors(newErrors);
+          dispatch(
+            updateMainAlert({
+              message:
+                (err.response && err.response.data && err.response.data.message) ||
+                (err.response && err.response.message),
+              show: true,
+              severity: 'error'
+            })
+          );
+        });
+    } else {
+      await updateDeviceDetails(deviceData._id, editData)
+        .then((responseData) => {
+          const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+          if (!isEmpty(activeNetwork)) {
+            dispatch(loadDevicesData(activeNetwork.net_name));
+          }
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: 'success'
+            })
+          );
+        })
+        .catch((err) => {
+          const newErrors = (err.response && err.response.data && err.response.data.errors) || {};
+          setErrors(newErrors);
+          dispatch(
+            updateMainAlert({
+              message:
+                (err.response && err.response.data && err.response.data.message) ||
+                (err.response && err.response.message),
+              show: true,
+              severity: 'error'
+            })
+          );
+        });
+    }
     setEditLoading(false);
   };
 
@@ -108,6 +163,21 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     }
     return secondary;
   };
+
+  const fetchNetworks = () => {
+    getNetworkListSummaryApi()
+      .then((res) => {
+        const { networks } = res;
+        setNetworkList(createNetworkOptions(networks));
+      })
+      .catch((error) => {
+        console.log('error', error);
+      });
+  };
+
+  useEffect(() => {
+    fetchNetworks();
+  }, []);
 
   return (
     <div>
@@ -119,7 +189,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           minHeight: '200px',
           padding: '20px 20px',
           maxWidth: '1500px'
-        }}>
+        }}
+      >
         <Grid container spacing={1}>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
@@ -220,7 +291,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               }}
               error={!!errors.visibility}
               helperText={errors.visibility}
-              variant="outlined">
+              variant="outlined"
+            >
               <option value={false}>Private</option>
               <option value={true}>Public</option>
             </TextField>
@@ -239,7 +311,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               }}
               variant="outlined"
               error={!!errors.ISP}
-              helperText={errors.ISP}>
+              helperText={errors.ISP}
+            >
               <option value="" />
               <option value="MTN">MTN</option>
               <option value="Airtel">Airtel</option>
@@ -260,7 +333,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               }}
               variant="outlined"
               error={!!errors.isPrimaryInLocation}
-              helperText={errors.isPrimaryInLocation}>
+              helperText={errors.isPrimaryInLocation}
+            >
               <option value="" />
               <option value={true}>Yes</option>
               <option value={false}>No</option>
@@ -281,25 +355,24 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
+            <Box height="10px" />
+            <OutlinedSelect
               label="Network"
-              style={{ margin: '10px 0' }}
-              defaultValue={deviceData.network}
-              onChange={handleSelectFieldChange('network')}
-              SelectProps={{
-                native: true,
-                style: { width: '100%', height: '50px' }
+              value={networkList.find((option) => option.value === editData.network)}
+              onChange={(selected) => {
+                setEditData({
+                  ...editData,
+                  network: selected.value
+                });
               }}
-              variant="outlined"
+              options={networkList}
+              isSearchable
+              placeholder="Network"
+              name="network"
               error={!!errors.network}
               helperText={errors.network}
-              required>
-              <option value={'airqo'}>AirQo</option>
-              <option value={'kcca'}>KCCA</option>
-              <option value={'usembassy'}>US EMBASSY</option>
-            </TextField>
+              required
+            />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
@@ -330,7 +403,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               error={!!errors.category}
               helperText={errors.category}
-              required>
+              required
+            >
               <option value={'lowcost'}>Lowcost</option>
               <option value={'bam'}>BAM</option>
             </TextField>
@@ -342,7 +416,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             alignContent="flex-end"
             justify="flex-end"
             xs={12}
-            style={{ margin: '10px 0' }}>
+            style={{ margin: '10px 0' }}
+          >
             <Button variant="contained" onClick={handleCancel}>
               Cancel
             </Button>
@@ -352,7 +427,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               color="primary"
               disabled={weightedBool(editLoading, isEmpty(editData))}
               onClick={handleEditSubmit}
-              style={{ marginLeft: '10px' }}>
+              style={{ marginLeft: '10px' }}
+            >
               Save Changes
             </Button>
           </Grid>
