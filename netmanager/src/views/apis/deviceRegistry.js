@@ -239,6 +239,12 @@ export const createGridApi = async (gridData) => {
     .then((response) => response.data);
 };
 
+export const refreshGridApi = async (gridID) => {
+  return await axios
+    .put(`${GRIDS}/refresh/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const softCreateDevicePhoto = async (data) => {
   return await axios
     .post(SOFT_EDIT_DEVICE_IMAGE, data, { params: { token: BASE_AUTH_TOKEN } })

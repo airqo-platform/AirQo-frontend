@@ -80,23 +80,19 @@ const Analytics = () => {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(activeGrid)) {
-      if (!isEmpty(combinedGridAndCohortsSummary)) {
-        const gridsList = combinedGridAndCohortsSummary.grids;
-        if (!isEmpty(gridsList)) {
-          dispatch(setActiveGrid(gridsList[0]));
-        }
+    if (!isEmpty(combinedGridAndCohortsSummary)) {
+      const gridsList = combinedGridAndCohortsSummary.grids;
+      if (!isEmpty(gridsList)) {
+        dispatch(setActiveGrid(gridsList[0]));
       }
     }
   }, [combinedGridAndCohortsSummary, activeGrid]);
 
   useEffect(() => {
-    if (isEmpty(activeCohort)) {
-      if (!isEmpty(combinedGridAndCohortsSummary)) {
-        const cohortsList = combinedGridAndCohortsSummary.cohorts;
-        if (!isEmpty(cohortsList)) {
-          dispatch(setActiveCohort(cohortsList[0]));
-        }
+    if (!isEmpty(combinedGridAndCohortsSummary)) {
+      const cohortsList = combinedGridAndCohortsSummary.cohorts;
+      if (!isEmpty(cohortsList)) {
+        dispatch(setActiveCohort(cohortsList[0]));
       }
     }
   }, [combinedGridAndCohortsSummary, activeCohort]);

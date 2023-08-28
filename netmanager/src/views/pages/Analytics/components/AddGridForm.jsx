@@ -15,6 +15,7 @@ import PolygonMap from './PolygonMap';
 import { createGridApi } from 'views/apis/deviceRegistry';
 import Alert from '@material-ui/lab/Alert';
 import { setActiveGrid } from 'redux/Analytics/operations';
+import { refreshGridApi } from '../../../apis/deviceRegistry';
 
 const AddGridToolbar = ({ open, handleClose, isCohort }) => {
   const dispatch = useDispatch();
@@ -51,17 +52,34 @@ const AddGridToolbar = ({ open, handleClose, isCohort }) => {
 
     await createGridApi(gridData)
       .then((res) => {
-        dispatch(setActiveGrid(res.grid));
         setErrorMessage({
-          message: res.message,
-          severity: 'success'
+          message: 'Refreshing grid to create sites. Please wait...',
+          severity: 'info'
         });
-        setTimeout(() => {
-          setErrorMessage(null);
-          clearState();
-          handleClose();
-          setLoading(false);
-        }, 5000);
+        refreshGridApi(res.grid._id)
+          .then(() => {
+            dispatch(setActiveGrid(res.grid));
+            setErrorMessage({
+              message: res.message,
+              severity: 'success'
+            });
+            setTimeout(() => {
+              setErrorMessage(null);
+              clearState();
+              handleClose();
+              setLoading(false);
+            }, 3000);
+          })
+          .catch((error) => {
+            setErrorMessage({
+              message: error.response.data.errors.message,
+              severity: 'error'
+            });
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 5000);
+            setLoading(false);
+          });
       })
       .catch((error) => {
         setErrorMessage({

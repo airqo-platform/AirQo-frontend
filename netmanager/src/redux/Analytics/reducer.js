@@ -11,13 +11,11 @@ const initialState = {
   combinedGridAndCohortsSummary: {},
   selectedGridSites: {},
   activeGrid: {
-    name: 'Empty',
-    long_name: 'Empty'
+    name: 'Empty'
   },
   activeGridDetails: {},
   activeCohort: {
-    name: 'Empty',
-    long_name: 'Empty'
+    name: 'Empty'
   },
   activeCohortDetails: {},
   polygonShape: {
