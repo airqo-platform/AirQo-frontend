@@ -14,11 +14,17 @@ const LocationTracker = ({ countries }) => {
         return;
       }
 
-      const permissionResult = await new Promise((resolve) => {
-        geolocation.getCurrentPosition(resolve, () => {
-          console.error('Geolocation permission denied.');
+      let permissionResult;
+      if (localStorage.getItem('permissionResult')) {
+        permissionResult = JSON.parse(localStorage.getItem('permissionResult'));
+      } else {
+        permissionResult = await new Promise((resolve) => {
+          geolocation.getCurrentPosition(resolve, () => {
+            console.error('Geolocation permission denied.');
+          });
         });
-      });
+        localStorage.setItem('permissionResult', JSON.stringify(permissionResult));
+      }
 
       if (permissionResult) {
         const countryName = await getAllLocationsTrackingApi();
