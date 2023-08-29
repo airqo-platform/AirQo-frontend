@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
+import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -95,8 +98,6 @@ Future<dynamic> bottomSheetQuizConffeti(
                             SizedBox(
                               child: AutoSizeText(
                                 quiz.completionMessage,
-                                // AppLocalizations.of(context)!
-                                //     .wayToGoYouHaveUnlockedPersonalisedAirQualityRecommendationsToEmpowerYouOnYourCleanAirJourney,
                                 textAlign: TextAlign.center,
                                 maxLines: 3,
                                 style: const TextStyle(
@@ -116,6 +117,9 @@ Future<dynamic> bottomSheetQuizConffeti(
                 ),
               ],
             ),
+          ),
+          const Positioned(
+            child: Confetti(),
           ),
         ],
       );

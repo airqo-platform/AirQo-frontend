@@ -184,8 +184,9 @@ class _ConfettiState extends State<Confetti> {
   @override
   void initState() {
     super.initState();
+
     _controllerTopCenter =
-        ConfettiController(duration: const Duration(seconds: 20));
+        ConfettiController(duration: const Duration(seconds: 5));
     _controllerTopCenter.play();
   }
 
@@ -195,26 +196,59 @@ class _ConfettiState extends State<Confetti> {
     super.dispose();
   }
 
+  Path drawStar(Size size) {
+    // Method to convert degree to radians
+    double degToRad(double deg) => deg * (pi / 180.0);
+
+    const numberOfPoints = 5;
+    final halfWidth = size.width / 2;
+    final externalRadius = halfWidth;
+    final internalRadius = halfWidth / 2.5;
+    final degreesPerStep = degToRad(360 / numberOfPoints);
+    final halfDegreesPerStep = degreesPerStep / 2;
+    final path = Path();
+    final fullAngle = degToRad(360);
+    path.moveTo(size.width, halfWidth);
+
+    for (double step = 0; step < fullAngle; step += degreesPerStep) {
+      path.lineTo(halfWidth + externalRadius * cos(step),
+          halfWidth + externalRadius * sin(step));
+      path.lineTo(halfWidth + internalRadius * cos(step + halfDegreesPerStep),
+          halfWidth + internalRadius * sin(step + halfDegreesPerStep));
+    }
+    path.close();
+    return path;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        Align(
-          alignment: Alignment.topCenter,
-          child: ConfettiWidget(
-            confettiController: _controllerTopCenter,
-            blastDirectionality: BlastDirectionality.explosive,
-            blastDirection: pi,
-            maxBlastForce: 5, // set a lower max blast force
-            minBlastForce: 2, // set a lower min blast force
-            emissionFrequency: 0.05,
-            numberOfParticles: 100, // a lot of particles at once
-            gravity: 0.5,
-            shouldLoop: false,
+    return SafeArea(
+      child: Stack(
+        children: <Widget>[
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+                confettiController: _controllerTopCenter,
+                blastDirection: pi / 2,
+                blastDirectionality: BlastDirectionality.explosive,
+                maxBlastForce: 30, // set a lower max blast force
+                minBlastForce: 10, // set a lower min blast force
+                minimumSize: const Size(30, 20),
+                maximumSize: const Size(50, 20),
+                //emissionFrequency: 0.02,
+                numberOfParticles: 15, // a lot of particles at once
+                gravity: 0.3,
+                createParticlePath: drawStar, // define a custom shape/path.
+                colors: const [
+                  Colors.red,
+                  Colors.pink,
+                  Colors.green,
+                  Colors.purple,
+                  Colors.blue
+                ]),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
