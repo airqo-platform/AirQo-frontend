@@ -270,7 +270,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             width: MediaQuery.of(context).size.width * 0.62,
                             child: OptionsButton(
                               buttonColor:
-                                  const Color.fromARGB(69, 70, 168, 248),
+                                  CustomColors.appColorBlue.withOpacity(0.2),
                               callBack: () {
                                 if (option.content.isNotEmpty) {
                                   setState(() {
@@ -522,10 +522,10 @@ class QuizAnswerWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: InkWell(
                         onTap: () async {},
-                        child: SvgPicture.asset(
-                          'assets/icon/sparkles.svg',
-                          height: 15,
-                          width: 15,
+                        child: Icon(
+                          Icons.circle,
+                          color: CustomColors.appColorBlue,
+                          size: 15,
                         ),
                       ),
                     ),
@@ -583,15 +583,15 @@ class QuizAnswerWidget extends StatelessWidget {
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.07,
                           width: MediaQuery.of(context).size.width * 0.3,
-                          child: NextButton(
-                            showIcon: false,
-                            buttonColor: CustomColors.appColorBlue,
-                            text: AppLocalizations.of(context)!.next,
-                            callBack: () {
-                              nextButtonClickCallback();
+                          child: GestureDetector(
+                            child: NextQuizButton(
+                              icon: 'assets/icon/next_arrow.svg',
+                            ),
+                            onTap: () => {
+                              nextButtonClickCallback(),
                             },
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ],

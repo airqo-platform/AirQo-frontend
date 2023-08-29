@@ -34,6 +34,9 @@ class KnowYourAirView extends StatelessWidget {
             .where((quiz) => quiz.status == QuizStatus.complete)
             .take(3)
             .toList();
+        const SizedBox(
+          height: 10,
+        );
 
         if (completeKya.isEmpty && completeQuizzes.isEmpty) {
           List<KyaLesson> inCompleteLessons =

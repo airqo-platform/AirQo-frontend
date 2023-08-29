@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
@@ -106,7 +105,6 @@ class QuizProgressBar extends StatelessWidget {
   final int activeQuestion;
   final int totalQuestions;
 
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -143,29 +141,33 @@ class OptionsButton extends StatelessWidget {
     return SizedBox(
       height: 48,
       width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {
-          callBack();
-        },
-        style: OutlinedButton.styleFrom(
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
+      child: FittedBox(
+        //fit: BoxFit.contain,
+        child: OutlinedButton(
+          onPressed: () {
+            callBack();
+          },
+          style: OutlinedButton.styleFrom(
+            elevation: 0,
+            side: const BorderSide(
+              color: Colors.transparent,
             ),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(8),
+              ),
+            ),
+            backgroundColor: buttonColor,
+            foregroundColor: buttonColor,
           ),
-          backgroundColor: buttonColor,
-          foregroundColor: buttonColor,
-        ),
-        child: AutoSizeText(
-          maxLines: 2,
-          text ?? AppLocalizations.of(context)!.next,
-          style: TextStyle(
-            color: CustomColors.appColorBlue,
-            fontSize: 14,
+          child: AutoSizeText(
+            maxLines: 2,
+            text ?? AppLocalizations.of(context)!.next,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: CustomColors.appColorBlue,
+              fontSize: 14,
+            ),
           ),
         ),
       ),
@@ -230,24 +232,25 @@ class _ConfettiState extends State<Confetti> {
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
-                confettiController: _controllerTopCenter,
-                blastDirection: pi / 2,
-                blastDirectionality: BlastDirectionality.explosive,
-                maxBlastForce: 30, // set a lower max blast force
-                minBlastForce: 10, // set a lower min blast force
-                minimumSize: const Size(30, 20),
-                maximumSize: const Size(50, 20),
-                //emissionFrequency: 0.02,
-                numberOfParticles: 15, // a lot of particles at once
-                gravity: 0.3,
-                createParticlePath: drawStar, // define a custom shape/path.
-                colors: const [
-                  Colors.red,
-                  Colors.pink,
-                  Colors.green,
-                  Colors.purple,
-                  Colors.blue
-                ]),
+              confettiController: _controllerTopCenter,
+              blastDirection: pi / 2,
+              blastDirectionality: BlastDirectionality.explosive,
+              maxBlastForce: 30, // set a lower max blast force
+              minBlastForce: 10, // set a lower min blast force
+              minimumSize: const Size(30, 20),
+              maximumSize: const Size(50, 20),
+              //emissionFrequency: 0.02,
+              numberOfParticles: 15, // a lot of particles at once
+              gravity: 0.3,
+              createParticlePath: drawStar, // define a custom shape/path.
+              colors: const [
+                Colors.red,
+                Colors.pink,
+                Colors.green,
+                Colors.purple,
+                Colors.blue
+              ],
+            ),
           ),
         ],
       ),
@@ -321,14 +324,44 @@ class CircularQuizButton extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: isActive
-            ? CustomColors.appColorBlue.withOpacity(0.20)
-            : CustomColors.appColorBlue.withOpacity(0.01),
+            ? CustomColors.appColorBlue.withOpacity(0.10)
+            : CustomColors.appColorBlue.withOpacity(0.10),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
         colorFilter: const ColorFilter.mode(
           Color.fromRGBO(3, 47, 243, 1),
+          BlendMode.srcIn,
+        ),
+      ),
+    );
+  }
+}
+
+class NextQuizButton extends StatelessWidget {
+  const NextQuizButton({
+    super.key,
+    required this.icon,
+  });
+
+  final String icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 35,
+      width: 35,
+      padding: const EdgeInsets.all(15.0),
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.10),
+        shape: BoxShape.circle,
+      ),
+      child: SvgPicture.asset(
+        icon,
+        //fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(
+          Color.fromARGB(255, 29, 93, 255),
           BlendMode.srcIn,
         ),
       ),
