@@ -11,6 +11,7 @@ import NestedMenuItem from 'material-ui-nested-menu-item';
 import Switch from 'views/components/Switch';
 import { useUserPreferenceData } from 'redux/UserPreference/selectors';
 import { updateUserPreferenceData } from 'redux/UserPreference/operators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -126,39 +127,48 @@ const SidebarNav = (props) => {
       {pages &&
         pages.map((page) => {
           if (page.nested) {
-            return (
-              <NestedMenuItem
-                label={
-                  <Button
-                    className={
-                      (location.pathname.includes(page.href) && classes.buttonActive) ||
-                      classes.button
-                    }
-                  >
-                    <div className={classes.icon}>{page.icon}</div>
-                    {page.title}
-                  </Button>
-                }
-                parentMenuOpen={true}
-                style={{ padding: '0px' }}
-              >
-                {page.nestItems.map((nestPage, key) => (
-                  <MenuItem>
+            if (
+              !isEmpty(activeNetwork) &&
+              activeNetwork.net_name !== 'airqo' &&
+              page.title === 'Network Monitoring'
+            ) {
+              return;
+            } else {
+              return (
+                <NestedMenuItem
+                  label={
                     <Button
-                      activeClassName={classes.active}
-                      className={classes.nestButton}
-                      component={CustomRouterLink}
-                      to={nestPage.href}
-                      key={key}
+                      className={
+                        (location.pathname.includes(page.href) && classes.buttonActive) ||
+                        classes.button
+                      }
                     >
-                      {nestPage.title}
+                      <div className={classes.icon}>{page.icon}</div>
+                      {page.title}
                     </Button>
-                  </MenuItem>
-                ))}
-              </NestedMenuItem>
-            );
+                  }
+                  parentMenuOpen={true}
+                  style={{ padding: '0px' }}
+                >
+                  {page.nestItems.map((nestPage, key) => (
+                    <MenuItem>
+                      <Button
+                        activeClassName={classes.active}
+                        className={classes.nestButton}
+                        component={CustomRouterLink}
+                        to={nestPage.href}
+                        key={key}
+                      >
+                        {nestPage.title}
+                      </Button>
+                    </MenuItem>
+                  ))}
+                </NestedMenuItem>
+              );
+            }
           }
           if (
+            !isEmpty(activeNetwork) &&
             activeNetwork.net_name !== 'airqo' &&
             (page.title === 'Logs' || page.title === 'AirQloud Registry')
           ) {

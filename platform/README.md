@@ -1,4 +1,5 @@
 # Platform beta
+[![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
 [![AirQo next platform](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/ap5jjk/staging&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/ap5jjk/runs) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
