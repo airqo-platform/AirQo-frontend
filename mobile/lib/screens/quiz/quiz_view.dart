@@ -78,6 +78,8 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    int questiontotal = widget.quiz.questions.length;
+    int questionPosition = widget.currentQuestion.questionPosition;
     return BlocBuilder<KyaBloc, KyaState>(builder: (context, state) {
       Quiz quiz = state.quizzes.firstWhere(
         (element) => element == widget.quiz,
@@ -100,11 +102,40 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const CircularQuizButton(
-                        isActive: true,
-                        icon: 'assets/icon/previous_arrow.svg',
-                        //isActive: quiz.activeTask > 1,
-                      ),
+                      GestureDetector(
+                          child: CircularQuizButton(
+                            // isActive: true,
+                            icon: 'assets/icon/previous_arrow.svg',
+                            isActive: quiz.activeQuestion > 1,
+                          ),
+                          onTap: () => {
+                                if (quiz.activeQuestion > 1)
+                                  {
+                                    context.read<KyaBloc>().add(
+                                          UpdateQuizProgress(
+                                            quiz.copyWith(
+                                              activeQuestion: widget
+                                                      .currentQuestion
+                                                      .questionPosition -
+                                                  1,
+                                            ),
+                                          ),
+                                        ),
+                                    context
+                                        .read<CurrentQuizQuestionCubit>()
+                                        .setQuestion(quiz.questions[widget
+                                                .currentQuestion
+                                                .questionPosition -
+                                            1]),
+                                    setState(() => {
+                                          showAnswer = !showAnswer,
+                                          questionPosition = widget
+                                                  .currentQuestion
+                                                  .questionPosition -
+                                              1,
+                                        }),
+                                  }
+                              }),
                       const SizedBox(
                         width: 10,
                       ),
@@ -119,6 +150,14 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                         padding: const EdgeInsets.all(6.0),
                         child: InkWell(
                           onTap: () async {
+                            context.read<KyaBloc>().add(
+                                  UpdateQuizProgress(
+                                    quiz.copyWith(
+                                        activeQuestion: widget
+                                            .currentQuestion.questionPosition),
+                                    updateRemote: true,
+                                  ),
+                                );
                             Navigator.pop(widget.parentContent);
                           },
                           child: SvgPicture.asset(
@@ -140,41 +179,38 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     color: Color.fromARGB(255, 0, 0, 0),
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
-                    //height: 1.50,
                   ),
                 ),
               ),
               const SizedBox(
                 height: 10,
               ),
-              Visibility(
-                //visible: quiz.activeQuestion > 1,
-                child: SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    child: QuizProgressBar(quiz), //TODO - NOT WORKING
-                  ),
+              SizedBox(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: QuizProgressBar(questionPosition, questiontotal),
                 ),
               ),
-              // const SizedBox(
-              //   height: 3,
-              // ),
               Visibility(
                 visible: showAnswer,
                 child: QuizAnswerWidget(selectedOption, quiz: widget.quiz,
                     nextButtonClickCallback: () {
-                  int currentIndex =
-                      widget.quiz.questions.indexOf(widget.currentQuestion);
-                  if (currentIndex + 1 == widget.quiz.questions.length) {
+                  int currentQuestion = widget.currentQuestion.questionPosition;
+                  if (currentQuestion == widget.quiz.questions.length) {
                     context.read<CurrentQuizQuestionCubit>().setQuestion(null);
                   } else {
                     QuizQuestion nextQuestion =
-                        widget.quiz.questions[currentIndex + 1];
+                        widget.quiz.questions[currentQuestion];
                     context
                         .read<CurrentQuizQuestionCubit>()
                         .setQuestion(nextQuestion);
                   }
-                  setState(() => showAnswer = false);
+                  setState(() => {
+                        showAnswer = false,
+                        questionPosition = currentQuestion,
+                      });
+                  context.read<KyaBloc>().add(UpdateQuizProgress(
+                      quiz.copyWith(activeQuestion: currentQuestion)));
                 }),
               ),
               Visibility(
@@ -192,7 +228,6 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                           color: Color.fromARGB(117, 0, 0, 0),
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
-                          //height: 1.50,
                         ),
                       ),
                     ),
@@ -213,7 +248,6 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                               color: Color.fromARGB(200, 0, 0, 0),
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
-                              //height: 1.50,
                             ),
                           ),
                         ],
@@ -320,23 +354,53 @@ class QuizCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       ),
       onPressed: () async {
-        QuizQuestion? question = context.read<CurrentQuizQuestionCubit>().state;
-        if (question != null) {
+        if (quiz.status != QuizStatus.todo) {
           dynamic response = await bottomSheetQuizQuestion(quiz, context);
           if (response != null && response == true) {
             response = await bottomSheetQuizConffeti(quiz, context);
+            context.read<KyaBloc>().add(
+                  UpdateQuizProgress(
+                    quiz.copyWith(
+                      activeQuestion: 1,
+                      status: QuizStatus.complete,
+                    ),
+                    updateRemote: true,
+                  ),
+                );
+            context
+                .read<CurrentQuizQuestionCubit>()
+                .setQuestion(quiz.questions.first);
           }
         } else {
           context
               .read<CurrentQuizQuestionCubit>()
               .setQuestion(quiz.questions.first);
           dynamic response = await bottomSheetQuizTitle(quiz, context);
-          if (response != null && response == true) {
-            //response = await QuizCompletionSheetContent();
+          if (response != null &&
+              response == true &&
+              quiz.status != QuizStatus.complete) {
+            context.read<KyaBloc>().add(
+                  UpdateQuizProgress(
+                      quiz.copyWith(
+                        status: QuizStatus.inProgress,
+                      ),
+                      updateRemote: true),
+                );
             response = await bottomSheetQuizQuestion(quiz, context);
             if (response != null && response == true) {
-              //response = await QuizCompletionSheetContent();
               response = await bottomSheetQuizConffeti(quiz, context);
+              context.read<KyaBloc>().add(
+                    UpdateQuizProgress(
+                      quiz.copyWith(
+                        activeQuestion: 1,
+                        status: QuizStatus.complete,
+                      ),
+                      updateRemote: true,
+                    ),
+                  );
+              context
+                  .read<CurrentQuizQuestionCubit>()
+                  .setQuestion(quiz.questions.first);
             }
           }
         }
@@ -362,6 +426,11 @@ class QuizCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 const QuizMessageChip(),
+                Visibility(
+                  visible: quiz.status != QuizStatus.todo,
+                  child: QuizProgressBar(
+                      quiz.activeQuestion, quiz.questions.length),
+                ),
               ],
             ),
           ),

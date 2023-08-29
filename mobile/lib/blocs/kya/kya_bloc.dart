@@ -78,13 +78,11 @@ class KyaBloc extends HydratedBloc<KyaEvent, KyaState> {
           .map((e) => e.copyWith(
                 status: QuizStatus.todo,
                 activeQuestion: 1,
-                questions: const [],
               ))
           .toList();
     }
 
     emit(KyaState(quizzes: quizzes, lessons: []));
-    //
   }
 
   Future<void> _onUpdateQuizProgress(
