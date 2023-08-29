@@ -62,7 +62,7 @@ const RegisterClient = (props) => {
   const { open, onClose, data, onRegister } = props;
   const [clientName, setClientName] = useState('');
   const [clientNameError, setClientNameError] = useState(false);
-  const clientId = data.user._id;
+  const userID = data.user._id;
 
   const handleSubmit = async () => {
     if (!clientName) {
@@ -72,7 +72,7 @@ const RegisterClient = (props) => {
     try {
       const data = {
         name: clientName,
-        user_id: clientId
+        user_id: userID
       };
       const response = await createClientApi(data);
       if (response.success === true) {
@@ -148,11 +148,11 @@ const GenerateToken = (props) => {
   const [clientStaffData, setClientStaffData] = useState([]);
   const [refresh, setRefresh] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const clientId = mappedAuth?.user?._id;
+  const userID = mappedAuth?.user?._id;
 
   useEffect(() => {
     if (!isEmpty(mappedAuth?.user)) {
-      getUserDetails(clientId).then((res) => {
+      getUserDetails(userID).then((res) => {
         setClientData(res.users[0].clients);
       });
     }
@@ -174,53 +174,29 @@ const GenerateToken = (props) => {
     fetchData();
   }, [refresh]);
 
-  // const result = clientStaffData
-  //   .filter((item) => item._id === clientId)
-  //   .flatMap((item) => item.access_token)
-  //   .map((token) => ({
-  //     clientName: token.name,
-  //     createdAt: token.createdAt,
-  //     expiresAt: token.expires,
-  //     token: token.token
-  //   }));
-
-  const result = [
-    {
-      clientName: 'test',
-      createdAt: '2021-08-10T09:00:00.000Z',
-      expiresAt: '2021-08-10T09:00:00.000Z',
-      token: 'testooooddd'
-    },
-    {
-      clientName: 'test2',
-      createdAt: '2021-08-10T09:00:00.000Z',
-      expiresAt: '2021-08-10T09:00:00.000Z',
-      token: 'test222oddd'
-    }
-  ];
+  const result = clientStaffData
+    .filter((item) => clientData.map((item) => item._id).includes(item._id))
+    .flatMap((item) => item.access_token || [])
+    .map((token) => ({
+      clientName: token?.name,
+      createdAt: token?.createdAt,
+      expiresAt: token?.expires,
+      token: token?.token
+    }));
 
   const handleTokenGeneration = async (res) => {
     try {
       setLoading((prevLoading) => ({ ...prevLoading, [res.client_id]: true }));
       const response = await generateTokenApi(res);
-      if (response.success === true) {
-        dispatch(
-          updateMainAlert({
-            message: 'Token generated successfully',
-            show: true,
-            severity: 'success'
-          })
-        );
-        setGenerated((prevGenerated) => ({ ...prevGenerated, [res.client_id]: true }));
-      } else {
-        dispatch(
-          updateMainAlert({
-            message: 'Token generation failed',
-            show: true,
-            severity: 'error'
-          })
-        );
-      }
+      dispatch(
+        updateMainAlert({
+          message: response.message,
+          show: true,
+          severity: 'success'
+        })
+      );
+      setGenerated((prevGenerated) => ({ ...prevGenerated, [res.client_id]: true }));
+      setRefresh(!refresh);
     } catch (error) {
       console.error(error);
       dispatch(
@@ -235,6 +211,18 @@ const GenerateToken = (props) => {
     }
   };
 
+  // Using the result variable above, check if for the given client the token has been generated or not and display the appropriate button
+  useEffect(() => {
+    if (!isEmpty(clientData) && !isEmpty(clientStaffData)) {
+      clientStaffData
+        .filter((item) => clientData.map((item) => item._id).includes(item._id))
+        .flatMap((item) => item.access_token || [])
+        .forEach((token) => {
+          setGenerated((prevGenerated) => ({ ...prevGenerated, [token.client_id]: true }));
+        });
+    }
+  }, [clientData, clientStaffData]);
+
   // future implementation
   const handleDeleteToken = async (token) => {};
 
@@ -248,6 +236,8 @@ const GenerateToken = (props) => {
   const handleClose = () => {
     setOpen(false);
   };
+
+  console.log('clientData', clientStaffData);
 
   return (
     <>
@@ -304,10 +294,21 @@ const GenerateToken = (props) => {
                         color="primary"
                         onClick={() => {
                           let res = {
-                            name: rowData?.name,
-                            client_id: rowData?._id
+                            name: rowData.name,
+                            client_id: rowData._id
                           };
-                          handleTokenGeneration(res);
+                          if (generated[rowData._id]) {
+                            dispatch(
+                              updateMainAlert({
+                                message: 'Token already generated',
+                                show: true,
+                                severity: 'info'
+                              })
+                            );
+                            return;
+                          } else {
+                            handleTokenGeneration(res);
+                          }
                         }}>
                         {loading[rowData._id] ? (
                           <CircularProgress size={24} />

@@ -77,13 +77,8 @@ export const getClientsApi = async () => {
 };
 
 export const generateTokenApi = async (data) => {
-  const response = await axios.post(
-    GENERATE_TOKEN_URI,
-    {
-      name: data.name,
-      client_id: data.client_id
-    },
-    { params: { token: BASE_AUTH_TOKEN } }
-  );
+  const response = await axios.post(GENERATE_TOKEN_URI, data, {
+    params: { token: BASE_AUTH_TOKEN }
+  });
   return response.data;
 };
