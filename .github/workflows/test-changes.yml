@@ -80,7 +80,7 @@ jobs:
           DEBUG: code-coverage
 
       - name: Deploy code coverage report 🚀
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
