@@ -11,6 +11,7 @@ import NestedMenuItem from 'material-ui-nested-menu-item';
 import Switch from 'views/components/Switch';
 import { useUserPreferenceData } from 'redux/UserPreference/selectors';
 import { updateUserPreferenceData } from 'redux/UserPreference/operators';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -126,7 +127,11 @@ const SidebarNav = (props) => {
       {pages &&
         pages.map((page) => {
           if (page.nested) {
-            if (activeNetwork.net_name !== 'airqo' && page.title === 'Network Monitoring') {
+            if (
+              !isEmpty(activeNetwork) &&
+              activeNetwork.net_name !== 'airqo' &&
+              page.title === 'Network Monitoring'
+            ) {
               return;
             } else {
               return (
@@ -163,6 +168,7 @@ const SidebarNav = (props) => {
             }
           }
           if (
+            !isEmpty(activeNetwork) &&
             activeNetwork.net_name !== 'airqo' &&
             (page.title === 'Logs' || page.title === 'AirQloud Registry')
           ) {
