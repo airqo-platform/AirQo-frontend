@@ -15,7 +15,7 @@ jobs:
       lowercase: ${{ steps.string.outputs.lowercase }} # lowercase version
     steps:
       - id: string
-        uses: ASzc/change-string-case-action@v2
+        uses: ASzc/change-string-case-action@v5
         with:
           string: ${{ github.head_ref || github.ref_name }}
 
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
         with:
           fetch-depth: 2
 
@@ -77,12 +77,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
+        uses: "google-github-actions/setup-gcloud@v1.1.1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -98,12 +98,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
+        uses: "google-github-actions/setup-gcloud@v1.1.1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -119,12 +119,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
+        uses: "google-github-actions/setup-gcloud@v1.1.1"
 
       - name: Delete PR deploy preview
         run: |-
@@ -140,12 +140,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Google login
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
 
       - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
+        uses: "google-github-actions/setup-gcloud@v1.1.1"
 
       - name: Delete PR deploy preview
         run: |-

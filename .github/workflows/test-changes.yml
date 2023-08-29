@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
         with:
           fetch-depth: 2
 
@@ -51,15 +51,15 @@ jobs:
     container: cypress/browsers:node16.14.0-chrome99-ff97
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
-      - name: Google login
+      - name: Google logactions/checkout@v3.5.3in
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v1.1.1
 
       - name: Create .env file
         run: |
@@ -67,7 +67,7 @@ jobs:
           echo "INSTRUMENT_CODE=1" >> platform/.env
 
       - name: Cypress run
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v5.8.3
         with:
           working-directory: ./platform/
           build: yarn build
@@ -80,7 +80,7 @@ jobs:
           DEBUG: code-coverage
 
       - name: Deploy code coverage report 🚀
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3.1.4
         with:
           directory: ./platform/coverage/lcov-report
 
@@ -93,10 +93,10 @@ jobs:
     container: cypress/browsers:node16.14.0-chrome99-ff97
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Cypress run
-        uses: cypress-io/github-action@v5
+        uses: cypress-io/github-action@v5.8.3
         with:
           working-directory: ./docs/
           start: yarn preview
@@ -109,6 +109,6 @@ jobs:
           DEBUG: code-coverage
 
       - name: Deploy code coverage report 🚀
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3.1.4
         with:
           directory: ./docs/coverage/lcov-report
