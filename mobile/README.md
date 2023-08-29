@@ -1,4 +1,4 @@
-# AirQo mobile App
+# AirQo Mobile App
 
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
 
