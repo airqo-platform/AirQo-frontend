@@ -126,37 +126,41 @@ const SidebarNav = (props) => {
       {pages &&
         pages.map((page) => {
           if (page.nested) {
-            return (
-              <NestedMenuItem
-                label={
-                  <Button
-                    className={
-                      (location.pathname.includes(page.href) && classes.buttonActive) ||
-                      classes.button
-                    }
-                  >
-                    <div className={classes.icon}>{page.icon}</div>
-                    {page.title}
-                  </Button>
-                }
-                parentMenuOpen={true}
-                style={{ padding: '0px' }}
-              >
-                {page.nestItems.map((nestPage, key) => (
-                  <MenuItem>
+            if (activeNetwork.net_name !== 'airqo' && page.title === 'Network Monitoring') {
+              return;
+            } else {
+              return (
+                <NestedMenuItem
+                  label={
                     <Button
-                      activeClassName={classes.active}
-                      className={classes.nestButton}
-                      component={CustomRouterLink}
-                      to={nestPage.href}
-                      key={key}
+                      className={
+                        (location.pathname.includes(page.href) && classes.buttonActive) ||
+                        classes.button
+                      }
                     >
-                      {nestPage.title}
+                      <div className={classes.icon}>{page.icon}</div>
+                      {page.title}
                     </Button>
-                  </MenuItem>
-                ))}
-              </NestedMenuItem>
-            );
+                  }
+                  parentMenuOpen={true}
+                  style={{ padding: '0px' }}
+                >
+                  {page.nestItems.map((nestPage, key) => (
+                    <MenuItem>
+                      <Button
+                        activeClassName={classes.active}
+                        className={classes.nestButton}
+                        component={CustomRouterLink}
+                        to={nestPage.href}
+                        key={key}
+                      >
+                        {nestPage.title}
+                      </Button>
+                    </MenuItem>
+                  ))}
+                </NestedMenuItem>
+              );
+            }
           }
           if (
             activeNetwork.net_name !== 'airqo' &&
