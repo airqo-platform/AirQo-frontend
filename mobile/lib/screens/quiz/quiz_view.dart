@@ -4,7 +4,6 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_final_page.dart';
 import 'package:app/screens/quiz/quiz_title_page.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -12,7 +11,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
