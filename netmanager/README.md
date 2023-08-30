@@ -1,4 +1,4 @@
-# Netmanager application
+# Netmanager Application
 
 This application is used for monitoring, device registration, location registration. Can be accessed here: https://staging-platform.airqo.net/ and https://platform.airqo.net/
 
