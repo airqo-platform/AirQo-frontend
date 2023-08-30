@@ -102,7 +102,6 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     children: [
                       GestureDetector(
                           child: CircularQuizButton(
-                            // isActive: true,
                             icon: 'assets/icon/previous_arrow.svg',
                             isActive: quiz.activeQuestion > 1,
                           ),
