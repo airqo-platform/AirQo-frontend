@@ -69,6 +69,9 @@ class KnowYourAirView extends StatelessWidget {
                     KyaCardWidget(
                       completeKya[index],
                     ),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     completeQuizzes.isNotEmpty
                         ? QuizCard(
                             completeQuizzes[index],

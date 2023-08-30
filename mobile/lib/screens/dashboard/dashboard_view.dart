@@ -318,7 +318,6 @@ class _DashboardViewState extends State<DashboardView>
                   ),
                   BlocBuilder<KyaBloc, KyaState>(
                     builder: (context, state) {
-                      context.read<KyaBloc>().add(const FetchQuizzes());
                       List<Quiz> inCompleteQuizzes = state.quizzes
                           .where((quiz) => quiz.status != QuizStatus.complete)
                           .toList();
