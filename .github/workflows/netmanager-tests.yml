@@ -63,7 +63,6 @@ jobs:
 
       - name: Add .env files
         run: |
-          gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
           gcloud secrets versions access latest --secret="prod-env-netmanager" > netmanager/.env
 
       - name: Node setup
