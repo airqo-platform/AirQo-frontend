@@ -6,6 +6,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 // styles
 import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
+import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,11 +26,13 @@ const useStyles = makeStyles((theme) => ({
 
 const SiteRegistry = () => {
   const classes = useStyles();
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
         <SiteToolbar />
+        <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
         <div className={classes.content}>
           <SitesTable />
         </div>

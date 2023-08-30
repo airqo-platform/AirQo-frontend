@@ -32,10 +32,10 @@ const AfricanCities = () => {
           selected={selectedCard === 'card2'}
           onClick={() => onClickCardItem('card2')}>
           <li>
-            <small>We want cleaner air in all African cities</small>
+            <small>We empower decision-makers in African cities</small>
           </li>
           <li>
-            <small>We leverage our understanding of the African context</small>
+            <small>We increase access to air quality data evidence </small>
           </li>
         </Accordion>
         <Accordion
@@ -43,10 +43,10 @@ const AfricanCities = () => {
           selected={selectedCard === 'card3'}
           onClick={() => onClickCardItem('card3')}>
           <li>
-            <small>We want cleaner air in all African cities</small>
+            <small>We engage city authorities and government agencies</small>
           </li>
           <li>
-            <small>We leverage our understanding of the African context</small>
+            <small>We empower local leaders with air quality information</small>
           </li>
         </Accordion>
       </div>

@@ -130,3 +130,9 @@ export const generateAccessTokenForUserApi = async (userId) => {
     console.error(error);
   }
 };
+
+export const getNetworkListSummaryApi = async () => {
+  return await axios
+    .get(`${GET_NETWORKS_URI}/summary`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
