@@ -37,7 +37,7 @@ export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
 export const NETMANAGER_URL = stripTrailingSlash(
-  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v1/', '')
+  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v2/', '')
 );
 
 // highlights urls
@@ -64,4 +64,4 @@ export const EVENTS_URL = `${WEBSITE_BASE_URL}/event/`;
 export const CITIES_URL = `${WEBSITE_BASE_URL}/african_city/`;
 
 // Impact Number url
-export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`
+export const IMPACT_URL = `${WEBSITE_BASE_URL}/impact/`;
