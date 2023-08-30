@@ -24,7 +24,7 @@ const CalibrationPage = () => {
           <img src={HeaderImage} alt="" style={{ borderRadius: '8px'}} />
         </Header>
         <div className="content">
-          <div className="grid-wrapper column section section-1">
+          <div className="grid-wrapper column section section-calibrate">
             <div className="row">
               <h2 className="left title">
                 <span className="blue"> Why calibrate</span> your low-cost sensor data?
@@ -36,7 +36,7 @@ const CalibrationPage = () => {
               </p>
             </div>
             <div className="overlap-section">
-              <div className="lapping-left card" /*card-sm larger-top*/  style={{ backgroundColor: '#FFFCE1' }}>
+              <div className="lapping-left card" style={{ backgroundColor: '#FFFCE1' }}>
                 <h5>Cost effective and accessible</h5>
                 <p>
                 AirQalibrate is a Machine Learning based calibration tool that eliminates the need for reference grade monitors 
