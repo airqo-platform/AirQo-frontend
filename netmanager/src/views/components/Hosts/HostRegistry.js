@@ -1,11 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { AirQloudToolbar, AirQloudsTable } from './index';
+import HostsTable from './HostsTable';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-
-// styles
-import 'assets/css/location-registry.css';
-import UsersListBreadCrumb from '../../pages/UserList/components/Breadcrumb';
+import { withPermission } from '../../containers/PageAccess';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -13,7 +10,6 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     marginTop: theme.spacing(2)
-    //fontFamily: 'Open Sans'
   },
   title: {
     fontWeight: 700,
@@ -23,24 +19,17 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const AirQloudRegistry = () => {
+const HostRegistry = () => {
   const classes = useStyles();
-  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <AirQloudToolbar />
-        <UsersListBreadCrumb
-          category="AirQlouds Registry"
-          usersTable={`${activeNetwork.net_name}`}
-        />
         <div className={classes.content}>
-          <AirQloudsTable />
+          <HostsTable />
         </div>
       </div>
     </ErrorBoundary>
   );
 };
 
-export default AirQloudRegistry;
+export default withPermission(HostRegistry, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES');

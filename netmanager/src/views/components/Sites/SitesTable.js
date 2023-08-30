@@ -85,7 +85,7 @@ const SitesTable = () => {
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'sites'}
-          title="Site Registry"
+          title={`Site Registry for ${activeNetwork.net_name}`}
           columns={[
             {
               title: 'Name',
@@ -158,8 +158,8 @@ const SitesTable = () => {
           options={{
             search: true,
             exportButton: true,
-            searchFieldAlignment: 'left',
-            showTitle: false,
+            searchFieldAlignment: 'right',
+            showTitle: true,
             searchFieldStyle: {
               fontFamily: 'Open Sans'
             },

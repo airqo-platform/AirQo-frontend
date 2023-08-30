@@ -21,7 +21,7 @@ const Communities = () => {
           selected={selectedCard === 'card1'}
           onClick={() => onClickCardItem('card1')}>
           <li>
-            <small>A growing network of individual change makers</small>
+            <small>A growing network of individual change makers </small>
           </li>
           <li>
             <small>Championing local leaders and demand action</small>
@@ -32,10 +32,10 @@ const Communities = () => {
           selected={selectedCard === 'card2'}
           onClick={() => onClickCardItem('card2')}>
           <li>
-            <small>A growing network of individual change makers</small>
+            <small>We train individuals and communities</small>
           </li>
           <li>
-            <small>Championing local leaders and demand action</small>
+            <small>Facilitating access to air quality information </small>
           </li>
         </Accordion>
         <Accordion
@@ -43,10 +43,10 @@ const Communities = () => {
           selected={selectedCard === 'card3'}
           onClick={() => onClickCardItem('card3')}>
           <li>
-            <small>A growing network of individual change makers</small>
+            <small>We engage locals host our deployment activities</small>
           </li>
           <li>
-            <small>Championing local leaders and demand action</small>
+            <small>We involve locals in our maintainance drives</small>
           </li>
         </Accordion>
       </div>
