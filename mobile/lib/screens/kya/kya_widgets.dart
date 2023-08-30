@@ -123,8 +123,8 @@ class KyaMessageChip extends StatelessWidget {
   }
 }
 
-class KyaCardWidget extends StatelessWidget {
-  const KyaCardWidget(this.kyaLesson, {super.key});
+class KyaLessonCardWidget extends StatelessWidget {
+  const KyaLessonCardWidget(this.kyaLesson, {super.key});
 
   final KyaLesson kyaLesson;
 

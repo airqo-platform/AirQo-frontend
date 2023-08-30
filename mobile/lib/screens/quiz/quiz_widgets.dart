@@ -1,5 +1,7 @@
 import 'dart:math';
+import 'package:app/models/quiz.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
@@ -259,12 +261,13 @@ class _ConfettiState extends State<Confetti> {
 }
 
 class QuizMessageChip extends StatelessWidget {
-  const QuizMessageChip({super.key});
+  const QuizMessageChip(this.quiz, {super.key});
+  final Quiz quiz;
 
   @override
   Widget build(BuildContext context) {
     Widget widget = AutoSizeText(
-      AppLocalizations.of(context)!.takeQuiz,
+      quiz.getQuizMessage(context),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,

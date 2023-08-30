@@ -52,11 +52,10 @@ Future<dynamic> bottomSheetQuizQuestion(Quiz quiz, BuildContext context) {
 
 class QuizQuestionWidget extends StatefulWidget {
   const QuizQuestionWidget(
-    this.currentQuestion, {
-    super.key,
-    required this.parentContent,
-    required this.quiz,
-  });
+      {super.key,
+      required this.parentContent,
+      required this.quiz,
+      required this.currentQuestion});
   final BuildContext parentContent;
   final QuizQuestion currentQuestion;
   final Quiz quiz;
@@ -108,30 +107,24 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             isActive: quiz.activeQuestion > 1,
                           ),
                           onTap: () => {
-                                if (quiz.activeQuestion > 1)
+                                if (questionPosition > 1)
                                   {
                                     context.read<KyaBloc>().add(
                                           UpdateQuizProgress(
                                             quiz.copyWith(
-                                              activeQuestion: widget
-                                                      .currentQuestion
-                                                      .questionPosition -
-                                                  1,
+                                              activeQuestion:
+                                                  questionPosition - 1,
                                             ),
                                           ),
                                         ),
                                     context
                                         .read<CurrentQuizQuestionCubit>()
-                                        .setQuestion(quiz.questions[widget
-                                                .currentQuestion
-                                                .questionPosition -
-                                            1]),
+                                        .setQuestion(quiz
+                                            .questions[questionPosition - 2]),
                                     setState(() => {
                                           showAnswer = !showAnswer,
-                                          questionPosition = widget
-                                                  .currentQuestion
-                                                  .questionPosition -
-                                              1,
+                                          questionPosition =
+                                              questionPosition - 1,
                                         }),
                                   }
                               }),
@@ -320,7 +313,7 @@ class _QuizQuestionsWidgetState extends State<QuizQuestionsWidget> {
           );
         }
         return QuizQuestionWidget(
-          state,
+          currentQuestion: state,
           parentContent: context,
           quiz: widget.quiz,
         );
@@ -424,9 +417,10 @@ class QuizCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                const QuizMessageChip(),
+                QuizMessageChip(quiz),
                 Visibility(
-                  visible: quiz.status != QuizStatus.todo,
+                  visible: quiz.status != QuizStatus.todo &&
+                      quiz.activeQuestion != 1,
                   child: QuizProgressBar(
                       quiz.activeQuestion, quiz.questions.length),
                 ),

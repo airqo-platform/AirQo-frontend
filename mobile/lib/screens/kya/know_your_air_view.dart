@@ -1,13 +1,13 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../quiz/quiz_view.dart';
 import 'kya_title_page.dart';
 import 'kya_widgets.dart';
 
@@ -28,15 +28,10 @@ class KnowYourAirView extends StatelessWidget {
         }
         final completeKya = state.lessons
             .where((lesson) => lesson.status == KyaLessonStatus.complete)
-            .take(3)
             .toList();
         final completeQuizzes = state.quizzes
             .where((quiz) => quiz.status == QuizStatus.complete)
-            .take(3)
             .toList();
-        const SizedBox(
-          height: 10,
-        );
 
         if (completeKya.isEmpty && completeQuizzes.isEmpty) {
           List<KyaLesson> inCompleteLessons =
@@ -55,30 +50,33 @@ class KnowYourAirView extends StatelessWidget {
           );
         }
 
+        List<Widget> children = [];
+        children.addAll(completeQuizzes
+            .map((e) => QuizCard(
+                  e,
+                ))
+            .toList());
+        children.addAll(completeKya
+            .map((e) => KyaLessonCardWidget(
+                  e,
+                ))
+            .toList());
+
         return AppRefreshIndicator(
           sliverChildDelegate: SliverChildBuilderDelegate(
-            (context, index) {
+            (context, _) {
               return Padding(
                 padding: EdgeInsets.only(
                   top: Config.refreshIndicatorPadding(
-                    index,
+                    0,
                   ),
                 ),
                 child: Column(
-                  children: [
-                    KyaCardWidget(
-                      completeKya[index],
-                    ),
-                    completeQuizzes.isNotEmpty
-                        ? QuizCard(
-                            completeQuizzes[index],
-                          )
-                        : Container(),
-                  ],
+                  children: children,
                 ),
               );
             },
-            childCount: completeKya.length,
+            childCount: children.length,
           ),
           onRefresh: () {
             _refresh(context);
