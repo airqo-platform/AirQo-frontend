@@ -18,8 +18,8 @@ class QuizSkipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      width: 197,
+      height: 44,
+      width: 196,
       decoration: const BoxDecoration(
         color: Color.fromARGB(0, 0, 0, 0),
         borderRadius: BorderRadius.all(
@@ -57,8 +57,8 @@ class QuizActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      width: 197,
+      height: 44,
+      width: 196,
       decoration: BoxDecoration(
         color: CustomColors.appColorBlue,
         borderRadius: const BorderRadius.all(
@@ -166,9 +166,9 @@ class OptionsButton extends StatelessWidget {
             maxLines: 2,
             text ?? AppLocalizations.of(context)!.next,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: CustomColors.appColorBlue,
-              fontSize: 14,
+            style: const TextStyle(
+              color: Color(0xff145FFF),
+              fontSize: 16,
             ),
           ),
         ),
@@ -313,11 +313,9 @@ class CircularQuizButton extends StatelessWidget {
   const CircularQuizButton({
     super.key,
     required this.icon,
-    this.isActive = true,
   });
 
   final String icon;
-  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -325,10 +323,8 @@ class CircularQuizButton extends StatelessWidget {
       height: 35,
       width: 35,
       padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: isActive
-            ? CustomColors.appColorBlue.withOpacity(0.10)
-            : CustomColors.appColorBlue.withOpacity(0.10),
+      decoration: const BoxDecoration(
+        color: Color(0xffE8EFFF),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
@@ -353,18 +349,19 @@ class NextQuizButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 35,
-      width: 35,
+      height: 65,
+      width: 65,
       padding: const EdgeInsets.all(15.0),
-      decoration: BoxDecoration(
-        color: CustomColors.appColorBlue.withOpacity(0.10),
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 20, 93, 255),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        //fit: BoxFit.contain,
+        height: 35,
+        width: 35,
         colorFilter: const ColorFilter.mode(
-          Color.fromARGB(255, 29, 93, 255),
+          Color(0xffF2F1F6),
           BlendMode.srcIn,
         ),
       ),

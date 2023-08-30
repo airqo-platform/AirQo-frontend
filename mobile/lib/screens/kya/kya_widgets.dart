@@ -200,21 +200,52 @@ class KyaLessonCardWidget extends StatelessWidget {
           ),
           const Spacer(),
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.05,
+            width: MediaQuery.of(context).size.width * 0.03,
           ),
-          Container(
-            width: MediaQuery.of(context).size.width * 0.3,
-            height: 112,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  kyaLesson.imageUrl,
-                  cacheKey: kyaLesson.imageUrlCacheKey(),
-                  cacheManager: CacheManager(
-                    CacheService.cacheConfig(
-                      kyaLesson.imageUrlCacheKey(),
+          FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.28,
+              height: 112,
+              // decoration: BoxDecoration(
+              //   borderRadius: BorderRadius.circular(8.0),
+              //   image: DecorationImage(
+              //     fit: BoxFit.cover,
+              //     image: CachedNetworkImageProvider(
+              //       kyaLesson.imageUrl,
+              //       cacheKey: kyaLesson.imageUrlCacheKey(),
+              //       cacheManager: CacheManager(
+              //         CacheService.cacheConfig(
+              //           kyaLesson.imageUrlCacheKey(),
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              child: CachedNetworkImage(
+                imageUrl: kyaLesson.imageUrl,
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: imageProvider,
+                    ),
+                  ),
+                ),
+                placeholder: (context, url) => const ContainerLoadingAnimation(
+                  radius: 8,
+                  height: 112,
+                ),
+                errorWidget: (context, url, error) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.grey,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.error,
+                      color: Colors.white,
                     ),
                   ),
                 ),

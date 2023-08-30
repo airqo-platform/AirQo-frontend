@@ -1,12 +1,15 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/quiz/quiz_view.dart';
 import 'package:app/screens/quiz/quiz_widgets.dart';
-import 'package:app/services/native_api.dart';
+// import 'package:app/services/native_api.dart';
+import 'package:app/themes/colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+// import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 
 Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
   return showModalBottomSheet(
@@ -37,22 +40,38 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                   height: 2,
                 ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.28,
+                  //height: MediaQuery.of(context).size.height * 0.28,
+                  height: 215,
+                  width: 373,
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: CachedNetworkImageProvider(
-                            quiz.imageUrl,
-                            cacheKey: quiz.imageUrlCacheKey(),
-                            cacheManager: CacheManager(
-                              CacheService.cacheConfig(
-                                quiz.imageUrlCacheKey(),
-                              ),
+                      child: CachedNetworkImage(
+                        imageUrl: quiz.imageUrl,
+                        imageBuilder: (context, imageProvider) => Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(23),
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: imageProvider,
+                            ),
+                          ),
+                        ),
+                        placeholder: (context, url) =>
+                            const ContainerLoadingAnimation(
+                          radius: 8,
+                          height: 215,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: Colors.grey,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.error,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -69,15 +88,17 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.8,
+                        //width: MediaQuery.of(context).size.width * 0.8,
+                        width: 275,
+                        height: 44,
                         child: AutoSizeText(
                           quiz.title,
                           maxLines: 2,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color.fromARGB(255, 31, 35, 45),
-                            fontSize: 25,
+                          style: TextStyle(
+                            color: CustomColors.quizColorBlack,
                             fontWeight: FontWeight.w700,
+                            fontSize: 21.83,
                           ),
                         ),
                       ),
@@ -86,13 +107,13 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                         width: MediaQuery.of(context).size.width * 0.8,
                         child: AutoSizeText(
                           quiz.description,
-                          textAlign: TextAlign.justify,
+                          textAlign: TextAlign.center,
                           maxLines: 2,
                           style: const TextStyle(
-                            color: Color(0xFF6F87A1),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            //height: 1.50,
+                            color: Color(0xFF485972),
+                            fontSize: 15.24,
+                            fontWeight: FontWeight.w400,
+                            // height: 1.50,
                           ),
                         ),
                       ),

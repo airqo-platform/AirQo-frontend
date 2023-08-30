@@ -7,6 +7,7 @@ import 'package:app/screens/quiz/quiz_widgets.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/themes/colors.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +39,8 @@ Future<dynamic> bottomSheetQuizQuestion(Quiz quiz, BuildContext context) {
     enableDrag: false,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.horizontal(
-        left: Radius.circular(16),
-        right: Radius.circular(16),
+        left: Radius.circular(32),
+        right: Radius.circular(32),
       ),
     ),
     isDismissible: false,
@@ -101,9 +102,8 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
-                          child: CircularQuizButton(
+                          child: const CircularQuizButton(
                             icon: 'assets/icon/previous_arrow.svg',
-                            isActive: quiz.activeQuestion > 1,
                           ),
                           onTap: () => {
                                 if (questionPosition > 1)
@@ -167,9 +167,9 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                 child: AutoSizeText(
                   AppLocalizations.of(context)!.airQualityQuiz,
                   style: const TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Color(0xff1F232D),
                     fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -216,7 +216,8 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                         maxLines: 2,
                         widget.currentQuestion.context,
                         style: const TextStyle(
-                          color: Color.fromARGB(117, 0, 0, 0),
+                          color: Color(0xff6F87A1),
+                          //  Color.fromARGB(117, 0, 0, 0),
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
@@ -236,8 +237,9 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             maxLines: 2,
                             widget.currentQuestion.title,
                             style: const TextStyle(
-                              color: Color.fromARGB(200, 0, 0, 0),
-                              fontSize: 20,
+                              color: Color(0xff1F232D),
+                              // color: Color.fromARGB(200, 0, 0, 0),
+                              fontSize: 24,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -260,8 +262,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.62,
                             child: OptionsButton(
-                              buttonColor:
-                                  CustomColors.appColorBlue.withOpacity(0.2),
+                              buttonColor: const Color(0xffEBF5FF),
                               callBack: () {
                                 if (option.content.isNotEmpty) {
                                   setState(() {
@@ -430,20 +431,48 @@ class QuizCard extends StatelessWidget {
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.05,
           ),
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.27,
             height: 112,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  quiz.imageUrl,
-                  cacheKey: quiz.imageUrlCacheKey(),
-                  cacheManager: CacheManager(
-                    CacheService.cacheConfig(
-                      quiz.imageUrlCacheKey(),
-                    ),
+            // decoration: BoxDecoration(
+            //   borderRadius: BorderRadius.circular(8.0),
+            //   image: DecorationImage(
+            //     fit: BoxFit.cover,
+            //     image: CachedNetworkImageProvider(
+            //       quiz.imageUrl,
+            //       cacheKey: quiz.imageUrlCacheKey(),
+            //       cacheManager: CacheManager(
+            //         CacheService.cacheConfig(
+            //           quiz.imageUrlCacheKey(),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            child: CachedNetworkImage(
+              imageUrl: quiz.imageUrl,
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: imageProvider,
+                  ),
+                ),
+              ),
+              placeholder: (context, url) => const ContainerLoadingAnimation(
+                radius: 8,
+                height: 112,
+              ),
+              errorWidget: (context, url, error) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: Colors.grey,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.error,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -469,7 +498,7 @@ class QuizAnswerWidget extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.71,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 255, 255, 255),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: const [
           BoxShadow(
             color: Color.fromARGB(61, 0, 0, 0),
@@ -484,10 +513,11 @@ class QuizAnswerWidget extends StatelessWidget {
             child: AutoSizeText(
               selectedOption.title,
               style: const TextStyle(
-                color: Color.fromARGB(255, 0, 0, 0),
+                color: Color(0xff1F232D),
+                // Color.fromARGB(255, 0, 0, 0),
                 fontSize: 15,
                 fontFamily: 'Inter',
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
                 //height: 1.50,
               ),
             ),
@@ -498,8 +528,8 @@ class QuizAnswerWidget extends StatelessWidget {
                 color: const Color.fromARGB(10, 0, 0, 0),
                 width: 1,
               ),
-              color: const Color.fromARGB(61, 85, 181, 236),
-              borderRadius: BorderRadius.circular(14),
+              color: const Color(0xffD6E9FF),
+              borderRadius: BorderRadius.circular(24),
             ),
             height: MediaQuery.of(context).size.height * 0.62,
             width: MediaQuery.of(context).size.width * 0.845,
@@ -521,12 +551,12 @@ class QuizAnswerWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: AutoSizeText(
                         'AIRQO',
                         style: TextStyle(
-                          color: CustomColors.appColorBlue,
+                          color: Color(0xff6F87A1),
                           fontSize: 15,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
@@ -547,15 +577,15 @@ class QuizAnswerWidget extends StatelessWidget {
                         height: MediaQuery.of(context).size.height * 0.40,
                         child: DefaultTextStyle(
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0),
-                            fontSize: 14,
+                            color: Color(0xff1F232D),
+                            fontSize: 15.8,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                           ),
                           child: AnimatedTextKit(
                             displayFullTextOnTap: true,
                             totalRepeatCount: 1,
-                            animatedTexts: [
+                            animatedTexts: [//TODO see this animation in detail
                               TypewriterAnimatedText(
                                 speed: const Duration(milliseconds: 40),
                                 selectedOption
@@ -576,7 +606,7 @@ class QuizAnswerWidget extends StatelessWidget {
                           height: MediaQuery.of(context).size.height * 0.07,
                           width: MediaQuery.of(context).size.width * 0.3,
                           child: GestureDetector(
-                            child: NextQuizButton(
+                            child: const NextQuizButton(
                               icon: 'assets/icon/next_arrow.svg',
                             ),
                             onTap: () => {
