@@ -24,6 +24,7 @@ import usersStateConnector from 'views/stateConnectors/usersStateConnector';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { getUserDetails } from 'redux/Join/actions';
+import { PeopleOutline } from '@material-ui/icons';
 import {
   addCurrentUserRole,
   addUserNetworks,
@@ -127,11 +128,18 @@ const allMainPages = [
     icon: <AddIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
+
   {
     title: 'Site Registry',
     href: '/sites',
     icon: <EditLocationIcon />,
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+  },
+  {
+    title: 'Host Registry',
+    href: '/hosts',
+    icon: <PeopleOutline />,
+    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
   },
   {
     title: 'AirQloud Registry',
@@ -272,6 +280,7 @@ const Sidebar = (props) => {
         'Network Monitoring',
         'Location Registry',
         'Device Registry',
+        'Host Registry',
         'Site Registry',
         'AirQloud Registry'
       ]);
@@ -293,8 +302,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
