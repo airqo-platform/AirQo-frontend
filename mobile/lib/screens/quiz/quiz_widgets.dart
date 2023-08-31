@@ -141,35 +141,34 @@ class OptionsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-          onPressed: () {
-            callBack();
-          },
-          style: OutlinedButton.styleFrom(
+      onPressed: () {
+        callBack();
+      },
+      style: OutlinedButton.styleFrom(
         minimumSize: const Size(
           0,
           44,
         ),
-            elevation: 0,
-            side: const BorderSide(
+        elevation: 0,
+        side: const BorderSide(
           color: Color.fromARGB(0, 53, 46, 46),
-            ),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(8),
-              ),
-            ),
-            backgroundColor: buttonColor,
-            foregroundColor: buttonColor,
-          ),
-      child: Text(
-            text ?? AppLocalizations.of(context)!.next,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-          color: Color(0xff145FFF),
-          fontSize: 16,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(8),
           ),
         ),
-      
+        backgroundColor: buttonColor,
+        foregroundColor: buttonColor,
+      ),
+      child: Text(
+        text ?? AppLocalizations.of(context)!.next,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xff145FFF),
+          fontSize: 16,
+        ),
+      ),
     );
   }
 }
@@ -199,7 +198,7 @@ class _ConfettiState extends State<Confetti> {
     super.dispose();
   }
 
-  Path drawStar(Size size) {
+  Path drawStar(Size size) { //TODO draw custom shapes
     // Method to convert degree to radians
     double degToRad(double deg) => deg * (pi / 180.0);
 
@@ -238,7 +237,7 @@ class _ConfettiState extends State<Confetti> {
               minBlastForce: 10,
               minimumSize: const Size(30, 20),
               maximumSize: const Size(50, 20),
-              numberOfParticles: 15, 
+              numberOfParticles: 15,
               gravity: 0.3,
               createParticlePath: drawStar,
               colors: const [

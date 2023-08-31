@@ -256,17 +256,17 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             horizontal: 50,
                           ),
                           child: OptionsButton(
-                              buttonColor: const Color(0xffEBF5FF),
-                              callBack: () {
-                                if (option.content.isNotEmpty) {
-                                  setState(() {
-                                    selectedOption = option;
-                                    widget.currentQuestion.answers[index] =
-                                        option;
-                                    showAnswer = true;
-                                  });
-                                }
-                              },
+                            buttonColor: const Color(0xffEBF5FF),
+                            callBack: () {
+                              if (option.content.isNotEmpty) {
+                                setState(() {
+                                  selectedOption = option;
+                                  widget.currentQuestion.answers[index] =
+                                      option;
+                                  showAnswer = true;
+                                });
+                              }
+                            },
                             text: option.title,
                           ),
                         );
@@ -492,7 +492,6 @@ class QuizAnswerWidget extends StatelessWidget {
               selectedOption.title,
               style: const TextStyle(
                 color: Color(0xff1F232D),
-                // Color.fromARGB(255, 0, 0, 0),
                 fontSize: 15,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
@@ -567,21 +566,34 @@ class QuizAnswerWidget extends StatelessWidget {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
                                 child: ListTile(
-                                  leading: Icon(Icons.circle,
-                                      size: 8, color: Colors.black),
-                                  title: AnimatedTextKit(
-                                    onNext: (int index, bool isLast) => {
-                                      Future.delayed(
-                                          const Duration(seconds: 3), () {})
+                                  // leading: const Icon(
+                                  //   Icons.circle,
+                                  //   size: 8,
+                                  //   color: Colors.black,
+                                  // ),
+                                  title: FutureBuilder<void>(
+                                    future: Future.delayed(
+                                      Duration(seconds: 4 * index),
+                                      () => Future.value(),
+                                    ),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Container();
+                                      } else {
+                                        return AnimatedTextKit(
+                                          displayFullTextOnTap: true,
+                                          totalRepeatCount: 1,
+                                          animatedTexts: [
+                                            TypewriterAnimatedText(
+                                              selectedOption.content[index],
+                                              speed: const Duration(
+                                                  milliseconds: 40),
+                                            ),
+                                          ],
+                                        );
+                                      }
                                     },
-                                    displayFullTextOnTap: true,
-                                    totalRepeatCount: 1,
-                                    animatedTexts: [
-                                      TypewriterAnimatedText(
-                                        selectedOption.content[index],
-                                        speed: const Duration(milliseconds: 40),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               );
