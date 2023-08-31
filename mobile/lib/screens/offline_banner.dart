@@ -23,7 +23,7 @@ class OfflineBanner extends StatefulWidget {
 
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOnline = true;
-  bool wasOffline = false;
+  //bool wasOffline = false;
   ConnectivityResult connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -142,29 +142,18 @@ class _OfflineBannerState extends State<OfflineBanner> {
     });
 
     if (result == ConnectivityResult.none) {
-      // Went offline
       setState(() {
         _isOnline = false;
-        wasOffline = true;
       });
-    } else {
+    }
+    if (connectionStatus == ConnectivityResult.mobile) {
       setState(() {
         _isOnline = true;
       });
-
-      if (wasOffline) {
-        // Show green banner
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You are back online!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        setState(() {
-          wasOffline = false;
-        });
-      }
+    } else if (connectionStatus == ConnectivityResult.wifi) {
+      setState(() {
+        _isOnline = true;
+      });
     }
   }
 }
