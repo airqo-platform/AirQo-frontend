@@ -370,7 +370,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <Box height="10px" />
+            {/* <Box height="10px" />
             <OutlinedSelect
               label="Network"
               value={networkList.find((option) => option.value === editData.network)}
@@ -387,6 +387,18 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               name="network"
               error={!!errors.network}
               helperText={errors.network}
+              required
+              disabled={true}
+            /> */}
+            <TextField
+              style={{ margin: '10px 0' }}
+              label="Network"
+              variant="outlined"
+              value={deviceData.network}
+              error={!!errors.network}
+              helperText={errors.network}
+              disabled
+              fullWidth
               required
             />
           </Grid>
