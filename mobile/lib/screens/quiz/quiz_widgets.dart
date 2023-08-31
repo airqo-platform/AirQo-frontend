@@ -356,8 +356,8 @@ class NextQuizButton extends StatelessWidget {
       ),
       child: SvgPicture.asset(
         icon,
-        height: 35,
-        width: 35,
+        height: 23.59,
+        width: 14.76,
         colorFilter: const ColorFilter.mode(
           Color(0xffF2F1F6),
           BlendMode.srcIn,
