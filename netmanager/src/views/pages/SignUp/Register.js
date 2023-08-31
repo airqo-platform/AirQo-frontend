@@ -15,6 +15,7 @@ import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
 import { getNetworkListSummaryApi } from '../../apis/accessControl';
+import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 
 countries.registerLocale(enLocale);
 
@@ -36,13 +37,17 @@ const categoryOptions = categories.array.map(({ label }) => ({
 }));
 
 const createNetworkOptions = (networksList) => {
-  const options = [];
-  networksList.map((network) => {
-    options.push({
-      value: network._id,
-      label: network.net_name
-    });
+  const sortedNetworks = networksList.sort((a, b) => {
+    if (a.net_name === 'airqo') return -1; // "airqo" comes first
+    if (b.net_name === 'airqo') return 1; // "airqo" comes second
+    return a.net_name.localeCompare(b.net_name); // Sort alphabetically
   });
+
+  const options = sortedNetworks.map((network) => ({
+    value: network._id,
+    label: network.net_name
+  }));
+
   return options;
 };
 
@@ -122,12 +127,26 @@ const Register = ({
     network_id: ''
   });
   const [networkList, setNetworkList] = useState([]);
+  const [defaultNetwork, setDefaultNetwork] = useState({});
+  const [showAllNetworks, setShowAllNetworks] = useState(false);
 
   const fetchNetworks = () => {
     getNetworkListSummaryApi()
       .then((res) => {
         const { networks } = res;
         setNetworkList(createNetworkOptions(networks));
+        setState((prevState) => ({
+          ...prevState,
+          network_id: networks.find((network) => network.net_name === 'airqo')._id,
+          errors: {
+            ...prevState.errors,
+            network: ''
+          }
+        }));
+        setDefaultNetwork({
+          value: networks.find((network) => network.net_name === 'airqo')._id,
+          label: 'airqo'
+        });
       })
       .catch((error) => {
         console.log('error', error);
@@ -438,16 +457,28 @@ const Register = ({
                   InputLabelProps={{ style: { fontSize: '0.8rem' } }}
                 />
 
-                <Select
-                  value={networkList.find((option) => option.value === state.network_id)}
-                  onChange={onChangeDropdown}
-                  options={networkList}
-                  isSearchable
-                  placeholder="Choose the organisation you want to request access to"
-                  name="network_id"
-                  error={!!formErrors.network_id}
-                  styles={customStyles}
-                />
+                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+                  <OutlinedSelect
+                    value={
+                      showAllNetworks
+                        ? networkList.find((option) => option.value === state.network_id)
+                        : defaultNetwork
+                    }
+                    onChange={onChangeDropdown}
+                    options={showAllNetworks ? networkList : [defaultNetwork]}
+                    isSearchable
+                    label="Choose the organisation you want to request access to"
+                    name="network_id"
+                    placeholder="Network"
+                    error={!!formErrors.network_id}
+                    styles={customStyles}
+                  />
+                  <small>
+                    <a onClick={() => setShowAllNetworks(true)} style={{ cursor: 'pointer' }}>
+                      Looking for other organizations? Click to view more in the list
+                    </a>
+                  </small>
+                </div>
               </div>
 
               <div className="col s12" style={{ paddingLeft: '11.250px' }}>
