@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -15,7 +15,6 @@ import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import Select from 'react-select';
 import { getNetworkListSummaryApi } from '../../apis/accessControl';
-import OutlinedSelect from '../../components/CustomSelects/OutlinedSelect';
 
 countries.registerLocale(enLocale);
 
@@ -111,6 +110,7 @@ const Register = ({
 }) => {
   const query = new URLSearchParams(location.search);
   const tenant = match.params.tenant || 'airqo';
+  const selectRef = useRef(null);
 
   const [state, setState] = useState({
     firstName: '',
@@ -457,8 +457,12 @@ const Register = ({
                   InputLabelProps={{ style: { fontSize: '0.8rem' } }}
                 />
 
-                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
-                  <OutlinedSelect
+                <div style={{ marginTop: '8px', marginBottom: '15px' }}>
+                  <label style={{ textAlign: 'left', color: '#000' }}>
+                    Choose the organisation you want to request access to
+                  </label>
+                  <Select
+                    ref={selectRef}
                     value={
                       showAllNetworks
                         ? networkList.find((option) => option.value === state.network_id)
@@ -467,14 +471,19 @@ const Register = ({
                     onChange={onChangeDropdown}
                     options={showAllNetworks ? networkList : [defaultNetwork]}
                     isSearchable
-                    label="Choose the organisation you want to request access to"
                     name="network_id"
                     placeholder="Network"
                     error={!!formErrors.network_id}
                     styles={customStyles}
                   />
                   <small>
-                    <a onClick={() => setShowAllNetworks(true)} style={{ cursor: 'pointer' }}>
+                    <a
+                      onClick={() => {
+                        setShowAllNetworks(true);
+                        selectRef.current.focus();
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
                       Looking for other organizations? Click to view more in the list
                     </a>
                   </small>
