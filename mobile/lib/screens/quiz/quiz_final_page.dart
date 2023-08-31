@@ -28,14 +28,13 @@ Future<dynamic> bottomSheetQuizConffeti(
       return StatefulBuilder(
         builder: (context, setState) {
           Future.delayed(const Duration(seconds: 6), () {
-            Navigator.of(context)
-                .pop();
+            Navigator.of(context).pop();
             completer.complete();
           });
 
           return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.9,
-              width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.9,
+            width: MediaQuery.of(context).size.width,
             child: Stack(
               children: [
                 Column(
@@ -49,7 +48,8 @@ Future<dynamic> bottomSheetQuizConffeti(
                           padding: const EdgeInsets.all(11.0),
                           child: InkWell(
                             onTap: () async {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
+                              completer.complete();
                             },
                             child: SvgPicture.asset(
                               'assets/icon/close.svg',
