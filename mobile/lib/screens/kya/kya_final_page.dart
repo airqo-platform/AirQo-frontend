@@ -105,7 +105,6 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
             updateRemote: true,
           ),
         );
-    _initialize();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<KyaLesson> completeLessons =
           context.read<KyaBloc>().state.lessons.filterInCompleteLessons();
@@ -120,15 +119,6 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
         });
       }
     });
-  }
-
-  Future<void> _initialize() async {
-    await Future.delayed(
-      const Duration(seconds: 4),
-      () async {
-        await popNavigation(context);
-      },
-    );
   }
 
   Future<bool> _onWillPop() {
