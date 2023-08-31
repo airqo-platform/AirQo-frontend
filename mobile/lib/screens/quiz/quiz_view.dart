@@ -594,23 +594,20 @@ class QuizAnswerWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 30,
-                    ),
+                    const SizedBox(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.07,
-                          width: MediaQuery.of(context).size.width * 0.3,
-                          child: GestureDetector(
-                            child: const NextQuizButton(
+                        GestureDetector(
+                          child: const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: NextQuizButton(
                               icon: 'assets/icon/next_arrow.svg',
                             ),
-                            onTap: () => {
-                              nextButtonClickCallback(),
-                            },
                           ),
+                          onTap: () => {
+                            nextButtonClickCallback(),
+                          },
                         )
                       ],
                     ),
