@@ -143,9 +143,9 @@ class OptionsButton extends StatelessWidget {
     return SizedBox(
       height: 48,
       width: double.infinity,
-      child: FittedBox(
-        //fit: BoxFit.contain,
-        child: OutlinedButton(
+      // child: FittedBox(
+      //   fit: BoxFit.contain,
+         child: OutlinedButton(
           onPressed: () {
             callBack();
           },
@@ -167,9 +167,7 @@ class OptionsButton extends StatelessWidget {
             text ?? AppLocalizations.of(context)!.next,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xff145FFF),
-              fontSize: 16,
-            ),
+            color: Color(0xff145FFF), fontSize: 16, //height: 1.5
           ),
         ),
       ),
