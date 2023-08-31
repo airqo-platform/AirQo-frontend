@@ -52,14 +52,28 @@ class KnowYourAirView extends StatelessWidget {
 
         List<Widget> children = [];
         children.addAll(completeQuizzes
-            .map((e) => QuizCard(
-                  e,
-                ))
+            .map(
+              (quiz) => Column(
+                children: [
+                  QuizCard(
+                    quiz,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            )
             .toList());
         children.addAll(completeKya
-            .map((e) => KyaLessonCardWidget(
-                  e,
-                ))
+            .map(
+              (lesson) => Column(
+                children: [
+                  KyaLessonCardWidget(
+                    lesson,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            )
             .toList());
 
         return AppRefreshIndicator(
@@ -76,7 +90,7 @@ class KnowYourAirView extends StatelessWidget {
                 ),
               );
             },
-            childCount: children.length,
+            childCount: 1,
           ),
           onRefresh: () {
             _refresh(context);
