@@ -140,19 +140,18 @@ class OptionsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      width: double.infinity,
-      // child: FittedBox(
-      //   fit: BoxFit.contain,
-         child: OutlinedButton(
+    return OutlinedButton(
           onPressed: () {
             callBack();
           },
           style: OutlinedButton.styleFrom(
+        minimumSize: const Size(
+          0,
+          44,
+        ),
             elevation: 0,
             side: const BorderSide(
-              color: Colors.transparent,
+          color: Color.fromARGB(0, 53, 46, 46),
             ),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
@@ -162,15 +161,15 @@ class OptionsButton extends StatelessWidget {
             backgroundColor: buttonColor,
             foregroundColor: buttonColor,
           ),
-          child: AutoSizeText(
-            maxLines: 2,
+      child: Text(
             text ?? AppLocalizations.of(context)!.next,
             textAlign: TextAlign.center,
             style: const TextStyle(
-            color: Color(0xff145FFF), fontSize: 16, //height: 1.5
+          color: Color(0xff145FFF),
+          fontSize: 16,
           ),
         ),
-      ),
+      
     );
   }
 }

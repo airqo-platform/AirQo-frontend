@@ -22,14 +22,14 @@ Future<dynamic> bottomSheetQuizConffeti(
         topRight: Radius.circular(23),
       ),
     ),
-    isDismissible: true,
+    isDismissible: false,
     context: parentContext,
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
           Future.delayed(const Duration(seconds: 6), () {
             Navigator.of(context)
-                .pop(); // Dismiss the bottom sheet after 6 seconds
+                .pop();
             completer.complete();
           });
 
@@ -70,15 +70,6 @@ Future<dynamic> bottomSheetQuizConffeti(
                           height: MediaQuery.of(context).size.height * 0.8,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 15, vertical: 10),
-                          // decoration: const ShapeDecoration(
-                          //   color: Colors.transparent,
-                          //   shape: RoundedRectangleBorder(
-                          //     borderRadius: BorderRadius.only(
-                          //       topLeft: Radius.circular(32),
-                          //       topRight: Radius.circular(32),
-                          //     ),
-                          //   ),
-                          // ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.start,

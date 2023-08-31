@@ -215,8 +215,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                         widget.currentQuestion.context,
                         style: const TextStyle(
                           color: Color(0xff6F87A1),
-                          //  Color.fromARGB(117, 0, 0, 0),
-                          fontSize: 10,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -257,9 +256,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             vertical: 10,
                             horizontal: 50,
                           ),
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.62,
-                            child: OptionsButton(
+                          child: OptionsButton(
                               buttonColor: const Color(0xffEBF5FF),
                               callBack: () {
                                 if (option.content.isNotEmpty) {
@@ -271,8 +268,7 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                                   });
                                 }
                               },
-                              text: option.title,
-                            ),
+                            text: option.title,
                           ),
                         );
                       },
@@ -432,21 +428,6 @@ class QuizCard extends StatelessWidget {
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.27,
             height: 112,
-            // decoration: BoxDecoration(
-            //   borderRadius: BorderRadius.circular(8.0),
-            //   image: DecorationImage(
-            //     fit: BoxFit.cover,
-            //     image: CachedNetworkImageProvider(
-            //       quiz.imageUrl,
-            //       cacheKey: quiz.imageUrlCacheKey(),
-            //       cacheManager: CacheManager(
-            //         CacheService.cacheConfig(
-            //           quiz.imageUrlCacheKey(),
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             child: CachedNetworkImage(
               imageUrl: quiz.imageUrl,
               imageBuilder: (context, imageProvider) => Container(
