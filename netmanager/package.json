@@ -153,7 +153,6 @@
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
     ],
-    "collectCoverage":true,
     "collectCoverageFrom": [
       "src/**/*.js",
       "!src/index.js"
