@@ -234,14 +234,13 @@ class _ConfettiState extends State<Confetti> {
               confettiController: _controllerTopCenter,
               blastDirection: pi / 2,
               blastDirectionality: BlastDirectionality.explosive,
-              maxBlastForce: 30, // set a lower max blast force
-              minBlastForce: 10, // set a lower min blast force
+              maxBlastForce: 30,
+              minBlastForce: 10,
               minimumSize: const Size(30, 20),
               maximumSize: const Size(50, 20),
-              //emissionFrequency: 0.02,
-              numberOfParticles: 15, // a lot of particles at once
+              numberOfParticles: 15, 
               gravity: 0.3,
-              createParticlePath: drawStar, // define a custom shape/path.
+              createParticlePath: drawStar,
               colors: const [
                 Colors.red,
                 Colors.pink,
