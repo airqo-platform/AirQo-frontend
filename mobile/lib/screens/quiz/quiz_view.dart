@@ -235,7 +235,6 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                             widget.currentQuestion.title,
                             style: const TextStyle(
                               color: Color(0xff1F232D),
-                              // color: Color.fromARGB(200, 0, 0, 0),
                               fontSize: 24,
                               fontWeight: FontWeight.w500,
                             ),
@@ -564,7 +563,8 @@ class QuizAnswerWidget extends StatelessWidget {
                           child: AnimatedTextKit(
                             displayFullTextOnTap: true,
                             totalRepeatCount: 1,
-                            animatedTexts: [//TODO see this animation in detail
+                            animatedTexts: [
+                              //TODO see this animation in detail
                               TypewriterAnimatedText(
                                 speed: const Duration(milliseconds: 40),
                                 selectedOption
