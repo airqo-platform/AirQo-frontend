@@ -22,20 +22,19 @@ Future<dynamic> bottomSheetQuizConffeti(
         topRight: Radius.circular(23),
       ),
     ),
-    isDismissible: true,
+    isDismissible: false,
     context: parentContext,
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
           Future.delayed(const Duration(seconds: 6), () {
-            Navigator.of(context)
-                .pop(); // Dismiss the bottom sheet after 6 seconds
+            Navigator.of(context).pop();
             completer.complete();
           });
 
           return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.9,
-              width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.9,
+            width: MediaQuery.of(context).size.width,
             child: Stack(
               children: [
                 Column(
@@ -49,7 +48,8 @@ Future<dynamic> bottomSheetQuizConffeti(
                           padding: const EdgeInsets.all(11.0),
                           child: InkWell(
                             onTap: () async {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
+                              completer.complete();
                             },
                             child: SvgPicture.asset(
                               'assets/icon/close.svg',
@@ -70,15 +70,6 @@ Future<dynamic> bottomSheetQuizConffeti(
                           height: MediaQuery.of(context).size.height * 0.8,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 15, vertical: 10),
-                          // decoration: const ShapeDecoration(
-                          //   color: Colors.transparent,
-                          //   shape: RoundedRectangleBorder(
-                          //     borderRadius: BorderRadius.only(
-                          //       topLeft: Radius.circular(32),
-                          //       topRight: Radius.circular(32),
-                          //     ),
-                          //   ),
-                          // ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.start,
