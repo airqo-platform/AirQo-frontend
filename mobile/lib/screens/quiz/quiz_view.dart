@@ -560,17 +560,32 @@ class QuizAnswerWidget extends StatelessWidget {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                           ),
-                          child: AnimatedTextKit(
-                            displayFullTextOnTap: true,
-                            totalRepeatCount: 1,
-                            animatedTexts: [
-                              //TODO see this animation in detail
-                              TypewriterAnimatedText(
-                                speed: const Duration(milliseconds: 40),
-                                selectedOption
-                                    .content[selectedOption.content.length - 1],
-                              ),
-                            ],
+                          child: ListView.builder(
+                            itemCount: selectedOption.content.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: ListTile(
+                                  leading: Icon(Icons.circle,
+                                      size: 8, color: Colors.black),
+                                  title: AnimatedTextKit(
+                                    onNext: (int index, bool isLast) => {
+                                      Future.delayed(
+                                          const Duration(seconds: 3), () {})
+                                    },
+                                    displayFullTextOnTap: true,
+                                    totalRepeatCount: 1,
+                                    animatedTexts: [
+                                      TypewriterAnimatedText(
+                                        selectedOption.content[index],
+                                        speed: const Duration(milliseconds: 40),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
