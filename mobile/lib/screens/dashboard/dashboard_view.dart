@@ -162,7 +162,12 @@ class _DashboardViewState extends State<DashboardView>
                                 lesson.status == KyaLessonStatus.complete)
                             .take(3)
                             .toList();
-                        final kyaWidgets = completeKyaWidgets(completeLessons);
+                        final completeQuizzes = state.quizzes
+                            .where((quiz) => quiz.status == QuizStatus.complete)
+                            .take(3)
+                            .toList();
+                        final kyaWidgets = completeKyaWidgets(
+                            completeLessons, completeQuizzes);
 
                         return Expanded(
                           child: CustomShowcaseWidget(
