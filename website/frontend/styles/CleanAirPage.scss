@@ -1,0 +1,14 @@
+@import "lib/colors";
+@import "lib/variables";
+
+.Clean-air-page{
+    .page-container{
+        max-width: $columnWidth;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+    }
+}
+
