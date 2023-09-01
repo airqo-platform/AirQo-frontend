@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -60,108 +61,110 @@ class _DeleteAccountWidgetState extends State<_DeleteAccountWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
-      body: AppSafeArea(
-        horizontalPadding: 24,
-        backgroundColor: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const AccountDeletionTitle(),
-            const AccountDeletionSubTitle(),
-            const SizedBox(
-              height: 20,
-            ),
-            Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36),
-                child: TextFormField(
-                  validator: (value) {
-                    if (value == null) {
-                      return AppLocalizations.of(context)!.pleaseEnterTheCode;
-                    }
-
-                    if (value.length < 6) {
-                      return AppLocalizations.of(context)!
-                          .pleaseEnterAllTheDigits;
-                    }
-
-                    if (widget.emailAuthModel != null) {
-                      if (widget.emailAuthModel?.token.toString() != value) {
-                        return AppLocalizations.of(context)!.invalidCode;
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
+        body: AppSafeArea(
+          horizontalPadding: 24,
+          backgroundColor: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const AccountDeletionTitle(),
+              const AccountDeletionSubTitle(),
+              const SizedBox(
+                height: 20,
+              ),
+              Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 36),
+                  child: TextFormField(
+                    validator: (value) {
+                      if (value == null) {
+                        return AppLocalizations.of(context)!.pleaseEnterTheCode;
                       }
-                    }
-
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() => _inputCode = value);
-                  },
-                  textAlign: TextAlign.center,
-                  maxLength: 6,
-                  cursorWidth: 1,
-                  keyboardType: TextInputType.number,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 16 * 0.41,
-                        height: 40 / 32,
+    
+                      if (value.length < 6) {
+                        return AppLocalizations.of(context)!
+                            .pleaseEnterAllTheDigits;
+                      }
+    
+                      if (widget.emailAuthModel != null) {
+                        if (widget.emailAuthModel?.token.toString() != value) {
+                          return AppLocalizations.of(context)!.invalidCode;
+                        }
+                      }
+    
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() => _inputCode = value);
+                    },
+                    textAlign: TextAlign.center,
+                    maxLength: 6,
+                    cursorWidth: 1,
+                    keyboardType: TextInputType.number,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 16 * 0.41,
+                          height: 40 / 32,
+                        ),
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 0,
                       ),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 0,
-                    ),
-                    filled: true,
-                    counter: Offstage(),
-                    errorStyle: TextStyle(
-                      fontSize: 15,
+                      filled: true,
+                      counter: Offstage(),
+                      errorStyle: TextStyle(
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const Spacer(),
-            NextButton(
-              text: "Confirm",
-              showIcon: false,
-              buttonColor: _inputCode.length >= 6
-                  ? CustomColors.appColorInvalid
-                  : CustomColors.appColorInvalid.withOpacity(0.5),
-              callBack: () async {
-                FormState? formState = _formKey.currentState;
-                if (formState == null) {
-                  return;
-                }
-                if (formState.validate()) {
-                  await _deleteAccount();
-                }
-              },
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            NextButton(
-              text: AppLocalizations.of(context)!.cancel,
-              showIcon: false,
-              buttonColor: CustomColors.appColorBlue,
-              callBack: () async {
-                await Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) {
-                    return const HomePage();
-                  }),
-                  (r) => false,
-                );
-              },
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-          ],
+              const Spacer(),
+              NextButton(
+                text: "Confirm",
+                showIcon: false,
+                buttonColor: _inputCode.length >= 6
+                    ? CustomColors.appColorInvalid
+                    : CustomColors.appColorInvalid.withOpacity(0.5),
+                callBack: () async {
+                  FormState? formState = _formKey.currentState;
+                  if (formState == null) {
+                    return;
+                  }
+                  if (formState.validate()) {
+                    await _deleteAccount();
+                  }
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              NextButton(
+                text: AppLocalizations.of(context)!.cancel,
+                showIcon: false,
+                buttonColor: CustomColors.appColorBlue,
+                callBack: () async {
+                  await Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const HomePage();
+                    }),
+                    (r) => false,
+                  );
+                },
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+            ],
+          ),
         ),
       ),
     );

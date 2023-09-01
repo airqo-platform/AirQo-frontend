@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/themes/theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +10,7 @@ class InternetConnectionBannerCubit extends Cubit<bool> {
   InternetConnectionBannerCubit() : super(true);
   void hideBanner() => emit(false);
   void showBanner() => emit(true);
+  void resetBanner() => emit(true);
 }
 
 class OfflineBanner extends StatefulWidget {
@@ -39,7 +39,14 @@ class _OfflineBannerState extends State<OfflineBanner> {
     super.initState();
     initConnectivity();
     _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+        _connectivity.onConnectivityChanged.listen((result) {
+      _updateConnectionStatus(result);
+
+      // Reset the banner when the connectivity changes
+      if (result != ConnectivityResult.none) {
+        context.read<InternetConnectionBannerCubit>().resetBanner();
+      }
+    });
   }
 
   Future<void> checkConnectivity() async {
@@ -65,9 +72,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
                 left: 0,
                 right: 0,
                 child: SizedBox(
-                  height: 50,
+                  height: 53,
                   child: Container(
-                    color: CustomColors.appColorRed,
+                    color: const Color(0xffE6352C),
                     child: Padding(
                       padding: const EdgeInsets.only(top: 25),
                       child: InkWell(
@@ -90,7 +97,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 12,
+                                    fontFamily: 'Inter',
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                               ),
@@ -101,7 +110,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 12,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: 'Inter',
                                   ),
                                 ),
                               ),
