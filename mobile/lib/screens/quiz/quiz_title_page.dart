@@ -37,7 +37,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                 height: 2,
               ),
               SizedBox(
-                //height: MediaQuery.of(context).size.height * 0.28,
                 height: 215,
                 width: 373,
                 child: Padding(
@@ -85,7 +84,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
-                      //width: MediaQuery.of(context).size.width * 0.8,
                       width: 275,
                       height: 44,
                       child: AutoSizeText(
