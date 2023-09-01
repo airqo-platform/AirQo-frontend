@@ -71,7 +71,6 @@ jobs:
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd website
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
