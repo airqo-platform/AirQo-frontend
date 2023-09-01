@@ -9,9 +9,9 @@ on:
 
 jobs:
   check:
-    name: check for changes in netmanager
+    name: check for changes in Website
     outputs:
-      run_netmanager_tests: ${{ steps.check_files.outputs.run_website_tests }}
+      run_website_tests: ${{ steps.check_files.outputs.run_website_tests }}
 
     runs-on: ubuntu-latest
     steps:
