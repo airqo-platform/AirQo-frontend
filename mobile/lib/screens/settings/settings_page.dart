@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
