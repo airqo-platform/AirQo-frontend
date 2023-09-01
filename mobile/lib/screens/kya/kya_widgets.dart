@@ -207,21 +207,6 @@ class KyaLessonCardWidget extends StatelessWidget {
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.28,
               height: 112,
-              // decoration: BoxDecoration(
-              //   borderRadius: BorderRadius.circular(8.0),
-              //   image: DecorationImage(
-              //     fit: BoxFit.cover,
-              //     image: CachedNetworkImageProvider(
-              //       kyaLesson.imageUrl,
-              //       cacheKey: kyaLesson.imageUrlCacheKey(),
-              //       cacheManager: CacheManager(
-              //         CacheService.cacheConfig(
-              //           kyaLesson.imageUrlCacheKey(),
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
               child: CachedNetworkImage(
                 imageUrl: kyaLesson.imageUrl,
                 imageBuilder: (context, imageProvider) => Container(
