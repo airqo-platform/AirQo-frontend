@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/themes/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,7 +75,7 @@ class _OfflineBannerState extends State<OfflineBanner> {
                 child: SizedBox(
                   height: 53,
                   child: Container(
-                    color: const Color(0xffE6352C),
+                    color: CustomColors.offlineBannerColor,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 25),
                       child: InkWell(
