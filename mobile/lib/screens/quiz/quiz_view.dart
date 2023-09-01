@@ -537,7 +537,6 @@ class QuizAnswerWidget extends StatelessWidget {
                           fontSize: 15,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
-                          //height: 1.50,
                         ),
                       ),
                     ),

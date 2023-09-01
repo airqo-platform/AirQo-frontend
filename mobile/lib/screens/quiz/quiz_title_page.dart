@@ -28,7 +28,6 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
     builder: (context) {
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
-        child: Flexible(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(2, 2, 2, 10),
             child: Column(
@@ -142,7 +141,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
               ],
             ),
           ),
-        ),
+        
       );
     },
   );
