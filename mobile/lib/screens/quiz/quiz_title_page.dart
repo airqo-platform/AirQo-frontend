@@ -27,7 +27,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
       return SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(2, 2, 2, 10),
+          padding: const EdgeInsets.fromLTRB(0, 2, 2, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
