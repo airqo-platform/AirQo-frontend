@@ -213,22 +213,24 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     setLoading(true);
-    if (!isEmpty(user)) {
-      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+    if (!isEmpty(user) && isEmpty(userNetworks)) {
       getUserDetails(user._id)
         .then((res) => {
           dispatch(addUserNetworks(res.users[0].networks));
           localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
           localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
-          res.users[0].networks.map((network) => {
-            if (network.net_name === 'airqo') {
-              localStorage.setItem('activeNetwork', JSON.stringify(network));
-              dispatch(addActiveNetwork(network));
-              dispatch(addCurrentUserRole(res.users[0].role));
-              localStorage.setItem('currentUserRole', JSON.stringify(res.users[0].role));
-            }
-          });
+          if (isEmpty(activeNetwork)) {
+            res.users[0].networks.map((network) => {
+              if (network.net_name === 'airqo') {
+                localStorage.setItem('activeNetwork', JSON.stringify(network));
+                dispatch(addActiveNetwork(network));
+                dispatch(addCurrentUserRole(network.role));
+                localStorage.setItem('currentUserRole', JSON.stringify(network.role));
+              }
+            });
+          }
           setLoading(false);
         })
         .catch((error) => {
@@ -244,6 +246,7 @@ const Sidebar = (props) => {
           setLoading(false);
         });
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
