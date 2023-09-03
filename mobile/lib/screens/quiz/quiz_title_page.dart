@@ -47,7 +47,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                       imageUrl: quiz.imageUrl,
                       imageBuilder: (context, imageProvider) => Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(23),
+                          borderRadius: BorderRadius.circular(16),
                           image: DecorationImage(
                             fit: BoxFit.cover,
                             image: imageProvider,
@@ -61,7 +61,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                       ),
                       errorWidget: (context, url, error) => Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.0),
+                          borderRadius: BorderRadius.circular(16.0),
                           color: Colors.grey,
                         ),
                         child: const Center(
