@@ -210,6 +210,7 @@ const Sidebar = (props) => {
   const dispatch = useDispatch();
   const currentRole = useSelector((state) => state.accessControl.currentRole);
   const userNetworks = useSelector((state) => state.accessControl.userNetworks);
+  const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
   useEffect(() => {
     setLoading(true);
@@ -248,6 +249,12 @@ const Sidebar = (props) => {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!isEmpty(activeNetwork)) {
+      dispatch(addCurrentUserRole(activeNetwork.role));
+    }
+  }, [activeNetwork]);
 
   useEffect(() => {
     // check whether user has a role
