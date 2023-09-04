@@ -215,39 +215,34 @@ const Sidebar = (props) => {
     setLoading(true);
     if (!isEmpty(user)) {
       const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-      getUserDetails(user._id).then((res) => {
-        dispatch(addUserNetworks(res.users[0].networks));
-        localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
-        localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
+      getUserDetails(user._id)
+        .then((res) => {
+          dispatch(addUserNetworks(res.users[0].networks));
+          localStorage.setItem('userNetworks', JSON.stringify(res.users[0].networks));
+          localStorage.setItem('currentUser', JSON.stringify(res.users[0]));
 
-        if (isEmpty(activeNetwork)) {
           res.users[0].networks.map((network) => {
             if (network.net_name === 'airqo') {
               localStorage.setItem('activeNetwork', JSON.stringify(network));
               dispatch(addActiveNetwork(network));
+              dispatch(addCurrentUserRole(res.users[0].role));
+              localStorage.setItem('currentUserRole', JSON.stringify(res.users[0].role));
             }
           });
-        }
-
-        getRoleDetailsApi(res.users[0].role._id)
-          .then((res) => {
-            dispatch(addCurrentUserRole(res.roles[0]));
-            localStorage.setItem('currentUserRole', JSON.stringify(res.roles[0]));
-            setLoading(false);
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            setLoading(false);
-          });
-      });
+          setLoading(false);
+        })
+        .catch((error) => {
+          const errors = error.response && error.response.data && error.response.data.errors;
+          dispatch(
+            updateMainAlert({
+              message: error.response && error.response.data && error.response.data.message,
+              show: true,
+              severity: 'error',
+              extra: createAlertBarExtraContentFromObject(errors || {})
+            })
+          );
+          setLoading(false);
+        });
     }
   }, []);
 
@@ -302,7 +297,8 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

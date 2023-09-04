@@ -6,7 +6,6 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -20,6 +19,7 @@ import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import 'buttons.dart';
+import 'custom_shimmer.dart';
 
 class HealthTipContainer extends StatelessWidget {
   const HealthTipContainer(this.healthTip, {super.key});

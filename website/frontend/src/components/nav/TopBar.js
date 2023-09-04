@@ -105,13 +105,13 @@ const TopBar = () => {
                 <div className="dropdown-list-item">
                   <Link to="/solutions/african-cities" style={{ textDecoration: 'none' }}>
                     <h3>For African Cities</h3>
-                    <h4>Air quality analytics for city councils</h4>
+                    <h4>Advancing air quality management in African Cities</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
                   <Link to="/solutions/communities" style={{ textDecoration: 'none' }}>
                     <h3>For Communities</h3>
-                    <h4>Recruiting locals to drive awareness</h4>
+                    <h4>Empowering communities with air quality information</h4>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
@@ -134,13 +134,8 @@ const TopBar = () => {
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
-                  <Link to="/contact">
-                    <h3>Contact Us</h3>
-                  </Link>
-                </div>
-                <div className="dropdown-list-item">
-                  <Link to="/careers">
-                    <h3>Careers</h3>
+                  <Link to="/clean-air">
+                    <h3>CLEAN-Air Network</h3>
                   </Link>
                 </div>
                 <div className="dropdown-list-item">
@@ -156,6 +151,16 @@ const TopBar = () => {
                 <div className="dropdown-list-item">
                   <Link to="/press">
                     <h3>Press</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/careers">
+                    <h3>Careers</h3>
+                  </Link>
+                </div>
+                <div className="dropdown-list-item">
+                  <Link to="/contact">
+                    <h3>Contact Us</h3>
                   </Link>
                 </div>
               </div>

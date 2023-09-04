@@ -388,6 +388,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               error={!!errors.network}
               helperText={errors.network}
               required
+              isDisabled={true}
             />
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
