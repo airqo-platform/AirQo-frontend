@@ -34,18 +34,14 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 2,
-                ),
-                SizedBox(
-                  //height: MediaQuery.of(context).size.height * 0.28,
+            children: [
+              const SizedBox(height: 3),
+              SizedBox(
                   height: 215,
                   width: 373,
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      alignment: Alignment.center,
+                  padding: const EdgeInsets.fromLTRB(2, 10, 2, 10),
+                  child: Container(
                       child: CachedNetworkImage(
                         imageUrl: quiz.imageUrl,
                         imageBuilder: (context, imageProvider) => Container(

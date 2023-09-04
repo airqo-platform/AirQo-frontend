@@ -99,32 +99,39 @@ class _QuizQuestionWidgetState extends State<QuizQuestionWidget> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      GestureDetector(
+                      Visibility(
+                        visible: questionPosition > 1,
+                        child: GestureDetector(
                           child: const CircularQuizButton(
                             icon: 'assets/icon/previous_arrow.svg',
                           ),
                           onTap: () => {
-                                if (questionPosition > 1)
-                                  {
-                                    context.read<KyaBloc>().add(
-                                          UpdateQuizProgress(
-                                            quiz.copyWith(
-                                              activeQuestion:
-                                                  questionPosition - 1,
-                                            ),
-                                          ),
+                            if (questionPosition > 1)
+                              {
+                                context.read<KyaBloc>().add(
+                                      UpdateQuizProgress(
+                                        quiz.copyWith(
+                                          activeQuestion: questionPosition - 1,
                                         ),
+                                      ),
+                                    ),
+                                if (!showAnswer)
+                                  {
                                     context
                                         .read<CurrentQuizQuestionCubit>()
                                         .setQuestion(quiz
                                             .questions[questionPosition - 2]),
-                                    setState(() => {
-                                          showAnswer = !showAnswer,
-                                          questionPosition =
-                                              questionPosition - 1,
-                                        }),
-                                  }
-                              }),
+                                  },
+                                setState(
+                                  () => {
+                                    showAnswer = false,
+                                    questionPosition = questionPosition - 1,
+                                  },
+                                ),
+                              }
+                          },
+                        ),
+                      ),
                       const SizedBox(
                         width: 10,
                       ),
