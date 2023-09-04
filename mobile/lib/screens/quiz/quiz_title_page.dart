@@ -33,16 +33,13 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(
-                height: 2,
-              ),
+              const SizedBox(height: 3),
               SizedBox(
                 height: 215,
                 width: 373,
                 child: Padding(
-                  padding: const EdgeInsets.all(4.0),
+                  padding: const EdgeInsets.fromLTRB(2, 10, 2, 10),
                   child: Container(
-                    alignment: Alignment.center,
                     child: CachedNetworkImage(
                       imageUrl: quiz.imageUrl,
                       imageBuilder: (context, imageProvider) => Container(
@@ -84,6 +81,7 @@ Future<dynamic> bottomSheetQuizTitle(Quiz quiz, BuildContext context) {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
+                      //width: MediaQuery.of(context).size.width * 0.8,
                       width: 275,
                       height: 44,
                       child: AutoSizeText(
