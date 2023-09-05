@@ -20,8 +20,8 @@ Future<void> main() async {
         return element;
       });
       expect(
-        reading.dateTime.day ==
-            DateTime.now().subtract(const Duration(days: 1)).day,
+        reading.dateTime
+            .isAfter(DateTime.now().subtract(const Duration(days: 1))),
         true,
       );
     });

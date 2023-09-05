@@ -10,9 +10,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../offline_banner.dart';
 import 'search_widgets.dart';
 
-class SearchPage extends StatelessWidget {
+class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
+  @override
+  State<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     Future.delayed(Duration.zero, () {
@@ -39,6 +44,25 @@ class SearchPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      List<SearchHistory> searchHistory =
+          context.read<SearchHistoryBloc>().state.history;
+      Profile profile = context.read<ProfileBloc>().state;
+      bool rateApp = profile.requiresRating();
+      if (searchHistory.length > 5 && rateApp) {
+        await Future.delayed(const Duration(milliseconds: 1000))
+            .then((_) async {
+          if (mounted) {
+            await showRatingDialog(context);
+          }
+        });
+      }
+    });
   }
 }
 

@@ -199,9 +199,7 @@ class _DashboardViewState extends State<DashboardView>
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
                 child: Text(
-                  AppLocalizations.of(context)!
-                      .actualDate(DateTime.now())
-                      .toUpperCase(),
+                  DateTime.now().timelineString(context),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.black.withOpacity(0.5),
                       ),
@@ -213,12 +211,14 @@ class _DashboardViewState extends State<DashboardView>
             ),
             SliverPersistentHeader(
               delegate: _SliverAppBarDelegate(
-                child: Text(
+                child: AutoSizeText(
                   AppLocalizations.of(context)!.todayAirQuality,
                   style: CustomTextStyle.headline11(context),
+                  maxLines: 1,
+                  minFontSize: 1,
                 ),
-                minHeight: 40,
-                maxHeight: 40,
+                minHeight: 25,
+                maxHeight: 25,
               ),
             ),
           ],
@@ -478,6 +478,7 @@ class _DashboardViewState extends State<DashboardView>
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         break;
       case AppLifecycleState.hidden:

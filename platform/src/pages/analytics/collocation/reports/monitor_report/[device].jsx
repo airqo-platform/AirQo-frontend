@@ -22,6 +22,7 @@ import Spinner from '@/components/Spinner';
 import ContentBox from '@/components/Layout/content_box';
 import { generateRandomColors } from '@/core/utils/colors';
 import withAuth from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 const MonitorReport = () => {
   const dispatch = useDispatch();
@@ -148,6 +149,14 @@ const MonitorReport = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Collocation Monitor Report</title>
+        <meta
+          property='og:title'
+          content='Collocation Monitor Report'
+          key='Collocation Monitor Report'
+        />
+      </Head>
       <NavigationBreadCrumb navTitle={'Monitor Report'} />
       {(isFetchCollocationResultsError || isFetchDataCompletenessError) && (
         <Toast

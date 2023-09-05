@@ -23,6 +23,7 @@ import OverviewSkeleton from '@/components/Collocation/AddMonitor/Skeletion/Over
 import Toast from '@/components/Toast';
 import Layout from '@/components/Layout';
 import withAuth from '@/core/utils/protectedRoute';
+import Head from 'next/head';
 
 export const getServerSideProps = wrapper.getServerSideProps((store) => async (context) => {
   const name = context.params?.name;
@@ -145,6 +146,10 @@ const CollocationOverview = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>Collocation | Overview</title>
+        <meta property='og:title' content='Collocation | Overview' key='Collocation | Overview' />
+      </Head>
       <HeaderNav category={'Collocation'} component={'Overview'} />
       {(collocationStatisticsError || deviceSummaryError) && (
         <Toast type={'error'} timeout={10000} message={'Server error!'} />

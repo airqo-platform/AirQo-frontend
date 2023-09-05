@@ -16,18 +16,20 @@ import { useDispatch } from 'react-redux';
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
 
-const renderBooleanCell = (field) => (rowData) => (
-  <span>
-    {(rowData[field] && <span style={{ color: 'green' }}>Yes</span>) || (
-      <span style={{ color: 'red' }}>No</span>
-    )}
-  </span>
-);
+const renderBooleanCell = (field) => (rowData) =>
+  (
+    <span>
+      {(rowData[field] && <span style={{ color: 'green' }}>Yes</span>) || (
+        <span style={{ color: 'red' }}>No</span>
+      )}
+    </span>
+  );
 
 const AirQloudsTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
   const airqlouds = Object.values(useDashboardAirqloudsData());
+  const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +47,7 @@ const AirQloudsTable = () => {
         <CustomMaterialTable
           pointerCursor
           userPreferencePaginationKey={'airqlouds'}
-          title="AirQloud Registry"
+          title={`AirQloud Registry for ${activeNetwork.net_name}`}
           columns={[
             {
               title: 'Name',
@@ -111,8 +113,8 @@ const AirQloudsTable = () => {
           options={{
             search: true,
             exportButton: true,
-            searchFieldAlignment: 'left',
-            showTitle: false,
+            searchFieldAlignment: 'right',
+            showTitle: true,
             searchFieldStyle: {
               fontFamily: 'Open Sans'
             },

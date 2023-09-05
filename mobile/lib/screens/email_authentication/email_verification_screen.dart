@@ -8,12 +8,12 @@ import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../widgets/auth_widgets.dart';
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> verifyEmailAuthCode(BuildContext context) async {
   await Navigator.of(context).push(
@@ -146,52 +146,52 @@ class _EmailAuthVerificationWidgetState
                     child: const AuthSuccessWidget(),
                   ),
                   const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: NextButton(
-                      buttonColor: _inputCode.length >= 6
-                          ? CustomColors.appColorBlue
-                          : CustomColors.appColorDisabled,
-                      callBack: () async {
-                        switch (state.status) {
-                          case AuthenticationStatus.success:
-                            break;
-                          case AuthenticationStatus.error:
-                          case AuthenticationStatus.initial:
-                            if (_inputCode.length < 6) {
-                              return;
-                            }
-                            FormState? formState = _formKey.currentState;
-                            if (formState == null) {
-                              return;
-                            }
-                            if (formState.validate()) {
-                              await _authenticate();
-                            }
+                  NextButton(
+                    buttonColor: _inputCode.length >= 6
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorDisabled,
+                    callBack: () async {
+                      switch (state.status) {
+                        case AuthenticationStatus.success:
+                          break;
+                        case AuthenticationStatus.error:
+                        case AuthenticationStatus.initial:
+                          if (_inputCode.length < 6) {
                             return;
-                        }
+                          }
+                          FormState? formState = _formKey.currentState;
+                          if (formState == null) {
+                            return;
+                          }
+                          if (formState.validate()) {
+                            await _authenticate();
+                          }
+                          return;
+                      }
 
-                        if (!mounted) return;
+                      if (!mounted) return;
 
-                        if (state.authProcedure == AuthProcedure.login) {
-                          await Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) {
-                              return const HomePage();
-                            }),
-                            (r) => false,
-                          );
-                        } else {
-                          await Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) {
-                              return const ProfileSetupScreen();
-                            }),
-                            (r) => false,
-                          );
-                        }
-                      },
-                    ),
+                      if (state.authProcedure == AuthProcedure.login) {
+                        await Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) {
+                            return const HomePage();
+                          }),
+                          (r) => false,
+                        );
+                      } else {
+                        await Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) {
+                            return const ProfileSetupScreen();
+                          }),
+                          (r) => false,
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    height: 12,
                   ),
                 ],
               );

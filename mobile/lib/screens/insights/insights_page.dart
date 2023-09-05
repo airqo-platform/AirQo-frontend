@@ -1,13 +1,10 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../offline_banner.dart';
 import 'insights_widgets.dart';
@@ -49,143 +46,63 @@ class InsightsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OfflineBanner(
-      child: Scaffold(
-        backgroundColor: CustomColors.appBodyColor,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          backgroundColor: CustomColors.appBodyColor,
-          centerTitle: false,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                onTap: () async {
-                  await popNavigation(context);
-                },
-                child: SvgPicture.asset(
-                  'assets/icon/close.svg',
-                  height: 40,
-                  width: 40,
-                ),
-              ),
-              Text(AppLocalizations.of(context)!.moreInsights,
-                  style: CustomTextStyle.headline8(context)),
-              FutureBuilder<Uri>(
-                future: ShareService.createShareLink(
-                  airQualityReading: airQualityReading,
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    showSnackBar(context,
-                        AppLocalizations.of(context)!.couldNotCreateAShareLink);
-                  }
-                  if (snapshot.hasData) {
-                    return InkWell(
-                      onTap: () async {
-                        Uri? link = snapshot.data;
-                        if (link != null) {
-                          await ShareService.shareLink(
-                            link,
-                            context,
-                            airQualityReading: airQualityReading,
-                          );
-                        }
-                      },
-                      child: SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        theme: SvgTheme(currentColor: CustomColors.greyColor),
-                        colorFilter: ColorFilter.mode(
-                          CustomColors.greyColor,
-                          BlendMode.srcIn,
-                        ),
-                        height: 26,
-                        width: 26,
-                      ),
-                    );
-                  }
-    
-                  return GestureDetector(
-                    onTap: () {
-                      showSnackBar(context,
-                          AppLocalizations.of(context)!.creatingShareLink);
-                    },
-                    child: const Center(
-                      child: LoadingIcon(radius: 20),
+        child: Scaffold(
+      backgroundColor: CustomColors.appBodyColor,
+      appBar: InsightsPageAppBar(airQualityReading),
+      body: AppSafeArea(
+        child: SingleChildScrollView(
+          child: BlocBuilder<InsightsBloc, InsightsState>(
+            builder: (context, state) {
+              AirQualityReading selectedAirQualityReading =
+                  airQualityReading.copyWith(
+                pm2_5: state.selectedInsight.pm2_5,
+              );
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 38,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Text(
+                      state.selectedInsight.shortDate(context),
+                      style: CustomTextStyle.headline8(context)
+                          ?.copyWith(fontSize: 20),
                     ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        body: AppSafeArea(
-          child: SingleChildScrollView(
-            child: BlocBuilder<InsightsBloc, InsightsState>(
-              builder: (context, state) {
-                Insight? selectedInsight = state.selectedInsight;
-    
-                if (selectedInsight == null) {
-                  return NoAirQualityDataWidget(callBack: () {
-                    context
-                        .read<InsightsBloc>()
-                        .add(InitializeInsightsPage(airQualityReading));
-                  });
-                }
-                AirQualityReading selectedAirQualityReading =
-                    airQualityReading.copyWith(pm2_5: selectedInsight.pm2_5);
-    
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 38,
+                  ),
+                  const SizedBox(
+                    height: 14,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Text(
+                      state.selectedInsight.dateTime.timelineString(context),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.black.withOpacity(0.5),
+                          ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: Text(
-                        selectedInsight.shortDate(context),
-                        style: CustomTextStyle.headline8(context)
-                            ?.copyWith(fontSize: 20),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 14,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: Text(
-                        AppLocalizations.of(context)!
-                            .actualDate(selectedInsight.dateTime).toUpperCase(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.black.withOpacity(0.5),
-                            ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    InsightsCalendar(selectedAirQualityReading),
-                    Visibility(
-                      visible: selectedInsight.dateTime.isToday() &&
-                          DateTime.now().hour < 12,
-                      child: ForecastContainer(
-                        selectedInsight,
-                        airQualityReading.name,
-                      ),
-                    ),
-                    HealthTipsWidget(selectedInsight),
-                    const SizedBox(
-                      height: 21,
-                    ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  InsightsCalendar(selectedAirQualityReading),
+                  Visibility(
+                    visible: state.selectedInsight.dateTime.isToday() &&
+                        DateTime.now().hour < 12,
+                    child: ForecastContainer(state.selectedInsight),
+                  ),
+                  HealthTipsWidget(state.selectedInsight),
+                  const SizedBox(
+                    height: 21,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
-    );
+    ));
   }
 }

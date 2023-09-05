@@ -12,13 +12,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../offline_banner.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'phone_auth_widgets.dart';
 import 'phone_verification_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class _PhoneAuthWidget extends StatefulWidget {
   const _PhoneAuthWidget({
@@ -98,7 +98,9 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                             Expanded(
                               child: TextFormField(
                                 validator: (_) {
-                                  if (!phoneNumber.join().isValidPhoneNumber()) {
+                                  if (!phoneNumber
+                                      .join()
+                                      .isValidPhoneNumber()) {
                                     context
                                         .read<PhoneAuthBloc>()
                                         .add(SetPhoneAuthStatus(
@@ -107,10 +109,10 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                               AppLocalizations.of(context)!
                                                   .invalidPhoneNumber,
                                         ));
-    
+
                                     return '';
                                   }
-    
+
                                   return null;
                                 },
                                 onChanged: (value) {
@@ -128,8 +130,8 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                                 style: inputTextStyle(state.status),
                                 cursorWidth: 1,
                                 autofocus: false,
-                                enabled:
-                                    state.status != AuthenticationStatus.success,
+                                enabled: state.status !=
+                                    AuthenticationStatus.success,
                                 keyboardType: TextInputType.number,
                                 decoration: inputDecoration(
                                   state.status,
@@ -152,63 +154,63 @@ class _PhoneAuthWidgetState<T extends _PhoneAuthWidget> extends State<T> {
                 const PhoneAuthErrorMessage(),
                 const PhoneAuthSwitchButton(),
                 const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: NextButton(
-                    buttonColor: phoneNumber.join().isValidPhoneNumber()
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorDisabled,
-                    callBack: () async {
-                      FocusScope.of(context).requestFocus(FocusNode());
-    
-                      switch (context.read<PhoneAuthBloc>().state.status) {
-                        case AuthenticationStatus.initial:
-                        case AuthenticationStatus.error:
-                          FormState? formState = _formKey.currentState;
-                          if (formState == null) {
-                            return;
-                          }
-    
-                          if (formState.validate()) {
-                            await _sendAuthCode();
-                          }
-                          break;
-                        case AuthenticationStatus.success:
-                          if (phoneAuthModel.phoneAuthCredential == null) {
-                            context
-                                .read<PhoneVerificationBloc>()
-                                .add(InitializePhoneVerification(
-                                  phoneAuthModel: phoneAuthModel,
-                                  authProcedure: context
-                                      .read<PhoneAuthBloc>()
-                                      .state
-                                      .authProcedure,
-                                ));
-                            await verifyPhoneAuthCode(context);
+                NextButton(
+                  buttonColor: phoneNumber.join().isValidPhoneNumber()
+                      ? CustomColors.appColorBlue
+                      : CustomColors.appColorDisabled,
+                  callBack: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
+
+                    switch (context.read<PhoneAuthBloc>().state.status) {
+                      case AuthenticationStatus.initial:
+                      case AuthenticationStatus.error:
+                        FormState? formState = _formKey.currentState;
+                        if (formState == null) {
+                          return;
+                        }
+
+                        if (formState.validate()) {
+                          await _sendAuthCode();
+                        }
+                        break;
+                      case AuthenticationStatus.success:
+                        if (phoneAuthModel.phoneAuthCredential == null) {
+                          context
+                              .read<PhoneVerificationBloc>()
+                              .add(InitializePhoneVerification(
+                                phoneAuthModel: phoneAuthModel,
+                                authProcedure: context
+                                    .read<PhoneAuthBloc>()
+                                    .state
+                                    .authProcedure,
+                              ));
+                          await verifyPhoneAuthCode(context);
+                        } else {
+                          final AuthProcedure authProcedure =
+                              context.read<PhoneAuthBloc>().state.authProcedure;
+                          if (authProcedure == AuthProcedure.login) {
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return const HomePage();
+                              }),
+                              (r) => false,
+                            );
                           } else {
-                            final AuthProcedure authProcedure =
-                                context.read<PhoneAuthBloc>().state.authProcedure;
-                            if (authProcedure == AuthProcedure.login) {
-                              await Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) {
-                                  return const HomePage();
-                                }),
-                                (r) => false,
-                              );
-                            } else {
-                              await Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) {
-                                  return const ProfileSetupScreen();
-                                }),
-                                (r) => false,
-                              );
-                            }
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return const ProfileSetupScreen();
+                              }),
+                              (r) => false,
+                            );
                           }
-                      }
-                    },
-                  ),
+                        }
+                    }
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
                 ),
                 Visibility(
                   visible: !_keyboardVisible,

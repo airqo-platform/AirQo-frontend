@@ -71,6 +71,7 @@ import {
 } from 'config/urls/authService';
 import { setDefaultAirQloud } from '../AirQloud/operations';
 import { fetchNetworkUsers } from '../AccessControl/operations';
+import { BASE_AUTH_TOKEN } from '../../utils/envVariables';
 
 /***************************errors ********************************* */
 
@@ -97,11 +98,11 @@ export const updateOrganization = (orgData) => (dispatch) => {
 
 /*********************** fetching Candidatess ********************************/
 
-export const fetchCandidates = (id) => {
+export const fetchCandidates = (networkID) => {
   return (dispatch) => {
     dispatch(fetchCandidatesRequest());
     return axios
-      .get(GET_CANDIDATES_URI)
+      .get(GET_CANDIDATES_URI, { params: { network_id: networkID, token: BASE_AUTH_TOKEN } })
       .then((response) => response.data)
       .then((data) => dispatch(fetchCandidatesSuccess(data.candidates, data.message)))
       .catch((err) => dispatch(fetchCandidatesFailed(err.response.data)));

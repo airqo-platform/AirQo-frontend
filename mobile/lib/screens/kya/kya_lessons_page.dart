@@ -28,7 +28,7 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final AppinioSwiperController _swipeController = AppinioSwiperController();
-  late int lessonIndex;
+  late int currentLesson;
 
   @override
   void dispose() {
@@ -39,7 +39,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void initState() {
     super.initState();
-    lessonIndex = widget.kyaLesson.activeTask;
+    currentLesson = widget.kyaLesson.activeTask <= widget.kyaLesson.tasks.length
+        ? widget.kyaLesson.activeTask
+        : 1;
   }
 
   @override
@@ -96,7 +98,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       ),
                     );
                   }
-    
+
                   return GestureDetector(
                     onTap: () {
                       showSnackBar(context,
@@ -172,7 +174,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       onSwipe: _onSwipe,
                       duration: const Duration(milliseconds: 300),
                       unswipe: _onUnSwipe,
-                      onEnd: _onEnd,
+                      loop: true,
                     ),
                   ),
                   const Spacer(),
@@ -180,7 +182,11 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () => _swipeController.unswipe(),
+                        onTap: () => {
+                          currentLesson > 1
+                              ? _swipeController.swipeRight()
+                              : null
+                        },
                         child: CircularKyaButton(
                           icon: 'assets/icon/previous_arrow.svg',
                           isActive: kyaLesson.activeTask > 1,
@@ -190,7 +196,11 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         width: 38,
                       ),
                       GestureDetector(
-                        onTap: () => _swipeController.swipeLeft(),
+                        onTap: () => {
+                          currentLesson >= widget.kyaLesson.tasks.length
+                              ? _onEnd()
+                              : _swipeController.swipeLeft()
+                        },
                         child: const CircularKyaButton(
                           icon: 'assets/icon/next_arrow.svg',
                         ),
@@ -240,7 +250,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   Future<void> _onSwipe(int previousTaskIndex,
       AppinioSwiperDirection appinioSwiperDirection) async {
     if (appinioSwiperDirection == AppinioSwiperDirection.left) {
-      int activeTask = ++lessonIndex;
+      int activeTask = ++currentLesson;
       KyaLesson kyaLesson = context
           .read<KyaBloc>()
           .state
@@ -263,7 +273,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         .firstWhere((element) => element == widget.kyaLesson);
 
     if (unSwiped && kyaLesson.activeTask > 1) {
-      int previousTask = --lessonIndex;
+      int previousTask = --currentLesson;
       context
           .read<KyaBloc>()
           .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: previousTask)));

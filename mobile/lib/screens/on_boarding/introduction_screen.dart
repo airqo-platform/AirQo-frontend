@@ -1,19 +1,22 @@
+import 'dart:io';
+
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../offline_banner.dart';
 import '../phone_authentication/phone_auth_screen.dart';
 import '../settings/update_screen.dart';
 import 'on_boarding_widgets.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 class IntroductionScreen extends StatefulWidget {
   const IntroductionScreen({super.key});
@@ -106,7 +109,15 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     updateOnBoardingPage();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (context.read<DashboardBloc>().state.checkForUpdates) {
-        await AirqoApiClient().getAppVersion().then((version) async {
+        final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+        await AirqoApiClient()
+            .getAppVersion(
+          currentVersion: packageInfo.version,
+          bundleId: Platform.isIOS ? packageInfo.packageName : null,
+          packageName: Platform.isAndroid ? packageInfo.packageName : null,
+        )
+            .then((version) async {
           if (version != null && mounted && !version.isUpdated) {
             await canLaunchUrl(version.url).then((bool result) async {
               await openUpdateScreen(context, version);
