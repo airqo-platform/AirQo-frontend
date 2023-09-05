@@ -20,8 +20,8 @@ const StyledMenu = withStyles({
     width: '200px',
     borderRadius: '4px',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
-    maxHeight: '200px', 
-    overflowY: 'auto' 
+    maxHeight: '200px',
+    overflowY: 'auto'
   }
 })((props) => (
   <Menu
@@ -46,23 +46,20 @@ const StyledMenuItem = withStyles((theme) => ({
       '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
         color: theme.palette.common.white
       },
-      
+
       '&:hover': {
         backgroundColor: 'lightgray',
         '& .MuiListItemText-primary': {
-          color: '#175df5',
-        },
-      },
+          color: '#175df5'
+        }
+      }
     },
     '& .MuiListItemText-primary': {
       fontWeight: 'bold',
-      color: '#175df5',
-    },
-    
+      color: '#175df5'
+    }
   }
 }))(MenuItem);
-
-
 
 export default function NetworkDropdown({ userNetworks }) {
   const dispatch = useDispatch();
@@ -96,11 +93,13 @@ export default function NetworkDropdown({ userNetworks }) {
   const handleSelect = (network) => {
     setSelectedNetwork(network);
     localStorage.setItem('activeNetwork', JSON.stringify(network));
+    localStorage.setItem('currentUserRole', JSON.stringify(network.role));
     dispatch(loadDevicesData(network.net_name));
     dispatch(loadSitesData(network.net_name));
     dispatch(fetchNetworkUsers(network._id));
     dispatch(fetchAvailableNetworkUsers(network._id));
     dispatch(loadUserRoles(network._id));
+    dispatch(addActiveNetwork(network));
     handleClose();
     window.location.reload();
   };
