@@ -175,10 +175,7 @@ const Footer = () => {
               <span>About</span>
               <div>
                 <span>
-                  <Link to="/about-us">About</Link>
-                </span>
-                <span>
-                  <Link to="/careers">Careers</Link>
+                  <Link to="/about-us">About AirQo</Link>
                 </span>
                 <span>
                   <Link to="/publications">Publications</Link>
@@ -190,7 +187,10 @@ const Footer = () => {
                   <Link to="/press">Press</Link>
                 </span>
                 <span>
-                  <Link to="/contact">Contact</Link>
+                  <Link to="/careers">Careers</Link>
+                </span>
+                <span>
+                  <Link to="/contact">Contact Us</Link>
                 </span>
                 <span>
                   <a target="_blank" href="https://medium.com/@airqo" rel="noreferrer noopener">
