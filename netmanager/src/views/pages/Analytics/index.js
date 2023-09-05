@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Typography,
   makeStyles
 } from '@material-ui/core';
@@ -30,6 +31,11 @@ import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import AddCohortToolbar from './components/AddCohortForm';
 import AddGridToolbar from './components/AddGridForm';
 import { withPermission } from '../../containers/PageAccess';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import MoreDropdown from './components/MoreDropdown';
+import { deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { updateMainAlert } from 'redux/MainAlert/operations';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -67,6 +73,9 @@ const Analytics = () => {
   const activeCohort = useSelector((state) => state.analytics.activeCohort);
   const activeCohortDetails = useSelector((state) => state.analytics.activeCohortDetails);
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
+
   const handleSwitchAirqloudTypeClick = () => {
     setIsCohort(!isCohort);
   };
@@ -98,13 +107,13 @@ const Analytics = () => {
   }, [combinedGridAndCohortsSummary, activeCohort]);
 
   useEffect(() => {
-    if (!isEmpty(activeGrid)) {
+    if (!isEmpty(activeGrid) && activeGrid.name !== 'Empty') {
       dispatch(loadGridDetails(activeGrid._id));
     }
   }, [activeGrid]);
 
   useEffect(() => {
-    if (!isEmpty(activeCohort)) {
+    if (!isEmpty(activeCohort) && activeCohort.name !== 'Empty') {
       dispatch(loadCohortDetails(activeCohort._id));
     }
   }, [activeCohort]);
@@ -130,6 +139,66 @@ const Analytics = () => {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleClickMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRefreshGrid = async () => {
+    await refreshGridApi(activeGrid._id)
+      .then((res) => {
+        dispatch(loadGridDetails(activeGrid._id));
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: res.message,
+            severity: 'success'
+          })
+        );
+        handleCloseMenu();
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
+          })
+        );
+      });
+  };
+
+  const handleDeleteGrid = async () => {
+    await deleteGridApi(activeGrid._id)
+      .then((res) => {
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: res.message,
+            severity: 'success'
+          })
+        );
+        handleCloseMenu();
+        window.location.reload();
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
+          })
+        );
+      });
   };
 
   return (
@@ -186,37 +255,93 @@ const Analytics = () => {
             >
               <ImportExportIcon /> Switch to {isCohort ? 'Grid View' : 'Cohort View'}
             </Button>
+            <Box width={'16px'} />
+            {isCohort ? (
+              <MoreDropdown
+                dropdownItems={[
+                  {
+                    title: 'Update Cohort',
+                    onClick: () => {
+                      console.log('Update Grid');
+                    }
+                  },
+                  {
+                    title: 'Delete Cohort',
+                    onClick: () => {
+                      console.log('Delete Grid');
+                    }
+                  }
+                ]}
+                anchorEl={anchorEl}
+                openMenu={openMenu}
+                handleClickMenu={handleClickMenu}
+                handleCloseMenu={handleCloseMenu}
+              />
+            ) : (
+              <MoreDropdown
+                dropdownItems={[
+                  {
+                    title: 'Refresh Grid',
+                    onClick: handleRefreshGrid
+                  },
+                  {
+                    title: 'Update Grid',
+                    onClick: () => {
+                      console.log('Update Grid');
+                    }
+                  },
+                  {
+                    title: 'Delete Grid',
+                    onClick: handleDeleteGrid
+                  }
+                ]}
+                anchorEl={anchorEl}
+                openMenu={openMenu}
+                handleClickMenu={handleClickMenu}
+                handleCloseMenu={handleCloseMenu}
+              />
+            )}
           </Box>
         </Box>
-
-        {/* Shows create grid/cohort if no cohorts and grids exist*/}
-        {combinedGridAndCohortsSummary &&
-          (isEmpty(combinedGridAndCohortsSummary.grids) ||
-            isEmpty(combinedGridAndCohortsSummary.cohorts)) &&
-          !loading && (
-            <Box
-              display={'flex'}
-              flexDirection={'column'}
-              justifyContent={'center'}
-              alignItems={'center'}
-              width={'100%'}
-              height={'100%'}
-            >
-              <Box height={'100px'} />
-              <Typography variant={'h4'}>No {isCohort ? 'cohorts' : 'grids'} found</Typography>
-              <Box height={'20px'} />
-              <Typography variant={'subtitle1'}>
-                Create a new {isCohort ? 'cohorts' : 'grids'} to get started
-              </Typography>
-            </Box>
-          )}
 
         {!isCohort && !isEmpty(activeGrid) && activeGrid.name !== 'Empty' && (
           <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />
         )}
 
+        {!isCohort && activeGrid && activeGrid.name === 'Empty' && (
+          <Box
+            display={'flex'}
+            flexDirection={'column'}
+            justifyContent={'center'}
+            alignItems={'center'}
+            width={'100%'}
+            height={'100%'}
+          >
+            <Box height={'100px'} />
+            <Typography variant={'h4'}>No grids found</Typography>
+            <Box height={'20px'} />
+            <Typography variant={'subtitle1'}>Create a new grids to get started</Typography>
+          </Box>
+        )}
+
         {isCohort && !isEmpty(activeCohort) && activeCohort.name !== 'Empty' && (
           <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
+        )}
+
+        {isCohort && activeCohort && activeCohort.name === 'Empty' && (
+          <Box
+            display={'flex'}
+            flexDirection={'column'}
+            justifyContent={'center'}
+            alignItems={'center'}
+            width={'100%'}
+            height={'100%'}
+          >
+            <Box height={'100px'} />
+            <Typography variant={'h4'}>No cohorts found</Typography>
+            <Box height={'20px'} />
+            <Typography variant={'subtitle1'}>Create a new cohorts to get started</Typography>
+          </Box>
         )}
 
         {/* Shows add new cohort dialog */}

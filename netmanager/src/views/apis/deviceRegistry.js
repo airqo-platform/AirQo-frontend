@@ -228,6 +228,30 @@ export const getCohortDetailsApi = async (cohortID) => {
     .then((response) => response.data);
 };
 
+export const deleteCohortApi = async (cohortID) => {
+  return await axios
+    .delete(`${COHORTS}/${cohortID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const deleteGridApi = async (gridID) => {
+  return await axios
+    .delete(`${GRIDS}/${gridID}`, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const updateCohortApi = async (cohortID, cohortData) => {
+  return await axios
+    .put(`${COHORTS}/${cohortID}`, cohortData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
+export const updateGridApi = async (gridID, gridData) => {
+  return await axios
+    .put(`${GRIDS}/${gridID}`, gridData, { params: { token: BASE_AUTH_TOKEN } })
+    .then((response) => response.data);
+};
+
 export const assignDevicesToCohort = async (cohortID, deviceIDs) => {
   return await axios
     .post(

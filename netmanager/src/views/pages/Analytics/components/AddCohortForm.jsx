@@ -13,6 +13,8 @@ import { assignDevicesToCohort, createCohortApi } from 'views/apis/deviceRegistr
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
+import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
+import { setActiveCohort } from 'redux/Analytics/operations';
 
 const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
   const dispatch = useDispatch();
@@ -51,7 +53,13 @@ const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
           selectedDevices.map((device) => device.value)
         )
           .then((res) => {
-            // dispatch(setActiveCohort(res.updated_cohort[0]));
+            dispatch(
+              setActiveCohort({
+                name: res.updated_cohort.name,
+                _id: res.updated_cohort._id
+              })
+            );
+            handleClose();
             dispatch(
               updateMainAlert({
                 show: true,
@@ -61,28 +69,34 @@ const AddCohortToolbar = ({ open, handleClose, deviceOptions, isCohort }) => {
             );
             clearState();
             setSelectedDevices([]);
-            handleClose();
             setLoading(false);
           })
           .catch((error) => {
+            const errors = error.response && error.response.data && error.response.data.errors;
+            handleClose();
             dispatch(
               updateMainAlert({
                 show: true,
                 message: error.response && error.response.data && error.response.data.message,
-                severity: 'error'
+                severity: 'error',
+                extra: createAlertBarExtraContentFromObject(errors || {})
               })
             );
             setLoading(false);
           });
       })
       .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        handleClose();
         dispatch(
           updateMainAlert({
             show: true,
             message: error.response && error.response.data && error.response.data.message,
-            severity: 'error'
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
+        setLoading(false);
       });
   };
   return (

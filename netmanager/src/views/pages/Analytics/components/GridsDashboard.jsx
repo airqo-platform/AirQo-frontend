@@ -5,6 +5,7 @@ import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import 'chartjs-plugin-annotation';
 import { AveragesChart, ExceedancesChart } from '../../Dashboard/components';
 import GridSitesTable from './SitesTable';
+import { isEmpty } from 'underscore';
 
 const useStyles = makeStyles((theme) => ({
   chartCard: {},
