@@ -73,7 +73,7 @@
     "testEnvironment": "jest-environment-jsdom",
     "collectCoverageFrom": [
       "frontend/src/**/*.js",
-      "!src/index.js"
+      "!frontend/src/index.js"
     ],
     "coverageReporters": [
       "clover", "json", "lcov", "text"
