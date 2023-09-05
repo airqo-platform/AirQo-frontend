@@ -70,7 +70,14 @@
     "webpack-dev-server": "^4.11.1"
   },
   "jest": {
-    "testEnvironment": "jest-environment-jsdom"
+    "testEnvironment": "jest-environment-jsdom",
+    "collectCoverageFrom": [
+      "frontend/src/**/*.js",
+      "!frontend/src/index.js"
+    ],
+    "coverageReporters": [
+      "clover", "json", "lcov", "text"
+    ]
   },
   "engines": {
     "node": ">=14.x <=18.x"
