@@ -74,9 +74,8 @@
       "frontend/**/*.js",
       "!frontend/index.js"
     ],
-    "coverageReporters": [
-      "clover", "json", "lcov", "text"
-    ]
+    "coverageReporters": 
+      ["clover", "json", "lcov", "text"]
   },
   "engines": {
     "node": ">=14.x <=18.x"
