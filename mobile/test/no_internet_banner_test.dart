@@ -1,90 +1,117 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:async';
+import 'dart:ffi';
+
+import 'package:app/screens/home_page.dart';
 import 'package:app/screens/offline_banner.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+class MockConnectivity extends Mock implements Connectivity {}
 
 void main() {
-  group('OfflineBanner Widget Tests', () {
-    late InternetConnectionBannerCubit connectionBannerCubit;
-    late Widget testWidget;
+  group('OfflineBanner', () {
+    late MockConnectivity connectivity;
+    late InternetConnectionBannerCubit cubit;
 
     setUp(() {
-      connectionBannerCubit = InternetConnectionBannerCubit();
-      testWidget = MaterialApp(
-        home: BlocProvider<InternetConnectionBannerCubit>.value(
-          value: connectionBannerCubit,
-          child: const OfflineBanner(child: Placeholder()),
-        ),
-      );
+      connectivity = MockConnectivity();
+      cubit = InternetConnectionBannerCubit();
     });
 
-    testWidgets('Initial Banner Visibility', (tester) async {
-      await tester.pumpWidget(testWidget);
-      final initialVisibility = find.byType(Visibility);
-      expect(initialVisibility, findsOneWidget);
+    testWidgets('shows banner when offline', (tester) async {
+      final key = GlobalKey();
+
+      await tester.runAsync(() async {
+        dynamic connectivityResult = true;
+        connectivityResult = connectivity.checkConnectivity();
+        // Set up the mock to return ConnectivityResult.none;
+        when(connectivityResult as FutureOr<ConnectivityResult>)
+            .thenAnswer((_) async => ConnectivityResult.none);
+
+        await tester.pumpWidget(const MaterialApp(
+          home: HomePage(),
+        ));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        expect(find.byType(Container), findsOneWidget);
+        expect(find.byType(Positioned), findsOneWidget);
+        expect(
+          find.text(
+            AppLocalizations.of(key.currentContext!)!.internetConnectionLost,
+          ),
+          findsOneWidget,
+        );
+      });
     });
 
-    testWidgets('Hiding and Showing the Banner', (tester) async {
-      await tester.pumpWidget(testWidget);
+    testWidgets('hides banner when back online', (tester) async {
+      await tester.runAsync(() async {
+        // Set up the mock to return ConnectivityResult.none initially
+        when(connectivity.checkConnectivity())
+            .thenAnswer((_) async => ConnectivityResult.none);
 
-      // Hide the banner
-      connectionBannerCubit.hideBanner();
-      await tester.pumpAndSettle();
-      final hiddenBanner = find.byType(SizedBox);
-      expect(hiddenBanner, findsNothing);
+        await tester.pumpWidget(MaterialApp(
+          home: OfflineBanner(
+            child: Container(),
+          ),
+        ));
 
-      // Show the banner
-      connectionBannerCubit.showBanner();
-      await tester.pumpAndSettle();
-      final visibleBanner = find.byType(Visibility);
-      expect(visibleBanner, findsOneWidget);
+        // Verify that the banner is initially displayed
+        expect(find.byType(Positioned), findsOneWidget);
+
+        // Change the mock to return ConnectivityResult.wifi
+        when(connectivity.checkConnectivity())
+            .thenAnswer((_) async => ConnectivityResult.wifi);
+
+        // Rebuild the widget
+        await tester.pump();
+
+        // Verify that the banner is hidden when back online
+        expect(find.byType(Positioned), findsNothing);
+      });
     });
 
-    testWidgets('Resetting the Banner on Connectivity Change', (tester) async {
-      await tester.pumpWidget(testWidget);
+    testWidgets('resets banner on connectivity change', (tester) async {
+      await tester.runAsync(() async {
+        // Set up the mock to return ConnectivityResult.none initially
+        when(connectivity.checkConnectivity())
+            .thenAnswer((_) async => ConnectivityResult.none);
 
-      // Hide the banner first
-      connectionBannerCubit.hideBanner();
-      await tester.pumpAndSettle();
+        // Set up the mock stream for connectivity changes
+        final connectivityStreamController =
+            StreamController<ConnectivityResult>();
+        when(connectivity.onConnectivityChanged)
+            .thenAnswer((_) => connectivityStreamController.stream);
 
-      // Reset the banner due to connectivity change
-      connectionBannerCubit.resetBanner();
-      await tester.pumpAndSettle();
-      final visibleBanner = find.byType(Visibility);
-      expect(visibleBanner, findsOneWidget);
-    });
+        await tester.pumpWidget(MaterialApp(
+          home: BlocProvider.value(
+            value: cubit,
+            child: OfflineBanner(
+              child: Container(),
+            ),
+          ),
+        ));
 
-    testWidgets('Banner Remains Hidden on Online Status', (tester) async {
-      await tester.pumpWidget(testWidget);
+        // Verify that the banner is initially displayed
+        expect(find.byType(Positioned), findsOneWidget);
 
-      // Simulate a change in connectivity status to online
-      connectionBannerCubit.resetBanner(); // Reset first
-      await tester.pumpAndSettle();
-      connectionBannerCubit.hideBanner(); // Hide the banner
-      await tester.pumpAndSettle();
+        // Change the mock stream to emit ConnectivityResult.wifi
+        connectivityStreamController.add(ConnectivityResult.wifi);
 
-      // ConnectivityResult.mobile or ConnectivityResult.wifi
-      connectionBannerCubit.resetBanner(); // Reset again to online
-      await tester.pumpAndSettle();
-      final hiddenBanner = find.byType(SizedBox);
-      expect(hiddenBanner, findsNothing);
-    });
+        // Wait for the widget to rebuild
+        await tester.pump();
 
-    testWidgets('Banner Visibility After Multiple Resets', (tester) async {
-      await tester.pumpWidget(testWidget);
+        // Verify that the banner is reset on connectivity change
+        verify(cubit.resetBanner()).called(1);
 
-      // Hide the banner first
-      connectionBannerCubit.hideBanner();
-      await tester.pumpAndSettle();
-
-      // Reset the banner multiple times
-      connectionBannerCubit.resetBanner();
-      await tester.pumpAndSettle();
-      connectionBannerCubit.resetBanner();
-      await tester.pumpAndSettle();
-
-      final visibleBanner = find.byType(Visibility);
-      expect(visibleBanner, findsOneWidget);
+        // Close the stream controller
+        connectivityStreamController.close();
+      });
     });
   });
 }
