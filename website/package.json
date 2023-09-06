@@ -70,8 +70,6 @@
     "webpack-dev-server": "^4.11.1"
   },
   "jest": {
-    "testEnvironment": "jest-environment-jsdom",
-    "collectCoverage": true,
     "collectCoverageFrom": [
       "frontend/**/*.js",
       "!frontend/index.js"
