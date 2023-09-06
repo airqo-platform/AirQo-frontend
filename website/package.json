@@ -71,6 +71,7 @@
   },
   "jest": {
     "testEnvironment": "jest-environment-jsdom",
+    "collectCoverage": true,
     "collectCoverageFrom": [
       "frontend/**/*.js",
       "!frontend/index.js"
