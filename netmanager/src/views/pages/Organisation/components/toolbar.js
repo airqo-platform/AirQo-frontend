@@ -1,19 +1,24 @@
 import {
   Button,
-  Card,
-  CardActions,
-  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
   TextField,
   Typography,
-  makeStyles
+  makeStyles,
+  Drawer
 } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
+import { isEmpty } from 'underscore';
 import React, { useEffect, useState } from 'react';
 import { createNetworkApi } from '../../../apis/accessControl';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { useDispatch } from 'react-redux';
-// dropdown component
 import Select from 'react-select';
+import HorizontalLoader from '../../../components/HorizontalLoader/HorizontalLoader';
+import CustomMaterialTable from '../../../components/Table/CustomMaterialTable';
+import { getNetworksApi, updateNetworkApi } from '../../../apis/accessControl';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,13 +66,18 @@ const useStyles = makeStyles((theme) => ({
   },
   formTitle: {
     fontWeight: 600,
-    fontSize: '22px',
-    marginBottom: '5px'
+    textAlign: 'center',
+    padding: theme.spacing(2)
   },
   formSubtitle: {
     color: 'grey',
-    width: '70%',
     margin: '3px auto'
+  },
+  modelWidth: {
+    minWidth: 450,
+    [theme.breakpoints.down('sm')]: {
+      minWidth: '100%'
+    }
   }
 }));
 
@@ -139,10 +149,34 @@ const customStyles = {
   })
 };
 
-const OrgToolbar = (props) => {
+const DrawerStyles = makeStyles((theme) => ({
+  drawer: {
+    width: '300px',
+    padding: '12px'
+  }
+}));
+
+const DrawerComponent = ({ drawerData, showFullDescription, toggleDrawer }) => {
+  const classes = DrawerStyles();
+  return (
+    <Drawer anchor={'right'} open={showFullDescription} onClose={toggleDrawer}>
+      {drawerData && (
+        <div className={classes.drawer}>
+          <Typography variant="h6">Description</Typography>
+          <Typography variant="body1">{drawerData.net_description}</Typography>
+        </div>
+      )}
+    </Drawer>
+  );
+};
+
+const RegisterOrg = ({ props, setLoading, open, setOpen }) => {
   const dispatch = useDispatch();
   const classes = useStyles();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
   const { className, ...rest } = props;
+  const [selectedOption, setSelectedOption] = React.useState(null);
   const initialState = {
     orgEmail: '',
     orgContact: '',
@@ -151,11 +185,16 @@ const OrgToolbar = (props) => {
     category: CATEGORIES[0].value
   };
   const [form, setState] = useState(initialState);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // hook for dropdown component
-  const [selectedOption, setSelectedOption] = React.useState(null);
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setShowError(false);
+        setErrorMessage('');
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   const clearState = () => {
     setState({ ...initialState });
@@ -212,6 +251,8 @@ const OrgToolbar = (props) => {
           })
         );
 
+        setOpen(false);
+
         // refresh the page without reloading
         setTimeout(() => {
           window.location.reload(false);
@@ -220,14 +261,223 @@ const OrgToolbar = (props) => {
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
         setLoading(false);
+        if (errors) {
+          const errorMessages = createAlertBarExtraContentFromObject(errors);
+          setErrorMessage(errorMessages);
+          setShowError(true);
+        } else {
+          setErrorMessage([error.response.data.message]);
+          setShowError(true);
+        }
+      });
+  };
+
+  useEffect(() => {
+    clearState();
+  }, []);
+  return (
+    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="form-dialog-title">
+      <Typography variant="h4" className={classes.formTitle}>
+        Register new organisation
+      </Typography>
+      <DialogContent>
+        <p className={classes.formSubtitle}>
+          Get access to customised tools to help you manage your own air quality network
+        </p>
+        {showError && (
+          <Alert style={{ marginBottom: 10 }} severity="error">
+            {errorMessage.map((message, index) => (
+              <p key={index}>{message}</p>
+            ))}
+          </Alert>
+        )}
+        <TextField
+          margin="dense"
+          id="orgEmail"
+          name="org_email"
+          type="email"
+          label="Organisation email"
+          onChange={onChange}
+          variant="outlined"
+          value={form.orgEmail}
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
+
+        <Select
+          label="Category"
+          options={options}
+          value={selectedOption}
+          onChange={onChangeDropdown}
+          styles={customStyles}
+          isMulti={false}
+          name="category"
+          fullWidth
+          placeholder="Select category"
+        />
+
+        <TextField
+          margin="dense"
+          id="orgContact"
+          name="org_contact"
+          type="text"
+          label="Organisation contact"
+          onChange={onChange}
+          variant="outlined"
+          value={form.orgContact}
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
+
+        <TextField
+          margin="dense"
+          id="website"
+          label="Website"
+          name="website"
+          type="text"
+          onChange={onChange}
+          value={form.website}
+          variant="outlined"
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
+
+        <TextField
+          margin="dense"
+          id="description"
+          label="Tell us something about your organisation"
+          name="description"
+          type="text"
+          onChange={onChange}
+          value={form.description}
+          variant="outlined"
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
+
+        <DialogActions>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={onSubmit}
+              color="primary"
+              variant="contained"
+              style={{ marginRight: '-8px' }}>
+              Submit
+            </Button>
+          </div>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const EditOrg = ({ props, setLoading, open, setOpen, selected }) => {
+  const dispatch = useDispatch();
+  const classes = useStyles();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
+  const { className, ...rest } = props;
+  const [selectedOption, setSelectedOption] = React.useState(null);
+  const initialState = {
+    orgEmail: '',
+    orgContact: '',
+    website: '',
+    description: '',
+    category: CATEGORIES[0].value
+  };
+
+  const [form, setState] = useState(initialState);
+
+  useEffect(() => {
+    if (selected) {
+      setState({
+        orgEmail: selected.net_email,
+        orgContact: selected.net_phoneNumber,
+        website: selected.net_website,
+        description: selected.net_description
+      });
+      setSelectedOption({
+        value: selected.net_category,
+        label: selected.net_category
+      });
+    }
+  }, [selected]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setShowError(false);
+        setErrorMessage('');
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+
+  const clearState = () => {
+    setState({ ...initialState });
+  };
+
+  const onChange = (e) => {
+    e.preventDefault();
+    const { id, value } = e.target;
+
+    setState({
+      ...form,
+      [id]: value
+    });
+  };
+
+  // handle dropdown component
+  const onChangeDropdown = (selectedOption, { name }) => {
+    setState({
+      ...form,
+      [name]: selectedOption.value
+    });
+    setSelectedOption(selectedOption);
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const body = {
+      net_email: form.orgEmail,
+      net_phoneNumber: form.orgContact,
+      net_website: form.website,
+      net_description: form.description,
+      net_category: form.category
+    };
+    // register organisation
+    updateNetworkApi(selected._id, body)
+      .then((res) => {
+        setLoading(false);
         dispatch(
           updateMainAlert({
-            message: error.response && error.response.data && error.response.data.message,
+            message: 'You have successfully updated your organisation details!',
             show: true,
-            severity: 'error',
-            extra: createAlertBarExtraContentFromObject(errors || {})
+            severity: 'success'
           })
         );
+        setOpen(false);
+        // refresh the page without reloading
+        setTimeout(() => {
+          window.location.reload(false);
+        }, 5000);
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        setLoading(false);
+        if (errors) {
+          const errorMessages = createAlertBarExtraContentFromObject(errors);
+          setErrorMessage(errorMessages);
+          setShowError(true);
+        } else {
+          setErrorMessage([error.response.data.message]);
+          setShowError(true);
+        }
       });
   };
 
@@ -236,98 +486,254 @@ const OrgToolbar = (props) => {
   }, []);
 
   return (
-    <Card aria-labelledby="form-dialog-title" className={classes.modelWidth}>
-      <Typography id="form-dialog-title" className={classes.formTitle}>
-        Register new organisation
+    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="form-dialog-title">
+      <Typography variant="h4" className={classes.formTitle}>
+        Edit organisation
       </Typography>
-      <p className={classes.formSubtitle}>
-        Get access to customised tools to help you manage your own air quality network
-      </p>
-      <CardContent>
-        <div>
-          <TextField
-            margin="dense"
-            id="orgEmail"
-            name="org_email"
-            type="email"
-            label="Organisation email"
-            onChange={onChange}
-            variant="outlined"
-            value={form.orgEmail}
-            fullWidth
-            style={{ marginBottom: '12px' }}
-            required
-          />
 
-          {/* dropdown  */}
-          <Select
-            label="Category"
-            options={options}
-            value={selectedOption}
-            onChange={onChangeDropdown}
-            styles={customStyles}
-            isMulti={false}
-            name="category"
-            fullWidth
-            placeholder="Select category"
-          />
+      <DialogContent>
+        {showError && (
+          <Alert style={{ marginBottom: 10 }} severity="error">
+            {errorMessage.map((message, index) => (
+              <p key={index}>{message}</p>
+            ))}
+          </Alert>
+        )}
+        <TextField
+          margin="dense"
+          id="orgEmail"
+          name="org_email"
+          type="email"
+          label="Organisation email"
+          onChange={onChange}
+          variant="outlined"
+          value={form.orgEmail}
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
 
-          <TextField
-            margin="dense"
-            id="orgContact"
-            name="org_contact"
-            type="text"
-            label="Organisation contact"
-            onChange={onChange}
-            variant="outlined"
-            value={form.orgContact}
-            fullWidth
-            style={{ marginBottom: '12px' }}
-            required
-          />
+        <Select
+          label="Category"
+          options={options}
+          isLoading={isEmpty(selected)}
+          value={selectedOption}
+          onChange={onChangeDropdown}
+          styles={customStyles}
+          isMulti={false}
+          name="category"
+          fullWidth
+          placeholder="Select category"
+        />
 
-          <TextField
-            margin="dense"
-            id="website"
-            label="Website"
-            name="website"
-            type="text"
-            onChange={onChange}
-            value={form.website}
-            variant="outlined"
-            fullWidth
-            style={{ marginBottom: '12px' }}
-            required
-          />
+        <TextField
+          margin="dense"
+          id="orgContact"
+          name="org_contact"
+          type="text"
+          label="Organisation contact"
+          onChange={onChange}
+          variant="outlined"
+          value={form.orgContact}
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
 
-          <TextField
-            margin="dense"
-            id="description"
-            label="Tell us something about your organisation"
-            name="description"
-            type="text"
-            onChange={onChange}
-            value={form.description}
-            variant="outlined"
-            fullWidth
-            style={{ marginBottom: '12px' }}
-            required
-          />
-        </div>
-      </CardContent>
+        <TextField
+          margin="dense"
+          id="website"
+          label="Website"
+          name="website"
+          type="text"
+          onChange={onChange}
+          value={form.website}
+          variant="outlined"
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
 
-      <CardActions>
-        <div style={{ width: '100%' }}>
+        <TextField
+          margin="dense"
+          id="description"
+          label="Tell us something about your organisation"
+          name="description"
+          type="text"
+          onChange={onChange}
+          value={form.description}
+          variant="outlined"
+          fullWidth
+          style={{ marginBottom: '12px' }}
+          required
+        />
+
+        <DialogActions>
           <Button
-            style={{ margin: '0 15px', width: '250px' }}
             onClick={onSubmit}
             color="primary"
-            variant="contained">
-            Submit
+            variant="contained"
+            style={{ marginRight: '-8px' }}>
+            Save changes
           </Button>
-        </div>
-      </CardActions>
-    </Card>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const OrgToolbar = (props) => {
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [organisationData, setOrganisationData] = useState([]);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
+  const toggleDrawer = () => {
+    setShowFullDescription(!showFullDescription);
+  };
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  const userID = currentUser && currentUser._id;
+
+  useEffect(() => {
+    setIsLoading(true);
+    getNetworksApi()
+      .then((res) => {
+        setIsLoading(false);
+        const { networks } = res;
+        networks.map((network) => {
+          const { net_manager, ...rest } = network;
+          if (net_manager && net_manager._id === userID) {
+            setOrganisationData((prevState) => [...prevState, rest]);
+          }
+        });
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        dispatch(
+          updateMainAlert({
+            message: 'Something went wrong while fetching your organisation details',
+            show: true,
+            severity: 'error'
+          })
+        );
+      });
+  }, []);
+
+  return (
+    <>
+      <HorizontalLoader loading={loading} />
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          marginBottom: '20px'
+        }}>
+        <Button onClick={() => setOpen(true)} color="primary" variant="contained">
+          Register new organisation
+        </Button>
+      </div>
+
+      <CustomMaterialTable
+        pointerCursor
+        userPreferencePaginationKey={'Organisation'}
+        title={`Organisation Registry`}
+        columns={[
+          {
+            title: 'Name',
+            field: 'net_name'
+          },
+          {
+            title: 'Email',
+            field: 'net_email'
+          },
+          {
+            title: 'Contact',
+            field: 'net_phoneNumber'
+          },
+          {
+            title: 'Website',
+            field: 'net_website'
+          },
+          {
+            title: 'Category',
+            field: 'net_category'
+          },
+          {
+            title: 'Description',
+            field: 'net_description',
+            render: (rowData) => {
+              const truncatedDescription =
+                rowData.net_description.length > 180
+                  ? rowData.net_description.substring(0, 180) + '...'
+                  : rowData.net_description;
+              return (
+                <>
+                  <Typography variant="body1">{truncatedDescription}</Typography>
+                  {rowData.net_description.length > 180 && (
+                    <span
+                      style={{
+                        color: '#3f51b5'
+                      }}
+                      onClick={() => {
+                        setSelectedOption(rowData);
+                        toggleDrawer();
+                      }}>
+                      Show More
+                    </span>
+                  )}
+                </>
+              );
+            }
+          }
+        ]}
+        data={organisationData}
+        isLoading={isLoading}
+        options={{
+          actionsColumnIndex: -1,
+          pageSize: 10,
+          pageSizeOptions: [10, 20, 50, 100],
+          headerStyle: {
+            color: '#000'
+          },
+          rowStyle: (rowData) => ({
+            backgroundColor: rowData.tableData.id % 2 ? '#EEE' : '#FFF'
+          })
+        }}
+        actions={[
+          {
+            icon: 'edit',
+            tooltip: 'Edit Organisation',
+            onClick: (event, rowData) => {
+              setOpenEdit(true);
+              setSelectedOption(rowData);
+            }
+          }
+        ]}
+      />
+
+      <RegisterOrg open={open} setOpen={setOpen} props={props} setLoading={setLoading} />
+
+      <EditOrg
+        open={openEdit}
+        setOpen={setOpenEdit}
+        props={props}
+        setLoading={setLoading}
+        selected={selectedOption}
+      />
+
+      <DrawerComponent
+        drawerData={selectedOption}
+        showFullDescription={showFullDescription}
+        toggleDrawer={toggleDrawer}
+      />
+    </>
   );
 };
 
