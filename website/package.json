@@ -80,7 +80,12 @@
       "frontend/src"
     ],
     "moduleNameMapper": {
-      "\\.svg": "<rootDir>/__mocks__/svgrMock.js"
+      "@jest/expect-utils": "<rootDir>/node_modules/@jest/expect-utils",
+      "\\.svg": "<rootDir>/__mocks__/svgrMock.js",
+      "reduxStore":"<rootDir>/frontend/reduxStore",
+      "utilities/customHooks":"<rootDir>/frontend/utilities/customHooks",
+      "\\.(jpg|ico|jpeg|png|gif|eot|otf|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/imageMock.js",
+      "\\.(css|less)$": "<rootDir>/__mocks__/imageMock.js"
     }
   },
   "engines": {
