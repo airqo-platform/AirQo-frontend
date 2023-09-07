@@ -4,13 +4,13 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 class DashboardLoadingWidget extends StatelessWidget {
   const DashboardLoadingWidget({super.key});
@@ -215,51 +215,48 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: nextScreenClickHandler,
+    return OutlinedButton(
       key: widgetKey,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(56),
-          foregroundColor: CustomColors.appColorBlue,
-          elevation: 0,
-          side: const BorderSide(
-            color: Colors.transparent,
-            width: 0,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
-            ),
-          ),
-          backgroundColor: Colors.white,
-          padding: EdgeInsets.zero,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(56),
+        foregroundColor: CustomColors.appColorBlue,
+        elevation: 0,
+        side: const BorderSide(
+          color: Colors.transparent,
+          width: 0,
         ),
-        onPressed: nextScreenClickHandler,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 32,
-              width: getWidth(children.length),
-              child: Stack(
-                children: children,
-              ),
-            ),
-            const SizedBox(
-              width: 8,
-            ),
-            AutoSizeText(
-              maxLines: 2,
-              minFontSize: 1,
-              title,
-              style: CustomTextStyle.bodyText4(context)?.copyWith(
-                color: CustomColors.appColorBlue,
-              ),
-            ),
-          ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(8),
+          ),
         ),
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.zero,
+      ),
+      onPressed: nextScreenClickHandler,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 32,
+            width: getWidth(children.length),
+            child: Stack(
+              children: children,
+            ),
+          ),
+          const SizedBox(
+            width: 8,
+          ),
+          AutoSizeText(
+            maxLines: 2,
+            minFontSize: 1,
+            title,
+            style: CustomTextStyle.bodyText4(context)?.copyWith(
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -275,49 +272,63 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   final double rightPadding;
   final FavouritePlace favouritePlace;
 
-  @override
-  Widget build(BuildContext context) {
-    AirQualityReading? airQualityReading = favouritePlace.airQualityReading;
-    if (airQualityReading == null) {
-      return Positioned(
-        right: rightPadding,
-        child: const CircularLoadingAnimation(
-          size: 32,
-        ),
-      );
+  Future<AirQualityReading?> getAirQuality() async {
+    if (favouritePlace.airQualityReading != null) {
+      return favouritePlace.airQualityReading;
     }
 
-    return Positioned(
-      right: rightPadding,
-      child: Container(
-        height: 32.0,
-        width: 32.0,
-        padding: const EdgeInsets.all(2.0),
-        decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            BorderSide(
-              color: CustomColors.appBodyColor,
-              width: 2,
+    return LocationService.getSearchAirQuality(favouritePlace.point);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<AirQualityReading?>(
+        future: getAirQuality(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            AirQualityReading? airQualityReading = snapshot.data;
+            if (airQualityReading != null) {
+              return Positioned(
+                right: rightPadding,
+                child: Container(
+                  height: 32.0,
+                  width: 32.0,
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    border: Border.fromBorderSide(
+                      BorderSide(
+                        color: CustomColors.appBodyColor,
+                        width: 2,
+                      ),
+                    ),
+                    color: Pollutant.pm2_5.color(
+                      airQualityReading.pm2_5,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${airQualityReading.pm2_5}',
+                      style: TextStyle(
+                        fontSize: 7,
+                        color: Pollutant.pm2_5.textColor(
+                          value: airQualityReading.pm2_5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
+          return Positioned(
+            right: rightPadding,
+            child: const CircularLoadingAnimation(
+              size: 32,
             ),
-          ),
-          color: Pollutant.pm2_5.color(
-            airQualityReading.pm2_5,
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            '${airQualityReading.pm2_5}',
-            style: TextStyle(
-              fontSize: 7,
-              color: Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 

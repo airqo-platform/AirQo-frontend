@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class SearchResult {
   SearchResult({
     required this.id,
@@ -45,6 +47,8 @@ class SearchResult {
   final String location;
   final double latitude;
   final double longitude;
+
+  Point get point => Point(latitude, longitude);
 }
 
 class SearchCache {

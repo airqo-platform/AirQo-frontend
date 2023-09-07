@@ -21,31 +21,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     List<AirQualityReading> nearbyAirQualityReadings =
         HiveService().getNearbyAirQualityReadings();
 
-    nearbyAirQualityReadings.sortByDistanceToReferenceSite();
-
-    if (nearbyAirQualityReadings.length > 1) {
-      airQualityCards.add(nearbyAirQualityReadings[1]);
-    }
+    airQualityCards.addAll(nearbyAirQualityReadings.take(5).toList());
 
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
     airQualityReadings.removeWhere((element) => airQualityCards
-        .map((e) => e.placeId)
+        .map((e) => e.name.toLowerCase())
         .toList()
-        .contains(element.placeId));
+        .contains(element.name.toLowerCase()));
 
-    final List<String> countries =
-        airQualityReadings.map((e) => e.country).toSet().toList();
-
-    for (final country in countries) {
-      List<AirQualityReading> countryReadings = airQualityReadings
-          .where((element) => element.country.equalsIgnoreCase(country))
-          .toList();
-      countryReadings.shuffle();
-      airQualityCards.addAll(countryReadings.take(2));
-    }
-
+    airQualityCards.addAll(airQualityReadings.getAirQualityForCountries());
     airQualityCards = airQualityCards.shuffleByCountry();
 
     return emit(

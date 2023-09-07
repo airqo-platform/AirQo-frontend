@@ -9,20 +9,8 @@ import 'services.dart';
 class WidgetService {
   static Future<void> sendData() async {
     try {
-      CurrentLocation? currentLocation =
-          await LocationService.getCurrentLocation();
-      AirQualityReading? airQualityReading;
-      if (currentLocation != null) {
-        airQualityReading = await LocationService.getNearestSite(
-              currentLocation.latitude,
-              currentLocation.longitude,
-            ) ??
-            (await LocationService.getSurroundingSites(
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            ))
-                .firstOrNull;
-      }
+      AirQualityReading? airQualityReading =
+          await LocationService.getLocationAirQuality();
       if (airQualityReading == null) {
         String userId = CustomAuth.getUserId();
         List<FavouritePlace> favouritePlaces = [];

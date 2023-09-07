@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
@@ -185,6 +186,9 @@ class AirqoApiClient {
 
   Future<List<Forecast>> fetchForecast(String siteId) async {
     final forecasts = <Forecast>[];
+    if (siteId.isEmpty) {
+      return forecasts;
+    }
 
     try {
       final body = await _performGetRequest(
@@ -283,6 +287,34 @@ class AirqoApiClient {
     }
 
     return locationHistory;
+  }
+
+  Future<AirQualityReading?> searchAirQuality(Point point) async {
+    try {
+      final body = await _performGetRequest(
+        {
+          "latitude": point.latitude,
+          "longitude": point.longitude,
+        },
+        AirQoUrls.searchAirQuality,
+        apiService: ApiService.predict,
+      );
+      Map<String, dynamic> data = body['data'] as Map<String, dynamic>;
+
+      return data.keys.isEmpty
+          ? null
+          : AirQualityReading.fromSearchAPI(
+              body['data'] as Map<String, dynamic>,
+              point,
+            );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return null;
   }
 
   Future<bool> syncLocationHistory(

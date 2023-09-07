@@ -8,8 +8,8 @@ import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar(this.airQualityReading, {super.key});
@@ -409,7 +409,9 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       ),
                     ),
                     InkWell(
-                      onTap: () async => _updateFavPlace(),
+                      onTap: () async {
+                        await _updateFavPlace();
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
@@ -490,10 +492,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     );
   }
 
-  void _updateFavPlace() {
+  Future<void> _updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
 
-    Future.delayed(const Duration(seconds: 2), () {
+    await Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showHeartAnimation = false);
       }

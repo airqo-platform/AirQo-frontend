@@ -4,7 +4,6 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
@@ -117,16 +116,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<AirQualityReading> airQualityReadings =
         HiveService().getAirQualityReadings();
 
-    // Add sites within 4 kilometers
     List<AirQualityReading> recommendations = airQualityReadings
         .where(
           (e) =>
-              metersToKmDouble(Geolocator.distanceBetween(
-                e.latitude,
-                e.longitude,
-                event.searchResult.latitude,
-                event.searchResult.longitude,
-              )) <=
+              e.point.geoKmDistanceTo(event.searchResult.point) <=
               Config.searchRadius * 2,
         )
         .toList();

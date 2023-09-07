@@ -183,8 +183,8 @@ class _MapLandscapeState extends State<MapLandscape> {
         itemsSize: airQualityReadings.length,
       );
 
-      final marker = Marker(
-        markerId: MarkerId(airQualityReading.referenceSite),
+      markers[airQualityReading.placeId] = Marker(
+        markerId: MarkerId(airQualityReading.placeId),
         icon: bitmapDescriptor,
         position: LatLng(
           airQualityReading.latitude,
@@ -194,7 +194,6 @@ class _MapLandscapeState extends State<MapLandscape> {
           context.read<MapBloc>().add(ShowSiteReading(airQualityReading));
         },
       );
-      markers[airQualityReading.placeId] = marker;
     }
 
     if (!mounted) return;

@@ -15,7 +15,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -48,7 +47,7 @@ class _DashboardViewState extends State<DashboardView>
   late GlobalKey _analyticsShowcaseKey;
   late GlobalKey _nearestLocationShowcaseKey;
   late GlobalKey _skipShowcaseKey;
-  bool _kyaExists = true, _nearbyLocationExists = false;
+  bool _kyaExists = true, _nearbyLocationExists = false; // TODO FIX THIS
 
   final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
@@ -59,7 +58,6 @@ class _DashboardViewState extends State<DashboardView>
   late StreamSubscription<Position> _locationPositionStream;
   final AppService _appService = AppService();
   final ScrollController _scrollController = ScrollController();
-  final HiveService _hiveService = HiveService();
 
   @override
   Widget build(BuildContext context) {
@@ -234,12 +232,13 @@ class _DashboardViewState extends State<DashboardView>
                 children: [
                   BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
                     builder: (context, state) {
-                      CurrentLocation? currentLocation = state.currentLocation;
+                      AirQualityReading? locationAirQuality =
+                          state.locationAirQuality;
                       switch (state.blocStatus) {
                         case NearbyLocationStatus.searchComplete:
                           break;
                         case NearbyLocationStatus.searching:
-                          if (currentLocation == null) {
+                          if (locationAirQuality == null) {
                             return const SearchingAirQuality();
                           }
                           break;
@@ -250,7 +249,7 @@ class _DashboardViewState extends State<DashboardView>
                           );
                       }
 
-                      if (currentLocation == null) {
+                      if (locationAirQuality == null) {
                         return state.showErrorMessage
                             ? Padding(
                                 padding: const EdgeInsets.only(top: 16),
@@ -262,55 +261,22 @@ class _DashboardViewState extends State<DashboardView>
                             : Container();
                       }
 
-                      return ValueListenableBuilder<Box<AirQualityReading>>(
-                        valueListenable: Hive.box<AirQualityReading>(
-                          _hiveService.airQualityReadingsBox,
-                        ).listenable(),
-                        builder: (context, box, widget) {
-                          List<AirQualityReading> airQualityReadings = box
-                              .values
-                              .where((element) =>
-                                  element.referenceSite ==
-                                  currentLocation.referenceSite)
-                              .toList();
+                      context
+                          .read<LocationHistoryBloc>()
+                          .add(AddLocationHistory(locationAirQuality));
 
-                          if (airQualityReadings.isEmpty) {
-                            _nearbyLocationExists = false;
-
-                            return state.showErrorMessage
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 16),
-                                    child: NoLocationAirQualityMessage(
-                                      AppLocalizations.of(context)!
-                                          .unableToGetAirQuality,
-                                    ),
-                                  )
-                                : Container();
-                          }
-
-                          AirQualityReading airQualityReading =
-                              airQualityReadings.first.copyWith(
-                            name: currentLocation.name,
-                            location: currentLocation.location,
-                          );
-                          context
-                              .read<LocationHistoryBloc>()
-                              .add(AddLocationHistory(airQualityReading));
-
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: CustomShowcaseWidget(
-                              showcaseKey: _nearestLocationShowcaseKey,
-                              descriptionHeight: screenSize.height * 0.17,
-                              description: AppLocalizations.of(context)!
-                                  .thisCardShowsTheAirQualityOfYourNearestLocation,
-                              child: AnalyticsCard(
-                                airQualityReading,
-                                false,
-                              ),
-                            ),
-                          );
-                        },
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: CustomShowcaseWidget(
+                          showcaseKey: _nearestLocationShowcaseKey,
+                          descriptionHeight: screenSize.height * 0.17,
+                          description: AppLocalizations.of(context)!
+                              .thisCardShowsTheAirQualityOfYourNearestLocation,
+                          child: AnalyticsCard(
+                            locationAirQuality,
+                            false,
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -498,13 +464,9 @@ class _DashboardViewState extends State<DashboardView>
     ).listen(
       (Position? position) {
         if (position != null) {
-          if (mounted) {
-            context.read<NearbyLocationBloc>().add(
-                  SearchLocationAirQuality(
-                    newLocation: CurrentLocation.fromPosition(position),
-                  ),
-                );
-          }
+          context
+              .read<NearbyLocationBloc>()
+              .add(const SearchLocationAirQuality());
         }
       },
       onError: (error) {

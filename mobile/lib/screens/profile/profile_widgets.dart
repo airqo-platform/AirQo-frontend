@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
@@ -90,7 +89,10 @@ class _SignOutButtonState extends State<SignOutButton> {
           if (success) {
             await AppService.postSignOutActions(context);
           } else {
-            showSnackBar(context, Config.signOutFailed);
+            showSnackBar(
+              context,
+              AppLocalizations.of(context)!.failedToSignOutTryAgainLater,
+            );
           }
         });
       });

@@ -78,10 +78,8 @@ class LocationHistoryBloc
 
     Set<LocationHistory> updatedLocationHistory = {};
     for (final place in locationHistory) {
-      final nearestSite = await LocationService.getNearestSite(
-        place.latitude,
-        place.longitude,
-      );
+      final nearestSite =
+          LocationService.getSurroundingSites(place.point).firstOrNull;
 
       if (nearestSite != null) {
         updatedLocationHistory

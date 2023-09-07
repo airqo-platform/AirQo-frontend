@@ -1,5 +1,4 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/constants.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -109,7 +108,10 @@ class ProceedAsGuest extends StatelessWidget {
           });
         } else {
           Navigator.pop(context);
-          showSnackBar(context, Config.guestLogInFailed);
+          showSnackBar(
+            context,
+            AppLocalizations.of(context)!.guestLogInFailed,
+          );
         }
       });
     });

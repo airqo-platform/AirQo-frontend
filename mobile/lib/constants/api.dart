@@ -30,6 +30,8 @@ class AirQoUrls {
   static String get locationHistory =>
       '${Config.airqoApi}/v2/users/locationHistory';
 
+  static String get searchAirQuality => '${Config.airqoApi}/v2/predict/search';
+
   static String get kya => '${Config.airqoApi}/v2/devices/kya';
 
   static String get searchHistory =>
@@ -40,6 +42,7 @@ enum ApiService {
   deviceRegistry('device-registry'),
   auth('auth'),
   view('view'),
+  predict('predict'),
   metaData('meta-data'),
   forecast('forecast');
 

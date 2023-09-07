@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -84,6 +86,8 @@ class LocationHistory extends Equatable {
         "firebase_user_id": firebaseUserId,
       });
   }
+
+  Point get point => Point(latitude, longitude);
 
   @override
   List<Object?> get props => [placeId];

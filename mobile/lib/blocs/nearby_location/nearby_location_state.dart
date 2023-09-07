@@ -8,20 +8,20 @@ enum NearbyLocationStatus {
 
 class NearbyLocationState extends Equatable {
   const NearbyLocationState({
-    this.currentLocation,
+    this.locationAirQuality,
     this.surroundingSites = const [],
     this.blocStatus = NearbyLocationStatus.searching,
     this.showErrorMessage = true,
   });
 
-  NearbyLocationState copyWith({
-    CurrentLocation? currentLocation,
+  NearbyLocationState copyWith(
+    AirQualityReading? locationAirQuality, {
     NearbyLocationStatus? blocStatus,
     List<AirQualityReading>? surroundingSites,
     bool? showErrorMessage,
   }) {
     return NearbyLocationState(
-      currentLocation: currentLocation,
+      locationAirQuality: locationAirQuality,
       surroundingSites: surroundingSites ?? this.surroundingSites,
       blocStatus: blocStatus ?? this.blocStatus,
       showErrorMessage: showErrorMessage ?? this.showErrorMessage,
@@ -29,7 +29,7 @@ class NearbyLocationState extends Equatable {
   }
 
   final NearbyLocationStatus blocStatus;
-  final CurrentLocation? currentLocation;
+  final AirQualityReading? locationAirQuality;
   final List<AirQualityReading> surroundingSites;
   final bool showErrorMessage;
 
@@ -37,7 +37,7 @@ class NearbyLocationState extends Equatable {
   List<Object?> get props => [
         blocStatus,
         showErrorMessage,
-        currentLocation,
+        locationAirQuality,
         surroundingSites,
       ];
 }

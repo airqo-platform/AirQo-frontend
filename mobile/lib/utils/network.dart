@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:app/constants/constants.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<bool> hasNetworkConnection() async {
   try {
@@ -23,7 +23,10 @@ Future<bool> checkNetworkConnection(
   await hasNetworkConnection().then((value) {
     hasConnection = value;
     if (!value && notifyUser) {
-      showSnackBar(buildContext, Config.connectionErrorMessage);
+      showSnackBar(
+        buildContext,
+        AppLocalizations.of(buildContext)!.noInternetConnection,
+      );
     }
   });
 

@@ -192,7 +192,8 @@ class _SettingsPageState extends State<SettingsPage>
                               } else {
                                 showSnackBar(
                                   context,
-                                  Config.connectionErrorMessage,
+                                  AppLocalizations.of(context)!
+                                      .noInternetConnection,
                                 );
                               }
                             });

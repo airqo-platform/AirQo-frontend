@@ -6,7 +6,7 @@ import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,9 +17,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:showcaseview/showcaseview.dart';
-
-import 'buttons.dart';
-import 'custom_shimmer.dart';
 
 class HealthTipContainer extends StatelessWidget {
   const HealthTipContainer(this.healthTip, {super.key});
@@ -319,7 +316,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
     required this.airQualityReading,
   });
 
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -328,9 +325,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       width: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Pollutant.pm2_5.color(
-          airQualityReading.pm2_5,
-        ),
+        color: airQualityReading == null
+            ? CustomColors.greyColor
+            : Pollutant.pm2_5.color(
+                airQualityReading!.pm2_5,
+              ),
         border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
@@ -345,18 +344,23 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             height: 5,
             width: 32.45,
             colorFilter: ColorFilter.mode(
-              Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
+              airQualityReading == null
+                  ? CustomColors.greyColor
+                  : Pollutant.pm2_5.textColor(
+                      value: airQualityReading!.pm2_5,
+                    ),
               BlendMode.srcIn,
             ),
           ),
           AutoSizeText(
-            airQualityReading.pm2_5.toStringAsFixed(0),
+            airQualityReading == null
+                ? "--"
+                : airQualityReading!.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             style: CustomTextStyle.airQualityValue(
               pollutant: Pollutant.pm2_5,
-              value: airQualityReading.pm2_5,
+              value:
+                  airQualityReading == null ? null : airQualityReading!.pm2_5,
             )?.copyWith(fontSize: 20),
           ),
           SvgPicture.asset(
@@ -365,9 +369,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             height: 5,
             width: 32,
             colorFilter: ColorFilter.mode(
-              Pollutant.pm2_5.textColor(
-                value: airQualityReading.pm2_5,
-              ),
+              airQualityReading == null
+                  ? CustomColors.greyColor
+                  : Pollutant.pm2_5.textColor(
+                      value: airQualityReading!.pm2_5,
+                    ),
               BlendMode.srcIn,
             ),
           ),
@@ -407,14 +413,20 @@ class HeartIcon extends StatelessWidget {
     return BlocBuilder<FavouritePlaceBloc, List<FavouritePlace>>(
       builder: (context, state) {
         final placesIds = state.map((e) => e.placeId).toList();
-
-        return SvgPicture.asset(
-          placesIds.contains(placeId)
-              ? 'assets/icon/heart.svg'
-              : 'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
+        return Stack(
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                placesIds.contains(placeId)
+                    ? 'assets/icon/heart.svg'
+                    : 'assets/icon/heart_dislike.svg',
+                semanticsLabel: 'Favorite',
+                height: 16.67,
+                width: 16.67,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -484,16 +496,8 @@ class _AirQualityActionsState extends State<AirQualityActions> {
       children: [
         Expanded(
           child: FutureBuilder<Uri>(
-            future: ShareService.createShareLink(
-              airQualityReading: widget.airQualityReading,
-            ),
+            future: widget.airQualityReading.createShareLink(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                showSnackBar(
-                  context,
-                  AppLocalizations.of(context)!.couldNotCreateAShareLink,
-                );
-              }
               if (snapshot.hasData) {
                 Uri? link = snapshot.data;
                 if (link != null) {
@@ -505,19 +509,6 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                         context,
                         airQualityReading: widget.airQualityReading,
                       );
-                      // disabling copying to clipboard
-                      // if (link.toString().length > Config.shareLinkMaxLength) {
-                      //   await Clipboard.setData(
-                      //     ClipboardData(text: link.toString()),
-                      //   ).then((_) {
-                      //     showSnackBar(context, 'Copied to your clipboard !');
-                      //   });
-                      // } else {
-                      //   await ShareService.shareLink(
-                      //     link,
-                      //     airQualityReading: widget.airQualityReading,
-                      //   );
-                      // }
                     },
                     child: Center(
                       child: IconTextButton(
@@ -540,7 +531,9 @@ class _AirQualityActionsState extends State<AirQualityActions> {
                 style: _leftButtonStyle,
                 onPressed: () {
                   showSnackBar(
-                      context, AppLocalizations.of(context)!.creatingShareLink);
+                    context,
+                    AppLocalizations.of(context)!.creatingShareLink,
+                  );
                 },
                 child: const Center(
                   child: LoadingIcon(radius: 14),

@@ -1,29 +1,20 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
-  }
-}
-
-extension CurrentLocationExt on CurrentLocation {
-  bool hasChangedCurrentLocation(CurrentLocation newLocation) {
-    final double distance = Geolocator.distanceBetween(
-      latitude,
-      longitude,
-      newLocation.latitude,
-      newLocation.longitude,
-    );
-
-    return distance >= Config.locationChangeRadiusInMetres;
   }
 }
 
@@ -118,6 +109,62 @@ extension KyaExt on KyaLesson {
         return AppLocalizations.of(context)!.continu;
     }
   }
+
+  Future<Uri> createShareLink() async {
+    if (shareLink != null &&
+        shareLink!.isNotEmpty &&
+        shareLink!.length < Config.shareLinkMaxLength) {
+      return Uri.parse(shareLink!);
+    }
+
+    String params = '${shareLinkParams()}&page=kya';
+
+    const uriPrefix = 'https://airqo.page.link';
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse('https://airqo.net/?$params'),
+      uriPrefix: uriPrefix,
+      androidParameters: AndroidParameters(
+        packageName: Platform.isAndroid
+            ? packageInfo.packageName
+            : Config.androidPackageName,
+        minimumVersion: Config.androidMinimumShareVersion,
+        fallbackUrl: Uri.parse(
+          'https://play.google.com/store/apps/details?id=com.airqo.app',
+        ),
+      ),
+      iosParameters: IOSParameters(
+        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
+        fallbackUrl: Uri.parse(
+          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
+        ),
+        appStoreId: Config.iosStoreId,
+        minimumVersion: Config.iosMinimumShareVersion,
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: 'airqo-app',
+        medium: 'social',
+        campaign: 'KYA Sharing',
+        content: 'KYA Sharing',
+        term: 'KYA Sharing',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: title,
+        description: 'Know Your Air',
+        imageUrl: Uri.parse(imageUrl),
+      ),
+    );
+
+    if (await hasNetworkConnection()) {
+      final ShortDynamicLink shortDynamicLink =
+          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      return shortDynamicLink.shortUrl;
+    }
+
+    return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
+  }
 }
 
 extension KyaListExt on List<KyaLesson> {
@@ -151,6 +198,22 @@ extension AppNotificationListExt on List<AppNotification> {
   }
 }
 
+extension PointExt on Point {
+  double geoKmDistanceTo(Point point) {
+    return Geolocator.distanceBetween(
+          latitude,
+          longitude,
+          point.latitude,
+          point.longitude,
+        ) /
+        1000;
+  }
+
+  double get latitude => x.toDouble();
+
+  double get longitude => y.toDouble();
+}
+
 extension LocationHistoryExt on List<LocationHistory> {
   void sortByDateTime() {
     sort(
@@ -166,14 +229,14 @@ extension SearchHistoryListExt on List<SearchHistory> {
     sort((a, b) => -(a.dateTime.compareTo(b.dateTime)));
   }
 
-  Future<List<SearchHistory>> attachedAirQualityReadings() async {
+  List<SearchHistory> attachedAirQualityReadings() {
     List<SearchHistory> history = [];
     for (final searchHistory in this) {
       AirQualityReading? airQualityReading =
-          await LocationService.getNearestSite(
+          LocationService.getSurroundingSites(Point(
         searchHistory.latitude,
         searchHistory.longitude,
-      );
+      )).firstOrNull;
       if (airQualityReading != null) {
         airQualityReading = airQualityReading.copyWith(
           name: searchHistory.name,
@@ -190,6 +253,17 @@ extension SearchHistoryListExt on List<SearchHistory> {
 }
 
 extension AirQualityReadingExt on AirQualityReading {
+  bool isNear(AirQualityReading airQualityReading) {
+    final double distance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      airQualityReading.latitude,
+      airQualityReading.longitude,
+    );
+
+    return distance >= Config.locationChangeRadiusInMetres;
+  }
+
   List<String> getSearchTerms(String parameter) {
     List<String> searchTerms = [];
     switch (parameter) {
@@ -217,6 +291,65 @@ extension AirQualityReadingExt on AirQualityReading {
         .toSet()
         .map((e) => e.toLowerCase().replaceAll(RegExp('[^A-Za-z]'), ''))
         .toList();
+  }
+
+  Future<Uri> createShareLink() async {
+    if (shareLink.isNotEmpty && shareLink.length < Config.shareLinkMaxLength) {
+      return Uri.parse(shareLink);
+    }
+
+    String params = '${shareLinkParams()}&page=insights';
+
+    const uriPrefix = 'https://airqo.page.link';
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse('https://airqo.net/?$params'),
+      uriPrefix: uriPrefix,
+      androidParameters: AndroidParameters(
+        packageName: Platform.isAndroid
+            ? packageInfo.packageName
+            : Config.androidPackageName,
+        minimumVersion: Config.androidMinimumShareVersion,
+        fallbackUrl: Uri.parse(
+          'https://play.google.com/store/apps/details?id=com.airqo.app',
+        ),
+      ),
+      iosParameters: IOSParameters(
+        bundleId: Platform.isIOS ? packageInfo.packageName : Config.iosBundleId,
+        fallbackUrl: Uri.parse(
+          'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091',
+        ),
+        appStoreId: Config.iosStoreId,
+        minimumVersion: Config.iosMinimumShareVersion,
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: 'airqo-app',
+        medium: 'social',
+        campaign: 'Air Quality Sharing',
+        content: 'Air Quality Sharing',
+        term: 'Air Quality Sharing',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: name,
+        description: location,
+        imageUrl: Uri.parse(Config.airqoSecondaryLogo),
+      ),
+    );
+
+    if (await hasNetworkConnection()) {
+      final ShortDynamicLink shortDynamicLink =
+          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      Uri shortLink = shortDynamicLink.shortUrl;
+      await HiveService().updateAirQualityReading(copyWith(
+        shareLink: shortLink.toString(),
+      ));
+
+      return shortLink;
+    }
+
+    return FirebaseDynamicLinks.instance.buildLink(dynamicLinkParams);
   }
 }
 
@@ -355,6 +488,33 @@ extension SearchResultExt on SearchResult {
 }
 
 extension AirQualityReadingListExt on List<AirQualityReading> {
+  List<AirQualityReading> getNearbyAirQuality(
+    Point point, {
+    double? radius,
+  }) {
+    double searchRadius = radius ?? Config.searchRadius.toDouble();
+    List<AirQualityReading> airQualityReadings = map((element) {
+      double distanceToPoint = point.geoKmDistanceTo(element.point);
+      element.distanceToPoint = distanceToPoint;
+      return element;
+    }).where(
+      (element) {
+        if (element.distanceToPoint == null) {
+          return false;
+        }
+        return element.distanceToPoint! < searchRadius;
+      },
+    ).toList();
+
+    airQualityReadings.sort(
+      (x, y) {
+        return x.distanceToPoint!.compareTo(y.distanceToPoint!);
+      },
+    );
+
+    return airQualityReadings;
+  }
+
   void sortByAirQuality({bool sortCountries = false}) {
     sort((a, b) {
       if (sortCountries && a.country.compareTo(b.country) != 0) {
@@ -363,6 +523,21 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
 
       return a.pm2_5.compareTo(b.pm2_5);
     });
+  }
+
+  List<AirQualityReading> getAirQualityForCountries({
+    int numberPerCountry = 2,
+  }) {
+    final List<String> countries = map((e) => e.country).toSet().toList();
+    List<AirQualityReading> airQualityReadings = <AirQualityReading>[];
+    for (final country in countries) {
+      List<AirQualityReading> countryReadings =
+          where((element) => element.country.equalsIgnoreCase(country))
+              .toList();
+      countryReadings.shuffle();
+      airQualityReadings.addAll(countryReadings.take(numberPerCountry));
+    }
+    return airQualityReadings;
   }
 
   List<AirQualityReading> shuffleByCountry() {
@@ -385,14 +560,6 @@ extension AirQualityReadingListExt on List<AirQualityReading> {
     }
 
     return shuffledData;
-  }
-
-  void sortByDistanceToReferenceSite() {
-    sort(
-      (x, y) {
-        return x.distanceToReferenceSite.compareTo(y.distanceToReferenceSite);
-      },
-    );
   }
 
   List<AirQualityReading> removeInvalidData() => toSet()

@@ -31,7 +31,7 @@ class SearchHistoryBloc
     List<SearchHistory> history = List.of(state.history);
     history.add(SearchHistory.fromAirQualityReading(event.airQualityReading));
     history = history.toSet().toList();
-    history = await history.attachedAirQualityReadings();
+    history = history.attachedAirQualityReadings();
     history.sortByDateTime();
     emit(state.copyWith(history: history));
     String userId = CustomAuth.getUserId();
@@ -56,7 +56,7 @@ class SearchHistoryBloc
     List<SearchHistory> history = List.of(state.history);
     history.addAll(apiSearchHistory);
     history = history.toSet().toList();
-    history = await history.attachedAirQualityReadings();
+    history = history.attachedAirQualityReadings();
     history.sortByDateTime();
     emit(state.copyWith(history: history));
     if (userId.isNotEmpty) {
