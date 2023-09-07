@@ -246,9 +246,11 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   Future<void> _onSwipe(int previousTaskIndex,
       AppinioSwiperDirection appinioSwiperDirection) async {
     KyaBloc kyaBloc = context.read<KyaBloc>();
-    KyaState state = kyaBloc.state;
-    KyaLesson kyaLesson =
-        state.lessons.firstWhere((element) => element == widget.kyaLesson);
+    KyaLesson kyaLesson = context
+        .read<KyaBloc>()
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
 
     if (appinioSwiperDirection == AppinioSwiperDirection.left) {
       int activeTask = currentLesson + 1;
