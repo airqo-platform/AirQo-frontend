@@ -368,6 +368,7 @@ class InsightsCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<InsightsBloc, InsightsState>(
       builder: (context, state) {
+        context.read<InsightsBloc>().add(FetchForecast(airQualityReading));
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
           child: Column(
