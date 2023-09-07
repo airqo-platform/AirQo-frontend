@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-scroll';
 import { useDispatch } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { useTeamData } from 'reduxStore/Team/selectors';
 import { loadTeamData } from 'reduxStore/Team/operations';
 import Profile from 'components/Profile';
@@ -11,7 +11,7 @@ import Page from './Page';
 import TeamImg from 'assets/img/team.png';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import { usePartnersData } from '../../reduxStore/Partners/selectors';

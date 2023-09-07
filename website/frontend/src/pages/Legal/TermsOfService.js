@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 
 const TermsOfService = () => {
   useInitScrollTop();
