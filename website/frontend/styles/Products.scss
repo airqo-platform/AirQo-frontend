@@ -670,12 +670,13 @@
       width: 100%;
     }
     .image {
-      margin-top: 90px;
-      width: 115%;
-      margin-left: 290px;
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       img {
         border-radius: 8px;
-        width: 80%;
+        width: 88vw;
         
       }
     }
@@ -701,10 +702,11 @@
     .image {
       margin-top: 50px;
       
+      
     }
   }
 
-  .section.section-1 {
+  .section.section-calibrate{
     .overlap-section {
       .lapping-left.card {
         top: 25px;
@@ -718,4 +720,22 @@
       }
     }
   }
+
+  @media (max-width: 980px) {
+    .section.section-calibrate {
+      .overlap-section {
+        .lapping-left.card {
+          top: 0px;
+          width: 100%;
+          margin-left: 0;
+         
+        }
+        .lapping-left.image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+  }
 }
+
