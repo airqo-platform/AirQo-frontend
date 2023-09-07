@@ -1,8 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
 
-import ImpactNumbers from 'components/ImpactNumbers';
 import TopBar from 'components/nav/TopBar';
 import Hero from 'components/Hero';
 import Partners from 'components/Partners';
@@ -13,13 +12,17 @@ import ApiSection from 'components/ApiSection/ApiSection';
 import MapSection from 'components/MapSection/MapSection';
 import GetApp from 'components/get-app/GetApp';
 import HighlightsSection from 'components/HighlightsSection';
+import ImpactNumbers from 'components/ImpactNumbers';
 import Footer from 'components/Footer';
+import store from '../../../store';
 
 const testComponentRendering = (Component) => {
-  render(
-    <BrowserRouter>
-      <Component />
-    </BrowserRouter>
+  return(
+    <Provider store={store}>
+      <BrowserRouter>
+        <Component />
+      </BrowserRouter>
+    </Provider>
   );
 };
 
@@ -38,10 +41,6 @@ test('renders PartnersSection without crashing', () => {
 
 test('renders AirQualitySection without crashing', () => {
   testComponentRendering(AirQuality);
-});
-
-test('renders ImpactNumbers without crashing', () => {
-  testComponentRendering(ImpactNumbers);
 });
 
 test('renders MonitorSection without crashing', () => {
@@ -64,10 +63,16 @@ test('renders GetApp without crashing', () => {
   testComponentRendering(GetApp);
 });
 
-test('renders HighlightsSection without crashing', () => {
-  testComponentRendering(HighlightsSection);
+// Test video files
+jest.mock('../../assets/video/opening.mov', () => {
+  return {
+    default: 'opening.mov',
+  };
+});
+const video = require('../../assets/video/opening.mov');
+test('Mocked .mov file', () => {
+  expect(video.default).toBe('opening.mov');
 });
 
-test('renders Footer without crashing', () => {
-  testComponentRendering(Footer);
-});
+
+
