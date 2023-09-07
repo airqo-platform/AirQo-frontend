@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../../components/OurProducts/Header';
 import Page from '../Page';
 import HeaderImage from '../../assets/img/OurProducts/Analytics/analytics-header.png';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Section1Image from '../../assets/img/OurProducts/Analytics/section-1.png';
 import Section1OverlapImage from '../../assets/img/OurProducts/Analytics/section-1-overlap.png';
 import Section2Image from '../../assets/img/OurProducts/Analytics/section-2.png';
