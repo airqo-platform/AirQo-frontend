@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import NavTab from '../../nav/NavTab';
 
-const TopBarNav = () => {
+const SecondaryNav = () => {
     return (
         <div className="TopBar">
             <div className="wrapper">
@@ -26,4 +26,4 @@ const TopBarNav = () => {
     )
 }
 
-export default TopBarNav
+export default SecondaryNav
