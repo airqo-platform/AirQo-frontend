@@ -215,6 +215,30 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     );
   }
 
+  Future<void> _onSwipe(int previousTaskIndex,
+      AppinioSwiperDirection appinioSwiperDirection) async {
+    KyaBloc kyaBloc = context.read<KyaBloc>();
+    KyaLesson kyaLesson = context
+        .read<KyaBloc>()
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
+
+    if (appinioSwiperDirection == AppinioSwiperDirection.left) {
+      int activeTask = currentLesson + 1;
+      if (activeTask <= kyaLesson.tasks.length) {
+        currentLesson = activeTask;
+
+        kyaBloc
+            .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
+      } else {
+        await _onEnd();
+      }
+    } else if (appinioSwiperDirection == AppinioSwiperDirection.right) {
+      _onUnSwipe(true);
+    }
+  }
+
   Future<void> _onEnd() async {
     KyaLesson kyaLesson = context.read<KyaBloc>().state.lessons.firstWhere(
           (element) => element == widget.kyaLesson,
@@ -233,47 +257,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
 
       return;
     }
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return KyaFinalPage(kyaLesson);
-        },
-      ),
-    );
-  }
-
-  Future<void> _onSwipe(int previousTaskIndex,
-      AppinioSwiperDirection appinioSwiperDirection) async {
-    KyaBloc kyaBloc = context.read<KyaBloc>();
-    KyaLesson kyaLesson = context
-        .read<KyaBloc>()
-        .state
-        .lessons
-        .firstWhere((element) => element == widget.kyaLesson);
-
-    if (appinioSwiperDirection == AppinioSwiperDirection.left) {
-      int activeTask = currentLesson + 1;
-      if (activeTask <= kyaLesson.tasks.length) {
-        currentLesson = activeTask;
-
-        kyaBloc
-            .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
-      } else {
-        await _navigateToEndPage();
-      }
-    } else if (appinioSwiperDirection == AppinioSwiperDirection.right) {
-      _onUnSwipe(true);
-    }
-  }
-
-  Future<void> _navigateToEndPage() async {
-    KyaLesson kyaLesson = context
-        .read<KyaBloc>()
-        .state
-        .lessons
-        .firstWhere((element) => element == widget.kyaLesson);
-
     await Navigator.pushReplacement(
       context,
       MaterialPageRoute(
