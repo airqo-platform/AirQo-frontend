@@ -46,7 +46,7 @@ h4 {
           display: none;
           margin-top: 0px;
           position: absolute;
-          left: 40px;
+          left: 30px;
           width: 590px;
           min-height: 274px;
           border-radius: 8px;
@@ -71,7 +71,7 @@ h4 {
             margin-left: 16px;
 
             .dropdown-list-item {
-              margin-bottom: 22px;
+              margin-bottom: 12px;
               margin-right: 20px;
               width: 260px;
               padding: 8px 16px;
@@ -119,9 +119,9 @@ h4 {
 
       .nav-dropdown-item.single-links {
         .dropdown {
-          left: 40px;
+          left: 30px;
           width: 430px;
-          height: 274px;
+          min-height: 274px;
         }
         .dropdown-list {
           .dropdown-list-item {
