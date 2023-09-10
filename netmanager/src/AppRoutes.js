@@ -114,7 +114,12 @@ const AppRoutes = ({ auth, logoutUser }) => {
             <PrivateRoute component={CandidateList} exact layout={MainLayout} path="/candidates" />
             <PrivateRoute component={Roles} exact layout={MainLayout} path="/roles" />
             <PrivateRoute component={Settings} exact layout={MainLayout} path="/settings" />
-            <PrivateRoute component={Organisation} exact layout={MainLayout} path="/organisation" />
+            <PrivateRoute
+              component={Organisation}
+              exact
+              layout={MainLayout}
+              path="/organisations"
+            />
 
             <PrivateRoute path="/device/:deviceName" component={DeviceView} layout={MainLayout} />
             <PrivateRoute exact path="/locate" component={Map} layout={MainLayout} />

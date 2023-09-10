@@ -157,8 +157,8 @@ const allUserManagementPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
-    title: 'Organisation',
-    href: '/organisation',
+    title: 'Organisations',
+    href: '/organisations',
     icon: <BusinessIcon />
   },
   {
@@ -307,8 +307,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

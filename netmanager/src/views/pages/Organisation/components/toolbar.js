@@ -275,8 +275,9 @@ const RegisterOrg = ({ props, setLoading, open, setOpen }) => {
   useEffect(() => {
     clearState();
   }, []);
+
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="form-dialog-title">
+    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="Register-Org">
       <Typography variant="h4" className={classes.formTitle}>
         Register new organisation
       </Typography>
@@ -362,6 +363,16 @@ const RegisterOrg = ({ props, setLoading, open, setOpen }) => {
         <DialogActions>
           <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
             <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                setState({ ...initialState });
+                setOpen(false);
+              }}
+              style={{ marginRight: '8px' }}>
+              Cancel
+            </Button>
+            <Button
               onClick={onSubmit}
               color="primary"
               variant="contained"
@@ -382,6 +393,7 @@ const EditOrg = ({ props, setLoading, open, setOpen, selected }) => {
   const [showError, setShowError] = useState(false);
   const { className, ...rest } = props;
   const [selectedOption, setSelectedOption] = React.useState(null);
+  const [reset, setReset] = useState(false);
   const initialState = {
     orgEmail: '',
     orgContact: '',
@@ -405,7 +417,7 @@ const EditOrg = ({ props, setLoading, open, setOpen, selected }) => {
         label: selected.net_category
       });
     }
-  }, [selected]);
+  }, [selected, reset]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -486,7 +498,7 @@ const EditOrg = ({ props, setLoading, open, setOpen, selected }) => {
   }, []);
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="form-dialog-title">
+    <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="Edit-Org-details">
       <Typography variant="h4" className={classes.formTitle}>
         Edit organisation
       </Typography>
@@ -569,13 +581,25 @@ const EditOrg = ({ props, setLoading, open, setOpen, selected }) => {
         />
 
         <DialogActions>
-          <Button
-            onClick={onSubmit}
-            color="primary"
-            variant="contained"
-            style={{ marginRight: '-8px' }}>
-            Save changes
-          </Button>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                setReset(!reset);
+                setOpen(false);
+              }}
+              style={{ marginRight: '8px' }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={onSubmit}
+              color="primary"
+              variant="contained"
+              style={{ marginRight: '-8px' }}>
+              Save changes
+            </Button>
+          </div>
         </DialogActions>
       </DialogContent>
     </Dialog>
@@ -709,6 +733,7 @@ const OrgToolbar = (props) => {
         actions={[
           {
             icon: 'edit',
+            label: 'Edit Organisation',
             tooltip: 'Edit Organisation',
             onClick: (event, rowData) => {
               setOpenEdit(true);
