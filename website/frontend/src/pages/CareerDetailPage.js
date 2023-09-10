@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { loadCareersListingData } from 'reduxStore/Careers/operations';
 import { useCareerListingData, useCareerLoadingData } from 'reduxStore/Careers/selectors';
 import { isEmpty } from 'underscore';

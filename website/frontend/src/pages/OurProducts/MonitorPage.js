@@ -9,7 +9,7 @@ import Section4Image from '../../assets/img/OurProducts/Monitor/activate.png';
 import UserGuide from '../../assets/docs/AirQoMonitorUserGuideV04.pdf';
 import MaintenanceManual from '../../assets/docs/Binos-Maintenance-Manual.pdf';
 import { FileDownloadOutlined } from '@mui/icons-material';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 
 const MonitorPage = () => {
   useInitScrollTop();
