@@ -31,15 +31,6 @@ export const eventSlice = createSlice({
       state.loading = action.payload;
     }
   },
-  extraReducers: {
-    [getAllEvents.pending]: (state, action) => {
-      state.loading = action.payload;
-    },
-    [getAllEvents.fulfilled]: (state, action) => {
-      state.events = action.payload;
-      state.loading = action.payload;
-    }
-  }
 });
 
 export const { getEventsReducer, getEventsFailure, isLoading } = eventSlice.actions;

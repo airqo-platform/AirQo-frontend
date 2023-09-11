@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Page from '../Page';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 import EventsHeader from './Header';
 import EventsNavigation from './Navigation';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import EventCard from './EventCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllEvents } from '../../../reduxStore/Events/EventSlice';

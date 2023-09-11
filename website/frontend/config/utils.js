@@ -4,10 +4,15 @@ const URL_PATTERN = new RegExp(
   + '((\\d{1,3}\\.){3}\\d{1,3}))' // ip (v4) address
   + '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' // port
   + '(\\?[;&amp;a-z\\d%_.~+=-]*)?' // query string
-    + '(\\#[-a-z\\d_]*)?$',
+  + '(\\#[-a-z\\d_]*)?$',
   'i',
 );
 
 export const validateUrl = (url) => URL_PATTERN.test(url);
 
-export const stripTrailingSlash = (url) => url.replace(/\/$/, '');
+export const stripTrailingSlash = (url) => {
+  if (url)
+    return url.replace(/\/$/, '');
+  else
+    return url
+}

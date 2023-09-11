@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Page from './Page';
 import { loadCareersListingData, loadCareersDepartmentsData } from 'reduxStore/Careers/operations';
 import { useCareerListingData, useCareerDepartmentsData } from 'reduxStore/Careers/selectors';
 import { isEmpty } from 'underscore';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 import { format } from 'date-fns';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
