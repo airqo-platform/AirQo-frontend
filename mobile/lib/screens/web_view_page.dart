@@ -1,3 +1,4 @@
+import 'package:app/screens/offline_banner.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -34,44 +35,46 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppTopBar(
-        widget.title.trimEllipsis(),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.replay,
-              color: CustomColors.appColorBlue,
-            ),
-            onPressed: () {
-              try {
-                _controller.loadRequest(Uri.parse(widget.url));
-              } catch (e) {
-                showSnackBar(
-                  context,
-                  AppLocalizations.of(context)!
-                      .failedToDeleteAccountTryAgainLater,
-                );
-              }
-            },
-          ),
-        ],
-        centerTitle: false,
-      ),
-      body: AppSafeArea(
-        child: BlocBuilder<WebViewLoadingCubit, int>(
-          builder: (context, progress) => Stack(
-            children: [
-              WebViewWidget(controller: _controller),
-              Visibility(
-                visible: progress < 100,
-                child: LinearProgressIndicator(
-                  value: progress / 100.0,
-                  color: CustomColors.appColorBlue,
-                  backgroundColor: CustomColors.appColorDisabled,
-                ),
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: AppTopBar(
+          widget.title.trimEllipsis(),
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.replay,
+                color: CustomColors.appColorBlue,
               ),
-            ],
+              onPressed: () {
+                try {
+                  _controller.loadRequest(Uri.parse(widget.url));
+                } catch (e) {
+                  showSnackBar(
+                    context,
+                    AppLocalizations.of(context)!
+                        .failedToDeleteAccountTryAgainLater,
+                  );
+                }
+              },
+            ),
+          ],
+          centerTitle: false,
+        ),
+        body: AppSafeArea(
+          child: BlocBuilder<WebViewLoadingCubit, int>(
+            builder: (context, progress) => Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                Visibility(
+                  visible: progress < 100,
+                  child: LinearProgressIndicator(
+                    value: progress / 100.0,
+                    color: CustomColors.appColorBlue,
+                    backgroundColor: CustomColors.appColorDisabled,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
