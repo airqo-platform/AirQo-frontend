@@ -32,7 +32,7 @@ import AddCohortToolbar from './components/AddCohortForm';
 import AddGridToolbar from './components/AddGridForm';
 import { withPermission } from '../../containers/PageAccess';
 import MoreDropdown from './components/MoreDropdown';
-import { deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
+import { deleteCohortApi, deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 
@@ -58,7 +58,6 @@ const Analytics = () => {
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(true);
   const [open, setOpen] = useState(false);
-  const [editDetails, setEditDetails] = useState(false);
   const [loading, setLoading] = useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
@@ -109,11 +108,15 @@ const Analytics = () => {
   }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
-    dispatch(loadGridDetails(activeGrid._id));
+    if (activeGrid && activeGrid._id) {
+      dispatch(loadGridDetails(activeGrid._id));
+    }
   }, [activeGrid]);
 
   useEffect(() => {
-    dispatch(loadCohortDetails(activeCohort._id));
+    if (activeCohort && activeCohort._id) {
+      dispatch(loadCohortDetails(activeCohort._id));
+    }
   }, [activeCohort]);
 
   useEffect(() => {
@@ -145,15 +148,6 @@ const Analytics = () => {
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
-  };
-
-  const handleClickEditDetailsOpen = () => {
-    setEditDetails(true);
-    handleCloseMenu();
-  };
-
-  const handleClickEditDetailsClose = () => {
-    setEditDetails(false);
   };
 
   const handleRefreshGrid = async () => {
@@ -188,6 +182,38 @@ const Analytics = () => {
   const handleDeleteGrid = async () => {
     setLoading(true);
     await deleteGridApi(activeGrid._id)
+      .then((res) => {
+        setLoading(false);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: res.message,
+            severity: 'success'
+          })
+        );
+        handleCloseMenu();
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      })
+      .catch((error) => {
+        const errors = error.response && error.response.data && error.response.data.errors;
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: error.response && error.response.data && error.response.data.message,
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject(errors || {})
+          })
+        );
+        setLoading(false);
+      });
+  };
+
+  const handleDeleteCohort = async () => {
+    setLoading(true);
+    await deleteCohortApi(activeCohort._id)
       .then((res) => {
         setLoading(false);
         dispatch(
@@ -277,9 +303,7 @@ const Analytics = () => {
                 dropdownItems={[
                   {
                     title: 'Delete Cohort',
-                    onClick: () => {
-                      console.log('Delete Grid');
-                    },
+                    onClick: handleDeleteCohort,
                     loading: loading
                   }
                 ]}

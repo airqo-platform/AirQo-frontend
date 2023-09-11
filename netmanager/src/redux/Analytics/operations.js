@@ -14,6 +14,7 @@ import {
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_FAILURE,
   LOAD_COMBINED_GRIDS_AND_COHORTS_SUMMARY_SUCCESS
 } from './actions';
+import { isEmpty } from 'underscore';
 
 export const loadGridsAndCohortsSummary = (network_name) => async (dispatch) => {
   return await getGridsAndCohortsSummaryApi(network_name)
@@ -43,7 +44,7 @@ export const loadGridDetails = (gridID) => (dispatch) => {
     .then((resData) => {
       dispatch({
         type: LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
-        payload: resData.grids[0] || {}
+        payload: resData.grids[0] && !isEmpty(resData.grids[0].sites) ? resData.grids[0] : []
       });
     })
     .catch((err) => {

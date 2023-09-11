@@ -27,7 +27,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
   });
 
   useEffect(() => {
-    if (gridDetails) {
+    if (gridDetails && gridDetails.sites && gridDetails.sites.length > 0) {
       setGridInfo({
         name: gridDetails.name,
         admin_level: gridDetails.admin_level,
