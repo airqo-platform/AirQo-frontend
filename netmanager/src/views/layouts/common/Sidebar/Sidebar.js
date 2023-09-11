@@ -215,7 +215,7 @@ const Sidebar = (props) => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(user) && isEmpty(userNetworks)) {
+    if (!isEmpty(user) || isEmpty(userNetworks)) {
       getUserDetails(user._id)
         .then((res) => {
           dispatch(addUserNetworks(res.users[0].networks));
