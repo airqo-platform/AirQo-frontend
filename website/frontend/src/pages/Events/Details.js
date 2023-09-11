@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AccessTimeOutlined, CalendarMonth, PlaceOutlined } from '@mui/icons-material';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';

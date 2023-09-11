@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ContactUs from '.';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { Link, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useDispatch } from 'react-redux';

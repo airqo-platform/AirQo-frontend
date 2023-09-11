@@ -89,7 +89,8 @@ class InsightsPage extends StatelessWidget {
                   ),
                   InsightsCalendar(selectedAirQualityReading),
                   Visibility(
-                    visible: state.selectedInsight.dateTime.isToday() &&
+                    visible: state.selectedInsight.dateTime
+                            .isAfter(DateTime.now()) &&
                         DateTime.now().hour < 12,
                     child: ForecastContainer(state.selectedInsight),
                   ),

@@ -8,9 +8,9 @@ import UniversityImg2 from 'assets/img/community/AirQo_Web_IMG13.jpg';
 import UniversityImg3 from 'assets/img/community/AirQo_Web_IMG02.jpg';
 import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.jpg';
 import BackgroundShape from 'icons/research/background-shape.svg';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { Link } from 'react-router-dom';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 
 const ResearchHeroSection = () => {
   return (

@@ -1,7 +1,7 @@
 import React from 'react'
 import FeedbackImg from 'assets/img/Feedback.png'
 import { Link } from 'react-router-dom'
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 
 const Feedback = () => {
     useInitScrollTop();

@@ -143,6 +143,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       ),
                     ),
                   ),
+<<<<<<< HEAD
                   Visibility(
                     visible: kyaLesson.activeTask > 1,
                     child: SizedBox(
@@ -150,6 +151,55 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20.0),
                         child: KyaLessonProgressBar(kyaLesson),
+=======
+                ),
+                Visibility(
+                  visible: kyaLesson.activeTask > 1,
+                  child: SizedBox(
+                    height: 50,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: KyaLessonProgressBar(kyaLesson),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  height: 400,
+                  child: AppinioSwiper(
+                    padding: EdgeInsets.zero,
+                    cardsCount: kyaLesson.tasks.length,
+                    cardsBuilder: (BuildContext context, int index) {
+                      return KyaLessonCard(
+                        kyaLesson.tasks[kyaLesson.activeTask - 1],
+                        kyaLesson,
+                      );
+                    },
+                    swipeOptions: const AppinioSwipeOptions.symmetric(
+                      horizontal: true,
+                    ),
+                    allowUnswipe: true,
+                    unlimitedUnswipe: true,
+                    controller: _swipeController,
+                    onSwipe: _onSwipe,
+                    duration: const Duration(milliseconds: 300),
+                    unswipe: _onUnSwipe,
+                    loop: true,
+                    onEnd: _onEnd,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => {
+                        currentLesson > 1 ? _swipeController.swipeRight() : null
+                      },
+                      child: CircularKyaButton(
+                        icon: 'assets/icon/previous_arrow.svg',
+                        isActive: kyaLesson.activeTask > 1,
+>>>>>>> staging
                       ),
                     ),
                   ),
@@ -219,6 +269,30 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     );
   }
 
+  Future<void> _onSwipe(int previousTaskIndex,
+      AppinioSwiperDirection appinioSwiperDirection) async {
+    KyaBloc kyaBloc = context.read<KyaBloc>();
+    KyaLesson kyaLesson = context
+        .read<KyaBloc>()
+        .state
+        .lessons
+        .firstWhere((element) => element == widget.kyaLesson);
+
+    if (appinioSwiperDirection == AppinioSwiperDirection.left) {
+      int activeTask = currentLesson + 1;
+      if (activeTask <= kyaLesson.tasks.length) {
+        currentLesson = activeTask;
+
+        kyaBloc
+            .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
+      } else {
+        await _onEnd();
+      }
+    } else if (appinioSwiperDirection == AppinioSwiperDirection.right) {
+      _onUnSwipe(true);
+    }
+  }
+
   Future<void> _onEnd() async {
     KyaLesson kyaLesson = context.read<KyaBloc>().state.lessons.firstWhere(
           (element) => element == widget.kyaLesson,
@@ -245,24 +319,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         },
       ),
     );
-  }
-
-  Future<void> _onSwipe(int previousTaskIndex,
-      AppinioSwiperDirection appinioSwiperDirection) async {
-    if (appinioSwiperDirection == AppinioSwiperDirection.left) {
-      int activeTask = ++currentLesson;
-      KyaLesson kyaLesson = context
-          .read<KyaBloc>()
-          .state
-          .lessons
-          .firstWhere((element) => element == widget.kyaLesson);
-
-      context
-          .read<KyaBloc>()
-          .add(UpdateKyaProgress(kyaLesson.copyWith(activeTask: activeTask)));
-    } else if (appinioSwiperDirection == AppinioSwiperDirection.right) {
-      _onUnSwipe(true);
-    }
   }
 
   void _onUnSwipe(bool unSwiped) {

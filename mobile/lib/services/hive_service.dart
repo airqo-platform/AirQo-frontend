@@ -87,18 +87,18 @@ class HiveService {
 
   Future<List<Forecast>> getForecast(String siteId) async {
     List<Forecast> forecast = [];
-    try {
-      forecast = Hive.box<List<Forecast>>(
-        _forecast,
-      ).get(
-        siteId,
-        defaultValue: [],
-      ) as List<Forecast>;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+    final dynamic hiveValue =
+        Hive.box<List<Forecast>>(_forecast).get(siteId, defaultValue: null);
+
+    if (hiveValue != null) {
+      try {
+        forecast = (hiveValue as List<dynamic>).cast<Forecast>().toList();
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
     }
 
     return forecast.removeInvalidData();
