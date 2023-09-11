@@ -6,6 +6,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../offline_banner.dart';
 import 'insights_widgets.dart';
 
 Future<void> navigateToInsights(
@@ -44,7 +45,8 @@ class InsightsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return OfflineBanner(
+        child: Scaffold(
       backgroundColor: CustomColors.appBodyColor,
       appBar: InsightsPageAppBar(airQualityReading),
       body: AppSafeArea(
@@ -55,7 +57,6 @@ class InsightsPage extends StatelessWidget {
                   airQualityReading.copyWith(
                 pm2_5: state.selectedInsight.pm2_5,
               );
-
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +89,8 @@ class InsightsPage extends StatelessWidget {
                   ),
                   InsightsCalendar(selectedAirQualityReading),
                   Visibility(
-                    visible: state.selectedInsight.dateTime.isToday() &&
+                    visible: state.selectedInsight.dateTime
+                            .isAfter(DateTime.now()) &&
                         DateTime.now().hour < 12,
                     child: ForecastContainer(state.selectedInsight),
                   ),
@@ -102,6 +104,6 @@ class InsightsPage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

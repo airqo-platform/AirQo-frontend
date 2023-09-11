@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../../components/OurProducts/Header';
 import Page from '../Page';
 import HeaderImage from '../../assets/img/OurProducts/Calibration/calibration-header.png';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Section1Image from '../../assets/img/OurProducts/Calibration/section-1.jpg';
 import Section2Image from '../../assets/img/OurProducts/Calibration/section-2.jpg';
 import Section3Image from '../../assets/img/OurProducts/Calibration/section-3.png';
