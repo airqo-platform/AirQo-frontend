@@ -37,7 +37,7 @@ const MoreDropdown = ({ dropdownItems, openMenu, handleClickMenu, handleCloseMen
           dropdownItems.map((item, index) => {
             return (
               <MenuItem key={index} onClick={item.onClick}>
-                {item.title}
+                {item.loading ? 'Loading...' : item.title}
               </MenuItem>
             );
           })}

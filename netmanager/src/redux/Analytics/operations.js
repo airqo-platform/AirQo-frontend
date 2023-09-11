@@ -38,12 +38,12 @@ export const setActiveGrid = (grid) => (dispatch) => {
   });
 };
 
-export const loadGridDetails = (gridID) => async (dispatch) => {
-  return await getGridDetailsApi(gridID)
+export const loadGridDetails = (gridID) => (dispatch) => {
+  return getGridDetailsApi(gridID)
     .then((resData) => {
       dispatch({
         type: LOAD_ACTIVE_GRID_DETAILS_SUCCESS,
-        payload: resData.grids[0]
+        payload: resData.grids[0] || {}
       });
     })
     .catch((err) => {
@@ -66,7 +66,7 @@ export const loadCohortDetails = (cohortID) => async (dispatch) => {
     .then((resData) => {
       dispatch({
         type: LOAD_ACTIVE_COHORT_DETAILS_SUCCESS,
-        payload: resData.cohorts[0]
+        payload: resData.cohorts[0] || {}
       });
     })
     .catch((err) => {

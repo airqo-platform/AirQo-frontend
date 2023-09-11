@@ -3,8 +3,9 @@ import { Box, Button, Grid, Typography, makeStyles } from '@material-ui/core';
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
 import { useDispatch } from 'react-redux';
 import CohortDevicesTable from './DevicesTable';
+import { LargeCircularLoader } from '../../../components/Loader/CircularLoader';
 
-const CohortsDashboardView = ({ cohort, cohortDetails }) => {
+const CohortsDashboardView = ({ cohort, cohortDetails, loading }) => {
   const dispatch = useDispatch();
 
   const [cohortInfo, setCohortInfo] = useState({
@@ -47,7 +48,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails }) => {
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Cohort name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {cohortInfo.name}
+                {cohort.name}
               </Typography>
             </Grid>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
@@ -59,7 +60,7 @@ const CohortsDashboardView = ({ cohort, cohortDetails }) => {
 
         <Grid container spacing={4}>
           <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <CohortDevicesTable devices={cohortInfo.devices} />
+            <CohortDevicesTable devices={cohortInfo.devices} loading={loading} />
           </Grid>
         </Grid>
       </Box>

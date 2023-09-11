@@ -35,6 +35,14 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
         visibility: gridDetails.visibility,
         sites: gridDetails.sites
       });
+    } else {
+      setGridInfo({
+        name: 'N/A',
+        admin_level: 'N/A',
+        numberOfSites: 0,
+        visibility: 'N/A',
+        sites: []
+      });
     }
   }, [gridDetails]);
 
@@ -62,24 +70,24 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Grid name</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {gridInfo.name}
+                {grid.name}
               </Typography>
             </Grid>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Admin level</Typography>
               <Typography variant="h2" style={{ textTransform: 'capitalize' }}>
-                {gridInfo.admin_level}
+                {grid.admin_level}
               </Typography>
             </Grid>
             <Grid item lg={3} sm={6} xl={3} xs={12}>
               <Typography variant="subtitle2">Number of sites</Typography>
-              <Typography variant="h2">{gridInfo.numberOfSites}</Typography>
+              <Typography variant="h2">{grid.numberOfSites}</Typography>
             </Grid>
           </Grid>
         </Box>
 
         <Grid container spacing={4}>
-          <AveragesChart classes={classes} analyticsSites={grid.sites} isGrids={true} />
+          <AveragesChart classes={classes} analyticsSites={gridInfo.sites} isGrids={true} />
 
           <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
             <ExceedancesChart
@@ -87,7 +95,7 @@ const GridsDashboardView = ({ grid, gridDetails }) => {
               date={dateValue}
               chartContainer={classes.chartContainer}
               idSuffix="exceedances"
-              analyticsSites={grid.sites}
+              analyticsSites={gridInfo.sites}
               isGrids={true}
             />
           </Grid>

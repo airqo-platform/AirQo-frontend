@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { updateDeviceDetails } from 'redux/DeviceOverview/OverviewSlice';
 import { useDispatch } from 'react-redux';
 
-const CohortDevicesTable = ({ devices }) => {
+const CohortDevicesTable = ({ devices, loading }) => {
   const history = useHistory();
   const dispatch = useDispatch();
 
@@ -12,6 +12,7 @@ const CohortDevicesTable = ({ devices }) => {
     <CustomMaterialTable
       title="Cohort devices details"
       userPreferencePaginationKey={'cohortDevices'}
+      loading={loading}
       columns={[
         {
           title: 'Device Name',

@@ -31,7 +31,6 @@ import { useDevicesData } from 'redux/DeviceRegistry/selectors';
 import AddCohortToolbar from './components/AddCohortForm';
 import AddGridToolbar from './components/AddGridForm';
 import { withPermission } from '../../containers/PageAccess';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import MoreDropdown from './components/MoreDropdown';
 import { deleteGridApi, refreshGridApi } from '../../apis/deviceRegistry';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
@@ -59,6 +58,7 @@ const Analytics = () => {
   const dispatch = useDispatch();
   const [isCohort, setIsCohort] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editDetails, setEditDetails] = useState(false);
   const [loading, setLoading] = useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork') || {});
 
@@ -93,38 +93,36 @@ const Analytics = () => {
       const gridsList = combinedGridAndCohortsSummary.grids;
       if (!isEmpty(gridsList)) {
         dispatch(setActiveGrid(gridsList[0]));
+        localStorage.setItem('activeGrid', JSON.stringify(gridsList[0]));
       }
     }
-  }, [combinedGridAndCohortsSummary, activeGrid]);
+  }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
     if (!isEmpty(combinedGridAndCohortsSummary)) {
       const cohortsList = combinedGridAndCohortsSummary.cohorts;
       if (!isEmpty(cohortsList)) {
         dispatch(setActiveCohort(cohortsList[0]));
+        localStorage.setItem('activeCohort', JSON.stringify(cohortsList[0]));
       }
     }
-  }, [combinedGridAndCohortsSummary, activeCohort]);
+  }, [combinedGridAndCohortsSummary]);
 
   useEffect(() => {
-    if (!isEmpty(activeGrid) && activeGrid.name !== 'Empty') {
-      dispatch(loadGridDetails(activeGrid._id));
-    }
+    dispatch(loadGridDetails(activeGrid._id));
   }, [activeGrid]);
 
   useEffect(() => {
-    if (!isEmpty(activeCohort) && activeCohort.name !== 'Empty') {
-      dispatch(loadCohortDetails(activeCohort._id));
-    }
+    dispatch(loadCohortDetails(activeCohort._id));
   }, [activeCohort]);
 
   useEffect(() => {
-    if (isEmpty(devices)) {
-      if (!isEmpty(activeNetwork)) {
-        dispatch(loadDevicesData(activeNetwork.net_name));
-      }
+    setLoading(true);
+    if (!isEmpty(activeNetwork)) {
+      dispatch(loadDevicesData(activeNetwork.net_name));
     }
-  }, [devices]);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (!isEmpty(devices)) {
@@ -149,7 +147,17 @@ const Analytics = () => {
     setAnchorEl(null);
   };
 
+  const handleClickEditDetailsOpen = () => {
+    setEditDetails(true);
+    handleCloseMenu();
+  };
+
+  const handleClickEditDetailsClose = () => {
+    setEditDetails(false);
+  };
+
   const handleRefreshGrid = async () => {
+    setLoading(true);
     await refreshGridApi(activeGrid._id)
       .then((res) => {
         dispatch(loadGridDetails(activeGrid._id));
@@ -161,6 +169,7 @@ const Analytics = () => {
           })
         );
         handleCloseMenu();
+        setLoading(false);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -172,12 +181,15 @@ const Analytics = () => {
             extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
+        setLoading(false);
       });
   };
 
   const handleDeleteGrid = async () => {
+    setLoading(true);
     await deleteGridApi(activeGrid._id)
       .then((res) => {
+        setLoading(false);
         dispatch(
           updateMainAlert({
             show: true,
@@ -186,7 +198,10 @@ const Analytics = () => {
           })
         );
         handleCloseMenu();
-        window.location.reload();
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       })
       .catch((error) => {
         const errors = error.response && error.response.data && error.response.data.errors;
@@ -198,6 +213,7 @@ const Analytics = () => {
             extra: createAlertBarExtraContentFromObject(errors || {})
           })
         );
+        setLoading(false);
       });
   };
 
@@ -260,16 +276,11 @@ const Analytics = () => {
               <MoreDropdown
                 dropdownItems={[
                   {
-                    title: 'Update Cohort',
-                    onClick: () => {
-                      console.log('Update Grid');
-                    }
-                  },
-                  {
                     title: 'Delete Cohort',
                     onClick: () => {
                       console.log('Delete Grid');
-                    }
+                    },
+                    loading: loading
                   }
                 ]}
                 anchorEl={anchorEl}
@@ -282,17 +293,13 @@ const Analytics = () => {
                 dropdownItems={[
                   {
                     title: 'Refresh Grid',
-                    onClick: handleRefreshGrid
-                  },
-                  {
-                    title: 'Update Grid',
-                    onClick: () => {
-                      console.log('Update Grid');
-                    }
+                    onClick: handleRefreshGrid,
+                    loading: loading
                   },
                   {
                     title: 'Delete Grid',
-                    onClick: handleDeleteGrid
+                    onClick: handleDeleteGrid,
+                    loading: loading
                   }
                 ]}
                 anchorEl={anchorEl}
@@ -305,7 +312,7 @@ const Analytics = () => {
         </Box>
 
         {!isCohort && !isEmpty(activeGrid) && activeGrid.name !== 'Empty' && (
-          <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} />
+          <GridsDashboardView grid={activeGrid} gridDetails={activeGridDetails} loading={loading} />
         )}
 
         {!isCohort && activeGrid && activeGrid.name === 'Empty' && (
@@ -325,7 +332,11 @@ const Analytics = () => {
         )}
 
         {isCohort && !isEmpty(activeCohort) && activeCohort.name !== 'Empty' && (
-          <CohortsDashboardView cohort={activeCohort} cohortDetails={activeCohortDetails} />
+          <CohortsDashboardView
+            cohort={activeCohort}
+            cohortDetails={activeCohortDetails}
+            loading={loading}
+          />
         )}
 
         {isCohort && activeCohort && activeCohort.name === 'Empty' && (

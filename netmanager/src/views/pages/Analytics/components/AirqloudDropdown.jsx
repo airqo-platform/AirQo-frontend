@@ -46,13 +46,13 @@ const AnalyticsAirqloudsDropDown = ({ isCohort, airqloudsData }) => {
   const activeCohort = useSelector((state) => state.analytics.activeCohort);
 
   const handleAirQloudChange = (selectedOption) => {
-    const airqloud = selectedOption ? selectedOption.value : null;
     if (!isCohort) {
-      dispatch(setActiveGrid(airqloud));
+      dispatch(setActiveGrid(selectedOption.value));
+      localStorage.setItem('activeGrid', JSON.stringify(selectedOption.value));
     } else {
-      dispatch(setActiveCohort(airqloud));
+      dispatch(setActiveCohort(selectedOption.value));
+      localStorage.setItem('activeCohort', JSON.stringify(selectedOption.value));
     }
-    // dispatch(resetDefaultGraphData());
   };
 
   const handleAirQloudRefresh = (event) => {
