@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/blocs/kya/kya_bloc.dart';
 import 'package:app/models/models.dart';
@@ -469,12 +471,30 @@ class QuizCard extends StatelessWidget {
   }
 }
 
-class QuizAnswerWidget extends StatelessWidget {
-  const QuizAnswerWidget(this.selectedOption,
-      {super.key, required this.quiz, required this.nextButtonClickCallback});
+class QuizAnswerWidget extends StatefulWidget {
+  QuizAnswerWidget(
+    this.selectedOption, {
+    Key? key,
+    required this.quiz,
+    required this.nextButtonClickCallback,
+    this.completedListTiles = 0,
+    this.nextButtonActive = false,
+  }) : super(key: key);
+
   final QuizAnswer selectedOption;
   final Quiz quiz;
   final Function() nextButtonClickCallback;
+  final int completedListTiles;
+  final bool nextButtonActive;
+
+  @override
+  _QuizAnswerWidgetState createState() => _QuizAnswerWidgetState();
+}
+
+class _QuizAnswerWidgetState extends State<QuizAnswerWidget> {
+  int completedListTiles = 0;
+  bool nextButtonActive = false;
+  final _nextButtonStream = StreamController<bool>.broadcast();
 
   @override
   Widget build(BuildContext context) {
@@ -496,13 +516,12 @@ class QuizAnswerWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AutoSizeText(
-              selectedOption.title,
+              widget.selectedOption.title,
               style: const TextStyle(
                 color: Color(0xff1F232D),
                 fontSize: 15,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
-                //height: 1.50,
               ),
             ),
           ),
@@ -566,20 +585,17 @@ class QuizAnswerWidget extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           child: ListView.builder(
-                            itemCount: selectedOption.content.length,
+                            itemCount: widget.selectedOption.content.length,
                             itemBuilder: (context, index) {
+                              final delay = Duration(seconds: 4 * index);
+
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
                                 child: ListTile(
-                                  // leading: const Icon(
-                                  //   Icons.circle,
-                                  //   size: 8,
-                                  //   color: Colors.black,
-                                  // ),
                                   title: FutureBuilder<void>(
                                     future: Future.delayed(
-                                      Duration(seconds: 4 * index),
+                                      delay,
                                       () => Future.value(),
                                     ),
                                     builder: (context, snapshot) {
@@ -588,11 +604,21 @@ class QuizAnswerWidget extends StatelessWidget {
                                         return Container();
                                       } else {
                                         return AnimatedTextKit(
+                                          onFinished: () {
+                                            if (snapshot.connectionState !=
+                                                ConnectionState.active) {
+                                              checkListTilesCompletion();
+                                            }
+                                          },
+                                          onTap: () {
+                                            checkListTilesCompletion();
+                                          },
                                           displayFullTextOnTap: true,
                                           totalRepeatCount: 1,
                                           animatedTexts: [
                                             TypewriterAnimatedText(
-                                              selectedOption.content[index],
+                                              widget.selectedOption
+                                                  .content[index],
                                               speed: const Duration(
                                                   milliseconds: 40),
                                             ),
@@ -612,17 +638,27 @@ class QuizAnswerWidget extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        GestureDetector(
-                          child: const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: NextQuizButton(
-                              icon: 'assets/icon/next_arrow.svg',
-                            ),
-                          ),
-                          onTap: () => {
-                            nextButtonClickCallback(),
+                        StreamBuilder<bool>(
+                          stream: _nextButtonStream.stream,
+                          initialData: nextButtonActive,
+                          builder: (BuildContext context,
+                              AsyncSnapshot<bool> snapshot) {
+                            return GestureDetector(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: NextQuizButton(
+                                  icon: 'assets/icon/next_arrow.svg',
+                                  isActive: snapshot.data == true,
+                                ),
+                              ),
+                              onTap: () {
+                                if (snapshot.data == true) {
+                                  widget.nextButtonClickCallback();
+                                }
+                              },
+                            );
                           },
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -633,5 +669,13 @@ class QuizAnswerWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void checkListTilesCompletion() {
+    completedListTiles++;
+    if (completedListTiles == widget.selectedOption.content.length) {
+      nextButtonActive = true;
+      _nextButtonStream.sink.add(nextButtonActive);
+    }
   }
 }

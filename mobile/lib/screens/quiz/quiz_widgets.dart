@@ -337,9 +337,11 @@ class NextQuizButton extends StatelessWidget {
   const NextQuizButton({
     super.key,
     required this.icon,
+    this.isActive = true
   });
 
   final String icon;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -347,8 +349,10 @@ class NextQuizButton extends StatelessWidget {
       height: 65,
       width: 65,
       padding: const EdgeInsets.all(15.0),
-      decoration: const BoxDecoration(
-        color: Color.fromARGB(255, 20, 93, 255),
+      decoration: BoxDecoration(
+        color: isActive
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlue.withOpacity(0.5),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
