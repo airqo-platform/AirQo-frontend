@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import PageMini from '../PageMini';
 import { isEmpty } from 'underscore';
 
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import { useDispatch } from 'react-redux';
 import { usePartnersData } from '../../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../../reduxStore/Partners/operations';

@@ -1,7 +1,7 @@
 import React from 'react'
 import ContactUs from '.';
 import Cards from './cards';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 
 const ContactUsPage = () => {
   useInitScrollTop();
