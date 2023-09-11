@@ -231,6 +231,9 @@ const Sidebar = (props) => {
                 localStorage.setItem('currentUserRole', JSON.stringify(network.role));
               }
             });
+          } else {
+            dispatch(addCurrentUserRole(activeNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
           }
           setLoading(false);
         })
