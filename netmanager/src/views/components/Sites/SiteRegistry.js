@@ -26,15 +26,16 @@ const useStyles = makeStyles((theme) => ({
 
 const SiteRegistry = () => {
   const classes = useStyles();
+  const [refresh, setRefresh] = React.useState(false);
   const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
 
   return (
     <ErrorBoundary>
       <div className={classes.root}>
-        <SiteToolbar />
+        <SiteToolbar setRefresh={() => setRefresh(!refresh)} />
         <UsersListBreadCrumb category="Site Registry" usersTable={`${activeNetwork.net_name}`} />
         <div className={classes.content}>
-          <SitesTable />
+          <SitesTable refresh={refresh} />
         </div>
       </div>
     </ErrorBoundary>

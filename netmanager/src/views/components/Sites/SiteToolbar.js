@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
@@ -10,15 +10,18 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  TextField
+  TextField,
+  CircularProgress
 } from '@material-ui/core';
-import { createSiteApi } from 'views/apis/deviceRegistry';
+import Alert from '@material-ui/lab/Alert';
+import { createSiteApi, createSiteMetaDataApi } from 'views/apis/deviceRegistry';
 import { loadSitesData } from 'redux/SiteRegistry/operations';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from 'utils/objectManipulators';
 import { isEmpty } from 'underscore';
-// horizontal loader
 import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader';
+import IconButton from '@material-ui/core/IconButton';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -45,12 +48,92 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(1),
     fontWeight: 'bold'
   },
-  // for cursor not allowed
   disabled: {
     cursor: 'not-allowed',
     opacity: 0.5
+  },
+  modelWidth: {
+    minWidth: 450,
+    [theme.breakpoints.down('sm')]: {
+      minWidth: '100%'
+    }
+  },
+  confirm_con: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'left'
+  },
+  confirm_field: {
+    margin: theme.spacing(1, 0),
+    fontSize: '14px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  confirm_field_title: {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#000000',
+    marginRight: theme.spacing(2)
   }
 }));
+
+const FormDialog = ({
+  open,
+  handleClose,
+  loading,
+  handleConfirmation,
+  title,
+  children,
+  CTA1,
+  CTA2,
+  showError,
+  errorMessage,
+  disabled
+}) => {
+  return (
+    <Dialog
+      id="site-dialog"
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description">
+      <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
+        {title}
+      </DialogTitle>
+      <DialogContent>
+        {showError &&
+          errorMessage.map((error) => (
+            <Alert style={{ marginBottom: 10 }} severity="error">
+              {errorMessage}
+            </Alert>
+          ))}
+        <div>{children}</div>
+      </DialogContent>
+      <DialogActions>
+        <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
+          {handleClose && (
+            <Button variant="contained" type="button" onClick={handleClose} disabled={disabled}>
+              {CTA1}
+            </Button>
+          )}
+          {handleConfirmation && (
+            <Button
+              disabled={disabled}
+              variant="contained"
+              color="primary"
+              type="submit"
+              onClick={handleConfirmation}
+              style={{ margin: '0 15px' }}>
+              {loading ? <CircularProgress size={24} style={{ color: '#FFCC00' }} /> : CTA2}
+            </Button>
+          )}
+        </Grid>
+        <br />
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const SiteToolbar = (props) => {
   const { className, ...rest } = props;
@@ -76,9 +159,16 @@ const SiteToolbar = (props) => {
   };
 
   const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [siteData, setSiteData] = useState(initSiteData);
+  const [siteMetaData, setSiteMetaData] = useState([]);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState(initErrorData);
-
+  const [Fields, setFields] = useState(['Country', 'District', 'Region', 'Latitude', 'Longitude']);
+  const [isLoading, setIsLoading] = useState(false);
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
 
   const handleSiteClose = () => {
@@ -97,12 +187,20 @@ const SiteToolbar = (props) => {
     return setSiteData({ ...siteData, [key]: event.target.value });
   };
 
-  // for horizontal loader
-  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setShowError(false);
+        setErrorMessage('');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   const handleSiteSubmit = (e) => {
     setIsLoading(true);
     setOpen(false);
+    setDisabled(true);
     if (!isEmpty(userNetworks)) {
       const userNetworksNames = userNetworks.map((network) => network.net_name);
 
@@ -126,7 +224,6 @@ const SiteToolbar = (props) => {
             if (!isEmpty(activeNetwork)) {
               dispatch(loadSitesData(activeNetwork.net_name));
             }
-            handleSiteClose();
             dispatch(
               updateMainAlert({
                 message: `${resData.message}. ${
@@ -138,7 +235,12 @@ const SiteToolbar = (props) => {
                 severity: 'success'
               })
             );
+            setDisabled(false);
+            setConfirm(false);
+            setOpen(false);
             setIsLoading(false);
+            setSiteData(initSiteData);
+            setErrors(initErrorData);
           })
           .catch((error) => {
             const errors = error.response && error.response.data && error.response.data.errors;
@@ -157,10 +259,45 @@ const SiteToolbar = (props) => {
     }
   };
 
+  const handleConfirmation = async () => {
+    const { name, latitude, longitude } = siteData;
+
+    if (!name || !latitude || !longitude) {
+      setErrorMessage(['Please fill all the fields']);
+      setShowError(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const resData = await createSiteMetaDataApi({ latitude, longitude });
+
+      if (resData.success) {
+        setSiteMetaData(resData.metadata);
+        setConfirm(true);
+        setOpen(false);
+      }
+    } catch (error) {
+      setErrorMessage(
+        Array.isArray(error.response.data.errors.message)
+          ? error.response.data.errors.message
+          : [error.response.data.errors.message]
+      );
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setConfirm(false);
+    setOpen(true);
+  };
+
   return (
     <>
       <div {...rest} className={clsx(classes.root, className)}>
-        {/* custome Horizontal loader indicator */}
         <HorizontalLoader
           color="#FFCC00"
           loading={isLoading}
@@ -176,21 +313,21 @@ const SiteToolbar = (props) => {
             type="submit"
             align="centre"
             onClick={() => setOpen(!open)}>
-            {' '}
             Add Site
           </Button>
         </div>
       </div>
-      <Dialog
-        open={open}
-        onClose={handleSiteClose}
-        aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description">
-        <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
-          Add a site
-        </DialogTitle>
-
-        <DialogContent>
+      <>
+        <FormDialog
+          open={open}
+          handleClose={handleSiteClose}
+          handleConfirmation={handleConfirmation}
+          loading={loading}
+          title="Add Site"
+          CTA1="Cancel"
+          CTA2="Create site"
+          showError={showError}
+          errorMessage={errorMessage}>
           <form className={classes.modelWidth}>
             <TextField
               autoFocus
@@ -243,25 +380,43 @@ const SiteToolbar = (props) => {
               disabled
             />
           </form>
-        </DialogContent>
+        </FormDialog>
+        <FormDialog
+          open={confirm}
+          handleClose={handleClose}
+          handleConfirmation={handleSiteSubmit}
+          disabled={disabled}
+          title="Site Confirmation"
+          CTA1="Edit"
+          CTA2="Confirm">
+          <form className={classes.modelWidth}>
+            <div className={classes.confirm_con}>
+              <IconButton
+                style={{ position: 'absolute', right: 0, top: 0, margin: '10px' }}
+                onClick={() =>
+                  window.open(
+                    `https://www.openstreetmap.org/?mlat=${siteMetaData.latitude}&mlon=${siteMetaData.longitude}&zoom=8`,
+                    '_blank'
+                  )
+                }>
+                <LocationOnIcon />
+              </IconButton>
 
-        <DialogActions>
-          <Grid container alignItems="flex-end" alignContent="flex-end" justify="flex-end">
-            <Button variant="contained" type="button" onClick={handleSiteClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              onClick={handleSiteSubmit}
-              style={{ margin: '0 15px' }}>
-              Create Site
-            </Button>
-          </Grid>
-          <br />
-        </DialogActions>
-      </Dialog>
+              {Fields.map((field) => (
+                <div className={classes.confirm_field} key={field}>
+                  <span className={classes.confirm_field_title}>{field}:</span>
+                  <span
+                    style={{
+                      color: field === 'Latitude' || field === 'Longitude' ? 'green' : 'black'
+                    }}>
+                    {siteMetaData[field.toLowerCase()]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </form>
+        </FormDialog>
+      </>
     </>
   );
 };
