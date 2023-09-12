@@ -1,6 +1,7 @@
 import { stripTrailingSlash } from './utils';
 
 const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL);
+const NETMANAGER_BASE_URL = process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v2/', '')
 
 const BASE_AIRQLOUDS_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL
@@ -36,9 +37,7 @@ export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
 // netmanager url
-export const NETMANAGER_URL = stripTrailingSlash(
-  process.env.REACT_NETMANAGER_BASE_URL.replace('/api/v2/', '')
-);
+export const NETMANAGER_URL = NETMANAGER_BASE_URL;
 
 // highlights urls
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;

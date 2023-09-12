@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Page from './Page';
 import Hero from '../components/Hero';
 import Monitor from '../components/Monitor';
@@ -10,7 +10,7 @@ import ApiSection from '../components/ApiSection/ApiSection';
 import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 import HighlightsSection from '../components/HighlightsSection';
-import SEO from 'utils/seo';
+import SEO from 'utilities/seo';
 // import TweetsComponent from '../components/Tweets';
 import ImpactNumbers from '../components/ImpactNumbers';
 

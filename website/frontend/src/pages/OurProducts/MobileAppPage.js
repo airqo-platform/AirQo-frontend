@@ -1,6 +1,6 @@
 import React from 'react';
 import Page from '../Page';
-import { useInitScrollTop } from 'utils/customHooks';
+import { useInitScrollTop } from 'utilities/customHooks';
 import Header from '../../components/OurProducts/Header';
 import HeaderImage from '../../assets/img/OurProducts/MobileApp/mobile-header.png';
 import Section1Image from '../../assets/img/OurProducts/MobileApp/section-1.png';
