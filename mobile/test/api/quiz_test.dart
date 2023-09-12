@@ -351,7 +351,7 @@ Future<void> main() async {
       when(
         client.get(
           Uri.parse(
-              '${AirQoUrls.kya}/lessons?tenant=airqo&TOKEN=${Config.airqoApiV2Token}'),
+              '${AirQoUrls.kya}/quizzes?tenant=airqo&TOKEN=${Config.airqoApiV2Token}'),
           headers: headers,
         ),
       ).thenAnswer(
@@ -364,13 +364,11 @@ Future<void> main() async {
       AirqoApiClient airqoApiClient = AirqoApiClient(client: client);
       List<Quiz> quizzes = await airqoApiClient.fetchQuizzes("");
 
-      expect(quizzes, isA<List<Quiz>>);
-      expect(quizzes.isNotEmpty, true);
-      for (Quiz quiz in quizzes) {
-        expect(quiz.activeQuestion, 1);
-        expect(quiz.status, KyaLessonStatus.todo);
-        expect(quiz.questions.isNotEmpty, true);
-      }
+      expect(quizzes.length, 1); // Expect a single Quiz object
+      Quiz quiz = quizzes[0];
+      expect(quiz.activeQuestion, 1);
+      expect(quiz.status, QuizStatus.todo);
+      expect(quiz.questions.isNotEmpty, true);
     });
   });
 }
