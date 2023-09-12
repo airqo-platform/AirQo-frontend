@@ -472,7 +472,7 @@ class QuizCard extends StatelessWidget {
 }
 
 class QuizAnswerWidget extends StatefulWidget {
-  QuizAnswerWidget(
+  const QuizAnswerWidget(
     this.selectedOption, {
     Key? key,
     required this.quiz,
@@ -488,7 +488,7 @@ class QuizAnswerWidget extends StatefulWidget {
   final bool nextButtonActive;
 
   @override
-  _QuizAnswerWidgetState createState() => _QuizAnswerWidgetState();
+  State<QuizAnswerWidget> createState() => _QuizAnswerWidgetState();
 }
 
 class _QuizAnswerWidgetState extends State<QuizAnswerWidget> {
@@ -645,7 +645,7 @@ class _QuizAnswerWidgetState extends State<QuizAnswerWidget> {
                               AsyncSnapshot<bool> snapshot) {
                             return GestureDetector(
                               child: Padding(
-                                padding: EdgeInsets.all(16.0),
+                                padding: const EdgeInsets.all(16.0),
                                 child: NextQuizButton(
                                   icon: 'assets/icon/next_arrow.svg',
                                   isActive: snapshot.data == true,
