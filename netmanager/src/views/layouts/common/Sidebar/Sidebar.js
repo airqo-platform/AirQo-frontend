@@ -157,9 +157,10 @@ const allUserManagementPages = [
     permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
   },
   {
-    title: 'Organisations',
-    href: '/organisations',
-    icon: <BusinessIcon />
+    title: 'Organisation',
+    href: '/organisation',
+    icon: <BusinessIcon />,
+    disabled: true
   },
   {
     title: 'Users',
@@ -215,7 +216,7 @@ const Sidebar = (props) => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(user) && isEmpty(userNetworks)) {
+    if (!isEmpty(user) || isEmpty(userNetworks)) {
       getUserDetails(user._id)
         .then((res) => {
           dispatch(addUserNetworks(res.users[0].networks));
@@ -231,6 +232,9 @@ const Sidebar = (props) => {
                 localStorage.setItem('currentUserRole', JSON.stringify(network.role));
               }
             });
+          } else {
+            dispatch(addCurrentUserRole(activeNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
           }
           setLoading(false);
         })

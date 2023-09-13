@@ -1,9 +1,12 @@
 import React from 'react'
+import SecondaryNavComponent from '../SecondaryNav';
 
-const Header = () => {
+const HeaderComponent = () => {
   return (
-    <div>CLEAN-Air Network</div>
+    <div>
+      <SecondaryNavComponent/>
+    </div>
   )
 }
 
-export default Header
+export default HeaderComponent;
