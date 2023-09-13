@@ -1,8 +1,5 @@
 import 'dart:async';
-<<<<<<< HEAD
-=======
 
->>>>>>> staging
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
