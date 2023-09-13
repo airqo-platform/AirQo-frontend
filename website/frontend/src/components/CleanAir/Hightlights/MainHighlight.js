@@ -20,7 +20,7 @@ const Highlight = () => {
               title={
                 'How we’re measuring air quality in Kampala - and why it works for African cities'
               }
-              url={'https://www.nilepost.co.ug/2021/03/01/clean-air-network-africa-cana-launch/'}
+              url={null}
             />
           </div>
         </div>
