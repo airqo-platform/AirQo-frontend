@@ -159,7 +159,8 @@ const allUserManagementPages = [
   {
     title: 'Organisation',
     href: '/organisation',
-    icon: <BusinessIcon />
+    icon: <BusinessIcon />,
+    disabled: true
   },
   {
     title: 'Users',
@@ -215,7 +216,7 @@ const Sidebar = (props) => {
   useEffect(() => {
     setLoading(true);
     const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-    if (!isEmpty(user) && isEmpty(userNetworks)) {
+    if (!isEmpty(user) || isEmpty(userNetworks)) {
       getUserDetails(user._id)
         .then((res) => {
           dispatch(addUserNetworks(res.users[0].networks));
@@ -231,6 +232,9 @@ const Sidebar = (props) => {
                 localStorage.setItem('currentUserRole', JSON.stringify(network.role));
               }
             });
+          } else {
+            dispatch(addCurrentUserRole(activeNetwork.role));
+            localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
           }
           setLoading(false);
         })
@@ -307,8 +311,7 @@ const Sidebar = (props) => {
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
+      variant={variant}>
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />

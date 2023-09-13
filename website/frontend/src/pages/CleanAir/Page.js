@@ -1,12 +1,13 @@
 import React from 'react';
-import TopBarNav from 'src/components/CleanAir/TopBarNav';
-import Footer from 'src/components/Footer';
+import TopBarNav from '../../components/CleanAir/TopBarNav';
 
 const CleanAirPageContainer = ({ children }) => {
   return (
     <div className="Page Clean-air-page">
-      <TopBarNav />
+      <TopBar />
+      <HeaderComponent />
       <div className="page-wrapper page-container">{children}</div>
+      <BottomCTAs />
       <Footer />
     </div>
   );

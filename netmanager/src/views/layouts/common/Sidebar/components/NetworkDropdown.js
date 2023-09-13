@@ -99,7 +99,6 @@ export default function NetworkDropdown({ userNetworks }) {
     dispatch(fetchNetworkUsers(network._id));
     dispatch(fetchAvailableNetworkUsers(network._id));
     dispatch(loadUserRoles(network._id));
-    dispatch(addActiveNetwork(network));
     handleClose();
     window.location.reload();
   };

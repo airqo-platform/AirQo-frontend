@@ -6,6 +6,8 @@ import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import '../offline_banner.dart';
 import 'package:flutter_svg/svg.dart';
 
 class KyaFinalPage extends StatefulWidget {
@@ -22,7 +24,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
+      child: OfflineBanner(
+          child: Scaffold(
         appBar: AppBar(
           elevation: 0,
           toolbarHeight: 0,
@@ -89,7 +92,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 
