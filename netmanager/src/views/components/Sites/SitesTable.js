@@ -23,12 +23,10 @@ import HorizontalLoader from 'views/components/HorizontalLoader/HorizontalLoader
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
 
-const SitesTable = () => {
+const SitesTable = ({ refresh, setRefresh }) => {
   const history = useHistory();
   const dispatch = useDispatch();
   const sites = useSitesSummaryData();
-
-  // for horizontal loader
   const [loading, setLoading] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -37,14 +35,15 @@ const SitesTable = () => {
 
   useEffect(() => {
     //code to retrieve all locations data
-    if (isEmpty(sites)) {
+    if (isEmpty(sites) || refresh) {
       setIsLoading(true);
       if (!isEmpty(activeNetwork)) {
         dispatch(loadSitesSummary(activeNetwork.net_name));
       }
       setIsLoading(false);
+      setRefresh(false);
     }
-  }, []);
+  }, [refresh]);
 
   const handleDeleteSite = (e) => {
     setDelState({ open: false, name: '', id: '' });
@@ -79,7 +78,6 @@ const SitesTable = () => {
 
   return (
     <>
-      {/* custome Horizontal loader indicator */}
       <HorizontalLoader loading={loading} />
       <LoadingOverlay active={isLoading} spinner text="Loading Locations...">
         <CustomMaterialTable

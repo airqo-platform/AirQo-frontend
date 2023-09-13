@@ -80,6 +80,7 @@ const useStyles = makeStyles((theme) => ({
 
 const FormDialog = ({
   open,
+  modelClose,
   handleClose,
   loading,
   handleConfirmation,
@@ -95,7 +96,7 @@ const FormDialog = ({
     <Dialog
       id="site-dialog"
       open={open}
-      onClose={handleClose}
+      onBackdropClick={modelClose}
       aria-labelledby="form-dialog-title"
       aria-describedby="form-dialog-description">
       <DialogTitle id="form-dialog-title" style={{ textTransform: 'uppercase' }}>
@@ -136,7 +137,7 @@ const FormDialog = ({
 };
 
 const SiteToolbar = (props) => {
-  const { className, ...rest } = props;
+  const { className, setRefresh, ...rest } = props;
 
   const classes = useStyles();
 
@@ -170,6 +171,7 @@ const SiteToolbar = (props) => {
   const [Fields, setFields] = useState(['Country', 'District', 'Region', 'Latitude', 'Longitude']);
   const [isLoading, setIsLoading] = useState(false);
   const userNetworks = JSON.parse(localStorage.getItem('userNetworks')) || [];
+  const mapview = process.env.REACT_APP_MAP_PREVIEW;
 
   const handleSiteClose = () => {
     setOpen(false);
@@ -197,66 +199,72 @@ const SiteToolbar = (props) => {
     }
   }, [errorMessage]);
 
-  const handleSiteSubmit = (e) => {
+  const handleSiteSubmit = async (e) => {
     setIsLoading(true);
     setOpen(false);
     setDisabled(true);
-    if (!isEmpty(userNetworks)) {
-      const userNetworksNames = userNetworks.map((network) => network.net_name);
 
-      if (!userNetworksNames.includes(siteData.network)) {
-        dispatch(
-          updateMainAlert({
-            message: `You are not a member of the ${siteData.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
-            show: true,
-            severity: 'error'
-          })
-        );
+    if (isEmpty(userNetworks)) return;
 
-        setSiteData(initSiteData);
-        setErrors(initErrorData);
-        setIsLoading(false);
-        return;
-      } else {
-        createSiteApi(siteData)
-          .then((resData) => {
-            const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
-            if (!isEmpty(activeNetwork)) {
-              dispatch(loadSitesData(activeNetwork.net_name));
-            }
-            dispatch(
-              updateMainAlert({
-                message: `${resData.message}. ${
-                  siteData.network !== activeNetwork.net_name
-                    ? `Switch to the ${siteData.network} organisation to see the new device.`
-                    : ''
-                }`,
-                show: true,
-                severity: 'success'
-              })
-            );
-            setDisabled(false);
-            setConfirm(false);
-            setOpen(false);
-            setIsLoading(false);
-            setSiteData(initSiteData);
-            setErrors(initErrorData);
-          })
-          .catch((error) => {
-            const errors = error.response && error.response.data && error.response.data.errors;
-            setErrors(errors || initErrorData);
-            dispatch(
-              updateMainAlert({
-                message: error.response && error.response.data && error.response.data.message,
-                show: true,
-                severity: 'error',
-                extra: createAlertBarExtraContentFromObject(errors || {})
-              })
-            );
-            setIsLoading(false);
-          });
-      }
+    const userNetworksNames = userNetworks.map((network) => network.net_name);
+
+    if (!userNetworksNames.includes(siteData.network)) {
+      dispatch(
+        updateMainAlert({
+          message: `You are not a member of the ${siteData.network} organisation. Only members of the org can add devices to it. Contact support if you think this is a mistake.`,
+          show: true,
+          severity: 'error'
+        })
+      );
+      resetForm();
+      return;
     }
+
+    try {
+      const resData = await createSiteApi(siteData);
+      const activeNetwork = JSON.parse(localStorage.getItem('activeNetwork'));
+
+      if (!isEmpty(activeNetwork)) {
+        dispatch(loadSitesData(activeNetwork.net_name));
+      }
+
+      dispatch(
+        updateMainAlert({
+          message: `${resData.message}. ${
+            siteData.network !== activeNetwork.net_name
+              ? `Switch to the ${siteData.network} organisation to see the new device.`
+              : ''
+          }`,
+          show: true,
+          severity: 'success'
+        })
+      );
+
+      setRefresh();
+    } catch (error) {
+      const errors = error.response?.data?.errors;
+      setErrors(errors || initErrorData);
+
+      dispatch(
+        updateMainAlert({
+          message: error.response?.data?.message,
+          show: true,
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject(errors || {})
+        })
+      );
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setDisabled(false);
+    setConfirm(false);
+    setOpen(false);
+    setIsLoading(false);
+    setSiteData(initSiteData);
+    setErrors(initErrorData);
   };
 
   const handleConfirmation = async () => {
@@ -290,9 +298,21 @@ const SiteToolbar = (props) => {
     }
   };
 
+  const openMap = (siteMetaData) => {
+    window.open(
+      `${mapview}/?mlat=${siteMetaData.latitude}&mlon=${siteMetaData.longitude}&zoom=8`,
+      '_blank'
+    );
+  };
+
   const handleClose = () => {
     setConfirm(false);
     setOpen(true);
+  };
+
+  const handleModelClose = () => {
+    setConfirm(false);
+    setOpen(false);
   };
 
   return (
@@ -320,6 +340,7 @@ const SiteToolbar = (props) => {
       <>
         <FormDialog
           open={open}
+          modelClose={handleModelClose}
           handleClose={handleSiteClose}
           handleConfirmation={handleConfirmation}
           loading={loading}
@@ -384,6 +405,7 @@ const SiteToolbar = (props) => {
         <FormDialog
           open={confirm}
           handleClose={handleClose}
+          modelClose={handleModelClose}
           handleConfirmation={handleSiteSubmit}
           disabled={disabled}
           title="Site Confirmation"
@@ -393,12 +415,9 @@ const SiteToolbar = (props) => {
             <div className={classes.confirm_con}>
               <IconButton
                 style={{ position: 'absolute', right: 0, top: 0, margin: '10px' }}
-                onClick={() =>
-                  window.open(
-                    `https://www.openstreetmap.org/?mlat=${siteMetaData.latitude}&mlon=${siteMetaData.longitude}&zoom=8`,
-                    '_blank'
-                  )
-                }>
+                onClick={() => {
+                  openMap(siteMetaData);
+                }}>
                 <LocationOnIcon />
               </IconButton>
 
