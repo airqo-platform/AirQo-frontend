@@ -324,11 +324,13 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
 class KyaDashboardAvatar extends StatelessWidget {
   const KyaDashboardAvatar({
     super.key,
-    required this.kya,
+    this.lesson,
+    this.quiz,
     required this.rightPadding,
   });
-  final KyaLesson kya;
+  final KyaLesson? lesson;
   final double rightPadding;
+  final Quiz? quiz;
 
   @override
   Widget build(BuildContext context) {
@@ -350,11 +352,15 @@ class KyaDashboardAvatar extends StatelessWidget {
           image: DecorationImage(
             fit: BoxFit.cover,
             image: CachedNetworkImageProvider(
-              kya.imageUrl,
-              cacheKey: kya.imageUrlCacheKey(),
+              lesson != null ? lesson!.imageUrl : quiz!.imageUrl,
+              cacheKey: lesson != null
+                  ? lesson!.imageUrlCacheKey()
+                  : quiz!.imageUrlCacheKey(),
               cacheManager: CacheManager(
                 CacheService.cacheConfig(
-                  kya.imageUrlCacheKey(),
+                  lesson != null
+                      ? lesson!.imageUrlCacheKey()
+                      : quiz!.imageUrlCacheKey(),
                 ),
               ),
             ),
@@ -365,11 +371,13 @@ class KyaDashboardAvatar extends StatelessWidget {
   }
 }
 
-List<Widget> completeKyaWidgets(List<KyaLesson> completeKya) {
+List<Widget> completeKyaWidgets(
+    List<KyaLesson> completeLessons, List<Quiz> completeQuizzes) {
   final widgets = <Widget>[];
-
   try {
-    switch (completeKya.length) {
+    final length = completeLessons.length + completeQuizzes.length;
+    double padding = 0;
+    switch (length) {
       case 0:
         widgets.add(
           SvgPicture.asset(
@@ -377,26 +385,21 @@ List<Widget> completeKyaWidgets(List<KyaLesson> completeKya) {
           ),
         );
         break;
-      case 1:
-        widgets.add(
-          KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first),
-        );
-        break;
-      case 2:
-        widgets
-          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
-          ..add(
-            KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]),
-          );
-        break;
       default:
-        if (completeKya.length >= 3) {
-          widgets
-            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
-            ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
-            ..add(
-              KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]),
-            );
+        for (int totalLength = 0, index = 0; index < 3; index++) {
+          if (completeLessons.length > index) {
+            widgets.add(KyaDashboardAvatar(
+                rightPadding: padding, lesson: completeLessons[index]));
+            totalLength++;
+            padding = padding + 7;
+          }
+
+          if (completeQuizzes.length > index && totalLength < 3) {
+            widgets.add(KyaDashboardAvatar(
+                rightPadding: padding, quiz: completeQuizzes[index]));
+            totalLength++;
+            padding = padding + 7;
+          }
         }
         break;
     }

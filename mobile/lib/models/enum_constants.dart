@@ -16,6 +16,15 @@ enum AuthenticationStatus {
   success;
 }
 
+enum QuizStatus {
+  @JsonValue("TODO")
+  todo,
+  @JsonValue("IN_PROGRESS")
+  inProgress,
+  @JsonValue("COMPLETE")
+  complete;
+}
+
 enum KyaLessonStatus {
   @JsonValue("TODO")
   todo,
