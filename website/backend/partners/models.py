@@ -14,6 +14,8 @@ class Partner(BaseModel):
         Policy = "policy", "Policy"
         Funder = "funder", "Funder"
         Research = "research", "Research"
+        Network = "network", "Network Partner"
+        Support = "support", "Supporting Partner"
 
     partner_image = CloudinaryField("PartnerImage", overwrite=True, resource_type="image", null=True, blank=True)
     partner_logo = CloudinaryField("PartnerLogo", overwrite=True, resource_type="image")
@@ -23,6 +25,14 @@ class Partner(BaseModel):
     unique_title = models.CharField(max_length=100, null=True, blank=True)
     type = models.CharField(
         max_length=40, default=RelationTypes.Partnership, choices=RelationTypes.choices, null=True, blank=True
+    )
+
+    class WebsiteCategory(models.TextChoices):
+        AirQo = "airqo", "AirQo"
+        CleanAir = "cleanair", "CleanAir"
+
+    website_category = models.CharField(
+        max_length=40, default=WebsiteCategory.AirQo, choices=WebsiteCategory.choices, null=True, blank=True
     )
 
     class Meta:
