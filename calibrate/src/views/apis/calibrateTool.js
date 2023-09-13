@@ -4,7 +4,7 @@ import {
   TRAIN_CALIBRATE_TOOL_URL,
 } from "../../configs/urls";
 
-const BASE_AUTH_TOKEN = process.env.REACT_APP_AUTH_TOKEN;
+axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
 export const calibrateDataApi = async (data) => {
   return await axios
@@ -13,9 +13,6 @@ export const calibrateDataApi = async (data) => {
       method: "POST",
       data: data,
       headers: { "Content-Type": "multipart/form-data" },
-      params: {
-        token: BASE_AUTH_TOKEN,
-      },
       responseType: "blob", //important
     })
 
@@ -30,9 +27,6 @@ export const trainAndCalibrateDataApi = async (data) => {
       method: "POST",
       data: data,
       headers: { "Content-Type": "multipart/form-data" },
-      params: {
-        token: BASE_AUTH_TOKEN,
-      },
       responseType: "blob", //important
     })
     .then((response) => response.data)
