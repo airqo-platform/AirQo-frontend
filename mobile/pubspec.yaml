@@ -74,6 +74,8 @@ dependencies:
   home_widget: ^0.3.0
   geocoding: ^2.1.0
   rating_dialog: ^2.0.4
+  confetti: ^0.7.0
+  animated_text_kit: ^4.2.2
   connectivity_plus: ^4.0.2
 
   # Drift previous database => airqo_app_db.sqlite
