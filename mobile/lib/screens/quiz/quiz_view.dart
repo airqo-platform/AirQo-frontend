@@ -587,7 +587,7 @@ class _QuizAnswerWidgetState extends State<QuizAnswerWidget> {
                           child: ListView.builder(
                             itemCount: widget.selectedOption.content.length,
                             itemBuilder: (context, index) {
-                              final delay = Duration(seconds: 4 * index);
+                              final delay = Duration(seconds: 3 * index);
 
                               return Padding(
                                 padding:
@@ -613,7 +613,7 @@ class _QuizAnswerWidgetState extends State<QuizAnswerWidget> {
                                           onTap: () {
                                             checkListTilesCompletion();
                                           },
-                                          displayFullTextOnTap: true,
+                                          //displayFullTextOnTap: true,
                                           totalRepeatCount: 1,
                                           animatedTexts: [
                                             TypewriterAnimatedText(
